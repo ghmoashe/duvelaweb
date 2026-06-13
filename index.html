@@ -1551,12 +1551,12 @@
     <p class="login-sub">Choose how you want to enter the academy</p>
 
     <div class="role-grid" id="roleGrid">
-      <button class="role-opt sel" data-role="learner">
-        <span class="role-ic" style="background:#EDE6FF">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#683FDC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3.33 1.67 8.67 1.67 12 0v-5"/></svg>
+      <button class="role-opt sel" data-role="organizer">
+        <span class="role-ic" style="background:#FFE6F4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C026D3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </span>
-        <b>Learner</b>
-        <span>Watch, practice &amp; learn</span>
+        <b>Organizer</b>
+        <span>Create events &amp; meetups</span>
       </button>
       <button class="role-opt" data-role="teacher">
         <span class="role-ic" style="background:#E2F8F1">
@@ -1564,13 +1564,6 @@
         </span>
         <b>Teacher</b>
         <span>Publish videos &amp; go LIVE</span>
-      </button>
-      <button class="role-opt" data-role="organizer">
-        <span class="role-ic" style="background:#FFE6F4">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C026D3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </span>
-        <b>Organizer</b>
-        <span>Create events &amp; meetups</span>
       </button>
       <button class="role-opt" data-role="admin">
         <span class="role-ic" style="background:#FFF3DC">
@@ -1662,8 +1655,8 @@
   const roleGrid = document.getElementById('roleGrid');
   const loginSubmit = document.getElementById('loginSubmit');
   const loginNote = document.getElementById('loginNote');
-  const roleKeys = { learner: 'roleLearner', teacher: 'roleTeacher', organizer: 'roleOrganizer', admin: 'roleAdmin' };
-  let currentRole = 'learner';
+  const roleKeys = { teacher: 'roleTeacher', organizer: 'roleOrganizer', admin: 'roleAdmin' };
+  let currentRole = 'organizer';
   function refreshLoginSubmit() {
     loginSubmit.textContent = dict.signInAs.replace('{role}', dict[roleKeys[currentRole]]);
   }
@@ -1815,7 +1808,6 @@
     ['.foot-bottom > span', 'footCopy'],
     ['#loginTitle', 'loginTitle'],
     ['.login-sub', 'loginSub'],
-    ['.role-opt[data-role="learner"] b', 'roleLearner'], ['.role-opt[data-role="learner"] > span:last-child', 'roleLearnerD'],
     ['.role-opt[data-role="teacher"] b', 'roleTeacher'], ['.role-opt[data-role="teacher"] > span:last-child', 'roleTeacherD'],
     ['.role-opt[data-role="organizer"] b', 'roleOrganizer'], ['.role-opt[data-role="organizer"] > span:last-child', 'roleOrganizerD'],
     ['.role-opt[data-role="admin"] b', 'roleAdmin'], ['.role-opt[data-role="admin"] > span:last-child', 'roleAdminD'],
