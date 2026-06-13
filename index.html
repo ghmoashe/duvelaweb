@@ -144,6 +144,15 @@
     transition: .25s; cursor: pointer;
   }
   .nav-signin:hover { border-color: var(--purple); background: var(--lav-soft); }
+  .nav-signin-mob {
+    display: none; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 999px; flex-shrink: 0;
+    background: #fff; border: 1.5px solid #DCD3F4; cursor: pointer;
+    color: var(--purple); transition: .25s; padding: 0;
+    font-family: inherit;
+  }
+  .nav-signin-mob svg { width: 18px; height: 18px; }
+  .nav-signin-mob:hover { border-color: var(--purple); background: var(--lav-soft); }
 
   /* ── Video section (placeholder until the official video is ready) ── */
   .video-sec { padding: 46px 0 0; }
@@ -688,6 +697,19 @@
     .apps-grid { grid-template-columns: 1fr; }
     .foot-inner { grid-template-columns: 1fr 1fr; }
   }
+  @media (max-width: 500px) {
+    .nav { padding: 0 10px; margin-top: 10px; }
+    .nav-inner { padding: 8px 8px 8px 14px; gap: 6px; }
+    .logo-img { height: 34px; }
+    /* language: flag only */
+    #langBtnCode, .lang-btn-arrow { display: none; }
+    .lang-btn { padding: 7px 9px; }
+    /* sign-in: icon only */
+    .nav-signin { display: none; }
+    .nav-signin-mob { display: inline-flex; }
+    /* CTA: compact */
+    .nav-cta { padding: 10px 16px; font-size: 13px; }
+  }
   @media (max-width: 620px) {
     .feat-grid, .steps { grid-template-columns: 1fr; }
     .stats-card { grid-template-columns: 1fr 1fr; row-gap: 22px; }
@@ -870,6 +892,9 @@
         <ul class="lang-menu" id="langMenu" role="listbox"></ul>
       </div>
       <a class="nav-signin" id="openLogin">Sign In</a>
+      <button class="nav-signin-mob" id="openLoginMob" aria-label="Sign In">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </button>
       <a class="nav-cta" href="#apps">Get the App ↓</a>
     </div>
   </div>
@@ -1655,6 +1680,7 @@
     loginNote.classList.remove('show');
   }
   document.getElementById('openLogin').addEventListener('click', openLogin);
+  document.getElementById('openLoginMob').addEventListener('click', openLogin);
   document.getElementById('closeLogin').addEventListener('click', closeLogin);
   document.getElementById('loginGetApp').addEventListener('click', closeLogin);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeLogin(); });
@@ -2009,6 +2035,7 @@
   );
 
   const openLoginBtn = document.getElementById('openLogin');
+  const openLoginMobBtn = document.getElementById('openLoginMob');
 
   function setNavUser(user) {
     const initial = (user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase();
@@ -2020,12 +2047,18 @@
       `${name}</span>`;
     openLoginBtn.title = 'Click to sign out';
     openLoginBtn.onclick = async (e) => { e.stopImmediatePropagation(); await supa.auth.signOut(); };
+    openLoginMobBtn.innerHTML =
+      `<span style="width:22px;height:22px;border-radius:99px;background:var(--grad);` +
+      `display:grid;place-items:center;color:#fff;font-size:10px;font-weight:900">${initial}</span>`;
+    openLoginMobBtn.onclick = async (e) => { e.stopImmediatePropagation(); await supa.auth.signOut(); };
   }
 
   function setNavGuest() {
     openLoginBtn.innerHTML = dict.signIn || 'Sign In';
     openLoginBtn.title = '';
     openLoginBtn.onclick = null;
+    openLoginMobBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+    openLoginMobBtn.onclick = null;
   }
 
   supa.auth.onAuthStateChange((event, session) => {
