@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index,follow">
+  <title>Legal — Duvela</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./legal/legal.css">
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: Nunito, system-ui, sans-serif; }
+  </style>
+</head>
+<body class="legal-shell">
+  <header class="legal-nav">
+    <div class="legal-nav-inner">
+      <a class="legal-brand" href="./index.html">
+        <span class="legal-brand-mark">D</span>
+        <span>Duvela</span>
+      </a>
+      <select class="legal-language" id="legalLanguage" aria-label="Language"></select>
+    </div>
+  </header>
+  <main class="legal-main">
+    <nav class="legal-tabs" aria-label="Legal documents">
+      <a class="legal-tab" data-legal-kind="privacy"></a>
+      <a class="legal-tab" data-legal-kind="impressum"></a>
+      <a class="legal-tab" data-legal-kind="terms"></a>
+      <button class="legal-cookie-button" type="button" id="legalCookieSettings"></button>
+    </nav>
+    <article class="legal-card" id="legalContent"></article>
+  </main>
+  <script src="./locales/web-locales.js"></script>
+  <script src="./legal/legal-content.js"></script>
+  <script src="./legal/consent.js"></script>
+  <script src="./legal/legal-page.js"></script>
+</body>
+</html>

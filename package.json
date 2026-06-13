@@ -1,0 +1,9 @@
+{
+  "name": "duvela-web",
+  "private": true,
+  "scripts": {
+    "check": "npm run check:i18n",
+    "check:i18n": "node ./scripts/check-i18n.js",
+    "import:legal": "node ./scripts/import-legal-content.js"
+  }
+}
