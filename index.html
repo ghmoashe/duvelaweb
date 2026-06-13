@@ -1572,6 +1572,13 @@
         <b>Administrator</b>
         <span>Manage the platform</span>
       </button>
+      <button class="role-opt" data-role="organization">
+        <span class="role-ic" style="background:#E0F0FF">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        </span>
+        <b>Organization</b>
+        <span>Partner &amp; corporate access</span>
+      </button>
     </div>
 
     <button class="google-btn" type="button" id="googleSignIn">
@@ -1655,7 +1662,7 @@
   const roleGrid = document.getElementById('roleGrid');
   const loginSubmit = document.getElementById('loginSubmit');
   const loginNote = document.getElementById('loginNote');
-  const roleKeys = { teacher: 'roleTeacher', organizer: 'roleOrganizer', admin: 'roleAdmin' };
+  const roleKeys = { organizer: 'roleOrganizer', teacher: 'roleTeacher', admin: 'roleAdmin', organization: 'roleOrganization' };
   let currentRole = 'organizer';
   function refreshLoginSubmit() {
     loginSubmit.textContent = dict.signInAs.replace('{role}', dict[roleKeys[currentRole]]);
@@ -1808,9 +1815,10 @@
     ['.foot-bottom > span', 'footCopy'],
     ['#loginTitle', 'loginTitle'],
     ['.login-sub', 'loginSub'],
-    ['.role-opt[data-role="teacher"] b', 'roleTeacher'], ['.role-opt[data-role="teacher"] > span:last-child', 'roleTeacherD'],
     ['.role-opt[data-role="organizer"] b', 'roleOrganizer'], ['.role-opt[data-role="organizer"] > span:last-child', 'roleOrganizerD'],
+    ['.role-opt[data-role="teacher"] b', 'roleTeacher'], ['.role-opt[data-role="teacher"] > span:last-child', 'roleTeacherD'],
     ['.role-opt[data-role="admin"] b', 'roleAdmin'], ['.role-opt[data-role="admin"] > span:last-child', 'roleAdminD'],
+    ['.role-opt[data-role="organization"] b', 'roleOrganization'], ['.role-opt[data-role="organization"] > span:last-child', 'roleOrganizationD'],
     ['#loginFoot1', 'loginFoot1'],
     ['#loginGetApp', 'loginFootLink'],
     ['#loginFoot2', 'loginFoot2'],
