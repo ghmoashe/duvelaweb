@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duvela LIVE — join the lesson</title>
+<meta name="description" content="A teacher is LIVE on Duvela right now. Open the app to join the lesson.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🔴 LIVE now on Duvela">
+<meta property="og:description" content="A teacher is live right now — tap to join the lesson.">
+<meta property="og:image" content="./logo2.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, #1E1632, #2C1D53);
+    color: #fff; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .card {
+    max-width: 400px; width: 100%; text-align: center;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px; padding: 32px 24px;
+  }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #EF4444; color: #fff; font-weight: 800; font-size: 13px;
+    padding: 6px 12px; border-radius: 999px; margin-bottom: 18px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  h1 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+  p { color: #C9BEF5; font-size: 15px; line-height: 1.5; margin-bottom: 24px; }
+  .btn {
+    display: block; width: 100%; padding: 15px; border-radius: 16px;
+    font-size: 16px; font-weight: 800; text-decoration: none; margin-bottom: 12px;
+  }
+  .btn-primary { background: #7C3AED; color: #fff; }
+  .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+  .logo { width: 56px; height: 56px; border-radius: 16px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="./logo2.png" alt="Duvela">
+    <div class="live-badge"><span class="dot"></span> LIVE</div>
+    <h1 id="title">A teacher is live on Duvela</h1>
+    <p id="subtitle">Open the app to join the lesson.</p>
+    <a class="btn btn-primary" id="openApp" href="#">Open Duvela</a>
+    <a class="btn btn-secondary" href="./index.html">Get the Duvela app</a>
+  </div>
+<script>
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var sessionId = params.get('s') || '';
+    var teacher = params.get('t') || '';
+    var app = params.get('app') === 'business' ? 'duvelabusiness' : 'duvelahub';
+    if (teacher) {
+      document.getElementById('title').textContent = teacher + ' is live on Duvela';
+    }
+    // Deep link into the app's live tab; falls back to the marketing page.
+    var deepLink = app + '://native/live-stream?mode=student'
+      + (sessionId ? '&session=' + encodeURIComponent(sessionId) : '');
+    var openApp = document.getElementById('openApp');
+    openApp.href = deepLink;
+    function tryOpen() {
+      window.location.href = deepLink;
+      // If the app is not installed, nothing happens; the buttons stay visible.
+    }
+    openApp.addEventListener('click', function (e) {
+      e.preventDefault();
+      tryOpen();
+    });
+    // Auto-attempt once on load (mobile browsers only follow this on a gesture
+    // in some cases, so the explicit button remains the reliable path).
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      setTimeout(tryOpen, 400);
+    }
+  })();
+</script>
+</body>
+</html>
