@@ -1551,7 +1551,14 @@
     <p class="login-sub">Choose how you want to enter the academy</p>
 
     <div class="role-grid" id="roleGrid">
-      <button class="role-opt sel" data-role="organizer">
+      <button class="role-opt sel" data-role="learner">
+        <span class="role-ic" style="background:#F0E9FF">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#683FDC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 012-2h12a2 2 0 012 2v14.5"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M8 7h8"/><path d="M8 11h5"/></svg>
+        </span>
+        <b>Learner</b>
+        <span>Watch, practice &amp; learn</span>
+      </button>
+      <button class="role-opt" data-role="organizer">
         <span class="role-ic" style="background:#FFE6F4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C026D3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </span>
@@ -1587,6 +1594,11 @@
     </button>
     <div class="or-divider"><span>or</span></div>
 
+    <div id="authTabs" style="display:flex;gap:8px;margin-bottom:12px">
+      <button type="button" id="tabSignin" style="flex:1;padding:10px;border-radius:12px;border:1px solid var(--purple);background:var(--purple);color:#fff;font-weight:900;cursor:pointer;font-size:14px">Sign in</button>
+      <button type="button" id="tabSignup" style="flex:1;padding:10px;border-radius:12px;border:1px solid #E4D9FF;background:#fff;color:var(--purple);font-weight:900;cursor:pointer;font-size:14px">Create account</button>
+    </div>
+
     <form class="login-form" id="loginForm">
       <input class="login-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email" required>
       <div class="pass-wrap">
@@ -1595,12 +1607,15 @@
           <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
+      <div class="pass-wrap" id="confirmWrap" style="display:none">
+        <input class="login-input" type="password" id="loginConfirm" placeholder="Confirm password" autocomplete="new-password">
+      </div>
       <a href="#" class="forgot-link" id="forgotPass">Forgot password?</a>
       <button class="login-submit" type="submit" id="loginSubmit">Sign In as Learner</button>
       <div class="login-note" id="loginNote"></div>
     </form>
 
-    <p class="login-foot"><span id="loginFoot1">No account yet?</span> <a href="#apps" id="loginGetApp">Download the app</a> <span id="loginFoot2">to register.</span></p>
+    <p class="login-foot" id="loginFootWrap"><span id="loginFoot1">No account yet?</span> <a href="#" id="loginGetApp">Create an account</a></p>
   </div>
 </div>
 
@@ -1662,11 +1677,67 @@
   const roleGrid = document.getElementById('roleGrid');
   const loginSubmit = document.getElementById('loginSubmit');
   const loginNote = document.getElementById('loginNote');
-  const roleKeys = { organizer: 'roleOrganizer', teacher: 'roleTeacher', admin: 'roleAdmin', organization: 'roleOrganization' };
-  let currentRole = 'organizer';
+  const WEB_ROLE_KEY = 'duvela.webRole';
+  const AUTH_FLOW_KEY = 'duvela.webAuthInProgress';
+  const roleKeys = { learner: 'roleLearner', organizer: 'roleOrganizer', teacher: 'roleTeacher', admin: 'roleAdmin', organization: 'roleOrganization' };
+  let currentRole = localStorage.getItem(WEB_ROLE_KEY) || 'learner';
+  let signedInUser = null;
+  let authMode = 'signin';
+  if (!roleKeys[currentRole]) currentRole = 'learner';
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const confirmWrap = document.getElementById('confirmWrap');
+  const forgotPassLink = document.getElementById('forgotPass');
+  const loginFootWrap = document.getElementById('loginFootWrap');
   function refreshLoginSubmit() {
-    loginSubmit.textContent = dict.signInAs.replace('{role}', dict[roleKeys[currentRole]]);
+    const roleName = dict[roleKeys[currentRole]] || currentRole;
+    if (authMode === 'signup') {
+      loginSubmit.textContent = (dict.signUpAs || 'Create account as {role}').replace('{role}', roleName);
+    } else {
+      loginSubmit.textContent = dict.signInAs.replace('{role}', roleName);
+    }
   }
+  function setAuthMode(mode) {
+    authMode = mode === 'signup' ? 'signup' : 'signin';
+    const activeStyle = 'flex:1;padding:10px;border-radius:12px;border:1px solid var(--purple);background:var(--purple);color:#fff;font-weight:900;cursor:pointer;font-size:14px';
+    const idleStyle = 'flex:1;padding:10px;border-radius:12px;border:1px solid #E4D9FF;background:#fff;color:var(--purple);font-weight:900;cursor:pointer;font-size:14px';
+    tabSignin.setAttribute('style', authMode === 'signin' ? activeStyle : idleStyle);
+    tabSignup.setAttribute('style', authMode === 'signup' ? activeStyle : idleStyle);
+    confirmWrap.style.display = authMode === 'signup' ? 'block' : 'none';
+    document.getElementById('loginConfirm').required = authMode === 'signup';
+    forgotPassLink.style.display = authMode === 'signup' ? 'none' : 'block';
+    loginFootWrap.style.display = authMode === 'signup' ? 'none' : 'block';
+    document.getElementById('loginPassword').setAttribute('autocomplete', authMode === 'signup' ? 'new-password' : 'current-password');
+    loginNote.classList.remove('show');
+    refreshLoginSubmit();
+  }
+  tabSignin.addEventListener('click', () => setAuthMode('signin'));
+  tabSignup.addEventListener('click', () => setAuthMode('signup'));
+  function appUrl(role, hash = '#home') {
+    const selectedRole = role || currentRole || 'learner';
+    const url = new URL('./app.html', window.location.href);
+    url.searchParams.set('role', selectedRole);
+    url.hash = hash && hash.startsWith('#') ? hash : '#home';
+    return url.href;
+  }
+  function goToWebApp(role, hash) {
+    localStorage.setItem(WEB_ROLE_KEY, role || currentRole || 'learner');
+    window.location.href = appUrl(role, hash);
+  }
+  function configureWebAppLinks() {
+    document.querySelectorAll('.app-hub .store-btn').forEach((link) => { link.href = appUrl('learner', '#home'); });
+    document.querySelectorAll('.app-biz .store-btn').forEach((link) => { link.href = appUrl('teacher', '#workspace'); });
+    document.querySelectorAll('.tch-btn-big').forEach((link) => { link.href = appUrl('teacher', '#workspace'); });
+    const footBiz = document.querySelector('.foot-inner > div:nth-child(3) a:nth-of-type(1)');
+    if (footBiz) footBiz.href = appUrl('teacher', '#home');
+    const footLive = document.querySelector('.foot-inner > div:nth-child(3) a:nth-of-type(2)');
+    if (footLive) footLive.href = appUrl('teacher', '#live');
+    const footCourses = document.querySelector('.foot-inner > div:nth-child(3) a:nth-of-type(3)');
+    if (footCourses) footCourses.href = appUrl('teacher', '#courses');
+    const footAnalytics = document.querySelector('.foot-inner > div:nth-child(3) a:nth-of-type(4)');
+    if (footAnalytics) footAnalytics.href = appUrl('teacher', '#home');
+  }
+  configureWebAppLinks();
 
   function openLogin() {
     overlay.classList.add('open');
@@ -1679,38 +1750,100 @@
     document.body.style.overflow = '';
     loginNote.classList.remove('show');
   }
-  document.getElementById('openLogin').addEventListener('click', openLogin);
-  document.getElementById('openLoginMob').addEventListener('click', openLogin);
+  function handleLoginAccess(e) {
+    e.preventDefault();
+    if (signedInUser) goToWebApp(localStorage.getItem(WEB_ROLE_KEY));
+    else openLogin();
+  }
+  document.getElementById('openLogin').addEventListener('click', handleLoginAccess);
+  document.getElementById('openLoginMob').addEventListener('click', handleLoginAccess);
   document.getElementById('closeLogin').addEventListener('click', closeLogin);
-  document.getElementById('loginGetApp').addEventListener('click', closeLogin);
+  document.getElementById('loginGetApp').addEventListener('click', (e) => { e.preventDefault(); setAuthMode('signup'); });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeLogin(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLogin(); });
 
   roleGrid.querySelectorAll('.role-opt').forEach((btn) => {
+    btn.classList.toggle('sel', btn.dataset.role === currentRole);
     btn.addEventListener('click', () => {
       roleGrid.querySelectorAll('.role-opt').forEach((b) => b.classList.remove('sel'));
       btn.classList.add('sel');
       currentRole = btn.dataset.role;
+      localStorage.setItem(WEB_ROLE_KEY, currentRole);
       refreshLoginSubmit();
       loginNote.classList.remove('show');
     });
   });
 
+  async function upsertWebProfile(userId, email, locale) {
+    const patch = { id: userId, email: email || null, locale, updated_at: new Date().toISOString() };
+    if (currentRole === 'teacher') patch.is_teacher = true;
+    if (currentRole === 'organizer' || currentRole === 'organization') patch.is_organizer = true;
+    try { await supa.from('profiles').upsert(patch, { onConflict: 'id' }); }
+    catch (err) { console.warn('profile upsert skipped', err); }
+  }
+
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
+    const locale = document.documentElement.getAttribute('lang') || 'en';
     loginNote.classList.remove('show');
+    loginNote.style.color = '';
+    localStorage.setItem(WEB_ROLE_KEY, currentRole);
+
+    if (authMode === 'signup') {
+      const confirm = document.getElementById('loginConfirm').value;
+      if (password.length < 6) {
+        loginNote.textContent = dict.pwTooShort || 'Password must be at least 6 characters.';
+        loginNote.classList.add('show');
+        return;
+      }
+      if (password !== confirm) {
+        loginNote.textContent = dict.pwMismatch || 'Passwords do not match.';
+        loginNote.classList.add('show');
+        return;
+      }
+      loginSubmit.disabled = true;
+      loginSubmit.textContent = dict.creatingAccount || 'Creating account...';
+      const { data, error } = await supa.auth.signUp({
+        email,
+        password,
+        options: { data: { locale, web_role: currentRole }, emailRedirectTo: appUrl(currentRole) }
+      });
+      loginSubmit.disabled = false;
+      refreshLoginSubmit();
+      if (error) {
+        loginNote.textContent = error.message || 'Could not create the account.';
+        loginNote.classList.add('show');
+        return;
+      }
+      if (data.user) await upsertWebProfile(data.user.id, email, locale);
+      if (!data.session) {
+        loginNote.style.color = 'var(--purple)';
+        loginNote.textContent = (dict.checkEmailVerify || 'Account created. Check your email to confirm, then sign in.');
+        loginNote.classList.add('show');
+        setAuthMode('signin');
+        return;
+      }
+      goToWebApp(currentRole);
+      return;
+    }
+
     loginSubmit.disabled = true;
-    loginSubmit.textContent = '...';
-    const { error } = await supa.auth.signInWithPassword({ email, password });
+    loginSubmit.textContent = dict.signingIn || 'Signing in...';
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
     loginSubmit.disabled = false;
     refreshLoginSubmit();
     if (error) {
-      loginNote.textContent = error.message;
+      loginNote.textContent = error.message || 'Could not sign in. Check your email and password.';
       loginNote.classList.add('show');
+      return;
     }
+    if (data.user) await upsertWebProfile(data.user.id, email, locale);
+    goToWebApp(currentRole);
   });
+
+  if (new URLSearchParams(window.location.search).get('login') === '1') openLogin();
 
   // ── i18n: автоопределение языка устройства + переключатель ──
   const localeCatalog = window.DUVELA_WEB_I18N;
@@ -1815,13 +1948,15 @@
     ['.foot-bottom > span', 'footCopy'],
     ['#loginTitle', 'loginTitle'],
     ['.login-sub', 'loginSub'],
+    ['.role-opt[data-role="learner"] b', 'roleLearner'], ['.role-opt[data-role="learner"] > span:last-child', 'roleLearnerD'],
     ['.role-opt[data-role="organizer"] b', 'roleOrganizer'], ['.role-opt[data-role="organizer"] > span:last-child', 'roleOrganizerD'],
     ['.role-opt[data-role="teacher"] b', 'roleTeacher'], ['.role-opt[data-role="teacher"] > span:last-child', 'roleTeacherD'],
     ['.role-opt[data-role="admin"] b', 'roleAdmin'], ['.role-opt[data-role="admin"] > span:last-child', 'roleAdminD'],
     ['.role-opt[data-role="organization"] b', 'roleOrganization'], ['.role-opt[data-role="organization"] > span:last-child', 'roleOrganizationD'],
+    ['#tabSignin', 'tabSignin'],
+    ['#tabSignup', 'tabSignup'],
     ['#loginFoot1', 'loginFoot1'],
-    ['#loginGetApp', 'loginFootLink'],
-    ['#loginFoot2', 'loginFoot2'],
+    ['#loginGetApp', 'signupHere'],
     ['.store-btn:nth-child(1) small', 'storeDownloadOn'],
     ['.store-btn:nth-child(2) small', 'storeGetItOn'],
 
@@ -2038,6 +2173,7 @@
   const openLoginMobBtn = document.getElementById('openLoginMob');
 
   function setNavUser(user) {
+    signedInUser = user;
     const initial = (user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase();
     const name = user.user_metadata?.full_name || user.email.split('@')[0];
     openLoginBtn.innerHTML =
@@ -2045,39 +2181,54 @@
       `<span style="width:26px;height:26px;border-radius:99px;background:var(--grad);` +
       `display:grid;place-items:center;color:#fff;font-size:11px;font-weight:900;flex-shrink:0">${initial}</span>` +
       `${name}</span>`;
-    openLoginBtn.title = 'Click to sign out';
-    openLoginBtn.onclick = async (e) => { e.stopImmediatePropagation(); await supa.auth.signOut(); };
+    openLoginBtn.title = 'Open Duvela Web';
     openLoginMobBtn.innerHTML =
       `<span style="width:22px;height:22px;border-radius:99px;background:var(--grad);` +
       `display:grid;place-items:center;color:#fff;font-size:10px;font-weight:900">${initial}</span>`;
-    openLoginMobBtn.onclick = async (e) => { e.stopImmediatePropagation(); await supa.auth.signOut(); };
   }
 
   function setNavGuest() {
+    signedInUser = null;
     openLoginBtn.innerHTML = dict.signIn || 'Sign In';
     openLoginBtn.title = '';
-    openLoginBtn.onclick = null;
     openLoginMobBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
-    openLoginMobBtn.onclick = null;
   }
 
   supa.auth.onAuthStateChange((event, session) => {
-    if (session?.user) { setNavUser(session.user); if (event === 'SIGNED_IN') closeLogin(); }
+    if (session?.user) {
+      setNavUser(session.user);
+      if (event === 'SIGNED_IN') {
+        closeLogin();
+        if (sessionStorage.getItem(AUTH_FLOW_KEY) === '1') {
+          sessionStorage.removeItem(AUTH_FLOW_KEY);
+          goToWebApp(localStorage.getItem(WEB_ROLE_KEY));
+        }
+      }
+    }
     else setNavGuest();
   });
 
   supa.auth.getSession().then(({ data: { session } }) => {
-    if (session?.user) setNavUser(session.user);
+    if (session?.user) {
+      setNavUser(session.user);
+      goToWebApp(localStorage.getItem(WEB_ROLE_KEY));
+    }
   });
 
   // Google OAuth
   document.getElementById('googleSignIn').addEventListener('click', async () => {
     loginNote.classList.remove('show');
+    localStorage.setItem(WEB_ROLE_KEY, currentRole);
+    sessionStorage.setItem(AUTH_FLOW_KEY, '1');
     const { error } = await supa.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: appUrl(currentRole) }
     });
-    if (error) { loginNote.textContent = error.message; loginNote.classList.add('show'); }
+    if (error) {
+      sessionStorage.removeItem(AUTH_FLOW_KEY);
+      loginNote.textContent = error.message || 'Google sign-in is not available right now.';
+      loginNote.classList.add('show');
+    }
   });
 
   // Forgot password

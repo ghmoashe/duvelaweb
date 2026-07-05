@@ -2,6 +2,9 @@
   "name": "duvela-web",
   "private": true,
   "scripts": {
+    "web:full": "node ./scripts/start-web-suite.js",
+    "check:backend": "node ./scripts/check-web-backend-e2e.js",
+    "check:agora": "node ./scripts/agora-browser-e2e.js",
     "check": "npm run check:i18n",
     "check:i18n": "node ./scripts/check-i18n.js",
     "import:legal": "node ./scripts/import-legal-content.js"

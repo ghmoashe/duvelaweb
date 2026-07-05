@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duvela Web App</title>
+<meta name="description" content="Duvela web application for learning, live lessons, courses, events, messages and profile management.">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5FB;
+    --panel: #FFFFFF;
+    --panel-soft: #FBFAFE;
+    --ink: #15121D;
+    --soft: #6D667B;
+    --muted: #9A92AD;
+    --line: #E6E1F0;
+    --purple: #683FDC;
+    --purple-soft: #F1ECFF;
+    --teal: #0F9F7A;
+    --teal-soft: #E8F7F1;
+    --amber: #B7791F;
+    --amber-soft: #FFF6DE;
+    --blue: #2563EB;
+    --blue-soft: #EAF1FF;
+    --red: #D92D20;
+    --red-soft: #FFF0EE;
+    --shadow: 0 18px 48px rgba(32, 22, 64, .08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button, input, select, textarea { font: inherit; }
+  a { color: inherit; }
+  .app {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 18px;
+    border-right: 1px solid var(--line);
+    background: rgba(255,255,255,.82);
+    backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 19px;
+    padding: 8px 10px;
+  }
+  .brand img {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: #fff;
+  }
+  .role-select {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink);
+    font-weight: 900;
+    width: 100%;
+  }
+  .nav {
+    display: grid;
+    gap: 5px;
+  }
+  .nav button {
+    border: 0;
+    background: transparent;
+    color: var(--soft);
+    border-radius: 8px;
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    font-weight: 900;
+    text-align: left;
+  }
+  .nav button:hover { background: var(--panel-soft); color: var(--ink); }
+  .nav button.active { background: var(--purple-soft); color: var(--purple); }
+  .nav-icon {
+    width: 19px;
+    height: 19px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+  }
+  .nav-icon svg { width: 19px; height: 19px; }
+  .side-foot {
+    margin-top: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-soft);
+    padding: 12px;
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+  .side-foot b {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .side-foot span { display: block; }
+  .main {
+    min-width: 0;
+    padding: 20px 28px 34px;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .title-wrap h1 {
+    margin: 0;
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.1;
+    letter-spacing: 0;
+  }
+  .title-wrap p {
+    margin: 5px 0 0;
+    color: var(--soft);
+    font-weight: 800;
+  }
+  .mode-chip {
+    margin-left: auto;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--purple);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 999px;
+    padding: 7px 14px 7px 7px;
+    box-shadow: 0 8px 22px rgba(32, 22, 64, .05);
+  }
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--purple);
+    color: #fff;
+    font-weight: 900;
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-chip b {
+    display: block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  .user-chip span {
+    display: block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+    gap: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+  .metric {
+    padding: 16px;
+    min-height: 104px;
+  }
+  .metric span {
+    color: var(--soft);
+    font-weight: 900;
+    font-size: 13px;
+  }
+  .metric b {
+    display: block;
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 1;
+  }
+  .metric p {
+    margin: 7px 0 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 800;
+  }
+  .section {
+    margin-top: 16px;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .section-head h2 {
+    font-size: 18px;
+    margin: 0;
+    letter-spacing: 0;
+  }
+  .section-head span {
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 900;
+  }
+  .list {
+    display: grid;
+    gap: 10px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+  }
+  .thumb {
+    width: 62px;
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #E9F1FF, #F1ECFF);
+    display: grid;
+    place-items: center;
+    color: var(--purple);
+    font-weight: 900;
+    overflow: hidden;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .row h3 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+  .row p {
+    margin: 4px 0 0;
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    background: var(--purple-soft);
+    color: var(--purple);
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .tag.teal { background: var(--teal-soft); color: var(--teal); }
+  .tag.amber { background: var(--amber-soft); color: var(--amber); }
+  .tag.blue { background: var(--blue-soft); color: var(--blue); }
+  .tag.red { background: var(--red-soft); color: var(--red); }
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    border-radius: 8px;
+    min-height: 38px;
+    padding: 9px 13px;
+    font-weight: 900;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--panel-soft); }
+  .btn.primary {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: #fff;
+  }
+  .btn.danger {
+    background: var(--red-soft);
+    border-color: #F5C2BD;
+    color: var(--red);
+  }
+  body.business-mode {
+    --bg: #F7F7FB;
+    --purple: #5A35D6;
+    --purple-soft: #F0ECFF;
+  }
+  body.business-mode .metric:nth-child(2) b { color: var(--teal); }
+  body.business-mode .metric:nth-child(3) b { color: var(--blue); }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .tabs button {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 999px;
+    padding: 8px 13px;
+    cursor: pointer;
+    color: var(--soft);
+    font-weight: 900;
+  }
+  .tabs button.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .video-card {
+    overflow: hidden;
+  }
+  .video-thumb {
+    aspect-ratio: 16 / 10;
+    background: linear-gradient(135deg, #CFE7FF, #F5E1FF);
+    display: grid;
+    place-items: center;
+    color: rgba(21,18,29,.74);
+    font-weight: 900;
+    position: relative;
+  }
+  .video-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .video-pad {
+    padding: 13px;
+  }
+  .video-pad h3 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  .video-pad p {
+    margin: 5px 0 10px;
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .empty {
+    padding: 26px;
+    color: var(--soft);
+    text-align: center;
+    font-weight: 900;
+  }
+  .live-host-panel { margin-bottom: 12px; }
+  .live-host-card {
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .live-host-card h3 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+  .live-host-card p {
+    margin: 5px 0 0;
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .profile-box {
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+  }
+  .profile-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .profile-head .avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+  }
+  .profile-head h2 { margin: 0; }
+  .profile-head p { margin: 4px 0 0; color: var(--soft); font-weight: 800; }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .field {
+    display: grid;
+    gap: 6px;
+  }
+  .field label {
+    color: var(--soft);
+    font-weight: 900;
+    font-size: 12px;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-soft);
+    color: var(--ink);
+    padding: 10px 11px;
+    min-height: 40px;
+  }
+  .field textarea { resize: vertical; min-height: 92px; }
+  .mobile-top { display: none; }
+  .loading {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    color: var(--soft);
+    font-weight: 900;
+  }
+  @media (max-width: 980px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar {
+      position: static;
+      height: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .nav button {
+      justify-content: center;
+      padding: 10px 8px;
+    }
+    .nav button span:last-child { display: none; }
+    .side-foot { display: none; }
+    .main { padding: 18px 16px 28px; }
+    .grid-3, .grid-2, .form-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .topbar { align-items: flex-start; flex-direction: column; }
+    .mode-chip { margin-left: 0; }
+    .user-chip { width: 100%; }
+    .user-chip b, .user-chip span { max-width: calc(100vw - 120px); }
+    .nav { grid-template-columns: repeat(4, 1fr); }
+    .live-host-card { align-items: stretch; flex-direction: column; }
+    .row { grid-template-columns: 52px minmax(0, 1fr); }
+    .row .btn, .row .tag:last-child { grid-column: 2; justify-self: start; }
+    .thumb { width: 52px; height: 44px; }
+  }
+  .msg-wrap { display: grid; grid-template-columns: minmax(240px, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .conv { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 12px; cursor: pointer; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .conv:hover { background: var(--panel-soft); }
+  .conv.active { background: var(--purple-soft); border-color: var(--purple); }
+  .conv .avatar { width: 44px; height: 44px; }
+  .conv h3 { margin: 0; font-size: 14px; line-height: 1.2; }
+  .conv p { margin: 3px 0 0; color: var(--soft); font-size: 12.5px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conv .unread { width: 20px; height: 20px; border-radius: 50%; background: var(--purple); color: #fff; font-size: 11px; font-weight: 900; display: grid; place-items: center; }
+  .thread-col { display: flex; flex-direction: column; min-height: 480px; max-height: 74vh; }
+  .thread-head { padding: 14px 16px; border-bottom: 1px solid var(--line); font-weight: 900; display: flex; align-items: center; gap: 10px; }
+  .thread-back { display: none; border: 0; background: transparent; cursor: pointer; color: var(--purple); font-weight: 900; }
+  .thread-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .bubble { max-width: 74%; padding: 9px 13px; border-radius: 14px; font-weight: 700; font-size: 14px; line-height: 1.35; word-break: break-word; }
+  .bubble.me { align-self: flex-end; background: var(--purple); color: #fff; border-bottom-right-radius: 4px; }
+  .bubble.them { align-self: flex-start; background: var(--panel-soft); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .thread-compose { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .thread-compose input { flex: 1; border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; background: var(--panel-soft); }
+  .overlay { position: fixed; inset: 0; background: rgba(20, 14, 40, .5); display: none; place-items: center; z-index: 50; padding: 20px; }
+  .overlay.open { display: grid; }
+  .overlay-card { background: var(--panel); border-radius: 14px; width: min(460px, 100%); max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+  .overlay-head { padding: 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .overlay-head h2 { margin: 0; font-size: 17px; }
+  .overlay-head button { border: 0; background: transparent; font-size: 20px; cursor: pointer; color: var(--soft); }
+  .overlay-body { padding: 14px 16px; overflow-y: auto; }
+  .overlay-body .search { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; background: var(--panel-soft); margin-bottom: 10px; }
+  .picker { display: grid; gap: 6px; }
+  @media (max-width: 760px) {
+    .msg-wrap { grid-template-columns: 1fr; }
+    .thread-col { display: none; }
+    .msg-wrap.thread-open .msg-list-col { display: none; }
+    .msg-wrap.thread-open .thread-col { display: flex; }
+    .thread-back { display: inline-block; }
+  }
+</style>
+</head>
+<body>
+<div id="loading" class="loading">Opening Duvela Web...</div>
+
+<div class="app" id="app" style="display:none">
+  <aside class="sidebar">
+    <a class="brand" href="./index.html" aria-label="Duvela home">
+      <img src="./logo.webp" alt="Duvela">
+      <span>Duvela</span>
+    </a>
+    <select class="role-select" id="roleSelect" aria-label="Workspace role">
+      <option value="learner">Learner</option>
+      <option value="teacher">Teacher</option>
+      <option value="organizer">Organizer</option>
+      <option value="organization">Organization</option>
+      <option value="admin">Administrator</option>
+    </select>
+    <nav class="nav" aria-label="Application navigation">
+      <button class="active" data-view="home"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span><span>Home</span></button>
+      <button data-view="videos"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span><span>Videos</span></button>
+      <button data-view="live"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg></span><span>Live</span></button>
+      <button data-view="courses"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 012-2h13v16H6.5A2.5 2.5 0 004 21.5"/><path d="M8 7h7"/></svg></span><span>Courses</span></button>
+      <button data-view="events"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span>Events</span></button>
+      <button data-view="messages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span><span>Messages</span></button>
+      <button data-view="workspace" id="workspaceNav"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><span id="workspaceNavLabel">Practice</span></button>
+      <button data-view="profile"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span><span>Profile</span></button>
+    </nav>
+    <div class="side-foot">
+      <b id="sideStatusTitle">Hub Web</b>
+      <span id="sideStatusText">Signed in. Your browser workspace is active.</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="title-wrap">
+        <h1 id="viewTitle">Home</h1>
+        <p id="viewSub">Your learning dashboard is ready.</p>
+      </div>
+      <div class="mode-chip" id="modeChip">Hub Web</div>
+      <div class="user-chip">
+        <div class="avatar" id="topAvatar">D</div>
+        <div>
+          <b id="topName">Duvela user</b>
+          <span id="topEmail">Signed in</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel active" data-panel="home">
+      <div class="grid-3">
+        <div class="card metric"><span>Current level</span><b id="metricLevel">B1</b><p>Feed tuned for your progress.</p></div>
+        <div class="card metric"><span>Weekly streak</span><b id="metricStreak">12 days</b><p>Practice goal: 50 XP per day.</p></div>
+        <div class="card metric"><span>Duvela Coins</span><b id="metricCoins">240</b><p>Earn from lessons and activity.</p></div>
+      </div>
+      <div class="section grid-2">
+        <div>
+          <div class="section-head"><h2>Continue learning</h2><span>Next steps</span></div>
+          <div class="list" id="homeList"></div>
+        </div>
+        <div>
+          <div class="section-head"><h2>Live now</h2><span id="liveCount">0 sessions</span></div>
+          <div class="list" id="homeLive"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="videos">
+      <div class="tabs" id="videoTabs">
+        <button class="active" data-filter="all">All</button>
+        <button data-filter="language">Languages</button>
+        <button data-filter="arts">Arts</button>
+        <button data-filter="school">School</button>
+      </div>
+      <div class="video-grid" id="videoGrid"></div>
+    </section>
+
+    <section class="panel" data-panel="live">
+      <div class="section-head"><h2>Live lessons</h2><span>Watch in browser or open the app</span></div>
+      <div class="live-host-panel" id="liveHostPanel"></div>
+      <div class="list" id="liveList"></div>
+    </section>
+
+    <section class="panel" data-panel="courses">
+      <div class="section-head"><h2>Courses</h2><span>Structured programs</span></div>
+      <div class="list" id="courseList"></div>
+    </section>
+
+    <section class="panel" data-panel="events">
+      <div class="section-head"><h2>Events</h2><span>Online and offline</span></div>
+      <div class="list" id="eventList"></div>
+    </section>
+
+    <section class="panel" data-panel="messages">
+      <div class="msg-wrap" id="msgWrap">
+        <div class="msg-list-col">
+          <div class="section-head"><h2>Messages</h2><button class="btn" id="newChatBtn" type="button">New chat</button></div>
+          <div class="list" id="conversationList"><div class="card empty">Loading conversations...</div></div>
+        </div>
+        <div class="card thread-col" id="threadCol">
+          <div class="thread-head" id="threadHead">
+            <button class="thread-back" id="threadBack" type="button" aria-label="Back">‹</button>
+            <span id="threadTitle">Select a conversation</span>
+          </div>
+          <div class="thread-body" id="threadBody"><div class="empty">Choose a chat on the left to start messaging.</div></div>
+          <form class="thread-compose" id="composeForm" style="display:none">
+            <input id="composeInput" placeholder="Write a message..." autocomplete="off">
+            <button class="btn primary" type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="workspace">
+      <div class="section-head"><h2 id="workspaceTitle">Practice</h2><span id="workspaceSub">Your role tools</span></div>
+      <div class="grid-2">
+        <div class="card profile-box">
+          <div class="section-head"><h2 id="workspacePrimaryTitle">Daily practice</h2><span>Today</span></div>
+          <div class="list" id="workspaceActions"></div>
+        </div>
+        <div class="card profile-box" id="workspaceSide"></div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="profile">
+      <div class="card profile-box">
+        <div class="profile-head">
+          <div class="avatar" id="profileAvatar">D</div>
+          <div>
+            <h2 id="profileName">Duvela user</h2>
+            <p id="profileMeta">Signed in to Duvela Web</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Email</label><input id="profileEmail" readonly></div>
+          <div class="field"><label>Role</label><input id="profileRole" readonly></div>
+          <div class="field"><label>City</label><input id="profileCity" readonly></div>
+          <div class="field"><label>Language level</label><input id="profileLevel" readonly></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn" id="publicProfileLink" href="#" style="display:none">Open public profile</a>
+          <a class="btn" href="./index.html">Marketing site</a>
+          <button class="btn danger" id="signOut" type="button">Sign out</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="newChatOverlay">
+  <div class="overlay-card">
+    <div class="overlay-head"><h2>Start a new chat</h2><button type="button" id="newChatClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body">
+      <input class="search" id="chatSearch" placeholder="Search people by name or city..." autocomplete="off">
+      <div class="picker" id="chatPicker"><div class="empty">Type a name to search.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const SUPABASE_URL = 'https://ohtkryanqcnwghcnipsr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9odGtyeWFucWNud2doY25pcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjA1NDEsImV4cCI6MjA4NjM5NjU0MX0.YjPRrv4grr-17PaWqCwwR464rxMJRYI7BDvjMi9gdnU';
+  const ROLE_KEY = 'duvela.webRole';
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+  const params = new URLSearchParams(window.location.search);
+  let role = params.get('role') || localStorage.getItem(ROLE_KEY) || 'learner';
+  let user = null;
+  let profile = null;
+  let currentVideoFilter = 'all';
+
+  const roleLabels = {
+    learner: 'Learner',
+    teacher: 'Teacher',
+    organizer: 'Organizer',
+    organization: 'Organization',
+    admin: 'Administrator'
+  };
+  const businessRoles = new Set(['teacher', 'organizer', 'organization', 'admin']);
+  const navLabels = {
+    hub: {
+      home: 'Home',
+      videos: 'Videos',
+      live: 'Live',
+      courses: 'Courses',
+      events: 'Events',
+      messages: 'Messages',
+      workspace: 'Practice',
+      profile: 'Profile'
+    },
+    bus: {
+      home: 'Dashboard',
+      videos: 'Media',
+      live: 'Live Studio',
+      courses: 'Courses',
+      events: 'Events',
+      messages: 'Messages',
+      workspace: 'Workspace',
+      profile: 'Profile'
+    }
+  };
+  const titles = {
+    hub: {
+      home: ['Hub dashboard', 'Your learning feed, live lessons and practice tools are ready.'],
+      videos: ['Videos', 'Short lessons matched to your level.'],
+      live: ['Live', 'Join active lessons with teachers.'],
+      courses: ['Courses', 'Structured programs from teachers.'],
+      events: ['Events', 'Meetups, workshops and speaking practice.'],
+      messages: ['Messages', 'Recent conversations and lesson updates.'],
+      workspace: ['Practice', 'Daily tools for level, speaking and vocabulary work.'],
+      profile: ['Profile', 'Your Duvela account and public profile.']
+    },
+    bus: {
+      home: ['Bus dashboard', 'Your web workspace for live lessons, courses and community activity.'],
+      videos: ['Media library', 'Prepare short lessons and public previews for learners.'],
+      live: ['Live Studio', 'Open active lessons and manage public live rooms.'],
+      courses: ['Courses', 'Structure offers, cohorts and paid learning programs.'],
+      events: ['Events', 'Plan workshops, meetups and online sessions.'],
+      messages: ['Messages', 'Learner conversations and recent platform updates.'],
+      workspace: ['Workspace', 'Creator tools for publishing and planning.'],
+      profile: ['Profile', 'Your Duvela Business account and public profile.']
+    }
+  };
+
+  const fallbackVideos = [
+    { title: 'German Stories - Weg 2', meta: 'German - A2-B1 - Berlin', level: 'A2-B1', type: 'language', tone: 'blue' },
+    { title: 'English Speaking Club', meta: 'English - B1-B2 - London', level: 'B1-B2', type: 'language', tone: 'teal' },
+    { title: 'Sketching Basics', meta: 'Drawing - beginner - studio', level: 'Art', type: 'arts', tone: 'amber' },
+    { title: 'Math Made Easy - Chapter 3', meta: 'School - algebra - online', level: 'Math', type: 'school', tone: 'teal' },
+    { title: 'Spanish for Travel', meta: 'Spanish - A2 - Madrid', level: 'A2', type: 'language', tone: 'red' },
+    { title: 'French in 5 Minutes', meta: 'French - A1-A2 - Paris', level: 'A1-A2', type: 'language', tone: 'blue' }
+  ];
+  const fallbackLive = [
+    { id: '', teacher_name: 'Maria Hoffmann', title: 'German small talk - B1', status: 'live' },
+    { id: '', teacher_name: 'James Carter', title: 'IELTS speaking - B2-C1', status: 'live' },
+    { id: '', teacher_name: 'Sofia Reyes', title: 'Spanish for travel - A2', status: 'live' }
+  ];
+  const fallbackCourses = [
+    { title: 'German Conversation Sprint', description: '14 days of guided speaking practice.', level: 'B1', price: '29 EUR' },
+    { title: 'Watercolor Foundations', description: 'Composition, color and weekly feedback.', level: 'Art', price: 'Free' },
+    { title: 'IELTS Speaking Masterclass', description: 'Exam answers, fluency drills and mock tests.', level: 'B2-C1', price: '49 EUR' }
+  ];
+  const fallbackEvents = [
+    { title: 'Berlin German Meetup', meta: 'Friday - online and in person', price: 'Free' },
+    { title: 'Spanish Travel Club', meta: 'Saturday - online', price: '8 EUR' },
+    { title: 'Drawing Weekend Lab', meta: 'Sunday - workshop', price: '15 EUR' }
+  ];
+  const fallbackMessages = [
+    { title: 'Maria Hoffmann', meta: 'Your B1 live lesson starts today at 18:00.', tag: 'Lesson' },
+    { title: 'Duvela', meta: 'You are 20 XP away from the daily goal.', tag: 'Goal' },
+    { title: 'Sofia Reyes', meta: 'New travel phrases video is ready for you.', tag: 'Video' }
+  ];
+  const fallbackBusinessMessages = [
+    { title: 'New learner request', meta: 'A learner asked about your next B1 speaking lesson.', tag: 'Lead' },
+    { title: 'Live reminder', meta: 'Check title, level and access before the next public room.', tag: 'Live' },
+    { title: 'Duvela Business', meta: 'Course and event tools are available in this web workspace.', tag: 'Bus' }
+  ];
+
+  const state = {
+    videos: fallbackVideos,
+    live: fallbackLive,
+    courses: fallbackCourses,
+    events: fallbackEvents,
+    messages: fallbackMessages,
+    myCourses: [],
+    enrolledIds: new Set(),
+    conversations: [],
+    activeConversationId: null
+  };
+
+  function esc(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+  }
+  function initials(name) {
+    return (name || 'D').trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  }
+  function avatarHtml(target, name, url) {
+    const node = $(target);
+    if (!node) return;
+    node.innerHTML = url ? '<img src="' + esc(url) + '" alt="">' : esc(initials(name));
+  }
+  function formatMoney(item) {
+    if (item.is_free) return 'Free';
+    if (item.price == null || item.price === '') return item.priceLabel || 'Open';
+    return [item.price, item.currency].filter(Boolean).join(' ');
+  }
+  function liveUrl(item) {
+    return './live.html' + (item.id ? '?s=' + encodeURIComponent(item.id) + '&t=' + encodeURIComponent(item.teacher_name || '') : '');
+  }
+  function teacherLiveUrl(item) {
+    const query = new URLSearchParams({ app: 'business', mode: 'host' });
+    if (item?.id) query.set('s', item.id);
+    if (item?.teacher_name) query.set('t', item.teacher_name);
+    return './live.html?' + query.toString();
+  }
+  function isBusiness() {
+    return businessRoles.has(role);
+  }
+  function modeKey() {
+    return isBusiness() ? 'bus' : 'hub';
+  }
+  function setText(selector, value) {
+    const node = $(selector);
+    if (node) node.textContent = value;
+  }
+  function setMetric(index, label, value, help) {
+    const metric = $$('.metric')[index];
+    if (!metric) return;
+    metric.querySelector('span').textContent = label;
+    metric.querySelector('b').textContent = value;
+    metric.querySelector('p').textContent = help;
+  }
+  function updateShellCopy() {
+    const mode = modeKey();
+    const label = mode === 'bus' ? 'Bus Web' : 'Hub Web';
+    document.body.classList.toggle('business-mode', mode === 'bus');
+    setText('#modeChip', label);
+    setText('#sideStatusTitle', label + ' workspace');
+    setText(
+      '#sideStatusText',
+      mode === 'bus'
+        ? 'Manage live, courses, events and messages from this browser.'
+        : 'Learn, watch live lessons and keep your practice in this browser.'
+    );
+    Object.entries(navLabels[mode]).forEach(([view, text]) => {
+      const labelNode = document.querySelector('.nav button[data-view="' + view + '"] span:last-child');
+      if (labelNode) labelNode.textContent = text;
+    });
+  }
+  function setView(view) {
+    const copy = titles[modeKey()];
+    const known = copy[view] ? view : 'home';
+    $$('.nav button').forEach((btn) => btn.classList.toggle('active', btn.dataset.view === known));
+    $$('.panel').forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === known));
+    $('#viewTitle').textContent = copy[known][0];
+    $('#viewSub').textContent = copy[known][1];
+    if (window.location.hash !== '#' + known) history.replaceState(null, '', '#' + known);
+  }
+  function row(item, actionHtml) {
+    const level = item.level ? '<span class="tag">' + esc(item.level) + '</span>' : '';
+    return '<div class="card row">' +
+      '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || item.teacher_name || 'D').charAt(0))) + '</div>' +
+      '<div><h3>' + esc(item.title || item.teacher_name || 'Untitled') + '</h3><p>' + esc(item.meta || item.description || '') + '</p></div>' +
+      (actionHtml || level) +
+      '</div>';
+  }
+  function renderVideos() {
+    const items = state.videos.filter((item) => currentVideoFilter === 'all' || item.type === currentVideoFilter);
+    $('#videoGrid').innerHTML = items.map((item) => (
+      '<article class="card video-card">' +
+      '<div class="video-thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc(item.level || 'Video')) + '</div>' +
+      '<div class="video-pad"><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta) + '</p><span class="tag ' + esc(item.tone || '') + '">' + esc(item.level || 'Video') + '</span></div>' +
+      '</article>'
+    )).join('') || '<div class="card empty">No videos found for this filter.</div>';
+  }
+  function renderHome() {
+    const creator = isBusiness();
+    const homeHeads = document.querySelectorAll('[data-panel="home"] .section-head');
+    if (homeHeads[0]) {
+      homeHeads[0].querySelector('h2').textContent = creator ? 'Creator desk' : 'Continue learning';
+      homeHeads[0].querySelector('span').textContent = creator ? 'Today' : 'Next steps';
+    }
+    if (homeHeads[1]) homeHeads[1].querySelector('h2').textContent = creator ? 'Live rooms' : 'Live now';
+
+    if (creator) {
+      setMetric(0, 'Active live', String(state.live.length), 'Public live rooms available from the web.');
+      setMetric(1, 'Course catalog', String(state.courses.length), 'Programs loaded for your web workspace.');
+      setMetric(2, 'Creator tools', 'Ready', 'Draft, publish and manage activity.');
+      $('#homeList').innerHTML = [
+        row({ title: 'Start teacher LIVE', meta: 'Open camera, microphone and publish from the browser.', level: 'Live' }, '<a class="btn primary" href="' + teacherLiveUrl() + '">Start</a>'),
+        row({ title: 'Build a course offer', meta: 'Review course list and prepare the next program.', level: 'Course' }, '<a class="btn" href="#courses" data-go="courses">Manage</a>'),
+        row({ title: 'Publish an event', meta: 'Create a workshop or community meetup plan.', level: 'Event' }, '<a class="btn" href="#events" data-go="events">Plan</a>')
+      ].join('');
+    } else {
+      const xp = profile?.score ?? 0;
+      const coins = profile?.vela_coin_balance ?? 0;
+      const speaking = profile?.speaking_progress ?? 0;
+      setMetric(0, 'Current level', profile?.language_level || '—', profile?.goal_level ? ('Goal: ' + profile.goal_level) : 'Feed tuned for your progress.');
+      setMetric(1, 'Total XP', xp.toLocaleString(), 'Earned from practice and lessons.');
+      setMetric(2, 'Duvela Coins', coins.toLocaleString(), 'Spend on rewards and unlocks.');
+      const myCourse = state.myCourses[0];
+      $('#homeList').innerHTML = [
+        myCourse
+          ? row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? 'Enrolled · confirmed' : 'Enrollment pending', level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">Open</a>')
+          : row({ title: 'Find your first course', meta: 'Browse structured programs from teachers', level: 'New' }, '<a class="btn primary" href="#courses" data-go="courses">Browse</a>'),
+        row({ title: 'Daily speaking practice', meta: 'Speaking progress: ' + speaking + '%', level: 'Practice' }, '<a class="btn" href="#workspace" data-go="workspace">Open</a>'),
+        row({ title: 'Message a teacher', meta: 'Ask a question or book a lesson', level: 'Chat' }, '<a class="btn" href="#messages" data-go="messages">Open</a>')
+      ].join('');
+    }
+    $('#homeLive').innerHTML = state.live.slice(0, 3).map((item) =>
+      row({ title: item.teacher_name || 'Teacher live', meta: item.title || 'Live lesson', level: 'Live' }, '<a class="btn primary" href="' + (creator ? teacherLiveUrl(item) : liveUrl(item)) + '">' + (creator ? 'Enter' : 'Watch') + '</a>')
+    ).join('');
+    $('#liveCount').textContent = state.live.length + ' sessions';
+  }
+  function renderLive() {
+    const creator = isBusiness();
+    const head = document.querySelector('[data-panel="live"] .section-head');
+    if (head) {
+      head.querySelector('h2').textContent = creator ? 'Live Studio' : 'Live lessons';
+      head.querySelector('span').textContent = creator ? 'Public rooms and active sessions' : 'Watch in browser';
+    }
+    $('#liveHostPanel').innerHTML = creator ? (
+      '<div class="card live-host-card">' +
+      '<div><h3>Start teacher LIVE</h3><p>Create a live room, open camera and microphone, and publish as host.</p></div>' +
+      '<a class="btn primary" href="' + teacherLiveUrl() + '">Start LIVE</a>' +
+      '</div>'
+    ) : '';
+    $('#liveList').innerHTML = state.live.map((item) =>
+      row({ title: item.teacher_name || 'Teacher live', meta: item.title || 'Live lesson', level: item.status || 'live' }, '<a class="btn primary" href="' + (creator ? teacherLiveUrl(item) : liveUrl(item)) + '">' + (creator ? 'Enter' : 'Watch') + '</a>')
+    ).join('') || '<div class="card empty">No public live sessions right now.</div>';
+  }
+  function courseAction(item) {
+    const price = '<span class="tag teal">' + esc(formatMoney(item)) + '</span>';
+    if (isBusiness() || !item.id) return price;
+    if (state.enrolledIds.has(item.id)) {
+      return price + '<button class="btn" data-unenroll="' + esc(item.id) + '" style="margin-left:8px">Enrolled ✓</button>';
+    }
+    return price + '<button class="btn primary" data-enroll="' + esc(item.id) + '" style="margin-left:8px">Enroll</button>';
+  }
+  function renderCourses() {
+    const head = document.querySelector('[data-panel="courses"] .section-head');
+    if (head) {
+      head.querySelector('h2').textContent = isBusiness() ? 'Courses & offers' : 'Courses';
+      head.querySelector('span').textContent = isBusiness() ? 'Web catalog' : 'Structured programs';
+    }
+    $('#courseList').innerHTML = state.courses.map((item) =>
+      '<div class="card row">' +
+        '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'C').charAt(0))) + '</div>' +
+        '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || 'Course from Duvela teachers') + '</p></div>' +
+        '<div style="display:flex;align-items:center;gap:0;white-space:nowrap">' + (item.level ? '<span class="tag" style="margin-right:8px">' + esc(item.level) + '</span>' : '') + courseAction(item) + '</div>' +
+      '</div>'
+    ).join('') || '<div class="card empty">No courses available yet.</div>';
+  }
+  function renderEvents() {
+    const head = document.querySelector('[data-panel="events"] .section-head');
+    if (head) {
+      head.querySelector('h2').textContent = isBusiness() ? 'Events & workshops' : 'Events';
+      head.querySelector('span').textContent = isBusiness() ? 'Calendar and tickets' : 'Online and offline';
+    }
+    $('#eventList').innerHTML = state.events.map((item) =>
+      row({ title: item.title, meta: item.meta || item.description || 'Upcoming event', level: item.is_online ? 'Online' : '' }, '<span class="tag amber">' + esc(formatMoney(item)) + '</span>')
+    ).join('') || '<div class="card empty">No upcoming events.</div>';
+  }
+  const CHAT_PROFILE_FIELDS = 'id,full_name,avatar_url,city,country';
+  let threadChannel = null;
+  function avatarInner(name, url) {
+    return url ? '<img src="' + esc(url) + '" alt="">' : esc(initials(name));
+  }
+  async function loadConversations() {
+    try {
+      const { data: mine } = await supa.from('chat_participants')
+        .select('conversation_id,last_read_at').eq('user_id', user.id);
+      const ids = (mine || []).map((r) => r.conversation_id);
+      if (!ids.length) { state.conversations = []; renderConversations(); return; }
+      const lastReadById = new Map((mine || []).map((r) => [r.conversation_id, r.last_read_at ? Date.parse(r.last_read_at) : 0]));
+      const [{ data: convs }, { data: parts }, { data: msgs }] = await Promise.all([
+        supa.from('chat_conversations').select('id,title,is_group,updated_at,created_at').in('id', ids),
+        supa.from('chat_participants').select('conversation_id,user_id').in('conversation_id', ids),
+        supa.from('chat_messages').select('id,conversation_id,sender_id,body,created_at').in('conversation_id', ids).order('created_at', { ascending: false }).limit(300)
+      ]);
+      const otherIds = Array.from(new Set((parts || []).map((p) => p.user_id).filter((id) => id !== user.id)));
+      const { data: profs } = otherIds.length
+        ? await supa.from('profiles').select(CHAT_PROFILE_FIELDS).in('id', otherIds)
+        : { data: [] };
+      const profById = new Map((profs || []).map((p) => [p.id, p]));
+      const partsByConv = new Map();
+      (parts || []).forEach((p) => { const a = partsByConv.get(p.conversation_id) || []; a.push(p.user_id); partsByConv.set(p.conversation_id, a); });
+      const lastByConv = new Map();
+      (msgs || []).forEach((m) => { if (!lastByConv.has(m.conversation_id)) lastByConv.set(m.conversation_id, m); });
+      const unreadByConv = new Map();
+      (msgs || []).forEach((m) => {
+        if (m.sender_id === user.id) return;
+        if (Date.parse(m.created_at) > (lastReadById.get(m.conversation_id) || 0)) {
+          unreadByConv.set(m.conversation_id, (unreadByConv.get(m.conversation_id) || 0) + 1);
+        }
+      });
+      state.conversations = (convs || []).map((c) => {
+        const members = partsByConv.get(c.id) || [];
+        const otherId = members.find((id) => id !== user.id) || members[0] || '';
+        const other = otherId ? profById.get(otherId) : null;
+        const last = lastByConv.get(c.id);
+        return {
+          id: c.id,
+          isGroup: !!c.is_group,
+          name: (c.title || '').trim() || (other && other.full_name) || (c.is_group ? 'Group chat' : 'Chat'),
+          avatarUrl: other && other.avatar_url,
+          lastMessage: last ? last.body : '',
+          lastAt: last ? last.created_at : (c.updated_at || c.created_at),
+          unread: unreadByConv.get(c.id) || 0
+        };
+      }).sort((a, b) => Date.parse(b.lastAt || 0) - Date.parse(a.lastAt || 0));
+    } catch (error) {
+      console.warn('conversations load failed', error);
+      state.conversations = [];
+    }
+    renderConversations();
+  }
+  function renderConversations() {
+    const list = $('#conversationList');
+    if (!state.conversations.length) {
+      list.innerHTML = '<div class="card empty">No conversations yet. Tap “New chat” to message a teacher or learner.</div>';
+      return;
+    }
+    list.innerHTML = state.conversations.map((c) =>
+      '<div class="conv' + (c.id === state.activeConversationId ? ' active' : '') + '" data-conv="' + esc(c.id) + '">' +
+        '<div class="avatar">' + avatarInner(c.name, c.avatarUrl) + '</div>' +
+        '<div><h3>' + esc(c.name) + '</h3><p>' + esc(c.lastMessage || 'No messages yet') + '</p></div>' +
+        (c.unread ? '<div class="unread">' + c.unread + '</div>' : '<div></div>') +
+      '</div>'
+    ).join('');
+  }
+  function renderThread(messages) {
+    const body = $('#threadBody');
+    body.innerHTML = messages.length
+      ? messages.map((m) => '<div class="bubble ' + (m.sender_id === user.id ? 'me' : 'them') + '">' + esc(m.body) + '</div>').join('')
+      : '<div class="empty">No messages yet. Say hello 👋</div>';
+    body.scrollTop = body.scrollHeight;
+  }
+  async function openConversation(id) {
+    state.activeConversationId = id;
+    const conv = state.conversations.find((c) => c.id === id);
+    if (conv) conv.unread = 0;
+    renderConversations();
+    $('#threadTitle').textContent = conv ? conv.name : 'Chat';
+    $('#composeForm').style.display = 'flex';
+    $('#msgWrap').classList.add('thread-open');
+    $('#threadBody').innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const { data } = await supa.from('chat_messages')
+        .select('id,conversation_id,sender_id,body,created_at')
+        .eq('conversation_id', id).order('created_at', { ascending: true }).limit(300);
+      renderThread(data || []);
+      await supa.from('chat_participants').update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', id).eq('user_id', user.id);
+    } catch (error) {
+      $('#threadBody').innerHTML = '<div class="empty">Could not load this conversation.</div>';
+    }
+    if (threadChannel) supa.removeChannel(threadChannel);
+    threadChannel = supa.channel('thread-' + id + '-' + Date.now())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'conversation_id=eq.' + id }, (payload) => {
+        const msg = payload.new;
+        const body = $('#threadBody');
+        const empty = body.querySelector('.empty');
+        if (empty) body.innerHTML = '';
+        body.insertAdjacentHTML('beforeend', '<div class="bubble ' + (msg.sender_id === user.id ? 'me' : 'them') + '">' + esc(msg.body) + '</div>');
+        body.scrollTop = body.scrollHeight;
+        if (conv) { conv.lastMessage = msg.body; conv.lastAt = msg.created_at; renderConversations(); }
+      }).subscribe();
+  }
+  async function sendCurrentMessage(body) {
+    const text = body.trim();
+    if (!text || !state.activeConversationId) return;
+    $('#composeInput').value = '';
+    try {
+      await supa.from('chat_messages').insert({ conversation_id: state.activeConversationId, sender_id: user.id, body: text });
+    } catch (error) {
+      console.warn('send failed', error);
+      $('#composeInput').value = text;
+      alert('Could not send the message.');
+    }
+  }
+  let chatSearchTimer = null;
+  async function searchPeople(query) {
+    const picker = $('#chatPicker');
+    const q = query.trim();
+    try {
+      let results = [];
+      const rpc = await supa.rpc('search_chat_profiles', { result_limit: 20, search_text: q });
+      if (!rpc.error && rpc.data) {
+        results = rpc.data;
+      } else {
+        let req = supa.from('profiles').select(CHAT_PROFILE_FIELDS).neq('id', user.id).limit(20);
+        if (q) req = req.or('full_name.ilike.%' + q.replace(/[%,()]/g, '') + '%,city.ilike.%' + q.replace(/[%,()]/g, '') + '%');
+        const fb = await req;
+        results = (fb.data || []).filter((p) => p.id !== user.id);
+      }
+      picker.innerHTML = results.length ? results.map((p) =>
+        '<div class="conv" data-person="' + esc(p.id) + '">' +
+          '<div class="avatar">' + avatarInner(p.full_name, p.avatar_url) + '</div>' +
+          '<div><h3>' + esc(p.full_name || 'Duvela user') + '</h3><p>' + esc([p.city, p.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div><div></div>' +
+        '</div>'
+      ).join('') : '<div class="empty">No people found.</div>';
+    } catch (error) {
+      picker.innerHTML = '<div class="empty">Search is unavailable right now.</div>';
+    }
+  }
+  async function startChatWith(otherUserId) {
+    try {
+      const { data, error } = await supa.rpc('create_direct_chat', { target_user_id: otherUserId });
+      if (error) throw error;
+      const id = typeof data === 'string' ? data : null;
+      $('#newChatOverlay').classList.remove('open');
+      await loadConversations();
+      if (id) openConversation(id);
+    } catch (error) {
+      console.warn('create chat failed', error);
+      alert('Could not start the chat.');
+    }
+  }
+  function renderMessages() { renderConversations(); }
+  function renderWorkspace() {
+    const creator = isBusiness();
+    $('#workspaceNavLabel').textContent = creator ? 'Workspace' : 'Practice';
+    $('#workspaceTitle').textContent = creator ? roleLabels[role] + ' workspace' : 'Practice';
+    $('#workspaceSub').textContent = creator ? 'Publish and manage your activity.' : 'Daily learning tools.';
+    $('#workspacePrimaryTitle').textContent = creator ? 'Creator actions' : 'Daily practice';
+    const actions = creator ? [
+      { title: 'Start teacher LIVE', meta: 'Open camera, microphone and publish now.', level: 'Live', href: teacherLiveUrl(), cta: 'Start' },
+      { title: 'Publish an event', meta: 'Fill the form on the right to go live to learners.', level: 'Event', cta: 'Below', view: 'workspace' },
+      { title: 'Review courses', meta: 'See active programs and enrollments.', level: 'Course', view: 'courses', cta: 'Open' },
+      { title: 'Check learner messages', meta: 'Review questions before the next session.', level: 'Inbox', view: 'messages', cta: 'Read' }
+    ] : [
+      { title: 'My courses', meta: state.myCourses.length ? state.myCourses.length + ' enrolled' : 'Browse and enroll to start', level: 'Learn', view: 'courses', cta: 'Open' },
+      { title: 'Message a teacher', meta: 'Ask a question or arrange a lesson.', level: 'Chat', view: 'messages', cta: 'Open' },
+      { title: 'Join a live lesson', meta: 'Practice speaking with a real teacher.', level: 'Live', view: 'live', cta: 'Watch' }
+    ];
+    $('#workspaceActions').innerHTML = actions.map((item) =>
+      row(item, item.href
+        ? '<a class="btn" href="' + esc(item.href) + '">' + esc(item.cta) + '</a>'
+        : '<a class="btn" href="#' + esc(item.view) + '" data-go="' + esc(item.view) + '">' + esc(item.cta) + '</a>')
+    ).join('');
+    renderWorkspaceSide(creator);
+  }
+  function renderWorkspaceSide(creator) {
+    const side = $('#workspaceSide');
+    if (creator) {
+      side.innerHTML =
+        '<div class="section-head"><h2>Publish an event</h2><span>Goes live to learners</span></div>' +
+        '<form id="eventForm">' +
+          '<div class="field"><label for="evTitle">Title</label><input id="evTitle" placeholder="German speaking meetup" required></div>' +
+          '<div class="field"><label for="evDesc">Description</label><textarea id="evDesc" placeholder="What happens, who it is for..."></textarea></div>' +
+          '<div class="form-grid">' +
+            '<div class="field"><label for="evDate">Date</label><input id="evDate" type="date"></div>' +
+            '<div class="field"><label for="evTime">Time</label><input id="evTime" type="time"></div>' +
+            '<div class="field"><label for="evCity">City</label><input id="evCity" placeholder="Berlin"></div>' +
+            '<div class="field"><label for="evFormat">Format</label><select id="evFormat" class="role-select"><option value="offline">In person</option><option value="online">Online</option></select></div>' +
+            '<div class="field"><label for="evLang">Language</label><input id="evLang" placeholder="German"></div>' +
+            '<div class="field"><label for="evPrice">Price (EUR, blank = free)</label><input id="evPrice" type="number" min="0" step="1" placeholder="Free"></div>' +
+          '</div>' +
+          '<button class="btn primary" type="submit" style="margin-top:12px">Publish event</button>' +
+          '<div id="evNote" style="display:none;margin-top:8px;font-weight:900"></div>' +
+        '</form>';
+      $('#eventForm').addEventListener('submit', publishEvent);
+    } else {
+      const saved = (() => { try { return JSON.parse(localStorage.getItem('duvela.webNote') || '{}'); } catch { return {}; } })();
+      side.innerHTML =
+        '<div class="section-head"><h2>Learning note</h2><span>Saved on this device</span></div>' +
+        '<div class="field"><label for="noteText">Your note</label><textarea id="noteText" placeholder="Words to review, goals for the week...">' + esc(saved.text || '') + '</textarea></div>' +
+        '<button class="btn primary" id="noteSave" type="button" style="margin-top:8px">Save note</button>' +
+        '<div id="noteSaved" style="display:none;color:var(--teal);font-weight:900;margin-top:8px">Saved ✓</div>';
+      $('#noteSave').addEventListener('click', () => {
+        localStorage.setItem('duvela.webNote', JSON.stringify({ text: $('#noteText').value, savedAt: new Date().toISOString() }));
+        $('#noteSaved').style.display = 'block';
+      });
+    }
+  }
+  async function publishEvent(event) {
+    event.preventDefault();
+    const note = $('#evNote');
+    const title = $('#evTitle').value.trim();
+    if (!title) return;
+    const priceRaw = $('#evPrice').value.trim();
+    const isPaid = priceRaw !== '' && Number(priceRaw) > 0;
+    const payload = {
+      organizer_id: user.id,
+      title,
+      description: $('#evDesc').value.trim() || null,
+      event_date: $('#evDate').value || null,
+      event_time: $('#evTime').value || null,
+      city: $('#evCity').value.trim() || null,
+      format: $('#evFormat').value,
+      language: $('#evLang').value.trim() || null,
+      is_paid: isPaid,
+      price_amount: isPaid ? Number(priceRaw) : null
+    };
+    const btn = $('#eventForm button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Publishing...';
+    try {
+      const { error } = await supa.from('events').insert(payload);
+      if (error) throw error;
+      note.style.color = 'var(--teal)';
+      note.textContent = 'Event published ✓ Learners can see it now.';
+      note.style.display = 'block';
+      $('#eventForm').reset();
+      await safeQuery('events', () => supa.from('events').select('id,title,description,event_date,event_time,city,country,format,is_paid,price_amount,image_url').order('event_date', { ascending: true }).limit(12), (item) => ({
+        id: item.id, title: item.title || 'Event', description: item.description || '', image: item.image_url,
+        meta: [item.event_date ? new Date(item.event_date).toLocaleDateString() : '', item.city, item.country].filter(Boolean).join(' · '),
+        price: item.is_paid ? item.price_amount : null, currency: 'EUR', is_free: !item.is_paid, is_online: item.format === 'online'
+      }));
+      renderEvents();
+    } catch (error) {
+      note.style.color = 'var(--red)';
+      note.textContent = error.message || 'Could not publish the event.';
+      note.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Publish event';
+    }
+  }
+  async function loadEnrollments() {
+    if (isBusiness()) return;
+    try {
+      const { data } = await supa.from('course_enrollments')
+        .select('course_id,status,courses(id,title,level,cover_image_url)')
+        .eq('user_id', user.id).neq('status', 'cancelled');
+      state.enrolledIds = new Set((data || []).map((r) => r.course_id));
+      state.myCourses = (data || []).map((r) => ({
+        id: r.course_id, status: r.status,
+        title: (r.courses && r.courses.title) || 'Course',
+        level: (r.courses && r.courses.level) || ''
+      }));
+    } catch (error) {
+      console.warn('enrollments load failed', error);
+    }
+  }
+  async function enrollCourse(courseId) {
+    try {
+      const { error } = await supa.from('course_enrollments').upsert({
+        course_id: courseId, user_id: user.id, status: 'pending',
+        full_name: profile?.full_name || null, updated_at: new Date().toISOString()
+      }, { onConflict: 'course_id,user_id' });
+      if (error) throw error;
+      state.enrolledIds.add(courseId);
+      void supa.functions.invoke('notify-course-enrollment', { body: { courseId, learnerName: profile?.full_name || undefined } }).catch(() => {});
+      await loadEnrollments();
+      renderCourses(); renderHome(); renderWorkspace();
+    } catch (error) {
+      alert(error.message || 'Could not enroll.');
+    }
+  }
+  async function unenrollCourse(courseId) {
+    try {
+      await supa.from('course_enrollments').update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('course_id', courseId).eq('user_id', user.id);
+      state.enrolledIds.delete(courseId);
+      await loadEnrollments();
+      renderCourses(); renderHome(); renderWorkspace();
+    } catch (error) {
+      alert(error.message || 'Could not update enrollment.');
+    }
+  }
+  function renderProfile() {
+    const displayName = profile?.full_name || user.user_metadata?.full_name || (user.email || 'Duvela user').split('@')[0];
+    const meta = [profile?.city, profile?.country].filter(Boolean).join(', ') || 'Signed in to ' + (isBusiness() ? 'Bus Web' : 'Hub Web');
+    $('#topName').textContent = displayName;
+    $('#topEmail').textContent = (isBusiness() ? 'Bus' : 'Hub') + ' - ' + (user.email || roleLabels[role]);
+    $('#profileName').textContent = displayName;
+    $('#profileMeta').textContent = meta;
+    $('#profileEmail').value = user.email || '';
+    $('#profileRole').value = roleLabels[role] || role;
+    $('#profileCity').value = [profile?.city, profile?.country].filter(Boolean).join(', ');
+    $('#profileLevel').value = profile?.language_level || '';
+    avatarHtml('#topAvatar', displayName, profile?.avatar_url || user.user_metadata?.avatar_url);
+    avatarHtml('#profileAvatar', displayName, profile?.avatar_url || user.user_metadata?.avatar_url);
+    if (profile?.id) {
+      $('#publicProfileLink').href = './profile.html?id=' + encodeURIComponent(profile.id);
+      $('#publicProfileLink').style.display = 'inline-flex';
+    }
+  }
+  function renderAll() {
+    updateShellCopy();
+    renderProfile();
+    renderHome();
+    renderVideos();
+    renderLive();
+    renderCourses();
+    renderEvents();
+    renderMessages();
+    renderWorkspace();
+  }
+  async function safeQuery(label, query, map) {
+    try {
+      const result = await query();
+      if (result.error || !result.data || !result.data.length) return;
+      state[label] = map ? result.data.map(map) : result.data;
+    } catch (error) {
+      console.warn(label + ' query failed', error);
+    }
+  }
+  async function loadProfile() {
+    try {
+      const result = await supa.from('profiles')
+        .select('id,full_name,avatar_url,city,country,language,language_level,is_teacher,is_organizer,is_admin,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!result.error && result.data) profile = result.data;
+    } catch (error) {
+      console.warn('profile query failed', error);
+    }
+    // If URL/localStorage did not pin a business role, respect the account's real capabilities.
+    if (!params.get('role') && !localStorage.getItem(ROLE_KEY) && profile) {
+      if (profile.is_admin) role = 'admin';
+      else if (profile.is_teacher) role = 'teacher';
+      else if (profile.is_organizer) role = 'organizer';
+      $('#roleSelect').value = role;
+    }
+  }
+  async function loadPublicData() {
+    await Promise.all([
+      safeQuery('live', () => supa.from('live_sessions').select('id,teacher_name,topic,language,level,status').eq('status', 'live').limit(6), (item) => ({
+        id: item.id,
+        teacher_name: item.teacher_name || 'Teacher live',
+        title: item.topic || [item.language, item.level].filter(Boolean).join(' · ') || 'Live lesson',
+        status: item.status || 'live'
+      })),
+      safeQuery('courses', () => supa.from('courses').select('id,title,description,cover_image_url,level,price,currency,schedule,starts_on').eq('status', 'active').order('created_at', { ascending: false }).limit(12), (item) => ({
+        id: item.id,
+        title: item.title || 'Course',
+        description: item.description || item.schedule || '',
+        image: item.cover_image_url,
+        level: item.level || '',
+        price: item.price,
+        currency: item.currency,
+        is_free: item.price == null || Number(item.price) === 0
+      })),
+      safeQuery('events', () => supa.from('events').select('id,title,description,event_date,event_time,city,country,format,is_paid,price_amount,image_url').order('event_date', { ascending: true }).limit(12), (item) => ({
+        id: item.id,
+        title: item.title || 'Event',
+        description: item.description || '',
+        image: item.image_url,
+        meta: [item.event_date ? new Date(item.event_date).toLocaleDateString() : '', item.city, item.country].filter(Boolean).join(' · '),
+        price: item.is_paid ? item.price_amount : null,
+        currency: 'EUR',
+        is_free: !item.is_paid,
+        is_online: item.format === 'online'
+      }))
+    ]);
+  }
+  function bindEvents() {
+    $$('.nav button').forEach((btn) => btn.addEventListener('click', () => setView(btn.dataset.view)));
+    $('#roleSelect').addEventListener('change', (event) => {
+      role = event.target.value;
+      localStorage.setItem(ROLE_KEY, role);
+      const nextUrl = './app.html?role=' + encodeURIComponent(role) + (window.location.hash || '#home');
+      history.replaceState(null, '', nextUrl);
+      renderAll();
+      setView((window.location.hash || '#home').slice(1));
+      loadEnrollments().then(() => { renderCourses(); renderHome(); });
+    });
+    $('#videoTabs').addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-filter]');
+      if (!btn) return;
+      currentVideoFilter = btn.dataset.filter;
+      $$('#videoTabs button').forEach((node) => node.classList.toggle('active', node === btn));
+      renderVideos();
+    });
+    document.addEventListener('click', (event) => {
+      const go = event.target.closest('[data-go]');
+      if (go) {
+        event.preventDefault();
+        setView(go.dataset.go);
+      }
+      const enroll = event.target.closest('[data-enroll]');
+      if (enroll) { event.preventDefault(); enrollCourse(enroll.dataset.enroll); return; }
+      const unenroll = event.target.closest('[data-unenroll]');
+      if (unenroll) { event.preventDefault(); unenrollCourse(unenroll.dataset.unenroll); return; }
+      const conv = event.target.closest('[data-conv]');
+      if (conv) { openConversation(conv.dataset.conv); return; }
+      const person = event.target.closest('[data-person]');
+      if (person) { startChatWith(person.dataset.person); return; }
+    });
+    // Messaging
+    $('#newChatBtn').addEventListener('click', () => {
+      $('#chatSearch').value = '';
+      $('#chatPicker').innerHTML = '<div class="empty">Type a name to search.</div>';
+      $('#newChatOverlay').classList.add('open');
+      searchPeople('');
+      setTimeout(() => $('#chatSearch').focus(), 50);
+    });
+    $('#newChatClose').addEventListener('click', () => $('#newChatOverlay').classList.remove('open'));
+    $('#newChatOverlay').addEventListener('click', (e) => { if (e.target === $('#newChatOverlay')) $('#newChatOverlay').classList.remove('open'); });
+    $('#chatSearch').addEventListener('input', (e) => {
+      clearTimeout(chatSearchTimer);
+      const value = e.target.value;
+      chatSearchTimer = setTimeout(() => searchPeople(value), 250);
+    });
+    $('#threadBack').addEventListener('click', () => { $('#msgWrap').classList.remove('thread-open'); });
+    $('#composeForm').addEventListener('submit', (e) => { e.preventDefault(); sendCurrentMessage($('#composeInput').value); });
+    $('#signOut').addEventListener('click', async () => {
+      if (threadChannel) supa.removeChannel(threadChannel);
+      await supa.auth.signOut();
+      window.location.href = './index.html';
+    });
+    supa.auth.onAuthStateChange((event, session) => {
+      if (!session?.user && event === 'SIGNED_OUT') window.location.href = './index.html';
+    });
+  }
+  async function init() {
+    role = roleLabels[role] ? role : 'learner';
+    localStorage.setItem(ROLE_KEY, role);
+    $('#roleSelect').value = role;
+    const sessionResult = await supa.auth.getSession();
+    const session = sessionResult.data.session;
+    if (!session?.user) {
+      window.location.href = './index.html?login=1';
+      return;
+    }
+    user = session.user;
+    bindEvents();
+    await loadProfile();
+    await Promise.all([loadPublicData(), loadEnrollments()]);
+    renderAll();
+    $('#loading').style.display = 'none';
+    $('#app').style.display = 'grid';
+    setView((window.location.hash || '#home').slice(1));
+    loadConversations();
+  }
+  init().catch((error) => {
+    console.error(error);
+    $('#loading').textContent = 'Could not open Duvela Web. Please sign in again.';
+    setTimeout(() => { window.location.href = './index.html?login=1'; }, 1400);
+  });
+})();
+</script>
+</body>
+</html>

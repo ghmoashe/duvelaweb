@@ -3,190 +3,627 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Duvela LIVE — watch the lesson</title>
-<meta name="description" content="A teacher is LIVE on Duvela right now. Watch in your browser or open the app to join.">
+<title>Duvela LIVE - browser studio</title>
+<meta name="description" content="Watch Duvela LIVE in the browser or publish as a teacher from Duvela Bus Web.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="🔴 LIVE now on Duvela">
-<meta property="og:description" content="A teacher is live right now — watch the lesson.">
+<meta property="og:title" content="LIVE now on Duvela">
+<meta property="og:description" content="Watch or host a live lesson in the browser.">
 <meta property="og:image" content="./logo2.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./logo.webp" type="image/webp">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #11101A;
+    --panel: #1B1827;
+    --panel-soft: #252033;
+    --line: rgba(255,255,255,.12);
+    --ink: #FFFFFF;
+    --muted: #C7BFDA;
+    --soft: #9188AA;
+    --purple: #7C3AED;
+    --red: #EF4444;
+    --teal: #16A085;
+    --amber: #F59E0B;
+  }
+  * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(160deg, #1E1632, #2C1D53);
-    color: #fff; min-height: 100vh;
-    display: flex; align-items: center; justify-content: center; padding: 20px;
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% 0%, rgba(124,58,237,.28), transparent 34%), var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   }
-  .card {
-    max-width: 460px; width: 100%; text-align: center;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 24px; padding: 22px;
+  button, input, select { font: inherit; }
+  a { color: inherit; }
+  .page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
   }
-  .logo { width: 48px; height: 48px; border-radius: 14px; margin-bottom: 14px; }
-  .live-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #EF4444; color: #fff; font-weight: 800; font-size: 12px;
-    padding: 5px 11px; border-radius: 999px; margin-bottom: 14px;
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(17,16,26,.84);
+    backdrop-filter: blur(14px);
   }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.2s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-  h1 { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
-  p { color: #C9BEF5; font-size: 14px; line-height: 1.5; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 900;
+  }
+  .brand img {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #fff;
+    object-fit: contain;
+  }
+  .mode-pill {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .main {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    padding: 24px 20px 34px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr);
+    gap: 16px;
+  }
+  .stage-card, .side-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(27,24,39,.9);
+    box-shadow: 0 24px 70px rgba(0,0,0,.24);
+  }
+  .stage-card { overflow: hidden; }
   .stage {
-    position: relative; margin: 16px 0; border-radius: 18px; overflow: hidden;
-    background: #0A0716; aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: #05040A;
+    aspect-ratio: 16 / 9;
+    min-height: 280px;
   }
-  #player { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #player {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
   #player video { object-fit: cover !important; }
   .stage-overlay {
-    position: relative; z-index: 2; padding: 20px; display: flex;
-    flex-direction: column; align-items: center; gap: 12px;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(5,4,10,.38), rgba(5,4,10,.68));
   }
-  .spinner { width: 34px; height: 34px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #A855F7; border-radius: 50%; animation: spin 0.9s linear infinite; }
+  .stage-panel {
+    width: min(420px, 100%);
+    text-align: center;
+    display: grid;
+    gap: 12px;
+  }
+  .live-badge {
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 999px;
+    background: var(--red);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 99px;
+    background: #fff;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  .stage-title {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 34px);
+    line-height: 1.08;
+    letter-spacing: 0;
+  }
+  .stage-copy {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.45;
+    font-weight: 700;
+  }
+  .stage-msg {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+    min-height: 18px;
+  }
+  .spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(255,255,255,.18);
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    animation: spin .9s linear infinite;
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .stage-msg { font-size: 13px; color: #C9BEF5; font-weight: 700; max-width: 260px; }
-  .watch-btn {
-    background: #EF4444; color: #fff; border: none; font-family: inherit;
-    font-size: 15px; font-weight: 900; padding: 12px 22px; border-radius: 14px; cursor: pointer;
+  .stage-footer {
+    padding: 12px 14px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
   }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 99px;
+    background: var(--soft);
+  }
+  .status.live::before { background: var(--red); }
+  .status.ready::before { background: var(--teal); }
   .btn {
-    display: block; width: 100%; padding: 14px; border-radius: 15px;
-    font-size: 15px; font-weight: 800; text-decoration: none; margin-top: 10px; border: none; cursor: pointer; font-family: inherit;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    min-height: 42px;
+    padding: 11px 15px;
+    background: var(--panel-soft);
+    color: #fff;
+    font-weight: 900;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
   }
-  .btn-primary { background: #7C3AED; color: #fff; }
-  .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
-  .muted-note { font-size: 12px; color: #9A8FC4; margin-top: 12px; }
+  .btn.primary {
+    background: var(--purple);
+    border-color: var(--purple);
+  }
+  .btn.danger {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .btn.ghost {
+    background: transparent;
+  }
+  .btn:disabled {
+    opacity: .58;
+    cursor: not-allowed;
+  }
+  .side-card {
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+    align-self: start;
+  }
+  .side-card h2 {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.2;
+  }
+  .side-card p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+  }
+  .field {
+    display: grid;
+    gap: 7px;
+  }
+  .field label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+  }
+  .field input, .field select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    min-height: 42px;
+    padding: 10px 11px;
+    background: #100E19;
+    color: #fff;
+  }
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .check-row input { width: 17px; height: 17px; }
+  .actions {
+    display: grid;
+    gap: 9px;
+  }
+  .share-box {
+    display: none;
+    gap: 8px;
+  }
+  .share-box.visible { display: grid; }
+  .share-box input {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100E19;
+    color: #fff;
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+  .note {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.45;
+  }
   .sound-pill {
-    position: absolute; z-index: 3; bottom: 12px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.25);
-    font-size: 12px; font-weight: 800; padding: 8px 14px; border-radius: 999px; cursor: pointer; display: none;
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(255,255,255,.24);
+    border-radius: 999px;
+    background: rgba(0,0,0,.62);
+    color: #fff;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    display: none;
+  }
+  @media (max-width: 860px) {
+    .main { grid-template-columns: 1fr; }
+    .topbar { align-items: flex-start; flex-direction: column; }
+    .stage { min-height: 220px; }
+    .stage-footer { align-items: flex-start; flex-direction: column; }
   }
 </style>
 </head>
 <body>
-  <div class="card">
-    <img class="logo" src="./logo2.png" alt="Duvela">
-    <div class="live-badge"><span class="dot"></span> LIVE</div>
-    <h1 id="title">A teacher is live on Duvela</h1>
-    <p id="subtitle">Watch the lesson right here, or open the app to join in.</p>
+<div class="page">
+  <header class="topbar">
+    <a class="brand" href="./app.html?role=teacher#home" id="backLink">
+      <img src="./logo.webp" alt="Duvela">
+      <span>Duvela LIVE</span>
+    </a>
+    <div class="mode-pill" id="modePill">Browser live</div>
+  </header>
 
-    <div class="stage">
-      <div id="player"></div>
-      <div class="stage-overlay" id="overlay">
-        <button type="button" class="watch-btn" id="watchBtn">▶  Watch now</button>
-        <div class="stage-msg" id="stageMsg"></div>
+  <main class="main">
+    <section class="stage-card">
+      <div class="stage">
+        <div id="player"></div>
+        <div class="stage-overlay" id="overlay">
+          <div class="stage-panel">
+            <div class="live-badge"><span class="dot"></span><span id="badgeText">LIVE</span></div>
+            <h1 class="stage-title" id="title">A teacher is live on Duvela</h1>
+            <p class="stage-copy" id="subtitle">Watch the lesson right here, or open the app to join in.</p>
+            <button type="button" class="btn primary" id="mainAction">Watch now</button>
+            <div class="stage-msg" id="stageMsg"></div>
+          </div>
+        </div>
+        <button type="button" class="sound-pill" id="soundPill">Tap for sound</button>
       </div>
-      <div class="sound-pill" id="soundPill">🔇  Tap for sound</div>
-    </div>
+      <div class="stage-footer">
+        <span class="status" id="statusText">Waiting</span>
+        <button type="button" class="btn danger" id="endLive" style="display:none">End LIVE</button>
+      </div>
+    </section>
 
-    <a class="btn btn-primary" id="openApp" href="#">Open in the Duvela app</a>
-    <a class="btn btn-secondary" href="./index.html">Get the Duvela app</a>
-    <div class="muted-note" id="note"></div>
-  </div>
+    <aside class="side-card">
+      <div>
+        <h2 id="sideTitle">Live room</h2>
+        <p id="sideCopy">Use the browser to watch the lesson, or open Duvela on mobile.</p>
+      </div>
+
+      <div id="hostSetup" style="display:none">
+        <div class="field">
+          <label for="topicInput">LIVE title</label>
+          <input id="topicInput" maxlength="80" value="Live lesson">
+        </div>
+        <div class="field">
+          <label for="levelInput">Level</label>
+          <select id="levelInput">
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1" selected>B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+            <option value="">Open</option>
+          </select>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" id="privateInput">
+          <span>Private room</span>
+        </label>
+      </div>
+
+      <div class="actions">
+        <a class="btn" id="openApp" href="#">Open in the Duvela app</a>
+        <a class="btn ghost" id="dashboardLink" href="./app.html?role=teacher#live">Back to web dashboard</a>
+      </div>
+
+      <div class="share-box" id="shareBox">
+        <div class="field">
+          <label for="shareUrl">Student watch link</label>
+          <input id="shareUrl" readonly>
+        </div>
+        <button type="button" class="btn" id="copyShare">Copy link</button>
+      </div>
+
+      <div class="note" id="note"></div>
+    </aside>
+  </main>
+</div>
 
 <script>
 (function () {
-  // ── config ──────────────────────────────────────────────────────────────────
   var SUPABASE_URL = 'https://ohtkryanqcnwghcnipsr.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9odGtyeWFucWNud2doY25pcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjA1NDEsImV4cCI6MjA4NjM5NjU0MX0.YjPRrv4grr-17PaWqCwwR464rxMJRYI7BDvjMi9gdnU';
-  // Agora App ID is a public client identifier (it ships inside the mobile app
-  // binary too). Set it here to enable the in-browser player. If left blank, the
-  // page stays a deep-link landing without the player.
   var AGORA_APP_ID = '7dbbced847dc459ba72f7ee6e2426c11';
+  var LIVE_FIELDS = 'id,channel_name,teacher_id,teacher_name,teacher_avatar_url,language,level,topic,price_per_minute,status,started_at,ended_at,created_at,heartbeat_at,is_private';
 
   var params = new URLSearchParams(window.location.search);
   var sessionId = params.get('s') || '';
   var teacher = params.get('t') || '';
-  var isBusiness = params.get('app') === 'business';
+  var isHostMode = params.get('mode') === 'host';
+  var isBusiness = params.get('app') === 'business' || isHostMode;
+  var supa = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  var client = null;
+  var localAudioTrack = null;
+  var localVideoTrack = null;
+  var currentSession = null;
+  var heartbeatTimer = null;
+  var currentUser = null;
 
   var el = function (id) { return document.getElementById(id); };
-  if (teacher) el('title').textContent = teacher + ' is live on Duvela';
 
-  // ── deep link (unchanged) ─────────────────────────────────────────────────────
-  var deepLink = (isBusiness
-    ? 'duvelabusiness://live-stream?mode=student'
-    : 'duvelahub://native/live-stream?mode=student')
-    + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : '');
-  var openApp = el('openApp');
-  openApp.href = deepLink;
-  openApp.addEventListener('click', function (e) {
-    e.preventDefault();
-    window.location.href = deepLink;
-  });
-
-  // ── in-browser player ─────────────────────────────────────────────────────────
-  var supa = (window.supabase && SUPABASE_ANON_KEY)
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
-
-  var canPlay = !!(sessionId && AGORA_APP_ID && supa && window.AgoraRTC);
-  if (!canPlay) {
-    el('overlay').style.display = 'none';
-    el('note').textContent = sessionId
-      ? 'Open the app to watch this lesson.'
-      : '';
-    autoOpenOnMobile();
-    return;
+  function esc(value) {
+    var div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
   }
-
-  // Same uid hash the mobile app and edge function use, so the issued token's
-  // uid matches the authenticated user.
+  function setStatus(text, state) {
+    var node = el('statusText');
+    node.textContent = text;
+    node.classList.toggle('live', state === 'live');
+    node.classList.toggle('ready', state === 'ready');
+  }
+  function setStage(html, msg) {
+    el('stageMsg').innerHTML = html + (msg ? '<div style="margin-top:8px">' + esc(msg) + '</div>' : '');
+  }
+  function showOverlay(show) {
+    el('overlay').style.display = show ? 'flex' : 'none';
+  }
   function createAgoraUid(value) {
     var hash = 0;
-    for (var i = 0; i < value.length; i += 1) {
-      hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-    }
+    for (var i = 0; i < value.length; i += 1) hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
     return (hash % 2147483646) + 1;
   }
-
-  var client = null;
-
-  async function ensureSession() {
+  function createChannelName(userId) {
+    return ('duvela-web-' + userId.replace(/-/g, '').slice(0, 12) + '-' + Date.now().toString(36)).slice(0, 64);
+  }
+  function displayName(user) {
+    return user.user_metadata?.full_name || user.email?.split('@')[0] || 'Duvela teacher';
+  }
+  function teacherWatchTitle(name) {
+    return (name || 'A teacher') + ' is live on Duvela';
+  }
+  function makeDeepLink() {
+    if (isBusiness) {
+      return 'duvelabusiness://live-stream' + (sessionId ? '?sessionId=' + encodeURIComponent(sessionId) : '');
+    }
+    return 'duvelahub://native/live-stream?mode=student' + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : '');
+  }
+  function updateShareLink(session) {
+    if (!session?.id) return;
+    var url = new URL('./live.html', window.location.href);
+    url.searchParams.set('s', session.id);
+    if (session.teacher_name) url.searchParams.set('t', session.teacher_name);
+    el('shareUrl').value = url.href;
+    el('shareBox').classList.add('visible');
+  }
+  function updateUrlForHost(session) {
+    if (!session?.id) return;
+    var url = new URL('./live.html', window.location.href);
+    url.searchParams.set('app', 'business');
+    url.searchParams.set('mode', 'host');
+    url.searchParams.set('s', session.id);
+    if (session.teacher_name) url.searchParams.set('t', session.teacher_name);
+    history.replaceState(null, '', url.href);
+    sessionId = session.id;
+    el('openApp').href = makeDeepLink();
+  }
+  async function requireSessionForHost() {
     var got = await supa.auth.getSession();
-    if (got.data.session) return got.data.session;
-    // No session → sign in anonymously so the viewer can watch instantly.
-    // Requires "Anonymous sign-ins" enabled in Supabase Auth settings.
+    if (got.data.session?.user) return got.data.session;
+    window.location.href = './index.html?login=1';
+    throw new Error('Sign in first.');
+  }
+  async function ensureViewerSession() {
+    var got = await supa.auth.getSession();
+    if (got.data.session?.user) return got.data.session;
     var anon = await supa.auth.signInAnonymously();
-    if (anon.error) throw new Error('anon: ' + anon.error.message);
+    if (anon.error || !anon.data.session) throw new Error('Could not create viewer session.');
     return anon.data.session;
   }
-
-  async function watch() {
-    el('watchBtn').style.display = 'none';
-    setStage('<div class="spinner"></div>', 'Connecting…');
+  async function getPublisherToken(channelName, uid) {
+    var fn = await supa.functions.invoke('agora-token', {
+      body: { channelName: channelName, uid: uid, role: 'publisher', ttlSeconds: 3600 }
+    });
+    if (fn.error) throw new Error(fn.error.message || 'Could not get host token.');
+    if (!fn.data?.token) throw new Error('Could not get host token.');
+    return fn.data.token;
+  }
+  async function getSubscriberToken(channelName, uid) {
+    var fn = await supa.functions.invoke('agora-token', {
+      body: { channelName: channelName, uid: uid, role: 'subscriber', ttlSeconds: 3600 }
+    });
+    if (fn.error) throw new Error(fn.error.message || 'Could not get stream token.');
+    if (!fn.data?.token) throw new Error('Could not get stream token.');
+    return fn.data.token;
+  }
+  async function loadLiveSession(id) {
+    var result = await supa.from('live_sessions').select(LIVE_FIELDS).eq('id', id).maybeSingle();
+    if (result.error || !result.data) throw new Error('This LIVE was not found.');
+    return result.data;
+  }
+  async function createLiveSession(user) {
+    var now = new Date().toISOString();
+    var topic = el('topicInput').value.trim() || 'Live lesson';
+    var payload = {
+      channel_name: createChannelName(user.id),
+      ended_at: null,
+      heartbeat_at: now,
+      is_private: el('privateInput').checked,
+      level: el('levelInput').value || null,
+      price_per_minute: 0,
+      started_at: now,
+      status: 'live',
+      teacher_id: user.id,
+      teacher_name: displayName(user),
+      topic: topic
+    };
+    var result = await supa
+      .from('live_sessions')
+      .upsert(payload, { onConflict: 'channel_name' })
+      .select(LIVE_FIELDS)
+      .single();
+    if (result.error || !result.data) {
+      throw new Error(result.error?.message || 'Could not create LIVE. Make sure this account is a teacher/organizer.');
+    }
+    return result.data;
+  }
+  async function markHeartbeat() {
+    if (!currentSession?.id) return;
+    await supa.from('live_sessions').update({
+      heartbeat_at: new Date().toISOString(),
+      status: 'live',
+      ended_at: null
+    }).eq('id', currentSession.id);
+  }
+  async function markEnded() {
+    if (!currentSession?.id || !currentUser?.id) return;
+    await supa.from('live_sessions')
+      .update({ status: 'ended', ended_at: new Date().toISOString() })
+      .eq('id', currentSession.id)
+      .eq('teacher_id', currentUser.id);
+  }
+  async function startHost() {
+    if (!supa || !window.AgoraRTC || !AGORA_APP_ID) {
+      setStage('', 'Live studio is not configured.');
+      return;
+    }
+    el('mainAction').disabled = true;
+    setStatus('Starting teacher LIVE', 'ready');
+    setStage('<div class="spinner"></div>', 'Preparing camera and microphone...');
     try {
-      var session = await ensureSession();
-      var user = session.user;
+      var authSession = await requireSessionForHost();
+      currentUser = authSession.user;
+      var uid = createAgoraUid(currentUser.id);
+      currentSession = sessionId ? await loadLiveSession(sessionId) : await createLiveSession(currentUser);
+      if (currentSession.teacher_id && currentSession.teacher_id !== currentUser.id) {
+        throw new Error('This LIVE belongs to another teacher.');
+      }
+      if (currentSession.status !== 'live') throw new Error('This LIVE is not active.');
+
+      var token = await getPublisherToken(currentSession.channel_name, uid);
+      client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      await client.setClientRole('host');
+      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      var tracks = await window.AgoraRTC.createMicrophoneAndCameraTracks();
+      localAudioTrack = tracks[0];
+      localVideoTrack = tracks[1];
+      localVideoTrack.play('player', { fit: 'cover' });
+      await client.publish([localAudioTrack, localVideoTrack]);
+
+      el('title').textContent = currentSession.topic || 'Teacher LIVE';
+      el('subtitle').textContent = 'You are live from the browser. Students can open the watch link.';
+      showOverlay(false);
+      el('endLive').style.display = 'inline-flex';
+      el('mainAction').textContent = 'LIVE is running';
+      setStatus('Teacher is LIVE', 'live');
+      setStage('', '');
+      updateUrlForHost(currentSession);
+      updateShareLink(currentSession);
+      await markHeartbeat();
+      heartbeatTimer = setInterval(markHeartbeat, 30000);
+    } catch (error) {
+      el('mainAction').disabled = false;
+      el('mainAction').textContent = sessionId ? 'Enter as teacher' : 'Start LIVE';
+      setStatus('Not live', '');
+      setStage('', error?.message || 'Could not start LIVE.');
+      await stopMedia(false);
+    }
+  }
+  async function watch() {
+    if (!sessionId) {
+      setStage('', 'No live session selected.');
+      return;
+    }
+    if (!supa || !window.AgoraRTC || !AGORA_APP_ID) {
+      setStage('', 'Open the app to watch this lesson.');
+      return;
+    }
+    el('mainAction').disabled = true;
+    setStatus('Connecting', 'ready');
+    setStage('<div class="spinner"></div>', 'Connecting...');
+    try {
+      var authSession = await ensureViewerSession();
+      var user = authSession.user;
       var uid = createAgoraUid(user.id);
-
-      // Fetch the channel + privacy for this session.
-      var sess = await supa.from('live_sessions')
-        .select('channel_name,status,is_private,teacher_name')
-        .eq('id', sessionId).maybeSingle();
-      if (sess.error || !sess.data) throw new Error('This LIVE has ended.');
-      if (sess.data.status !== 'live') throw new Error('This LIVE has ended.');
-      if (sess.data.is_private) throw new Error('This is a private lesson — open the app to request access.');
-      if (sess.data.teacher_name && !teacher) el('title').textContent = sess.data.teacher_name + ' is live on Duvela';
-
-      // Ask the edge function for a subscriber (watch-only) token.
-      var fn = await supa.functions.invoke('agora-token', {
-        body: { channelName: sess.data.channel_name, uid: uid, role: 'subscriber', ttlSeconds: 3600 }
-      });
-      if (fn.error) throw new Error('token: ' + (fn.error.message || 'failed'));
-      var token = fn.data && fn.data.token;
-      if (!token) throw new Error('Could not get a stream token.');
-
+      currentSession = await loadLiveSession(sessionId);
+      if (currentSession.status !== 'live') throw new Error('This LIVE has ended.');
+      if (currentSession.is_private) throw new Error('This is a private lesson. Open the app to request access.');
+      if (currentSession.teacher_name && !teacher) el('title').textContent = teacherWatchTitle(currentSession.teacher_name);
+      var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       await client.setClientRole('audience');
       client.on('user-published', async function (remoteUser, mediaType) {
         await client.subscribe(remoteUser, mediaType);
         if (mediaType === 'video') {
-          el('overlay').style.display = 'none';
+          showOverlay(false);
           remoteUser.videoTrack.play('player', { fit: 'cover' });
+          setStatus('Watching LIVE', 'live');
         }
         if (mediaType === 'audio') {
           try { remoteUser.audioTrack.play(); }
@@ -194,40 +631,110 @@
         }
       });
       client.on('user-unpublished', function () {
+        showOverlay(true);
         setStage('', 'The teacher paused the stream.');
-        el('overlay').style.display = 'flex';
       });
-
-      await client.join(AGORA_APP_ID, sess.data.channel_name, token, uid);
-      setStage('<div class="spinner"></div>', 'Waiting for the teacher’s camera…');
-    } catch (err) {
-      setStage('', (err && err.message) || 'Could not start the stream.');
-      el('overlay').style.display = 'flex';
-      el('watchBtn').style.display = 'inline-block';
-      el('watchBtn').textContent = 'Try again';
-      el('note').textContent = 'You can still open the app to join.';
+      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      setStage('<div class="spinner"></div>', 'Waiting for the teacher camera...');
+      el('mainAction').disabled = false;
+      el('mainAction').textContent = 'Try again';
+    } catch (error) {
+      el('mainAction').disabled = false;
+      el('mainAction').textContent = 'Try again';
+      setStatus('Not connected', '');
+      setStage('', error?.message || 'Could not start the stream.');
+      showOverlay(true);
     }
   }
-
-  function setStage(html, msg) {
-    el('stageMsg').innerHTML = html + (msg ? '<div style="margin-top:8px">' + msg + '</div>' : '');
+  async function stopMedia(markSessionEnded) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+    if (localAudioTrack) {
+      localAudioTrack.stop();
+      localAudioTrack.close();
+      localAudioTrack = null;
+    }
+    if (localVideoTrack) {
+      localVideoTrack.stop();
+      localVideoTrack.close();
+      localVideoTrack = null;
+    }
+    if (client) {
+      try { await client.leave(); } catch (e) {}
+      client = null;
+    }
+    if (markSessionEnded) await markEnded();
+  }
+  async function endHost() {
+    el('endLive').disabled = true;
+    setStatus('Ending LIVE', 'ready');
+    await stopMedia(true);
+    showOverlay(true);
+    el('endLive').style.display = 'none';
+    el('endLive').disabled = false;
+    el('mainAction').disabled = false;
+    el('mainAction').textContent = 'Start LIVE';
+    setStatus('LIVE ended', '');
+    setStage('', 'The live session has ended.');
   }
   function showSoundPill(remoteUser) {
     var pill = el('soundPill');
     pill.style.display = 'block';
     pill.onclick = function () {
-      try { remoteUser.audioTrack.play(); pill.style.display = 'none'; } catch (e) {}
+      try {
+        remoteUser.audioTrack.play();
+        pill.style.display = 'none';
+      } catch (e) {}
     };
   }
+  function setupMode() {
+    el('openApp').href = makeDeepLink();
+    el('openApp').addEventListener('click', function (event) {
+      event.preventDefault();
+      window.location.href = makeDeepLink();
+    });
+    el('copyShare').addEventListener('click', async function () {
+      el('shareUrl').select();
+      try { await navigator.clipboard.writeText(el('shareUrl').value); }
+      catch (e) { document.execCommand('copy'); }
+      el('copyShare').textContent = 'Copied';
+      setTimeout(function () { el('copyShare').textContent = 'Copy link'; }, 1200);
+    });
+    el('endLive').addEventListener('click', endHost);
+    window.addEventListener('beforeunload', function () {
+      if (isHostMode) void stopMedia(true);
+      else if (client) void client.leave();
+    });
 
-  el('watchBtn').addEventListener('click', watch);
-  window.addEventListener('beforeunload', function () { if (client) client.leave(); });
-
-  function autoOpenOnMobile() {
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      setTimeout(function () { window.location.href = deepLink; }, 400);
+    if (isHostMode) {
+      document.title = 'Duvela LIVE - teacher studio';
+      el('modePill').textContent = 'Bus Web - Teacher Live';
+      el('badgeText').textContent = 'TEACHER LIVE';
+      el('title').textContent = sessionId ? 'Enter teacher LIVE' : 'Start teacher LIVE';
+      el('subtitle').textContent = 'Create a live room and publish camera plus microphone from this browser.';
+      el('sideTitle').textContent = 'Teacher controls';
+      el('sideCopy').textContent = 'Your teacher account must be marked as teacher or organizer in Supabase.';
+      el('hostSetup').style.display = 'grid';
+      el('mainAction').textContent = sessionId ? 'Enter as teacher' : 'Start LIVE';
+      el('mainAction').addEventListener('click', startHost);
+      el('dashboardLink').href = './app.html?role=teacher#live';
+      el('backLink').href = './app.html?role=teacher#live';
+      el('note').textContent = 'Allow camera and microphone permissions when the browser asks.';
+      setStatus('Ready for teacher', 'ready');
+      return;
     }
+
+    if (teacher) el('title').textContent = teacherWatchTitle(teacher);
+    el('modePill').textContent = isBusiness ? 'Business viewer' : 'Hub Web viewer';
+    el('mainAction').textContent = 'Watch now';
+    el('mainAction').addEventListener('click', watch);
+    el('dashboardLink').href = './app.html?role=learner#live';
+    el('backLink').href = './app.html?role=learner#live';
+    setStatus(sessionId ? 'Ready to watch' : 'No session selected', sessionId ? 'ready' : '');
+    el('note').textContent = sessionId ? 'If playback does not start, open the lesson in the app.' : 'Open a live session from Hub or Bus Web.';
   }
+
+  setupMode();
 })();
 </script>
 </body>

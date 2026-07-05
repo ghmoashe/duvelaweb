@@ -278,6 +278,15 @@
       "phEmail": "Email",
       "phPassword": "Password",
       "signInAs": "Sign In as {role}",
+      "signUpAs": "Create account as {role}",
+      "signingIn": "Signing in...",
+      "creatingAccount": "Creating account...",
+      "pwTooShort": "Password must be at least 6 characters.",
+      "pwMismatch": "Passwords do not match.",
+      "checkEmailVerify": "Account created. Check your email to confirm, then sign in.",
+      "tabSignin": "Sign in",
+      "tabSignup": "Create account",
+      "signupHere": "Create an account",
       "noteAdmin": "🛡️ The admin panel is launching soon.",
       "noteUser": "🚀 Web sign-in for {role}s is launching soon — use the Duvela app for now!",
       "loginFoot1": "No account yet?",
@@ -405,6 +414,15 @@
       "phEmail": "Email",
       "phPassword": "Пароль",
       "signInAs": "Войти как {role}",
+      "signUpAs": "Создать аккаунт как {role}",
+      "signingIn": "Вход...",
+      "creatingAccount": "Создание аккаунта...",
+      "pwTooShort": "Пароль должен быть не короче 6 символов.",
+      "pwMismatch": "Пароли не совпадают.",
+      "checkEmailVerify": "Аккаунт создан. Подтвердите почту, затем войдите.",
+      "tabSignin": "Вход",
+      "tabSignup": "Регистрация",
+      "signupHere": "Создать аккаунт",
       "noteAdmin": "🛡️ Админ-панель скоро откроется.",
       "noteUser": "🚀 Веб-вход для роли «{role}» скоро появится — пока используйте приложение Duvela!",
       "loginFoot1": "Ещё нет аккаунта?",
@@ -4936,5 +4954,30 @@
       roleOrganization,
       roleOrganizationD
     });
+  }
+
+  const authFallbacks = {
+    signUpAs: "Create account as {role}",
+    signingIn: "Signing in...",
+    creatingAccount: "Creating account...",
+    pwTooShort: "Password must be at least 6 characters.",
+    pwMismatch: "Passwords do not match.",
+    checkEmailVerify: "Account created. Check your email to confirm, then sign in.",
+    tabSignin: "Sign in",
+    tabSignup: "Create account",
+    signupHere: "Create an account"
+  };
+
+  for (const code of Object.keys(global.DUVELA_WEB_I18N.extra)) {
+    const merged = Object.assign(
+      {},
+      global.DUVELA_WEB_I18N.base[code] || {},
+      global.DUVELA_WEB_I18N.extra[code] || {}
+    );
+    const patch = {};
+    for (const [key, value] of Object.entries(authFallbacks)) {
+      if (!merged[key]) patch[key] = value;
+    }
+    Object.assign(global.DUVELA_WEB_I18N.extra[code], patch);
   }
 })(window);
