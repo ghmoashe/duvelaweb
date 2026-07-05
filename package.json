@@ -3,9 +3,11 @@
   "private": true,
   "scripts": {
     "web:full": "node ./scripts/start-web-suite.js",
+    "bootstrap:test-accounts": "node ./scripts/bootstrap-web-test-accounts.js",
     "check:backend": "node ./scripts/check-web-backend-e2e.js",
     "check:agora": "node ./scripts/agora-browser-e2e.js",
     "check": "npm run check:i18n",
+    "check:all": "node ./scripts/check-all.js",
     "check:i18n": "node ./scripts/check-i18n.js",
     "import:legal": "node ./scripts/import-legal-content.js"
   }

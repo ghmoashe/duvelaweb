@@ -1774,12 +1774,43 @@
     });
   });
 
+  function isBusinessWebRole(role) {
+    return role === 'teacher' || role === 'organizer' || role === 'organization' || role === 'admin';
+  }
+
   async function upsertWebProfile(userId, email, locale) {
-    const patch = { id: userId, email: email || null, locale, updated_at: new Date().toISOString() };
-    if (currentRole === 'teacher') patch.is_teacher = true;
-    if (currentRole === 'organizer' || currentRole === 'organization') patch.is_organizer = true;
+    const now = new Date().toISOString();
+    const patch = { id: userId, email: email || null, locale, updated_at: now };
     try { await supa.from('profiles').upsert(patch, { onConflict: 'id' }); }
     catch (err) { console.warn('profile upsert skipped', err); }
+
+    if (!isBusinessWebRole(currentRole)) return;
+
+    try {
+      const existing = await supa.from('profiles')
+        .select('is_teacher,is_organizer,is_admin,requested_role,role_request_status')
+        .eq('id', userId)
+        .maybeSingle();
+      if (existing.error || !existing.data) return;
+      const profile = existing.data;
+      const approved =
+        profile.is_admin
+        || (currentRole === 'teacher' && profile.is_teacher)
+        || ((currentRole === 'organizer' || currentRole === 'organization') && profile.is_organizer);
+      if (approved) {
+        await supa.from('profiles').update({ last_web_role: currentRole, updated_at: now }).eq('id', userId);
+        return;
+      }
+      await supa.from('profiles').update({
+        requested_role: currentRole,
+        role_request_status: 'pending',
+        requested_role_at: now,
+        last_web_role: currentRole,
+        updated_at: now
+      }).eq('id', userId);
+    } catch (err) {
+      console.warn('role request update skipped', err);
+    }
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {

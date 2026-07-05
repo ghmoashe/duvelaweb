@@ -7,6 +7,7 @@
 <meta name="description" content="Duvela web application for learning, live lessons, courses, events, messages and profile management.">
 <link rel="icon" href="./logo.webp" type="image/webp">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -251,6 +252,28 @@
     justify-content: space-between;
     gap: 10px;
     margin-bottom: 10px;
+  }
+  .notice {
+    margin-bottom: 16px;
+    border: 1px solid rgba(124,58,237,.18);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, rgba(124,58,237,.10), rgba(124,58,237,.04));
+  }
+  .notice.warn {
+    border-color: rgba(245,158,11,.28);
+    background: linear-gradient(180deg, rgba(245,158,11,.10), rgba(245,158,11,.04));
+  }
+  .notice h2 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .notice p {
+    margin: 0;
+    color: var(--soft);
+    font-weight: 700;
+    line-height: 1.45;
   }
   .section-head h2 {
     font-size: 18px;
@@ -536,6 +559,48 @@
   .overlay-body { padding: 14px 16px; overflow-y: auto; }
   .overlay-body .search { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; background: var(--panel-soft); margin-bottom: 10px; }
   .picker { display: grid; gap: 6px; }
+  .video-card { cursor: pointer; }
+  .row[data-course] { cursor: pointer; }
+  .notice { border: 1px solid var(--line); background: var(--amber-soft); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+  .notice.warn { background: var(--red-soft); border-color: #F5C2BD; }
+  .notice h2 { margin: 0 0 4px; font-size: 15px; }
+  .notice p { margin: 0; font-weight: 700; font-size: 13px; color: var(--soft); }
+  .video-thumb .play-badge { position: absolute; width: 46px; height: 46px; border-radius: 50%; background: rgba(21,18,29,.55); display: grid; place-items: center; color: #fff; z-index: 1; }
+  .prog-row { margin-bottom: 12px; }
+  .prog-row .prog-label { display: flex; justify-content: space-between; font-weight: 900; font-size: 13px; margin-bottom: 5px; }
+  .prog-row .prog-label span:last-child { color: var(--purple); }
+  .prog-bar { height: 9px; border-radius: 999px; background: var(--panel-soft); border: 1px solid var(--line); overflow: hidden; }
+  .prog-bar i { display: block; height: 100%; background: var(--purple); border-radius: 999px; }
+  .rank-row { display: grid; grid-template-columns: 26px 34px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--line); }
+  .rank-row .rank-num { font-weight: 900; color: var(--muted); text-align: center; }
+  .rank-row.me { background: var(--purple-soft); border-radius: 8px; }
+  .lesson-item { display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .lesson-item b { font-size: 14px; }
+  .lesson-item p { margin: 3px 0 0; color: var(--soft); font-size: 12.5px; font-weight: 700; }
+  .lesson-item .n { width: 26px; height: 26px; border-radius: 50%; background: var(--purple-soft); color: var(--purple); font-weight: 900; display: grid; place-items: center; font-size: 12px; }
+  .bell-btn { position: relative; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer; color: var(--soft); flex: 0 0 auto; }
+  .bell-btn:hover { background: var(--panel-soft); color: var(--ink); }
+  .bell-btn svg { width: 19px; height: 19px; }
+  .bell-dot { position: absolute; top: 6px; right: 7px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--red); color: #fff; font-size: 10px; font-weight: 900; display: grid; place-items: center; }
+  .notif-item { display: grid; grid-template-columns: 8px minmax(0,1fr); gap: 10px; padding: 11px 8px; border-top: 1px solid var(--line); align-items: start; }
+  .notif-item .ndot { width: 8px; height: 8px; border-radius: 50%; background: transparent; margin-top: 6px; }
+  .notif-item.unread .ndot { background: var(--purple); }
+  .notif-item b { font-size: 14px; }
+  .notif-item p { margin: 3px 0 0; color: var(--soft); font-size: 13px; font-weight: 700; }
+  .notif-item time { color: var(--muted); font-size: 11.5px; font-weight: 800; }
+  .prac-card { padding: 14px; cursor: pointer; }
+  .prac-card:hover { background: var(--panel-soft); }
+  .prac-card h3 { margin: 0; font-size: 15px; }
+  .prac-card p { margin: 4px 0 0; color: var(--soft); font-size: 13px; font-weight: 700; }
+  .prac-meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .stars { display: inline-flex; gap: 2px; }
+  .stars .st { cursor: pointer; font-size: 20px; color: var(--line); line-height: 1; }
+  .stars .st.on { color: var(--amber); }
+  .opt-btn { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; font-weight: 800; }
+  .opt-btn:hover { background: var(--panel-soft); }
+  .opt-btn.correct { background: var(--teal-soft); border-color: var(--teal); color: var(--teal); }
+  .opt-btn.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+  .slot-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 8px 14px; margin: 0 8px 8px 0; font-weight: 800; }
   @media (max-width: 760px) {
     .msg-wrap { grid-template-columns: 1fr; }
     .thread-col { display: none; }
@@ -561,6 +626,10 @@
       <option value="organization">Organization</option>
       <option value="admin">Administrator</option>
     </select>
+    <select class="role-select" id="langSelect" aria-label="Language" style="font-weight:800">
+      <option value="en">🇬🇧 English</option>
+      <option value="ru">🇷🇺 Русский</option>
+    </select>
     <nav class="nav" aria-label="Application navigation">
       <button class="active" data-view="home"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span><span>Home</span></button>
       <button data-view="videos"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span><span>Videos</span></button>
@@ -569,6 +638,7 @@
       <button data-view="events"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span>Events</span></button>
       <button data-view="messages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span><span>Messages</span></button>
       <button data-view="workspace" id="workspaceNav"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><span id="workspaceNavLabel">Practice</span></button>
+      <button data-view="schedule"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg></span><span id="scheduleNavLabel">Schedule</span></button>
       <button data-view="profile"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span><span>Profile</span></button>
     </nav>
     <div class="side-foot">
@@ -584,6 +654,10 @@
         <p id="viewSub">Your learning dashboard is ready.</p>
       </div>
       <div class="mode-chip" id="modeChip">Hub Web</div>
+      <button class="bell-btn" id="notifBell" type="button" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        <span class="bell-dot" id="notifDot" style="display:none"></span>
+      </button>
       <div class="user-chip">
         <div class="avatar" id="topAvatar">D</div>
         <div>
@@ -592,6 +666,8 @@
         </div>
       </div>
     </header>
+
+    <div class="notice" id="accessNotice" style="display:none"></div>
 
     <section class="panel active" data-panel="home">
       <div class="grid-3">
@@ -668,26 +744,48 @@
       </div>
     </section>
 
+    <section class="panel" data-panel="schedule">
+      <div class="section-head"><h2 id="scheduleTitle">Schedule</h2><span id="scheduleSub">Book a lesson</span></div>
+      <div class="grid-2">
+        <div class="card profile-box" id="scheduleMain"></div>
+        <div class="card profile-box" id="scheduleSide"></div>
+      </div>
+    </section>
+
     <section class="panel" data-panel="profile">
-      <div class="card profile-box">
-        <div class="profile-head">
-          <div class="avatar" id="profileAvatar">D</div>
-          <div>
-            <h2 id="profileName">Duvela user</h2>
-            <p id="profileMeta">Signed in to Duvela Web</p>
+      <div class="grid-2">
+        <form class="card profile-box" id="profileForm">
+          <div class="profile-head">
+            <div class="avatar" id="profileAvatar">D</div>
+            <div>
+              <h2 id="profileName">Duvela user</h2>
+              <p id="profileMeta">Signed in</p>
+            </div>
           </div>
-        </div>
-        <div class="form-grid">
-          <div class="field"><label>Email</label><input id="profileEmail" readonly></div>
-          <div class="field"><label>Role</label><input id="profileRole" readonly></div>
-          <div class="field"><label>City</label><input id="profileCity" readonly></div>
-          <div class="field"><label>Language level</label><input id="profileLevel" readonly></div>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn" id="publicProfileLink" href="#" style="display:none">Open public profile</a>
-          <a class="btn" href="./index.html">Marketing site</a>
-          <button class="btn danger" id="signOut" type="button">Sign out</button>
-        </div>
+          <div class="form-grid">
+            <div class="field"><label data-t="email">Email</label><input id="profileEmail" readonly></div>
+            <div class="field"><label data-t="role">Role</label><input id="profileRole" readonly></div>
+            <div class="field"><label data-t="fullName">Full name</label><input id="pfName" maxlength="120"></div>
+            <div class="field"><label data-t="city">City</label><input id="pfCity" maxlength="80"></div>
+            <div class="field"><label data-t="country">Country</label><input id="pfCountry" maxlength="80"></div>
+            <div class="field"><label data-t="language">Language</label><input id="pfLanguage" maxlength="60"></div>
+            <div class="field"><label data-t="level">Language level</label><input id="pfLevel" placeholder="A1–C2" maxlength="10"></div>
+            <div class="field"><label data-t="avatarUrl">Avatar URL</label><input id="pfAvatar" placeholder="https://..."></div>
+          </div>
+          <div class="field"><label data-t="bio">Bio</label><textarea id="pfBio" maxlength="500" placeholder="Tell others about you"></textarea></div>
+          <div class="form-grid">
+            <div class="field"><label>Telegram</label><input id="pfTelegram" placeholder="@handle" maxlength="60"></div>
+            <div class="field"><label>Instagram</label><input id="pfInstagram" placeholder="@handle" maxlength="60"></div>
+            <div class="field"><label data-t="website">Website</label><input id="pfWebsite" placeholder="https://..." maxlength="200"></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn primary" type="submit" data-t="save">Save changes</button>
+            <span id="profileSaved" style="display:none;color:var(--teal);font-weight:900" data-t="saved">Saved ✓</span>
+            <a class="btn" id="publicProfileLink" href="#" style="display:none" data-t="openPublic">Open public profile</a>
+            <button class="btn danger" id="signOut" type="button" data-t="signOut">Sign out</button>
+          </div>
+        </form>
+        <div class="card profile-box" id="progressCard"></div>
       </div>
     </section>
   </main>
@@ -695,11 +793,42 @@
 
 <div class="overlay" id="newChatOverlay">
   <div class="overlay-card">
-    <div class="overlay-head"><h2>Start a new chat</h2><button type="button" id="newChatClose" aria-label="Close">✕</button></div>
+    <div class="overlay-head"><h2 data-t="startNewChat">Start a new chat</h2><button type="button" id="newChatClose" aria-label="Close">✕</button></div>
     <div class="overlay-body">
       <input class="search" id="chatSearch" placeholder="Search people by name or city..." autocomplete="off">
       <div class="picker" id="chatPicker"><div class="empty">Type a name to search.</div></div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="videoOverlay">
+  <div class="overlay-card" style="width:min(760px,100%)">
+    <div class="overlay-head"><h2 id="videoOverlayTitle">Video</h2><button type="button" id="videoClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="videoOverlayBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="courseOverlay">
+  <div class="overlay-card" style="width:min(620px,100%)">
+    <div class="overlay-head"><h2 id="courseOverlayTitle">Course</h2><button type="button" id="courseClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="courseOverlayBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="notifOverlay">
+  <div class="overlay-card">
+    <div class="overlay-head"><h2 id="notifTitle">Notifications</h2><button type="button" id="notifClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn" id="markAllRead" type="button">Mark all read</button></div>
+      <div id="notifList"><div class="empty">No notifications.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="practiceOverlay">
+  <div class="overlay-card" style="width:min(640px,100%)">
+    <div class="overlay-head"><h2 id="practiceOverlayTitle">Practice</h2><button type="button" id="practiceClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="practiceOverlayBody"></div>
   </div>
 </div>
 
@@ -708,66 +837,174 @@
   const SUPABASE_URL = 'https://ohtkryanqcnwghcnipsr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9odGtyeWFucWNud2doY25pcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjA1NDEsImV4cCI6MjA4NjM5NjU0MX0.YjPRrv4grr-17PaWqCwwR464rxMJRYI7BDvjMi9gdnU';
   const ROLE_KEY = 'duvela.webRole';
+  const LANG_KEY = 'duvela.webLang';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const params = new URLSearchParams(window.location.search);
-  let role = params.get('role') || localStorage.getItem(ROLE_KEY) || 'learner';
+  const appLang = (localStorage.getItem(LANG_KEY) || navigator.language || 'en').toLowerCase();
+  const isRu = appLang.startsWith('ru');
+  const tr = (en, ru) => (isRu ? ru : en);
+  let selectedRole = params.get('role') || localStorage.getItem(ROLE_KEY) || 'learner';
+  let role = 'learner';
   let user = null;
   let profile = null;
   let currentVideoFilter = 'all';
+  let requestedBusinessRole = null;
+  let liveRefreshTimer = null;
 
   const roleLabels = {
-    learner: 'Learner',
-    teacher: 'Teacher',
-    organizer: 'Organizer',
-    organization: 'Organization',
-    admin: 'Administrator'
+    learner: tr('Learner', 'Ученик'),
+    teacher: tr('Teacher', 'Учитель'),
+    organizer: tr('Organizer', 'Организатор'),
+    organization: tr('Organization', 'Организация'),
+    admin: tr('Administrator', 'Администратор')
   };
+  function formatDate(value) {
+    return new Date(value).toLocaleDateString(isRu ? 'ru-RU' : 'en-US');
+  }
+  function isApprovedForRole(targetRole, currentProfile) {
+    if (!currentProfile) return targetRole === 'learner';
+    if (currentProfile.is_admin) return true;
+    if (targetRole === 'teacher') return Boolean(currentProfile.is_teacher);
+    if (targetRole === 'organizer' || targetRole === 'organization') return Boolean(currentProfile.is_organizer);
+    return targetRole === 'learner';
+  }
+  function fallbackApprovedRole(currentProfile) {
+    if (currentProfile?.is_admin) return 'admin';
+    if (currentProfile?.is_teacher) return 'teacher';
+    if (currentProfile?.is_organizer) return 'organizer';
+    return 'learner';
+  }
+  function normalizeRole(targetRole) {
+    return roleLabels[targetRole] ? targetRole : 'learner';
+  }
+  function resolveEffectiveRole(targetRole) {
+    const candidate = normalizeRole(targetRole);
+    requestedBusinessRole = null;
+    if (isApprovedForRole(candidate, profile)) return candidate;
+    if (businessRoles.has(candidate)) requestedBusinessRole = profile?.requested_role || candidate;
+    return fallbackApprovedRole(profile);
+  }
+  function requestedRoleStatus() {
+    return profile?.role_request_status || (requestedBusinessRole ? 'pending' : '');
+  }
+  function syncRoleOptions() {
+    const current = role;
+    const hasAdmin = Boolean(profile?.is_admin);
+    const optionLabels = {
+      learner: roleLabels.learner,
+      teacher: isApprovedForRole('teacher', profile)
+        ? roleLabels.teacher
+        : tr('Teacher request', 'Запрос на роль учителя'),
+      organizer: isApprovedForRole('organizer', profile)
+        ? roleLabels.organizer
+        : tr('Organizer request', 'Запрос на роль организатора'),
+      organization: isApprovedForRole('organization', profile)
+        ? roleLabels.organization
+        : tr('Organization request', 'Запрос на роль организации'),
+      admin: roleLabels.admin
+    };
+    $$('#roleSelect option').forEach((option) => {
+      option.textContent = optionLabels[option.value] || option.value;
+      if (option.value === 'admin') option.hidden = !hasAdmin;
+    });
+    $('#roleSelect').value = current;
+  }
+  async function submitRoleRequest(targetRole) {
+    const now = new Date().toISOString();
+    try {
+      const { error } = await supa.from('profiles').update({
+        requested_role: targetRole,
+        role_request_status: 'pending',
+        requested_role_at: now,
+        last_web_role: targetRole,
+        updated_at: now
+      }).eq('id', user.id);
+      if (error) throw error;
+      profile = { ...(profile || {}), requested_role: targetRole, role_request_status: 'pending', requested_role_at: now };
+      requestedBusinessRole = targetRole;
+      return true;
+    } catch (error) {
+      console.warn('role request update failed', error);
+      alert(tr(
+        'Could not save the role request. Apply the duvela web SQL bundle first.',
+        'Не удалось сохранить запрос роли. Сначала примените duvela web SQL bundle.'
+      ));
+      return false;
+    }
+  }
+  function renderAccessNotice() {
+    const node = $('#accessNotice');
+    const requestedRole = requestedBusinessRole || profile?.requested_role;
+    const status = requestedRoleStatus();
+    const hasPending = requestedRole && !isApprovedForRole(requestedRole, profile);
+    if (!node || !hasPending) {
+      if (node) node.style.display = 'none';
+      return;
+    }
+    const requestedLabel = roleLabels[requestedRole] || requestedRole;
+    const denied = status === 'denied' || status === 'rejected';
+    node.className = 'notice' + (denied ? ' warn' : '');
+    node.innerHTML = denied
+      ? '<h2>' + esc(tr('Business access needs review', 'Доступ в Bus ожидает пересмотра')) + '</h2><p>' + esc(tr(
+          requestedLabel + ' access was not approved yet. You still have Hub Web, and the account can request another review from support or the admin team.',
+          'Доступ для роли «' + requestedLabel + '» пока не подтверждён. Hub Web доступен, а повторный запрос можно отправить через support или админ-команду.'
+        )) + '</p>'
+      : '<h2>' + esc(tr('Business access pending', 'Доступ в Bus ожидает подтверждения')) + '</h2><p>' + esc(tr(
+          requestedLabel + ' access was requested for this account. Until approval, the browser opens Hub Web and keeps learner-safe permissions.',
+          'Для этого аккаунта отправлен запрос на роль «' + requestedLabel + '». До подтверждения браузер открывает Hub Web и сохраняет безопасные права ученика.'
+        )) + '</p>';
+    node.style.display = 'block';
+  }
   const businessRoles = new Set(['teacher', 'organizer', 'organization', 'admin']);
   const navLabels = {
     hub: {
-      home: 'Home',
-      videos: 'Videos',
-      live: 'Live',
-      courses: 'Courses',
-      events: 'Events',
-      messages: 'Messages',
-      workspace: 'Practice',
-      profile: 'Profile'
+      home: tr('Home', 'Главная'),
+      videos: tr('Videos', 'Видео'),
+      live: tr('Live', 'Эфиры'),
+      courses: tr('Courses', 'Курсы'),
+      events: tr('Events', 'События'),
+      messages: tr('Messages', 'Сообщения'),
+      workspace: tr('Practice', 'Практика'),
+      schedule: tr('Schedule', 'Расписание'),
+      profile: tr('Profile', 'Профиль')
     },
     bus: {
-      home: 'Dashboard',
-      videos: 'Media',
-      live: 'Live Studio',
-      courses: 'Courses',
-      events: 'Events',
-      messages: 'Messages',
-      workspace: 'Workspace',
-      profile: 'Profile'
+      home: tr('Dashboard', 'Панель'),
+      videos: tr('Media', 'Медиа'),
+      live: tr('Live Studio', 'Live Studio'),
+      courses: tr('Courses', 'Курсы'),
+      events: tr('Events', 'События'),
+      messages: tr('Messages', 'Сообщения'),
+      workspace: tr('Workspace', 'Рабочая зона'),
+      schedule: tr('Schedule', 'Расписание'),
+      profile: tr('Profile', 'Профиль')
     }
   };
   const titles = {
     hub: {
-      home: ['Hub dashboard', 'Your learning feed, live lessons and practice tools are ready.'],
-      videos: ['Videos', 'Short lessons matched to your level.'],
-      live: ['Live', 'Join active lessons with teachers.'],
-      courses: ['Courses', 'Structured programs from teachers.'],
-      events: ['Events', 'Meetups, workshops and speaking practice.'],
-      messages: ['Messages', 'Recent conversations and lesson updates.'],
-      workspace: ['Practice', 'Daily tools for level, speaking and vocabulary work.'],
-      profile: ['Profile', 'Your Duvela account and public profile.']
+      home: [tr('Hub dashboard', 'Панель Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Лента обучения, эфиры и практика готовы.')],
+      videos: [tr('Videos', 'Видео'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
+      live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
+      courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
+      events: [tr('Events', 'События'), tr('Meetups, workshops and speaking practice.', 'Встречи, воркшопы и speaking practice.')],
+      messages: [tr('Messages', 'Сообщения'), tr('Recent conversations and lesson updates.', 'Последние диалоги и обновления уроков.')],
+      workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
+      schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
+      profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {
-      home: ['Bus dashboard', 'Your web workspace for live lessons, courses and community activity.'],
-      videos: ['Media library', 'Prepare short lessons and public previews for learners.'],
-      live: ['Live Studio', 'Open active lessons and manage public live rooms.'],
-      courses: ['Courses', 'Structure offers, cohorts and paid learning programs.'],
-      events: ['Events', 'Plan workshops, meetups and online sessions.'],
-      messages: ['Messages', 'Learner conversations and recent platform updates.'],
-      workspace: ['Workspace', 'Creator tools for publishing and planning.'],
-      profile: ['Profile', 'Your Duvela Business account and public profile.']
+      home: [tr('Bus dashboard', 'Панель Bus'), tr('Your web workspace for live lessons, courses and community activity.', 'Веб-кабинет для эфиров, курсов и работы с аудиторией.')],
+      videos: [tr('Media library', 'Медиатека'), tr('Prepare short lessons and public previews for learners.', 'Готовьте короткие уроки и публичные превью для учеников.')],
+      live: [tr('Live Studio', 'Live Studio'), tr('Open active lessons and manage public live rooms.', 'Запускайте уроки и управляйте публичными live-комнатами.')],
+      courses: [tr('Courses', 'Курсы'), tr('Structure offers, cohorts and paid learning programs.', 'Собирайте офферы, потоки и платные программы обучения.')],
+      events: [tr('Events', 'События'), tr('Plan workshops, meetups and online sessions.', 'Планируйте воркшопы, митапы и онлайн-сессии.')],
+      messages: [tr('Messages', 'Сообщения'), tr('Learner conversations and recent platform updates.', 'Диалоги с учениками и обновления платформы.')],
+      workspace: [tr('Workspace', 'Рабочая зона'), tr('Creator tools for publishing and planning.', 'Инструменты публикации и планирования.')],
+      schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
+      profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
   };
 
@@ -814,7 +1051,17 @@
     myCourses: [],
     enrolledIds: new Set(),
     conversations: [],
-    activeConversationId: null
+    activeConversationId: null,
+    notifications: [],
+    practices: [],
+    myRatings: {},
+    scheduleTeachers: [],
+    myBookings: [],
+    mySlots: [],
+    myOrg: null,
+    orgCourses: [],
+    orgClasses: [],
+    walletTx: []
   };
 
   function esc(value) {
@@ -831,9 +1078,12 @@
     node.innerHTML = url ? '<img src="' + esc(url) + '" alt="">' : esc(initials(name));
   }
   function formatMoney(item) {
-    if (item.is_free) return 'Free';
-    if (item.price == null || item.price === '') return item.priceLabel || 'Open';
+    if (item.is_free) return tr('Free', 'Бесплатно');
+    if (item.price == null || item.price === '') return item.priceLabel || tr('Open', 'Открыто');
     return [item.price, item.currency].filter(Boolean).join(' ');
+  }
+  function staticSessionCount(count) {
+    return count + ' ' + tr('sessions', 'эфиров');
   }
   function liveUrl(item) {
     return './live.html' + (item.id ? '?s=' + encodeURIComponent(item.id) + '&t=' + encodeURIComponent(item.teacher_name || '') : '');
@@ -849,6 +1099,41 @@
   }
   function modeKey() {
     return isBusiness() ? 'bus' : 'hub';
+  }
+  function localizeStaticUI() {
+    document.documentElement.lang = isRu ? 'ru' : 'en';
+    document.title = tr('Duvela Web', 'Duvela Web');
+    $('#loading').textContent = tr('Opening Duvela Web...', 'Открываем Duvela Web...');
+    $('#workspaceNavLabel').textContent = tr('Practice', 'Практика');
+    const videoTabButtons = $$('#videoTabs button');
+    if (videoTabButtons[0]) videoTabButtons[0].textContent = tr('All', 'Все');
+    if (videoTabButtons[1]) videoTabButtons[1].textContent = tr('Languages', 'Языки');
+    if (videoTabButtons[2]) videoTabButtons[2].textContent = tr('Arts', 'Искусство');
+    if (videoTabButtons[3]) videoTabButtons[3].textContent = tr('School', 'Школа');
+    $$('#roleSelect option').forEach((option) => {
+      option.textContent = roleLabels[option.value] || option.value;
+    });
+    const dataT = {
+      email: ['Email', 'Email'], role: ['Role', 'Роль'], fullName: ['Full name', 'Имя'],
+      city: ['City', 'Город'], country: ['Country', 'Страна'], language: ['Language', 'Язык'],
+      level: ['Language level', 'Уровень языка'], avatarUrl: ['Avatar URL', 'Ссылка на аватар'],
+      bio: ['Bio', 'О себе'], website: ['Website', 'Сайт'], save: ['Save changes', 'Сохранить'],
+      saved: ['Saved ✓', 'Сохранено ✓'], openPublic: ['Open public profile', 'Открыть публичный профиль'],
+      signOut: ['Sign out', 'Выйти'], startNewChat: ['Start a new chat', 'Начать новый чат']
+    };
+    $$('[data-t]').forEach((el) => {
+      const key = el.getAttribute('data-t');
+      if (dataT[key]) el.textContent = tr(dataT[key][0], dataT[key][1]);
+    });
+    const langSel = $('#langSelect');
+    if (langSel) langSel.value = isRu ? 'ru' : 'en';
+    $('#chatSearch').placeholder = tr('Search people by name or city...', 'Поиск людей по имени или городу...');
+    $('#newChatBtn').textContent = tr('New chat', 'Новый чат');
+    $('#composeInput').placeholder = tr('Write a message...', 'Напишите сообщение...');
+    $('#notifTitle').textContent = tr('Notifications', 'Уведомления');
+    $('#markAllRead').textContent = tr('Mark all read', 'Прочитать все');
+    $('#practiceOverlayTitle').textContent = tr('Practice', 'Практика');
+    $('#notifBell').setAttribute('aria-label', tr('Notifications', 'Уведомления'));
   }
   function setText(selector, value) {
     const node = $(selector);
@@ -866,12 +1151,12 @@
     const label = mode === 'bus' ? 'Bus Web' : 'Hub Web';
     document.body.classList.toggle('business-mode', mode === 'bus');
     setText('#modeChip', label);
-    setText('#sideStatusTitle', label + ' workspace');
+    setText('#sideStatusTitle', mode === 'bus' ? tr('Bus Web workspace', 'Bus Web кабинет') : tr('Hub Web workspace', 'Hub Web кабинет'));
     setText(
       '#sideStatusText',
       mode === 'bus'
-        ? 'Manage live, courses, events and messages from this browser.'
-        : 'Learn, watch live lessons and keep your practice in this browser.'
+        ? tr('Manage live, courses, events and messages from this browser.', 'Управляйте эфирами, курсами, событиями и сообщениями прямо из браузера.')
+        : tr('Learn, watch live lessons and keep your practice in this browser.', 'Учитесь, смотрите эфиры и продолжайте практику прямо в браузере.')
     );
     Object.entries(navLabels[mode]).forEach(([view, text]) => {
       const labelNode = document.querySelector('.nav button[data-view="' + view + '"] span:last-child');
@@ -897,100 +1182,211 @@
   }
   function renderVideos() {
     const items = state.videos.filter((item) => currentVideoFilter === 'all' || item.type === currentVideoFilter);
-    $('#videoGrid').innerHTML = items.map((item) => (
-      '<article class="card video-card">' +
-      '<div class="video-thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc(item.level || 'Video')) + '</div>' +
-      '<div class="video-pad"><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta) + '</p><span class="tag ' + esc(item.tone || '') + '">' + esc(item.level || 'Video') + '</span></div>' +
-      '</article>'
-    )).join('') || '<div class="card empty">No videos found for this filter.</div>';
+    $('#videoGrid').innerHTML = items.map((item) => {
+      const playable = item.id ? ' data-video="' + esc(item.id) + '"' : '';
+      const badge = (item.id && item.media_type !== 'image') ? '<div class="play-badge">▶</div>' : '';
+      return '<article class="card video-card"' + playable + '>' +
+        '<div class="video-thumb">' + badge + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc(item.level || tr('Video', 'Видео'))) + '</div>' +
+        '<div class="video-pad"><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta) + '</p><span class="tag ' + esc(item.tone || '') + '">' + esc(item.level || tr('Video', 'Видео')) + '</span></div>' +
+        '</article>';
+    }).join('') || '<div class="card empty">' + esc(tr('No videos found for this filter.', 'Для этого фильтра видео пока нет.')) + '</div>';
+  }
+  let currentHls = null;
+  function parseYouTubeId(url) {
+    if (!url) return '';
+    const m = String(url).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(url) ? url : '');
+  }
+  async function loadVideos() {
+    try {
+      const { data: posts } = await supa.from('posts')
+        .select('id,user_id,media_url,media_type,caption,cover_url,mux_playback_id,mux_thumbnail_url,language_level,shorts_hidden,shorts_visibility,shorts_deleted_at,created_at')
+        .in('media_type', ['video', 'youtube', 'image'])
+        .not('media_url', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(24);
+      const visible = (posts || []).filter((p) => !p.shorts_hidden && !p.shorts_deleted_at && (!p.shorts_visibility || p.shorts_visibility === 'public'));
+      if (!visible.length) return;
+      const authorIds = Array.from(new Set(visible.map((p) => p.user_id).filter(Boolean)));
+      const { data: authors } = authorIds.length
+        ? await supa.from('profiles').select('id,full_name,avatar_url').in('id', authorIds)
+        : { data: [] };
+      const byId = new Map((authors || []).map((a) => [a.id, a]));
+      state.videos = visible.map((p) => {
+        const author = byId.get(p.user_id);
+        const thumb = p.mux_thumbnail_url || p.cover_url ||
+          (p.mux_playback_id ? 'https://image.mux.com/' + p.mux_playback_id + '/thumbnail.jpg?width=640' : (p.media_type === 'image' ? p.media_url : null));
+        return {
+          id: p.id,
+          title: p.caption || tr('Duvela lesson', 'Урок Duvela'),
+          meta: (author && author.full_name) || 'Duvela',
+          image: thumb,
+          level: p.language_level || (p.media_type === 'youtube' ? 'YouTube' : tr('Video', 'Видео')),
+          type: 'language',
+          tone: p.media_type === 'youtube' ? 'red' : 'blue',
+          media_type: p.media_type,
+          media_url: p.media_url,
+          playback_id: p.mux_playback_id,
+          caption: p.caption || ''
+        };
+      });
+    } catch (error) {
+      console.warn('videos load failed', error);
+    }
+  }
+  function openVideo(id) {
+    const v = state.videos.find((x) => x.id === id);
+    if (!v) return;
+    $('#videoOverlayTitle').textContent = v.title;
+    const body = $('#videoOverlayBody');
+    if (v.media_type === 'youtube') {
+      const yid = parseYouTubeId(v.media_url);
+      body.innerHTML = yid
+        ? '<div style="position:relative;padding-top:56.25%"><iframe style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:10px" src="https://www.youtube.com/embed/' + esc(yid) + '?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>'
+        : '<a class="btn primary" href="' + esc(v.media_url) + '" target="_blank" rel="noopener">' + esc(tr('Open video', 'Открыть видео')) + '</a>';
+    } else if (v.media_type === 'image') {
+      body.innerHTML = '<img src="' + esc(v.media_url) + '" style="width:100%;border-radius:10px">';
+    } else {
+      body.innerHTML = '<video id="vp" controls autoplay playsinline style="width:100%;border-radius:10px;background:#000;max-height:60vh"></video>';
+      const el = $('#vp');
+      const hlsSrc = v.playback_id ? 'https://stream.mux.com/' + v.playback_id + '.m3u8' : v.media_url;
+      if (v.playback_id && window.Hls && window.Hls.isSupported()) {
+        currentHls = new window.Hls();
+        currentHls.loadSource(hlsSrc);
+        currentHls.attachMedia(el);
+      } else {
+        el.src = hlsSrc;
+      }
+    }
+    if (v.caption) body.insertAdjacentHTML('beforeend', '<p style="margin-top:12px;font-weight:800;color:var(--soft)">' + esc(v.caption) + '</p>');
+    $('#videoOverlay').classList.add('open');
+  }
+  function closeVideo() {
+    if (currentHls) { try { currentHls.destroy(); } catch (e) {} currentHls = null; }
+    const el = $('#vp');
+    if (el && el.pause) el.pause();
+    $('#videoOverlayBody').innerHTML = '';
+    $('#videoOverlay').classList.remove('open');
+  }
+  async function openCourseDetail(courseId) {
+    const c = state.courses.find((x) => x.id === courseId);
+    if (!c) return;
+    $('#courseOverlayTitle').textContent = c.title;
+    const body = $('#courseOverlayBody');
+    body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+    $('#courseOverlay').classList.add('open');
+    let lessons = [];
+    try {
+      const { data } = await supa.from('course_lessons')
+        .select('id,order_index,title,description')
+        .eq('course_id', courseId).order('order_index', { ascending: true });
+      lessons = data || [];
+    } catch (error) { /* lessons optional */ }
+    const enrolled = state.enrolledIds.has(courseId);
+    const cta = isBusiness() ? '' : (enrolled
+      ? '<button class="btn" data-unenroll="' + esc(courseId) + '">' + esc(tr('Cancel enrollment', 'Отменить запись')) + '</button>'
+      : '<button class="btn primary" data-enroll="' + esc(courseId) + '">' + esc(tr('Enroll', 'Записаться')) + '</button>');
+    body.innerHTML =
+      (c.image ? '<img src="' + esc(c.image) + '" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px">' : '') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
+        (c.level ? '<span class="tag">' + esc(c.level) + '</span>' : '') +
+        '<span class="tag teal">' + esc(formatMoney(c)) + '</span>' +
+        (c.schedule ? '<span class="tag blue">' + esc(c.schedule) + '</span>' : '') +
+      '</div>' +
+      '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(c.description || tr('No description yet.', 'Описания пока нет.')) + '</p>' +
+      (lessons.length
+        ? '<h3 style="margin:16px 0 4px;font-size:15px">' + esc(tr('Lessons', 'Уроки')) + '</h3>' +
+          lessons.map((l, i) => '<div class="lesson-item"><div class="n">' + ((l.order_index != null ? l.order_index : i + 1)) + '</div><div><b>' + esc(l.title || tr('Lesson', 'Урок')) + '</b>' + (l.description ? '<p>' + esc(l.description) + '</p>' : '') + '</div></div>').join('')
+        : '') +
+      (cta ? '<div style="margin-top:16px">' + cta + '</div>' : '');
   }
   function renderHome() {
     const creator = isBusiness();
     const homeHeads = document.querySelectorAll('[data-panel="home"] .section-head');
     if (homeHeads[0]) {
-      homeHeads[0].querySelector('h2').textContent = creator ? 'Creator desk' : 'Continue learning';
-      homeHeads[0].querySelector('span').textContent = creator ? 'Today' : 'Next steps';
+      homeHeads[0].querySelector('h2').textContent = creator ? tr('Creator desk', 'Рабочий стол автора') : tr('Continue learning', 'Продолжить обучение');
+      homeHeads[0].querySelector('span').textContent = creator ? tr('Today', 'Сегодня') : tr('Next steps', 'Следующие шаги');
     }
-    if (homeHeads[1]) homeHeads[1].querySelector('h2').textContent = creator ? 'Live rooms' : 'Live now';
+    if (homeHeads[1]) homeHeads[1].querySelector('h2').textContent = creator ? tr('Live rooms', 'Live-комнаты') : tr('Live now', 'Сейчас в эфире');
 
     if (creator) {
-      setMetric(0, 'Active live', String(state.live.length), 'Public live rooms available from the web.');
-      setMetric(1, 'Course catalog', String(state.courses.length), 'Programs loaded for your web workspace.');
-      setMetric(2, 'Creator tools', 'Ready', 'Draft, publish and manage activity.');
+      setMetric(0, tr('Active live', 'Активные эфиры'), String(state.live.length), tr('Public live rooms available from the web.', 'Публичные live-комнаты доступны из веба.'));
+      setMetric(1, tr('Course catalog', 'Каталог курсов'), String(state.courses.length), tr('Programs loaded for your web workspace.', 'Программы загружены в ваш веб-кабинет.'));
+      setMetric(2, tr('Creator tools', 'Инструменты автора'), tr('Ready', 'Готово'), tr('Draft, publish and manage activity.', 'Создавайте, публикуйте и управляйте активностью.'));
       $('#homeList').innerHTML = [
-        row({ title: 'Start teacher LIVE', meta: 'Open camera, microphone and publish from the browser.', level: 'Live' }, '<a class="btn primary" href="' + teacherLiveUrl() + '">Start</a>'),
-        row({ title: 'Build a course offer', meta: 'Review course list and prepare the next program.', level: 'Course' }, '<a class="btn" href="#courses" data-go="courses">Manage</a>'),
-        row({ title: 'Publish an event', meta: 'Create a workshop or community meetup plan.', level: 'Event' }, '<a class="btn" href="#events" data-go="events">Plan</a>')
+        row({ title: tr('Start teacher LIVE', 'Запустить teacher LIVE'), meta: tr('Open camera, microphone and publish from the browser.', 'Откройте камеру, микрофон и начните эфир из браузера.'), level: tr('Live', 'Эфир') }, '<a class="btn primary" href="' + teacherLiveUrl() + '">' + esc(tr('Start', 'Старт')) + '</a>'),
+        row({ title: tr('Build a course offer', 'Собрать курс'), meta: tr('Review course list and prepare the next program.', 'Проверьте список курсов и подготовьте следующую программу.'), level: tr('Course', 'Курс') }, '<a class="btn" href="#courses" data-go="courses">' + esc(tr('Manage', 'Управлять')) + '</a>'),
+        row({ title: tr('Publish an event', 'Опубликовать событие'), meta: tr('Create a workshop or community meetup plan.', 'Создайте план воркшопа или community meetup.'), level: tr('Event', 'Событие') }, '<a class="btn" href="#events" data-go="events">' + esc(tr('Plan', 'План')) + '</a>')
       ].join('');
     } else {
       const xp = profile?.score ?? 0;
       const coins = profile?.vela_coin_balance ?? 0;
       const speaking = profile?.speaking_progress ?? 0;
-      setMetric(0, 'Current level', profile?.language_level || '—', profile?.goal_level ? ('Goal: ' + profile.goal_level) : 'Feed tuned for your progress.');
-      setMetric(1, 'Total XP', xp.toLocaleString(), 'Earned from practice and lessons.');
-      setMetric(2, 'Duvela Coins', coins.toLocaleString(), 'Spend on rewards and unlocks.');
+      setMetric(0, tr('Current level', 'Текущий уровень'), profile?.language_level || '—', profile?.goal_level ? (tr('Goal: ', 'Цель: ') + profile.goal_level) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
+      setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
+      setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
       const myCourse = state.myCourses[0];
       $('#homeList').innerHTML = [
         myCourse
-          ? row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? 'Enrolled · confirmed' : 'Enrollment pending', level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">Open</a>')
-          : row({ title: 'Find your first course', meta: 'Browse structured programs from teachers', level: 'New' }, '<a class="btn primary" href="#courses" data-go="courses">Browse</a>'),
-        row({ title: 'Daily speaking practice', meta: 'Speaking progress: ' + speaking + '%', level: 'Practice' }, '<a class="btn" href="#workspace" data-go="workspace">Open</a>'),
-        row({ title: 'Message a teacher', meta: 'Ask a question or book a lesson', level: 'Chat' }, '<a class="btn" href="#messages" data-go="messages">Open</a>')
+          ? row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? tr('Enrolled • confirmed', 'Записан • подтверждено') : tr('Enrollment pending', 'Запись ожидает подтверждения'), level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Open', 'Открыть')) + '</a>')
+          : row({ title: tr('Find your first course', 'Найдите свой первый курс'), meta: tr('Browse structured programs from teachers', 'Посмотрите структурированные программы от преподавателей'), level: tr('New', 'Новый') }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Browse', 'Смотреть')) + '</a>'),
+        row({ title: tr('Daily speaking practice', 'Ежедневная speaking practice'), meta: tr('Speaking progress: ', 'Прогресс speaking: ') + speaking + '%', level: tr('Practice', 'Практика') }, '<a class="btn" href="#workspace" data-go="workspace">' + esc(tr('Open', 'Открыть')) + '</a>'),
+        row({ title: tr('Message a teacher', 'Написать преподавателю'), meta: tr('Ask a question or book a lesson', 'Задайте вопрос или договоритесь об уроке'), level: tr('Chat', 'Чат') }, '<a class="btn" href="#messages" data-go="messages">' + esc(tr('Open', 'Открыть')) + '</a>')
       ].join('');
     }
     $('#homeLive').innerHTML = state.live.slice(0, 3).map((item) =>
-      row({ title: item.teacher_name || 'Teacher live', meta: item.title || 'Live lesson', level: 'Live' }, '<a class="btn primary" href="' + (creator ? teacherLiveUrl(item) : liveUrl(item)) + '">' + (creator ? 'Enter' : 'Watch') + '</a>')
+      row({ title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'), meta: item.title || tr('Live lesson', 'Live-урок'), level: tr('Live', 'Эфир') }, '<a class="btn primary" href="' + (creator ? teacherLiveUrl(item) : liveUrl(item)) + '">' + esc(creator ? tr('Enter', 'Войти') : tr('Watch', 'Смотреть')) + '</a>')
     ).join('');
-    $('#liveCount').textContent = state.live.length + ' sessions';
+    $('#liveCount').textContent = staticSessionCount(state.live.length);
   }
   function renderLive() {
     const creator = isBusiness();
     const head = document.querySelector('[data-panel="live"] .section-head');
     if (head) {
-      head.querySelector('h2').textContent = creator ? 'Live Studio' : 'Live lessons';
-      head.querySelector('span').textContent = creator ? 'Public rooms and active sessions' : 'Watch in browser';
+      head.querySelector('h2').textContent = creator ? tr('Live Studio', 'Live Studio') : tr('Live lessons', 'Live-уроки');
+      head.querySelector('span').textContent = creator ? tr('Public rooms and active sessions', 'Публичные комнаты и активные эфиры') : tr('Watch in browser', 'Смотрите в браузере');
     }
     $('#liveHostPanel').innerHTML = creator ? (
       '<div class="card live-host-card">' +
-      '<div><h3>Start teacher LIVE</h3><p>Create a live room, open camera and microphone, and publish as host.</p></div>' +
-      '<a class="btn primary" href="' + teacherLiveUrl() + '">Start LIVE</a>' +
+      '<div><h3>' + esc(tr('Start teacher LIVE', 'Запустить teacher LIVE')) + '</h3><p>' + esc(tr('Create a live room, open camera and microphone, and publish as host.', 'Создайте live-комнату, откройте камеру и микрофон и выйдите в эфир как host.')) + '</p></div>' +
+      '<a class="btn primary" href="' + teacherLiveUrl() + '">' + esc(tr('Start LIVE', 'Запустить LIVE')) + '</a>' +
       '</div>'
     ) : '';
     $('#liveList').innerHTML = state.live.map((item) =>
-      row({ title: item.teacher_name || 'Teacher live', meta: item.title || 'Live lesson', level: item.status || 'live' }, '<a class="btn primary" href="' + (creator ? teacherLiveUrl(item) : liveUrl(item)) + '">' + (creator ? 'Enter' : 'Watch') + '</a>')
-    ).join('') || '<div class="card empty">No public live sessions right now.</div>';
+      row({ title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'), meta: item.title || tr('Live lesson', 'Live-урок'), level: item.status || tr('live', 'live') }, '<a class="btn primary" href="' + (creator ? teacherLiveUrl(item) : liveUrl(item)) + '">' + esc(creator ? tr('Enter', 'Войти') : tr('Watch', 'Смотреть')) + '</a>')
+    ).join('') || '<div class="card empty">' + esc(tr('No public live sessions right now.', 'Сейчас нет публичных эфиров.')) + '</div>';
   }
   function courseAction(item) {
     const price = '<span class="tag teal">' + esc(formatMoney(item)) + '</span>';
     if (isBusiness() || !item.id) return price;
     if (state.enrolledIds.has(item.id)) {
-      return price + '<button class="btn" data-unenroll="' + esc(item.id) + '" style="margin-left:8px">Enrolled ✓</button>';
+      return price + '<button class="btn" data-unenroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enrolled ✓', 'Записан ✓')) + '</button>';
     }
-    return price + '<button class="btn primary" data-enroll="' + esc(item.id) + '" style="margin-left:8px">Enroll</button>';
+    return price + '<button class="btn primary" data-enroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enroll', 'Записаться')) + '</button>';
   }
   function renderCourses() {
     const head = document.querySelector('[data-panel="courses"] .section-head');
     if (head) {
-      head.querySelector('h2').textContent = isBusiness() ? 'Courses & offers' : 'Courses';
-      head.querySelector('span').textContent = isBusiness() ? 'Web catalog' : 'Structured programs';
+      head.querySelector('h2').textContent = isBusiness() ? tr('Courses & offers', 'Курсы и офферы') : tr('Courses', 'Курсы');
+      head.querySelector('span').textContent = isBusiness() ? tr('Web catalog', 'Веб-каталог') : tr('Structured programs', 'Структурированные программы');
     }
     $('#courseList').innerHTML = state.courses.map((item) =>
-      '<div class="card row">' +
+      '<div class="card row"' + (item.id ? ' data-course="' + esc(item.id) + '"' : '') + '>' +
         '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'C').charAt(0))) + '</div>' +
-        '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || 'Course from Duvela teachers') + '</p></div>' +
+        '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || tr('Course from Duvela teachers', 'Курс от преподавателей Duvela')) + '</p></div>' +
         '<div style="display:flex;align-items:center;gap:0;white-space:nowrap">' + (item.level ? '<span class="tag" style="margin-right:8px">' + esc(item.level) + '</span>' : '') + courseAction(item) + '</div>' +
       '</div>'
-    ).join('') || '<div class="card empty">No courses available yet.</div>';
+    ).join('') || '<div class="card empty">' + esc(tr('No courses available yet.', 'Курсов пока нет.')) + '</div>';
   }
   function renderEvents() {
     const head = document.querySelector('[data-panel="events"] .section-head');
     if (head) {
-      head.querySelector('h2').textContent = isBusiness() ? 'Events & workshops' : 'Events';
-      head.querySelector('span').textContent = isBusiness() ? 'Calendar and tickets' : 'Online and offline';
+      head.querySelector('h2').textContent = isBusiness() ? tr('Events & workshops', 'События и воркшопы') : tr('Events', 'События');
+      head.querySelector('span').textContent = isBusiness() ? tr('Calendar and tickets', 'Календарь и билеты') : tr('Online and offline', 'Онлайн и офлайн');
     }
     $('#eventList').innerHTML = state.events.map((item) =>
-      row({ title: item.title, meta: item.meta || item.description || 'Upcoming event', level: item.is_online ? 'Online' : '' }, '<span class="tag amber">' + esc(formatMoney(item)) + '</span>')
-    ).join('') || '<div class="card empty">No upcoming events.</div>';
+      row({ title: item.title, meta: item.meta || item.description || tr('Upcoming event', 'Ближайшее событие'), level: item.is_online ? tr('Online', 'Онлайн') : '' }, '<span class="tag amber">' + esc(formatMoney(item)) + '</span>')
+    ).join('') || '<div class="card empty">' + esc(tr('No upcoming events.', 'Ближайших событий пока нет.')) + '</div>';
   }
   const CHAT_PROFILE_FIELDS = 'id,full_name,avatar_url,city,country';
   let threadChannel = null;
@@ -1033,7 +1429,7 @@
         return {
           id: c.id,
           isGroup: !!c.is_group,
-          name: (c.title || '').trim() || (other && other.full_name) || (c.is_group ? 'Group chat' : 'Chat'),
+          name: (c.title || '').trim() || (other && other.full_name) || (c.is_group ? tr('Group chat', 'Групповой чат') : tr('Chat', 'Чат')),
           avatarUrl: other && other.avatar_url,
           lastMessage: last ? last.body : '',
           lastAt: last ? last.created_at : (c.updated_at || c.created_at),
@@ -1049,13 +1445,13 @@
   function renderConversations() {
     const list = $('#conversationList');
     if (!state.conversations.length) {
-      list.innerHTML = '<div class="card empty">No conversations yet. Tap “New chat” to message a teacher or learner.</div>';
+      list.innerHTML = '<div class="card empty">' + esc(tr('No conversations yet. Tap “New chat” to message a teacher or learner.', 'Диалогов пока нет. Нажмите «Новый чат», чтобы написать преподавателю или ученику.')) + '</div>';
       return;
     }
     list.innerHTML = state.conversations.map((c) =>
       '<div class="conv' + (c.id === state.activeConversationId ? ' active' : '') + '" data-conv="' + esc(c.id) + '">' +
         '<div class="avatar">' + avatarInner(c.name, c.avatarUrl) + '</div>' +
-        '<div><h3>' + esc(c.name) + '</h3><p>' + esc(c.lastMessage || 'No messages yet') + '</p></div>' +
+        '<div><h3>' + esc(c.name) + '</h3><p>' + esc(c.lastMessage || tr('No messages yet', 'Сообщений пока нет')) + '</p></div>' +
         (c.unread ? '<div class="unread">' + c.unread + '</div>' : '<div></div>') +
       '</div>'
     ).join('');
@@ -1064,7 +1460,7 @@
     const body = $('#threadBody');
     body.innerHTML = messages.length
       ? messages.map((m) => '<div class="bubble ' + (m.sender_id === user.id ? 'me' : 'them') + '">' + esc(m.body) + '</div>').join('')
-      : '<div class="empty">No messages yet. Say hello 👋</div>';
+      : '<div class="empty">' + esc(tr('No messages yet. Say hello.', 'Сообщений пока нет. Напишите первым.')) + '</div>';
     body.scrollTop = body.scrollHeight;
   }
   async function openConversation(id) {
@@ -1072,10 +1468,10 @@
     const conv = state.conversations.find((c) => c.id === id);
     if (conv) conv.unread = 0;
     renderConversations();
-    $('#threadTitle').textContent = conv ? conv.name : 'Chat';
+    $('#threadTitle').textContent = conv ? conv.name : tr('Chat', 'Чат');
     $('#composeForm').style.display = 'flex';
     $('#msgWrap').classList.add('thread-open');
-    $('#threadBody').innerHTML = '<div class="empty">Loading…</div>';
+    $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
     try {
       const { data } = await supa.from('chat_messages')
         .select('id,conversation_id,sender_id,body,created_at')
@@ -1084,7 +1480,7 @@
       await supa.from('chat_participants').update({ last_read_at: new Date().toISOString() })
         .eq('conversation_id', id).eq('user_id', user.id);
     } catch (error) {
-      $('#threadBody').innerHTML = '<div class="empty">Could not load this conversation.</div>';
+      $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Could not load this conversation.', 'Не удалось загрузить этот диалог.')) + '</div>';
     }
     if (threadChannel) supa.removeChannel(threadChannel);
     threadChannel = supa.channel('thread-' + id + '-' + Date.now())
@@ -1107,7 +1503,7 @@
     } catch (error) {
       console.warn('send failed', error);
       $('#composeInput').value = text;
-      alert('Could not send the message.');
+      alert(tr('Could not send the message.', 'Не удалось отправить сообщение.'));
     }
   }
   let chatSearchTimer = null;
@@ -1128,11 +1524,11 @@
       picker.innerHTML = results.length ? results.map((p) =>
         '<div class="conv" data-person="' + esc(p.id) + '">' +
           '<div class="avatar">' + avatarInner(p.full_name, p.avatar_url) + '</div>' +
-          '<div><h3>' + esc(p.full_name || 'Duvela user') + '</h3><p>' + esc([p.city, p.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div><div></div>' +
+          '<div><h3>' + esc(p.full_name || tr('Duvela user', 'Пользователь Duvela')) + '</h3><p>' + esc([p.city, p.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div><div></div>' +
         '</div>'
-      ).join('') : '<div class="empty">No people found.</div>';
+      ).join('') : '<div class="empty">' + esc(tr('No people found.', 'Люди не найдены.')) + '</div>';
     } catch (error) {
-      picker.innerHTML = '<div class="empty">Search is unavailable right now.</div>';
+      picker.innerHTML = '<div class="empty">' + esc(tr('Search is unavailable right now.', 'Поиск сейчас недоступен.')) + '</div>';
     }
   }
   async function startChatWith(otherUserId) {
@@ -1145,60 +1541,51 @@
       if (id) openConversation(id);
     } catch (error) {
       console.warn('create chat failed', error);
-      alert('Could not start the chat.');
+      alert(tr('Could not start the chat.', 'Не удалось создать чат.'));
     }
   }
   function renderMessages() { renderConversations(); }
   function renderWorkspace() {
     const creator = isBusiness();
-    $('#workspaceNavLabel').textContent = creator ? 'Workspace' : 'Practice';
-    $('#workspaceTitle').textContent = creator ? roleLabels[role] + ' workspace' : 'Practice';
-    $('#workspaceSub').textContent = creator ? 'Publish and manage your activity.' : 'Daily learning tools.';
-    $('#workspacePrimaryTitle').textContent = creator ? 'Creator actions' : 'Daily practice';
-    const actions = creator ? [
-      { title: 'Start teacher LIVE', meta: 'Open camera, microphone and publish now.', level: 'Live', href: teacherLiveUrl(), cta: 'Start' },
-      { title: 'Publish an event', meta: 'Fill the form on the right to go live to learners.', level: 'Event', cta: 'Below', view: 'workspace' },
-      { title: 'Review courses', meta: 'See active programs and enrollments.', level: 'Course', view: 'courses', cta: 'Open' },
-      { title: 'Check learner messages', meta: 'Review questions before the next session.', level: 'Inbox', view: 'messages', cta: 'Read' }
-    ] : [
-      { title: 'My courses', meta: state.myCourses.length ? state.myCourses.length + ' enrolled' : 'Browse and enroll to start', level: 'Learn', view: 'courses', cta: 'Open' },
-      { title: 'Message a teacher', meta: 'Ask a question or arrange a lesson.', level: 'Chat', view: 'messages', cta: 'Open' },
-      { title: 'Join a live lesson', meta: 'Practice speaking with a real teacher.', level: 'Live', view: 'live', cta: 'Watch' }
-    ];
-    $('#workspaceActions').innerHTML = actions.map((item) =>
-      row(item, item.href
-        ? '<a class="btn" href="' + esc(item.href) + '">' + esc(item.cta) + '</a>'
-        : '<a class="btn" href="#' + esc(item.view) + '" data-go="' + esc(item.view) + '">' + esc(item.cta) + '</a>')
-    ).join('');
-    renderWorkspaceSide(creator);
+    $('#workspaceNavLabel').textContent = creator ? tr('Workspace', 'Рабочая зона') : tr('Practice', 'Практика');
+    $('#workspaceTitle').textContent = creator ? roleLabels[role] + ' ' + tr('workspace', 'кабинет') : tr('Practice', 'Практика');
+    $('#workspaceSub').textContent = creator ? tr('Publish and manage your activity.', 'Публикуйте и управляйте своей активностью.') : tr('Take practices from teachers.', 'Проходите практики от преподавателей.');
+    $('#workspacePrimaryTitle').textContent = creator ? tr('Creator actions', 'Действия автора') : tr('Teacher practices', 'Практики от преподавателей');
+    if (creator) {
+      renderBusinessWorkspace();
+      renderWorkspaceSide(true);
+    } else {
+      $('#workspaceActions').innerHTML = practicesHtml();
+      renderWorkspaceSide(false);
+    }
   }
   function renderWorkspaceSide(creator) {
     const side = $('#workspaceSide');
     if (creator) {
       side.innerHTML =
-        '<div class="section-head"><h2>Publish an event</h2><span>Goes live to learners</span></div>' +
+        '<div class="section-head"><h2>' + esc(tr('Publish an event', 'Опубликовать событие')) + '</h2><span>' + esc(tr('Goes live to learners', 'Сразу появляется у учеников')) + '</span></div>' +
         '<form id="eventForm">' +
-          '<div class="field"><label for="evTitle">Title</label><input id="evTitle" placeholder="German speaking meetup" required></div>' +
-          '<div class="field"><label for="evDesc">Description</label><textarea id="evDesc" placeholder="What happens, who it is for..."></textarea></div>' +
+          '<div class="field"><label for="evTitle">' + esc(tr('Title', 'Название')) + '</label><input id="evTitle" placeholder="' + esc(tr('German speaking meetup', 'Немецкий speaking meetup')) + '" required></div>' +
+          '<div class="field"><label for="evDesc">' + esc(tr('Description', 'Описание')) + '</label><textarea id="evDesc" placeholder="' + esc(tr('What happens, who it is for...', 'Что будет происходить и для кого это...')) + '"></textarea></div>' +
           '<div class="form-grid">' +
-            '<div class="field"><label for="evDate">Date</label><input id="evDate" type="date"></div>' +
-            '<div class="field"><label for="evTime">Time</label><input id="evTime" type="time"></div>' +
-            '<div class="field"><label for="evCity">City</label><input id="evCity" placeholder="Berlin"></div>' +
-            '<div class="field"><label for="evFormat">Format</label><select id="evFormat" class="role-select"><option value="offline">In person</option><option value="online">Online</option></select></div>' +
-            '<div class="field"><label for="evLang">Language</label><input id="evLang" placeholder="German"></div>' +
-            '<div class="field"><label for="evPrice">Price (EUR, blank = free)</label><input id="evPrice" type="number" min="0" step="1" placeholder="Free"></div>' +
+            '<div class="field"><label for="evDate">' + esc(tr('Date', 'Дата')) + '</label><input id="evDate" type="date"></div>' +
+            '<div class="field"><label for="evTime">' + esc(tr('Time', 'Время')) + '</label><input id="evTime" type="time"></div>' +
+            '<div class="field"><label for="evCity">' + esc(tr('City', 'Город')) + '</label><input id="evCity" placeholder="Berlin"></div>' +
+            '<div class="field"><label for="evFormat">' + esc(tr('Format', 'Формат')) + '</label><select id="evFormat" class="role-select"><option value="offline">' + esc(tr('In person', 'Оффлайн')) + '</option><option value="online">' + esc(tr('Online', 'Онлайн')) + '</option></select></div>' +
+            '<div class="field"><label for="evLang">' + esc(tr('Language', 'Язык')) + '</label><input id="evLang" placeholder="' + esc(tr('German', 'Немецкий')) + '"></div>' +
+            '<div class="field"><label for="evPrice">' + esc(tr('Price (EUR, blank = free)', 'Цена (EUR, пусто = бесплатно)')) + '</label><input id="evPrice" type="number" min="0" step="1" placeholder="' + esc(tr('Free', 'Бесплатно')) + '"></div>' +
           '</div>' +
-          '<button class="btn primary" type="submit" style="margin-top:12px">Publish event</button>' +
+          '<button class="btn primary" type="submit" style="margin-top:12px">' + esc(tr('Publish event', 'Опубликовать событие')) + '</button>' +
           '<div id="evNote" style="display:none;margin-top:8px;font-weight:900"></div>' +
         '</form>';
       $('#eventForm').addEventListener('submit', publishEvent);
     } else {
       const saved = (() => { try { return JSON.parse(localStorage.getItem('duvela.webNote') || '{}'); } catch { return {}; } })();
       side.innerHTML =
-        '<div class="section-head"><h2>Learning note</h2><span>Saved on this device</span></div>' +
-        '<div class="field"><label for="noteText">Your note</label><textarea id="noteText" placeholder="Words to review, goals for the week...">' + esc(saved.text || '') + '</textarea></div>' +
-        '<button class="btn primary" id="noteSave" type="button" style="margin-top:8px">Save note</button>' +
-        '<div id="noteSaved" style="display:none;color:var(--teal);font-weight:900;margin-top:8px">Saved ✓</div>';
+        '<div class="section-head"><h2>' + esc(tr('Learning note', 'Учебная заметка')) + '</h2><span>' + esc(tr('Saved on this device', 'Сохранено на этом устройстве')) + '</span></div>' +
+        '<div class="field"><label for="noteText">' + esc(tr('Your note', 'Ваша заметка')) + '</label><textarea id="noteText" placeholder="' + esc(tr('Words to review, goals for the week...', 'Слова на повторение, цели на неделю...')) + '">' + esc(saved.text || '') + '</textarea></div>' +
+        '<button class="btn primary" id="noteSave" type="button" style="margin-top:8px">' + esc(tr('Save note', 'Сохранить заметку')) + '</button>' +
+        '<div id="noteSaved" style="display:none;color:var(--teal);font-weight:900;margin-top:8px">' + esc(tr('Saved ✓', 'Сохранено ✓')) + '</div>';
       $('#noteSave').addEventListener('click', () => {
         localStorage.setItem('duvela.webNote', JSON.stringify({ text: $('#noteText').value, savedAt: new Date().toISOString() }));
         $('#noteSaved').style.display = 'block';
@@ -1225,26 +1612,26 @@
       price_amount: isPaid ? Number(priceRaw) : null
     };
     const btn = $('#eventForm button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Publishing...';
+    btn.disabled = true; btn.textContent = tr('Publishing...', 'Публикация...');
     try {
       const { error } = await supa.from('events').insert(payload);
       if (error) throw error;
       note.style.color = 'var(--teal)';
-      note.textContent = 'Event published ✓ Learners can see it now.';
+      note.textContent = tr('Event published ✓ Learners can see it now.', 'Событие опубликовано ✓ Ученики уже видят его.');
       note.style.display = 'block';
       $('#eventForm').reset();
       await safeQuery('events', () => supa.from('events').select('id,title,description,event_date,event_time,city,country,format,is_paid,price_amount,image_url').order('event_date', { ascending: true }).limit(12), (item) => ({
         id: item.id, title: item.title || 'Event', description: item.description || '', image: item.image_url,
-        meta: [item.event_date ? new Date(item.event_date).toLocaleDateString() : '', item.city, item.country].filter(Boolean).join(' · '),
+        meta: [item.event_date ? formatDate(item.event_date) : '', item.city, item.country].filter(Boolean).join(' · '),
         price: item.is_paid ? item.price_amount : null, currency: 'EUR', is_free: !item.is_paid, is_online: item.format === 'online'
       }));
       renderEvents();
     } catch (error) {
       note.style.color = 'var(--red)';
-      note.textContent = error.message || 'Could not publish the event.';
+      note.textContent = error.message || tr('Could not publish the event.', 'Не удалось опубликовать событие.');
       note.style.display = 'block';
     } finally {
-      btn.disabled = false; btn.textContent = 'Publish event';
+      btn.disabled = false; btn.textContent = tr('Publish event', 'Опубликовать событие');
     }
   }
   async function loadEnrollments() {
@@ -1256,7 +1643,7 @@
       state.enrolledIds = new Set((data || []).map((r) => r.course_id));
       state.myCourses = (data || []).map((r) => ({
         id: r.course_id, status: r.status,
-        title: (r.courses && r.courses.title) || 'Course',
+        title: (r.courses && r.courses.title) || tr('Course', 'Курс'),
         level: (r.courses && r.courses.level) || ''
       }));
     } catch (error) {
@@ -1273,9 +1660,10 @@
       state.enrolledIds.add(courseId);
       void supa.functions.invoke('notify-course-enrollment', { body: { courseId, learnerName: profile?.full_name || undefined } }).catch(() => {});
       await loadEnrollments();
+      $('#courseOverlay').classList.remove('open');
       renderCourses(); renderHome(); renderWorkspace();
     } catch (error) {
-      alert(error.message || 'Could not enroll.');
+      alert(error.message || tr('Could not enroll.', 'Не удалось записаться.'));
     }
   }
   async function unenrollCourse(courseId) {
@@ -1284,31 +1672,632 @@
         .eq('course_id', courseId).eq('user_id', user.id);
       state.enrolledIds.delete(courseId);
       await loadEnrollments();
+      $('#courseOverlay').classList.remove('open');
       renderCourses(); renderHome(); renderWorkspace();
     } catch (error) {
-      alert(error.message || 'Could not update enrollment.');
+      alert(error.message || tr('Could not update enrollment.', 'Не удалось обновить запись.'));
     }
   }
+  function setInput(id, value) {
+    const node = $(id);
+    if (node) node.value = value == null ? '' : value;
+  }
   function renderProfile() {
-    const displayName = profile?.full_name || user.user_metadata?.full_name || (user.email || 'Duvela user').split('@')[0];
-    const meta = [profile?.city, profile?.country].filter(Boolean).join(', ') || 'Signed in to ' + (isBusiness() ? 'Bus Web' : 'Hub Web');
+    const displayName = profile?.full_name || user.user_metadata?.full_name || (user.email || tr('Duvela user', 'Пользователь Duvela')).split('@')[0];
+    const meta = [profile?.city, profile?.country].filter(Boolean).join(', ') || tr('Signed in to ', 'Вход выполнен в ') + (isBusiness() ? 'Bus Web' : 'Hub Web');
     $('#topName').textContent = displayName;
     $('#topEmail').textContent = (isBusiness() ? 'Bus' : 'Hub') + ' - ' + (user.email || roleLabels[role]);
     $('#profileName').textContent = displayName;
     $('#profileMeta').textContent = meta;
-    $('#profileEmail').value = user.email || '';
-    $('#profileRole').value = roleLabels[role] || role;
-    $('#profileCity').value = [profile?.city, profile?.country].filter(Boolean).join(', ');
-    $('#profileLevel').value = profile?.language_level || '';
+    setInput('#profileEmail', user.email || '');
+    setInput('#profileRole', roleLabels[role] || role);
+    setInput('#pfName', profile?.full_name);
+    setInput('#pfCity', profile?.city);
+    setInput('#pfCountry', profile?.country);
+    setInput('#pfLanguage', profile?.language);
+    setInput('#pfLevel', profile?.language_level);
+    setInput('#pfAvatar', profile?.avatar_url);
+    setInput('#pfBio', profile?.bio);
+    setInput('#pfTelegram', profile?.telegram);
+    setInput('#pfInstagram', profile?.instagram);
+    setInput('#pfWebsite', profile?.website);
     avatarHtml('#topAvatar', displayName, profile?.avatar_url || user.user_metadata?.avatar_url);
     avatarHtml('#profileAvatar', displayName, profile?.avatar_url || user.user_metadata?.avatar_url);
     if (profile?.id) {
       $('#publicProfileLink').href = './profile.html?id=' + encodeURIComponent(profile.id);
       $('#publicProfileLink').style.display = 'inline-flex';
     }
+    renderProgressCard();
+  }
+  async function saveProfile(event) {
+    event.preventDefault();
+    const patch = {
+      full_name: $('#pfName').value.trim() || null,
+      city: $('#pfCity').value.trim() || null,
+      country: $('#pfCountry').value.trim() || null,
+      language: $('#pfLanguage').value.trim() || null,
+      language_level: $('#pfLevel').value.trim() || null,
+      avatar_url: $('#pfAvatar').value.trim() || null,
+      bio: $('#pfBio').value.trim() || null,
+      telegram: $('#pfTelegram').value.trim() || null,
+      instagram: $('#pfInstagram').value.trim() || null,
+      website: $('#pfWebsite').value.trim() || null,
+      updated_at: new Date().toISOString()
+    };
+    const btn = $('#profileForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const { error } = await supa.from('profiles').update(patch).eq('id', user.id);
+      if (error) throw error;
+      profile = { ...(profile || {}), ...patch };
+      $('#profileSaved').style.display = 'inline';
+      setTimeout(() => { $('#profileSaved').style.display = 'none'; }, 2500);
+      renderProfile();
+    } catch (err) {
+      alert(err.message || tr('Could not save the profile.', 'Не удалось сохранить профиль.'));
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  async function renderProgressCard() {
+    const card = $('#progressCard');
+    if (!card) return;
+    if (isBusiness()) {
+      card.innerHTML =
+        '<div class="section-head"><h2>' + esc(tr('Account', 'Аккаунт')) + '</h2></div>' +
+        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('You are signed in as ', 'Вы вошли как ') + (roleLabels[role] || role) + '. ' + tr('Use the Workspace tab to publish live, events and manage courses.', 'Используйте вкладку «Рабочая зона» для эфиров, событий и курсов.')) + '</p>' +
+        walletHtml();
+      return;
+    }
+    const bars = [
+      [tr('Grammar', 'Грамматика'), profile?.grammar_progress ?? 0],
+      [tr('Speaking', 'Speaking'), profile?.speaking_progress ?? 0],
+      [tr('Vocabulary', 'Словарь'), profile?.vocabulary_progress ?? 0],
+      [tr('Exam', 'Экзамен'), profile?.exam_progress ?? 0]
+    ];
+    card.innerHTML =
+      '<div class="section-head"><h2>' + esc(tr('Your progress', 'Ваш прогресс')) + '</h2><span>' + esc((profile?.score ?? 0).toLocaleString() + ' XP · ' + (profile?.vela_coin_balance ?? 0).toLocaleString() + ' ' + tr('coins', 'монет')) + '</span></div>' +
+      bars.map(([label, val]) => {
+        const pct = Math.max(0, Math.min(100, Number(val) || 0));
+        return '<div class="prog-row"><div class="prog-label"><span>' + esc(label) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
+      }).join('') +
+      walletHtml() +
+      '<div id="rankBox" style="margin-top:6px"></div>';
+    try {
+      const { data } = await supa.from('profiles')
+        .select('id,full_name,avatar_url,score')
+        .order('score', { ascending: false })
+        .limit(10);
+      const rows = data || [];
+      const box = $('#rankBox');
+      if (box && rows.length) {
+        box.innerHTML = '<h3 style="margin:14px 0 4px;font-size:15px">' + esc(tr('Leaderboard', 'Таблица лидеров')) + '</h3>' +
+          rows.map((p, i) =>
+            '<div class="rank-row' + (p.id === user.id ? ' me' : '') + '">' +
+              '<div class="rank-num">' + (i + 1) + '</div>' +
+              '<div class="avatar" style="width:30px;height:30px;font-size:12px">' + avatarInner(p.full_name, p.avatar_url) + '</div>' +
+              '<div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.full_name || tr('Duvela user', 'Пользователь Duvela')) + '</div>' +
+              '<div style="font-weight:900;color:var(--purple)">' + Number(p.score || 0).toLocaleString() + '</div>' +
+            '</div>'
+          ).join('');
+      }
+    } catch (error) {
+      console.warn('leaderboard load failed', error);
+    }
+  }
+  // ── Notifications ─────────────────────────────────────────────
+  function timeAgo(iso) {
+    if (!iso) return '';
+    const diff = Date.now() - Date.parse(iso);
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return tr('just now', 'только что');
+    if (m < 60) return m + tr('m', ' мин');
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + tr('h', ' ч');
+    return Math.floor(h / 24) + tr('d', ' дн');
+  }
+  async function loadNotifications() {
+    try {
+      const { data } = await supa.from('notifications')
+        .select('id,type,title,body,read,created_at')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(40);
+      state.notifications = data || [];
+    } catch (error) { console.warn('notifications load failed', error); }
+    renderNotifBadge();
+  }
+  function renderNotifBadge() {
+    const dot = $('#notifDot');
+    if (!dot) return;
+    const n = state.notifications.filter((x) => !x.read).length;
+    dot.textContent = n > 9 ? '9+' : String(n);
+    dot.style.display = n > 0 ? 'grid' : 'none';
+  }
+  function renderNotifList() {
+    const list = $('#notifList');
+    if (!state.notifications.length) {
+      list.innerHTML = '<div class="empty">' + esc(tr('No notifications yet.', 'Уведомлений пока нет.')) + '</div>';
+      return;
+    }
+    list.innerHTML = state.notifications.map((n) =>
+      '<div class="notif-item' + (n.read ? '' : ' unread') + '"><div class="ndot"></div><div><b>' +
+      esc(n.title || tr('Notification', 'Уведомление')) + '</b>' +
+      (n.body ? '<p>' + esc(n.body) + '</p>' : '') +
+      '<time>' + esc(timeAgo(n.created_at)) + '</time></div></div>'
+    ).join('');
+  }
+  async function openNotifications() {
+    renderNotifList();
+    $('#notifOverlay').classList.add('open');
+    await markAllNotifRead();
+  }
+  async function markAllNotifRead() {
+    const ids = state.notifications.filter((x) => !x.read).map((x) => x.id);
+    if (!ids.length) return;
+    try {
+      await supa.from('notifications').update({ read: true }).in('id', ids);
+      state.notifications.forEach((n) => { n.read = true; });
+      renderNotifBadge();
+      renderNotifList();
+    } catch (error) { console.warn('mark read failed', error); }
+  }
+  function subscribeNotifications() {
+    try {
+      supa.channel('notif-' + user.id)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + user.id }, (payload) => {
+          state.notifications.unshift(payload.new);
+          renderNotifBadge();
+          if ($('#notifOverlay').classList.contains('open')) renderNotifList();
+        }).subscribe();
+    } catch (error) { /* realtime optional */ }
+  }
+  // ── Teacher practices ─────────────────────────────────────────
+  let practiceState = null;
+  async function loadPractices() {
+    try {
+      const { data } = await supa.from('teacher_practices')
+        .select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count')
+        .eq('status', 'published').order('rating_avg', { ascending: false }).limit(30);
+      state.practices = data || [];
+      if (state.practices.length) {
+        const ids = state.practices.map((p) => p.id);
+        const { data: rr } = await supa.from('teacher_practice_ratings')
+          .select('practice_id,rating').eq('user_id', user.id).in('practice_id', ids);
+        state.myRatings = {};
+        (rr || []).forEach((r) => { state.myRatings[r.practice_id] = r.rating; });
+      }
+    } catch (error) { console.warn('practices load failed', error); }
+  }
+  function practicesHtml() {
+    if (!state.practices.length) return '<div class="empty">' + esc(tr('No practices yet. Check back soon.', 'Практик пока нет. Загляните позже.')) + '</div>';
+    return state.practices.map((p) =>
+      '<div class="card prac-card" data-practice="' + esc(p.id) + '">' +
+        '<h3>' + esc(p.title) + '</h3>' +
+        (p.description ? '<p>' + esc(p.description) + '</p>' : '') +
+        '<div class="prac-meta">' +
+          (p.level ? '<span class="tag">' + esc(String(p.level).toUpperCase()) + '</span>' : '') +
+          (p.target ? '<span class="tag blue">' + esc(p.target) + '</span>' : '') +
+          '<span class="tag amber">★ ' + Number(p.rating_avg || 0).toFixed(1) + ' (' + (p.rating_count || 0) + ')</span>' +
+          '<span style="color:var(--muted);font-weight:800;font-size:12px">' + (p.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + '</span>' +
+        '</div>' +
+      '</div>'
+    ).join('');
+  }
+  async function openPractice(id) {
+    const p = state.practices.find((x) => x.id === id);
+    if (!p) return;
+    practiceState = { practice: p, items: [], idx: 0, score: 0, answered: false };
+    $('#practiceOverlayTitle').textContent = p.title;
+    const body = $('#practiceOverlayBody');
+    body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+    $('#practiceOverlay').classList.add('open');
+    try {
+      const { data } = await supa.from('teacher_practice_items')
+        .select('id,order_index,type,prompt,options,answer,explanation')
+        .eq('practice_id', id).order('order_index', { ascending: true });
+      practiceState.items = data || [];
+    } catch (error) { practiceState.items = []; }
+    if (!practiceState.items.length) {
+      body.innerHTML = '<div class="empty">' + esc(tr('This practice has no tasks yet.', 'В этой практике пока нет заданий.')) + '</div>';
+      return;
+    }
+    renderPracticeStep();
+  }
+  function pracNextButton() {
+    const last = practiceState.idx + 1 >= practiceState.items.length;
+    return '<button class="btn primary" id="pracNext" style="margin-top:12px">' + esc(last ? tr('Finish', 'Завершить') : tr('Next', 'Далее')) + '</button>';
+  }
+  function renderPracticeStep() {
+    const st = practiceState;
+    const it = st.items[st.idx];
+    if (!it) { renderPracticeResult(); return; }
+    const body = $('#practiceOverlayBody');
+    const progress = '<p style="font-weight:900;color:var(--muted);margin:0 0 10px">' + (st.idx + 1) + ' / ' + st.items.length + '</p>';
+    const opts = Array.isArray(it.options) ? it.options : [];
+    const type = it.type || 'mcq';
+    if (type === 'mcq' && opts.length) {
+      body.innerHTML = progress + '<h3 style="margin:0 0 12px">' + esc(it.prompt) + '</h3>' +
+        opts.map((o, i) => '<button class="opt-btn" data-opt="' + i + '">' + esc(o) + '</button>').join('') +
+        '<div id="pracFeedback"></div>';
+    } else if (type === 'flashcard') {
+      body.innerHTML = progress + '<h3 style="margin:0 0 12px">' + esc(it.prompt) + '</h3>' +
+        '<div id="pracFeedback"></div><button class="btn" id="flashReveal">' + esc(tr('Show answer', 'Показать ответ')) + '</button>';
+    } else {
+      body.innerHTML = progress + '<h3 style="margin:0 0 12px">' + esc(it.prompt) + '</h3>' +
+        '<input id="fillInput" class="search" placeholder="' + esc(tr('Your answer', 'Ваш ответ')) + '">' +
+        '<button class="btn primary" id="fillCheck">' + esc(tr('Check', 'Проверить')) + '</button><div id="pracFeedback"></div>';
+    }
+  }
+  function answerMcq(i) {
+    const st = practiceState;
+    if (st.answered) return;
+    st.answered = true;
+    const it = st.items[st.idx];
+    const opts = it.options || [];
+    const correctIdx = opts.findIndex((o, ix) => String(ix) === String(it.answer) || String(o) === String(it.answer));
+    const btns = $$('#practiceOverlayBody .opt-btn');
+    btns.forEach((b, ix) => { b.style.pointerEvents = 'none'; if (ix === correctIdx) b.classList.add('correct'); });
+    if (i === correctIdx) st.score++; else if (btns[i]) btns[i].classList.add('wrong');
+    $('#pracFeedback').innerHTML = (it.explanation ? '<p style="font-weight:700;color:var(--soft);margin-top:10px">' + esc(it.explanation) + '</p>' : '') + pracNextButton();
+  }
+  function revealFlash() {
+    const it = practiceState.items[practiceState.idx];
+    $('#flashReveal').style.display = 'none';
+    $('#pracFeedback').innerHTML =
+      '<div class="card" style="padding:12px;margin:10px 0"><b>' + esc(it.answer || it.explanation || '') + '</b>' +
+      (it.explanation && it.answer ? '<p style="margin-top:6px;color:var(--soft);font-weight:700">' + esc(it.explanation) + '</p>' : '') + '</div>' +
+      '<div style="display:flex;gap:8px"><button class="btn" data-flash="0">' + esc(tr('Missed', 'Не знал')) + '</button><button class="btn primary" data-flash="1">' + esc(tr('Got it', 'Знал')) + '</button></div>';
+  }
+  function flashMark(got) {
+    if (practiceState.answered) return;
+    practiceState.answered = true;
+    if (got) practiceState.score++;
+    nextStep();
+  }
+  function checkFill() {
+    const st = practiceState;
+    if (st.answered) return;
+    const it = st.items[st.idx];
+    const val = ($('#fillInput').value || '').trim().toLowerCase();
+    const ans = String(it.answer || '').trim().toLowerCase();
+    st.answered = true;
+    const ok = val && val === ans;
+    if (ok) st.score++;
+    $('#fillCheck').style.display = 'none';
+    $('#fillInput').disabled = true;
+    $('#pracFeedback').innerHTML = '<p style="font-weight:900;color:' + (ok ? 'var(--teal)' : 'var(--red)') + ';margin-top:10px">' +
+      (ok ? esc(tr('Correct!', 'Верно!')) : esc(tr('Answer: ', 'Ответ: ')) + esc(it.answer || '')) + '</p>' +
+      (it.explanation ? '<p style="color:var(--soft);font-weight:700">' + esc(it.explanation) + '</p>' : '') + pracNextButton();
+  }
+  function nextStep() {
+    practiceState.idx++;
+    practiceState.answered = false;
+    if (practiceState.idx >= practiceState.items.length) renderPracticeResult();
+    else renderPracticeStep();
+  }
+  async function renderPracticeResult() {
+    const st = practiceState;
+    const total = st.items.length;
+    $('#practiceOverlayBody').innerHTML =
+      '<div style="text-align:center;padding:10px 0">' +
+      '<h2 style="margin:0 0 6px">' + esc(tr('Done!', 'Готово!')) + '</h2>' +
+      '<p style="font-weight:900;font-size:28px;margin:6px 0">' + st.score + ' / ' + total + '</p>' +
+      '<p style="color:var(--soft);font-weight:800">' + esc(tr('Rate this practice', 'Оцените практику')) + '</p>' +
+      '<div class="stars" id="pracStars">' + [1, 2, 3, 4, 5].map((n) => '<span class="st" data-star="' + n + '">★</span>').join('') + '</div>' +
+      '<div style="margin-top:16px"><button class="btn primary" id="pracFinish">' + esc(tr('Close', 'Закрыть')) + '</button></div>' +
+      '</div>';
+    try { await supa.from('teacher_practice_attempts').insert({ practice_id: st.practice.id, user_id: user.id, score: st.score, total }); } catch (error) { /* ignore */ }
+    const existing = state.myRatings[st.practice.id];
+    if (existing) highlightStars(existing);
+  }
+  function highlightStars(n) { $$('#pracStars .st').forEach((s, i) => s.classList.toggle('on', i < n)); }
+  async function ratePractice(n) {
+    const pid = practiceState.practice.id;
+    highlightStars(n);
+    try {
+      await supa.from('teacher_practice_ratings').upsert({ practice_id: pid, user_id: user.id, rating: n, updated_at: new Date().toISOString() }, { onConflict: 'practice_id,user_id' });
+      state.myRatings[pid] = n;
+    } catch (error) { console.warn('rating failed', error); }
+  }
+  function closePractice() {
+    $('#practiceOverlay').classList.remove('open');
+    practiceState = null;
+    loadPractices().then(() => { if (!isBusiness()) renderWorkspace(); });
+  }
+  // ── Schedule & booking ────────────────────────────────────────
+  function fmtSlot(s) { return formatDate(s.slot_date) + ' · ' + String(s.slot_time || '').slice(0, 5); }
+  async function loadSchedule() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (isBusiness()) {
+      try {
+        const { data } = await supa.from('teacher_slots')
+          .select('id,slot_date,slot_time,duration_min,is_booked,booked_by_user_id')
+          .eq('teacher_id', user.id).gte('slot_date', today)
+          .order('slot_date', { ascending: true }).order('slot_time', { ascending: true }).limit(60);
+        state.mySlots = data || [];
+      } catch (error) { console.warn('slots load failed', error); }
+      return;
+    }
+    try {
+      const { data: slots } = await supa.from('teacher_slots')
+        .select('teacher_id').eq('is_booked', false).gte('slot_date', today);
+      const counts = {};
+      (slots || []).forEach((s) => { counts[s.teacher_id] = (counts[s.teacher_id] || 0) + 1; });
+      const ids = Object.keys(counts);
+      let teachers = [];
+      if (ids.length) {
+        const { data: profs } = await supa.from('profiles').select('id,full_name,avatar_url,city,country').in('id', ids);
+        teachers = (profs || []).map((p) => ({ ...p, slots: counts[p.id] || 0 })).sort((a, b) => b.slots - a.slots);
+      }
+      state.scheduleTeachers = teachers;
+      const { data: mine } = await supa.from('teacher_slots')
+        .select('id,teacher_id,slot_date,slot_time,duration_min')
+        .eq('booked_by_user_id', user.id).gte('slot_date', today).order('slot_date', { ascending: true });
+      const tIds = Array.from(new Set((mine || []).map((s) => s.teacher_id)));
+      const { data: tp } = tIds.length ? await supa.from('profiles').select('id,full_name').in('id', tIds) : { data: [] };
+      const tn = new Map((tp || []).map((p) => [p.id, p.full_name]));
+      state.myBookings = (mine || []).map((s) => ({ ...s, teacher_name: tn.get(s.teacher_id) || tr('Teacher', 'Преподаватель') }));
+    } catch (error) { console.warn('schedule load failed', error); }
+  }
+  function renderSchedule() {
+    const main = $('#scheduleMain');
+    const side = $('#scheduleSide');
+    if (!main || !side) return;
+    if (isBusiness()) {
+      $('#scheduleTitle').textContent = tr('Your lesson slots', 'Ваши слоты уроков');
+      $('#scheduleSub').textContent = tr('Open times for learners to book', 'Открытые слоты для записи учеников');
+      main.innerHTML =
+        '<div class="section-head"><h2>' + esc(tr('Open a new slot', 'Открыть новый слот')) + '</h2></div>' +
+        '<form id="slotForm"><div class="form-grid">' +
+          '<div class="field"><label>' + esc(tr('Date', 'Дата')) + '</label><input id="slotDate" type="date" required></div>' +
+          '<div class="field"><label>' + esc(tr('Time', 'Время')) + '</label><input id="slotTime" type="time" required></div>' +
+          '<div class="field"><label>' + esc(tr('Duration (min)', 'Длительность (мин)')) + '</label><input id="slotDur" type="number" min="15" step="15" value="60"></div>' +
+        '</div><button class="btn primary" type="submit" style="margin-top:10px">' + esc(tr('Open slot', 'Открыть слот')) + '</button></form>';
+      $('#slotForm').addEventListener('submit', createSlot);
+      side.innerHTML = '<div class="section-head"><h2>' + esc(tr('Upcoming slots', 'Ближайшие слоты')) + '</h2></div>' +
+        (state.mySlots.length ? state.mySlots.map((s) =>
+          '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(fmtSlot(s)) + '</h3><p>' + (s.duration_min || 60) + ' ' + esc(tr('min', 'мин')) + '</p></div><span class="tag ' + (s.is_booked ? 'teal' : '') + '">' + esc(s.is_booked ? tr('Booked', 'Занят') : tr('Free', 'Свободен')) + '</span></div>'
+        ).join('') : '<div class="empty">' + esc(tr('No slots yet.', 'Слотов пока нет.')) + '</div>');
+    } else {
+      $('#scheduleTitle').textContent = tr('Book a lesson', 'Записаться на урок');
+      $('#scheduleSub').textContent = tr('Teachers with open slots', 'Преподаватели со свободными слотами');
+      main.innerHTML = '<div class="section-head"><h2>' + esc(tr('Teachers', 'Преподаватели')) + '</h2></div>' +
+        (state.scheduleTeachers.length ? state.scheduleTeachers.map((t) =>
+          '<div class="card row" data-teacher="' + esc(t.id) + '" style="cursor:pointer"><div class="thumb">' + avatarInner(t.full_name, t.avatar_url) + '</div><div><h3>' + esc(t.full_name || tr('Teacher', 'Преподаватель')) + '</h3><p>' + esc([t.city, t.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div><span class="tag">' + t.slots + ' ' + esc(tr('slots', 'слотов')) + '</span></div>'
+        ).join('') : '<div class="empty">' + esc(tr('No open slots right now.', 'Свободных слотов сейчас нет.')) + '</div>');
+      side.innerHTML = '<div class="section-head"><h2>' + esc(tr('My bookings', 'Мои записи')) + '</h2></div>' +
+        (state.myBookings.length ? state.myBookings.map((b) =>
+          '<div class="card row" style="grid-template-columns:minmax(0,1fr)"><div><h3>' + esc(b.teacher_name) + '</h3><p>' + esc(fmtSlot(b)) + ' · ' + (b.duration_min || 60) + ' ' + esc(tr('min', 'мин')) + '</p></div></div>'
+        ).join('') : '<div class="empty">' + esc(tr('No bookings yet.', 'Записей пока нет.')) + '</div>');
+    }
+  }
+  async function openTeacherSlots(teacherId) {
+    const t = state.scheduleTeachers.find((x) => x.id === teacherId);
+    const main = $('#scheduleMain');
+    main.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+    const today = new Date().toISOString().slice(0, 10);
+    let slots = [];
+    try {
+      const { data } = await supa.from('teacher_slots')
+        .select('id,slot_date,slot_time,duration_min').eq('teacher_id', teacherId)
+        .eq('is_booked', false).gte('slot_date', today)
+        .order('slot_date', { ascending: true }).order('slot_time', { ascending: true }).limit(60);
+      slots = data || [];
+    } catch (error) { /* ignore */ }
+    main.innerHTML = '<div class="section-head"><h2>' + esc((t && t.full_name) || tr('Teacher', 'Преподаватель')) + '</h2><button class="btn" id="slotsBack" type="button">' + esc(tr('Back', 'Назад')) + '</button></div>' +
+      (slots.length ? '<div>' + slots.map((s) => '<button class="slot-chip" data-book="' + esc(s.id) + '">' + esc(fmtSlot(s)) + ' · ' + (s.duration_min || 60) + esc(tr('m', 'м')) + '</button>').join('') + '</div>' : '<div class="empty">' + esc(tr('No free slots.', 'Свободных слотов нет.')) + '</div>');
+    $('#slotsBack').addEventListener('click', renderSchedule);
+  }
+  async function bookSlot(slotId) {
+    try {
+      const { error } = await supa.from('teacher_slots').update({ is_booked: true, booked_by_user_id: user.id }).eq('id', slotId).eq('is_booked', false);
+      if (error) throw error;
+      alert(tr('Lesson booked! The teacher will see you in their schedule.', 'Урок забронирован! Преподаватель увидит вас в своём расписании.'));
+      await loadSchedule();
+      renderSchedule();
+    } catch (error) { alert(error.message || tr('Could not book the slot.', 'Не удалось забронировать слот.')); }
+  }
+  async function createSlot(event) {
+    event.preventDefault();
+    const payload = { teacher_id: user.id, slot_date: $('#slotDate').value, slot_time: $('#slotTime').value, duration_min: Number($('#slotDur').value) || 60, is_booked: false };
+    if (!payload.slot_date || !payload.slot_time) return;
+    const btn = $('#slotForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const { error } = await supa.from('teacher_slots').insert(payload);
+      if (error) throw error;
+      await loadSchedule();
+      renderSchedule();
+    } catch (err) {
+      alert(err.message || tr('Could not open the slot.', 'Не удалось открыть слот.'));
+      btn.disabled = false;
+    }
+  }
+  // ── Business workspace: organization, courses, classes ────────
+  async function loadBusinessWorkspace() {
+    if (!isBusiness()) return;
+    try {
+      const { data: mems } = await supa.from('organization_memberships')
+        .select('organization_id,role,status,organizations(id,name,city,country,type)')
+        .eq('user_id', user.id).eq('status', 'active');
+      const org = (mems || []).map((m) => m.organizations).find(Boolean) || null;
+      state.myOrg = org;
+      if (org) {
+        const [{ data: courses }, { data: classes }] = await Promise.all([
+          supa.from('courses').select('id,title,level,status,price,currency,created_at').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(30),
+          supa.from('classes').select('id,name,level,language,starts_at,format').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(30)
+        ]);
+        state.orgCourses = courses || [];
+        state.orgClasses = classes || [];
+      } else {
+        state.orgCourses = [];
+        state.orgClasses = [];
+      }
+    } catch (error) { console.warn('business workspace load failed', error); }
+  }
+  function renderBusinessWorkspace() {
+    const org = state.myOrg;
+    const left = $('#workspaceActions');
+    $('#workspacePrimaryTitle').textContent = org ? esc(org.name) : tr('Your organization', 'Ваша организация');
+    if (!org) {
+      left.innerHTML =
+        '<p style="font-weight:800;color:var(--soft);margin:0 0 12px">' + esc(tr('Create an organization to publish courses and classes on Duvela.', 'Создайте организацию, чтобы публиковать курсы и классы в Duvela.')) + '</p>' +
+        '<form id="orgForm">' +
+          '<div class="field"><label>' + esc(tr('Organization name', 'Название организации')) + '</label><input id="orgName" required maxlength="120"></div>' +
+          '<div class="form-grid">' +
+            '<div class="field"><label>' + esc(tr('City', 'Город')) + '</label><input id="orgCity" maxlength="80"></div>' +
+            '<div class="field"><label>' + esc(tr('Country', 'Страна')) + '</label><input id="orgCountry" maxlength="80"></div>' +
+          '</div>' +
+          '<div class="field"><label>' + esc(tr('About', 'Описание')) + '</label><textarea id="orgDesc" maxlength="400"></textarea></div>' +
+          '<button class="btn primary" type="submit" style="margin-top:10px">' + esc(tr('Create organization', 'Создать организацию')) + '</button>' +
+        '</form>';
+      $('#orgForm').addEventListener('submit', createOrg);
+      return;
+    }
+    left.innerHTML =
+      '<p style="font-weight:800;color:var(--soft);margin:0 0 12px">' + esc([org.city, org.country].filter(Boolean).join(', ') || tr('Your Duvela organization', 'Ваша организация Duvela')) + '</p>' +
+      '<form id="courseForm">' +
+        '<div class="section-head" style="margin-bottom:8px"><h2 style="font-size:15px">' + esc(tr('New course', 'Новый курс')) + '</h2></div>' +
+        '<div class="field"><label>' + esc(tr('Title', 'Название')) + '</label><input id="cTitle" required maxlength="140"></div>' +
+        '<div class="form-grid">' +
+          '<div class="field"><label>' + esc(tr('Level', 'Уровень')) + '</label><input id="cLevel" placeholder="A1–C2" maxlength="10"></div>' +
+          '<div class="field"><label>' + esc(tr('Language', 'Язык')) + '</label><input id="cLang" maxlength="40"></div>' +
+          '<div class="field"><label>' + esc(tr('Price (blank = free)', 'Цена (пусто = бесплатно)')) + '</label><input id="cPrice" type="number" min="0" step="1"></div>' +
+          '<div class="field"><label>' + esc(tr('Currency', 'Валюта')) + '</label><input id="cCurrency" value="EUR" maxlength="8"></div>' +
+        '</div>' +
+        '<div class="field"><label>' + esc(tr('Schedule', 'Расписание')) + '</label><input id="cSchedule" placeholder="' + esc(tr('Mon, Wed 18:00', 'Пн, Ср 18:00')) + '" maxlength="120"></div>' +
+        '<div class="field"><label>' + esc(tr('Description', 'Описание')) + '</label><textarea id="cDesc" maxlength="600"></textarea></div>' +
+        '<label style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;margin:4px 0"><input type="checkbox" id="cPublish" checked> ' + esc(tr('Publish now (visible to learners)', 'Опубликовать сразу (видно ученикам)')) + '</label>' +
+        '<button class="btn primary" type="submit" style="margin-top:6px">' + esc(tr('Create course', 'Создать курс')) + '</button>' +
+      '</form>' +
+      '<div class="section-head" style="margin:16px 0 8px"><h2 style="font-size:15px">' + esc(tr('Your courses', 'Ваши курсы')) + '</h2><span>' + state.orgCourses.length + '</span></div>' +
+      (state.orgCourses.length ? state.orgCourses.map((c) =>
+        '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(c.title) + '</h3><p>' + esc([c.level, c.status].filter(Boolean).join(' · ')) + '</p></div><span class="tag ' + (c.status === 'active' ? 'teal' : '') + '">' + esc(c.status === 'active' ? tr('Live', 'Активен') : (c.status || tr('Draft', 'Черновик'))) + '</span></div>'
+      ).join('') : '<div class="empty">' + esc(tr('No courses yet.', 'Курсов пока нет.')) + '</div>') +
+      '<form id="classForm" style="margin-top:18px">' +
+        '<div class="section-head" style="margin-bottom:8px"><h2 style="font-size:15px">' + esc(tr('New class', 'Новый класс')) + '</h2></div>' +
+        '<div class="field"><label>' + esc(tr('Class name', 'Название класса')) + '</label><input id="clName" required maxlength="140"></div>' +
+        '<div class="form-grid">' +
+          '<div class="field"><label>' + esc(tr('Language', 'Язык')) + '</label><input id="clLang" maxlength="40"></div>' +
+          '<div class="field"><label>' + esc(tr('Level', 'Уровень')) + '</label><input id="clLevel" placeholder="A1–C2" maxlength="10"></div>' +
+          '<div class="field"><label>' + esc(tr('Format', 'Формат')) + '</label><select id="clFormat" class="role-select"><option value="online">' + esc(tr('Online', 'Онлайн')) + '</option><option value="offline">' + esc(tr('In person', 'Оффлайн')) + '</option></select></div>' +
+          '<div class="field"><label>' + esc(tr('Starts', 'Старт')) + '</label><input id="clStart" type="datetime-local"></div>' +
+        '</div>' +
+        '<button class="btn primary" type="submit" style="margin-top:6px">' + esc(tr('Create class', 'Создать класс')) + '</button>' +
+      '</form>' +
+      '<div class="section-head" style="margin:16px 0 8px"><h2 style="font-size:15px">' + esc(tr('Your classes', 'Ваши классы')) + '</h2><span>' + state.orgClasses.length + '</span></div>' +
+      (state.orgClasses.length ? state.orgClasses.map((c) =>
+        '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(c.name) + '</h3><p>' + esc([c.language, c.level, c.starts_at ? formatDate(c.starts_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag">' + esc(c.format === 'offline' ? tr('In person', 'Оффлайн') : tr('Online', 'Онлайн')) + '</span></div>'
+      ).join('') : '<div class="empty">' + esc(tr('No classes yet.', 'Классов пока нет.')) + '</div>');
+    $('#courseForm').addEventListener('submit', createCourse);
+    $('#classForm').addEventListener('submit', createClass);
+  }
+  async function createOrg(event) {
+    event.preventDefault();
+    const name = $('#orgName').value.trim();
+    if (!name) return;
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) + '-' + Math.random().toString(36).slice(2, 6);
+    const btn = $('#orgForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const { data: org, error } = await supa.from('organizations').insert({
+        owner_id: user.id, name, slug,
+        city: $('#orgCity').value.trim() || null,
+        country: $('#orgCountry').value.trim() || null,
+        description: $('#orgDesc').value.trim() || null
+      }).select('id,name,city,country,type').single();
+      if (error) throw error;
+      const { error: memErr } = await supa.from('organization_memberships').insert({
+        organization_id: org.id, user_id: user.id, role: 'owner', status: 'active'
+      });
+      if (memErr) throw memErr;
+      await loadBusinessWorkspace();
+      renderBusinessWorkspace();
+    } catch (err) {
+      alert(err.message || tr('Could not create the organization.', 'Не удалось создать организацию.'));
+      btn.disabled = false;
+    }
+  }
+  async function createCourse(event) {
+    event.preventDefault();
+    if (!state.myOrg) return;
+    const title = $('#cTitle').value.trim();
+    if (!title) return;
+    const priceRaw = $('#cPrice').value.trim();
+    const btn = $('#courseForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const { error } = await supa.from('courses').insert({
+        organization_id: state.myOrg.id,
+        created_by: user.id,
+        title,
+        level: $('#cLevel').value.trim().toUpperCase() || null,
+        language: $('#cLang').value.trim() || null,
+        price: priceRaw !== '' ? Number(priceRaw) : null,
+        currency: $('#cCurrency').value.trim() || null,
+        schedule: $('#cSchedule').value.trim() || null,
+        description: $('#cDesc').value.trim() || null,
+        status: $('#cPublish').checked ? 'active' : 'draft'
+      });
+      if (error) throw error;
+      await Promise.all([loadBusinessWorkspace(), loadPublicData()]);
+      renderBusinessWorkspace();
+      renderCourses();
+    } catch (err) {
+      alert(err.message || tr('Could not create the course.', 'Не удалось создать курс.'));
+      btn.disabled = false;
+    }
+  }
+  async function createClass(event) {
+    event.preventDefault();
+    if (!state.myOrg) return;
+    const name = $('#clName').value.trim();
+    if (!name) return;
+    const btn = $('#classForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const startVal = $('#clStart').value;
+      const { error } = await supa.from('classes').insert({
+        organization_id: state.myOrg.id,
+        teacher_id: user.id,
+        name,
+        language: $('#clLang').value.trim() || null,
+        level: $('#clLevel').value.trim().toUpperCase() || null,
+        format: $('#clFormat').value,
+        starts_at: startVal ? new Date(startVal).toISOString() : null
+      });
+      if (error) throw error;
+      await loadBusinessWorkspace();
+      renderBusinessWorkspace();
+    } catch (err) {
+      alert(err.message || tr('Could not create the class.', 'Не удалось создать класс.'));
+      btn.disabled = false;
+    }
+  }
+  // ── V-Coin wallet ─────────────────────────────────────────────
+  async function loadWallet() {
+    try {
+      const { data } = await supa.from('coin_transactions')
+        .select('amount,balance_after,source,label,created_at')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(8);
+      state.walletTx = data || [];
+    } catch (error) { console.warn('wallet load failed', error); }
+  }
+  function walletHtml() {
+    const balance = (profile?.vela_coin_balance ?? 0).toLocaleString();
+    const rows = state.walletTx.length
+      ? state.walletTx.map((t) => {
+          const amt = Number(t.amount || 0);
+          return '<div class="rank-row" style="grid-template-columns:minmax(0,1fr) auto"><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(t.label || t.source || tr('Transaction', 'Операция')) + '<div style="color:var(--muted);font-size:11px">' + esc(timeAgo(t.created_at)) + '</div></div><div style="font-weight:900;color:' + (amt >= 0 ? 'var(--teal)' : 'var(--red)') + '">' + (amt >= 0 ? '+' : '') + amt + '</div></div>';
+        }).join('')
+      : '<div class="empty">' + esc(tr('No coin activity yet.', 'Операций с монетами пока нет.')) + '</div>';
+    return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Duvela Coins', 'Монеты Duvela')) + '</h2><span>' + balance + '</span></div>' +
+      rows +
+      '<p style="color:var(--muted);font-size:12px;font-weight:700;margin-top:10px">' + esc(tr('Buying coins is available in the Duvela mobile app.', 'Покупка монет доступна в мобильном приложении Duvela.')) + '</p>';
   }
   function renderAll() {
     updateShellCopy();
+    renderAccessNotice();
+    syncRoleOptions();
     renderProfile();
     renderHome();
     renderVideos();
@@ -1317,6 +2306,8 @@
     renderEvents();
     renderMessages();
     renderWorkspace();
+    renderSchedule();
+    renderNotifBadge();
   }
   async function safeQuery(label, query, map) {
     try {
@@ -1330,45 +2321,53 @@
   async function loadProfile() {
     try {
       const result = await supa.from('profiles')
-        .select('id,full_name,avatar_url,city,country,language,language_level,is_teacher,is_organizer,is_admin,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level')
+        .select('id,full_name,avatar_url,city,country,language,language_level,bio,telegram,instagram,website,is_teacher,is_organizer,is_admin,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level')
         .eq('id', user.id)
         .maybeSingle();
       if (!result.error && result.data) profile = result.data;
     } catch (error) {
       console.warn('profile query failed', error);
     }
-    // If URL/localStorage did not pin a business role, respect the account's real capabilities.
-    if (!params.get('role') && !localStorage.getItem(ROLE_KEY) && profile) {
-      if (profile.is_admin) role = 'admin';
-      else if (profile.is_teacher) role = 'teacher';
-      else if (profile.is_organizer) role = 'organizer';
-      $('#roleSelect').value = role;
+    try {
+      const optional = await supa.from('profiles')
+        .select('requested_role,role_request_status,requested_role_at,last_web_role')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!optional.error && optional.data) profile = { ...(profile || {}), ...optional.data };
+    } catch (error) {
+      console.warn('profile request fields unavailable', error);
     }
+    const pinnedRole = normalizeRole(selectedRole);
+    const fallbackRole = fallbackApprovedRole(profile);
+    const autoRole = (!params.get('role') && !localStorage.getItem(ROLE_KEY) && profile) ? fallbackRole : pinnedRole;
+    role = resolveEffectiveRole(autoRole);
+    selectedRole = role;
   }
   async function loadPublicData() {
     await Promise.all([
       safeQuery('live', () => supa.from('live_sessions').select('id,teacher_name,topic,language,level,status').eq('status', 'live').limit(6), (item) => ({
         id: item.id,
-        teacher_name: item.teacher_name || 'Teacher live',
-        title: item.topic || [item.language, item.level].filter(Boolean).join(' · ') || 'Live lesson',
-        status: item.status || 'live'
+        teacher_name: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'),
+        title: item.topic || [item.language, item.level].filter(Boolean).join(' · ') || tr('Live lesson', 'Live-урок'),
+        status: item.status || tr('live', 'live')
       })),
       safeQuery('courses', () => supa.from('courses').select('id,title,description,cover_image_url,level,price,currency,schedule,starts_on').eq('status', 'active').order('created_at', { ascending: false }).limit(12), (item) => ({
         id: item.id,
-        title: item.title || 'Course',
+        title: item.title || tr('Course', 'Курс'),
         description: item.description || item.schedule || '',
         image: item.cover_image_url,
         level: item.level || '',
         price: item.price,
         currency: item.currency,
+        schedule: item.schedule || '',
         is_free: item.price == null || Number(item.price) === 0
       })),
       safeQuery('events', () => supa.from('events').select('id,title,description,event_date,event_time,city,country,format,is_paid,price_amount,image_url').order('event_date', { ascending: true }).limit(12), (item) => ({
         id: item.id,
-        title: item.title || 'Event',
+        title: item.title || tr('Event', 'Событие'),
         description: item.description || '',
         image: item.image_url,
-        meta: [item.event_date ? new Date(item.event_date).toLocaleDateString() : '', item.city, item.country].filter(Boolean).join(' · '),
+        meta: [item.event_date ? formatDate(item.event_date) : '', item.city, item.country].filter(Boolean).join(' · '),
         price: item.is_paid ? item.price_amount : null,
         currency: 'EUR',
         is_free: !item.is_paid,
@@ -1377,15 +2376,32 @@
     ]);
   }
   function bindEvents() {
-    $$('.nav button').forEach((btn) => btn.addEventListener('click', () => setView(btn.dataset.view)));
-    $('#roleSelect').addEventListener('change', (event) => {
-      role = event.target.value;
+    $$('.nav button').forEach((btn) => btn.addEventListener('click', () => {
+      setView(btn.dataset.view);
+      if (btn.dataset.view === 'schedule') loadSchedule().then(renderSchedule);
+      if (btn.dataset.view === 'workspace') {
+        if (isBusiness()) loadBusinessWorkspace().then(renderWorkspace);
+        else loadPractices().then(renderWorkspace);
+      }
+    }));
+    $('#roleSelect').addEventListener('change', async (event) => {
+      const targetRole = normalizeRole(event.target.value);
+      if (businessRoles.has(targetRole) && !isApprovedForRole(targetRole, profile)) {
+        requestedBusinessRole = await submitRoleRequest(targetRole) ? targetRole : null;
+        role = fallbackApprovedRole(profile);
+      } else {
+        role = targetRole;
+        requestedBusinessRole = null;
+      }
+      selectedRole = role;
       localStorage.setItem(ROLE_KEY, role);
       const nextUrl = './app.html?role=' + encodeURIComponent(role) + (window.location.hash || '#home');
       history.replaceState(null, '', nextUrl);
       renderAll();
       setView((window.location.hash || '#home').slice(1));
       loadEnrollments().then(() => { renderCourses(); renderHome(); });
+      loadSchedule().then(renderSchedule);
+      loadBusinessWorkspace().then(renderWorkspace);
     });
     $('#videoTabs').addEventListener('click', (event) => {
       const btn = event.target.closest('button[data-filter]');
@@ -1408,11 +2424,59 @@
       if (conv) { openConversation(conv.dataset.conv); return; }
       const person = event.target.closest('[data-person]');
       if (person) { startChatWith(person.dataset.person); return; }
+      const video = event.target.closest('[data-video]');
+      if (video) { openVideo(video.dataset.video); return; }
+      const course = event.target.closest('[data-course]');
+      if (course) { openCourseDetail(course.dataset.course); return; }
+      const practice = event.target.closest('[data-practice]');
+      if (practice) { openPractice(practice.dataset.practice); return; }
+      const teacherSlots = event.target.closest('[data-teacher]');
+      if (teacherSlots) { openTeacherSlots(teacherSlots.dataset.teacher); return; }
+      const book = event.target.closest('[data-book]');
+      if (book) { bookSlot(book.dataset.book); return; }
+    });
+    $('#profileForm').addEventListener('submit', saveProfile);
+    const langSel = $('#langSelect');
+    if (langSel) langSel.addEventListener('change', () => {
+      localStorage.setItem(LANG_KEY, langSel.value);
+      window.location.reload();
+    });
+    $('#videoClose').addEventListener('click', closeVideo);
+    $('#videoOverlay').addEventListener('click', (e) => { if (e.target === $('#videoOverlay')) closeVideo(); });
+    $('#courseClose').addEventListener('click', () => $('#courseOverlay').classList.remove('open'));
+    $('#courseOverlay').addEventListener('click', (e) => { if (e.target === $('#courseOverlay')) $('#courseOverlay').classList.remove('open'); });
+    // Notifications
+    $('#notifBell').addEventListener('click', openNotifications);
+    $('#notifClose').addEventListener('click', () => $('#notifOverlay').classList.remove('open'));
+    $('#notifOverlay').addEventListener('click', (e) => { if (e.target === $('#notifOverlay')) $('#notifOverlay').classList.remove('open'); });
+    $('#markAllRead').addEventListener('click', markAllNotifRead);
+    // Practice player
+    $('#practiceClose').addEventListener('click', closePractice);
+    $('#practiceOverlay').addEventListener('click', (e) => { if (e.target === $('#practiceOverlay')) closePractice(); });
+    $('#practiceOverlayBody').addEventListener('click', (e) => {
+      const opt = e.target.closest('[data-opt]');
+      if (opt) { answerMcq(Number(opt.dataset.opt)); return; }
+      if (e.target.closest('#flashReveal')) { revealFlash(); return; }
+      const flash = e.target.closest('[data-flash]');
+      if (flash) { flashMark(flash.dataset.flash === '1'); return; }
+      if (e.target.closest('#fillCheck')) { checkFill(); return; }
+      if (e.target.closest('#pracNext')) { nextStep(); return; }
+      const star = e.target.closest('[data-star]');
+      if (star) { ratePractice(Number(star.dataset.star)); return; }
+      if (e.target.closest('#pracFinish')) { closePractice(); return; }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      closeVideo();
+      $('#courseOverlay').classList.remove('open');
+      $('#newChatOverlay').classList.remove('open');
+      $('#notifOverlay').classList.remove('open');
+      $('#practiceOverlay').classList.remove('open');
     });
     // Messaging
     $('#newChatBtn').addEventListener('click', () => {
       $('#chatSearch').value = '';
-      $('#chatPicker').innerHTML = '<div class="empty">Type a name to search.</div>';
+      $('#chatPicker').innerHTML = '<div class="empty">' + esc(tr('Type a name to search.', 'Введите имя для поиска.')) + '</div>';
       $('#newChatOverlay').classList.add('open');
       searchPeople('');
       setTimeout(() => $('#chatSearch').focus(), 50);
@@ -1428,6 +2492,7 @@
     $('#composeForm').addEventListener('submit', (e) => { e.preventDefault(); sendCurrentMessage($('#composeInput').value); });
     $('#signOut').addEventListener('click', async () => {
       if (threadChannel) supa.removeChannel(threadChannel);
+      clearInterval(liveRefreshTimer);
       await supa.auth.signOut();
       window.location.href = './index.html';
     });
@@ -1436,9 +2501,9 @@
     });
   }
   async function init() {
-    role = roleLabels[role] ? role : 'learner';
-    localStorage.setItem(ROLE_KEY, role);
-    $('#roleSelect').value = role;
+    localizeStaticUI();
+    selectedRole = normalizeRole(selectedRole);
+    localStorage.setItem(ROLE_KEY, selectedRole);
     const sessionResult = await supa.auth.getSession();
     const session = sessionResult.data.session;
     if (!session?.user) {
@@ -1448,16 +2513,29 @@
     user = session.user;
     bindEvents();
     await loadProfile();
-    await Promise.all([loadPublicData(), loadEnrollments()]);
+    localStorage.setItem(ROLE_KEY, role);
+    history.replaceState(null, '', './app.html?role=' + encodeURIComponent(role) + (window.location.hash || '#home'));
+    await Promise.all([loadPublicData(), loadEnrollments(), loadVideos(), loadPractices(), loadNotifications(), loadSchedule(), loadBusinessWorkspace(), loadWallet()]);
     renderAll();
+    syncRoleOptions();
     $('#loading').style.display = 'none';
     $('#app').style.display = 'grid';
     setView((window.location.hash || '#home').slice(1));
     loadConversations();
+    subscribeNotifications();
+    clearInterval(liveRefreshTimer);
+    liveRefreshTimer = setInterval(() => {
+      loadPublicData().then(() => {
+        renderHome();
+        renderLive();
+        renderCourses();
+        renderEvents();
+      });
+    }, 30000);
   }
   init().catch((error) => {
     console.error(error);
-    $('#loading').textContent = 'Could not open Duvela Web. Please sign in again.';
+    $('#loading').textContent = tr('Could not open Duvela Web. Please sign in again.', 'Не удалось открыть Duvela Web. Войдите заново.');
     setTimeout(() => { window.location.href = './index.html?login=1'; }, 1400);
   });
 })();
