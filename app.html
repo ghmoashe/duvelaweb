@@ -688,13 +688,16 @@
     </section>
 
     <section class="panel" data-panel="videos">
-      <div class="tabs" id="videoTabs">
-        <button class="active" data-filter="all">All</button>
-        <button data-filter="language">Languages</button>
-        <button data-filter="arts">Arts</button>
-        <button data-filter="school">School</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="tabs" id="videoTabs" style="margin-bottom:0">
+          <button class="active" data-filter="all">All</button>
+          <button data-filter="language">Languages</button>
+          <button data-filter="arts">Arts</button>
+          <button data-filter="school">School</button>
+        </div>
+        <button class="btn primary" id="uploadVideoBtn" type="button">Upload</button>
       </div>
-      <div class="video-grid" id="videoGrid"></div>
+      <div class="video-grid" id="videoGrid" style="margin-top:14px"></div>
     </section>
 
     <section class="panel" data-panel="live">
@@ -812,6 +815,28 @@
   <div class="overlay-card" style="width:min(620px,100%)">
     <div class="overlay-head"><h2 id="courseOverlayTitle">Course</h2><button type="button" id="courseClose" aria-label="Close">✕</button></div>
     <div class="overlay-body" id="courseOverlayBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="eventOverlay">
+  <div class="overlay-card" style="width:min(620px,100%)">
+    <div class="overlay-head"><h2 id="eventOverlayTitle">Event</h2><button type="button" id="eventClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="eventOverlayBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="uploadOverlay">
+  <div class="overlay-card" style="width:min(520px,100%)">
+    <div class="overlay-head"><h2 id="uploadTitle">Upload a video</h2><button type="button" id="uploadClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body">
+      <form id="uploadForm">
+        <div class="field"><label for="upFile" id="upFileLabel">Video or image file</label><input id="upFile" type="file" accept="video/*,image/*" required></div>
+        <div class="field"><label for="upCaption" id="upCaptionLabel">Caption</label><input id="upCaption" maxlength="200"></div>
+        <div class="field"><label for="upLevel" id="upLevelLabel">Level (optional)</label><input id="upLevel" placeholder="A1–C2" maxlength="10"></div>
+        <button class="btn primary" type="submit" id="upSubmit" style="margin-top:6px">Publish</button>
+        <div id="upNote" style="display:none;margin-top:8px;font-weight:900"></div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -1134,6 +1159,12 @@
     $('#markAllRead').textContent = tr('Mark all read', 'Прочитать все');
     $('#practiceOverlayTitle').textContent = tr('Practice', 'Практика');
     $('#notifBell').setAttribute('aria-label', tr('Notifications', 'Уведомления'));
+    if ($('#uploadVideoBtn')) $('#uploadVideoBtn').textContent = tr('Upload', 'Загрузить');
+    if ($('#uploadTitle')) $('#uploadTitle').textContent = tr('Upload a video', 'Загрузить видео');
+    if ($('#upFileLabel')) $('#upFileLabel').textContent = tr('Video or image file', 'Файл видео или фото');
+    if ($('#upCaptionLabel')) $('#upCaptionLabel').textContent = tr('Caption', 'Подпись');
+    if ($('#upLevelLabel')) $('#upLevelLabel').textContent = tr('Level (optional)', 'Уровень (необязательно)');
+    if ($('#upSubmit')) $('#upSubmit').textContent = tr('Publish', 'Опубликовать');
   }
   function setText(selector, value) {
     const node = $(selector);
@@ -1259,7 +1290,141 @@
       }
     }
     if (v.caption) body.insertAdjacentHTML('beforeend', '<p style="margin-top:12px;font-weight:800;color:var(--soft)">' + esc(v.caption) + '</p>');
+    if (v.id) {
+      body.insertAdjacentHTML('beforeend', '<div id="videoSocial" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><div class="empty">' + esc(tr('Loading…', 'Загрузка…')) + '</div></div>');
+    }
     $('#videoOverlay').classList.add('open');
+    if (v.id) { recordView(v.id); renderVideoSocial(v.id); }
+  }
+  async function recordView(postId) {
+    try { await supa.from('post_views').insert({ post_id: postId, user_id: user.id }); } catch (e) { /* duplicate/ignore */ }
+  }
+  async function renderVideoSocial(postId) {
+    const box = $('#videoSocial');
+    if (!box) return;
+    try {
+      const [likeCount, myLike, comments] = await Promise.all([
+        supa.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', postId),
+        supa.from('post_likes').select('id').eq('post_id', postId).eq('user_id', user.id).maybeSingle(),
+        supa.from('post_comments').select('id,user_id,comment,created_at').eq('post_id', postId).order('created_at', { ascending: true }).limit(50)
+      ]);
+      const liked = !!(myLike && myLike.data);
+      const count = likeCount.count || 0;
+      const rows = comments.data || [];
+      const authorIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+      const { data: authors } = authorIds.length ? await supa.from('profiles').select('id,full_name,avatar_url').in('id', authorIds) : { data: [] };
+      const byId = new Map((authors || []).map((a) => [a.id, a]));
+      box.innerHTML =
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">' +
+          '<button class="btn' + (liked ? ' primary' : '') + '" data-like="' + esc(postId) + '">' + (liked ? '♥' : '♡') + ' <span id="likeCount">' + count + '</span></button>' +
+        '</div>' +
+        '<div id="commentList">' + (rows.length ? rows.map((c) => {
+          const a = byId.get(c.user_id);
+          return '<div class="lesson-item" style="grid-template-columns:32px minmax(0,1fr)"><div class="avatar" style="width:32px;height:32px;font-size:12px">' + avatarInner(a && a.full_name, a && a.avatar_url) + '</div><div><b style="font-size:13px">' + esc((a && a.full_name) || tr('Duvela user', 'Пользователь Duvela')) + '</b><p style="color:var(--ink);font-weight:600">' + esc(c.comment) + '</p></div></div>';
+        }).join('') : '<div class="empty">' + esc(tr('No comments yet. Be the first!', 'Комментариев пока нет. Будьте первым!')) + '</div>') + '</div>' +
+        '<form id="commentForm" data-post="' + esc(postId) + '" style="display:flex;gap:8px;margin-top:10px">' +
+          '<input id="commentInput" placeholder="' + esc(tr('Add a comment...', 'Оставьте комментарий...')) + '" autocomplete="off" style="flex:1;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:var(--panel-soft)">' +
+          '<button class="btn primary" type="submit">' + esc(tr('Send', 'Отпр.')) + '</button>' +
+        '</form>';
+      $('#commentForm').addEventListener('submit', (e) => { e.preventDefault(); addComment(postId, $('#commentInput').value); });
+    } catch (error) {
+      box.innerHTML = '<div class="empty">' + esc(tr('Could not load reactions.', 'Не удалось загрузить реакции.')) + '</div>';
+    }
+  }
+  async function toggleLike(postId) {
+    const btn = $('[data-like="' + postId + '"]');
+    const liked = btn && btn.classList.contains('primary');
+    try {
+      if (liked) {
+        await supa.from('post_likes').delete().eq('post_id', postId).eq('user_id', user.id);
+      } else {
+        await supa.from('post_likes').insert({ post_id: postId, user_id: user.id });
+      }
+      renderVideoSocial(postId);
+    } catch (error) { alert(error.message || tr('Could not update the like.', 'Не удалось обновить лайк.')); }
+  }
+  async function addComment(postId, text) {
+    const body = (text || '').trim();
+    if (!body) return;
+    $('#commentInput').value = '';
+    try {
+      await supa.from('post_comments').insert({ post_id: postId, user_id: user.id, comment: body });
+      renderVideoSocial(postId);
+    } catch (error) { alert(error.message || tr('Could not post the comment.', 'Не удалось отправить комментарий.')); }
+  }
+  function openUpload() {
+    $('#uploadForm').reset();
+    $('#upNote').style.display = 'none';
+    $('#uploadOverlay').classList.add('open');
+  }
+  async function uploadPost(event) {
+    event.preventDefault();
+    const note = $('#upNote');
+    const file = $('#upFile').files && $('#upFile').files[0];
+    if (!file) return;
+    const isImage = (file.type || '').startsWith('image/');
+    const btn = $('#upSubmit');
+    btn.disabled = true; btn.textContent = tr('Uploading...', 'Загрузка...');
+    try {
+      const url = await uploadToBucket('posts', file);
+      const { error } = await supa.from('posts').insert({
+        user_id: user.id,
+        media_url: url,
+        media_type: isImage ? 'image' : 'video',
+        caption: $('#upCaption').value.trim() || null,
+        language_level: $('#upLevel').value.trim().toUpperCase() || null,
+        shorts_visibility: 'public'
+      });
+      if (error) throw error;
+      $('#uploadOverlay').classList.remove('open');
+      await loadVideos();
+      renderVideos();
+    } catch (error) {
+      note.style.color = 'var(--red)';
+      note.textContent = error.message || tr('Upload failed.', 'Не удалось загрузить.');
+      note.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = tr('Publish', 'Опубликовать');
+    }
+  }
+  async function openEventDetail(id) {
+    const e = state.events.find((x) => x.id === id);
+    if (!e) return;
+    $('#eventOverlayTitle').textContent = e.title;
+    const body = $('#eventOverlayBody');
+    body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+    $('#eventOverlay').classList.add('open');
+    let organizer = null, myStatus = null, going = 0;
+    try {
+      const [{ data: org }, { count }, { data: mine }] = await Promise.all([
+        e.organizer_id ? supa.from('profiles').select('full_name').eq('id', e.organizer_id).maybeSingle() : Promise.resolve({ data: null }),
+        supa.from('event_rsvps').select('*', { count: 'exact', head: true }).eq('event_id', id).eq('status', 'going'),
+        supa.from('event_rsvps').select('status').eq('event_id', id).eq('user_id', user.id).maybeSingle()
+      ]);
+      organizer = org; going = count || 0; myStatus = mine && mine.status;
+    } catch (error) { /* counts optional */ }
+    const attending = myStatus === 'going';
+    const when = [e.event_date ? formatDate(e.event_date) : '', e.event_time ? e.event_time.slice(0, 5) : ''].filter(Boolean).join(' · ');
+    body.innerHTML =
+      (e.image ? '<img src="' + esc(e.image) + '" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px">' : '') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
+        (when ? '<span class="tag blue">' + esc(when) + '</span>' : '') +
+        '<span class="tag">' + esc(e.is_online ? tr('Online', 'Онлайн') : (e.city || tr('In person', 'Оффлайн'))) + '</span>' +
+        '<span class="tag amber">' + esc(formatMoney(e)) + '</span>' +
+        (going ? '<span class="tag teal">' + going + ' ' + esc(tr('going', 'идут')) + '</span>' : '') +
+      '</div>' +
+      (organizer && organizer.full_name ? '<p style="font-weight:800;color:var(--soft);margin:0 0 8px">' + esc(tr('By ', 'Организатор: ') + organizer.full_name) + '</p>' : '') +
+      '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(e.description || tr('No description yet.', 'Описания пока нет.')) + '</p>' +
+      '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'Отменить участие') : tr('RSVP — I will attend', 'Пойду')) + '</button></div>';
+  }
+  async function toggleRsvp(eventId) {
+    const overlayOpen = $('#eventOverlay').classList.contains('open');
+    try {
+      const { data: mine } = await supa.from('event_rsvps').select('status').eq('event_id', eventId).eq('user_id', user.id).maybeSingle();
+      const going = mine && mine.status === 'going';
+      await supa.from('event_rsvps').upsert({ event_id: eventId, user_id: user.id, status: going ? 'cancelled' : 'going', updated_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' });
+      if (overlayOpen) openEventDetail(eventId);
+    } catch (error) { alert(error.message || tr('Could not update RSVP.', 'Не удалось обновить участие.')); }
   }
   function closeVideo() {
     if (currentHls) { try { currentHls.destroy(); } catch (e) {} currentHls = null; }
@@ -1385,7 +1550,11 @@
       head.querySelector('span').textContent = isBusiness() ? tr('Calendar and tickets', 'Календарь и билеты') : tr('Online and offline', 'Онлайн и офлайн');
     }
     $('#eventList').innerHTML = state.events.map((item) =>
-      row({ title: item.title, meta: item.meta || item.description || tr('Upcoming event', 'Ближайшее событие'), level: item.is_online ? tr('Online', 'Онлайн') : '' }, '<span class="tag amber">' + esc(formatMoney(item)) + '</span>')
+      '<div class="card row"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + '>' +
+        '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'E').charAt(0))) + '</div>' +
+        '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || item.description || tr('Upcoming event', 'Ближайшее событие')) + '</p></div>' +
+        '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + (item.is_online ? '<span class="tag">' + esc(tr('Online', 'Онлайн')) + '</span>' : '') + '<span class="tag amber">' + esc(formatMoney(item)) + '</span></div>' +
+      '</div>'
     ).join('') || '<div class="card empty">' + esc(tr('No upcoming events.', 'Ближайших событий пока нет.')) + '</div>';
   }
   const CHAT_PROFILE_FIELDS = 'id,full_name,avatar_url,city,country';
@@ -1574,7 +1743,9 @@
             '<div class="field"><label for="evFormat">' + esc(tr('Format', 'Формат')) + '</label><select id="evFormat" class="role-select"><option value="offline">' + esc(tr('In person', 'Оффлайн')) + '</option><option value="online">' + esc(tr('Online', 'Онлайн')) + '</option></select></div>' +
             '<div class="field"><label for="evLang">' + esc(tr('Language', 'Язык')) + '</label><input id="evLang" placeholder="' + esc(tr('German', 'Немецкий')) + '"></div>' +
             '<div class="field"><label for="evPrice">' + esc(tr('Price (EUR, blank = free)', 'Цена (EUR, пусто = бесплатно)')) + '</label><input id="evPrice" type="number" min="0" step="1" placeholder="' + esc(tr('Free', 'Бесплатно')) + '"></div>' +
+            '<div class="field"><label for="evRepeat">' + esc(tr('Repeat weekly (times)', 'Повтор еженедельно (раз)')) + '</label><input id="evRepeat" type="number" min="1" max="12" value="1"></div>' +
           '</div>' +
+          '<div class="field"><label for="evImage">' + esc(tr('Cover image (optional)', 'Обложка (необязательно)')) + '</label><input id="evImage" type="file" accept="image/*"></div>' +
           '<button class="btn primary" type="submit" style="margin-top:12px">' + esc(tr('Publish event', 'Опубликовать событие')) + '</button>' +
           '<div id="evNote" style="display:none;margin-top:8px;font-weight:900"></div>' +
         '</form>';
@@ -1599,32 +1770,49 @@
     if (!title) return;
     const priceRaw = $('#evPrice').value.trim();
     const isPaid = priceRaw !== '' && Number(priceRaw) > 0;
-    const payload = {
-      organizer_id: user.id,
-      title,
-      description: $('#evDesc').value.trim() || null,
-      event_date: $('#evDate').value || null,
-      event_time: $('#evTime').value || null,
-      city: $('#evCity').value.trim() || null,
-      format: $('#evFormat').value,
-      language: $('#evLang').value.trim() || null,
-      is_paid: isPaid,
-      price_amount: isPaid ? Number(priceRaw) : null
-    };
+    const baseDate = $('#evDate').value || null;
+    const repeat = Math.max(1, Math.min(12, Number($('#evRepeat') && $('#evRepeat').value) || 1));
     const btn = $('#eventForm button[type="submit"]');
     btn.disabled = true; btn.textContent = tr('Publishing...', 'Публикация...');
     try {
-      const { error } = await supa.from('events').insert(payload);
+      let imageUrl = null;
+      const fileInput = $('#evImage');
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        imageUrl = await uploadToBucket('events', fileInput.files[0]);
+      }
+      const base = {
+        organizer_id: user.id,
+        title,
+        description: $('#evDesc').value.trim() || null,
+        event_time: $('#evTime').value || null,
+        city: $('#evCity').value.trim() || null,
+        format: $('#evFormat').value,
+        language: $('#evLang').value.trim() || null,
+        is_paid: isPaid,
+        price_amount: isPaid ? Number(priceRaw) : null,
+        image_url: imageUrl
+      };
+      let rows;
+      if (repeat > 1 && baseDate) {
+        const groupId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+        rows = [];
+        for (let i = 0; i < repeat; i++) {
+          const d = new Date(baseDate + 'T00:00:00');
+          d.setDate(d.getDate() + i * 7);
+          rows.push({ ...base, event_date: d.toISOString().slice(0, 10), recurrence_group_id: groupId, recurrence_rule: 'weekly', recurrence_occurrence: i + 1 });
+        }
+      } else {
+        rows = [{ ...base, event_date: baseDate }];
+      }
+      const { error } = await supa.from('events').insert(rows);
       if (error) throw error;
       note.style.color = 'var(--teal)';
-      note.textContent = tr('Event published ✓ Learners can see it now.', 'Событие опубликовано ✓ Ученики уже видят его.');
+      note.textContent = repeat > 1
+        ? tr(repeat + ' events published ✓', repeat + ' событий опубликовано ✓')
+        : tr('Event published ✓ Learners can see it now.', 'Событие опубликовано ✓ Ученики уже видят его.');
       note.style.display = 'block';
       $('#eventForm').reset();
-      await safeQuery('events', () => supa.from('events').select('id,title,description,event_date,event_time,city,country,format,is_paid,price_amount,image_url').order('event_date', { ascending: true }).limit(12), (item) => ({
-        id: item.id, title: item.title || 'Event', description: item.description || '', image: item.image_url,
-        meta: [item.event_date ? formatDate(item.event_date) : '', item.city, item.country].filter(Boolean).join(' · '),
-        price: item.is_paid ? item.price_amount : null, currency: 'EUR', is_free: !item.is_paid, is_online: item.format === 'online'
-      }));
+      await safeQuery('events', () => supa.from('events').select(EVENT_COLS).order('event_date', { ascending: true }).limit(12), mapEventRow);
       renderEvents();
     } catch (error) {
       note.style.color = 'var(--red)';
@@ -2343,6 +2531,35 @@
     role = resolveEffectiveRole(autoRole);
     selectedRole = role;
   }
+  async function uploadToBucket(bucket, file) {
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const path = user.id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    const { error } = await supa.storage.from(bucket).upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || undefined });
+    if (error) throw error;
+    return supa.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  }
+  const EVENT_COLS = 'id,title,description,event_date,event_time,city,country,format,language,is_paid,price_amount,max_participants,image_url,organizer_id,recurrence_group_id';
+  function mapEventRow(item) {
+    return {
+      id: item.id,
+      title: item.title || tr('Event', 'Событие'),
+      description: item.description || '',
+      image: item.image_url,
+      meta: [item.event_date ? formatDate(item.event_date) : '', item.city, item.country].filter(Boolean).join(' · '),
+      price: item.is_paid ? item.price_amount : null,
+      currency: 'EUR',
+      is_free: !item.is_paid,
+      is_online: item.format === 'online',
+      event_date: item.event_date,
+      event_time: item.event_time,
+      city: item.city,
+      country: item.country,
+      format: item.format,
+      language: item.language,
+      max_participants: item.max_participants,
+      organizer_id: item.organizer_id
+    };
+  }
   async function loadPublicData() {
     await Promise.all([
       safeQuery('live', () => supa.from('live_sessions').select('id,teacher_name,topic,language,level,status').eq('status', 'live').limit(6), (item) => ({
@@ -2362,17 +2579,7 @@
         schedule: item.schedule || '',
         is_free: item.price == null || Number(item.price) === 0
       })),
-      safeQuery('events', () => supa.from('events').select('id,title,description,event_date,event_time,city,country,format,is_paid,price_amount,image_url').order('event_date', { ascending: true }).limit(12), (item) => ({
-        id: item.id,
-        title: item.title || tr('Event', 'Событие'),
-        description: item.description || '',
-        image: item.image_url,
-        meta: [item.event_date ? formatDate(item.event_date) : '', item.city, item.country].filter(Boolean).join(' · '),
-        price: item.is_paid ? item.price_amount : null,
-        currency: 'EUR',
-        is_free: !item.is_paid,
-        is_online: item.format === 'online'
-      }))
+      safeQuery('events', () => supa.from('events').select(EVENT_COLS).order('event_date', { ascending: true }).limit(12), mapEventRow)
     ]);
   }
   function bindEvents() {
@@ -2434,6 +2641,12 @@
       if (teacherSlots) { openTeacherSlots(teacherSlots.dataset.teacher); return; }
       const book = event.target.closest('[data-book]');
       if (book) { bookSlot(book.dataset.book); return; }
+      const rsvp = event.target.closest('[data-rsvp]');
+      if (rsvp) { event.preventDefault(); toggleRsvp(rsvp.dataset.rsvp); return; }
+      const ev = event.target.closest('[data-event]');
+      if (ev) { openEventDetail(ev.dataset.event); return; }
+      const like = event.target.closest('[data-like]');
+      if (like) { event.preventDefault(); toggleLike(like.dataset.like); return; }
     });
     $('#profileForm').addEventListener('submit', saveProfile);
     const langSel = $('#langSelect');
@@ -2445,6 +2658,12 @@
     $('#videoOverlay').addEventListener('click', (e) => { if (e.target === $('#videoOverlay')) closeVideo(); });
     $('#courseClose').addEventListener('click', () => $('#courseOverlay').classList.remove('open'));
     $('#courseOverlay').addEventListener('click', (e) => { if (e.target === $('#courseOverlay')) $('#courseOverlay').classList.remove('open'); });
+    $('#eventClose').addEventListener('click', () => $('#eventOverlay').classList.remove('open'));
+    $('#eventOverlay').addEventListener('click', (e) => { if (e.target === $('#eventOverlay')) $('#eventOverlay').classList.remove('open'); });
+    $('#uploadVideoBtn').addEventListener('click', openUpload);
+    $('#uploadClose').addEventListener('click', () => $('#uploadOverlay').classList.remove('open'));
+    $('#uploadOverlay').addEventListener('click', (e) => { if (e.target === $('#uploadOverlay')) $('#uploadOverlay').classList.remove('open'); });
+    $('#uploadForm').addEventListener('submit', uploadPost);
     // Notifications
     $('#notifBell').addEventListener('click', openNotifications);
     $('#notifClose').addEventListener('click', () => $('#notifOverlay').classList.remove('open'));
@@ -2469,6 +2688,8 @@
       if (e.key !== 'Escape') return;
       closeVideo();
       $('#courseOverlay').classList.remove('open');
+      $('#eventOverlay').classList.remove('open');
+      $('#uploadOverlay').classList.remove('open');
       $('#newChatOverlay').classList.remove('open');
       $('#notifOverlay').classList.remove('open');
       $('#practiceOverlay').classList.remove('open');

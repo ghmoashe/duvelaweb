@@ -114,7 +114,7 @@ async function main() {
     is_teacher: false,
     is_organizer: false,
     requested_role: null,
-    role_request_status: 'none',
+    role_request_status: null,
     last_web_role: 'learner',
     updated_at: now,
   });

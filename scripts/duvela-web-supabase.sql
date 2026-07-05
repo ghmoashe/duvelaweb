@@ -12,9 +12,23 @@ create extension if not exists "pgcrypto";
 
 alter table public.profiles
   add column if not exists requested_role text,
-  add column if not exists role_request_status text not null default 'none',
+  add column if not exists role_request_status text,
   add column if not exists requested_role_at timestamptz,
   add column if not exists last_web_role text;
+
+alter table public.profiles
+  alter column role_request_status drop default,
+  alter column role_request_status drop not null;
+
+update public.profiles
+set role_request_status = 'pending'
+where requested_role is not null
+  and role_request_status = 'none';
+
+update public.profiles
+set role_request_status = null
+where requested_role is null
+  and role_request_status = 'none';
 
 alter table public.profiles
   drop constraint if exists profiles_requested_role_check;
@@ -23,7 +37,7 @@ alter table public.profiles
   add constraint profiles_requested_role_check
   check (
     requested_role is null
-    or requested_role in ('teacher', 'organizer', 'organization', 'admin')
+    or requested_role in ('learner', 'teacher', 'organizer', 'organization', 'admin')
   );
 
 alter table public.profiles
@@ -31,12 +45,49 @@ alter table public.profiles
 
 alter table public.profiles
   add constraint profiles_role_request_status_check
-  check (role_request_status in ('none', 'pending', 'approved', 'denied', 'rejected'));
+  check (
+    role_request_status is null
+    or role_request_status in ('pending', 'approved', 'denied', 'rejected')
+  );
 
-update public.profiles
-set role_request_status = 'pending'
-where requested_role is not null
-  and role_request_status = 'none';
+create index if not exists profiles_role_request_pending_idx
+  on public.profiles (role_request_status)
+  where role_request_status = 'pending';
+
+create or replace function public.protect_privileged_profile_columns()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  acting_user_is_admin boolean := false;
+begin
+  if auth.uid() is null then
+    return new;
+  end if;
+
+  select coalesce(profile.is_admin, false)
+  into acting_user_is_admin
+  from public.profiles profile
+  where profile.id = auth.uid();
+
+  if acting_user_is_admin then
+    return new;
+  end if;
+
+  new.is_admin := old.is_admin;
+  new.is_verified := old.is_verified;
+  new.is_teacher := old.is_teacher;
+  new.is_organizer := old.is_organizer;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_privileged_profile_columns on public.profiles;
+create trigger trg_protect_privileged_profile_columns
+  before update on public.profiles
+  for each row execute function public.protect_privileged_profile_columns();
 
 -- -----------------------------------------------------------------------------
 -- 2. Public profile page read access
@@ -421,9 +472,14 @@ begin
 end;
 $$;
 
+revoke all on function public.create_direct_chat(uuid) from public, anon;
 grant execute on function public.create_direct_chat(uuid) to authenticated;
 
-create or replace function public.search_chat_profiles(search_text text default '', result_limit integer default 20)
+-- Existing Supabase projects may already have search_chat_profiles(text, integer)
+-- with a different RETURNS TABLE shape. Recreate it explicitly for the web bundle.
+drop function if exists public.search_chat_profiles(text, integer);
+
+create function public.search_chat_profiles(search_text text default '', result_limit integer default 20)
 returns table (
   id uuid,
   full_name text,
@@ -436,7 +492,7 @@ returns table (
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ''
 as $$
   select
     profile.id,
@@ -462,6 +518,7 @@ as $$
   limit greatest(1, least(coalesce(result_limit, 20), 50));
 $$;
 
+revoke all on function public.search_chat_profiles(text, integer) from public, anon;
 grant execute on function public.search_chat_profiles(text, integer) to authenticated;
 
 create or replace function public.touch_chat_conversation()

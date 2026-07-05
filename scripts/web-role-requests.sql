@@ -16,6 +16,22 @@ alter table public.profiles
   add column if not exists requested_role_at   timestamptz, -- когда отправили заявку
   add column if not exists last_web_role        text;       -- последняя выбранная в вебе роль
 
+-- Старые версии web bundle использовали 'none'. Нормализуем:
+-- null = заявки нет, pending = заявка ждёт ревью.
+alter table public.profiles
+  alter column role_request_status drop default,
+  alter column role_request_status drop not null;
+
+update public.profiles
+set role_request_status = 'pending'
+where requested_role is not null
+  and role_request_status = 'none';
+
+update public.profiles
+set role_request_status = null
+where requested_role is null
+  and role_request_status = 'none';
+
 -- ── 2. Ограничения на допустимые значения (null = заявки нет) ─────────────────
 alter table public.profiles
   drop constraint if exists profiles_role_request_status_check;
@@ -47,10 +63,11 @@ create index if not exists profiles_role_request_pending_idx
 -- ----------------------------------------------------------------
 -- Политика обновления профиля не ограничивает колонки, поэтому сейчас
 -- пользователь технически может выставить себе is_admin = true. Этот
--- триггер «замораживает» привилегированные флаги для НЕ-админов, но
--- НЕ трогает is_teacher / is_organizer (они самодекларируются при
--- регистрации) и НЕ трогает score / vela_coin_balance (их синхронизирует
--- клиент как XP). Бэкенд с service_role (auth.uid() = null) не ограничен.
+-- триггер «замораживает» привилегированные флаги для НЕ-админов:
+-- is_admin / is_verified / is_teacher / is_organizer. Иначе пользователь
+-- сможет обойти заявку на роль обычным REST update своего profiles.
+-- НЕ трогает score / vela_coin_balance (их синхронизирует клиент как XP).
+-- Бэкенд с service_role (auth.uid() = null) не ограничен.
 -- ================================================================
 create or replace function public.protect_privileged_profile_columns()
 returns trigger
@@ -58,14 +75,29 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  acting_user_is_admin boolean := false;
 begin
-  -- доверяем бэкенду (service_role: auth.uid() = null) и настоящим админам
-  if auth.uid() is null or public.is_admin(auth.uid()) then
+  -- доверяем бэкенду (service_role: auth.uid() = null)
+  if auth.uid() is null then
     return new;
   end if;
+
+  select coalesce(profile.is_admin, false)
+  into acting_user_is_admin
+  from public.profiles profile
+  where profile.id = auth.uid();
+
+  -- и настоящим админам
+  if acting_user_is_admin then
+    return new;
+  end if;
+
   -- обычный пользователь не может повышать себе привилегии
   new.is_admin    := old.is_admin;
   new.is_verified := old.is_verified;
+  new.is_teacher  := old.is_teacher;
+  new.is_organizer := old.is_organizer;
   return new;
 end;
 $$;
