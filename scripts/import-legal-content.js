@@ -12,6 +12,12 @@ const legalSourcePath = path.join(sourceRoot, 'src', 'LegalPage.tsx');
 const consentSourcePath = path.join(sourceRoot, 'src', 'klaro.config.ts');
 const typescriptPath = path.join(sourceRoot, 'node_modules', 'typescript');
 const outputPath = path.join(root, 'legal', 'legal-content.js');
+const extraLocalesPath = path.join(root, 'legal', 'legal-extra-locales.json');
+const localeOrder = [
+  'en', 'de', 'es', 'fr', 'it', 'pt', 'nl', 'sv', 'no', 'pl', 'cs', 'sq',
+  'tr', 'ru', 'uk', 'kk', 'az', 'uz', 'tg', 'fa', 'ar', 'vi', 'zh', 'ja',
+  'ko',
+];
 
 if (!fs.existsSync(legalSourcePath) || !fs.existsSync(consentSourcePath)) {
   throw new Error(`Legal source project was not found at ${sourceRoot}`);
@@ -70,17 +76,35 @@ const consentExports = compileAndLoad(
   consentSourcePath,
   ['TRANSLATIONS'],
 );
+const extraLocales = JSON.parse(fs.readFileSync(extraLocalesPath, 'utf8')).locales;
+
+const content = replaceBrand({
+  privacy: legalExports.PRIVACY_CONTENT,
+  impressum: legalExports.IMPRESSUM_CONTENT,
+  terms: legalExports.TERMS_CONTENT,
+});
+const consentTranslations = replaceBrand(consentExports.TRANSLATIONS);
+
+for (const [code, locale] of Object.entries(extraLocales)) {
+  for (const kind of ['privacy', 'impressum', 'terms']) {
+    content[kind][code] = locale.content[kind];
+  }
+  consentTranslations[code] = locale.consentTranslation;
+}
 
 const catalog = {
   version: 1,
   source: 'Vela Language Cafe legal package',
-  supportedLocales: Object.keys(legalExports.PRIVACY_CONTENT),
-  content: replaceBrand({
-    privacy: legalExports.PRIVACY_CONTENT,
-    impressum: legalExports.IMPRESSUM_CONTENT,
-    terms: legalExports.TERMS_CONTENT,
-  }),
-  consentTranslations: consentExports.TRANSLATIONS,
+  supportedLocales: localeOrder,
+  content: Object.fromEntries(
+    Object.entries(content).map(([kind, locales]) => [
+      kind,
+      Object.fromEntries(localeOrder.map((code) => [code, locales[code]])),
+    ]),
+  ),
+  consentTranslations: Object.fromEntries(
+    localeOrder.map((code) => [code, consentTranslations[code]]),
+  ),
   services: [
     { id: 'necessary', title: 'Necessary', purpose: 'necessary', required: true },
     { id: 'ga', title: 'Google Analytics', purpose: 'analytics', required: false },

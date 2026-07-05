@@ -4904,4 +4904,37 @@
     }
   }
 };
+
+  const organizationRoles = {
+    de: ["Organisation", "Partner- und Unternehmenszugang"],
+    es: ["Organización", "Acceso para socios y empresas"],
+    fr: ["Organisation", "Accès partenaires et entreprises"],
+    it: ["Organizzazione", "Accesso per partner e aziende"],
+    pt: ["Organização", "Acesso para parceiros e empresas"],
+    nl: ["Organisatie", "Toegang voor partners en bedrijven"],
+    sv: ["Organisation", "Partner- och företagsåtkomst"],
+    no: ["Organisasjon", "Partner- og bedriftstilgang"],
+    pl: ["Organizacja", "Dostęp dla partnerów i firm"],
+    cs: ["Organizace", "Přístup pro partnery a firmy"],
+    sq: ["Organizatë", "Qasje për partnerë dhe kompani"],
+    tr: ["Kuruluş", "İş ortağı ve kurumsal erişim"],
+    uk: ["Організація", "Партнерський і корпоративний доступ"],
+    kk: ["Ұйым", "Серіктестік және корпоративтік қолжетімділік"],
+    az: ["Təşkilat", "Tərəfdaş və korporativ giriş"],
+    uz: ["Tashkilot", "Hamkorlik va korporativ kirish"],
+    tg: ["Ташкилот", "Дастрасии шарикӣ ва корпоративӣ"],
+    fa: ["سازمان", "دسترسی شرکا و سازمان‌ها"],
+    ar: ["مؤسسة", "وصول الشركاء والشركات"],
+    vi: ["Tổ chức", "Quyền truy cập dành cho đối tác và doanh nghiệp"],
+    zh: ["组织", "合作伙伴与企业访问"],
+    ja: ["組織", "パートナーおよび法人向けアクセス"],
+    ko: ["조직", "파트너 및 기업 액세스"]
+  };
+
+  for (const [code, [roleOrganization, roleOrganizationD]] of Object.entries(organizationRoles)) {
+    Object.assign(global.DUVELA_WEB_I18N.extra[code], {
+      roleOrganization,
+      roleOrganizationD
+    });
+  }
 })(window);

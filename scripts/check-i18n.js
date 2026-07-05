@@ -108,8 +108,6 @@ function validateCatalog(catalog, source) {
   for (const code of expectedLocales) {
     const dictionary = Object.assign(
       {},
-      catalog.base.en,
-      catalog.extra.en,
       catalog.base[code] ?? {},
       catalog.extra[code] ?? {},
     );
@@ -191,19 +189,27 @@ function validateLegal(legalHtml, legalCatalog, source) {
     return;
   }
   if (hasDamagedEncoding(source)) fail('The legal catalog contains damaged encoding.');
+  if (!sameValues(legalCatalog.supportedLocales ?? [], expectedLocales)) {
+    fail('Legal catalog locale set does not match the 25 supported locales.');
+  }
 
   const kinds = ['privacy', 'impressum', 'terms'];
   for (const kind of kinds) {
     const localeContent = legalCatalog.content?.[kind];
-    if (!localeContent?.en || !localeContent?.de) {
-      fail(`${kind}: English and German legal content are required.`);
+    if (!localeContent || !sameValues(Object.keys(localeContent), expectedLocales)) {
+      fail(`${kind}: locale set does not match the 25 supported locales.`);
       continue;
     }
-    for (const [code, content] of Object.entries(localeContent)) {
+    for (const code of expectedLocales) {
+      const content = localeContent[code];
       if (!content.title?.trim() || !Array.isArray(content.sections) || !content.sections.length) {
         fail(`${kind}.${code}: legal document is empty.`);
       }
     }
+  }
+
+  if (!sameValues(Object.keys(legalCatalog.consentTranslations ?? {}), expectedLocales)) {
+    fail('Cookie consent locale set does not match the 25 supported locales.');
   }
 
   const services = legalCatalog.services ?? [];
