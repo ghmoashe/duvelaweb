@@ -3,42 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Duvela LIVE — join the lesson</title>
-<meta name="description" content="A teacher is LIVE on Duvela right now. Open the app to join the lesson.">
+<title>Duvela LIVE — watch the lesson</title>
+<meta name="description" content="A teacher is LIVE on Duvela right now. Watch in your browser or open the app to join.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="🔴 LIVE now on Duvela">
-<meta property="og:description" content="A teacher is live right now — tap to join the lesson.">
+<meta property="og:description" content="A teacher is live right now — watch the lesson.">
 <meta property="og:image" content="./logo2.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./logo.webp" type="image/webp">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(160deg, #1E1632, #2C1D53);
     color: #fff; min-height: 100vh;
-    display: flex; align-items: center; justify-content: center; padding: 24px;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   .card {
-    max-width: 400px; width: 100%; text-align: center;
+    max-width: 460px; width: 100%; text-align: center;
     background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 24px; padding: 32px 24px;
+    border-radius: 24px; padding: 22px;
   }
+  .logo { width: 48px; height: 48px; border-radius: 14px; margin-bottom: 14px; }
   .live-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    background: #EF4444; color: #fff; font-weight: 800; font-size: 13px;
-    padding: 6px 12px; border-radius: 999px; margin-bottom: 18px;
+    background: #EF4444; color: #fff; font-weight: 800; font-size: 12px;
+    padding: 5px 11px; border-radius: 999px; margin-bottom: 14px;
   }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
-  h1 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
-  p { color: #C9BEF5; font-size: 15px; line-height: 1.5; margin-bottom: 24px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  h1 { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+  p { color: #C9BEF5; font-size: 14px; line-height: 1.5; }
+  .stage {
+    position: relative; margin: 16px 0; border-radius: 18px; overflow: hidden;
+    background: #0A0716; aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center;
+  }
+  #player { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #player video { object-fit: cover !important; }
+  .stage-overlay {
+    position: relative; z-index: 2; padding: 20px; display: flex;
+    flex-direction: column; align-items: center; gap: 12px;
+  }
+  .spinner { width: 34px; height: 34px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #A855F7; border-radius: 50%; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .stage-msg { font-size: 13px; color: #C9BEF5; font-weight: 700; max-width: 260px; }
+  .watch-btn {
+    background: #EF4444; color: #fff; border: none; font-family: inherit;
+    font-size: 15px; font-weight: 900; padding: 12px 22px; border-radius: 14px; cursor: pointer;
+  }
   .btn {
-    display: block; width: 100%; padding: 15px; border-radius: 16px;
-    font-size: 16px; font-weight: 800; text-decoration: none; margin-bottom: 12px;
+    display: block; width: 100%; padding: 14px; border-radius: 15px;
+    font-size: 15px; font-weight: 800; text-decoration: none; margin-top: 10px; border: none; cursor: pointer; font-family: inherit;
   }
   .btn-primary { background: #7C3AED; color: #fff; }
   .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
-  .logo { width: 56px; height: 56px; border-radius: 16px; margin-bottom: 18px; }
+  .muted-note { font-size: 12px; color: #9A8FC4; margin-top: 12px; }
+  .sound-pill {
+    position: absolute; z-index: 3; bottom: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.25);
+    font-size: 12px; font-weight: 800; padding: 8px 14px; border-radius: 999px; cursor: pointer; display: none;
+  }
 </style>
 </head>
 <body>
@@ -46,38 +72,163 @@
     <img class="logo" src="./logo2.png" alt="Duvela">
     <div class="live-badge"><span class="dot"></span> LIVE</div>
     <h1 id="title">A teacher is live on Duvela</h1>
-    <p id="subtitle">Open the app to join the lesson.</p>
-    <a class="btn btn-primary" id="openApp" href="#">Open Duvela</a>
+    <p id="subtitle">Watch the lesson right here, or open the app to join in.</p>
+
+    <div class="stage">
+      <div id="player"></div>
+      <div class="stage-overlay" id="overlay">
+        <button type="button" class="watch-btn" id="watchBtn">▶  Watch now</button>
+        <div class="stage-msg" id="stageMsg"></div>
+      </div>
+      <div class="sound-pill" id="soundPill">🔇  Tap for sound</div>
+    </div>
+
+    <a class="btn btn-primary" id="openApp" href="#">Open in the Duvela app</a>
     <a class="btn btn-secondary" href="./index.html">Get the Duvela app</a>
+    <div class="muted-note" id="note"></div>
   </div>
+
 <script>
-  (function () {
-    var params = new URLSearchParams(window.location.search);
-    var sessionId = params.get('s') || '';
-    var teacher = params.get('t') || '';
-    var app = params.get('app') === 'business' ? 'duvelabusiness' : 'duvelahub';
-    if (teacher) {
-      document.getElementById('title').textContent = teacher + ' is live on Duvela';
+(function () {
+  // ── config ──────────────────────────────────────────────────────────────────
+  var SUPABASE_URL = 'https://ohtkryanqcnwghcnipsr.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9odGtyeWFucWNud2doY25pcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjA1NDEsImV4cCI6MjA4NjM5NjU0MX0.YjPRrv4grr-17PaWqCwwR464rxMJRYI7BDvjMi9gdnU';
+  // Agora App ID is a public client identifier (it ships inside the mobile app
+  // binary too). Set it here to enable the in-browser player. If left blank, the
+  // page stays a deep-link landing without the player.
+  var AGORA_APP_ID = '7dbbced847dc459ba72f7ee6e2426c11';
+
+  var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get('s') || '';
+  var teacher = params.get('t') || '';
+  var isBusiness = params.get('app') === 'business';
+
+  var el = function (id) { return document.getElementById(id); };
+  if (teacher) el('title').textContent = teacher + ' is live on Duvela';
+
+  // ── deep link (unchanged) ─────────────────────────────────────────────────────
+  var deepLink = (isBusiness
+    ? 'duvelabusiness://live-stream?mode=student'
+    : 'duvelahub://native/live-stream?mode=student')
+    + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : '');
+  var openApp = el('openApp');
+  openApp.href = deepLink;
+  openApp.addEventListener('click', function (e) {
+    e.preventDefault();
+    window.location.href = deepLink;
+  });
+
+  // ── in-browser player ─────────────────────────────────────────────────────────
+  var supa = (window.supabase && SUPABASE_ANON_KEY)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  var canPlay = !!(sessionId && AGORA_APP_ID && supa && window.AgoraRTC);
+  if (!canPlay) {
+    el('overlay').style.display = 'none';
+    el('note').textContent = sessionId
+      ? 'Open the app to watch this lesson.'
+      : '';
+    autoOpenOnMobile();
+    return;
+  }
+
+  // Same uid hash the mobile app and edge function use, so the issued token's
+  // uid matches the authenticated user.
+  function createAgoraUid(value) {
+    var hash = 0;
+    for (var i = 0; i < value.length; i += 1) {
+      hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
     }
-    // Deep link into the app's live tab; falls back to the marketing page.
-    var deepLink = app + '://native/live-stream?mode=student'
-      + (sessionId ? '&session=' + encodeURIComponent(sessionId) : '');
-    var openApp = document.getElementById('openApp');
-    openApp.href = deepLink;
-    function tryOpen() {
-      window.location.href = deepLink;
-      // If the app is not installed, nothing happens; the buttons stay visible.
+    return (hash % 2147483646) + 1;
+  }
+
+  var client = null;
+
+  async function ensureSession() {
+    var got = await supa.auth.getSession();
+    if (got.data.session) return got.data.session;
+    // No session → sign in anonymously so the viewer can watch instantly.
+    // Requires "Anonymous sign-ins" enabled in Supabase Auth settings.
+    var anon = await supa.auth.signInAnonymously();
+    if (anon.error) throw new Error('anon: ' + anon.error.message);
+    return anon.data.session;
+  }
+
+  async function watch() {
+    el('watchBtn').style.display = 'none';
+    setStage('<div class="spinner"></div>', 'Connecting…');
+    try {
+      var session = await ensureSession();
+      var user = session.user;
+      var uid = createAgoraUid(user.id);
+
+      // Fetch the channel + privacy for this session.
+      var sess = await supa.from('live_sessions')
+        .select('channel_name,status,is_private,teacher_name')
+        .eq('id', sessionId).maybeSingle();
+      if (sess.error || !sess.data) throw new Error('This LIVE has ended.');
+      if (sess.data.status !== 'live') throw new Error('This LIVE has ended.');
+      if (sess.data.is_private) throw new Error('This is a private lesson — open the app to request access.');
+      if (sess.data.teacher_name && !teacher) el('title').textContent = sess.data.teacher_name + ' is live on Duvela';
+
+      // Ask the edge function for a subscriber (watch-only) token.
+      var fn = await supa.functions.invoke('agora-token', {
+        body: { channelName: sess.data.channel_name, uid: uid, role: 'subscriber', ttlSeconds: 3600 }
+      });
+      if (fn.error) throw new Error('token: ' + (fn.error.message || 'failed'));
+      var token = fn.data && fn.data.token;
+      if (!token) throw new Error('Could not get a stream token.');
+
+      client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      await client.setClientRole('audience');
+      client.on('user-published', async function (remoteUser, mediaType) {
+        await client.subscribe(remoteUser, mediaType);
+        if (mediaType === 'video') {
+          el('overlay').style.display = 'none';
+          remoteUser.videoTrack.play('player', { fit: 'cover' });
+        }
+        if (mediaType === 'audio') {
+          try { remoteUser.audioTrack.play(); }
+          catch (e) { showSoundPill(remoteUser); }
+        }
+      });
+      client.on('user-unpublished', function () {
+        setStage('', 'The teacher paused the stream.');
+        el('overlay').style.display = 'flex';
+      });
+
+      await client.join(AGORA_APP_ID, sess.data.channel_name, token, uid);
+      setStage('<div class="spinner"></div>', 'Waiting for the teacher’s camera…');
+    } catch (err) {
+      setStage('', (err && err.message) || 'Could not start the stream.');
+      el('overlay').style.display = 'flex';
+      el('watchBtn').style.display = 'inline-block';
+      el('watchBtn').textContent = 'Try again';
+      el('note').textContent = 'You can still open the app to join.';
     }
-    openApp.addEventListener('click', function (e) {
-      e.preventDefault();
-      tryOpen();
-    });
-    // Auto-attempt once on load (mobile browsers only follow this on a gesture
-    // in some cases, so the explicit button remains the reliable path).
+  }
+
+  function setStage(html, msg) {
+    el('stageMsg').innerHTML = html + (msg ? '<div style="margin-top:8px">' + msg + '</div>' : '');
+  }
+  function showSoundPill(remoteUser) {
+    var pill = el('soundPill');
+    pill.style.display = 'block';
+    pill.onclick = function () {
+      try { remoteUser.audioTrack.play(); pill.style.display = 'none'; } catch (e) {}
+    };
+  }
+
+  el('watchBtn').addEventListener('click', watch);
+  window.addEventListener('beforeunload', function () { if (client) client.leave(); });
+
+  function autoOpenOnMobile() {
     if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      setTimeout(tryOpen, 400);
+      setTimeout(function () { window.location.href = deepLink; }, 400);
     }
-  })();
+  }
+})();
 </script>
 </body>
 </html>

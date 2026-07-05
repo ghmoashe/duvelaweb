@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duvela — Profile</title>
+<meta name="description" content="Teacher, organizer and organization profiles on Duvela Academy.">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Duvela — Profile">
+<meta property="og:description" content="Learn with real teachers on Duvela Academy.">
+<meta property="og:image" content="./logo2.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #EDE8F9; --card: #FFFFFF; --ink: #14121C; --ink-soft: #6C6481;
+    --purple: #683FDC; --purple-deep: #5B2DC9; --teal: #17B58B; --red: #EF4444;
+    --lav-line: #EDE6FF; --lav-soft: #F5F0FF;
+    --grad: linear-gradient(90deg, #5B2DC9 0%, #A855F7 55%, #C026D3 100%);
+  }
+  body { font-family: 'Nunito', -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 0 16px; }
+  .topbar img { width: 34px; height: 34px; border-radius: 10px; }
+  .topbar a { color: var(--ink); text-decoration: none; font-weight: 900; font-size: 17px; }
+  .card { background: var(--card); border: 1px solid var(--lav-line); border-radius: 22px; overflow: hidden; margin-bottom: 16px; }
+  .cover { height: 150px; background: var(--grad); background-size: cover; background-position: center; }
+  .head { padding: 0 20px 20px; }
+  .avatar { width: 92px; height: 92px; border-radius: 50%; border: 4px solid #fff; background: var(--lav-soft); margin-top: -46px; object-fit: cover; display: block; font-size: 34px; font-weight: 900; color: var(--purple); text-align: center; line-height: 84px; }
+  h1 { font-size: 24px; font-weight: 900; margin-top: 10px; }
+  .meta { color: var(--ink-soft); font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { font-size: 12px; font-weight: 800; padding: 5px 11px; border-radius: 999px; background: var(--lav-soft); color: var(--purple-deep); border: 1px solid var(--lav-line); }
+  .chip.teal { background: #E7F8F2; color: #0E8A69; border-color: #CDEFE3; }
+  .bio { margin-top: 12px; font-size: 15px; line-height: 1.55; color: #3E3752; white-space: pre-wrap; }
+  .live-banner { display: none; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 20px 0; padding: 12px 14px; border-radius: 16px; background: #FEF2F2; border: 1px solid #FECACA; }
+  .live-banner.show { display: flex; }
+  .live-left { display: flex; align-items: center; gap: 9px; font-weight: 900; color: #B91C1C; font-size: 14px; }
+  .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .live-watch { background: var(--red); color: #fff; font-weight: 900; font-size: 13px; padding: 9px 16px; border-radius: 12px; text-decoration: none; white-space: nowrap; }
+  .ctas { display: flex; gap: 10px; padding: 16px 20px 0; }
+  .btn { flex: 1; text-align: center; padding: 13px; border-radius: 14px; font-size: 15px; font-weight: 900; text-decoration: none; }
+  .btn-primary { background: var(--purple); color: #fff; }
+  .btn-ghost { background: var(--lav-soft); color: var(--purple-deep); border: 1px solid var(--lav-line); }
+  section { margin-top: 22px; display: none; }
+  section.show { display: block; }
+  h2 { font-size: 17px; font-weight: 900; margin-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .tile { background: var(--card); border: 1px solid var(--lav-line); border-radius: 16px; overflow: hidden; }
+  .tile .thumb { height: 110px; background: var(--lav-soft) center/cover no-repeat; }
+  .tile .pad { padding: 12px 14px; }
+  .tile h3 { font-size: 15px; font-weight: 900; }
+  .tile .sub { color: var(--ink-soft); font-size: 12.5px; font-weight: 700; margin-top: 3px; }
+  .tile .price { color: var(--teal); font-size: 13px; font-weight: 900; margin-top: 6px; }
+  .shorts { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .short { aspect-ratio: 9/13; border-radius: 14px; background: var(--lav-soft) center/cover no-repeat; border: 1px solid var(--lav-line); }
+  .team { display: flex; flex-wrap: wrap; gap: 10px; }
+  .member { display: flex; align-items: center; gap: 9px; background: var(--card); border: 1px solid var(--lav-line); border-radius: 999px; padding: 6px 14px 6px 6px; text-decoration: none; color: var(--ink); }
+  .member img, .member .mini { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--lav-soft); color: var(--purple); font-weight: 900; font-size: 14px; text-align: center; line-height: 34px; }
+  .member b { font-size: 13.5px; }
+  .member span { display: block; font-size: 11px; color: var(--ink-soft); font-weight: 700; }
+  .state { text-align: center; padding: 60px 20px; color: var(--ink-soft); font-weight: 800; }
+  .event-row { display: flex; gap: 14px; background: var(--card); border: 1px solid var(--lav-line); border-radius: 16px; padding: 14px; margin-bottom: 10px; align-items: center; }
+  .event-date { min-width: 58px; text-align: center; background: var(--lav-soft); border-radius: 12px; padding: 8px 6px; }
+  .event-date b { display: block; font-size: 19px; color: var(--purple-deep); }
+  .event-date span { font-size: 11px; font-weight: 800; color: var(--ink-soft); text-transform: uppercase; }
+  .event-info h3 { font-size: 15px; font-weight: 900; }
+  .event-info .sub { color: var(--ink-soft); font-size: 12.5px; font-weight: 700; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <img src="./logo2.png" alt="Duvela"><a href="./index.html">Duvela</a>
+  </div>
+
+  <div id="loading" class="state">Loading profile…</div>
+  <div id="notfound" class="state" style="display:none">Profile not found.</div>
+
+  <div id="content" style="display:none">
+    <div class="card">
+      <div class="cover" id="cover"></div>
+      <div class="head">
+        <div id="avatar" class="avatar"></div>
+        <h1 id="name"></h1>
+        <div class="meta" id="meta"></div>
+        <div class="chips" id="chips"></div>
+        <p class="bio" id="bio" style="display:none"></p>
+      </div>
+      <div class="live-banner" id="liveBanner">
+        <div class="live-left"><span class="live-dot"></span><span id="liveText">LIVE now</span></div>
+        <a class="live-watch" id="liveWatch" href="#">Watch</a>
+      </div>
+      <div class="ctas" style="padding-bottom:20px">
+        <a class="btn btn-primary" id="openApp" href="#">Open in Duvela</a>
+        <a class="btn btn-ghost" href="./index.html#apps" id="getApp">Get the app</a>
+      </div>
+    </div>
+
+    <section id="orgSection">
+      <h2 id="orgTitle">Organization</h2>
+      <div class="card" style="padding:18px 20px">
+        <h3 id="orgName" style="font-size:17px;font-weight:900"></h3>
+        <div class="meta" id="orgMeta"></div>
+        <p class="bio" id="orgDesc" style="display:none"></p>
+      </div>
+      <div class="team" id="team"></div>
+    </section>
+
+    <section id="coursesSection">
+      <h2 id="coursesTitle">Courses</h2>
+      <div class="grid" id="courses"></div>
+    </section>
+
+    <section id="eventsSection">
+      <h2 id="eventsTitle">Upcoming events</h2>
+      <div id="events"></div>
+    </section>
+
+    <section id="shortsSection">
+      <h2 id="shortsTitle">Videos</h2>
+      <div class="shorts" id="shorts"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  var SUPABASE_URL = 'https://ohtkryanqcnwghcnipsr.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9odGtyeWFucWNud2doY25pcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjA1NDEsImV4cCI6MjA4NjM5NjU0MX0.YjPRrv4grr-17PaWqCwwR464rxMJRYI7BDvjMi9gdnU';
+  var supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var isRu = (navigator.language || '').toLowerCase().indexOf('ru') === 0;
+  var T = isRu ? {
+    loading: 'Загружаем профиль…', notFound: 'Профиль не найден.',
+    teacher: 'Учитель', organizer: 'Организатор', organization: 'Организация',
+    liveNow: 'Сейчас в эфире', watch: 'Смотреть',
+    openApp: 'Открыть в Duvela', getApp: 'Скачать приложение',
+    courses: 'Курсы', events: 'Ближайшие события', videos: 'Видео',
+    org: 'Организация', free: 'Бесплатно',
+    online: 'Онлайн', inPerson: 'Офлайн'
+  } : {
+    loading: 'Loading profile…', notFound: 'Profile not found.',
+    teacher: 'Teacher', organizer: 'Organizer', organization: 'Organization',
+    liveNow: 'LIVE now', watch: 'Watch',
+    openApp: 'Open in Duvela', getApp: 'Get the app',
+    courses: 'Courses', events: 'Upcoming events', videos: 'Videos',
+    org: 'Organization', free: 'Free',
+    online: 'Online', inPerson: 'In person'
+  };
+
+  document.getElementById('loading').textContent = T.loading;
+  document.getElementById('notfound').textContent = T.notFound;
+  document.getElementById('openApp').textContent = T.openApp;
+  document.getElementById('getApp').textContent = T.getApp;
+  document.getElementById('coursesTitle').textContent = T.courses;
+  document.getElementById('eventsTitle').textContent = T.events;
+  document.getElementById('shortsTitle').textContent = T.videos;
+  document.getElementById('orgTitle').textContent = T.org;
+  document.getElementById('liveWatch').textContent = T.watch;
+
+  var id = new URLSearchParams(window.location.search).get('id') || '';
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    showNotFound();
+    return;
+  }
+
+  document.getElementById('openApp').href = 'duvelahub://native/other-profile?profileId=' + id;
+
+  function showNotFound() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('notfound').style.display = 'block';
+  }
+  function initials(name) {
+    return (name || 'D').trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
+  }
+  function esc(s) {
+    var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML;
+  }
+  function cssUrl(u) { return "url('" + String(u).replace(/'/g, "%27") + "')"; }
+  function show(sectionId) { document.getElementById(sectionId).classList.add('show'); }
+
+  supa.from('profiles')
+    .select('id,full_name,avatar_url,cover_url,city,country,bio,is_teacher,is_organizer,language,language_level')
+    .eq('id', id).maybeSingle()
+    .then(function (res) {
+      var p = res.data;
+      if (!p) { showNotFound(); return; }
+      renderHeader(p);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      loadExtras(p);
+    })
+    .catch(showNotFound);
+
+  function renderHeader(p) {
+    var name = p.full_name || 'Duvela user';
+    document.title = name + ' — Duvela';
+    document.getElementById('name').textContent = name;
+    if (p.cover_url) document.getElementById('cover').style.backgroundImage = cssUrl(p.cover_url);
+    var av = document.getElementById('avatar');
+    if (p.avatar_url) {
+      var img = document.createElement('img');
+      img.src = p.avatar_url; img.alt = name; img.className = 'avatar';
+      av.replaceWith(img);
+    } else {
+      av.textContent = initials(name);
+    }
+    var metaParts = [];
+    if (p.city) metaParts.push(p.city);
+    if (p.country) metaParts.push(p.country);
+    document.getElementById('meta').textContent = metaParts.join(', ');
+    var chips = document.getElementById('chips');
+    if (p.is_teacher) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.teacher + '</span>');
+    if (p.is_organizer) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.organizer + '</span>');
+    if (p.language) chips.insertAdjacentHTML('beforeend', '<span class="chip teal">' + esc(p.language) + (p.language_level ? ' · ' + esc(p.language_level) : '') + '</span>');
+    if (p.bio) {
+      var bio = document.getElementById('bio');
+      bio.textContent = p.bio; bio.style.display = 'block';
+    }
+  }
+
+  function loadExtras(p) {
+    // 🔴 LIVE badge — public sessions only; links into the live landing page.
+    supa.from('live_sessions')
+      .select('id,teacher_name,is_private')
+      .eq('teacher_id', id).eq('status', 'live').limit(1)
+      .then(function (res) {
+        var s = res.data && res.data[0];
+        if (!s || s.is_private) return;
+        document.getElementById('liveText').textContent = T.liveNow;
+        document.getElementById('liveWatch').href =
+          './live.html?s=' + encodeURIComponent(s.id) + '&t=' + encodeURIComponent(p.full_name || '');
+        document.getElementById('liveBanner').classList.add('show');
+      }).catch(function () {});
+
+    // Courses created by this profile (teacher view).
+    supa.from('courses')
+      .select('id,title,description,language,level,cover_image_url,price,currency')
+      .eq('created_by', id).eq('status', 'active').limit(12)
+      .then(function (res) {
+        var rows = res.data || [];
+        if (!rows.length) return;
+        var host = document.getElementById('courses');
+        rows.forEach(function (c) {
+          var sub = [c.language, c.level].filter(Boolean).join(' · ');
+          var price = c.price ? esc(c.price) + ' ' + esc(c.currency || '') : T.free;
+          var thumb = c.cover_image_url ? ' style="background-image:' + cssUrl(c.cover_image_url) + '"' : '';
+          host.insertAdjacentHTML('beforeend',
+            '<div class="tile">' +
+              '<div class="thumb"' + thumb + '></div>' +
+              '<div class="pad"><h3>' + esc(c.title) + '</h3>' +
+              (sub ? '<div class="sub">' + esc(sub) + '</div>' : '') +
+              '<div class="price">' + price + '</div></div>' +
+            '</div>');
+        });
+        show('coursesSection');
+      }).catch(function () {});
+
+    // Organizer events (future ones first).
+    supa.from('events')
+      .select('id,title,city,country,event_date,event_time,format,is_paid,price_amount')
+      .eq('organizer_id', id)
+      .gte('event_date', new Date().toISOString().slice(0, 10))
+      .order('event_date', { ascending: true }).limit(8)
+      .then(function (res) {
+        var rows = res.data || [];
+        if (!rows.length) return;
+        var host = document.getElementById('events');
+        rows.forEach(function (ev) {
+          var d = new Date(ev.event_date + 'T00:00:00');
+          var day = d.getDate();
+          var mon = d.toLocaleString(isRu ? 'ru' : 'en', { month: 'short' });
+          var sub = [ev.city, ev.event_time, ev.format === 'online' ? T.online : ev.format ? T.inPerson : ''].filter(Boolean).join(' · ');
+          var price = ev.is_paid && ev.price_amount ? ' · ' + esc(ev.price_amount) + '€' : ' · ' + T.free;
+          host.insertAdjacentHTML('beforeend',
+            '<div class="event-row">' +
+              '<div class="event-date"><b>' + day + '</b><span>' + esc(mon) + '</span></div>' +
+              '<div class="event-info"><h3>' + esc(ev.title) + '</h3>' +
+              '<div class="sub">' + esc(sub) + price + '</div></div>' +
+            '</div>');
+        });
+        show('eventsSection');
+      }).catch(function () {});
+
+    // Shorts / video posts.
+    supa.from('posts')
+      .select('id,cover_url,mux_thumbnail_url,media_url,media_type')
+      .eq('user_id', id).order('created_at', { ascending: false }).limit(9)
+      .then(function (res) {
+        var rows = (res.data || []).filter(function (r) { return r.cover_url || r.mux_thumbnail_url; });
+        if (!rows.length) return;
+        var host = document.getElementById('shorts');
+        rows.forEach(function (r) {
+          var thumb = r.mux_thumbnail_url || r.cover_url;
+          host.insertAdjacentHTML('beforeend',
+            '<div class="short" style="background-image:' + cssUrl(thumb) + '"></div>');
+        });
+        show('shortsSection');
+      }).catch(function () {});
+
+    // Organization owned by this profile (needs the public-read RLS policy).
+    supa.from('organizations')
+      .select('id,name,description,city,country')
+      .eq('owner_id', id).limit(1)
+      .then(function (res) {
+        var org = res.data && res.data[0];
+        if (!org) return;
+        document.getElementById('orgName').textContent = org.name;
+        document.getElementById('orgMeta').textContent = [org.city, org.country].filter(Boolean).join(', ');
+        if (org.description) {
+          var el = document.getElementById('orgDesc');
+          el.textContent = org.description; el.style.display = 'block';
+        }
+        show('orgSection');
+        loadTeam(org.id);
+      }).catch(function () {});
+  }
+
+  function loadTeam(orgId) {
+    supa.from('organization_memberships')
+      .select('user_id,role').eq('organization_id', orgId).eq('status', 'active').limit(20)
+      .then(function (res) {
+        var rows = res.data || [];
+        if (!rows.length) return;
+        var ids = rows.map(function (r) { return r.user_id; });
+        supa.from('profiles').select('id,full_name,avatar_url').in('id', ids)
+          .then(function (pr) {
+            var profiles = pr.data || [];
+            var byId = {};
+            profiles.forEach(function (x) { byId[x.id] = x; });
+            var host = document.getElementById('team');
+            rows.forEach(function (m) {
+              var prof = byId[m.user_id];
+              if (!prof) return;
+              var avatar = prof.avatar_url
+                ? '<img src="' + esc(prof.avatar_url) + '" alt="">'
+                : '<span class="mini">' + esc(initials(prof.full_name)) + '</span>';
+              host.insertAdjacentHTML('beforeend',
+                '<a class="member" href="./profile.html?id=' + encodeURIComponent(m.user_id) + '">' + avatar +
+                '<span><b>' + esc(prof.full_name || 'Duvela user') + '</b><span>' + esc(m.role || '') + '</span></span></a>');
+            });
+          });
+      }).catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
