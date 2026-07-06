@@ -46,6 +46,8 @@ async function smokePages() {
     '/',
     '/index.html',
     '/app.html?role=learner#home',
+    '/app.html?role=organizer#workspace',
+    '/app.html?role=organization#workspace',
     '/app.html?role=teacher#live',
     '/live.html?app=business&mode=host',
     '/profile.html',

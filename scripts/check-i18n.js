@@ -6,6 +6,7 @@ const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
 const htmlPath = path.join(root, 'index.html');
+const indexPagePath = path.join(root, 'web', 'index-page.js');
 const catalogPath = path.join(root, 'locales', 'web-locales.js');
 const legalHtmlPath = path.join(root, 'legal.html');
 const legalCatalogPath = path.join(root, 'legal', 'legal-content.js');
@@ -135,17 +136,18 @@ function validateCatalog(catalog, source) {
   }
 }
 
-function validateHtml(html, catalog) {
+function validateHtml(html, indexPageSource, catalog) {
   const externalScript = '<script src="./locales/web-locales.js"></script>';
   const externalIndex = html.indexOf(externalScript);
-  const inlineIndex = html.indexOf('<script>', externalIndex + externalScript.length);
+  const pageScript = '<script src="./web/index-page.js"></script>';
+  const pageScriptIndex = html.indexOf(pageScript, externalIndex + externalScript.length);
   if (externalIndex < 0) fail('index.html does not load locales/web-locales.js.');
-  if (inlineIndex < externalIndex) fail('Locale catalog must load before the main inline script.');
+  if (pageScriptIndex < externalIndex) fail('Locale catalog must load before the main page script.');
 
   if (/class="lang-item"\s+data-val=/u.test(html)) {
     fail('Language selector options must be rendered from the locale catalog, not duplicated in HTML.');
   }
-  if (!html.includes('function renderLanguageMenu()') || !html.includes('renderLanguageMenu();')) {
+  if (!indexPageSource.includes('function renderLanguageMenu()') || !indexPageSource.includes('renderLanguageMenu();')) {
     fail('Language selector is not rendered from the locale catalog.');
   }
   for (const id of ['footPrivacy', 'footImpressum', 'footTerms']) {
@@ -153,18 +155,18 @@ function validateHtml(html, catalog) {
       fail(`${id} must link to legal.html instead of "#".`);
     }
   }
-  if (!html.includes('window.DUVELA_CONSENT.init(initialLang);')) {
+  if (!indexPageSource.includes('window.DUVELA_CONSENT.init(initialLang);')) {
     fail('Cookie consent is not initialized from the active web language.');
   }
 
-  const mapStart = html.indexOf('const I18N_MAP = [');
-  const mapEnd = html.indexOf('\n  ];', mapStart);
+  const mapStart = indexPageSource.indexOf('const I18N_MAP = [');
+  const mapEnd = indexPageSource.indexOf('\n  ];', mapStart);
   if (mapStart < 0 || mapEnd < 0) {
-    fail('I18N_MAP was not found in index.html.');
+    fail('I18N_MAP was not found in web/index-page.js.');
     return;
   }
 
-  const mapSource = html.slice(mapStart, mapEnd);
+  const mapSource = indexPageSource.slice(mapStart, mapEnd);
   const usedKeys = new Set(
     [...mapSource.matchAll(/\['[^']+', '([^']+)'(?:, true)?\]/g)].map((match) => match[1]),
   );
@@ -173,13 +175,10 @@ function validateHtml(html, catalog) {
     if (!english[key]) fail(`I18N_MAP references unknown key: ${key}`);
   }
 
-  const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
-  for (const [index, match] of inlineScripts.entries()) {
-    try {
-      new Function(match[1]);
-    } catch (error) {
-      fail(`Inline script ${index + 1} has invalid syntax: ${error.message}`);
-    }
+  try {
+    new Function(indexPageSource);
+  } catch (error) {
+    fail(`web/index-page.js has invalid syntax: ${error.message}`);
   }
 }
 
@@ -245,11 +244,12 @@ function validateLegal(legalHtml, legalCatalog, source) {
 
 try {
   const html = fs.readFileSync(htmlPath, 'utf8');
+  const indexPageSource = fs.readFileSync(indexPagePath, 'utf8');
   const { catalog, source } = loadCatalog();
   const legalHtml = fs.readFileSync(legalHtmlPath, 'utf8');
   const { catalog: legalCatalog, source: legalSource } = loadLegalCatalog();
   validateCatalog(catalog, source);
-  if (catalog) validateHtml(html, catalog);
+  if (catalog) validateHtml(html, indexPageSource, catalog);
   validateLegal(legalHtml, legalCatalog, legalSource);
 } catch (error) {
   fail(error.stack || error.message);
