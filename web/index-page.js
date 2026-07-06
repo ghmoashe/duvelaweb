@@ -1,6 +1,7 @@
 (function () {
   const indexI18nApi = window.DuvelaIndexI18n;
   const indexAuthApi = window.DuvelaIndexAuth;
+  const indexAuthUiApi = window.DuvelaIndexAuthUi;
 
   const io = new IntersectionObserver((entries) => {
     for (const entry of entries) {
@@ -62,6 +63,8 @@
   authFeature = indexAuthApi.create({
     config: window.DuvelaWebConfig,
     rolesApi: window.DuvelaWebRoles,
+    profileWritesApi: window.DuvelaWebProfileWrites,
+    authUiApi: indexAuthUiApi,
     getDict: () => i18nFeature.getDict()
   });
 

@@ -280,6 +280,46 @@
     margin-top: 18px; max-width: 520px;
     color: var(--ink-soft); font-size: 18px; font-weight: 600; line-height: 1.65;
   }
+  .hero-copy { max-width: 560px; }
+  .hero-personas {
+    margin-top: 28px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .hero-persona {
+    position: relative;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 174px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid var(--lav-line);
+    border-radius: 22px;
+    padding: 20px 20px 18px;
+    text-decoration: none; color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    transition: .25s;
+    overflow: hidden;
+  }
+  .hero-persona::after {
+    content: "›";
+    position: absolute; top: 18px; right: 18px;
+    color: var(--purple); font-size: 20px; font-weight: 900;
+  }
+  .hero-persona:hover {
+    transform: translateY(-4px);
+    border-color: #D9C9FF;
+    box-shadow: var(--shadow);
+  }
+  .hero-persona-kicker {
+    color: var(--ink-muted); font-size: 11px; font-weight: 900;
+    letter-spacing: 1.2px; text-transform: uppercase;
+  }
+  .hero-persona-title { font-size: 23px; font-weight: 900; letter-spacing: -.4px; }
+  .hero-persona-learn .hero-persona-title { color: var(--purple); }
+  .hero-persona-biz .hero-persona-title { color: #0d9173; }
+  .hero-persona-text {
+    color: var(--ink-soft);
+    font-size: 14px; font-weight: 700; line-height: 1.55;
+    max-width: 250px;
+  }
   .hero-actions { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 14px; }
   .btn-primary {
     display: inline-flex; align-items: center; gap: 9px;
@@ -297,7 +337,26 @@
   }
   .btn-ghost:hover { border-color: var(--purple); transform: translateY(-3px); box-shadow: var(--shadow-sm); }
 
-  .hero-meta { margin-top: 30px; display: flex; align-items: center; gap: 14px; }
+  .hero-clarity {
+    margin-top: 14px;
+    color: var(--ink-muted); font-size: 13.5px; font-weight: 700; line-height: 1.5;
+    max-width: 500px;
+  }
+  .hero-trust {
+    margin-top: 18px;
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .hero-trust-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.84);
+    border: 1px solid var(--lav-line);
+    border-radius: 999px;
+    padding: 10px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .hero-trust-item b { color: var(--purple); font-size: 15px; font-weight: 900; }
+  .hero-trust-item span { color: var(--ink-soft); font-size: 12.5px; font-weight: 800; }
+  .hero-meta { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
   .avatars { display: flex; }
   .avatars span {
     width: 38px; height: 38px; border-radius: 99px; border: 3px solid var(--bg);
@@ -308,6 +367,57 @@
   .hero-meta p { color: var(--ink-soft); font-size: 14px; font-weight: 700; }
   .hero-meta b { color: var(--ink); }
   .stars { color: var(--gold); letter-spacing: 2px; }
+  .hero-preview-wrap { position: relative; z-index: 1; margin-top: 32px; }
+  .hero-preview {
+    background: rgba(20,15,38,.96);
+    border: 1px solid rgba(168,85,247,.18);
+    border-radius: 24px;
+    padding: 22px 24px;
+    box-shadow: 0 24px 60px rgba(20,15,38,.26);
+    color: #fff;
+  }
+  .hero-preview-kicker {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(239,68,68,.16);
+    color: #fff; border: 1px solid rgba(239,68,68,.25);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 11px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase;
+  }
+  .hero-preview-kicker::before {
+    content: "";
+    width: 8px; height: 8px; border-radius: 99px;
+    background: #EF4444;
+    box-shadow: 0 0 0 0 rgba(239,68,68,.5);
+    animation: pulse 1.8s infinite;
+  }
+  .hero-preview-row {
+    margin-top: 16px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .hero-preview-avatar {
+    width: 54px; height: 54px; border-radius: 99px; flex-shrink: 0;
+    background: linear-gradient(135deg, #7C3AED, #DC3FB5);
+    display: grid; place-items: center;
+    color: #fff; font-size: 18px; font-weight: 900;
+    box-shadow: 0 10px 24px rgba(124,58,237,.24);
+  }
+  .hero-preview-body { min-width: 0; }
+  .hero-preview-name { color: #fff; font-size: 16px; font-weight: 900; }
+  .hero-preview-sub { color: rgba(255,255,255,.78); font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .hero-preview-topic { color: #D8C4FF; font-size: 13px; font-weight: 800; margin-top: 6px; }
+  .hero-preview-link {
+    margin-left: auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 118px;
+    background: var(--grad); color: #fff; text-decoration: none;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-size: 14px; font-weight: 900;
+    box-shadow: 0 10px 24px rgba(168,85,247,.32);
+    transition: .25s;
+  }
+  .hero-preview-link:hover { transform: translateY(-2px); }
 
   /* ── Phone mockup ───────────────────────────────── */
   .phone-area { position: relative; display: flex; justify-content: center; }
@@ -661,11 +771,13 @@
   html[dir="rtl"] .login-input { text-align: right; }
   html[dir="rtl"] .p-live > div:last-child { margin-left: 0 !important; margin-right: auto; }
   html[dir="rtl"] .hero-meta,
+  html[dir="rtl"] .hero-trust,
   html[dir="rtl"] .p-title-row,
   html[dir="rtl"] .lp-header,
   html[dir="rtl"] .lv-row,
   html[dir="rtl"] .ib-row,
   html[dir="rtl"] .pf-stats { direction: rtl; }
+  html[dir="rtl"] .hero-preview-link { margin-left: 0; margin-right: auto; }
 
   /* ── Responsive ─────────────────────────────────── */
   @media (max-width: 1240px) {
@@ -681,9 +793,16 @@
   @media (max-width: 980px) {
     .hero-grid { grid-template-columns: 1fr; gap: 60px; }
     .hero { padding-top: 56px; }
-    .hero-sub, .hero-actions, .hero-meta { margin-left: auto; margin-right: auto; }
+    .hero-sub, .hero-personas, .hero-actions, .hero-clarity, .hero-trust, .hero-meta {
+      margin-left: auto; margin-right: auto;
+    }
     .hero-grid > div:first-child { text-align: center; }
-    .hero-actions, .hero-meta { justify-content: center; }
+    .hero-actions, .hero-trust, .hero-meta { justify-content: center; }
+    .hero-personas { max-width: 680px; }
+    .hero-persona { min-height: 0; text-align: left; }
+    .hero-preview-row { flex-wrap: wrap; justify-content: center; text-align: center; }
+    .hero-preview-link { margin-left: 0; }
+    .hero-preview-body { text-align: center; }
     .feat-grid, .steps { grid-template-columns: 1fr 1fr; }
     .step-arrow { display: none; }
     .apps-grid { grid-template-columns: 1fr; }
@@ -707,6 +826,11 @@
     .stats-card { grid-template-columns: 1fr 1fr; row-gap: 22px; }
     .stat:nth-child(3) { border-left: none; }
     .float-chip { display: none; }
+    .hero-personas { grid-template-columns: 1fr; }
+    .hero-persona { min-height: 0; }
+    .hero-preview { padding: 18px; }
+    .hero-preview-row { align-items: stretch; }
+    .hero-preview-link { width: 100%; }
     .phone { width: 290px; height: 590px; }
     .foot-inner { grid-template-columns: 1fr; }
   }
@@ -729,6 +853,8 @@
   .h-d3 { animation-delay: .32s; }
   .h-d4 { animation-delay: .46s; }
   .h-d5 { animation-delay: .60s; }
+  .h-d6 { animation-delay: .74s; }
+  .h-d7 { animation-delay: .88s; }
 
   /* ── Teachers ──────────────────────────────────── */
   .tch-grid-big {
@@ -904,15 +1030,6 @@
      Свой mp4-файл:
        <video src="duvela.mp4" controls poster="poster.jpg"></video>
 ──────────────────────────────────────────────────────── -->
-<section class="video-sec" id="video">
-  <div class="wrap">
-    <div class="video-frame">
-      <video src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" controls playsinline
-             style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;"></video>
-    </div>
-  </div>
-</section>
-
 <!-- ── HERO ───────────────────────────────────────── -->
 <header class="hero">
   <div class="hero-blob blob-a"></div>
@@ -920,18 +1037,36 @@
   <div class="hero-blob blob-c"></div>
 
   <div class="wrap hero-grid">
-    <div>
+    <div class="hero-copy">
       <span class="hero-badge h-anim h-d1"><span class="dot"></span> LIVE lessons happening now</span>
       <h1 class="h-anim h-d2">Languages, arts &amp; more — with <span class="grad-text">real teachers</span></h1>
       <p class="hero-sub h-anim h-d3">
         Watch short videos at your level, join live lessons, explore school subjects,
         creative arts and language skills — all in one academy.
       </p>
-      <div class="hero-actions h-anim h-d4">
+      <div class="hero-personas h-anim h-d4">
+        <a class="hero-persona hero-persona-learn" href="?login=1" data-auth-open="signin">
+          <span class="hero-persona-kicker">For learners</span>
+          <strong class="hero-persona-title">Duvela Hub</strong>
+          <p class="hero-persona-text">Your personal learning feed вЂ” videos at your level, live lessons, practice, streaks and events.</p>
+        </a>
+        <a class="hero-persona hero-persona-biz" href="?login=1" data-auth-open="signup" data-signup-role="teacher">
+          <span class="hero-persona-kicker">For teachers &amp; organizers</span>
+          <strong class="hero-persona-title">Duvela Business</strong>
+          <p class="hero-persona-text">Publish videos, schedule live streams, create courses and events вЂ” and watch your audience grow.</p>
+        </a>
+      </div>
+      <div class="hero-actions h-anim h-d5">
         <a class="btn-primary" href="#apps">📱 Download Free</a>
         <a class="btn-ghost" href="#how">▶ How it works</a>
       </div>
-      <div class="hero-meta h-anim h-d5">
+      <p class="hero-clarity h-anim h-d6">Use Sign In for browser access. App Store and Google Play links are below.</p>
+      <div class="hero-trust h-anim h-d6">
+        <div class="hero-trust-item"><b>850+</b><span>Verified Teachers</span></div>
+        <div class="hero-trust-item"><b>50+</b><span>Subjects</span></div>
+        <div class="hero-trust-item"><b>40k+</b><span>Level-Tagged Videos</span></div>
+      </div>
+      <div class="hero-meta h-anim h-d7">
         <div class="avatars">
           <span style="background:#7C3AED">A</span>
           <span style="background:#DC3FB5">M</span>
@@ -1150,18 +1285,32 @@
     </div>
   </div>
 
-  <!-- stats -->
-  <div class="wrap stats reveal">
-    <div class="stats-card">
-      <div class="stat"><b>12k+</b><span>Active Learners</span></div>
-      <div class="stat"><b>850+</b><span>Verified Teachers</span></div>
-      <div class="stat"><b>50+</b><span>Subjects</span></div>
-      <div class="stat"><b>40k+</b><span>Level-Tagged Videos</span></div>
+  <div class="wrap hero-preview-wrap h-anim h-d7">
+    <div class="hero-preview">
+      <span class="hero-preview-kicker">LIVE NOW</span>
+      <div class="hero-preview-row">
+        <div class="hero-preview-avatar">M</div>
+        <div class="hero-preview-body">
+          <div class="hero-preview-name">Maria Hoffmann</div>
+          <div class="hero-preview-sub">Join a live lesson with a teacher</div>
+          <div class="hero-preview-topic">German small talk В· B1</div>
+        </div>
+        <a class="hero-preview-link" href="?login=1" data-auth-open="signin">Join</a>
+      </div>
     </div>
   </div>
 </header>
 
 <!-- ── FEATURES ───────────────────────────────────── -->
+<section class="video-sec" id="video">
+  <div class="wrap">
+    <div class="video-frame">
+      <video src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" controls playsinline
+             style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;"></video>
+    </div>
+  </div>
+</section>
+
 <section id="features">
   <div class="wrap">
     <div class="sec-head reveal">
@@ -1585,7 +1734,9 @@
 <script src="./web/duvela-web-config.js"></script>
 <script src="./web/duvela-web-roles.js"></script>
 <script src="./web/duvela-web-ui.js"></script>
+<script src="./web/duvela-web-profile-writes.js"></script>
 <script src="./web/index-i18n.js"></script>
+<script src="./web/index-auth-ui.js"></script>
 <script src="./web/index-auth.js"></script>
 <script src="./web/index-page.js"></script>
 </body>

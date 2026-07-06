@@ -10,6 +10,7 @@
       alert,
       supa,
       rolesApi,
+      profileWritesApi,
       businessRoles,
       roleLabels,
       hasPinnedRole,
@@ -67,26 +68,13 @@
     }
 
     async function submitRoleRequest(targetRole) {
-      const now = new Date().toISOString();
-
       try {
-        const { error } = await supa.from('profiles').update({
-          requested_role: targetRole,
-          role_request_status: 'pending',
-          requested_role_at: now,
-          last_web_role: targetRole,
-          updated_at: now
-        }).eq('id', session.user.id);
-
-        if (error) throw error;
-
-        session.profile = {
-          ...(session.profile || {}),
-          requested_role: targetRole,
-          role_request_status: 'pending',
-          requested_role_at: now,
-          last_web_role: targetRole
-        };
+        const result = await profileWritesApi.persistBusinessRoleSelection(supa, rolesApi, {
+          userId: session.user.id,
+          targetRole,
+          profile: session.profile,
+        });
+        if (result.profile) session.profile = result.profile;
         session.requestedBusinessRole = targetRole;
         return true;
       } catch (error) {

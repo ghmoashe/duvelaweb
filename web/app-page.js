@@ -8,6 +8,7 @@
   const roleAccessApi = window.DuvelaAppRoleAccess;
   const staticUiApi = window.DuvelaAppStaticUi;
   const publicDataApi = window.DuvelaAppPublicData;
+  const profileWritesApi = window.DuvelaWebProfileWrites;
   const ROLE_KEY = config.storageKeys.role;
   const LANG_KEY = config.storageKeys.lang;
   const supa = config.createSupabaseClient();
@@ -54,6 +55,7 @@
     alert,
     supa,
     rolesApi,
+    profileWritesApi,
     businessRoles,
     roleLabels,
     hasPinnedRole: hasPinnedWebRole,

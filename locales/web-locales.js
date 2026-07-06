@@ -4968,6 +4968,20 @@
     signupHere: "Create an account"
   };
 
+  Object.assign(global.DUVELA_WEB_I18N.extra.en, {
+    heroClarity: "Use Sign In for browser access. App Store and Google Play links are below."
+  });
+  Object.assign(global.DUVELA_WEB_I18N.extra.ru, {
+    heroClarity: "Для входа через браузер используйте «Войти». Ссылки на App Store и Google Play находятся ниже."
+  });
+  Object.assign(global.DUVELA_WEB_I18N.extra.uk, {
+    heroClarity: "Для входу через браузер використовуйте «Увійти». Посилання на App Store та Google Play знаходяться нижче."
+  });
+
+  const marketingFallbacks = {
+    heroClarity: "Use Sign In for browser access. App Store and Google Play links are below."
+  };
+
   for (const code of Object.keys(global.DUVELA_WEB_I18N.extra)) {
     const merged = Object.assign(
       {},
@@ -4976,6 +4990,9 @@
     );
     const patch = {};
     for (const [key, value] of Object.entries(authFallbacks)) {
+      if (!merged[key]) patch[key] = value;
+    }
+    for (const [key, value] of Object.entries(marketingFallbacks)) {
       if (!merged[key]) patch[key] = value;
     }
     Object.assign(global.DUVELA_WEB_I18N.extra[code], patch);
