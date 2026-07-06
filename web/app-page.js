@@ -63,7 +63,6 @@
   function formatDate(value) {
     return new Date(value).toLocaleDateString(isRu ? 'ru-RU' : 'en-US');
   }
-  const publicDataFeature = publicDataApi.create({ supa, state, tr, formatDate });
   function isApprovedForRole(targetRole, currentProfile) {
     return roleAccessFeature.isApprovedForRole(targetRole, currentProfile);
   }
@@ -174,6 +173,7 @@
   });
   const state = appStore.state;
   const runtime = appStore.runtime;
+  const publicDataFeature = publicDataApi.create({ supa, state, tr, formatDate });
 
   function esc(value) {
     const div = document.createElement('div');

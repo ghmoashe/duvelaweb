@@ -7,6 +7,7 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const htmlPath = path.join(root, 'index.html');
 const indexPagePath = path.join(root, 'web', 'index-page.js');
+const indexI18nPath = path.join(root, 'web', 'index-i18n.js');
 const catalogPath = path.join(root, 'locales', 'web-locales.js');
 const legalHtmlPath = path.join(root, 'legal.html');
 const legalCatalogPath = path.join(root, 'legal', 'legal-content.js');
@@ -136,18 +137,21 @@ function validateCatalog(catalog, source) {
   }
 }
 
-function validateHtml(html, indexPageSource, catalog) {
+function validateHtml(html, indexPageSource, indexI18nSource, catalog) {
   const externalScript = '<script src="./locales/web-locales.js"></script>';
   const externalIndex = html.indexOf(externalScript);
+  const i18nScript = '<script src="./web/index-i18n.js"></script>';
+  const i18nScriptIndex = html.indexOf(i18nScript, externalIndex + externalScript.length);
   const pageScript = '<script src="./web/index-page.js"></script>';
-  const pageScriptIndex = html.indexOf(pageScript, externalIndex + externalScript.length);
+  const pageScriptIndex = html.indexOf(pageScript, i18nScriptIndex + i18nScript.length);
   if (externalIndex < 0) fail('index.html does not load locales/web-locales.js.');
+  if (i18nScriptIndex < externalIndex) fail('index.html must load web/index-i18n.js after the locale catalog.');
   if (pageScriptIndex < externalIndex) fail('Locale catalog must load before the main page script.');
 
   if (/class="lang-item"\s+data-val=/u.test(html)) {
     fail('Language selector options must be rendered from the locale catalog, not duplicated in HTML.');
   }
-  if (!indexPageSource.includes('function renderLanguageMenu()') || !indexPageSource.includes('renderLanguageMenu();')) {
+  if (!indexI18nSource.includes('function renderLanguageMenu()') || !indexI18nSource.includes('renderLanguageMenu();')) {
     fail('Language selector is not rendered from the locale catalog.');
   }
   for (const id of ['footPrivacy', 'footImpressum', 'footTerms']) {
@@ -155,18 +159,18 @@ function validateHtml(html, indexPageSource, catalog) {
       fail(`${id} must link to legal.html instead of "#".`);
     }
   }
-  if (!indexPageSource.includes('window.DUVELA_CONSENT.init(initialLang);')) {
+  if (!indexI18nSource.includes('window.DUVELA_CONSENT.init(initialLang);')) {
     fail('Cookie consent is not initialized from the active web language.');
   }
 
-  const mapStart = indexPageSource.indexOf('const I18N_MAP = [');
-  const mapEnd = indexPageSource.indexOf('\n  ];', mapStart);
+  const mapStart = indexI18nSource.indexOf('const I18N_MAP = [');
+  const mapEnd = indexI18nSource.indexOf('\n    ];', mapStart);
   if (mapStart < 0 || mapEnd < 0) {
-    fail('I18N_MAP was not found in web/index-page.js.');
+    fail('I18N_MAP was not found in web/index-i18n.js.');
     return;
   }
 
-  const mapSource = indexPageSource.slice(mapStart, mapEnd);
+  const mapSource = indexI18nSource.slice(mapStart, mapEnd);
   const usedKeys = new Set(
     [...mapSource.matchAll(/\['[^']+', '([^']+)'(?:, true)?\]/g)].map((match) => match[1]),
   );
@@ -179,6 +183,11 @@ function validateHtml(html, indexPageSource, catalog) {
     new Function(indexPageSource);
   } catch (error) {
     fail(`web/index-page.js has invalid syntax: ${error.message}`);
+  }
+  try {
+    new Function(indexI18nSource);
+  } catch (error) {
+    fail(`web/index-i18n.js has invalid syntax: ${error.message}`);
   }
 }
 
@@ -245,11 +254,12 @@ function validateLegal(legalHtml, legalCatalog, source) {
 try {
   const html = fs.readFileSync(htmlPath, 'utf8');
   const indexPageSource = fs.readFileSync(indexPagePath, 'utf8');
+  const indexI18nSource = fs.readFileSync(indexI18nPath, 'utf8');
   const { catalog, source } = loadCatalog();
   const legalHtml = fs.readFileSync(legalHtmlPath, 'utf8');
   const { catalog: legalCatalog, source: legalSource } = loadLegalCatalog();
   validateCatalog(catalog, source);
-  if (catalog) validateHtml(html, indexPageSource, catalog);
+  if (catalog) validateHtml(html, indexPageSource, indexI18nSource, catalog);
   validateLegal(legalHtml, legalCatalog, legalSource);
 } catch (error) {
   fail(error.stack || error.message);
