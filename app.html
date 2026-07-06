@@ -8,6 +8,7 @@
 <link rel="icon" href="./logo.webp" type="image/webp">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -654,6 +655,9 @@
         <p id="viewSub">Your learning dashboard is ready.</p>
       </div>
       <div class="mode-chip" id="modeChip">Hub Web</div>
+      <button class="bell-btn" id="searchBtn" type="button" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <button class="bell-btn" id="notifBell" type="button" aria-label="Notifications">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
         <span class="bell-dot" id="notifDot" style="display:none"></span>
@@ -857,6 +861,30 @@
       <button class="btn primary" id="pbSubmit" type="button" style="width:100%;margin-top:10px">Publish practice</button>
       <div id="pbNote" style="display:none;margin-top:8px;font-weight:900"></div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="searchOverlay">
+  <div class="overlay-card" style="width:min(560px,100%)">
+    <div class="overlay-head"><h2 id="searchTitle">Search</h2><button type="button" id="searchClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body">
+      <input class="search" id="globalSearch" placeholder="Search courses, events, people, practices..." autocomplete="off">
+      <div id="searchResults"><div class="empty">Type to search across Duvela.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="classOverlay">
+  <div class="overlay-card" style="width:min(600px,100%)">
+    <div class="overlay-head"><h2 id="classOverlayTitle">Class</h2><button type="button" id="classClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="classOverlayBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="challengeOverlay">
+  <div class="overlay-card" style="width:min(560px,100%)">
+    <div class="overlay-head"><h2 id="challengeOverlayTitle">Challenge</h2><button type="button" id="challengeClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="challengeOverlayBody"></div>
   </div>
 </div>
 
@@ -1107,7 +1135,14 @@
     orgCourses: [],
     orgClasses: [],
     myPractices: [],
-    walletTx: []
+    walletTx: [],
+    portfolio: [],
+    verification: null,
+    orgMembers: [],
+    leaderLang: '',
+    myRank: null,
+    challenges: [],
+    myChallengeIds: new Set()
   };
 
   function esc(value) {
@@ -1194,6 +1229,9 @@
     if ($('#pbLevelLabel')) $('#pbLevelLabel').textContent = tr('Level', 'Уровень');
     if ($('#pbAddLabel')) $('#pbAddLabel').textContent = tr('Add question', 'Добавить вопрос');
     if ($('#pbSubmit')) $('#pbSubmit').textContent = tr('Publish practice', 'Опубликовать практику');
+    if ($('#searchTitle')) $('#searchTitle').textContent = tr('Search', 'Поиск');
+    if ($('#globalSearch')) $('#globalSearch').placeholder = tr('Search courses, events, people, practices...', 'Поиск курсов, событий, людей, практик...');
+    if ($('#searchBtn')) $('#searchBtn').setAttribute('aria-label', tr('Search', 'Поиск'));
   }
   function setText(selector, value) {
     const node = $(selector);
@@ -1933,7 +1971,7 @@
       renderBusinessWorkspace();
       renderWorkspaceSide(true);
     } else {
-      $('#workspaceActions').innerHTML = practicesHtml();
+      $('#workspaceActions').innerHTML = practicesHtml() + challengesHtml();
       renderWorkspaceSide(false);
     }
   }
@@ -2136,14 +2174,74 @@
       btn.disabled = false;
     }
   }
+  function portfolioHtml() {
+    return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Portfolio', 'Портфолио')) + '</h2></div>' +
+      '<form id="pfAddForm" style="margin-bottom:10px">' +
+        '<div class="field"><label>' + esc(tr('Title', 'Название')) + '</label><input id="pfItemTitle" maxlength="120" required></div>' +
+        '<div class="field"><label>' + esc(tr('Description', 'Описание')) + '</label><textarea id="pfItemDesc" maxlength="400"></textarea></div>' +
+        '<div class="field"><label>' + esc(tr('Image (optional)', 'Изображение (необязательно)')) + '</label><input id="pfItemImg" type="file" accept="image/*"></div>' +
+        '<button class="btn primary" type="submit" style="margin-top:6px">' + esc(tr('Add to portfolio', 'Добавить в портфолио')) + '</button>' +
+      '</form>' +
+      (state.portfolio.length ? state.portfolio.map((p) =>
+        '<div class="card row" style="grid-template-columns:52px minmax(0,1fr) auto"><div class="thumb">' + (p.image_url ? '<img src="' + esc(p.image_url) + '" alt="">' : esc((p.title || 'P').charAt(0))) + '</div><div><h3>' + esc(p.title) + '</h3><p>' + esc(p.description || '') + '</p></div><button class="btn danger" data-del-portfolio="' + esc(p.id) + '" style="min-height:30px">' + esc(tr('Delete', 'Удалить')) + '</button></div>'
+      ).join('') : '<div class="empty">' + esc(tr('No portfolio items yet.', 'В портфолио пока пусто.')) + '</div>');
+  }
+  function verificationHtml() {
+    const v = state.verification;
+    const map = { pending: tr('Pending review', 'На проверке'), approved: tr('Verified ✓', 'Подтверждено ✓'), rejected: tr('Rejected', 'Отклонено'), denied: tr('Rejected', 'Отклонено') };
+    if (v) {
+      return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Verification', 'Верификация')) + '</h2><span class="tag ' + (v.status === 'approved' ? 'teal' : '') + '">' + esc(map[v.status] || v.status) + '</span></div>' +
+        (v.note ? '<p style="color:var(--soft);font-weight:700">' + esc(v.note) + '</p>' : '');
+    }
+    return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Verification', 'Верификация')) + '</h2></div>' +
+      '<form id="verForm"><div class="field"><label>' + esc(tr('Why should we verify you?', 'Почему стоит вас верифицировать?')) + '</label><textarea id="verNote" maxlength="400"></textarea></div><button class="btn primary" type="submit" style="margin-top:6px">' + esc(tr('Request verification', 'Запросить верификацию')) + '</button></form>';
+  }
+  async function addPortfolioItem(event) {
+    event.preventDefault();
+    const title = $('#pfItemTitle').value.trim();
+    if (!title) return;
+    const btn = $('#pfAddForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      let imageUrl = null;
+      const fi = $('#pfItemImg');
+      if (fi && fi.files && fi.files[0]) imageUrl = await uploadToBucket('posts', fi.files[0]);
+      const { error } = await supa.from('organizer_portfolio').insert({ user_id: user.id, title, description: $('#pfItemDesc').value.trim() || null, image_url: imageUrl });
+      if (error) throw error;
+      await loadBusinessWorkspace();
+      renderProgressCard();
+    } catch (err) { alert(err.message || tr('Could not add the item.', 'Не удалось добавить.')); btn.disabled = false; }
+  }
+  async function deletePortfolioItem(id) {
+    try {
+      await supa.from('organizer_portfolio').delete().eq('id', id);
+      await loadBusinessWorkspace();
+      renderProgressCard();
+    } catch (error) { alert(error.message || tr('Could not delete.', 'Не удалось удалить.')); }
+  }
+  async function submitVerification(event) {
+    event.preventDefault();
+    const btn = $('#verForm button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const { error } = await supa.from('verification_requests').insert({ user_id: user.id, organization_id: state.myOrg ? state.myOrg.id : null, note: $('#verNote').value.trim() || null });
+      if (error) throw error;
+      await loadBusinessWorkspace();
+      renderProgressCard();
+    } catch (err) { alert(err.message || tr('Could not submit the request.', 'Не удалось отправить запрос.')); btn.disabled = false; }
+  }
   async function renderProgressCard() {
     const card = $('#progressCard');
     if (!card) return;
     if (isBusiness()) {
       card.innerHTML =
         '<div class="section-head"><h2>' + esc(tr('Account', 'Аккаунт')) + '</h2></div>' +
-        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('You are signed in as ', 'Вы вошли как ') + (roleLabels[role] || role) + '. ' + tr('Use the Workspace tab to publish live, events and manage courses.', 'Используйте вкладку «Рабочая зона» для эфиров, событий и курсов.')) + '</p>' +
-        walletHtml();
+        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('You are signed in as ', 'Вы вошли как ') + (roleLabels[role] || role) + '.') + '</p>' +
+        walletHtml() + portfolioHtml() + verificationHtml();
+      const pfForm = $('#pfAddForm');
+      if (pfForm) pfForm.addEventListener('submit', addPortfolioItem);
+      const verForm = $('#verForm');
+      if (verForm) verForm.addEventListener('submit', submitVerification);
       return;
     }
     const bars = [
@@ -2159,27 +2257,42 @@
         return '<div class="prog-row"><div class="prog-label"><span>' + esc(label) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
       }).join('') +
       walletHtml() +
-      '<div id="rankBox" style="margin-top:6px"></div>';
+      leaderboardShellHtml() +
+      '<div id="rankBox" style="margin-top:6px"><div class="empty">' + esc(tr('Loading…', 'Загрузка…')) + '</div></div>';
+    const filterSel = $('#rankFilter');
+    if (filterSel) filterSel.addEventListener('change', () => { state.leaderLang = filterSel.value; renderLeaderboard(); });
+    renderLeaderboard();
+  }
+  function leaderboardShellHtml() {
+    const langs = Array.isArray(profile?.learning_languages) ? profile.learning_languages.filter(Boolean) : [];
+    const opts = ['<option value="">' + esc(tr('All languages', 'Все языки')) + '</option>']
+      .concat(langs.map((l) => '<option value="' + esc(l) + '"' + (state.leaderLang === l ? ' selected' : '') + '>' + esc(l) + '</option>')).join('');
+    return '<div class="section-head" style="margin-top:16px"><h3 style="font-size:15px;margin:0">' + esc(tr('Leaderboard', 'Таблица лидеров')) + '</h3>' +
+      (langs.length ? '<select id="rankFilter" class="role-select" style="width:auto;padding:6px 10px;font-weight:800">' + opts + '</select>' : '') + '</div>';
+  }
+  async function renderLeaderboard() {
+    const box = $('#rankBox');
+    if (!box) return;
+    const lang = state.leaderLang;
     try {
-      const { data } = await supa.from('profiles')
-        .select('id,full_name,avatar_url,score')
-        .order('score', { ascending: false })
-        .limit(10);
+      let q = supa.from('profiles').select('id,full_name,avatar_url,score').order('score', { ascending: false }).limit(20);
+      if (lang) q = q.contains('learning_languages', [lang]);
+      const { data } = await q;
       const rows = data || [];
-      const box = $('#rankBox');
-      if (box && rows.length) {
-        box.innerHTML = '<h3 style="margin:14px 0 4px;font-size:15px">' + esc(tr('Leaderboard', 'Таблица лидеров')) + '</h3>' +
-          rows.map((p, i) =>
-            '<div class="rank-row' + (p.id === user.id ? ' me' : '') + '">' +
-              '<div class="rank-num">' + (i + 1) + '</div>' +
-              '<div class="avatar" style="width:30px;height:30px;font-size:12px">' + avatarInner(p.full_name, p.avatar_url) + '</div>' +
-              '<div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.full_name || tr('Duvela user', 'Пользователь Duvela')) + '</div>' +
-              '<div style="font-weight:900;color:var(--purple)">' + Number(p.score || 0).toLocaleString() + '</div>' +
-            '</div>'
-          ).join('');
-      }
+      let rank = null;
+      try {
+        let rq = supa.from('profiles').select('*', { count: 'exact', head: true }).gt('score', profile?.score ?? 0);
+        if (lang) rq = rq.contains('learning_languages', [lang]);
+        const { count } = await rq;
+        rank = (count || 0) + 1;
+      } catch (e) { /* rank optional */ }
+      box.innerHTML =
+        (rank ? '<p style="font-weight:900;color:var(--purple);margin:0 0 8px">' + esc(tr('Your rank: #', 'Ваш ранг: #')) + rank + '</p>' : '') +
+        (rows.length ? rows.map((p, i) =>
+          '<div class="rank-row' + (p.id === user.id ? ' me' : '') + '"><div class="rank-num">' + (i + 1) + '</div><div class="avatar" style="width:30px;height:30px;font-size:12px">' + avatarInner(p.full_name, p.avatar_url) + '</div><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.full_name || tr('Duvela user', 'Пользователь Duvela')) + '</div><div style="font-weight:900;color:var(--purple)">' + Number(p.score || 0).toLocaleString() + '</div></div>'
+        ).join('') : '<div class="empty">' + esc(tr('No ranking data.', 'Нет данных рейтинга.')) + '</div>');
     } catch (error) {
-      console.warn('leaderboard load failed', error);
+      box.innerHTML = '<div class="empty">' + esc(tr('Leaderboard unavailable.', 'Рейтинг недоступен.')) + '</div>';
     }
   }
   // ── Notifications ─────────────────────────────────────────────
@@ -2545,6 +2658,58 @@
         .eq('creator_id', user.id).order('created_at', { ascending: false }).limit(30);
       state.myPractices = pr || [];
     } catch (error) { console.warn('my practices load failed', error); }
+    try {
+      const { data: pf } = await supa.from('organizer_portfolio')
+        .select('id,title,description,image_url,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
+      state.portfolio = pf || [];
+    } catch (error) { console.warn('portfolio load failed', error); }
+    try {
+      const { data: vr } = await supa.from('verification_requests')
+        .select('id,status,note,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1);
+      state.verification = (vr && vr[0]) || null;
+    } catch (error) { console.warn('verification load failed', error); }
+    if (state.myOrg) {
+      try {
+        const { data: mem } = await supa.from('organization_memberships')
+          .select('id,user_id,role,status,profiles(full_name,avatar_url)').eq('organization_id', state.myOrg.id).eq('status', 'active');
+        state.orgMembers = mem || [];
+      } catch (error) { console.warn('members load failed', error); }
+    } else { state.orgMembers = []; }
+  }
+  function analyticsHtml() {
+    const plays = state.myPractices.reduce((s, p) => s + (p.plays_count || 0), 0);
+    const cells = [[tr('Courses', 'Курсы'), state.orgCourses.length], [tr('Classes', 'Классы'), state.orgClasses.length], [tr('Practices', 'Практики'), state.myPractices.length], [tr('Plays', 'Прохождений'), plays]];
+    return '<div class="grid-3" style="grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">' +
+      cells.map(([l, v]) => '<div class="card metric" style="min-height:auto;padding:12px"><span>' + esc(l) + '</span><b style="font-size:22px">' + v + '</b></div>').join('') + '</div>';
+  }
+  function membersHtml() {
+    const roles = ['owner', 'admin', 'teacher', 'client'];
+    return '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Members', 'Участники')) + '</h2><span>' + state.orgMembers.length + '</span></div>' +
+      '<p style="color:var(--muted);font-size:12px;font-weight:700;margin:0 0 8px">' + esc(tr('Invite by email is available in the app.', 'Приглашение по email доступно в приложении.')) + '</p>' +
+      (state.orgMembers.length ? state.orgMembers.map((m) => {
+        const nm = (m.profiles && m.profiles.full_name) || tr('Member', 'Участник');
+        const isMe = m.user_id === user.id;
+        return '<div class="card row" style="grid-template-columns:40px minmax(0,1fr) auto auto;gap:8px"><div class="avatar" style="width:40px;height:40px">' + avatarInner(nm, m.profiles && m.profiles.avatar_url) + '</div><div style="min-width:0"><h3>' + esc(nm) + (isMe ? ' (' + esc(tr('you', 'вы')) + ')' : '') + '</h3></div>' +
+          '<select class="role-select" data-member-role="' + esc(m.id) + '" style="width:auto;padding:6px" ' + (isMe ? 'disabled' : '') + '>' + roles.map((r) => '<option value="' + r + '"' + (m.role === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select>' +
+          (isMe ? '<span></span>' : '<button class="btn danger" data-member-remove="' + esc(m.id) + '" style="min-height:30px">✕</button>') +
+        '</div>';
+      }).join('') : '<div class="empty">' + esc(tr('No members yet.', 'Участников пока нет.')) + '</div>');
+  }
+  async function changeMemberRole(id, roleVal) {
+    try {
+      const { error } = await supa.from('organization_memberships').update({ role: roleVal, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      await loadBusinessWorkspace();
+    } catch (error) { alert(error.message || tr('Could not change the role.', 'Не удалось изменить роль.')); }
+  }
+  async function removeMember(id) {
+    if (!confirm(tr('Remove this member?', 'Удалить участника?'))) return;
+    try {
+      const { error } = await supa.from('organization_memberships').delete().eq('id', id);
+      if (error) throw error;
+      await loadBusinessWorkspace();
+      renderBusinessWorkspace();
+    } catch (error) { alert(error.message || tr('Could not remove the member.', 'Не удалось удалить участника.')); }
   }
   function renderBusinessWorkspace() {
     const org = state.myOrg;
@@ -2566,6 +2731,7 @@
       return;
     }
     left.innerHTML =
+      analyticsHtml() +
       '<p style="font-weight:800;color:var(--soft);margin:0 0 12px">' + esc([org.city, org.country].filter(Boolean).join(', ') || tr('Your Duvela organization', 'Ваша организация Duvela')) + '</p>' +
       '<form id="courseForm">' +
         '<div class="section-head" style="margin-bottom:8px"><h2 style="font-size:15px">' + esc(tr('New course', 'Новый курс')) + '</h2></div>' +
@@ -2581,6 +2747,8 @@
         '<label style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;margin:4px 0"><input type="checkbox" id="cPublish" checked> ' + esc(tr('Publish now (visible to learners)', 'Опубликовать сразу (видно ученикам)')) + '</label>' +
         '<button class="btn primary" type="submit" style="margin-top:6px">' + esc(tr('Create course', 'Создать курс')) + '</button>' +
       '</form>' +
+      '<div style="margin:8px 0"><input id="xlsxFile" type="file" accept=".xlsx,.xls,.csv" style="display:none"><button class="btn" id="importXlsxBtn" type="button">' + esc(tr('Import courses (Excel)', 'Импорт курсов (Excel)')) + '</button><span id="xlsxNote" style="margin-left:10px;font-weight:800"></span></div>' +
+      '<p style="color:var(--muted);font-size:11px;font-weight:700;margin:0 0 8px">' + esc(tr('Columns: title, level, language, price, schedule, description', 'Колонки: title, level, language, price, schedule, description')) + '</p>' +
       '<div class="section-head" style="margin:16px 0 8px"><h2 style="font-size:15px">' + esc(tr('Your courses', 'Ваши курсы')) + '</h2><span>' + state.orgCourses.length + '</span></div>' +
       (state.orgCourses.length ? state.orgCourses.map((c) =>
         '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(c.title) + '</h3><p>' + esc([c.level, c.status].filter(Boolean).join(' · ')) + '</p></div><span class="tag ' + (c.status === 'active' ? 'teal' : '') + '">' + esc(c.status === 'active' ? tr('Live', 'Активен') : (c.status || tr('Draft', 'Черновик'))) + '</span></div>'
@@ -2598,15 +2766,22 @@
       '</form>' +
       '<div class="section-head" style="margin:16px 0 8px"><h2 style="font-size:15px">' + esc(tr('Your classes', 'Ваши классы')) + '</h2><span>' + state.orgClasses.length + '</span></div>' +
       (state.orgClasses.length ? state.orgClasses.map((c) =>
-        '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(c.name) + '</h3><p>' + esc([c.language, c.level, c.starts_at ? formatDate(c.starts_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag">' + esc(c.format === 'offline' ? tr('In person', 'Оффлайн') : tr('Online', 'Онлайн')) + '</span></div>'
+        '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto auto;gap:8px"><div><h3>' + esc(c.name) + '</h3><p>' + esc([c.language, c.level, c.starts_at ? formatDate(c.starts_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag">' + esc(c.format === 'offline' ? tr('In person', 'Оффлайн') : tr('Online', 'Онлайн')) + '</span><button class="btn" data-class-manage="' + esc(c.id) + '" style="min-height:30px">' + esc(tr('Manage', 'Управлять')) + '</button></div>'
       ).join('') : '<div class="empty">' + esc(tr('No classes yet.', 'Классов пока нет.')) + '</div>') +
-      '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Practices', 'Практики')) + '</h2><button class="btn primary" id="createPracticeBtn" type="button">' + esc(tr('Create practice', 'Создать практику')) + '</button></div>' +
+      '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Practices', 'Практики')) + '</h2><div style="display:flex;gap:6px"><button class="btn" id="createChallengeBtn" type="button">' + esc(tr('+ Challenge', '+ Челлендж')) + '</button><button class="btn primary" id="createPracticeBtn" type="button">' + esc(tr('Create practice', 'Создать практику')) + '</button></div></div>' +
       (state.myPractices.length ? state.myPractices.map((p) =>
         '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(p.title) + '</h3><p>' + esc([p.target, p.level].filter(Boolean).join(' · ')) + ' · ' + (p.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + ' · ★ ' + (Number(p.rating_avg || 0).toFixed(1)) + ' (' + (p.rating_count || 0) + ')</p></div><span class="tag ' + (p.status === 'published' ? 'teal' : '') + '">' + esc(p.status === 'published' ? tr('Live', 'Активна') : (p.status || tr('Draft', 'Черновик'))) + '</span></div>'
-      ).join('') : '<div class="empty">' + esc(tr('No practices yet.', 'Практик пока нет.')) + '</div>');
+      ).join('') : '<div class="empty">' + esc(tr('No practices yet.', 'Практик пока нет.')) + '</div>') +
+      membersHtml();
     $('#courseForm').addEventListener('submit', createCourse);
     $('#classForm').addEventListener('submit', createClass);
     $('#createPracticeBtn').addEventListener('click', openPracticeBuilder);
+    if ($('#createChallengeBtn')) $('#createChallengeBtn').addEventListener('click', openChallengeCreate);
+    $$('[data-member-role]').forEach((sel) => sel.addEventListener('change', (e) => changeMemberRole(sel.dataset.memberRole, e.target.value)));
+    const impBtn = $('#importXlsxBtn');
+    if (impBtn) impBtn.addEventListener('click', () => $('#xlsxFile').click());
+    const xf = $('#xlsxFile');
+    if (xf) xf.addEventListener('change', importCoursesExcel);
   }
   async function createOrg(event) {
     event.preventDefault();
@@ -2690,6 +2865,42 @@
       btn.disabled = false;
     }
   }
+  async function importCoursesExcel(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file || !state.myOrg) return;
+    const note = $('#xlsxNote');
+    if (note) { note.style.color = 'var(--soft)'; note.textContent = tr('Reading...', 'Чтение...'); }
+    try {
+      if (!window.XLSX) throw new Error(tr('Spreadsheet library not loaded.', 'Библиотека таблиц не загрузилась.'));
+      const buf = await file.arrayBuffer();
+      const wb = window.XLSX.read(buf, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = window.XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      const lc = (o, k) => { for (const key in o) { if (key.toLowerCase().trim() === k) return o[key]; } return ''; };
+      const payload = rows.map((r) => {
+        const title = String(lc(r, 'title') || '').trim();
+        if (!title) return null;
+        const priceRaw = String(lc(r, 'price') || '').trim();
+        return {
+          organization_id: state.myOrg.id, created_by: user.id, title,
+          level: String(lc(r, 'level') || '').trim().toUpperCase() || null,
+          language: String(lc(r, 'language') || '').trim() || null,
+          price: priceRaw && !isNaN(Number(priceRaw)) ? Number(priceRaw) : null,
+          schedule: String(lc(r, 'schedule') || '').trim() || null,
+          description: String(lc(r, 'description') || '').trim() || null,
+          status: 'active'
+        };
+      }).filter(Boolean);
+      if (!payload.length) { alert(tr('No valid rows — need a "title" column.', 'Нет валидных строк — нужна колонка "title".')); return; }
+      const { error } = await supa.from('courses').insert(payload);
+      if (error) throw error;
+      await Promise.all([loadBusinessWorkspace(), loadPublicData()]);
+      renderBusinessWorkspace(); renderCourses();
+      alert('✓ ' + payload.length + ' ' + tr('courses imported.', 'курсов импортировано.'));
+    } catch (err) {
+      alert(err.message || tr('Import failed.', 'Импорт не удался.'));
+    } finally { event.target.value = ''; }
+  }
   // ── Practice builder ──────────────────────────────────────────
   let pbCounter = 0;
   function addBuilderItem() {
@@ -2772,6 +2983,230 @@
       rows +
       '<p style="color:var(--muted);font-size:12px;font-weight:700;margin-top:10px">' + esc(tr('Buying coins is available in the Duvela mobile app.', 'Покупка монет доступна в мобильном приложении Duvela.')) + '</p>';
   }
+  // ── Challenges ────────────────────────────────────────────────
+  const CHALLENGE_GOALS = [
+    ['daily_min_dialogs', 'dialogs_done', ['Dialogs', 'Диалоги']],
+    ['daily_min_words', 'words_done', ['Words', 'Слова']],
+    ['daily_min_writing', 'writing_done', ['Writing', 'Письмо']],
+    ['daily_min_listening_min', 'listening_min_done', ['Listening (min)', 'Аудирование (мин)']],
+    ['daily_min_live_min', 'live_min_done', ['Live (min)', 'Live (мин)']]
+  ];
+  async function loadChallenges() {
+    try {
+      const { data } = await supa.from('challenges')
+        .select('id,title,target_level,exam_type,started_at,ends_at,daily_min_dialogs,daily_min_words,daily_min_writing,daily_min_listening_min,daily_min_live_min,cover_url')
+        .order('created_at', { ascending: false }).limit(20);
+      state.challenges = data || [];
+      const { data: mine } = await supa.from('challenge_participants').select('challenge_id').eq('user_id', user.id);
+      state.myChallengeIds = new Set((mine || []).map((m) => m.challenge_id));
+    } catch (error) { console.warn('challenges load failed', error); }
+  }
+  function challengesHtml() {
+    if (!state.challenges.length) return '';
+    return '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Challenges', 'Челленджи')) + '</h2></div>' +
+      state.challenges.map((c) => {
+        const joined = state.myChallengeIds.has(c.id);
+        return '<div class="card row" data-challenge="' + esc(c.id) + '" style="grid-template-columns:minmax(0,1fr) auto;cursor:pointer"><div><h3>' + esc(c.title) + '</h3><p>' + esc([c.target_level, c.exam_type, c.ends_at ? tr('until ', 'до ') + formatDate(c.ends_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag ' + (joined ? 'teal' : '') + '">' + esc(joined ? tr('Joined', 'Участвую') : tr('Open', 'Открыть')) + '</span></div>';
+      }).join('');
+  }
+  async function openChallenge(id) {
+    const c = state.challenges.find((x) => x.id === id);
+    if (!c) return;
+    $('#challengeOverlayTitle').textContent = c.title;
+    const body = $('#challengeOverlayBody');
+    body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+    $('#challengeOverlay').classList.add('open');
+    const joined = state.myChallengeIds.has(id);
+    let todayProg = null;
+    if (joined) {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const { data } = await supa.from('challenge_progress').select('*').eq('challenge_id', id).eq('user_id', user.id).eq('day', today).maybeSingle();
+        todayProg = data;
+      } catch (e) { /* optional */ }
+    }
+    body.innerHTML =
+      '<p style="font-weight:700;color:var(--soft)">' + esc([c.target_level, c.exam_type, c.ends_at ? tr('until ', 'до ') + formatDate(c.ends_at) : ''].filter(Boolean).join(' · ')) + '</p>' +
+      '<div style="margin:10px 0;display:flex;gap:6px;flex-wrap:wrap">' + CHALLENGE_GOALS.filter((g) => Number(c[g[0]]) > 0).map((g) => '<span class="tag">' + esc(tr(g[2][0], g[2][1])) + ': ' + c[g[0]] + '</span>').join('') + '</div>' +
+      (joined
+        ? '<h3 style="font-size:15px;margin:12px 0 6px">' + esc(tr("Today's progress", 'Прогресс за сегодня')) + '</h3>' +
+          '<div class="form-grid">' + CHALLENGE_GOALS.map((g) => '<div class="field"><label>' + esc(tr(g[2][0], g[2][1])) + (Number(c[g[0]]) > 0 ? ' / ' + c[g[0]] : '') + '</label><input id="cg-' + g[1] + '" type="number" min="0" value="' + ((todayProg && todayProg[g[1]]) || 0) + '"></div>').join('') + '</div>' +
+          '<button class="btn primary" data-save-challenge="' + esc(id) + '" style="margin-top:10px">' + esc(tr('Save progress', 'Сохранить прогресс')) + '</button>'
+        : '<button class="btn primary" data-join-challenge="' + esc(id) + '" style="margin-top:8px">' + esc(tr('Join challenge', 'Участвовать')) + '</button>');
+  }
+  async function joinChallenge(id) {
+    try {
+      const { error } = await supa.from('challenge_participants').insert({ challenge_id: id, user_id: user.id, status: 'active' });
+      if (error) throw error;
+      state.myChallengeIds.add(id);
+      openChallenge(id);
+    } catch (error) { alert(error.message || tr('Could not join.', 'Не удалось присоединиться.')); }
+  }
+  async function saveChallengeProgress(id) {
+    const today = new Date().toISOString().slice(0, 10);
+    const row = { challenge_id: id, user_id: user.id, day: today };
+    CHALLENGE_GOALS.forEach((g) => { const el = $('#cg-' + g[1]); row[g[1]] = el ? Math.max(0, Number(el.value) || 0) : 0; });
+    try {
+      const { error } = await supa.from('challenge_progress').upsert(row, { onConflict: 'challenge_id,user_id,day' });
+      if (error) throw error;
+      $('#challengeOverlay').classList.remove('open');
+      alert(tr('Progress saved ✓', 'Прогресс сохранён ✓'));
+    } catch (error) { alert(error.message || tr('Could not save progress.', 'Не удалось сохранить прогресс.')); }
+  }
+  function openChallengeCreate() {
+    if (!state.myOrg) { alert(tr('Create an organization first.', 'Сначала создайте организацию.')); return; }
+    $('#challengeOverlayTitle').textContent = tr('New challenge', 'Новый челлендж');
+    $('#challengeOverlayBody').innerHTML =
+      '<form id="chCreateForm">' +
+      '<div class="field"><label>' + esc(tr('Title', 'Название')) + '</label><input id="chTitle" maxlength="140" required></div>' +
+      '<div class="form-grid">' +
+        '<div class="field"><label>' + esc(tr('Target level', 'Целевой уровень')) + '</label><input id="chLevel" placeholder="B1" maxlength="10"></div>' +
+        '<div class="field"><label>' + esc(tr('Exam type', 'Тип экзамена')) + '</label><input id="chExam" maxlength="40"></div>' +
+        '<div class="field"><label>' + esc(tr('Ends on', 'Дата окончания')) + '</label><input id="chEnds" type="date"></div>' +
+        '<div class="field"><label>' + esc(tr('Daily dialogs', 'Диалогов в день')) + '</label><input id="chDialogs" type="number" min="0" value="0"></div>' +
+        '<div class="field"><label>' + esc(tr('Daily words', 'Слов в день')) + '</label><input id="chWords" type="number" min="0" value="0"></div>' +
+      '</div>' +
+      '<button class="btn primary" type="submit" style="margin-top:10px">' + esc(tr('Create challenge', 'Создать челлендж')) + '</button>' +
+      '</form>';
+    $('#challengeOverlay').classList.add('open');
+    $('#chCreateForm').addEventListener('submit', createChallenge);
+  }
+  async function createChallenge(event) {
+    event.preventDefault();
+    const title = $('#chTitle').value.trim();
+    if (!title) return;
+    try {
+      const { error } = await supa.from('challenges').insert({
+        organization_id: state.myOrg.id, created_by: user.id, title,
+        target_level: $('#chLevel').value.trim() || null,
+        exam_type: $('#chExam').value.trim() || null,
+        started_at: new Date().toISOString().slice(0, 10),
+        ends_at: $('#chEnds').value || null,
+        daily_min_dialogs: Number($('#chDialogs').value) || 0,
+        daily_min_words: Number($('#chWords').value) || 0
+      });
+      if (error) throw error;
+      $('#challengeOverlay').classList.remove('open');
+      await loadChallenges();
+      alert(tr('Challenge created ✓', 'Челлендж создан ✓'));
+    } catch (error) { alert(error.message || tr('Could not create the challenge.', 'Не удалось создать челлендж.')); }
+  }
+  // ── Class management: sessions, roster, attendance ────────────
+  let currentClassId = null;
+  let selectedSessionId = null;
+  let clsStudentTimer = null;
+  async function openClassManage(classId) {
+    currentClassId = classId;
+    const cls = state.orgClasses.find((x) => x.id === classId);
+    $('#classOverlayTitle').textContent = (cls && cls.name) || tr('Class', 'Класс');
+    const body = $('#classOverlayBody');
+    body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+    $('#classOverlay').classList.add('open');
+    let sessions = [], roster = [], attendance = [];
+    try {
+      const [s, r] = await Promise.all([
+        supa.from('class_sessions').select('id,title,starts_at,status').eq('class_id', classId).order('starts_at', { ascending: false }).limit(30),
+        supa.from('class_clients').select('id,client_id,status,profiles(full_name,avatar_url)').eq('class_id', classId).neq('status', 'removed')
+      ]);
+      sessions = s.data || []; roster = r.data || [];
+    } catch (e) { /* optional */ }
+    if (selectedSessionId && !sessions.find((s) => s.id === selectedSessionId)) selectedSessionId = null;
+    if (selectedSessionId) { try { const { data } = await supa.from('class_attendance').select('client_id,status').eq('session_id', selectedSessionId); attendance = data || []; } catch (e) { /* */ } }
+    const attMap = new Map(attendance.map((a) => [a.client_id, a.status]));
+    const inp = 'flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft)';
+    body.innerHTML =
+      '<div class="section-head"><h2 style="font-size:15px">' + esc(tr('Sessions', 'Сессии')) + '</h2></div>' +
+      '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="csTitle" placeholder="' + esc(tr('Session title', 'Название сессии')) + '" style="' + inp + '"><input id="csWhen" type="datetime-local" style="' + inp + '"><button class="btn primary" data-add-session="1">' + esc(tr('Add', 'Добавить')) + '</button></div>' +
+      (sessions.length ? sessions.map((s) => '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(s.title || tr('Session', 'Сессия')) + '</h3><p>' + esc(s.starts_at ? formatDate(s.starts_at) : '') + '</p></div><button class="btn' + (selectedSessionId === s.id ? ' primary' : '') + '" data-session-att="' + esc(s.id) + '">' + esc(tr('Attendance', 'Посещаемость')) + '</button></div>').join('') : '<div class="empty">' + esc(tr('No sessions yet.', 'Сессий пока нет.')) + '</div>') +
+      '<div class="section-head" style="margin-top:16px"><h2 style="font-size:15px">' + esc(tr('Students', 'Ученики')) + '</h2>' + (selectedSessionId ? '<span>' + esc(tr('Marking attendance', 'Отметка посещаемости')) + '</span>' : '') + '</div>' +
+      '<input id="clsStudentSearch" class="search" placeholder="' + esc(tr('Add student by name...', 'Добавить ученика по имени...')) + '"><div id="clsStudentResults"></div>' +
+      (roster.length ? roster.map((m) => {
+        const nm = (m.profiles && m.profiles.full_name) || tr('Student', 'Ученик');
+        const st = attMap.get(m.client_id);
+        const att = selectedSessionId ? '<button class="btn' + (st === 'present' ? ' primary' : '') + '" data-att="present" data-client="' + esc(m.client_id) + '" style="min-height:28px;padding:4px 10px">' + esc(tr('Present', 'Был')) + '</button> <button class="btn' + (st === 'absent' ? ' danger' : '') + '" data-att="absent" data-client="' + esc(m.client_id) + '" style="min-height:28px;padding:4px 10px">' + esc(tr('Absent', 'Нет')) + '</button>' : '';
+        return '<div class="card row" style="grid-template-columns:36px minmax(0,1fr) auto"><div class="avatar" style="width:36px;height:36px">' + avatarInner(nm, m.profiles && m.profiles.avatar_url) + '</div><div style="min-width:0"><h3>' + esc(nm) + '</h3></div><div style="display:flex;gap:6px;white-space:nowrap">' + att + '</div></div>';
+      }).join('') : '<div class="empty">' + esc(tr('No students yet.', 'Учеников пока нет.')) + '</div>');
+    $('#clsStudentSearch').addEventListener('input', (e) => { clearTimeout(clsStudentTimer); const v = e.target.value; clsStudentTimer = setTimeout(() => searchClassStudent(v), 250); });
+  }
+  async function searchClassStudent(q) {
+    const box = $('#clsStudentResults');
+    if (!box) return;
+    const query = q.trim();
+    if (query.length < 2) { box.innerHTML = ''; return; }
+    try {
+      const { data } = await supa.from('profiles').select('id,full_name,avatar_url,city').ilike('full_name', '%' + query.replace(/[%,()]/g, '') + '%').limit(6);
+      box.innerHTML = (data || []).map((p) => '<div class="conv" data-add-student="' + esc(p.id) + '"><div class="avatar">' + avatarInner(p.full_name, p.avatar_url) + '</div><div><h3>' + esc(p.full_name || 'Duvela') + '</h3><p>' + esc(p.city || '') + '</p></div><div>+</div></div>').join('') || '<div class="empty">' + esc(tr('No people found.', 'Люди не найдены.')) + '</div>';
+    } catch (error) { box.innerHTML = ''; }
+  }
+  async function addClassStudent(clientId) {
+    try {
+      const { error } = await supa.from('class_clients').upsert({ class_id: currentClassId, client_id: clientId, status: 'active' }, { onConflict: 'class_id,client_id' });
+      if (error) throw error;
+      openClassManage(currentClassId);
+    } catch (error) { alert(error.message || tr('Could not add the student.', 'Не удалось добавить ученика.')); }
+  }
+  async function createClassSession() {
+    const title = ($('#csTitle').value || '').trim();
+    const when = $('#csWhen').value;
+    if (!title || !when) { alert(tr('Title and time are required.', 'Нужны название и время.')); return; }
+    try {
+      const { error } = await supa.from('class_sessions').insert({ class_id: currentClassId, title, starts_at: new Date(when).toISOString(), created_by: user.id, status: 'scheduled' });
+      if (error) throw error;
+      openClassManage(currentClassId);
+    } catch (error) { alert(error.message || tr('Could not create the session.', 'Не удалось создать сессию.')); }
+  }
+  async function markAttendance(clientId, status) {
+    if (!selectedSessionId) return;
+    try {
+      const { error } = await supa.from('class_attendance').upsert({ session_id: selectedSessionId, client_id: clientId, status, marked_by: user.id, marked_at: new Date().toISOString() }, { onConflict: 'session_id,client_id' });
+      if (error) throw error;
+      openClassManage(currentClassId);
+    } catch (error) { alert(error.message || tr('Could not mark attendance.', 'Не удалось отметить посещаемость.')); }
+  }
+  // ── Global search ─────────────────────────────────────────────
+  let searchTimer = null;
+  let lastSearch = { courses: [], events: [], practices: [] };
+  function openSearch() {
+    $('#globalSearch').value = '';
+    $('#searchResults').innerHTML = '<div class="empty">' + esc(tr('Type to search across Duvela.', 'Введите запрос для поиска по Duvela.')) + '</div>';
+    $('#searchOverlay').classList.add('open');
+    setTimeout(() => $('#globalSearch').focus(), 50);
+  }
+  async function runGlobalSearch(q) {
+    const box = $('#searchResults');
+    const query = q.trim();
+    if (query.length < 2) { box.innerHTML = '<div class="empty">' + esc(tr('Type at least 2 characters.', 'Введите минимум 2 символа.')) + '</div>'; return; }
+    const like = '%' + query.replace(/[%,()]/g, '') + '%';
+    try {
+      const [ppl, crs, evs, prc] = await Promise.all([
+        supa.from('profiles').select('id,full_name,avatar_url,city').ilike('full_name', like).neq('id', user.id).limit(6),
+        supa.from('courses').select('id,title,description,cover_image_url,level,price,currency,schedule,status').eq('status', 'active').ilike('title', like).limit(6),
+        supa.from('events').select(EVENT_COLS).ilike('title', like).limit(6),
+        supa.from('teacher_practices').select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count').eq('status', 'published').ilike('title', like).limit(6)
+      ]);
+      const people = ppl.data || [];
+      const courses = (crs.data || []).map((c) => ({ id: c.id, title: c.title, description: c.description || c.schedule || '', image: c.cover_image_url, level: c.level || '', price: c.price, currency: c.currency, schedule: c.schedule || '', is_free: c.price == null || Number(c.price) === 0 }));
+      const events = (evs.data || []).map(mapEventRow);
+      const practices = prc.data || [];
+      lastSearch = { courses, events, practices };
+      function sec(title, rows) { return rows.length ? '<h3 style="margin:12px 0 4px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">' + esc(title) + '</h3>' + rows.join('') : ''; }
+      const html =
+        sec(tr('People', 'Люди'), people.map((p) => '<div class="conv" data-search-kind="person" data-search-id="' + esc(p.id) + '"><div class="avatar">' + avatarInner(p.full_name, p.avatar_url) + '</div><div><h3>' + esc(p.full_name || 'Duvela') + '</h3><p>' + esc(p.city || '') + '</p></div><div>💬</div></div>')) +
+        sec(tr('Courses', 'Курсы'), courses.map((c) => '<div class="conv" data-search-kind="course" data-search-id="' + esc(c.id) + '"><div class="avatar">' + esc((c.title || 'C').charAt(0)) + '</div><div><h3>' + esc(c.title) + '</h3><p>' + esc(c.level || tr('Course', 'Курс')) + '</p></div><div>›</div></div>')) +
+        sec(tr('Events', 'События'), events.map((e) => '<div class="conv" data-search-kind="event" data-search-id="' + esc(e.id) + '"><div class="avatar">' + esc((e.title || 'E').charAt(0)) + '</div><div><h3>' + esc(e.title) + '</h3><p>' + esc(e.meta || '') + '</p></div><div>›</div></div>')) +
+        sec(tr('Practices', 'Практики'), practices.map((p) => '<div class="conv" data-search-kind="practice" data-search-id="' + esc(p.id) + '"><div class="avatar">' + esc((p.title || 'P').charAt(0)) + '</div><div><h3>' + esc(p.title) + '</h3><p>' + esc([p.target, p.level].filter(Boolean).join(' · ')) + '</p></div><div>›</div></div>'));
+      box.innerHTML = html || '<div class="empty">' + esc(tr('Nothing found.', 'Ничего не найдено.')) + '</div>';
+    } catch (error) {
+      box.innerHTML = '<div class="empty">' + esc(tr('Search is unavailable right now.', 'Поиск сейчас недоступен.')) + '</div>';
+    }
+  }
+  function openSearchItem(kind, id) {
+    $('#searchOverlay').classList.remove('open');
+    if (kind === 'person') { startChatWith(id); return; }
+    if (kind === 'course') { if (!state.courses.find((x) => x.id === id)) { const it = lastSearch.courses.find((x) => x.id === id); if (it) state.courses.push(it); } openCourseDetail(id); return; }
+    if (kind === 'event') { if (!state.events.find((x) => x.id === id)) { const it = lastSearch.events.find((x) => x.id === id); if (it) state.events.push(it); } openEventDetail(id); return; }
+    if (kind === 'practice') { if (!state.practices.find((x) => x.id === id)) { const it = lastSearch.practices.find((x) => x.id === id); if (it) state.practices.push(it); } openPractice(id); return; }
+  }
   function renderAll() {
     updateShellCopy();
     renderAccessNotice();
@@ -2799,7 +3234,7 @@
   async function loadProfile() {
     try {
       const result = await supa.from('profiles')
-        .select('id,full_name,avatar_url,city,country,language,language_level,bio,telegram,instagram,website,is_teacher,is_organizer,is_admin,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level')
+        .select('id,full_name,avatar_url,city,country,language,language_level,learning_languages,bio,telegram,instagram,website,is_teacher,is_organizer,is_admin,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level')
         .eq('id', user.id)
         .maybeSingle();
       if (!result.error && result.data) profile = result.data;
@@ -2937,6 +3372,26 @@
       if (confEnr) { event.preventDefault(); confirmEnrollment(confEnr.dataset.confirmEnroll); return; }
       const cert = event.target.closest('[data-cert]');
       if (cert) { event.preventDefault(); openCertificate(cert.dataset.cert); return; }
+      const delPf = event.target.closest('[data-del-portfolio]');
+      if (delPf) { event.preventDefault(); deletePortfolioItem(delPf.dataset.delPortfolio); return; }
+      const chal = event.target.closest('[data-challenge]');
+      if (chal) { openChallenge(chal.dataset.challenge); return; }
+      const joinCh = event.target.closest('[data-join-challenge]');
+      if (joinCh) { event.preventDefault(); joinChallenge(joinCh.dataset.joinChallenge); return; }
+      const saveCh = event.target.closest('[data-save-challenge]');
+      if (saveCh) { event.preventDefault(); saveChallengeProgress(saveCh.dataset.saveChallenge); return; }
+      const clsMng = event.target.closest('[data-class-manage]');
+      if (clsMng) { event.preventDefault(); selectedSessionId = null; openClassManage(clsMng.dataset.classManage); return; }
+      const addSess = event.target.closest('[data-add-session]');
+      if (addSess) { event.preventDefault(); createClassSession(); return; }
+      const sessAtt = event.target.closest('[data-session-att]');
+      if (sessAtt) { event.preventDefault(); selectedSessionId = sessAtt.dataset.sessionAtt; openClassManage(currentClassId); return; }
+      const attBtn = event.target.closest('[data-att]');
+      if (attBtn) { event.preventDefault(); markAttendance(attBtn.dataset.client, attBtn.dataset.att); return; }
+      const addStu = event.target.closest('[data-add-student]');
+      if (addStu) { event.preventDefault(); addClassStudent(addStu.dataset.addStudent); return; }
+      const memDel = event.target.closest('[data-member-remove]');
+      if (memDel) { event.preventDefault(); removeMember(memDel.dataset.memberRemove); return; }
       const practice = event.target.closest('[data-practice]');
       if (practice) { openPractice(practice.dataset.practice); return; }
       const teacherSlots = event.target.closest('[data-teacher]');
@@ -2973,6 +3428,16 @@
     $('#pbAddItem').addEventListener('click', addBuilderItem);
     $('#pbSubmit').addEventListener('click', submitPractice);
     $('#pbItems').addEventListener('click', (e) => { const rm = e.target.closest('.pb-remove'); if (rm) rm.closest('.pb-item').remove(); });
+    $('#challengeClose').addEventListener('click', () => $('#challengeOverlay').classList.remove('open'));
+    $('#challengeOverlay').addEventListener('click', (e) => { if (e.target === $('#challengeOverlay')) $('#challengeOverlay').classList.remove('open'); });
+    $('#classClose').addEventListener('click', () => $('#classOverlay').classList.remove('open'));
+    $('#classOverlay').addEventListener('click', (e) => { if (e.target === $('#classOverlay')) $('#classOverlay').classList.remove('open'); });
+    // Global search
+    $('#searchBtn').addEventListener('click', openSearch);
+    $('#searchClose').addEventListener('click', () => $('#searchOverlay').classList.remove('open'));
+    $('#searchOverlay').addEventListener('click', (e) => { if (e.target === $('#searchOverlay')) $('#searchOverlay').classList.remove('open'); });
+    $('#globalSearch').addEventListener('input', (e) => { clearTimeout(searchTimer); const v = e.target.value; searchTimer = setTimeout(() => runGlobalSearch(v), 280); });
+    $('#searchResults').addEventListener('click', (e) => { const it = e.target.closest('[data-search-kind]'); if (it) openSearchItem(it.dataset.searchKind, it.dataset.searchId); });
     // Notifications
     $('#notifBell').addEventListener('click', openNotifications);
     $('#notifClose').addEventListener('click', () => $('#notifOverlay').classList.remove('open'));
@@ -3000,6 +3465,9 @@
       $('#eventOverlay').classList.remove('open');
       $('#uploadOverlay').classList.remove('open');
       $('#pbOverlay').classList.remove('open');
+      $('#searchOverlay').classList.remove('open');
+      $('#classOverlay').classList.remove('open');
+      $('#challengeOverlay').classList.remove('open');
       $('#newChatOverlay').classList.remove('open');
       $('#notifOverlay').classList.remove('open');
       $('#practiceOverlay').classList.remove('open');
@@ -3051,7 +3519,7 @@
     await loadProfile();
     localStorage.setItem(ROLE_KEY, role);
     history.replaceState(null, '', './app.html?role=' + encodeURIComponent(role) + (window.location.hash || '#home'));
-    await Promise.all([loadPublicData(), loadEnrollments(), loadVideos(), loadPractices(), loadNotifications(), loadSchedule(), loadBusinessWorkspace(), loadWallet()]);
+    await Promise.all([loadPublicData(), loadEnrollments(), loadVideos(), loadPractices(), loadNotifications(), loadSchedule(), loadBusinessWorkspace(), loadWallet(), loadChallenges()]);
     renderAll();
     syncRoleOptions();
     $('#loading').style.display = 'none';
