@@ -26,12 +26,12 @@
       const list = $('#notifList');
       if (!list) return;
       if (!state.notifications.length) {
-        list.innerHTML = '<div class="empty">' + esc(tr('No notifications yet.', 'РЈРІРµРґРѕРјР»РµРЅРёР№ РїРѕРєР° РЅРµС‚.')) + '</div>';
+        list.innerHTML = '<div class="empty">' + esc(tr('No notifications yet.', 'Уведомлений пока нет.')) + '</div>';
         return;
       }
       list.innerHTML = state.notifications.map((item) =>
         '<div class="notif-item' + (item.read ? '' : ' unread') + '"><div class="ndot"></div><div><b>' +
-        esc(item.title || tr('Notification', 'РЈРІРµРґРѕРјР»РµРЅРёРµ')) + '</b>' +
+        esc(item.title || tr('Notification', 'Уведомление')) + '</b>' +
         (item.body ? '<p>' + esc(item.body) + '</p>' : '') +
         '<time>' + esc(timeAgo(item.created_at)) + '</time></div></div>'
       ).join('');

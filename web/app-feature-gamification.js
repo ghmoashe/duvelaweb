@@ -2,11 +2,11 @@
   function createGamificationFeature(ctx) {
     const { $, tr, esc, alert, supa, state, timeAgo, formatDate } = ctx;
     const CHALLENGE_GOALS = [
-      ['daily_min_dialogs', 'dialogs_done', ['Dialogs', 'Р”РёР°Р»РѕРіРё']],
-      ['daily_min_words', 'words_done', ['Words', 'РЎР»РѕРІР°']],
-      ['daily_min_writing', 'writing_done', ['Writing', 'РџРёСЃСЊРјРѕ']],
-      ['daily_min_listening_min', 'listening_min_done', ['Listening (min)', 'РђСѓРґРёСЂРѕРІР°РЅРёРµ (РјРёРЅ)']],
-      ['daily_min_live_min', 'live_min_done', ['Live (min)', 'Live (РјРёРЅ)']]
+      ['daily_min_dialogs', 'dialogs_done', ['Dialogs', 'Диалоги']],
+      ['daily_min_words', 'words_done', ['Words', 'Слова']],
+      ['daily_min_writing', 'writing_done', ['Writing', 'Письмо']],
+      ['daily_min_listening_min', 'listening_min_done', ['Listening (min)', 'Аудирование (мин)']],
+      ['daily_min_live_min', 'live_min_done', ['Live (min)', 'Live (мин)']]
     ];
 
     async function loadWallet() {
@@ -25,12 +25,12 @@
       const rows = state.walletTx.length
         ? state.walletTx.map((item) => {
             const amount = Number(item.amount || 0);
-            return '<div class="rank-row" style="grid-template-columns:minmax(0,1fr) auto"><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(item.label || item.source || tr('Transaction', 'РћРїРµСЂР°С†РёСЏ')) + '<div style="color:var(--muted);font-size:11px">' + esc(timeAgo(item.created_at)) + '</div></div><div style="font-weight:900;color:' + (amount >= 0 ? 'var(--teal)' : 'var(--red)') + '">' + (amount >= 0 ? '+' : '') + amount + '</div></div>';
+            return '<div class="rank-row" style="grid-template-columns:minmax(0,1fr) auto"><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(item.label || item.source || tr('Transaction', 'Операция')) + '<div style="color:var(--muted);font-size:11px">' + esc(timeAgo(item.created_at)) + '</div></div><div style="font-weight:900;color:' + (amount >= 0 ? 'var(--teal)' : 'var(--red)') + '">' + (amount >= 0 ? '+' : '') + amount + '</div></div>';
           }).join('')
-        : '<div class="empty">' + esc(tr('No coin activity yet.', 'РћРїРµСЂР°С†РёР№ СЃ РјРѕРЅРµС‚Р°РјРё РїРѕРєР° РЅРµС‚.')) + '</div>';
-      return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Duvela Coins', 'РњРѕРЅРµС‚С‹ Duvela')) + '</h2><span>' + balance + '</span></div>' +
+        : '<div class="empty">' + esc(tr('No coin activity yet.', 'Операций с монетами пока нет.')) + '</div>';
+      return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Duvela Coins', 'Монеты Duvela')) + '</h2><span>' + balance + '</span></div>' +
         rows +
-        '<p style="color:var(--muted);font-size:12px;font-weight:700;margin-top:10px">' + esc(tr('Buying coins is available in the Duvela mobile app.', 'РџРѕРєСѓРїРєР° РјРѕРЅРµС‚ РґРѕСЃС‚СѓРїРЅР° РІ РјРѕР±РёР»СЊРЅРѕРј РїСЂРёР»РѕР¶РµРЅРёРё Duvela.')) + '</p>';
+        '<p style="color:var(--muted);font-size:12px;font-weight:700;margin-top:10px">' + esc(tr('Buying coins is available in the Duvela mobile app.', 'Покупка монет доступна в мобильном приложении Duvela.')) + '</p>';
     }
 
     async function loadChallenges() {
@@ -48,10 +48,10 @@
 
     function challengesHtml() {
       if (!state.challenges.length) return '';
-      return '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Challenges', 'Р§РµР»Р»РµРЅРґР¶Рё')) + '</h2></div>' +
+      return '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Challenges', 'Челленджи')) + '</h2></div>' +
         state.challenges.map((challenge) => {
           const joined = state.myChallengeIds.has(challenge.id);
-          return '<div class="card row" data-challenge="' + esc(challenge.id) + '" style="grid-template-columns:minmax(0,1fr) auto;cursor:pointer"><div><h3>' + esc(challenge.title) + '</h3><p>' + esc([challenge.target_level, challenge.exam_type, challenge.ends_at ? tr('until ', 'РґРѕ ') + formatDate(challenge.ends_at) : ''].filter(Boolean).join(' В· ')) + '</p></div><span class="tag ' + (joined ? 'teal' : '') + '">' + esc(joined ? tr('Joined', 'РЈС‡Р°СЃС‚РІСѓСЋ') : tr('Open', 'РћС‚РєСЂС‹С‚СЊ')) + '</span></div>';
+          return '<div class="card row" data-challenge="' + esc(challenge.id) + '" style="grid-template-columns:minmax(0,1fr) auto;cursor:pointer"><div><h3>' + esc(challenge.title) + '</h3><p>' + esc([challenge.target_level, challenge.exam_type, challenge.ends_at ? tr('until ', 'до ') + formatDate(challenge.ends_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag ' + (joined ? 'teal' : '') + '">' + esc(joined ? tr('Joined', 'Участвую') : tr('Open', 'Открыть')) + '</span></div>';
         }).join('');
     }
 
@@ -60,7 +60,7 @@
       if (!challenge) return;
       $('#challengeOverlayTitle').textContent = challenge.title;
       const body = $('#challengeOverlayBody');
-      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Р—Р°РіСЂСѓР·РєР°...')) + '</div>';
+      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       $('#challengeOverlay').classList.add('open');
       const joined = state.myChallengeIds.has(id);
       let todayProgress = null;
@@ -74,13 +74,13 @@
         }
       }
       body.innerHTML =
-        '<p style="font-weight:700;color:var(--soft)">' + esc([challenge.target_level, challenge.exam_type, challenge.ends_at ? tr('until ', 'РґРѕ ') + formatDate(challenge.ends_at) : ''].filter(Boolean).join(' В· ')) + '</p>' +
+        '<p style="font-weight:700;color:var(--soft)">' + esc([challenge.target_level, challenge.exam_type, challenge.ends_at ? tr('until ', 'до ') + formatDate(challenge.ends_at) : ''].filter(Boolean).join(' · ')) + '</p>' +
         '<div style="margin:10px 0;display:flex;gap:6px;flex-wrap:wrap">' + CHALLENGE_GOALS.filter((goal) => Number(challenge[goal[0]]) > 0).map((goal) => '<span class="tag">' + esc(tr(goal[2][0], goal[2][1])) + ': ' + challenge[goal[0]] + '</span>').join('') + '</div>' +
         (joined
-          ? '<h3 style="font-size:15px;margin:12px 0 6px">' + esc(tr("Today's progress", 'РџСЂРѕРіСЂРµСЃСЃ Р·Р° СЃРµРіРѕРґРЅСЏ')) + '</h3>' +
+          ? '<h3 style="font-size:15px;margin:12px 0 6px">' + esc(tr("Today's progress", 'Прогресс за сегодня')) + '</h3>' +
             '<div class="form-grid">' + CHALLENGE_GOALS.map((goal) => '<div class="field"><label>' + esc(tr(goal[2][0], goal[2][1])) + (Number(challenge[goal[0]]) > 0 ? ' / ' + challenge[goal[0]] : '') + '</label><input id="cg-' + goal[1] + '" type="number" min="0" value="' + ((todayProgress && todayProgress[goal[1]]) || 0) + '"></div>').join('') + '</div>' +
-            '<button class="btn primary" data-save-challenge="' + esc(id) + '" style="margin-top:10px">' + esc(tr('Save progress', 'РЎРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ')) + '</button>'
-          : '<button class="btn primary" data-join-challenge="' + esc(id) + '" style="margin-top:8px">' + esc(tr('Join challenge', 'РЈС‡Р°СЃС‚РІРѕРІР°С‚СЊ')) + '</button>');
+            '<button class="btn primary" data-save-challenge="' + esc(id) + '" style="margin-top:10px">' + esc(tr('Save progress', 'Сохранить прогресс')) + '</button>'
+          : '<button class="btn primary" data-join-challenge="' + esc(id) + '" style="margin-top:8px">' + esc(tr('Join challenge', 'Участвовать')) + '</button>');
     }
 
     async function joinChallenge(id) {
@@ -90,7 +90,7 @@
         state.myChallengeIds.add(id);
         openChallenge(id);
       } catch (error) {
-        alert(error.message || tr('Could not join.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРёСЃРѕРµРґРёРЅРёС‚СЊСЃСЏ.'));
+        alert(error.message || tr('Could not join.', 'Не удалось присоединиться.'));
       }
     }
 
@@ -105,29 +105,29 @@
         const { error } = await supa.from('challenge_progress').upsert(row, { onConflict: 'challenge_id,user_id,day' });
         if (error) throw error;
         $('#challengeOverlay').classList.remove('open');
-        alert(tr('Progress saved ✓', 'РџСЂРѕРіСЂРµСЃСЃ СЃРѕС…СЂР°РЅС‘РЅ ✓'));
+        alert(tr('Progress saved ✓', 'Прогресс сохранён ✓'));
       } catch (error) {
-        alert(error.message || tr('Could not save progress.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ.'));
+        alert(error.message || tr('Could not save progress.', 'Не удалось сохранить прогресс.'));
       }
     }
 
     function openChallengeCreate() {
       if (!state.myOrg) {
-        alert(tr('Create an organization first.', 'РЎРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№С‚Рµ РѕСЂРіР°РЅРёР·Р°С†РёСЋ.'));
+        alert(tr('Create an organization first.', 'Сначала создайте организацию.'));
         return;
       }
-      $('#challengeOverlayTitle').textContent = tr('New challenge', 'РќРѕРІС‹Р№ С‡РµР»Р»РµРЅРґР¶');
+      $('#challengeOverlayTitle').textContent = tr('New challenge', 'Новый челлендж');
       $('#challengeOverlayBody').innerHTML =
         '<form id="chCreateForm">' +
-        '<div class="field"><label>' + esc(tr('Title', 'РќР°Р·РІР°РЅРёРµ')) + '</label><input id="chTitle" maxlength="140" required></div>' +
+        '<div class="field"><label>' + esc(tr('Title', 'Название')) + '</label><input id="chTitle" maxlength="140" required></div>' +
         '<div class="form-grid">' +
-          '<div class="field"><label>' + esc(tr('Target level', 'Р¦РµР»РµРІРѕР№ СѓСЂРѕРІРµРЅСЊ')) + '</label><input id="chLevel" placeholder="B1" maxlength="10"></div>' +
-          '<div class="field"><label>' + esc(tr('Exam type', 'РўРёРї СЌРєР·Р°РјРµРЅР°')) + '</label><input id="chExam" maxlength="40"></div>' +
-          '<div class="field"><label>' + esc(tr('Ends on', 'Р”Р°С‚Р° РѕРєРѕРЅС‡Р°РЅРёСЏ')) + '</label><input id="chEnds" type="date"></div>' +
-          '<div class="field"><label>' + esc(tr('Daily dialogs', 'Р”РёР°Р»РѕРіРѕРІ РІ РґРµРЅСЊ')) + '</label><input id="chDialogs" type="number" min="0" value="0"></div>' +
-          '<div class="field"><label>' + esc(tr('Daily words', 'РЎР»РѕРІ РІ РґРµРЅСЊ')) + '</label><input id="chWords" type="number" min="0" value="0"></div>' +
+          '<div class="field"><label>' + esc(tr('Target level', 'Целевой уровень')) + '</label><input id="chLevel" placeholder="B1" maxlength="10"></div>' +
+          '<div class="field"><label>' + esc(tr('Exam type', 'Тип экзамена')) + '</label><input id="chExam" maxlength="40"></div>' +
+          '<div class="field"><label>' + esc(tr('Ends on', 'Дата окончания')) + '</label><input id="chEnds" type="date"></div>' +
+          '<div class="field"><label>' + esc(tr('Daily dialogs', 'Диалогов в день')) + '</label><input id="chDialogs" type="number" min="0" value="0"></div>' +
+          '<div class="field"><label>' + esc(tr('Daily words', 'Слов в день')) + '</label><input id="chWords" type="number" min="0" value="0"></div>' +
         '</div>' +
-        '<button class="btn primary" type="submit" style="margin-top:10px">' + esc(tr('Create challenge', 'РЎРѕР·РґР°С‚СЊ С‡РµР»Р»РµРЅРґР¶')) + '</button>' +
+        '<button class="btn primary" type="submit" style="margin-top:10px">' + esc(tr('Create challenge', 'Создать челлендж')) + '</button>' +
         '</form>';
       $('#challengeOverlay').classList.add('open');
       $('#chCreateForm').addEventListener('submit', createChallenge);
@@ -152,9 +152,9 @@
         if (error) throw error;
         $('#challengeOverlay').classList.remove('open');
         await loadChallenges();
-        alert(tr('Challenge created ✓', 'Р§РµР»Р»РµРЅРґР¶ СЃРѕР·РґР°РЅ ✓'));
+        alert(tr('Challenge created ✓', 'Челлендж создан ✓'));
       } catch (error) {
-        alert(error.message || tr('Could not create the challenge.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ С‡РµР»Р»РµРЅРґР¶.'));
+        alert(error.message || tr('Could not create the challenge.', 'Не удалось создать челлендж.'));
       }
     }
 

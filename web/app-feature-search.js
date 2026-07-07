@@ -6,7 +6,7 @@
 
     function openSearch() {
       $('#globalSearch').value = '';
-      $('#searchResults').innerHTML = '<div class="empty">' + esc(tr('Type to search across Duvela.', 'Р’РІРµРґРёС‚Рµ Р·Р°РїСЂРѕСЃ РґР»СЏ РїРѕРёСЃРєР° РїРѕ Duvela.')) + '</div>';
+      $('#searchResults').innerHTML = '<div class="empty">' + esc(tr('Type to search across Duvela.', 'Введите запрос для поиска по Duvela.')) + '</div>';
       $('#searchOverlay').classList.add('open');
       setTimeout(() => $('#globalSearch').focus(), 50);
     }
@@ -15,7 +15,7 @@
       const box = $('#searchResults');
       const query = value.trim();
       if (query.length < 2) {
-        box.innerHTML = '<div class="empty">' + esc(tr('Type at least 2 characters.', 'Р’РІРµРґРёС‚Рµ РјРёРЅРёРјСѓРј 2 СЃРёРјРІРѕР»Р°.')) + '</div>';
+        box.innerHTML = '<div class="empty">' + esc(tr('Type at least 2 characters.', 'Введите минимум 2 символа.')) + '</div>';
         return;
       }
       const like = '%' + query.replace(/[%,()]/g, '') + '%';
@@ -45,13 +45,13 @@
           return rows.length ? '<h3 style="margin:12px 0 4px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">' + esc(title) + '</h3>' + rows.join('') : '';
         }
         const html =
-          section(tr('People', 'Р›СЋРґРё'), people.map((person) => '<div class="conv" data-search-kind="person" data-search-id="' + esc(person.id) + '"><div class="avatar">' + avatarInner(person.full_name, person.avatar_url) + '</div><div><h3>' + esc(person.full_name || 'Duvela') + '</h3><p>' + esc(person.city || '') + '</p></div><div>💬</div></div>')) +
-          section(tr('Courses', 'РљСѓСЂСЃС‹'), courses.map((course) => '<div class="conv" data-search-kind="course" data-search-id="' + esc(course.id) + '"><div class="avatar">' + esc((course.title || 'C').charAt(0)) + '</div><div><h3>' + esc(course.title) + '</h3><p>' + esc(course.level || tr('Course', 'РљСѓСЂСЃ')) + '</p></div><div>›</div></div>')) +
-          section(tr('Events', 'РЎРѕР±С‹С‚РёСЏ'), events.map((item) => '<div class="conv" data-search-kind="event" data-search-id="' + esc(item.id) + '"><div class="avatar">' + esc((item.title || 'E').charAt(0)) + '</div><div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || '') + '</p></div><div>›</div></div>')) +
-          section(tr('Practices', 'РџСЂР°РєС‚РёРєРё'), practices.map((practice) => '<div class="conv" data-search-kind="practice" data-search-id="' + esc(practice.id) + '"><div class="avatar">' + esc((practice.title || 'P').charAt(0)) + '</div><div><h3>' + esc(practice.title) + '</h3><p>' + esc([practice.target, practice.level].filter(Boolean).join(' В· ')) + '</p></div><div>›</div></div>'));
-        box.innerHTML = html || '<div class="empty">' + esc(tr('Nothing found.', 'РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.')) + '</div>';
+          section(tr('People', 'Люди'), people.map((person) => '<div class="conv" data-search-kind="person" data-search-id="' + esc(person.id) + '"><div class="avatar">' + avatarInner(person.full_name, person.avatar_url) + '</div><div><h3>' + esc(person.full_name || 'Duvela') + '</h3><p>' + esc(person.city || '') + '</p></div><div>💬</div></div>')) +
+          section(tr('Courses', 'Курсы'), courses.map((course) => '<div class="conv" data-search-kind="course" data-search-id="' + esc(course.id) + '"><div class="avatar">' + esc((course.title || 'C').charAt(0)) + '</div><div><h3>' + esc(course.title) + '</h3><p>' + esc(course.level || tr('Course', 'Курс')) + '</p></div><div>›</div></div>')) +
+          section(tr('Events', 'События'), events.map((item) => '<div class="conv" data-search-kind="event" data-search-id="' + esc(item.id) + '"><div class="avatar">' + esc((item.title || 'E').charAt(0)) + '</div><div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || '') + '</p></div><div>›</div></div>')) +
+          section(tr('Practices', 'Практики'), practices.map((practice) => '<div class="conv" data-search-kind="practice" data-search-id="' + esc(practice.id) + '"><div class="avatar">' + esc((practice.title || 'P').charAt(0)) + '</div><div><h3>' + esc(practice.title) + '</h3><p>' + esc([practice.target, practice.level].filter(Boolean).join(' · ')) + '</p></div><div>›</div></div>'));
+        box.innerHTML = html || '<div class="empty">' + esc(tr('Nothing found.', 'Ничего не найдено.')) + '</div>';
       } catch (error) {
-        box.innerHTML = '<div class="empty">' + esc(tr('Search is unavailable right now.', 'РџРѕРёСЃРє СЃРµР№С‡Р°СЃ РЅРµРґРѕСЃС‚СѓРїРµРЅ.')) + '</div>';
+        box.innerHTML = '<div class="empty">' + esc(tr('Search is unavailable right now.', 'Поиск сейчас недоступен.')) + '</div>';
       }
     }
 

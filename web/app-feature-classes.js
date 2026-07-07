@@ -8,9 +8,9 @@
     async function openClassManage(classId) {
       currentClassId = classId;
       const classItem = state.orgClasses.find((item) => item.id === classId);
-      $('#classOverlayTitle').textContent = (classItem && classItem.name) || tr('Class', 'РљР»Р°СЃСЃ');
+      $('#classOverlayTitle').textContent = (classItem && classItem.name) || tr('Class', 'Класс');
       const body = $('#classOverlayBody');
-      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Р—Р°РіСЂСѓР·РєР°...')) + '</div>';
+      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       $('#classOverlay').classList.add('open');
       let sessions = [];
       let roster = [];
@@ -37,19 +37,19 @@
       const attendanceMap = new Map(attendance.map((item) => [item.client_id, item.status]));
       const inputStyle = 'flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft)';
       body.innerHTML =
-        '<div class="section-head"><h2 style="font-size:15px">' + esc(tr('Sessions', 'РЎРµСЃСЃРёРё')) + '</h2></div>' +
-        '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="csTitle" placeholder="' + esc(tr('Session title', 'РќР°Р·РІР°РЅРёРµ СЃРµСЃСЃРёРё')) + '" style="' + inputStyle + '"><input id="csWhen" type="datetime-local" style="' + inputStyle + '"><button class="btn primary" data-add-session="1">' + esc(tr('Add', 'Р”РѕР±Р°РІРёС‚СЊ')) + '</button></div>' +
-        (sessions.length ? sessions.map((session) => '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(session.title || tr('Session', 'РЎРµСЃСЃРёСЏ')) + '</h3><p>' + esc(session.starts_at ? formatDate(session.starts_at) : '') + '</p></div><button class="btn' + (selectedSessionId === session.id ? ' primary' : '') + '" data-session-att="' + esc(session.id) + '">' + esc(tr('Attendance', 'РџРѕСЃРµС‰Р°РµРјРѕСЃС‚СЊ')) + '</button></div>').join('') : '<div class="empty">' + esc(tr('No sessions yet.', 'РЎРµСЃСЃРёР№ РїРѕРєР° РЅРµС‚.')) + '</div>') +
-        '<div class="section-head" style="margin-top:16px"><h2 style="font-size:15px">' + esc(tr('Students', 'РЈС‡РµРЅРёРєРё')) + '</h2>' + (selectedSessionId ? '<span>' + esc(tr('Marking attendance', 'РћС‚РјРµС‚РєР° РїРѕСЃРµС‰Р°РµРјРѕСЃС‚Рё')) + '</span>' : '') + '</div>' +
-        '<input id="clsStudentSearch" class="search" placeholder="' + esc(tr('Add student by name...', 'Р”РѕР±Р°РІРёС‚СЊ СѓС‡РµРЅРёРєР° РїРѕ РёРјРµРЅРё...')) + '"><div id="clsStudentResults"></div>' +
+        '<div class="section-head"><h2 style="font-size:15px">' + esc(tr('Sessions', 'Сессии')) + '</h2></div>' +
+        '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="csTitle" placeholder="' + esc(tr('Session title', 'Название сессии')) + '" style="' + inputStyle + '"><input id="csWhen" type="datetime-local" style="' + inputStyle + '"><button class="btn primary" data-add-session="1">' + esc(tr('Add', 'Добавить')) + '</button></div>' +
+        (sessions.length ? sessions.map((session) => '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(session.title || tr('Session', 'Сессия')) + '</h3><p>' + esc(session.starts_at ? formatDate(session.starts_at) : '') + '</p></div><button class="btn' + (selectedSessionId === session.id ? ' primary' : '') + '" data-session-att="' + esc(session.id) + '">' + esc(tr('Attendance', 'Посещаемость')) + '</button></div>').join('') : '<div class="empty">' + esc(tr('No sessions yet.', 'Сессий пока нет.')) + '</div>') +
+        '<div class="section-head" style="margin-top:16px"><h2 style="font-size:15px">' + esc(tr('Students', 'Ученики')) + '</h2>' + (selectedSessionId ? '<span>' + esc(tr('Marking attendance', 'Отметка посещаемости')) + '</span>' : '') + '</div>' +
+        '<input id="clsStudentSearch" class="search" placeholder="' + esc(tr('Add student by name...', 'Добавить ученика по имени...')) + '"><div id="clsStudentResults"></div>' +
         (roster.length ? roster.map((member) => {
-          const name = (member.profiles && member.profiles.full_name) || tr('Student', 'РЈС‡РµРЅРёРє');
+          const name = (member.profiles && member.profiles.full_name) || tr('Student', 'Ученик');
           const mark = attendanceMap.get(member.client_id);
           const controls = selectedSessionId
-            ? '<button class="btn' + (mark === 'present' ? ' primary' : '') + '" data-att="present" data-client="' + esc(member.client_id) + '" style="min-height:28px;padding:4px 10px">' + esc(tr('Present', 'Р‘С‹Р»')) + '</button> <button class="btn' + (mark === 'absent' ? ' danger' : '') + '" data-att="absent" data-client="' + esc(member.client_id) + '" style="min-height:28px;padding:4px 10px">' + esc(tr('Absent', 'РќРµС‚')) + '</button>'
+            ? '<button class="btn' + (mark === 'present' ? ' primary' : '') + '" data-att="present" data-client="' + esc(member.client_id) + '" style="min-height:28px;padding:4px 10px">' + esc(tr('Present', 'Был')) + '</button> <button class="btn' + (mark === 'absent' ? ' danger' : '') + '" data-att="absent" data-client="' + esc(member.client_id) + '" style="min-height:28px;padding:4px 10px">' + esc(tr('Absent', 'Нет')) + '</button>'
             : '';
           return '<div class="card row" style="grid-template-columns:36px minmax(0,1fr) auto"><div class="avatar" style="width:36px;height:36px">' + avatarInner(name, member.profiles && member.profiles.avatar_url) + '</div><div style="min-width:0"><h3>' + esc(name) + '</h3></div><div style="display:flex;gap:6px;white-space:nowrap">' + controls + '</div></div>';
-        }).join('') : '<div class="empty">' + esc(tr('No students yet.', 'РЈС‡РµРЅРёРєРѕРІ РїРѕРєР° РЅРµС‚.')) + '</div>');
+        }).join('') : '<div class="empty">' + esc(tr('No students yet.', 'Учеников пока нет.')) + '</div>');
       $('#clsStudentSearch').addEventListener('input', (event) => {
         clearTimeout(clsStudentTimer);
         const value = event.target.value;
@@ -67,7 +67,7 @@
       }
       try {
         const { data } = await supa.from('profiles').select('id,full_name,avatar_url,city').ilike('full_name', '%' + query.replace(/[%,()]/g, '') + '%').limit(6);
-        box.innerHTML = (data || []).map((profile) => '<div class="conv" data-add-student="' + esc(profile.id) + '"><div class="avatar">' + avatarInner(profile.full_name, profile.avatar_url) + '</div><div><h3>' + esc(profile.full_name || 'Duvela') + '</h3><p>' + esc(profile.city || '') + '</p></div><div>+</div></div>').join('') || '<div class="empty">' + esc(tr('No people found.', 'Р›СЋРґРё РЅРµ РЅР°Р№РґРµРЅС‹.')) + '</div>';
+        box.innerHTML = (data || []).map((profile) => '<div class="conv" data-add-student="' + esc(profile.id) + '"><div class="avatar">' + avatarInner(profile.full_name, profile.avatar_url) + '</div><div><h3>' + esc(profile.full_name || 'Duvela') + '</h3><p>' + esc(profile.city || '') + '</p></div><div>+</div></div>').join('') || '<div class="empty">' + esc(tr('No people found.', 'Люди не найдены.')) + '</div>';
       } catch (error) {
         box.innerHTML = '';
       }
@@ -79,7 +79,7 @@
         if (error) throw error;
         openClassManage(currentClassId);
       } catch (error) {
-        alert(error.message || tr('Could not add the student.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ СѓС‡РµРЅРёРєР°.'));
+        alert(error.message || tr('Could not add the student.', 'Не удалось добавить ученика.'));
       }
     }
 
@@ -87,7 +87,7 @@
       const title = ($('#csTitle').value || '').trim();
       const when = $('#csWhen').value;
       if (!title || !when) {
-        alert(tr('Title and time are required.', 'РќСѓР¶РЅС‹ РЅР°Р·РІР°РЅРёРµ Рё РІСЂРµРјСЏ.'));
+        alert(tr('Title and time are required.', 'Нужны название и время.'));
         return;
       }
       try {
@@ -95,7 +95,7 @@
         if (error) throw error;
         openClassManage(currentClassId);
       } catch (error) {
-        alert(error.message || tr('Could not create the session.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃРµСЃСЃРёСЋ.'));
+        alert(error.message || tr('Could not create the session.', 'Не удалось создать сессию.'));
       }
     }
 
@@ -106,7 +106,7 @@
         if (error) throw error;
         openClassManage(currentClassId);
       } catch (error) {
-        alert(error.message || tr('Could not mark attendance.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РјРµС‚РёС‚СЊ РїРѕСЃРµС‰Р°РµРјРѕСЃС‚СЊ.'));
+        alert(error.message || tr('Could not mark attendance.', 'Не удалось отметить посещаемость.'));
       }
     }
 

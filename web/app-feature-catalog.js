@@ -8,7 +8,7 @@
       if (!item) return;
       $('#eventOverlayTitle').textContent = item.title;
       const body = $('#eventOverlayBody');
-      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Р—Р°РіСЂСѓР·РєР°...')) + '</div>';
+      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       $('#eventOverlay').classList.add('open');
       let organizer = null;
       let myStatus = null;
@@ -26,18 +26,18 @@
         /* counts optional */
       }
       const attending = myStatus === 'going';
-      const when = [item.event_date ? formatDate(item.event_date) : '', item.event_time ? item.event_time.slice(0, 5) : ''].filter(Boolean).join(' В· ');
+      const when = [item.event_date ? formatDate(item.event_date) : '', item.event_time ? item.event_time.slice(0, 5) : ''].filter(Boolean).join(' · ');
       body.innerHTML =
         (item.image ? '<img src="' + esc(item.image) + '" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px">' : '') +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
           (when ? '<span class="tag blue">' + esc(when) + '</span>' : '') +
-          '<span class="tag">' + esc(item.is_online ? tr('Online', 'РћРЅР»Р°Р№РЅ') : (item.city || tr('In person', 'РћС„С„Р»Р°Р№РЅ'))) + '</span>' +
+          '<span class="tag">' + esc(item.is_online ? tr('Online', 'Онлайн') : (item.city || tr('In person', 'Оффлайн'))) + '</span>' +
           '<span class="tag amber">' + esc(formatMoney(item)) + '</span>' +
-          (going ? '<span class="tag teal">' + going + ' ' + esc(tr('going', 'РёРґСѓС‚')) + '</span>' : '') +
+          (going ? '<span class="tag teal">' + going + ' ' + esc(tr('going', 'идут')) + '</span>' : '') +
         '</div>' +
-        (organizer && organizer.full_name ? '<p style="font-weight:800;color:var(--soft);margin:0 0 8px">' + esc(tr('By ', 'РћСЂРіР°РЅРёР·Р°С‚РѕСЂ: ') + organizer.full_name) + '</p>' : '') +
-        '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(item.description || tr('No description yet.', 'РћРїРёСЃР°РЅРёСЏ РїРѕРєР° РЅРµС‚.')) + '</p>' +
-        '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'РћС‚РјРµРЅРёС‚СЊ СѓС‡Р°СЃС‚РёРµ') : tr('RSVP — I will attend', 'РџРѕР№РґСѓ')) + '</button></div>';
+        (organizer && organizer.full_name ? '<p style="font-weight:800;color:var(--soft);margin:0 0 8px">' + esc(tr('By ', 'Организатор: ') + organizer.full_name) + '</p>' : '') +
+        '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(item.description || tr('No description yet.', 'Описания пока нет.')) + '</p>' +
+        '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'Отменить участие') : tr('RSVP — I will attend', 'Пойду')) + '</button></div>';
     }
 
     async function toggleRsvp(eventId) {
@@ -48,7 +48,7 @@
         await supa.from('event_rsvps').upsert({ event_id: eventId, user_id: ctx.user.id, status: going ? 'cancelled' : 'going', updated_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' });
         if (overlayOpen) openEventDetail(eventId);
       } catch (error) {
-        alert(error.message || tr('Could not update RSVP.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ СѓС‡Р°СЃС‚РёРµ.'));
+        alert(error.message || tr('Could not update RSVP.', 'Не удалось обновить участие.'));
       }
     }
 
@@ -58,7 +58,7 @@
       currentCourseId = courseId;
       $('#courseOverlayTitle').textContent = course.title;
       const body = $('#courseOverlayBody');
-      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Р—Р°РіСЂСѓР·РєР°...')) + '</div>';
+      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       $('#courseOverlay').classList.add('open');
       let meta = null;
       let lessons = [];
@@ -110,25 +110,25 @@
       const enrolled = state.enrolledIds.has(courseId);
 
       function taskHtml(task) {
-        const head = '<b style="font-size:13px">' + esc(task.title || tr('Task', 'Р—Р°РґР°РЅРёРµ')) + '</b>' + (task.description ? '<p>' + esc(task.description) + '</p>' : '');
+        const head = '<b style="font-size:13px">' + esc(task.title || tr('Task', 'Задание')) + '</b>' + (task.description ? '<p>' + esc(task.description) + '</p>' : '');
         if (owner) {
           const subs = subsByTask.get(task.id) || [];
           return '<div class="lesson-item" style="grid-template-columns:1fr"><div>' + head +
-            '<p style="color:var(--purple);font-weight:800">' + subs.length + ' ' + esc(tr('submissions', 'СЃРґР°С‡')) + '</p>' +
-            subs.map((submission) => '<div style="border-top:1px solid var(--line);padding:6px 0;font-size:12.5px"><b>' + esc((enrollments.find((entry) => entry.user_id === submission.student_id) || {}).full_name || tr('Student', 'РЎС‚СѓРґРµРЅС‚')) + '</b>: ' + esc((submission.content || '').slice(0, 200)) + (submission.score != null ? ' <span class="tag teal">' + submission.score + '/' + (task.max_score || 100) + '</span>' : ' <button class="btn" data-grade="' + esc(submission.id) + '" data-max="' + (task.max_score || 100) + '" style="min-height:28px;padding:4px 8px">' + esc(tr('Grade', 'РћС†РµРЅРёС‚СЊ')) + '</button>') + '</div>').join('') +
+            '<p style="color:var(--purple);font-weight:800">' + subs.length + ' ' + esc(tr('submissions', 'сдач')) + '</p>' +
+            subs.map((submission) => '<div style="border-top:1px solid var(--line);padding:6px 0;font-size:12.5px"><b>' + esc((enrollments.find((entry) => entry.user_id === submission.student_id) || {}).full_name || tr('Student', 'Студент')) + '</b>: ' + esc((submission.content || '').slice(0, 200)) + (submission.score != null ? ' <span class="tag teal">' + submission.score + '/' + (task.max_score || 100) + '</span>' : ' <button class="btn" data-grade="' + esc(submission.id) + '" data-max="' + (task.max_score || 100) + '" style="min-height:28px;padding:4px 8px">' + esc(tr('Grade', 'Оценить')) + '</button>') + '</div>').join('') +
             '</div></div>';
         }
         const sub = mySubByTask.get(task.id);
         if (sub) {
           return '<div class="lesson-item" style="grid-template-columns:1fr"><div>' + head +
             (sub.score != null
-              ? '<p style="color:var(--teal);font-weight:800">' + esc(tr('Score: ', 'РћС†РµРЅРєР°: ')) + sub.score + '/' + (task.max_score || 100) + (sub.feedback ? ' — ' + esc(sub.feedback) : '') + '</p>'
-              : '<p style="color:var(--amber);font-weight:800">' + esc(tr('Submitted — awaiting grade', 'РЎРґР°РЅРѕ — Р¶РґС‘С‚ РѕС†РµРЅРєРё')) + '</p>') +
+              ? '<p style="color:var(--teal);font-weight:800">' + esc(tr('Score: ', 'Оценка: ')) + sub.score + '/' + (task.max_score || 100) + (sub.feedback ? ' — ' + esc(sub.feedback) : '') + '</p>'
+              : '<p style="color:var(--amber);font-weight:800">' + esc(tr('Submitted — awaiting grade', 'Сдано — ждёт оценки')) + '</p>') +
             '</div></div>';
         }
         return '<div class="lesson-item" style="grid-template-columns:1fr"><div>' + head +
-          '<textarea id="ta-' + esc(task.id) + '" placeholder="' + esc(tr('Your answer', 'Р’Р°С€ РѕС‚РІРµС‚')) + '" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft);min-height:60px;margin:6px 0"></textarea>' +
-          '<button class="btn primary" data-submit-task="' + esc(task.id) + '" data-lesson="' + esc(task.lesson_id) + '" style="min-height:32px">' + esc(tr('Submit', 'РЎРґР°С‚СЊ')) + '</button>' +
+          '<textarea id="ta-' + esc(task.id) + '" placeholder="' + esc(tr('Your answer', 'Ваш ответ')) + '" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft);min-height:60px;margin:6px 0"></textarea>' +
+          '<button class="btn primary" data-submit-task="' + esc(task.id) + '" data-lesson="' + esc(task.lesson_id) + '" style="min-height:32px">' + esc(tr('Submit', 'Сдать')) + '</button>' +
           '</div></div>';
       }
 
@@ -142,30 +142,30 @@
           '<span class="tag teal">' + esc(formatMoney(course)) + '</span>' +
           (course.schedule ? '<span class="tag blue">' + esc(course.schedule) + '</span>' : '') +
         '</div>' +
-        '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(course.description || tr('No description yet.', 'РћРїРёСЃР°РЅРёСЏ РїРѕРєР° РЅРµС‚.')) + '</p>';
+        '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(course.description || tr('No description yet.', 'Описания пока нет.')) + '</p>';
       if (!owner && totalTasks) {
-        html += '<div class="prog-row" style="margin-top:14px"><div class="prog-label"><span>' + esc(tr('Course progress', 'РџСЂРѕРіСЂРµСЃСЃ РєСѓСЂСЃР°')) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
+        html += '<div class="prog-row" style="margin-top:14px"><div class="prog-label"><span>' + esc(tr('Course progress', 'Прогресс курса')) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
       }
-      html += '<h3 style="margin:16px 0 6px;font-size:15px">' + esc(tr('Lessons', 'РЈСЂРѕРєРё')) + '</h3>';
+      html += '<h3 style="margin:16px 0 6px;font-size:15px">' + esc(tr('Lessons', 'Уроки')) + '</h3>';
       if (owner) {
-        html += '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:8px"><input id="newLessonTitle" placeholder="' + esc(tr('New lesson title', 'РќР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°')) + '" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft)"><button class="btn primary" data-add-lesson="1">' + esc(tr('Add', 'Р”РѕР±Р°РІРёС‚СЊ')) + '</button></div>';
+        html += '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:8px"><input id="newLessonTitle" placeholder="' + esc(tr('New lesson title', 'Название урока')) + '" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft)"><button class="btn primary" data-add-lesson="1">' + esc(tr('Add', 'Добавить')) + '</button></div>';
       }
       html += lessons.length ? lessons.map((lesson, index) =>
-        '<div class="lesson-item"><div class="n">' + (lesson.order_index != null ? lesson.order_index : index + 1) + '</div><div style="min-width:0"><b>' + esc(lesson.title || tr('Lesson', 'РЈСЂРѕРє')) + '</b>' + (lesson.description ? '<p>' + esc(lesson.description) + '</p>' : '') + '</div></div>' +
+        '<div class="lesson-item"><div class="n">' + (lesson.order_index != null ? lesson.order_index : index + 1) + '</div><div style="min-width:0"><b>' + esc(lesson.title || tr('Lesson', 'Урок')) + '</b>' + (lesson.description ? '<p>' + esc(lesson.description) + '</p>' : '') + '</div></div>' +
         (tasksByLesson.get(lesson.id) || []).map(taskHtml).join('') +
-        (owner ? '<div class="card" style="padding:8px;margin:0 0 12px;display:flex;gap:6px;flex-wrap:wrap"><input id="nt-' + esc(lesson.id) + '" placeholder="' + esc(tr('New task/homework', 'РќРѕРІРѕРµ Р·Р°РґР°РЅРёРµ')) + '" style="flex:1;min-width:140px;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--panel-soft)"><input id="ntm-' + esc(lesson.id) + '" type="number" min="1" value="100" title="max" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--panel-soft)"><button class="btn" data-add-task="' + esc(lesson.id) + '">' + esc(tr('Add task', 'Р—Р°РґР°РЅРёРµ')) + '</button></div>' : '')
-      ).join('') : '<div class="empty">' + esc(tr('No lessons yet.', 'РЈСЂРѕРєРѕРІ РїРѕРєР° РЅРµС‚.')) + '</div>';
+        (owner ? '<div class="card" style="padding:8px;margin:0 0 12px;display:flex;gap:6px;flex-wrap:wrap"><input id="nt-' + esc(lesson.id) + '" placeholder="' + esc(tr('New task/homework', 'Новое задание')) + '" style="flex:1;min-width:140px;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--panel-soft)"><input id="ntm-' + esc(lesson.id) + '" type="number" min="1" value="100" title="max" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--panel-soft)"><button class="btn" data-add-task="' + esc(lesson.id) + '">' + esc(tr('Add task', 'Задание')) + '</button></div>' : '')
+      ).join('') : '<div class="empty">' + esc(tr('No lessons yet.', 'Уроков пока нет.')) + '</div>';
       if (owner) {
-        html += '<h3 style="margin:16px 0 6px;font-size:15px">' + esc(tr('Enrollments', 'Р—Р°РїРёСЃРё')) + ' (' + enrollments.length + ')</h3>' +
+        html += '<h3 style="margin:16px 0 6px;font-size:15px">' + esc(tr('Enrollments', 'Записи')) + ' (' + enrollments.length + ')</h3>' +
           (enrollments.length ? enrollments.map((enrollment) =>
-            '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(enrollment.full_name || tr('Student', 'РЎС‚СѓРґРµРЅС‚')) + '</h3><p>' + esc(enrollment.status) + '</p></div>' + (enrollment.status === 'pending' ? '<button class="btn primary" data-confirm-enroll="' + esc(enrollment.id) + '">' + esc(tr('Confirm', 'РџРѕРґС‚РІРµСЂРґРёС‚СЊ')) + '</button>' : '<span class="tag teal">' + esc(tr('Confirmed', 'РџРѕРґС‚РІРµСЂР¶РґС‘РЅ')) + '</span>') + '</div>'
-          ).join('') : '<div class="empty">' + esc(tr('No enrollments yet.', 'Р—Р°РїРёСЃРµР№ РїРѕРєР° РЅРµС‚.')) + '</div>');
+            '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(enrollment.full_name || tr('Student', 'Студент')) + '</h3><p>' + esc(enrollment.status) + '</p></div>' + (enrollment.status === 'pending' ? '<button class="btn primary" data-confirm-enroll="' + esc(enrollment.id) + '">' + esc(tr('Confirm', 'Подтвердить')) + '</button>' : '<span class="tag teal">' + esc(tr('Confirmed', 'Подтверждён')) + '</span>') + '</div>'
+          ).join('') : '<div class="empty">' + esc(tr('No enrollments yet.', 'Записей пока нет.')) + '</div>');
       } else {
         const cta = enrolled
-          ? '<button class="btn" data-unenroll="' + esc(courseId) + '">' + esc(tr('Cancel enrollment', 'РћС‚РјРµРЅРёС‚СЊ Р·Р°РїРёСЃСЊ')) + '</button>'
-          : '<button class="btn primary" data-enroll="' + esc(courseId) + '">' + esc(tr('Enroll', 'Р—Р°РїРёСЃР°С‚СЊСЃСЏ')) + '</button>';
+          ? '<button class="btn" data-unenroll="' + esc(courseId) + '">' + esc(tr('Cancel enrollment', 'Отменить запись')) + '</button>'
+          : '<button class="btn primary" data-enroll="' + esc(courseId) + '">' + esc(tr('Enroll', 'Записаться')) + '</button>';
         const certificate = (totalTasks && doneTasks === totalTasks)
-          ? ' <button class="btn primary" data-cert="' + esc(courseId) + '">' + esc(tr('Get certificate', 'РџРѕР»СѓС‡РёС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚')) + '</button>'
+          ? ' <button class="btn primary" data-cert="' + esc(courseId) + '">' + esc(tr('Get certificate', 'Получить сертификат')) + '</button>'
           : '';
         html += '<div style="margin-top:16px">' + cta + certificate + '</div>';
       }
@@ -181,7 +181,7 @@
         if (error) throw error;
         openCourseDetail(courseId);
       } catch (error) {
-        alert(error.message || tr('Could not add the lesson.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ СѓСЂРѕРє.'));
+        alert(error.message || tr('Could not add the lesson.', 'Не удалось добавить урок.'));
       }
     }
 
@@ -194,7 +194,7 @@
         if (error) throw error;
         openCourseDetail(currentCourseId);
       } catch (error) {
-        alert(error.message || tr('Could not add the task.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ Р·Р°РґР°РЅРёРµ.'));
+        alert(error.message || tr('Could not add the task.', 'Не удалось добавить задание.'));
       }
     }
 
@@ -202,7 +202,7 @@
       const input = $('#ta-' + taskId);
       const content = ((input && input.value) || '').trim();
       if (!content) {
-        alert(tr('Write your answer first.', 'РЎРЅР°С‡Р°Р»Р° РЅР°РїРёС€РёС‚Рµ РѕС‚РІРµС‚.'));
+        alert(tr('Write your answer first.', 'Сначала напишите ответ.'));
         return;
       }
       try {
@@ -210,21 +210,21 @@
         if (error) throw error;
         openCourseDetail(currentCourseId);
       } catch (error) {
-        alert(error.message || tr('Could not submit.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРґР°С‚СЊ.'));
+        alert(error.message || tr('Could not submit.', 'Не удалось сдать.'));
       }
     }
 
     async function gradeSubmission(submissionId, max) {
-      const raw = prompt(tr('Score (0–', 'РћС†РµРЅРєР° (0–') + max + '):');
+      const raw = prompt(tr('Score (0–', 'Оценка (0–') + max + '):');
       if (raw == null) return;
       const score = Math.max(0, Math.min(max, Number(raw) || 0));
-      const feedback = prompt(tr('Feedback (optional):', 'РљРѕРјРјРµРЅС‚Р°СЂРёР№ (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ):')) || null;
+      const feedback = prompt(tr('Feedback (optional):', 'Комментарий (необязательно):')) || null;
       try {
         const { error } = await supa.from('task_submissions').update({ score, feedback, graded_at: new Date().toISOString(), grader_id: ctx.user.id }).eq('id', submissionId);
         if (error) throw error;
         openCourseDetail(currentCourseId);
       } catch (error) {
-        alert(error.message || tr('Could not save the grade.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РѕС†РµРЅРєСѓ.'));
+        alert(error.message || tr('Could not save the grade.', 'Не удалось сохранить оценку.'));
       }
     }
 
@@ -234,7 +234,7 @@
         if (error) throw error;
         openCourseDetail(currentCourseId);
       } catch (error) {
-        alert(error.message || tr('Could not confirm.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґС‚РІРµСЂРґРёС‚СЊ.'));
+        alert(error.message || tr('Could not confirm.', 'Не удалось подтвердить.'));
       }
     }
 
@@ -243,7 +243,7 @@
       const name = ctx.profile?.full_name || (ctx.user.email || 'Duvela learner');
       const win = window.open('', '_blank');
       if (!win) {
-        alert(tr('Allow pop-ups to open the certificate.', 'Р Р°Р·СЂРµС€РёС‚Рµ РІСЃРїР»С‹РІР°СЋС‰РёРµ РѕРєРЅР° РґР»СЏ СЃРµСЂС‚РёС„РёРєР°С‚Р°.'));
+        alert(tr('Allow pop-ups to open the certificate.', 'Разрешите всплывающие окна для сертификата.'));
         return;
       }
       const dateStr = new Date().toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -252,11 +252,11 @@
         'body{font-family:Georgia,serif;margin:0;display:grid;place-items:center;min-height:100vh;background:#f4f1fb}' +
         '.cert{width:760px;max-width:92vw;background:#fff;border:10px solid #683FDC;border-radius:14px;padding:56px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15)}' +
         '.k{letter-spacing:4px;color:#683FDC;font-weight:bold;font-size:14px}.n{font-size:40px;margin:18px 0}.c{font-size:22px;color:#333;margin:8px 0 24px}.d{color:#666;margin-top:26px}button{margin-top:24px;padding:10px 20px;border:0;background:#683FDC;color:#fff;border-radius:8px;font-size:15px;cursor:pointer}@media print{button{display:none}}' +
-        '</style></head><body><div class="cert"><div class="k">' + esc(tr('CERTIFICATE OF COMPLETION', 'РЎР•Р РўРР¤РРљРђРў Рћ Р—РђР’Р•Р РЁР•РќРР')) + '</div>' +
+        '</style></head><body><div class="cert"><div class="k">' + esc(tr('CERTIFICATE OF COMPLETION', 'СЕРТИФИКАТ О ЗАВЕРШЕНИИ')) + '</div>' +
         '<div class="n">' + esc(name) + '</div>' +
-        '<div class="c">' + esc(tr('has successfully completed', 'СѓСЃРїРµС€РЅРѕ Р·Р°РІРµСЂС€РёР»(Р°) РєСѓСЂСЃ')) + '<br><b>' + esc(course.title || 'Duvela course') + '</b></div>' +
+        '<div class="c">' + esc(tr('has successfully completed', 'успешно завершил(а) курс')) + '<br><b>' + esc(course.title || 'Duvela course') + '</b></div>' +
         '<div class="d">Duvela · ' + esc(dateStr) + '</div>' +
-        '<button onclick="window.print()">' + esc(tr('Print / Save PDF', 'РџРµС‡Р°С‚СЊ / РЎРѕС…СЂР°РЅРёС‚СЊ PDF')) + '</button>' +
+        '<button onclick="window.print()">' + esc(tr('Print / Save PDF', 'Печать / Сохранить PDF')) + '</button>' +
         '</div></body></html>'
       );
       win.document.close();
@@ -266,37 +266,37 @@
       const creator = ctx.isBusiness();
       const homeHeads = document.querySelectorAll('[data-panel="home"] .section-head');
       if (homeHeads[0]) {
-        homeHeads[0].querySelector('h2').textContent = creator ? tr('Creator desk', 'Р Р°Р±РѕС‡РёР№ СЃС‚РѕР» Р°РІС‚РѕСЂР°') : tr('Continue learning', 'РџСЂРѕРґРѕР»Р¶РёС‚СЊ РѕР±СѓС‡РµРЅРёРµ');
-        homeHeads[0].querySelector('span').textContent = creator ? tr('Today', 'РЎРµРіРѕРґРЅСЏ') : tr('Next steps', 'РЎР»РµРґСѓСЋС‰РёРµ С€Р°РіРё');
+        homeHeads[0].querySelector('h2').textContent = creator ? tr('Creator desk', 'Рабочий стол автора') : tr('Continue learning', 'Продолжить обучение');
+        homeHeads[0].querySelector('span').textContent = creator ? tr('Today', 'Сегодня') : tr('Next steps', 'Следующие шаги');
       }
-      if (homeHeads[1]) homeHeads[1].querySelector('h2').textContent = creator ? tr('Live rooms', 'Live-РєРѕРјРЅР°С‚С‹') : tr('Live now', 'РЎРµР№С‡Р°СЃ РІ СЌС„РёСЂРµ');
+      if (homeHeads[1]) homeHeads[1].querySelector('h2').textContent = creator ? tr('Live rooms', 'Live-комнаты') : tr('Live now', 'Сейчас в эфире');
       if (creator) {
-        ctx.setMetric(0, tr('Active live', 'РђРєС‚РёРІРЅС‹Рµ СЌС„РёСЂС‹'), String(state.live.length), tr('Public live rooms available from the web.', 'РџСѓР±Р»РёС‡РЅС‹Рµ live-РєРѕРјРЅР°С‚С‹ РґРѕСЃС‚СѓРїРЅС‹ РёР· РІРµР±Р°.'));
-        ctx.setMetric(1, tr('Course catalog', 'РљР°С‚Р°Р»РѕРі РєСѓСЂСЃРѕРІ'), String(state.courses.length), tr('Programs loaded for your web workspace.', 'РџСЂРѕРіСЂР°РјРјС‹ Р·Р°РіСЂСѓР¶РµРЅС‹ РІ РІР°С€ РІРµР±-РєР°Р±РёРЅРµС‚.'));
-        ctx.setMetric(2, tr('Creator tools', 'РРЅСЃС‚СЂСѓРјРµРЅС‚С‹ Р°РІС‚РѕСЂР°'), tr('Ready', 'Р“РѕС‚РѕРІРѕ'), tr('Draft, publish and manage activity.', 'РЎРѕР·РґР°РІР°Р№С‚Рµ, РїСѓР±Р»РёРєСѓР№С‚Рµ Рё СѓРїСЂР°РІР»СЏР№С‚Рµ Р°РєС‚РёРІРЅРѕСЃС‚СЊСЋ.'));
+        ctx.setMetric(0, tr('Active live', 'Активные эфиры'), String(state.live.length), tr('Public live rooms available from the web.', 'Публичные live-комнаты доступны из веба.'));
+        ctx.setMetric(1, tr('Course catalog', 'Каталог курсов'), String(state.courses.length), tr('Programs loaded for your web workspace.', 'Программы загружены в ваш веб-кабинет.'));
+        ctx.setMetric(2, tr('Creator tools', 'Инструменты автора'), tr('Ready', 'Готово'), tr('Draft, publish and manage activity.', 'Создавайте, публикуйте и управляйте активностью.'));
         $('#homeList').innerHTML = [
-          ctx.row({ title: tr('Start teacher LIVE', 'Р—Р°РїСѓСЃС‚РёС‚СЊ teacher LIVE'), meta: tr('Open camera, microphone and publish from the browser.', 'РћС‚РєСЂРѕР№С‚Рµ РєР°РјРµСЂСѓ, РјРёРєСЂРѕС„РѕРЅ Рё РЅР°С‡РЅРёС‚Рµ СЌС„РёСЂ РёР· Р±СЂР°СѓР·РµСЂР°.'), level: tr('Live', 'Р­С„РёСЂ') }, '<a class="btn primary" href="' + ctx.teacherLiveUrl() + '">' + esc(tr('Start', 'РЎС‚Р°СЂС‚')) + '</a>'),
-          ctx.row({ title: tr('Build a course offer', 'РЎРѕР±СЂР°С‚СЊ РєСѓСЂСЃ'), meta: tr('Review course list and prepare the next program.', 'РџСЂРѕРІРµСЂСЊС‚Рµ СЃРїРёСЃРѕРє РєСѓСЂСЃРѕРІ Рё РїРѕРґРіРѕС‚РѕРІСЊС‚Рµ СЃР»РµРґСѓСЋС‰СѓСЋ РїСЂРѕРіСЂР°РјРјСѓ.'), level: tr('Course', 'РљСѓСЂСЃ') }, '<a class="btn" href="#courses" data-go="courses">' + esc(tr('Manage', 'РЈРїСЂР°РІР»СЏС‚СЊ')) + '</a>'),
-          ctx.row({ title: tr('Publish an event', 'РћРїСѓР±Р»РёРєРѕРІР°С‚СЊ СЃРѕР±С‹С‚РёРµ'), meta: tr('Create a workshop or community meetup plan.', 'РЎРѕР·РґР°Р№С‚Рµ РїР»Р°РЅ РІРѕСЂРєС€РѕРїР° РёР»Рё community meetup.'), level: tr('Event', 'РЎРѕР±С‹С‚РёРµ') }, '<a class="btn" href="#events" data-go="events">' + esc(tr('Plan', 'РџР»Р°РЅ')) + '</a>')
+          ctx.row({ title: tr('Start teacher LIVE', 'Запустить teacher LIVE'), meta: tr('Open camera, microphone and publish from the browser.', 'Откройте камеру, микрофон и начните эфир из браузера.'), level: tr('Live', 'Эфир') }, '<a class="btn primary" href="' + ctx.teacherLiveUrl() + '">' + esc(tr('Start', 'Старт')) + '</a>'),
+          ctx.row({ title: tr('Build a course offer', 'Собрать курс'), meta: tr('Review course list and prepare the next program.', 'Проверьте список курсов и подготовьте следующую программу.'), level: tr('Course', 'Курс') }, '<a class="btn" href="#courses" data-go="courses">' + esc(tr('Manage', 'Управлять')) + '</a>'),
+          ctx.row({ title: tr('Publish an event', 'Опубликовать событие'), meta: tr('Create a workshop or community meetup plan.', 'Создайте план воркшопа или community meetup.'), level: tr('Event', 'Событие') }, '<a class="btn" href="#events" data-go="events">' + esc(tr('Plan', 'План')) + '</a>')
         ].join('');
       } else {
         const xp = ctx.profile?.score ?? 0;
         const coins = ctx.profile?.vela_coin_balance ?? 0;
         const speaking = ctx.profile?.speaking_progress ?? 0;
-        ctx.setMetric(0, tr('Current level', 'РўРµРєСѓС‰РёР№ СѓСЂРѕРІРµРЅСЊ'), ctx.profile?.language_level || '—', ctx.profile?.goal_level ? (tr('Goal: ', 'Р¦РµР»СЊ: ') + ctx.profile.goal_level) : tr('Feed tuned for your progress.', 'Р›РµРЅС‚Р° РЅР°СЃС‚СЂРѕРµРЅР° РїРѕРґ РІР°С€ РїСЂРѕРіСЂРµСЃСЃ.'));
-        ctx.setMetric(1, tr('Total XP', 'Р’СЃРµРіРѕ XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Р—Р°СЂР°Р±РѕС‚Р°РЅРѕ РЅР° РїСЂР°РєС‚РёРєРµ Рё СѓСЂРѕРєР°С….'));
-        ctx.setMetric(2, tr('Duvela Coins', 'РњРѕРЅРµС‚С‹ Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'РўСЂР°С‚СЊС‚Рµ РЅР° РЅР°РіСЂР°РґС‹ Рё СЂР°Р·Р±Р»РѕРєРёСЂРѕРІРєРё.'));
+        ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', ctx.profile?.goal_level ? (tr('Goal: ', 'Цель: ') + ctx.profile.goal_level) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
+        ctx.setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
+        ctx.setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
         const myCourse = state.myCourses[0];
         $('#homeList').innerHTML = [
           myCourse
-            ? ctx.row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? tr('Enrolled • confirmed', 'Р—Р°РїРёСЃР°РЅ • РїРѕРґС‚РІРµСЂР¶РґРµРЅРѕ') : tr('Enrollment pending', 'Р—Р°РїРёСЃСЊ РѕР¶РёРґР°РµС‚ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ'), level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Open', 'РћС‚РєСЂС‹С‚СЊ')) + '</a>')
-            : ctx.row({ title: tr('Find your first course', 'РќР°Р№РґРёС‚Рµ СЃРІРѕР№ РїРµСЂРІС‹Р№ РєСѓСЂСЃ'), meta: tr('Browse structured programs from teachers', 'РџРѕСЃРјРѕС‚СЂРёС‚Рµ СЃС‚СЂСѓРєС‚СѓСЂРёСЂРѕРІР°РЅРЅС‹Рµ РїСЂРѕРіСЂР°РјРјС‹ РѕС‚ РїСЂРµРїРѕРґР°РІР°С‚РµР»РµР№'), level: tr('New', 'РќРѕРІС‹Р№') }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Browse', 'РЎРјРѕС‚СЂРµС‚СЊ')) + '</a>'),
-          ctx.row({ title: tr('Daily speaking practice', 'Р•Р¶РµРґРЅРµРІРЅР°СЏ speaking practice'), meta: tr('Speaking progress: ', 'РџСЂРѕРіСЂРµСЃСЃ speaking: ') + speaking + '%', level: tr('Practice', 'РџСЂР°РєС‚РёРєР°') }, '<a class="btn" href="#workspace" data-go="workspace">' + esc(tr('Open', 'РћС‚РєСЂС‹С‚СЊ')) + '</a>'),
-          ctx.row({ title: tr('Message a teacher', 'РќР°РїРёСЃР°С‚СЊ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЋ'), meta: tr('Ask a question or book a lesson', 'Р—Р°РґР°Р№С‚Рµ РІРѕРїСЂРѕСЃ РёР»Рё РґРѕРіРѕРІРѕСЂРёС‚РµСЃСЊ РѕР± СѓСЂРѕРєРµ'), level: tr('Chat', 'Р§Р°С‚') }, '<a class="btn" href="#messages" data-go="messages">' + esc(tr('Open', 'РћС‚РєСЂС‹С‚СЊ')) + '</a>')
+            ? ctx.row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? tr('Enrolled • confirmed', 'Записан • подтверждено') : tr('Enrollment pending', 'Запись ожидает подтверждения'), level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Open', 'Открыть')) + '</a>')
+            : ctx.row({ title: tr('Find your first course', 'Найдите свой первый курс'), meta: tr('Browse structured programs from teachers', 'Посмотрите структурированные программы от преподавателей'), level: tr('New', 'Новый') }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Browse', 'Смотреть')) + '</a>'),
+          ctx.row({ title: tr('Daily speaking practice', 'Ежедневная speaking practice'), meta: tr('Speaking progress: ', 'Прогресс speaking: ') + speaking + '%', level: tr('Practice', 'Практика') }, '<a class="btn" href="#workspace" data-go="workspace">' + esc(tr('Open', 'Открыть')) + '</a>'),
+          ctx.row({ title: tr('Message a teacher', 'Написать преподавателю'), meta: tr('Ask a question or book a lesson', 'Задайте вопрос или договоритесь об уроке'), level: tr('Chat', 'Чат') }, '<a class="btn" href="#messages" data-go="messages">' + esc(tr('Open', 'Открыть')) + '</a>')
         ].join('');
       }
       $('#homeLive').innerHTML = state.live.slice(0, 3).map((item) =>
-        ctx.row({ title: item.teacher_name || tr('Teacher live', 'Р­С„РёСЂ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ'), meta: item.title || tr('Live lesson', 'Live-СѓСЂРѕРє'), level: tr('Live', 'Р­С„РёСЂ') }, '<a class="btn primary" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(creator ? tr('Enter', 'Р’РѕР№С‚Рё') : tr('Watch', 'РЎРјРѕС‚СЂРµС‚СЊ')) + '</a>')
+        ctx.row({ title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'), meta: item.title || tr('Live lesson', 'Live-урок'), level: tr('Live', 'Эфир') }, '<a class="btn primary" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(creator ? tr('Enter', 'Войти') : tr('Watch', 'Смотреть')) + '</a>')
       ).join('');
       $('#liveCount').textContent = ctx.staticSessionCount(state.live.length);
     }
@@ -305,57 +305,57 @@
       const creator = ctx.isBusiness();
       const head = document.querySelector('[data-panel="live"] .section-head');
       if (head) {
-        head.querySelector('h2').textContent = creator ? tr('Live Studio', 'Live Studio') : tr('Live lessons', 'Live-СѓСЂРѕРєРё');
-        head.querySelector('span').textContent = creator ? tr('Public rooms and active sessions', 'РџСѓР±Р»РёС‡РЅС‹Рµ РєРѕРјРЅР°С‚С‹ Рё Р°РєС‚РёРІРЅС‹Рµ СЌС„РёСЂС‹') : tr('Watch in browser', 'РЎРјРѕС‚СЂРёС‚Рµ РІ Р±СЂР°СѓР·РµСЂРµ');
+        head.querySelector('h2').textContent = creator ? tr('Live Studio', 'Live Studio') : tr('Live lessons', 'Live-уроки');
+        head.querySelector('span').textContent = creator ? tr('Public rooms and active sessions', 'Публичные комнаты и активные эфиры') : tr('Watch in browser', 'Смотрите в браузере');
       }
       $('#liveHostPanel').innerHTML = creator ? (
         '<div class="card live-host-card">' +
-        '<div><h3>' + esc(tr('Start teacher LIVE', 'Р—Р°РїСѓСЃС‚РёС‚СЊ teacher LIVE')) + '</h3><p>' + esc(tr('Create a live room, open camera and microphone, and publish as host.', 'РЎРѕР·РґР°Р№С‚Рµ live-РєРѕРјРЅР°С‚Сѓ, РѕС‚РєСЂРѕР№С‚Рµ РєР°РјРµСЂСѓ Рё РјРёРєСЂРѕС„РѕРЅ Рё РІС‹Р№РґРёС‚Рµ РІ СЌС„РёСЂ РєР°Рє host.')) + '</p></div>' +
-        '<a class="btn primary" href="' + ctx.teacherLiveUrl() + '">' + esc(tr('Start LIVE', 'Р—Р°РїСѓСЃС‚РёС‚СЊ LIVE')) + '</a>' +
+        '<div><h3>' + esc(tr('Start teacher LIVE', 'Запустить teacher LIVE')) + '</h3><p>' + esc(tr('Create a live room, open camera and microphone, and publish as host.', 'Создайте live-комнату, откройте камеру и микрофон и выйдите в эфир как host.')) + '</p></div>' +
+        '<a class="btn primary" href="' + ctx.teacherLiveUrl() + '">' + esc(tr('Start LIVE', 'Запустить LIVE')) + '</a>' +
         '</div>'
       ) : '';
       $('#liveList').innerHTML = state.live.map((item) =>
-        ctx.row({ title: item.teacher_name || tr('Teacher live', 'Р­С„РёСЂ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ'), meta: item.title || tr('Live lesson', 'Live-СѓСЂРѕРє'), level: item.status || tr('live', 'live') }, '<a class="btn primary" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(creator ? tr('Enter', 'Р’РѕР№С‚Рё') : tr('Watch', 'РЎРјРѕС‚СЂРµС‚СЊ')) + '</a>')
-      ).join('') || '<div class="card empty">' + esc(tr('No public live sessions right now.', 'РЎРµР№С‡Р°СЃ РЅРµС‚ РїСѓР±Р»РёС‡РЅС‹С… СЌС„РёСЂРѕРІ.')) + '</div>';
+        ctx.row({ title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'), meta: item.title || tr('Live lesson', 'Live-урок'), level: item.status || tr('live', 'live') }, '<a class="btn primary" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(creator ? tr('Enter', 'Войти') : tr('Watch', 'Смотреть')) + '</a>')
+      ).join('') || '<div class="card empty">' + esc(tr('No public live sessions right now.', 'Сейчас нет публичных эфиров.')) + '</div>';
     }
 
     function courseAction(item) {
       const price = '<span class="tag teal">' + esc(formatMoney(item)) + '</span>';
       if (ctx.isBusiness() || !item.id) return price;
       if (state.enrolledIds.has(item.id)) {
-        return price + '<button class="btn" data-unenroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enrolled ✓', 'Р—Р°РїРёСЃР°РЅ ✓')) + '</button>';
+        return price + '<button class="btn" data-unenroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enrolled ✓', 'Записан ✓')) + '</button>';
       }
-      return price + '<button class="btn primary" data-enroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enroll', 'Р—Р°РїРёСЃР°С‚СЊСЃСЏ')) + '</button>';
+      return price + '<button class="btn primary" data-enroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enroll', 'Записаться')) + '</button>';
     }
 
     function renderCourses() {
       const head = document.querySelector('[data-panel="courses"] .section-head');
       if (head) {
-        head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Courses & offers', 'РљСѓСЂСЃС‹ Рё РѕС„С„РµСЂС‹') : tr('Courses', 'РљСѓСЂСЃС‹');
-        head.querySelector('span').textContent = ctx.isBusiness() ? tr('Web catalog', 'Р’РµР±-РєР°С‚Р°Р»РѕРі') : tr('Structured programs', 'РЎС‚СЂСѓРєС‚СѓСЂРёСЂРѕРІР°РЅРЅС‹Рµ РїСЂРѕРіСЂР°РјРјС‹');
+        head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Courses & offers', 'Курсы и офферы') : tr('Courses', 'Курсы');
+        head.querySelector('span').textContent = ctx.isBusiness() ? tr('Web catalog', 'Веб-каталог') : tr('Structured programs', 'Структурированные программы');
       }
       $('#courseList').innerHTML = state.courses.map((item) =>
         '<div class="card row"' + (item.id ? ' data-course="' + esc(item.id) + '"' : '') + '>' +
           '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'C').charAt(0))) + '</div>' +
-          '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || tr('Course from Duvela teachers', 'РљСѓСЂСЃ РѕС‚ РїСЂРµРїРѕРґР°РІР°С‚РµР»РµР№ Duvela')) + '</p></div>' +
+          '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || tr('Course from Duvela teachers', 'Курс от преподавателей Duvela')) + '</p></div>' +
           '<div style="display:flex;align-items:center;gap:0;white-space:nowrap">' + (item.level ? '<span class="tag" style="margin-right:8px">' + esc(item.level) + '</span>' : '') + courseAction(item) + '</div>' +
         '</div>'
-      ).join('') || '<div class="card empty">' + esc(tr('No courses available yet.', 'РљСѓСЂСЃРѕРІ РїРѕРєР° РЅРµС‚.')) + '</div>';
+      ).join('') || '<div class="card empty">' + esc(tr('No courses available yet.', 'Курсов пока нет.')) + '</div>';
     }
 
     function renderEvents() {
       const head = document.querySelector('[data-panel="events"] .section-head');
       if (head) {
-        head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Events & workshops', 'РЎРѕР±С‹С‚РёСЏ Рё РІРѕСЂРєС€РѕРїС‹') : tr('Events', 'РЎРѕР±С‹С‚РёСЏ');
-        head.querySelector('span').textContent = ctx.isBusiness() ? tr('Calendar and tickets', 'РљР°Р»РµРЅРґР°СЂСЊ Рё Р±РёР»РµС‚С‹') : tr('Online and offline', 'РћРЅР»Р°Р№РЅ Рё РѕС„Р»Р°Р№РЅ');
+        head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Events & workshops', 'События и воркшопы') : tr('Events', 'События');
+        head.querySelector('span').textContent = ctx.isBusiness() ? tr('Calendar and tickets', 'Календарь и билеты') : tr('Online and offline', 'Онлайн и офлайн');
       }
       $('#eventList').innerHTML = state.events.map((item) =>
         '<div class="card row"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + '>' +
           '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'E').charAt(0))) + '</div>' +
-          '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || item.description || tr('Upcoming event', 'Р‘Р»РёР¶Р°Р№С€РµРµ СЃРѕР±С‹С‚РёРµ')) + '</p></div>' +
-          '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + (item.is_online ? '<span class="tag">' + esc(tr('Online', 'РћРЅР»Р°Р№РЅ')) + '</span>' : '') + '<span class="tag amber">' + esc(formatMoney(item)) + '</span></div>' +
+          '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || item.description || tr('Upcoming event', 'Ближайшее событие')) + '</p></div>' +
+          '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + (item.is_online ? '<span class="tag">' + esc(tr('Online', 'Онлайн')) + '</span>' : '') + '<span class="tag amber">' + esc(formatMoney(item)) + '</span></div>' +
         '</div>'
-      ).join('') || '<div class="card empty">' + esc(tr('No upcoming events.', 'Р‘Р»РёР¶Р°Р№С€РёС… СЃРѕР±С‹С‚РёР№ РїРѕРєР° РЅРµС‚.')) + '</div>';
+      ).join('') || '<div class="card empty">' + esc(tr('No upcoming events.', 'Ближайших событий пока нет.')) + '</div>';
     }
 
     async function loadEnrollments() {
@@ -368,7 +368,7 @@
         state.myCourses = (data || []).map((row) => ({
           id: row.course_id,
           status: row.status,
-          title: (row.courses && row.courses.title) || tr('Course', 'РљСѓСЂСЃ'),
+          title: (row.courses && row.courses.title) || tr('Course', 'Курс'),
           level: (row.courses && row.courses.level) || ''
         }));
       } catch (error) {
@@ -394,7 +394,7 @@
         renderHome();
         ctx.renderWorkspace();
       } catch (error) {
-        alert(error.message || tr('Could not enroll.', 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РїРёСЃР°С‚СЊСЃСЏ.'));
+        alert(error.message || tr('Could not enroll.', 'Не удалось записаться.'));
       }
     }
 
@@ -409,7 +409,7 @@
         renderHome();
         ctx.renderWorkspace();
       } catch (error) {
-        alert(error.message || tr('Could not update enrollment.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ Р·Р°РїРёСЃСЊ.'));
+        alert(error.message || tr('Could not update enrollment.', 'Не удалось обновить запись.'));
       }
     }
 

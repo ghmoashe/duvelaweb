@@ -54,7 +54,7 @@
           return {
             id: conversation.id,
             isGroup: !!conversation.is_group,
-            name: (conversation.title || '').trim() || (other && other.full_name) || (conversation.is_group ? tr('Group chat', 'Р“СЂСѓРїРїРѕРІРѕР№ С‡Р°С‚') : tr('Chat', 'Р§Р°С‚')),
+            name: (conversation.title || '').trim() || (other && other.full_name) || (conversation.is_group ? tr('Group chat', 'Групповой чат') : tr('Chat', 'Чат')),
             avatarUrl: other && other.avatar_url,
             lastMessage: last ? last.body : '',
             lastAt: last ? last.created_at : (conversation.updated_at || conversation.created_at),
@@ -72,13 +72,13 @@
       const list = $('#conversationList');
       if (!list) return;
       if (!state.conversations.length) {
-        list.innerHTML = '<div class="card empty">' + esc(tr('No conversations yet. Tap “New chat” to message a teacher or learner.', 'Р”РёР°Р»РѕРіРѕРІ РїРѕРєР° РЅРµС‚. РќР°Р¶РјРёС‚Рµ «РќРѕРІС‹Р№ С‡Р°С‚», С‡С‚РѕР±С‹ РЅР°РїРёСЃР°С‚СЊ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЋ РёР»Рё СѓС‡РµРЅРёРєСѓ.')) + '</div>';
+        list.innerHTML = '<div class="card empty">' + esc(tr('No conversations yet. Tap "New chat" to message a teacher or learner.', 'Диалогов пока нет. Нажмите «Новый чат», чтобы написать преподавателю или ученику.')) + '</div>';
         return;
       }
       list.innerHTML = state.conversations.map((conversation) =>
         '<div class="conv' + (conversation.id === state.activeConversationId ? ' active' : '') + '" data-conv="' + esc(conversation.id) + '">' +
           '<div class="avatar">' + avatarInner(conversation.name, conversation.avatarUrl) + '</div>' +
-          '<div><h3>' + esc(conversation.name) + '</h3><p>' + esc(conversation.lastMessage || tr('No messages yet', 'РЎРѕРѕР±С‰РµРЅРёР№ РїРѕРєР° РЅРµС‚')) + '</p></div>' +
+          '<div><h3>' + esc(conversation.name) + '</h3><p>' + esc(conversation.lastMessage || tr('No messages yet', 'Сообщений пока нет')) + '</p></div>' +
           (conversation.unread ? '<div class="unread">' + conversation.unread + '</div>' : '<div></div>') +
         '</div>'
       ).join('');
@@ -89,7 +89,7 @@
       if (!body) return;
       body.innerHTML = messages.length
         ? messages.map((message) => '<div class="bubble ' + (message.sender_id === ctx.user.id ? 'me' : 'them') + '">' + esc(message.body) + '</div>').join('')
-        : '<div class="empty">' + esc(tr('No messages yet. Say hello.', 'РЎРѕРѕР±С‰РµРЅРёР№ РїРѕРєР° РЅРµС‚. РќР°РїРёС€РёС‚Рµ РїРµСЂРІС‹Рј.')) + '</div>';
+        : '<div class="empty">' + esc(tr('No messages yet. Say hello.', 'Сообщений пока нет. Напишите первым.')) + '</div>';
       body.scrollTop = body.scrollHeight;
     }
 
@@ -98,10 +98,10 @@
       const conversation = state.conversations.find((item) => item.id === id);
       if (conversation) conversation.unread = 0;
       renderConversations();
-      $('#threadTitle').textContent = conversation ? conversation.name : tr('Chat', 'Р§Р°С‚');
+      $('#threadTitle').textContent = conversation ? conversation.name : tr('Chat', 'Чат');
       $('#composeForm').style.display = 'flex';
       $('#msgWrap').classList.add('thread-open');
-      $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Р—Р°РіСЂСѓР·РєР°...')) + '</div>';
+      $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       try {
         const { data } = await supa.from('chat_messages')
           .select('id,conversation_id,sender_id,body,created_at')
@@ -110,7 +110,7 @@
         await supa.from('chat_participants').update({ last_read_at: new Date().toISOString() })
           .eq('conversation_id', id).eq('user_id', ctx.user.id);
       } catch (error) {
-        $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Could not load this conversation.', 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЌС‚РѕС‚ РґРёР°Р»РѕРі.')) + '</div>';
+        $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Could not load this conversation.', 'Не удалось загрузить этот диалог.')) + '</div>';
       }
       if (threadChannel) supa.removeChannel(threadChannel);
       threadChannel = supa.channel('thread-' + id + '-' + Date.now())
@@ -138,7 +138,7 @@
       } catch (error) {
         console.warn('send failed', error);
         $('#composeInput').value = text;
-        alert(tr('Could not send the message.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ.'));
+        alert(tr('Could not send the message.', 'Не удалось отправить сообщение.'));
       }
     }
 
@@ -152,7 +152,7 @@
     }
 
     function updateGroupBtn() {
-      $('#createGroupBtn').textContent = tr('Create group', 'РЎРѕР·РґР°С‚СЊ РіСЂСѓРїРїСѓ') + ' (' + chatGroupSel.size + ')';
+      $('#createGroupBtn').textContent = tr('Create group', 'Создать группу') + ' (' + chatGroupSel.size + ')';
       $('#createGroupBtn').disabled = chatGroupSel.size < 2;
     }
 
@@ -170,11 +170,11 @@
     async function createGroupChat() {
       const title = $('#groupTitle').value.trim();
       if (!title) {
-        alert(tr('Enter a group name.', 'Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ РіСЂСѓРїРїС‹.'));
+        alert(tr('Enter a group name.', 'Введите название группы.'));
         return;
       }
       if (chatGroupSel.size < 2) {
-        alert(tr('Pick at least 2 people.', 'Р’С‹Р±РµСЂРёС‚Рµ С…РѕС‚СЏ Р±С‹ 2 С‡РµР»РѕРІРµРє.'));
+        alert(tr('Pick at least 2 people.', 'Выберите хотя бы 2 человек.'));
         return;
       }
       try {
@@ -185,7 +185,7 @@
         await loadConversations();
         if (id) openConversation(id);
       } catch (error) {
-        alert(error.message || tr('Could not create the group.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РіСЂСѓРїРїСѓ.'));
+        alert(error.message || tr('Could not create the group.', 'Не удалось создать группу.'));
       }
     }
 
@@ -208,12 +208,12 @@
           const selected = chatGroupMode && chatGroupSel.has(person.id);
           return '<div class="conv' + (selected ? ' active' : '') + '" data-person="' + esc(person.id) + '">' +
             '<div class="avatar">' + avatarInner(person.full_name, person.avatar_url) + '</div>' +
-            '<div><h3>' + esc(person.full_name || tr('Duvela user', 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ Duvela')) + '</h3><p>' + esc([person.city, person.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div>' +
+            '<div><h3>' + esc(person.full_name || tr('Duvela user', 'Пользователь Duvela')) + '</h3><p>' + esc([person.city, person.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div>' +
             '<div>' + (chatGroupMode ? (selected ? '✓' : '+') : '') + '</div>' +
           '</div>';
-        }).join('') : '<div class="empty">' + esc(tr('No people found.', 'Р›СЋРґРё РЅРµ РЅР°Р№РґРµРЅС‹.')) + '</div>';
+        }).join('') : '<div class="empty">' + esc(tr('No people found.', 'Люди не найдены.')) + '</div>';
       } catch (error) {
-        picker.innerHTML = '<div class="empty">' + esc(tr('Search is unavailable right now.', 'РџРѕРёСЃРє СЃРµР№С‡Р°СЃ РЅРµРґРѕСЃС‚СѓРїРµРЅ.')) + '</div>';
+        picker.innerHTML = '<div class="empty">' + esc(tr('Search is unavailable right now.', 'Поиск сейчас недоступен.')) + '</div>';
       }
     }
 
@@ -227,7 +227,7 @@
         if (id) openConversation(id);
       } catch (error) {
         console.warn('create chat failed', error);
-        alert(tr('Could not start the chat.', 'РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ С‡Р°С‚.'));
+        alert(tr('Could not start the chat.', 'Не удалось создать чат.'));
       }
     }
 
@@ -241,7 +241,7 @@
         $('#groupTitle').value = '';
         $('#groupToggle').checked = false;
         setGroupMode(false);
-        $('#chatPicker').innerHTML = '<div class="empty">' + esc(tr('Type a name to search.', 'Р’РІРµРґРёС‚Рµ РёРјСЏ РґР»СЏ РїРѕРёСЃРєР°.')) + '</div>';
+        $('#chatPicker').innerHTML = '<div class="empty">' + esc(tr('Type a name to search.', 'Введите имя для поиска.')) + '</div>';
         $('#newChatOverlay').classList.add('open');
         searchPeople('');
         setTimeout(() => $('#chatSearch').focus(), 50);

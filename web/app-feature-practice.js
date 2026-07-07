@@ -22,7 +22,7 @@
     }
 
     function practicesHtml() {
-      if (!state.practices.length) return '<div class="empty">' + esc(tr('No practices yet. Check back soon.', 'РџСЂР°РєС‚РёРє РїРѕРєР° РЅРµС‚. Р—Р°РіР»СЏРЅРёС‚Рµ РїРѕР·Р¶Рµ.')) + '</div>';
+      if (!state.practices.length) return '<div class="empty">' + esc(tr('No practices yet. Check back soon.', 'Практик пока нет. Загляните позже.')) + '</div>';
       return state.practices.map((practice) =>
         '<div class="card prac-card" data-practice="' + esc(practice.id) + '">' +
           '<h3>' + esc(practice.title) + '</h3>' +
@@ -31,7 +31,7 @@
             (practice.level ? '<span class="tag">' + esc(String(practice.level).toUpperCase()) + '</span>' : '') +
             (practice.target ? '<span class="tag blue">' + esc(practice.target) + '</span>' : '') +
             '<span class="tag amber">★ ' + Number(practice.rating_avg || 0).toFixed(1) + ' (' + (practice.rating_count || 0) + ')</span>' +
-            '<span style="color:var(--muted);font-weight:800;font-size:12px">' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'РїСЂРѕС…РѕР¶РґРµРЅРёР№')) + '</span>' +
+            '<span style="color:var(--muted);font-weight:800;font-size:12px">' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + '</span>' +
           '</div>' +
         '</div>'
       ).join('');
@@ -43,7 +43,7 @@
       practiceState = { practice, items: [], idx: 0, score: 0, answered: false };
       $('#practiceOverlayTitle').textContent = practice.title;
       const body = $('#practiceOverlayBody');
-      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Р—Р°РіСЂСѓР·РєР°...')) + '</div>';
+      body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       $('#practiceOverlay').classList.add('open');
       try {
         const { data } = await supa.from('teacher_practice_items')
@@ -54,7 +54,7 @@
         practiceState.items = [];
       }
       if (!practiceState.items.length) {
-        body.innerHTML = '<div class="empty">' + esc(tr('This practice has no tasks yet.', 'Р’ СЌС‚РѕР№ РїСЂР°РєС‚РёРєРµ РїРѕРєР° РЅРµС‚ Р·Р°РґР°РЅРёР№.')) + '</div>';
+        body.innerHTML = '<div class="empty">' + esc(tr('This practice has no tasks yet.', 'В этой практике пока нет заданий.')) + '</div>';
         return;
       }
       renderPracticeStep();
@@ -62,7 +62,7 @@
 
     function pracNextButton() {
       const last = practiceState.idx + 1 >= practiceState.items.length;
-      return '<button class="btn primary" id="pracNext" style="margin-top:12px">' + esc(last ? tr('Finish', 'Р—Р°РІРµСЂС€РёС‚СЊ') : tr('Next', 'Р”Р°Р»РµРµ')) + '</button>';
+      return '<button class="btn primary" id="pracNext" style="margin-top:12px">' + esc(last ? tr('Finish', 'Завершить') : tr('Next', 'Далее')) + '</button>';
     }
 
     function renderPracticeStep() {
@@ -82,11 +82,11 @@
           '<div id="pracFeedback"></div>';
       } else if (type === 'flashcard') {
         body.innerHTML = progress + '<h3 style="margin:0 0 12px">' + esc(item.prompt) + '</h3>' +
-          '<div id="pracFeedback"></div><button class="btn" id="flashReveal">' + esc(tr('Show answer', 'РџРѕРєР°Р·Р°С‚СЊ РѕС‚РІРµС‚')) + '</button>';
+          '<div id="pracFeedback"></div><button class="btn" id="flashReveal">' + esc(tr('Show answer', 'Показать ответ')) + '</button>';
       } else {
         body.innerHTML = progress + '<h3 style="margin:0 0 12px">' + esc(item.prompt) + '</h3>' +
-          '<input id="fillInput" class="search" placeholder="' + esc(tr('Your answer', 'Р’Р°С€ РѕС‚РІРµС‚')) + '">' +
-          '<button class="btn primary" id="fillCheck">' + esc(tr('Check', 'РџСЂРѕРІРµСЂРёС‚СЊ')) + '</button><div id="pracFeedback"></div>';
+          '<input id="fillInput" class="search" placeholder="' + esc(tr('Your answer', 'Ваш ответ')) + '">' +
+          '<button class="btn primary" id="fillCheck">' + esc(tr('Check', 'Проверить')) + '</button><div id="pracFeedback"></div>';
       }
     }
 
@@ -113,7 +113,7 @@
       $('#pracFeedback').innerHTML =
         '<div class="card" style="padding:12px;margin:10px 0"><b>' + esc(item.answer || item.explanation || '') + '</b>' +
         (item.explanation && item.answer ? '<p style="margin-top:6px;color:var(--soft);font-weight:700">' + esc(item.explanation) + '</p>' : '') + '</div>' +
-        '<div style="display:flex;gap:8px"><button class="btn" data-flash="0">' + esc(tr('Missed', 'РќРµ Р·РЅР°Р»')) + '</button><button class="btn primary" data-flash="1">' + esc(tr('Got it', 'Р—РЅР°Р»')) + '</button></div>';
+        '<div style="display:flex;gap:8px"><button class="btn" data-flash="0">' + esc(tr('Missed', 'Не знал')) + '</button><button class="btn primary" data-flash="1">' + esc(tr('Got it', 'Знал')) + '</button></div>';
     }
 
     function flashMark(got) {
@@ -135,7 +135,7 @@
       $('#fillCheck').style.display = 'none';
       $('#fillInput').disabled = true;
       $('#pracFeedback').innerHTML = '<p style="font-weight:900;color:' + (ok ? 'var(--teal)' : 'var(--red)') + ';margin-top:10px">' +
-        (ok ? esc(tr('Correct!', 'Р’РµСЂРЅРѕ!')) : esc(tr('Answer: ', 'РћС‚РІРµС‚: ')) + esc(item.answer || '')) + '</p>' +
+        (ok ? esc(tr('Correct!', 'Верно!')) : esc(tr('Answer: ', 'Ответ: ')) + esc(item.answer || '')) + '</p>' +
         (item.explanation ? '<p style="color:var(--soft);font-weight:700">' + esc(item.explanation) + '</p>' : '') + pracNextButton();
     }
 
@@ -151,11 +151,11 @@
       const total = step.items.length;
       $('#practiceOverlayBody').innerHTML =
         '<div style="text-align:center;padding:10px 0">' +
-        '<h2 style="margin:0 0 6px">' + esc(tr('Done!', 'Р“РѕС‚РѕРІРѕ!')) + '</h2>' +
+        '<h2 style="margin:0 0 6px">' + esc(tr('Done!', 'Готово!')) + '</h2>' +
         '<p style="font-weight:900;font-size:28px;margin:6px 0">' + step.score + ' / ' + total + '</p>' +
-        '<p style="color:var(--soft);font-weight:800">' + esc(tr('Rate this practice', 'РћС†РµРЅРёС‚Рµ РїСЂР°РєС‚РёРєСѓ')) + '</p>' +
+        '<p style="color:var(--soft);font-weight:800">' + esc(tr('Rate this practice', 'Оцените практику')) + '</p>' +
         '<div class="stars" id="pracStars">' + [1, 2, 3, 4, 5].map((n) => '<span class="st" data-star="' + n + '">★</span>').join('') + '</div>' +
-        '<div style="margin-top:16px"><button class="btn primary" id="pracFinish">' + esc(tr('Close', 'Р—Р°РєСЂС‹С‚СЊ')) + '</button></div>' +
+        '<div style="margin-top:16px"><button class="btn primary" id="pracFinish">' + esc(tr('Close', 'Закрыть')) + '</button></div>' +
         '</div>';
       try {
         await supa.from('teacher_practice_attempts').insert({ practice_id: step.practice.id, user_id: ctx.user.id, score: step.score, total });

@@ -23,10 +23,10 @@
       if (chessState && chessState.channel) supa.removeChannel(chessState.channel);
       chessState = null;
       $('#chessOverlayBody').innerHTML =
-        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('Play chess with a friend by sharing an invite code.', 'РРіСЂР°Р№С‚Рµ РІ С€Р°С…РјР°С‚С‹ СЃ РґСЂСѓРіРѕРј РїРѕ РєРѕРґСѓ-РїСЂРёРіР»Р°С€РµРЅРёСЋ.')) + '</p>' +
-        '<button class="btn primary" id="chessCreate" style="width:100%;margin:10px 0">' + esc(tr('Create a game', 'РЎРѕР·РґР°С‚СЊ РёРіСЂСѓ')) + '</button>' +
-        '<div class="section-head"><h3 style="font-size:14px;margin:0">' + esc(tr('Join by code', 'Р’РѕР№С‚Рё РїРѕ РєРѕРґСѓ')) + '</h3></div>' +
-        '<form id="chessJoinForm" style="display:flex;gap:8px;margin-top:6px"><input id="chessCode" placeholder="CODE" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;text-transform:uppercase"><button class="btn" type="submit">' + esc(tr('Join', 'Р’РѕР№С‚Рё')) + '</button></form>' +
+        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('Play chess with a friend by sharing an invite code.', 'Играйте в шахматы с другом по коду-приглашению.')) + '</p>' +
+        '<button class="btn primary" id="chessCreate" style="width:100%;margin:10px 0">' + esc(tr('Create a game', 'Создать игру')) + '</button>' +
+        '<div class="section-head"><h3 style="font-size:14px;margin:0">' + esc(tr('Join by code', 'Войти по коду')) + '</h3></div>' +
+        '<form id="chessJoinForm" style="display:flex;gap:8px;margin-top:6px"><input id="chessCode" placeholder="CODE" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;text-transform:uppercase"><button class="btn" type="submit">' + esc(tr('Join', 'Войти')) + '</button></form>' +
         '<div id="chessLobbyNote" style="display:none;margin-top:8px;font-weight:900;color:var(--red)"></div>';
       $('#chessCreate').addEventListener('click', chessCreate);
       $('#chessJoinForm').addEventListener('submit', chessJoin);
@@ -36,7 +36,7 @@
     function chessErr(error) {
       const note = $('#chessLobbyNote');
       if (!note) return;
-      note.textContent = (error && error.message) || tr('Could not start.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РЅР°С‡Р°С‚СЊ.');
+      note.textContent = (error && error.message) || tr('Could not start.', 'Не удалось начать.');
       note.style.display = 'block';
     }
 
@@ -62,7 +62,7 @@
         const { data, error } = await supa.rpc('chess_join_match', { p_invite_code: code });
         if (error) throw error;
         const row = Array.isArray(data) ? data[0] : data;
-        if (!row) throw new Error(tr('Match not found.', 'РРіСЂР° РЅРµ РЅР°Р№РґРµРЅР°.'));
+        if (!row) throw new Error(tr('Match not found.', 'Игра не найдена.'));
         startChess(mapChess(row));
       } catch (error) {
         chessErr(error);
@@ -109,16 +109,16 @@
       });
       const myTurn = match.status === 'active' && game.turn() === step.myColor;
       let statusText;
-      if (match.status === 'waiting') statusText = tr('Waiting for opponent — code: ', 'Р–РґС‘Рј СЃРѕРїРµСЂРЅРёРєР° — РєРѕРґ: ') + match.inviteCode;
-      else if (match.status === 'completed') statusText = match.winner === 'draw' ? tr('Draw', 'РќРёС‡СЊСЏ') : (((match.winner === 'white') ? 'w' : 'b') === step.myColor ? tr('You won! 🎉', 'Р’С‹ РІС‹РёРіСЂР°Р»Рё! 🎉') : tr('You lost.', 'Р’С‹ РїСЂРѕРёРіСЂР°Р»Рё.'));
-      else if (match.status === 'aborted') statusText = tr('Game aborted.', 'РРіСЂР° РїСЂРµСЂРІР°РЅР°.');
-      else statusText = myTurn ? tr('Your move', 'Р’Р°С€ С…РѕРґ') : tr('Opponent is thinking…', 'РҐРѕРґ СЃРѕРїРµСЂРЅРёРєР°…');
+      if (match.status === 'waiting') statusText = tr('Waiting for opponent — code: ', 'Ждём соперника — код: ') + match.inviteCode;
+      else if (match.status === 'completed') statusText = match.winner === 'draw' ? tr('Draw', 'Ничья') : (((match.winner === 'white') ? 'w' : 'b') === step.myColor ? tr('You won! 🎉', 'Вы выиграли! 🎉') : tr('You lost.', 'Вы проиграли.'));
+      else if (match.status === 'aborted') statusText = tr('Game aborted.', 'Игра прервана.');
+      else statusText = myTurn ? tr('Your move', 'Ваш ход') : tr('Opponent is thinking…', 'Ход соперника…');
       $('#chessOverlayBody').innerHTML =
         '<div class="chessboard" id="chessBoard">' + cells + '</div>' +
         '<p style="text-align:center;font-weight:900;margin:12px 0 4px">' + esc(statusText) + '</p>' +
         (match.status === 'waiting' || match.status === 'active'
-          ? '<button class="btn danger" id="chessResign" style="width:100%">' + esc(match.status === 'waiting' ? tr('Cancel', 'РћС‚РјРµРЅРёС‚СЊ') : tr('Resign', 'РЎРґР°С‚СЊСЃСЏ')) + '</button>'
-          : '<button class="btn primary" id="chessNew" style="width:100%">' + esc(tr('New game', 'РќРѕРІР°СЏ РёРіСЂР°')) + '</button>');
+          ? '<button class="btn danger" id="chessResign" style="width:100%">' + esc(match.status === 'waiting' ? tr('Cancel', 'Отменить') : tr('Resign', 'Сдаться')) + '</button>'
+          : '<button class="btn primary" id="chessNew" style="width:100%">' + esc(tr('New game', 'Новая игра')) + '</button>');
       const board = $('#chessBoard');
       if (board && myTurn) board.addEventListener('click', onChessSquare);
       const resignButton = $('#chessResign');
@@ -180,7 +180,7 @@
       try {
         await supa.rpc('chess_apply_move', { p_match_id: step.match.id, p_fen: game.fen(), p_last_move: from + to, p_status: status, p_winner: winner, p_reason: reason });
       } catch (error) {
-        alert((error && error.message) || tr('Move failed.', 'РҐРѕРґ РЅРµ РїСЂРѕС€С‘Р».'));
+        alert((error && error.message) || tr('Move failed.', 'Ход не прошёл.'));
       }
     }
 
@@ -218,10 +218,10 @@
       cleanupDuel();
       const level = (ctx.profile && ctx.profile.language_level ? ctx.profile.language_level : 'a2').toLowerCase();
       $('#duelOverlayBody').innerHTML =
-        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('Get matched with a rival at your level and race through a practice.', 'РќР°Р№РґС‘Рј СЃРѕРїРµСЂРЅРёРєР° РІР°С€РµРіРѕ СѓСЂРѕРІРЅСЏ — РєС‚Рѕ Р±С‹СЃС‚СЂРµРµ Рё С‚РѕС‡РЅРµРµ РїСЂРѕР№РґС‘С‚ РїСЂР°РєС‚РёРєСѓ.')) + '</p>' +
-        '<div class="field"><label>' + esc(tr('Language', 'РЇР·С‹Рє')) + '</label><select id="duelTarget" class="role-select">' + DUEL_TARGETS.map(([value, label]) => '<option value="' + value + '">' + esc(label) + '</option>').join('') + '</select></div>' +
-        '<div class="field"><label>' + esc(tr('Level', 'РЈСЂРѕРІРµРЅСЊ')) + '</label><select id="duelLevel" class="role-select">' + ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'].map((item) => '<option value="' + item + '"' + (item === level ? ' selected' : '') + '>' + item.toUpperCase() + '</option>').join('') + '</select></div>' +
-        '<button class="btn primary" id="duelFind" style="width:100%;margin-top:10px">' + esc(tr('Find a rival', 'РќР°Р№С‚Рё СЃРѕРїРµСЂРЅРёРєР°')) + '</button>' +
+        '<p style="font-weight:800;color:var(--soft)">' + esc(tr('Get matched with a rival at your level and race through a practice.', 'Найдём соперника вашего уровня — кто быстрее Рё точнее пройдёт практику.')) + '</p>' +
+        '<div class="field"><label>' + esc(tr('Language', 'Язык')) + '</label><select id="duelTarget" class="role-select">' + DUEL_TARGETS.map(([value, label]) => '<option value="' + value + '">' + esc(label) + '</option>').join('') + '</select></div>' +
+        '<div class="field"><label>' + esc(tr('Level', 'Уровень')) + '</label><select id="duelLevel" class="role-select">' + ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'].map((item) => '<option value="' + item + '"' + (item === level ? ' selected' : '') + '>' + item.toUpperCase() + '</option>').join('') + '</select></div>' +
+        '<button class="btn primary" id="duelFind" style="width:100%;margin-top:10px">' + esc(tr('Find a rival', 'Найти соперника')) + '</button>' +
         '<div id="duelNote" style="display:none;margin-top:8px;font-weight:900;color:var(--red)"></div>';
       $('#duelFind').addEventListener('click', duelFind);
       $('#duelOverlay').classList.add('open');
@@ -232,19 +232,19 @@
       const level = $('#duelLevel').value;
       const button = $('#duelFind');
       button.disabled = true;
-      button.textContent = tr('Searching…', 'РџРѕРёСЃРє…');
+      button.textContent = tr('Searching…', 'Поиск…');
       try {
         const { data, error } = await supa.rpc('find_or_create_match', { p_target: target, p_level: level });
         if (error) throw error;
         const row = Array.isArray(data) ? data[0] : data;
-        if (!row) throw new Error(tr('No practice available for this pair yet.', 'Р”Р»СЏ СЌС‚РѕР№ РїР°СЂС‹ РїРѕРєР° РЅРµС‚ РїСЂР°РєС‚РёРєРё.'));
+        if (!row) throw new Error(tr('No practice available for this pair yet.', 'Для этой пары пока нет практики.'));
         startDuel(mapDuel(row));
       } catch (error) {
         const note = $('#duelNote');
-        note.textContent = (error && error.message) || tr('Matchmaking failed.', 'РњР°С‚С‡РјРµР№РєРёРЅРі РЅРµ СѓРґР°Р»СЃСЏ.');
+        note.textContent = (error && error.message) || tr('Matchmaking failed.', 'Матчмейкинг не удался.');
         note.style.display = 'block';
         button.disabled = false;
-        button.textContent = tr('Find a rival', 'РќР°Р№С‚Рё СЃРѕРїРµСЂРЅРёРєР°');
+        button.textContent = tr('Find a rival', 'Найти соперника');
       }
     }
 
@@ -270,7 +270,7 @@
     }
 
     function renderDuelWaiting() {
-      $('#duelOverlayBody').innerHTML = '<div class="empty" style="padding:30px">' + esc(tr('Waiting for a rival…', 'Р–РґС‘Рј СЃРѕРїРµСЂРЅРёРєР°…')) + '</div><button class="btn danger" id="duelCancel" style="width:100%">' + esc(tr('Cancel', 'РћС‚РјРµРЅРёС‚СЊ')) + '</button>';
+      $('#duelOverlayBody').innerHTML = '<div class="empty" style="padding:30px">' + esc(tr('Waiting for a rival…', 'Ждём соперника…')) + '</div><button class="btn danger" id="duelCancel" style="width:100%">' + esc(tr('Cancel', 'Отменить')) + '</button>';
       $('#duelCancel').addEventListener('click', duelCancel);
     }
 
@@ -317,8 +317,8 @@
       $('#duelOverlayBody').innerHTML =
         '<div class="duel-timer" id="duelTimer">' + Math.max(0, duelState.timeLeft) + '</div>' +
         '<div class="duel-bars">' +
-          '<div><div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px"><span>' + esc(tr('You', 'Р’С‹')) + ' · ' + duelState.score + '</span><span id="duelMineP">' + mine + '%</span></div><div class="prog-bar"><i id="duelMineBar" style="width:' + mine + '%"></i></div></div>' +
-          '<div><div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px"><span>' + esc(tr('Rival', 'РЎРѕРїРµСЂРЅРёРє')) + '</span><span id="duelOppP">' + oppProgress + '%</span></div><div class="prog-bar"><i id="duelOppBar" style="width:' + oppProgress + '%;background:var(--red)"></i></div></div>' +
+          '<div><div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px"><span>' + esc(tr('You', 'Вы')) + ' · ' + duelState.score + '</span><span id="duelMineP">' + mine + '%</span></div><div class="prog-bar"><i id="duelMineBar" style="width:' + mine + '%"></i></div></div>' +
+          '<div><div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px"><span>' + esc(tr('Rival', 'Соперник')) + '</span><span id="duelOppP">' + oppProgress + '%</span></div><div class="prog-bar"><i id="duelOppBar" style="width:' + oppProgress + '%;background:var(--red)"></i></div></div>' +
         '</div>' +
         '<div class="card" style="padding:14px;margin-top:8px"><h3 style="margin:0 0 10px">' + esc(item.prompt) + '</h3>' +
           options.map((option, index) => '<button class="btn" data-duel-opt="' + index + '" style="width:100%;margin-bottom:6px;justify-content:flex-start;text-align:left">' + esc(option) + '</button>').join('') + '</div>';
@@ -366,7 +366,7 @@
       } catch (error) {
         /* ignore */
       }
-      $('#duelOverlayBody').innerHTML = '<div class="empty" style="padding:30px">' + esc(tr('Finished! Waiting for result…', 'Р“РѕС‚РѕРІРѕ! Р–РґС‘Рј СЂРµР·СѓР»СЊС‚Р°С‚…')) + '</div>';
+      $('#duelOverlayBody').innerHTML = '<div class="empty" style="padding:30px">' + esc(tr('Finished! Waiting for result…', 'Готово! Ждём результат…')) + '</div>';
     }
 
     function renderDuelResult() {
@@ -375,8 +375,8 @@
         duelState.timer = null;
       }
       const match = duelState.match;
-      const text = (!match.winnerId) ? tr('Draw', 'РќРёС‡СЊСЏ') : (match.winnerId === ctx.user.id ? tr('You won! 🎉', 'Р’С‹ РІС‹РёРіСЂР°Р»Рё! 🎉') : tr('You lost.', 'Р’С‹ РїСЂРѕРёРіСЂР°Р»Рё.'));
-      $('#duelOverlayBody').innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:40px">🏁</div><h2>' + esc(text) + '</h2><p style="color:var(--soft);font-weight:800">' + esc(tr('Your score: ', 'Р’Р°С€ СЃС‡С‘С‚: ') + duelState.score) + '</p></div><button class="btn primary" id="duelAgain" style="width:100%">' + esc(tr('Play again', 'Р•С‰С‘ СЂР°Р·')) + '</button>';
+      const text = (!match.winnerId) ? tr('Draw', 'Ничья') : (match.winnerId === ctx.user.id ? tr('You won! 🎉', 'Вы выиграли! 🎉') : tr('You lost.', 'Вы проиграли.'));
+      $('#duelOverlayBody').innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:40px">🏁</div><h2>' + esc(text) + '</h2><p style="color:var(--soft);font-weight:800">' + esc(tr('Your score: ', 'Ваш счёт: ') + duelState.score) + '</p></div><button class="btn primary" id="duelAgain" style="width:100%">' + esc(tr('Play again', 'Ещё раз')) + '</button>';
       $('#duelAgain').addEventListener('click', openDuel);
     }
 

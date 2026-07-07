@@ -227,7 +227,7 @@
     function start() {
       return init().catch((error) => {
         console.error(error);
-        $('#loading').textContent = tr('Could not open Duvela Web. Please sign in again.', 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РєСЂС‹С‚СЊ Duvela Web. Р’РѕР№РґРёС‚Рµ Р·Р°РЅРѕРІРѕ.');
+        $('#loading').textContent = tr('Could not open Duvela Web. Please sign in again.', 'Не удалось открыть Duvela Web. Войдите заново.');
         setTimeout(() => { window.location.href = './index.html?login=1'; }, 1400);
       });
     }

@@ -28,11 +28,11 @@
   let requestedBusinessRole = null;
 
   const roleLabels = {
-    learner: tr('Learner', 'РЈС‡РµРЅРёРє'),
-    teacher: tr('Teacher', 'РЈС‡РёС‚РµР»СЊ'),
-    organizer: tr('Organizer', 'РћСЂРіР°РЅРёР·Р°С‚РѕСЂ'),
-    organization: tr('Organization', 'РћСЂРіР°РЅРёР·Р°С†РёСЏ'),
-    admin: tr('Administrator', 'РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ')
+    learner: tr('Learner', 'Ученик'),
+    teacher: tr('Teacher', 'Учитель'),
+    organizer: tr('Organizer', 'Организатор'),
+    organization: tr('Organization', 'Организация'),
+    admin: tr('Administrator', 'Администратор')
   };
   const sessionState = {
     get selectedRole() { return selectedRole; },
@@ -85,50 +85,50 @@
   }
   const navLabels = {
     hub: {
-      home: tr('Home', 'Р“Р»Р°РІРЅР°СЏ'),
-      videos: tr('Videos', 'Р’РёРґРµРѕ'),
-      live: tr('Live', 'Р­С„РёСЂС‹'),
-      courses: tr('Courses', 'РљСѓСЂСЃС‹'),
-      events: tr('Events', 'РЎРѕР±С‹С‚РёСЏ'),
-      messages: tr('Messages', 'РЎРѕРѕР±С‰РµРЅРёСЏ'),
-      workspace: tr('Practice', 'РџСЂР°РєС‚РёРєР°'),
-      schedule: tr('Schedule', 'Р Р°СЃРїРёСЃР°РЅРёРµ'),
-      profile: tr('Profile', 'РџСЂРѕС„РёР»СЊ')
+      home: tr('Home', 'Главная'),
+      videos: tr('Videos', 'Видео'),
+      live: tr('Live', 'Эфиры'),
+      courses: tr('Courses', 'Курсы'),
+      events: tr('Events', 'События'),
+      messages: tr('Messages', 'Сообщения'),
+      workspace: tr('Practice', 'Практика'),
+      schedule: tr('Schedule', 'Расписание'),
+      profile: tr('Profile', 'Профиль')
     },
     bus: {
-      home: tr('Dashboard', 'РџР°РЅРµР»СЊ'),
-      videos: tr('Media', 'РњРµРґРёР°'),
+      home: tr('Dashboard', 'Панель'),
+      videos: tr('Media', 'Медиа'),
       live: tr('Live Studio', 'Live Studio'),
-      courses: tr('Courses', 'РљСѓСЂСЃС‹'),
-      events: tr('Events', 'РЎРѕР±С‹С‚РёСЏ'),
-      messages: tr('Messages', 'РЎРѕРѕР±С‰РµРЅРёСЏ'),
-      workspace: tr('Workspace', 'Р Р°Р±РѕС‡Р°СЏ Р·РѕРЅР°'),
-      schedule: tr('Schedule', 'Р Р°СЃРїРёСЃР°РЅРёРµ'),
-      profile: tr('Profile', 'РџСЂРѕС„РёР»СЊ')
+      courses: tr('Courses', 'Курсы'),
+      events: tr('Events', 'События'),
+      messages: tr('Messages', 'Сообщения'),
+      workspace: tr('Workspace', 'Рабочая зона'),
+      schedule: tr('Schedule', 'Расписание'),
+      profile: tr('Profile', 'Профиль')
     }
   };
   const titles = {
     hub: {
-      home: [tr('Hub dashboard', 'РџР°РЅРµР»СЊ Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Р›РµРЅС‚Р° РѕР±СѓС‡РµРЅРёСЏ, СЌС„РёСЂС‹ Рё РїСЂР°РєС‚РёРєР° РіРѕС‚РѕРІС‹.')],
-      videos: [tr('Videos', 'Р’РёРґРµРѕ'), tr('Short lessons matched to your level.', 'РљРѕСЂРѕС‚РєРёРµ СѓСЂРѕРєРё РїРѕРґ РІР°С€ СѓСЂРѕРІРµРЅСЊ.')],
-      live: [tr('Live', 'Р­С„РёСЂС‹'), tr('Join active lessons with teachers.', 'РџРѕРґРєР»СЋС‡Р°Р№С‚РµСЃСЊ Рє Р°РєС‚РёРІРЅС‹Рј СѓСЂРѕРєР°Рј СЃ СѓС‡РёС‚РµР»СЏРјРё.')],
-      courses: [tr('Courses', 'РљСѓСЂСЃС‹'), tr('Structured programs from teachers.', 'РЎС‚СЂСѓРєС‚СѓСЂРёСЂРѕРІР°РЅРЅС‹Рµ РїСЂРѕРіСЂР°РјРјС‹ РѕС‚ РїСЂРµРїРѕРґР°РІР°С‚РµР»РµР№.')],
-      events: [tr('Events', 'РЎРѕР±С‹С‚РёСЏ'), tr('Meetups, workshops and speaking practice.', 'Р’СЃС‚СЂРµС‡Рё, РІРѕСЂРєС€РѕРїС‹ Рё speaking practice.')],
-      messages: [tr('Messages', 'РЎРѕРѕР±С‰РµРЅРёСЏ'), tr('Recent conversations and lesson updates.', 'РџРѕСЃР»РµРґРЅРёРµ РґРёР°Р»РѕРіРё Рё РѕР±РЅРѕРІР»РµРЅРёСЏ СѓСЂРѕРєРѕРІ.')],
-      workspace: [tr('Practice', 'РџСЂР°РєС‚РёРєР°'), tr('Daily tools for level, speaking and vocabulary work.', 'Р•Р¶РµРґРЅРµРІРЅС‹Рµ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹ РґР»СЏ СѓСЂРѕРІРЅСЏ, speaking Рё vocabulary.')],
-      schedule: [tr('Schedule', 'Р Р°СЃРїРёСЃР°РЅРёРµ'), tr('Book a lesson with a teacher and see your bookings.', 'Р—Р°Р±СЂРѕРЅРёСЂСѓР№С‚Рµ СѓСЂРѕРє Сѓ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ Рё СЃРјРѕС‚СЂРёС‚Рµ СЃРІРѕРё Р·Р°РїРёСЃРё.')],
-      profile: [tr('Profile', 'РџСЂРѕС„РёР»СЊ'), tr('Your Duvela account and public profile.', 'Р’Р°С€ Р°РєРєР°СѓРЅС‚ Duvela Рё РїСѓР±Р»РёС‡РЅС‹Р№ РїСЂРѕС„РёР»СЊ.')]
+      home: [tr('Hub dashboard', 'Панель Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Лента обучения, эфиры и практика готовы.')],
+      videos: [tr('Videos', 'Видео'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
+      live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
+      courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
+      events: [tr('Events', 'События'), tr('Meetups, workshops and speaking practice.', 'Встречи, воркшопы и speaking practice.')],
+      messages: [tr('Messages', 'Сообщения'), tr('Recent conversations and lesson updates.', 'Последние диалоги и обновления уроков.')],
+      workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
+      schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
+      profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {
-      home: [tr('Bus dashboard', 'РџР°РЅРµР»СЊ Bus'), tr('Your web workspace for live lessons, courses and community activity.', 'Р’РµР±-РєР°Р±РёРЅРµС‚ РґР»СЏ СЌС„РёСЂРѕРІ, РєСѓСЂСЃРѕРІ Рё СЂР°Р±РѕС‚С‹ СЃ Р°СѓРґРёС‚РѕСЂРёРµР№.')],
-      videos: [tr('Media library', 'РњРµРґРёР°С‚РµРєР°'), tr('Prepare short lessons and public previews for learners.', 'Р“РѕС‚РѕРІСЊС‚Рµ РєРѕСЂРѕС‚РєРёРµ СѓСЂРѕРєРё Рё РїСѓР±Р»РёС‡РЅС‹Рµ РїСЂРµРІСЊСЋ РґР»СЏ СѓС‡РµРЅРёРєРѕРІ.')],
-      live: [tr('Live Studio', 'Live Studio'), tr('Open active lessons and manage public live rooms.', 'Р—Р°РїСѓСЃРєР°Р№С‚Рµ СѓСЂРѕРєРё Рё СѓРїСЂР°РІР»СЏР№С‚Рµ РїСѓР±Р»РёС‡РЅС‹РјРё live-РєРѕРјРЅР°С‚Р°РјРё.')],
-      courses: [tr('Courses', 'РљСѓСЂСЃС‹'), tr('Structure offers, cohorts and paid learning programs.', 'РЎРѕР±РёСЂР°Р№С‚Рµ РѕС„С„РµСЂС‹, РїРѕС‚РѕРєРё Рё РїР»Р°С‚РЅС‹Рµ РїСЂРѕРіСЂР°РјРјС‹ РѕР±СѓС‡РµРЅРёСЏ.')],
-      events: [tr('Events', 'РЎРѕР±С‹С‚РёСЏ'), tr('Plan workshops, meetups and online sessions.', 'РџР»Р°РЅРёСЂСѓР№С‚Рµ РІРѕСЂРєС€РѕРїС‹, РјРёС‚Р°РїС‹ Рё РѕРЅР»Р°Р№РЅ-СЃРµСЃСЃРёРё.')],
-      messages: [tr('Messages', 'РЎРѕРѕР±С‰РµРЅРёСЏ'), tr('Learner conversations and recent platform updates.', 'Р”РёР°Р»РѕРіРё СЃ СѓС‡РµРЅРёРєР°РјРё Рё РѕР±РЅРѕРІР»РµРЅРёСЏ РїР»Р°С‚С„РѕСЂРјС‹.')],
-      workspace: [tr('Workspace', 'Р Р°Р±РѕС‡Р°СЏ Р·РѕРЅР°'), tr('Creator tools for publishing and planning.', 'РРЅСЃС‚СЂСѓРјРµРЅС‚С‹ РїСѓР±Р»РёРєР°С†РёРё Рё РїР»Р°РЅРёСЂРѕРІР°РЅРёСЏ.')],
-      schedule: [tr('Schedule', 'Р Р°СЃРїРёСЃР°РЅРёРµ'), tr('Open lesson slots for learners and see who booked.', 'РћС‚РєСЂС‹РІР°Р№С‚Рµ СЃР»РѕС‚С‹ РґР»СЏ СѓС‡РµРЅРёРєРѕРІ Рё СЃРјРѕС‚СЂРёС‚Рµ Р·Р°РїРёСЃРё.')],
-      profile: [tr('Profile', 'РџСЂРѕС„РёР»СЊ'), tr('Your Duvela Business account and public profile.', 'Р’Р°С€ Р°РєРєР°СѓРЅС‚ Duvela Business Рё РїСѓР±Р»РёС‡РЅС‹Р№ РїСЂРѕС„РёР»СЊ.')]
+      home: [tr('Bus dashboard', 'Панель Bus'), tr('Your web workspace for live lessons, courses and community activity.', 'Веб-кабинет для эфиров, курсов и работы с аудиторией.')],
+      videos: [tr('Media library', 'Медиатека'), tr('Prepare short lessons and public previews for learners.', 'Готовьте короткие уроки и публичные превью для учеников.')],
+      live: [tr('Live Studio', 'Live Studio'), tr('Open active lessons and manage public live rooms.', 'Запускайте уроки, держите расписание под рукой и переиспользуйте недавние комнаты.')],
+      courses: [tr('Courses', 'Курсы'), tr('Structure offers, cohorts and paid learning programs.', 'Собирайте офферы, потоки и платные программы обучения.')],
+      events: [tr('Events', 'События'), tr('Plan workshops, meetups and online sessions.', 'Планируйте воркшопы, митапы и онлайн-сессии.')],
+      messages: [tr('Messages', 'Сообщения'), tr('Learner conversations and recent platform updates.', 'Диалоги с учениками и обновления платформы.')],
+      workspace: [tr('Workspace', 'Рабочая зона'), tr('Creator tools for publishing and planning.', 'Инструменты публикации и планирования.')],
+      schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
+      profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
   };
 
@@ -201,22 +201,22 @@
     return url ? '<img src="' + esc(url) + '" alt="">' : esc(initials(name));
   }
   function formatMoney(item) {
-    if (item.is_free) return tr('Free', 'Р‘РµСЃРїР»Р°С‚РЅРѕ');
-    if (item.price == null || item.price === '') return item.priceLabel || tr('Open', 'РћС‚РєСЂС‹С‚Рѕ');
+    if (item.is_free) return tr('Free', 'Бесплатно');
+    if (item.price == null || item.price === '') return item.priceLabel || tr('Open', 'Открыто');
     return [item.price, item.currency].filter(Boolean).join(' ');
   }
   function timeAgo(iso) {
     if (!iso) return '';
     const diff = Date.now() - Date.parse(iso);
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return tr('just now', 'С‚РѕР»СЊРєРѕ С‡С‚Рѕ');
-    if (minutes < 60) return minutes + tr('m', ' РјРёРЅ');
+    if (minutes < 1) return tr('just now', 'только что');
+    if (minutes < 60) return minutes + tr('m', ' мин');
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return hours + tr('h', ' С‡');
-    return Math.floor(hours / 24) + tr('d', ' РґРЅ');
+    if (hours < 24) return hours + tr('h', ' ч');
+    return Math.floor(hours / 24) + tr('d', ' дн');
   }
   function staticSessionCount(count) {
-    return count + ' ' + tr('sessions', 'СЌС„РёСЂРѕРІ');
+    return count + ' ' + tr('sessions', 'эфиров');
   }
   function liveUrl(item) {
     return './live.html' + (item.id ? '?s=' + encodeURIComponent(item.id) + '&t=' + encodeURIComponent(item.teacher_name || '') : '');
