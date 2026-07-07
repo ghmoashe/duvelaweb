@@ -1,17 +1,33 @@
 (function () {
   const EVENT_COLS = 'id,title,description,event_date,event_time,city,country,format,language,is_paid,price_amount,max_participants,image_url,organizer_id,recurrence_group_id';
+  const LIVE_COLS = 'id,teacher_id,teacher_name,topic,language,level,status,is_private,started_at,ended_at';
 
   function createPublicDataFeature(ctx) {
-    const { supa, state, tr, formatDate } = ctx;
+    const { supa, state, tr, formatDate, getUser, isBusiness } = ctx;
 
     async function safeQuery(label, query, map) {
       try {
         const result = await query();
-        if (result.error || !result.data || !result.data.length) return;
+        if (result.error || !result.data) return;
         state[label] = map ? result.data.map(map) : result.data;
       } catch (error) {
         console.warn(label + ' query failed', error);
       }
+    }
+
+    function mapLiveRow(item) {
+      return {
+        id: item.id,
+        teacher_id: item.teacher_id,
+        teacher_name: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'),
+        title: item.topic || [item.language, item.level].filter(Boolean).join(' · ') || tr('Live lesson', 'Live-урок'),
+        language: item.language || '',
+        level: item.level || '',
+        is_private: !!item.is_private,
+        started_at: item.started_at,
+        ended_at: item.ended_at,
+        status: item.status || tr('live', 'live')
+      };
     }
 
     function mapEventRow(item) {
@@ -37,16 +53,22 @@
     }
 
     async function loadPublicData() {
-      await Promise.all([
+      const nowIso = new Date().toISOString();
+      const currentUser = typeof getUser === 'function' ? getUser() : null;
+      const creator = typeof isBusiness === 'function' ? isBusiness() : false;
+      state.liveScheduled = [];
+      state.liveHistory = [];
+
+      const tasks = [
         safeQuery(
           'live',
-          () => supa.from('live_sessions').select('id,teacher_name,topic,language,level,status').eq('status', 'live').limit(6),
-          (item) => ({
-            id: item.id,
-            teacher_name: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'),
-            title: item.topic || [item.language, item.level].filter(Boolean).join(' · ') || tr('Live lesson', 'Live-урок'),
-            status: item.status || tr('live', 'live')
-          })
+          () => supa
+            .from('live_sessions')
+            .select(LIVE_COLS)
+            .eq('status', 'live')
+            .order('started_at', { ascending: false })
+            .limit(6),
+          mapLiveRow
         ),
         safeQuery(
           'courses',
@@ -68,7 +90,52 @@
           () => supa.from('events').select(EVENT_COLS).order('event_date', { ascending: true }).limit(12),
           mapEventRow
         )
-      ]);
+      ];
+
+      if (creator && currentUser?.id) {
+        tasks.push(
+          safeQuery(
+            'liveScheduled',
+            () => supa
+              .from('live_sessions')
+              .select(LIVE_COLS)
+              .eq('teacher_id', currentUser.id)
+              .eq('status', 'scheduled')
+              .gte('started_at', nowIso)
+              .order('started_at', { ascending: true })
+              .limit(8),
+            mapLiveRow
+          ),
+          safeQuery(
+            'liveHistory',
+            () => supa
+              .from('live_sessions')
+              .select(LIVE_COLS)
+              .eq('teacher_id', currentUser.id)
+              .eq('status', 'ended')
+              .order('ended_at', { ascending: false })
+              .limit(8),
+            mapLiveRow
+          )
+        );
+      } else {
+        tasks.push(
+          safeQuery(
+            'liveScheduled',
+            () => supa
+              .from('live_sessions')
+              .select(LIVE_COLS)
+              .eq('status', 'scheduled')
+              .eq('is_private', false)
+              .gte('started_at', nowIso)
+              .order('started_at', { ascending: true })
+              .limit(6),
+            mapLiveRow
+          )
+        );
+      }
+
+      await Promise.all(tasks);
     }
 
     function getEventColumns() {

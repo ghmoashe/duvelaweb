@@ -175,7 +175,14 @@
   });
   const state = appStore.state;
   const runtime = appStore.runtime;
-  const publicDataFeature = publicDataApi.create({ supa, state, tr, formatDate });
+  const publicDataFeature = publicDataApi.create({
+    supa,
+    state,
+    tr,
+    formatDate,
+    getUser: () => user,
+    isBusiness: () => isBusiness()
+  });
 
   function esc(value) {
     const div = document.createElement('div');

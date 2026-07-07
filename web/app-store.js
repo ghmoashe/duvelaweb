@@ -8,6 +8,8 @@
       state: {
         videos: cloneList(seed.fallbackVideos),
         live: cloneList(seed.fallbackLive),
+        liveScheduled: [],
+        liveHistory: [],
         courses: cloneList(seed.fallbackCourses),
         events: cloneList(seed.fallbackEvents),
         messages: cloneList(seed.fallbackMessages),

@@ -23,6 +23,8 @@
   var currentUser = null;
   var micEnabled = true;
   var camEnabled = true;
+  var hostScheduledSessions = [];
+  var hostHistorySessions = [];
 
   var el = function (id) { return document.getElementById(id); };
 
@@ -40,6 +42,9 @@
   function setStage(html, msg) {
     el('stageMsg').innerHTML = html + (msg ? '<div style="margin-top:8px">' + esc(msg) + '</div>' : '');
   }
+  function setNote(text) {
+    el('note').textContent = text || '';
+  }
   function showOverlay(show) {
     el('overlay').style.display = show ? 'flex' : 'none';
   }
@@ -56,6 +61,42 @@
   }
   function teacherWatchTitle(name) {
     return (name || tr('A teacher', 'Преподаватель')) + tr(' is live on Duvela', ' в эфире на Duvela');
+  }
+  function formatDateLabel(value) {
+    if (!value) return '';
+    return new Date(value).toLocaleDateString(isRu ? 'ru-RU' : 'en-GB', {
+      day: '2-digit',
+      month: 'short'
+    });
+  }
+  function formatTimeLabel(value) {
+    if (!value) return '';
+    return new Date(value).toLocaleTimeString(isRu ? 'ru-RU' : 'en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+  function formatSessionMoment(value) {
+    if (!value) return '';
+    return [formatDateLabel(value), formatTimeLabel(value)].filter(Boolean).join(' • ');
+  }
+  function nextHourMoment() {
+    var value = new Date();
+    value.setMinutes(0, 0, 0);
+    value.setHours(value.getHours() + 1);
+    return value;
+  }
+  function applyDefaultScheduleInputs() {
+    if (!el('scheduleDateInput') || !el('scheduleTimeInput')) return;
+    var value = nextHourMoment();
+    el('scheduleDateInput').value = value.toISOString().slice(0, 10);
+    el('scheduleTimeInput').value = String(value.getHours()).padStart(2, '0') + ':' + String(value.getMinutes()).padStart(2, '0');
+  }
+  function buildScheduleIso() {
+    var date = el('scheduleDateInput')?.value;
+    var time = el('scheduleTimeInput')?.value;
+    if (!date || !time) return '';
+    return new Date(date + 'T' + time + ':00').toISOString();
   }
   function formatElapsed(value) {
     var started = new Date(value || Date.now()).getTime();
@@ -77,16 +118,278 @@
     elapsedTimer = null;
     el('elapsedText').textContent = '00:00';
   }
+  function accessLabel(session) {
+    return session?.is_private ? tr('Private', 'Приватный') : tr('Public', 'Публичный');
+  }
+  function sessionStatusLabel(session) {
+    if (session?.status === 'live') return tr('Live', 'В эфире');
+    if (session?.status === 'scheduled') return tr('Scheduled', 'Запланировано');
+    if (session?.status === 'ended') return tr('Ended', 'Завершен');
+    if (isHostMode) return tr('Ready', 'Готово');
+    return sessionId ? tr('Waiting', 'Ожидание') : tr('No session', 'Нет сессии');
+  }
+  function buildShareUrl(session) {
+    if (!session?.id) return '';
+    var url = new URL('./live.html', window.location.href);
+    url.searchParams.set('s', session.id);
+    if (session.teacher_name) url.searchParams.set('t', session.teacher_name);
+    return url.href;
+  }
+  function buildHostUrl(session) {
+    var url = new URL('./live.html', window.location.href);
+    url.searchParams.set('app', 'business');
+    url.searchParams.set('mode', 'host');
+    if (session?.id) url.searchParams.set('s', session.id);
+    if (session?.teacher_name) url.searchParams.set('t', session.teacher_name);
+    return url.href;
+  }
+  function studioMetric(label, value) {
+    return '<div class="studio-metric"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>';
+  }
+  function studioCheck(title, copy) {
+    return '<div class="studio-check"><b>' + esc(title) + '</b><span>' + esc(copy) + '</span></div>';
+  }
+  function setHostSetupDisabled(disabled) {
+    ['topicInput', 'levelInput', 'languageInput', 'privateInput', 'scheduleDateInput', 'scheduleTimeInput', 'scheduleSession'].forEach(function (id) {
+      var node = el(id);
+      if (node) node.disabled = disabled;
+    });
+  }
+  function applySessionToInputs(session) {
+    if (!isHostMode || !session) return;
+    if (session.topic) el('topicInput').value = session.topic;
+    el('levelInput').value = session.level || '';
+    el('languageInput').value = session.language || '';
+    el('privateInput').checked = !!session.is_private;
+    if (session.started_at && el('scheduleDateInput') && el('scheduleTimeInput')) {
+      el('scheduleDateInput').value = session.started_at.slice(0, 10);
+      el('scheduleTimeInput').value = session.started_at.slice(11, 16);
+    }
+  }
   function renderFacts(session) {
+    var timing = session?.status === 'ended'
+      ? formatSessionMoment(session?.ended_at || session?.started_at)
+      : formatSessionMoment(session?.started_at);
     var facts = [
       { label: tr('Teacher', 'Преподаватель'), value: session?.teacher_name || teacher || tr('Waiting', 'Ожидание') },
-      { label: tr('Level', 'Уровень'), value: session?.level || tr('Open', 'Открытый') },
-      { label: tr('Language', 'Язык'), value: session?.language || tr('General', 'Общий') },
-      { label: tr('Access', 'Доступ'), value: session?.is_private ? tr('Private', 'Приватный') : tr('Public', 'Публичный') }
+      { label: tr('Title', 'Название'), value: session?.topic || el('topicInput')?.value || tr('Live lesson', 'Live-урок') },
+      { label: tr('Level', 'Уровень'), value: session?.level || el('levelInput')?.value || tr('Open', 'Открытый') },
+      { label: tr('Language', 'Язык'), value: session?.language || el('languageInput')?.value || tr('General', 'Общий') },
+      { label: tr('Timing', 'Время'), value: timing || tr('Not scheduled', 'Не запланировано') },
+      { label: tr('Access', 'Доступ'), value: accessLabel(session) },
+      { label: tr('Status', 'Статус'), value: sessionStatusLabel(session) }
     ];
     el('sessionFacts').innerHTML = facts.map(function (fact) {
       return '<div class="fact"><span>' + esc(fact.label) + '</span><b>' + esc(fact.value) + '</b></div>';
     }).join('');
+  }
+  function renderStudioMetrics(session) {
+    var metrics;
+    if (isHostMode) {
+      metrics = [
+        { label: tr('Mode', 'Режим'), value: tr('Teacher host', 'Teacher host') },
+        { label: tr('Room', 'Комната'), value: sessionStatusLabel(session) },
+        { label: tr('Upcoming', 'Ближайшие'), value: String(hostScheduledSessions.length) },
+        { label: tr('Distribution', 'Раздача'), value: session?.id ? (session?.is_private ? tr('App access', 'Через приложение') : tr('Watch link ready', 'Ссылка готова')) : tr('After room save', 'После сохранения комнаты') }
+      ];
+    } else {
+      metrics = [
+        { label: tr('Mode', 'Режим'), value: tr('Browser viewer', 'Просмотр в браузере') },
+        { label: tr('Room', 'Комната'), value: sessionStatusLabel(session) },
+        { label: tr('Access', 'Доступ'), value: accessLabel(session) },
+        { label: tr('Entry', 'Вход'), value: sessionId ? tr('Session opened', 'Сессия открыта') : tr('Choose a session', 'Выберите сессию') }
+      ];
+    }
+    el('studioMetrics').innerHTML = metrics.map(function (item) {
+      return studioMetric(item.label, item.value);
+    }).join('');
+  }
+  function renderStudioChecklist(session) {
+    var items;
+    if (isHostMode) {
+      if (session?.status === 'live') {
+        items = [
+          {
+            title: tr('Share the room', 'Поделитесь комнатой'),
+            copy: session?.is_private
+              ? tr('Private rooms should be handed off through the app or your approved access flow.', 'Приватные комнаты лучше открывать через приложение или ваш подтвержденный сценарий доступа.')
+              : tr('Send the browser watch link to learners while the stream is live.', 'Пока эфир идет, отправьте ученикам ссылку для просмотра в браузере.')
+          },
+          {
+            title: tr('Keep this tab open', 'Не закрывайте вкладку'),
+            copy: tr('Camera, microphone and room heartbeat stay active while this page remains open.', 'Камера, микрофон и heartbeat комнаты работают, пока эта страница открыта.')
+          },
+          {
+            title: tr('Use stage controls', 'Управляйте эфиром со сцены'),
+            copy: tr('Mute microphone, stop camera or end the room from the footer controls under the video stage.', 'Выключайте микрофон, камеру или завершайте комнату кнопками под видеосценой.')
+          }
+        ];
+      } else if (session?.status === 'scheduled') {
+        items = [
+          {
+            title: tr('Keep the slot clear', 'Держите слот свободным'),
+            copy: tr('Open the same room shortly before the lesson and launch LIVE from this browser.', 'Откройте эту же комнату незадолго до урока и запустите LIVE из этого браузера.')
+          },
+          {
+            title: tr('Review access mode', 'Проверьте режим доступа'),
+            copy: session?.is_private
+              ? tr('Private sessions should continue through the app or your approved access path.', 'Приватные сессии лучше вести через приложение или подтвержденный сценарий доступа.')
+              : tr('Public scheduled rooms already have a browser watch link for learners.', 'Публичные запланированные комнаты уже имеют браузерную ссылку для учеников.')
+          },
+          {
+            title: tr('Reuse this room', 'Переиспользуйте эту комнату'),
+            copy: tr('You can edit the same room instead of creating a new session each time.', 'Можно редактировать эту же комнату вместо создания новой сессии каждый раз.')
+          }
+        ];
+      } else {
+        items = [
+          {
+            title: tr('Prepare room details', 'Подготовьте параметры комнаты'),
+            copy: tr('Check title, level, language and access before you publish the stream.', 'Перед запуском эфира проверьте название, уровень, язык и доступ.')
+          },
+          {
+            title: tr('Allow permissions', 'Разрешите доступ'),
+            copy: tr('Browser host mode needs camera and microphone permission on this device.', 'Режиму host в браузере нужен доступ к камере и микрофону на этом устройстве.')
+          },
+          {
+            title: tr('Plan learner entry', 'Подготовьте вход для учеников'),
+            copy: tr('After the room starts you can copy the browser watch link or continue in the Duvela app.', 'После старта комнаты можно скопировать браузерную ссылку или продолжить работу в приложении Duvela.')
+          }
+        ];
+      }
+    } else if (sessionId) {
+      items = [
+        {
+          title: tr('Watch in browser', 'Смотрите в браузере'),
+          copy: tr('Playback starts here when the teacher camera is published to the room.', 'Воспроизведение начнется здесь, когда преподаватель опубликует камеру в комнате.')
+        },
+        {
+          title: tr('Use the app as fallback', 'Приложение как запасной вход'),
+          copy: session?.is_private
+            ? tr('Private lessons may require the app or an approved access path.', 'Для приватных уроков может понадобиться приложение или подтвержденный путь доступа.')
+            : tr('If playback stalls, reopen the same room in the Duvela mobile app.', 'Если воспроизведение зависнет, откройте эту же комнату в мобильном приложении Duvela.')
+        },
+        {
+          title: tr('Enable sound', 'Включите звук'),
+          copy: tr('If the browser blocks autoplay, use the sound prompt above the stage.', 'Если браузер блокирует автозапуск, нажмите подсказку звука над сценой.')
+        }
+      ];
+    } else {
+      items = [
+        {
+          title: tr('Open from the dashboard', 'Откройте из кабинета'),
+          copy: tr('Use Hub Web or Bus Web to open a specific live room.', 'Откройте конкретную live-комнату из Hub Web или Bus Web.')
+        },
+        {
+          title: tr('Check the teacher link', 'Проверьте ссылку преподавателя'),
+          copy: tr('A valid room link adds the live session id to this page.', 'Корректная ссылка комнаты добавляет id live-сессии на эту страницу.')
+        },
+        {
+          title: tr('Continue in the app', 'Продолжите в приложении'),
+          copy: tr('Mobile app entry remains available for rooms that are not ready in the browser.', 'Вход через мобильное приложение остается доступным для комнат, которые пока не готовы в браузере.')
+        }
+      ];
+    }
+    el('studioChecklist').innerHTML = items.map(function (item) {
+      return studioCheck(item.title, item.copy);
+    }).join('');
+  }
+  function diagnosticCard(label, value) {
+    return '<div class="diagnostic"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>';
+  }
+  function timelineItem(session, primaryLabel, secondaryLabel) {
+    var title = session?.topic || tr('Live lesson', 'Live-урок');
+    var timing = session?.status === 'ended'
+      ? formatSessionMoment(session.ended_at || session.started_at)
+      : formatSessionMoment(session.started_at);
+    var subtitle = [session?.language, session?.level, timing].filter(Boolean).join(' • ');
+    var hostUrl = buildHostUrl(session);
+    var watchUrl = buildShareUrl(session);
+    var actions = '<div class="timeline-actions"><a class="btn" href="' + hostUrl + '">' + esc(primaryLabel) + '</a>';
+    if (!session?.is_private && session?.id) {
+      actions += '<a class="btn ghost" href="' + watchUrl + '" target="_blank" rel="noopener">' + esc(secondaryLabel) + '</a>';
+    }
+    actions += '</div>';
+    return '<div class="timeline-item">' +
+      '<div class="timeline-item-top">' +
+        '<div><b>' + esc(title) + '</b><p>' + esc(subtitle || tr('No details yet.', 'Пока нет деталей.')) + '</p></div>' +
+        '<span class="timeline-pill">' + esc(sessionStatusLabel(session)) + '</span>' +
+      '</div>' +
+      actions +
+    '</div>';
+  }
+  function renderDiagnostics(session) {
+    var items = [];
+    if (isHostMode) {
+      items = [
+        { label: tr('Browser realtime', 'Браузер realtime'), value: (window.AgoraRTC && navigator.mediaDevices?.getUserMedia) ? tr('Ready', 'Готово') : tr('Missing media support', 'Нет media support') },
+        { label: tr('Account', 'Аккаунт'), value: currentUser?.id ? tr('Signed in', 'Вход выполнен') : tr('Sign in required', 'Нужен вход') },
+        { label: tr('Room state', 'Состояние комнаты'), value: sessionStatusLabel(session) },
+        { label: tr('Microphone', 'Микрофон'), value: localAudioTrack ? (micEnabled ? tr('Live', 'Активен') : tr('Muted', 'Выключен')) : tr('Idle', 'Ожидает') },
+        { label: tr('Camera', 'Камера'), value: localVideoTrack ? (camEnabled ? tr('Live', 'Активна') : tr('Off', 'Выключена')) : tr('Idle', 'Ожидает') },
+        { label: tr('Share route', 'Маршрут входа'), value: session?.id ? (session?.is_private ? tr('App or approved access', 'Приложение или подтвержденный доступ') : tr('Browser watch link ready', 'Ссылка для браузера готова')) : tr('Created after room save', 'Появится после сохранения комнаты') }
+      ];
+    } else {
+      items = [
+        { label: tr('Browser playback', 'Браузерный просмотр'), value: window.AgoraRTC ? tr('Ready', 'Готово') : tr('Fallback to app', 'Используйте приложение') },
+        { label: tr('Room state', 'Состояние комнаты'), value: sessionStatusLabel(session) },
+        { label: tr('Access', 'Доступ'), value: accessLabel(session) },
+        { label: tr('Watch link', 'Ссылка просмотра'), value: session?.id ? tr('Opened', 'Открыта') : tr('Missing', 'Нет ссылки') }
+      ];
+    }
+    el('diagnosticsList').innerHTML = items.map(function (item) {
+      return diagnosticCard(item.label, item.value);
+    }).join('');
+  }
+  function renderTimeline() {
+    if (!el('timelineSection')) return;
+    if (!isHostMode) {
+      el('timelineSection').style.display = 'none';
+      return;
+    }
+    el('timelineSection').style.display = 'grid';
+    el('timelineUpcomingMeta').textContent = String(hostScheduledSessions.length) + ' ' + tr('sessions', 'сессий');
+    el('timelineHistoryMeta').textContent = String(hostHistorySessions.length) + ' ' + tr('sessions', 'сессий');
+    el('timelineUpcoming').innerHTML = hostScheduledSessions.length
+      ? hostScheduledSessions.map(function (session) {
+          return timelineItem(session, tr('Open studio', 'Открыть студию'), tr('Open watch page', 'Открыть просмотр'));
+        }).join('')
+      : '<div class="card empty">' + esc(tr('No upcoming sessions yet.', 'Пока нет ближайших сессий.')) + '</div>';
+    el('timelineHistory').innerHTML = hostHistorySessions.length
+      ? hostHistorySessions.map(function (session) {
+          return timelineItem(session, tr('Reuse room', 'Повторить комнату'), tr('Open watch page', 'Открыть просмотр'));
+        }).join('')
+      : '<div class="card empty">' + esc(tr('No recent sessions yet.', 'Пока нет недавних сессий.')) + '</div>';
+  }
+  function renderWorkspace(session) {
+    renderFacts(session);
+    renderStudioMetrics(session);
+    renderStudioChecklist(session);
+    renderDiagnostics(session);
+    renderTimeline();
+    if (isHostMode) {
+      if (session?.status === 'live') {
+        setNote(session?.is_private
+          ? tr('Private room is live. Use the app handoff or your approved access path for learners.', 'Приватная комната уже в эфире. Для учеников используйте вход через приложение или подтвержденный сценарий доступа.')
+          : tr('Public room is live. Share the browser watch link while this host tab stays open.', 'Публичная комната уже в эфире. Делитесь браузерной ссылкой, пока эта host-вкладка остается открытой.'));
+      } else if (session?.status === 'scheduled') {
+        setNote(tr('This room is scheduled. Open the same page shortly before start time and launch LIVE from here.', 'Эта комната запланирована. Откройте эту же страницу незадолго до старта и запустите LIVE отсюда.'));
+      } else if (session?.status === 'ended') {
+        setNote(tr('This room has ended. Update the setup and start a new live session when you are ready.', 'Эта комната завершена. Обновите настройки и запускайте новый эфир, когда будете готовы.'));
+      } else {
+        setNote(tr('The room stays in setup mode until you start LIVE from this browser.', 'Комната остается в режиме настройки, пока вы не нажмете Start LIVE в этом браузере.'));
+      }
+      return;
+    }
+    if (session?.status === 'scheduled') {
+      setNote(tr('This lesson is scheduled. Keep the page open and it will update when the teacher starts.', 'Этот урок запланирован. Оставьте страницу открытой, и она обновится, когда преподаватель начнет эфир.'));
+    } else if (session?.status === 'ended') {
+      setNote(tr('The broadcast has ended. Reopen the next lesson from the dashboard or mobile app.', 'Эфир завершен. Откройте следующий урок из кабинета или мобильного приложения.'));
+    } else if (session?.is_private) {
+      setNote(tr('Private lessons may still require the Duvela app even when the browser page opens.', 'Даже если страница открылась в браузере, для приватных уроков все равно может понадобиться приложение Duvela.'));
+    } else {
+      setNote(tr('If the stream does not start, reopen the room or continue in the Duvela app.', 'Если эфир не стартует, переоткройте комнату или продолжите в приложении Duvela.'));
+    }
   }
   function updateHostControls() {
     el('toggleMic').textContent = micEnabled ? tr('Mute mic', 'Выключить микрофон') : tr('Unmute mic', 'Включить микрофон');
@@ -110,12 +413,24 @@
     sessionPollTimer = setInterval(async function () {
       try {
         currentSession = await loadLiveSession(sessionId);
-        renderFacts(currentSession);
+        applySessionToInputs(currentSession);
+        updateShareLink(currentSession);
+        renderWorkspace(currentSession);
         if (currentSession.topic) el('title').textContent = currentSession.topic;
+        if (isHostMode && currentUser?.id) {
+          await loadHostTimeline();
+        }
+        if (currentSession.status === 'scheduled') {
+          showOverlay(true);
+          setStatus(tr('Scheduled', 'Запланировано'), 'ready');
+          setStage('', tr('This session is scheduled and will switch to LIVE when the teacher starts.', 'Эта сессия запланирована и перейдет в LIVE, когда преподаватель начнет эфир.'));
+          stopElapsedClock();
+        }
         if (currentSession.status === 'ended') {
           showOverlay(true);
-          setStatus(tr('LIVE ended', 'Эфир завершён'), '');
-          setStage('', tr('The live session has ended.', 'Эфир завершён.'));
+          setStatus(tr('LIVE ended', 'Эфир завершен'), '');
+          setStage('', tr('The live session has ended.', 'Эфир завершен.'));
+          setHostSetupDisabled(false);
         }
       } catch (error) {}
     }, 15000);
@@ -127,13 +442,13 @@
     return 'duvelahub://native/live-stream?mode=student' + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : '');
   }
   function updateShareLink(session) {
-    if (!session?.id) return;
-    var url = new URL('./live.html', window.location.href);
-    url.searchParams.set('s', session.id);
-    if (session.teacher_name) url.searchParams.set('t', session.teacher_name);
-    el('shareUrl').value = url.href;
+    if (!session?.id || session?.is_private || session?.status === 'ended') {
+      el('shareBox').classList.remove('visible');
+      el('shareUrl').value = '';
+      return;
+    }
+    el('shareUrl').value = buildShareUrl(session);
     el('shareBox').classList.add('visible');
-    renderFacts(session);
   }
   function updateUrlForHost(session) {
     if (!session?.id) return;
@@ -180,31 +495,113 @@
     if (result.error || !result.data) throw new Error(tr('This LIVE was not found.', 'Этот LIVE не найден.'));
     return result.data;
   }
-  async function createLiveSession(user) {
+  function hostSessionPayload(user, status, startedAt, existingSession) {
     var now = new Date().toISOString();
     var topic = el('topicInput').value.trim() || tr('Live lesson', 'Live-урок');
-    var payload = {
-      channel_name: createChannelName(user.id),
-      ended_at: null,
+    return {
+      channel_name: existingSession?.channel_name || createChannelName(user.id),
+      ended_at: status === 'ended' ? now : null,
       heartbeat_at: now,
       is_private: el('privateInput').checked,
+      language: el('languageInput').value || null,
       level: el('levelInput').value || null,
       price_per_minute: 0,
-      started_at: now,
-      status: 'live',
+      started_at: startedAt || existingSession?.started_at || now,
+      status: status,
       teacher_id: user.id,
       teacher_name: displayName(user),
       topic: topic
     };
+  }
+  async function createLiveSession(user) {
+    var payload = hostSessionPayload(user, 'live', new Date().toISOString(), null);
     var result = await supa
       .from('live_sessions')
-      .upsert(payload, { onConflict: 'channel_name' })
+      .insert(payload)
       .select(LIVE_FIELDS)
       .single();
     if (result.error || !result.data) {
       throw new Error(result.error?.message || tr('Could not create LIVE. Make sure this account is a teacher/organizer.', 'Не удалось создать LIVE. Проверьте, что аккаунт отмечен как teacher или organizer.'));
     }
     return result.data;
+  }
+  async function updateHostSession(user, session, status, startedAt) {
+    var payload = hostSessionPayload(user, status, startedAt, session);
+    var result = await supa
+      .from('live_sessions')
+      .update(payload)
+      .eq('id', session.id)
+      .eq('teacher_id', user.id)
+      .select(LIVE_FIELDS)
+      .single();
+    if (result.error || !result.data) {
+      throw new Error(result.error?.message || tr('Could not update LIVE room.', 'Не удалось обновить LIVE-комнату.'));
+    }
+    return result.data;
+  }
+  async function loadHostTimeline() {
+    if (!isHostMode || !currentUser?.id) return;
+    var now = new Date().toISOString();
+    var results = await Promise.all([
+      supa.from('live_sessions')
+        .select(LIVE_FIELDS)
+        .eq('teacher_id', currentUser.id)
+        .eq('status', 'scheduled')
+        .gte('started_at', now)
+        .order('started_at', { ascending: true })
+        .limit(8),
+      supa.from('live_sessions')
+        .select(LIVE_FIELDS)
+        .eq('teacher_id', currentUser.id)
+        .eq('status', 'ended')
+        .order('ended_at', { ascending: false })
+        .limit(8)
+    ]);
+    hostScheduledSessions = results[0].data || [];
+    hostHistorySessions = results[1].data || [];
+    renderWorkspace(currentSession);
+  }
+  async function scheduleHostSession() {
+    if (!supa) return;
+    el('scheduleSession').disabled = true;
+    try {
+      var authSession = await requireSessionForHost();
+      currentUser = authSession.user;
+      var scheduledAt = buildScheduleIso();
+      if (!scheduledAt) throw new Error(tr('Choose date and time first.', 'Сначала выберите дату и время.'));
+      if (Date.parse(scheduledAt) <= Date.now()) {
+        throw new Error(tr('Choose a future start time.', 'Выберите время старта в будущем.'));
+      }
+      var selectedSession = sessionId ? await loadLiveSession(sessionId) : null;
+      if (selectedSession?.teacher_id && selectedSession.teacher_id !== currentUser.id) {
+        throw new Error(tr('This LIVE belongs to another teacher.', 'Этот LIVE принадлежит другому преподавателю.'));
+      }
+      currentSession = selectedSession
+        ? await updateHostSession(currentUser, selectedSession, 'scheduled', scheduledAt)
+        : await (async function () {
+            var payload = hostSessionPayload(currentUser, 'scheduled', scheduledAt, null);
+            var result = await supa.from('live_sessions').insert(payload).select(LIVE_FIELDS).single();
+            if (result.error || !result.data) {
+              throw new Error(result.error?.message || tr('Could not schedule LIVE.', 'Не удалось запланировать LIVE.'));
+            }
+            return result.data;
+          })();
+      teacher = currentSession.teacher_name || teacher;
+      updateUrlForHost(currentSession);
+      updateShareLink(currentSession);
+      applySessionToInputs(currentSession);
+      renderWorkspace(currentSession);
+      el('mainAction').textContent = tr('Go LIVE now', 'Выйти в LIVE');
+      showOverlay(true);
+      setStatus(tr('Scheduled', 'Запланировано'), 'ready');
+      setStage('', tr('The session is scheduled. Open this page again to start LIVE from the browser.', 'Сессия запланирована. Откройте эту страницу снова, чтобы запустить LIVE из браузера.'));
+      if (currentSession.topic) el('title').textContent = currentSession.topic;
+      await loadHostTimeline();
+    } catch (error) {
+      setStage('', error?.message || tr('Could not schedule LIVE.', 'Не удалось запланировать LIVE.'));
+    } finally {
+      el('scheduleSession').disabled = false;
+    }
   }
   async function markHeartbeat() {
     if (!currentSession?.id) return;
@@ -234,14 +631,19 @@
     setStatus(tr('Starting teacher LIVE', 'Запуск teacher LIVE'), 'ready');
     setStage('<div class="spinner"></div>', tr('Preparing camera and microphone...', 'Подготовка камеры и микрофона...'));
     try {
+      var createdFreshSession = false;
       var authSession = await requireSessionForHost();
       currentUser = authSession.user;
       var uid = createAgoraUid(currentUser.id);
       currentSession = sessionId ? await loadLiveSession(sessionId) : await createLiveSession(currentUser);
+      createdFreshSession = !sessionId;
+      applySessionToInputs(currentSession);
       if (currentSession.teacher_id && currentSession.teacher_id !== currentUser.id) {
         throw new Error(tr('This LIVE belongs to another teacher.', 'Этот LIVE принадлежит другому преподавателю.'));
       }
-      if (currentSession.status !== 'live') throw new Error(tr('This LIVE is not active.', 'Этот LIVE сейчас не активен.'));
+      if (!createdFreshSession) {
+        currentSession = await updateHostSession(currentUser, currentSession, 'live', new Date().toISOString());
+      }
 
       var token = await getPublisherToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
@@ -267,16 +669,23 @@
       setStage('', '');
       updateUrlForHost(currentSession);
       updateShareLink(currentSession);
+      setHostSetupDisabled(true);
+      renderWorkspace(currentSession);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
       startSessionPolling();
       await markHeartbeat();
       heartbeatTimer = setInterval(markHeartbeat, 30000);
+      await loadHostTimeline();
     } catch (error) {
       el('mainAction').disabled = false;
-      el('mainAction').textContent = sessionId ? tr('Enter as teacher', 'Войти как teacher') : tr('Start LIVE', 'Запустить LIVE');
+      el('mainAction').textContent = sessionId ? tr('Open as teacher', 'Открыть как teacher') : tr('Start LIVE', 'Запустить LIVE');
       setStatus(tr('Not live', 'Не в эфире'), '');
       setStage('', error?.message || tr('Could not start LIVE.', 'Не удалось запустить LIVE.'));
+      if (createdFreshSession && currentSession?.id && currentUser?.id) {
+        try { await markEnded(); } catch (e) {}
+      }
       await stopMedia(false);
+      renderWorkspace(currentSession);
     }
   }
   async function watch() {
@@ -300,12 +709,17 @@
       var user = authSession.user;
       var uid = createAgoraUid(user.id);
       currentSession = await loadLiveSession(sessionId);
-      renderFacts(currentSession);
-      startElapsedClock(currentSession.started_at || new Date().toISOString());
+      renderWorkspace(currentSession);
+      updateShareLink(currentSession);
       startSessionPolling();
-      if (currentSession.status !== 'live') throw new Error(tr('This LIVE has ended.', 'Этот LIVE уже завершён.'));
+      if (currentSession.status === 'scheduled') {
+        stopElapsedClock();
+        throw new Error(tr('This lesson is scheduled. Keep this page open or reopen it near the start time.', 'Этот урок запланирован. Оставьте страницу открытой или вернитесь ближе ко времени старта.'));
+      }
+      if (currentSession.status !== 'live') throw new Error(tr('This LIVE has ended.', 'Этот LIVE уже завершен.'));
       if (currentSession.is_private) throw new Error(tr('This is a private lesson. Open the app to request access.', 'Это приватный урок. Откройте приложение, чтобы запросить доступ.'));
       if (currentSession.teacher_name && !teacher) el('title').textContent = teacherWatchTitle(currentSession.teacher_name);
+      startElapsedClock(currentSession.started_at || new Date().toISOString());
       var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       await client.setClientRole('audience');
@@ -335,6 +749,7 @@
       setStatus(tr('Not connected', 'Нет подключения'), '');
       setStage('', error?.message || tr('Could not start the stream.', 'Не удалось запустить эфир.'));
       showOverlay(true);
+      renderWorkspace(currentSession);
     }
   }
   async function stopMedia(markSessionEnded) {
@@ -359,7 +774,8 @@
     }
     el('toggleMic').style.display = 'none';
     el('toggleCam').style.display = 'none';
-    if (markSessionEnded) await markEnded();
+    setHostSetupDisabled(false);
+    if (markSessionEnded && currentSession?.status === 'live') await markEnded();
   }
   async function endHost() {
     el('endLive').disabled = true;
@@ -370,8 +786,12 @@
     el('endLive').disabled = false;
     el('mainAction').disabled = false;
     el('mainAction').textContent = tr('Start LIVE', 'Запустить LIVE');
-    setStatus(tr('LIVE ended', 'Эфир завершён'), '');
-    setStage('', tr('The live session has ended.', 'Эфир завершён.'));
+    setStatus(tr('LIVE ended', 'Эфир завершен'), '');
+    setStage('', tr('The live session has ended.', 'Эфир завершен.'));
+    currentSession = currentSession ? Object.assign({}, currentSession, { status: 'ended', ended_at: new Date().toISOString() }) : null;
+    updateShareLink(currentSession);
+    renderWorkspace(currentSession);
+    if (currentUser?.id) await loadHostTimeline();
   }
   function showSoundPill(remoteUser) {
     var pill = el('soundPill');
@@ -384,14 +804,45 @@
       } catch (e) {}
     };
   }
+  async function preloadHostSession() {
+    try {
+      var authSession = await requireSessionForHost();
+      currentUser = authSession.user;
+      await loadHostTimeline();
+      if (!sessionId) return;
+      currentSession = await loadLiveSession(sessionId);
+      if (currentSession.teacher_id && currentSession.teacher_id !== currentUser.id) {
+        throw new Error(tr('This LIVE belongs to another teacher.', 'Этот LIVE принадлежит другому преподавателю.'));
+      }
+      teacher = currentSession.teacher_name || teacher;
+      applySessionToInputs(currentSession);
+      updateShareLink(currentSession);
+      if (currentSession.topic) el('title').textContent = currentSession.topic;
+      if (currentSession.status === 'scheduled') {
+        el('mainAction').textContent = tr('Go LIVE now', 'Выйти в LIVE');
+        setStatus(tr('Scheduled', 'Запланировано'), 'ready');
+        setStage('', tr('This room is scheduled and ready for launch from this browser.', 'Эта комната запланирована и готова к запуску из этого браузера.'));
+      } else if (currentSession.status === 'ended') {
+        setStatus(tr('Ended', 'Завершен'), '');
+        setStage('', tr('This room ended earlier. Update details or reuse it for the next lesson.', 'Эта комната уже завершалась. Обновите детали или используйте ее снова для следующего урока.'));
+      }
+      renderWorkspace(currentSession);
+    } catch (error) {
+      setNote(error?.message || tr('Could not load teacher session.', 'Не удалось загрузить teacher session.'));
+    }
+  }
   function setupMode() {
     document.documentElement.lang = isRu ? 'ru' : 'en';
     document.querySelector('label[for="topicInput"]').textContent = tr('LIVE title', 'Название LIVE');
     document.querySelector('label[for="levelInput"]').textContent = tr('Level', 'Уровень');
+    document.querySelector('label[for="languageInput"]').textContent = tr('Language', 'Язык');
+    document.querySelector('label[for="scheduleDateInput"]').textContent = tr('Start date', 'Дата старта');
+    document.querySelector('label[for="scheduleTimeInput"]').textContent = tr('Start time', 'Время старта');
     document.querySelector('label[for="shareUrl"]').textContent = tr('Student watch link', 'Ссылка для просмотра ученикам');
     document.querySelector('#hostSetup .check-row span').textContent = tr('Private room', 'Приватная комната');
     el('topicInput').value = tr('Live lesson', 'Live-урок');
     el('soundPill').textContent = tr('Tap for sound', 'Нажмите для звука');
+    applyDefaultScheduleInputs();
     el('openApp').href = makeDeepLink();
     el('openApp').addEventListener('click', function (event) {
       event.preventDefault();
@@ -407,6 +858,7 @@
     el('endLive').addEventListener('click', endHost);
     el('toggleMic').addEventListener('click', function () { void toggleMic(); });
     el('toggleCam').addEventListener('click', function () { void toggleCam(); });
+    el('scheduleSession').addEventListener('click', function () { void scheduleHostSession(); });
     window.addEventListener('beforeunload', function () {
       if (isHostMode) void stopMedia(true);
       else if (client) void client.leave();
@@ -419,18 +871,41 @@
       el('title').textContent = sessionId ? tr('Enter teacher LIVE', 'Войти в teacher LIVE') : tr('Start teacher LIVE', 'Запустить teacher LIVE');
       el('subtitle').textContent = tr('Create a live room and publish camera plus microphone from this browser.', 'Создайте live-комнату и выйдите в эфир с камеры и микрофона из браузера.');
       el('sideTitle').textContent = tr('Teacher controls', 'Управление teacher LIVE');
-      el('sideCopy').textContent = tr('Your teacher account must be marked as teacher or organizer in Supabase.', 'Аккаунт должен быть отмечен в Supabase как teacher или organizer.');
+      el('sideCopy').textContent = tr('Run the live room from the browser, keep session details clear, and hand off learners with the right entry link.', 'Запускайте эфир из браузера, держите данные комнаты в порядке и переводите учеников по правильной ссылке входа.');
+      el('setupSection').style.display = 'grid';
       el('hostSetup').style.display = 'grid';
-      el('mainAction').textContent = sessionId ? tr('Enter as teacher', 'Войти как teacher') : tr('Start LIVE', 'Запустить LIVE');
+      el('scheduleSetup').style.display = 'grid';
+      el('setupTitle').textContent = tr('Session setup', 'Настройка сессии');
+      el('setupCopy').textContent = tr('Prepare room details, set the next time slot, then launch or reuse the same room.', 'Подготовьте детали комнаты, задайте ближайший слот и затем запустите или переиспользуйте эту же комнату.');
+      el('linksTitle').textContent = tr('Studio links', 'Ссылки студии');
+      el('linksCopy').textContent = tr('Use browser and app entry points for the same live room.', 'Используйте браузерный и мобильный вход для одной и той же live-комнаты.');
+      el('detailsTitle').textContent = tr('Room details', 'Детали комнаты');
+      el('detailsCopy').textContent = tr('Session state, access and teaching details update here.', 'Здесь обновляются состояние сессии, доступ и учебные параметры.');
+      el('checklistTitle').textContent = tr('Broadcast checklist', 'Чеклист эфира');
+      el('checklistCopy').textContent = tr('Use this checklist before and during the lesson.', 'Пользуйтесь этим чеклистом до старта и во время урока.');
+      el('diagnosticsTitle').textContent = tr('Diagnostics', 'Диагностика');
+      el('diagnosticsCopy').textContent = tr('Check browser readiness, room access and device state before you go live.', 'Проверьте готовность браузера, доступ комнаты и состояние устройств до запуска.');
+      el('timelineTitle').textContent = tr('Session timeline', 'Лента сессий');
+      el('timelineCopy').textContent = tr('Keep upcoming and recent rooms in one operational view.', 'Держите ближайшие и недавние комнаты в одном рабочем списке.');
+      el('timelineUpcomingTitle').textContent = tr('Upcoming', 'Ближайшие');
+      el('timelineHistoryTitle').textContent = tr('Recent', 'Недавние');
+      el('scheduleSession').textContent = tr('Schedule session', 'Запланировать сессию');
+      el('mainAction').textContent = sessionId ? tr('Open as teacher', 'Открыть как teacher') : tr('Start LIVE', 'Запустить LIVE');
       el('mainAction').addEventListener('click', startHost);
       el('dashboardLink').href = './app.html?role=teacher#live';
       el('backLink').href = './app.html?role=teacher#live';
-      el('note').textContent = tr('Allow camera and microphone permissions when the browser asks.', 'Разрешите доступ к камере и микрофону, когда браузер попросит.');
       el('openApp').textContent = tr('Open in the Duvela app', 'Открыть в приложении Duvela');
       el('dashboardLink').textContent = tr('Back to web dashboard', 'Назад в веб-кабинет');
       el('copyShare').textContent = tr('Copy link', 'Копировать ссылку');
-      renderFacts({ teacher_name: teacher || displayName({}), level: el('levelInput').value || 'B1', is_private: false });
+      renderWorkspace({
+        teacher_name: teacher || displayName({}),
+        topic: el('topicInput').value,
+        level: el('levelInput').value || 'B1',
+        language: el('languageInput').value,
+        is_private: false
+      });
       setStatus(tr('Ready for teacher', 'Готово для teacher'), 'ready');
+      void preloadHostSession();
       return;
     }
 
@@ -441,13 +916,20 @@
     el('dashboardLink').href = './app.html?role=learner#live';
     el('backLink').href = './app.html?role=learner#live';
     el('sideTitle').textContent = tr('Live room', 'Live-комната');
-    el('sideCopy').textContent = tr('Use the browser to watch the lesson, or open Duvela on mobile.', 'Смотрите урок в браузере или откройте Duvela на мобильном.');
+    el('sideCopy').textContent = tr('Use the browser to watch the lesson, or move the same session into the Duvela app.', 'Смотрите урок в браузере или переносите эту же сессию в приложение Duvela.');
+    el('linksTitle').textContent = tr('Access links', 'Ссылки доступа');
+    el('linksCopy').textContent = tr('Switch between browser playback and the mobile app when needed.', 'При необходимости переключайтесь между браузерным просмотром и мобильным приложением.');
+    el('detailsTitle').textContent = tr('Room details', 'Детали комнаты');
+    el('detailsCopy').textContent = tr('Session state updates as the teacher joins or ends the room.', 'Состояние сессии обновляется, когда преподаватель подключается или завершает комнату.');
+    el('checklistTitle').textContent = tr('Watch checklist', 'Чеклист просмотра');
+    el('checklistCopy').textContent = tr('Use these steps if the stream is not immediately available.', 'Используйте эти шаги, если эфир доступен не сразу.');
+    el('diagnosticsTitle').textContent = tr('Playback diagnostics', 'Диагностика просмотра');
+    el('diagnosticsCopy').textContent = tr('Check room state and browser readiness before moving into the app.', 'Проверьте состояние комнаты и готовность браузера перед переходом в приложение.');
     el('openApp').textContent = tr('Open in the Duvela app', 'Открыть в приложении Duvela');
     el('dashboardLink').textContent = tr('Back to web dashboard', 'Назад в веб-кабинет');
     el('copyShare').textContent = tr('Copy link', 'Копировать ссылку');
     setStatus(sessionId ? tr('Ready to watch', 'Готово к просмотру') : tr('No session selected', 'Сессия не выбрана'), sessionId ? 'ready' : '');
-    el('note').textContent = sessionId ? tr('If playback does not start, open the lesson in the app.', 'Если воспроизведение не стартует, откройте урок в приложении.') : tr('Open a live session from Hub or Bus Web.', 'Откройте live-сессию из Hub или Bus Web.');
-    renderFacts({ teacher_name: teacher || '', level: '', language: '', is_private: false });
+    renderWorkspace({ teacher_name: teacher || '', level: '', language: '', is_private: false });
     if (sessionId) setTimeout(function () { void watch(); }, 250);
   }
 

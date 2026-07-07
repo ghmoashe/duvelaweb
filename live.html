@@ -254,6 +254,43 @@
     line-height: 1.45;
     font-weight: 700;
   }
+  .studio-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .studio-metric {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+  }
+  .studio-metric span {
+    display: block;
+    color: var(--soft);
+    font-size: 11px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .studio-metric b {
+    display: block;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .studio-section {
+    display: grid;
+    gap: 12px;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+  .studio-section h3 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+  .studio-section p {
+    margin-top: 4px;
+  }
   .field {
     display: grid;
     gap: 7px;
@@ -283,6 +320,11 @@
   .check-row input { width: 17px; height: 17px; }
   .actions {
     display: grid;
+    gap: 9px;
+  }
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 9px;
   }
   .facts {
@@ -323,6 +365,117 @@
     padding: 9px 10px;
     font-size: 12px;
   }
+  .share-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .studio-checklist {
+    display: grid;
+    gap: 8px;
+  }
+  .studio-check {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+  }
+  .studio-check b {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .studio-check span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 700;
+  }
+  .diagnostics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .diagnostic {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+  }
+  .diagnostic span {
+    display: block;
+    color: var(--soft);
+    font-size: 11px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .diagnostic b {
+    display: block;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .timeline-stack {
+    display: grid;
+    gap: 12px;
+  }
+  .timeline-group {
+    display: grid;
+    gap: 8px;
+  }
+  .timeline-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+  }
+  .timeline-list {
+    display: grid;
+    gap: 8px;
+  }
+  .timeline-item {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+    display: grid;
+    gap: 8px;
+  }
+  .timeline-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .timeline-item b {
+    display: block;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .timeline-item p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 700;
+  }
+  .timeline-pill {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 9px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .timeline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .note {
     color: var(--soft);
     font-size: 12px;
@@ -350,6 +503,7 @@
     .topbar { align-items: flex-start; flex-direction: column; }
     .stage { min-height: 220px; }
     .stage-footer { align-items: flex-start; flex-direction: column; }
+    .studio-metrics, .facts, .diagnostics, .schedule-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -397,43 +551,130 @@
         <p id="sideCopy">Use the browser to watch the lesson, or open Duvela on mobile.</p>
       </div>
 
-      <div id="hostSetup" style="display:none">
-        <div class="field">
-          <label for="topicInput">LIVE title</label>
-          <input id="topicInput" maxlength="80" value="Live lesson">
-        </div>
-        <div class="field">
-          <label for="levelInput">Level</label>
-          <select id="levelInput">
-            <option value="A1">A1</option>
-            <option value="A2">A2</option>
-            <option value="B1" selected>B1</option>
-            <option value="B2">B2</option>
-            <option value="C1">C1</option>
-            <option value="C2">C2</option>
-            <option value="">Open</option>
-          </select>
-        </div>
-        <label class="check-row">
-          <input type="checkbox" id="privateInput">
-          <span>Private room</span>
-        </label>
-      </div>
+      <div class="studio-metrics" id="studioMetrics"></div>
 
-      <div class="facts" id="sessionFacts"></div>
-
-      <div class="actions">
-        <a class="btn" id="openApp" href="#">Open in the Duvela app</a>
-        <a class="btn ghost" id="dashboardLink" href="./app.html?role=teacher#live">Back to web dashboard</a>
-      </div>
-
-      <div class="share-box" id="shareBox">
-        <div class="field">
-          <label for="shareUrl">Student watch link</label>
-          <input id="shareUrl" readonly>
+      <section class="studio-section" id="setupSection" style="display:none">
+        <div>
+          <h3 id="setupTitle">Session setup</h3>
+          <p id="setupCopy">Define the room before you go live.</p>
         </div>
-        <button type="button" class="btn" id="copyShare">Copy link</button>
-      </div>
+        <div id="hostSetup" style="display:none">
+          <div class="field">
+            <label for="topicInput">LIVE title</label>
+            <input id="topicInput" maxlength="80" value="Live lesson">
+          </div>
+          <div class="field">
+            <label for="levelInput">Level</label>
+            <select id="levelInput">
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1" selected>B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+              <option value="C2">C2</option>
+              <option value="">Open</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="languageInput">Language</label>
+            <select id="languageInput">
+              <option value="English" selected>English</option>
+              <option value="German">German</option>
+              <option value="Spanish">Spanish</option>
+              <option value="French">French</option>
+              <option value="Italian">Italian</option>
+              <option value="">General</option>
+            </select>
+          </div>
+          <label class="check-row">
+            <input type="checkbox" id="privateInput">
+            <span>Private room</span>
+          </label>
+        </div>
+        <div id="scheduleSetup" style="display:none">
+          <div class="schedule-grid">
+            <div class="field">
+              <label for="scheduleDateInput">Start date</label>
+              <input id="scheduleDateInput" type="date">
+            </div>
+            <div class="field">
+              <label for="scheduleTimeInput">Start time</label>
+              <input id="scheduleTimeInput" type="time">
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn" id="scheduleSession">Schedule session</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="studio-section">
+        <div>
+          <h3 id="linksTitle">Studio links</h3>
+          <p id="linksCopy">Use browser and app entry points for the same session.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" id="openApp" href="#">Open in the Duvela app</a>
+          <a class="btn ghost" id="dashboardLink" href="./app.html?role=teacher#live">Back to web dashboard</a>
+        </div>
+
+        <div class="share-box" id="shareBox">
+          <div class="field">
+            <label for="shareUrl">Student watch link</label>
+            <input id="shareUrl" readonly>
+          </div>
+          <div class="share-actions">
+            <button type="button" class="btn" id="copyShare">Copy link</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="studio-section">
+        <div>
+          <h3 id="detailsTitle">Room details</h3>
+          <p id="detailsCopy">Core session data updates while the room is running.</p>
+        </div>
+        <div class="facts" id="sessionFacts"></div>
+      </section>
+
+      <section class="studio-section">
+        <div>
+          <h3 id="checklistTitle">Broadcast checklist</h3>
+          <p id="checklistCopy">Keep the room stable and clear for learners.</p>
+        </div>
+        <div class="studio-checklist" id="studioChecklist"></div>
+      </section>
+
+      <section class="studio-section" id="diagnosticsSection">
+        <div>
+          <h3 id="diagnosticsTitle">Diagnostics</h3>
+          <p id="diagnosticsCopy">Check browser readiness, room access and live device state.</p>
+        </div>
+        <div class="diagnostics" id="diagnosticsList"></div>
+      </section>
+
+      <section class="studio-section" id="timelineSection" style="display:none">
+        <div>
+          <h3 id="timelineTitle">Session timeline</h3>
+          <p id="timelineCopy">Keep upcoming and recent rooms in one operational list.</p>
+        </div>
+        <div class="timeline-stack">
+          <div class="timeline-group">
+            <div class="timeline-group-head">
+              <span id="timelineUpcomingTitle">Upcoming</span>
+              <span id="timelineUpcomingMeta">0 sessions</span>
+            </div>
+            <div class="timeline-list" id="timelineUpcoming"></div>
+          </div>
+          <div class="timeline-group">
+            <div class="timeline-group-head">
+              <span id="timelineHistoryTitle">Recent</span>
+              <span id="timelineHistoryMeta">0 sessions</span>
+            </div>
+            <div class="timeline-list" id="timelineHistory"></div>
+          </div>
+        </div>
+      </section>
 
       <div class="note" id="note"></div>
     </aside>

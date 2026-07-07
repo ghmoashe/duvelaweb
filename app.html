@@ -455,6 +455,85 @@
     font-size: 13px;
     font-weight: 800;
   }
+  .live-studio-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .live-studio-card {
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+  }
+  .live-studio-card h3 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+  .live-studio-card p {
+    margin: 5px 0 0;
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .live-studio-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .live-studio-metric {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+  }
+  .live-studio-metric span {
+    display: block;
+    color: var(--soft);
+    font-size: 11px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .live-studio-metric b {
+    display: block;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .live-studio-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .live-studio-steps {
+    display: grid;
+    gap: 8px;
+  }
+  .live-studio-step {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+  }
+  .live-studio-step b {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .live-studio-step span {
+    display: block;
+    color: var(--soft);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 800;
+  }
+  .live-panel-sections {
+    display: grid;
+    gap: 12px;
+  }
+  .live-panel-block {
+    display: grid;
+    gap: 10px;
+  }
   .profile-box {
     padding: 18px;
     display: grid;
@@ -531,6 +610,8 @@
     .user-chip b, .user-chip span { max-width: calc(100vw - 120px); }
     .nav { grid-template-columns: repeat(4, 1fr); }
     .live-host-card { align-items: stretch; flex-direction: column; }
+    .live-studio-grid { grid-template-columns: 1fr; }
+    .live-studio-metrics { grid-template-columns: 1fr; }
     .row { grid-template-columns: 52px minmax(0, 1fr); }
     .row .btn, .row .tag:last-child { grid-column: 2; justify-self: start; }
     .thumb { width: 52px; height: 44px; }
@@ -719,7 +800,22 @@
     <section class="panel" data-panel="live">
       <div class="section-head"><h2>Live lessons</h2><span>Watch in browser or open the app</span></div>
       <div class="live-host-panel" id="liveHostPanel"></div>
-      <div class="list" id="liveList"></div>
+      <div class="live-panel-sections">
+        <div class="live-panel-block">
+          <div class="section-head"><h2 id="liveActiveTitle">Active rooms</h2><span id="liveActiveMeta">0 live sessions</span></div>
+          <div class="list" id="liveList"></div>
+        </div>
+        <div class="grid-2">
+          <div class="live-panel-block">
+            <div class="section-head"><h2 id="liveScheduledTitle">Scheduled</h2><span id="liveScheduledMeta">0 upcoming</span></div>
+            <div class="list" id="liveScheduledList"></div>
+          </div>
+          <div class="live-panel-block">
+            <div class="section-head"><h2 id="liveHistoryTitle">Recent sessions</h2><span id="liveHistoryMeta">0 recent</span></div>
+            <div class="list" id="liveHistoryList"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="panel" data-panel="courses">

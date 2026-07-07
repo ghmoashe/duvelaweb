@@ -413,6 +413,246 @@
       }
     }
 
+    function visibleLiveSessionsV2() {
+      return (state.live || []).filter((item) => ctx.isBusiness() || !item.is_private);
+    }
+
+    function upcomingLiveSessionsV2() {
+      return (state.liveScheduled || []).filter((item) => ctx.isBusiness() || !item.is_private);
+    }
+
+    function archivedLiveSessionsV2() {
+      return ctx.isBusiness() ? (state.liveHistory || []) : [];
+    }
+
+    function ownLiveSessionV2() {
+      if (!ctx.user?.id) return null;
+      return (state.live || []).find((item) => item.teacher_id === ctx.user.id) || null;
+    }
+
+    function studioMetricV2(label, value) {
+      return '<div class="live-studio-metric"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>';
+    }
+
+    function studioStepV2(title, copy) {
+      return '<div class="live-studio-step"><b>' + esc(title) + '</b><span>' + esc(copy) + '</span></div>';
+    }
+
+    function liveDateV2(value) {
+      if (!value) return '';
+      return formatDate(value.slice(0, 10));
+    }
+
+    function liveTimeV2(value) {
+      if (!value) return '';
+      return value.slice(11, 16);
+    }
+
+    function liveTimingV2(item) {
+      if (!item) return '';
+      if (item.status === 'scheduled' && item.started_at) {
+        return [tr('Starts', 'Старт'), liveDateV2(item.started_at), liveTimeV2(item.started_at)].filter(Boolean).join(' • ');
+      }
+      if (item.status === 'ended' && item.ended_at) {
+        return [tr('Ended', 'Завершен'), liveDateV2(item.ended_at), liveTimeV2(item.ended_at)].filter(Boolean).join(' • ');
+      }
+      if (item.started_at) {
+        return [tr('Started', 'Стартовал'), liveDateV2(item.started_at), liveTimeV2(item.started_at)].filter(Boolean).join(' • ');
+      }
+      return '';
+    }
+
+    function liveRowLevelV2(item, creator) {
+      if (item.status === 'scheduled') return tr('Scheduled', 'Запланировано');
+      if (item.status === 'ended') return tr('History', 'История');
+      if (item.is_private && creator) return tr('Private', 'Приватный');
+      return tr('Live', 'Эфир');
+    }
+
+    function liveRowActionV2(item, creator) {
+      if (creator) {
+        if (item.status === 'scheduled') return tr('Prepare', 'Подготовить');
+        if (item.status === 'ended') return tr('Reuse', 'Повторить');
+        return tr('Enter', 'Войти');
+      }
+      if (item.status === 'scheduled') return tr('Open', 'Открыть');
+      return tr('Watch', 'Смотреть');
+    }
+
+    function liveRowMetaV2(item) {
+      return [item.title || tr('Live lesson', 'Live-урок'), liveTimingV2(item)].filter(Boolean).join(' • ');
+    }
+
+    function emptyLiveBlockV2(copy) {
+      return '<div class="card empty">' + esc(copy) + '</div>';
+    }
+
+    function renderLiveRowsV2(target, items, creator, emptyCopy) {
+      const node = $(target);
+      if (!node) return;
+      node.innerHTML = items.length
+        ? items.map((item) =>
+            ctx.row(
+              {
+                title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'),
+                meta: liveRowMetaV2(item),
+                level: liveRowLevelV2(item, creator)
+              },
+              '<a class="btn ' + (item.status === 'live' ? 'primary' : '') + '" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(liveRowActionV2(item, creator)) + '</a>'
+            )
+          ).join('')
+        : emptyLiveBlockV2(emptyCopy);
+    }
+
+    function renderHomeV2() {
+      const creator = ctx.isBusiness();
+      const liveItems = visibleLiveSessionsV2();
+      const scheduledItems = upcomingLiveSessionsV2();
+      const historyItems = archivedLiveSessionsV2();
+      const homeFeed = (liveItems.length ? liveItems : scheduledItems).slice(0, 3);
+      const homeHeads = document.querySelectorAll('[data-panel="home"] .section-head');
+      if (homeHeads[0]) {
+        homeHeads[0].querySelector('h2').textContent = creator ? tr('Creator desk', 'Рабочий стол автора') : tr('Continue learning', 'Продолжить обучение');
+        homeHeads[0].querySelector('span').textContent = creator ? tr('Today', 'Сегодня') : tr('Next steps', 'Следующие шаги');
+      }
+      if (homeHeads[1]) homeHeads[1].querySelector('h2').textContent = creator ? tr('Live pipeline', 'Поток Live') : tr('Live now', 'Сейчас в эфире');
+      if (creator) {
+        ctx.setMetric(0, tr('Active live', 'Активные эфиры'), String(liveItems.length), tr('Rooms currently open in the browser.', 'Комнаты, которые уже открыты в браузере.'));
+        ctx.setMetric(1, tr('Scheduled', 'Запланировано'), String(scheduledItems.length), tr('Upcoming sessions that still need host action.', 'Ближайшие сессии, которым еще нужен запуск хоста.'));
+        ctx.setMetric(2, tr('Recent sessions', 'Недавние сессии'), String(historyItems.length), tr('Finished rooms you can reopen and reuse.', 'Завершенные комнаты, которые можно открыть и использовать снова.'));
+        $('#homeList').innerHTML = [
+          ctx.row(
+            {
+              title: tr('Open Live Studio', 'Открыть Live Studio'),
+              meta: tr('Start now, resume a room, or check room diagnostics from the browser.', 'Запустите эфир, вернитесь в комнату или проверьте диагностику прямо из браузера.'),
+              level: tr('Studio', 'Студия')
+            },
+            '<a class="btn primary" href="' + ctx.teacherLiveUrl(ownLiveSessionV2() || scheduledItems[0]) + '">' + esc(tr('Open', 'Открыть')) + '</a>'
+          ),
+          ctx.row(
+            {
+              title: tr('Schedule the next session', 'Запланировать следующую сессию'),
+              meta: scheduledItems[0]
+                ? tr('Nearest slot: ', 'Ближайший слот: ') + liveTimingV2(scheduledItems[0])
+                : tr('Set the next room time before publishing.', 'Задайте время следующей комнаты до публикации.'),
+              level: tr('Planning', 'План')
+            },
+            '<a class="btn" href="' + ctx.teacherLiveUrl(scheduledItems[0]) + '">' + esc(scheduledItems[0] ? tr('Manage', 'Управлять') : tr('Plan', 'План')) + '</a>'
+          ),
+          ctx.row(
+            {
+              title: tr('Review session archive', 'Проверить архив сессий'),
+              meta: historyItems[0]
+                ? tr('Last room: ', 'Последняя комната: ') + liveTimingV2(historyItems[0])
+                : tr('Ended sessions stay ready for replay and follow-up.', 'Завершенные эфиры остаются под рукой для повторного запуска и follow-up.'),
+              level: tr('History', 'История')
+            },
+            '<a class="btn" href="#live" data-go="live">' + esc(tr('Open list', 'Открыть список')) + '</a>'
+          )
+        ].join('');
+      } else {
+        const xp = ctx.profile?.score ?? 0;
+        const coins = ctx.profile?.vela_coin_balance ?? 0;
+        const speaking = ctx.profile?.speaking_progress ?? 0;
+        const myCourse = state.myCourses[0];
+        ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', ctx.profile?.goal_level ? (tr('Goal: ', 'Цель: ') + ctx.profile.goal_level) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
+        ctx.setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
+        ctx.setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
+        $('#homeList').innerHTML = [
+          myCourse
+            ? ctx.row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? tr('Enrolled • confirmed', 'Записан • подтверждено') : tr('Enrollment pending', 'Запись ожидает подтверждения'), level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Open', 'Открыть')) + '</a>')
+            : ctx.row({ title: tr('Find your first course', 'Найдите свой первый курс'), meta: tr('Browse structured programs from teachers', 'Посмотрите структурированные программы от преподавателей'), level: tr('New', 'Новый') }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Browse', 'Смотреть')) + '</a>'),
+          ctx.row({ title: tr('Daily speaking practice', 'Ежедневная speaking practice'), meta: tr('Speaking progress: ', 'Прогресс speaking: ') + speaking + '%', level: tr('Practice', 'Практика') }, '<a class="btn" href="#workspace" data-go="workspace">' + esc(tr('Open', 'Открыть')) + '</a>'),
+          ctx.row({ title: tr('Message a teacher', 'Написать преподавателю'), meta: tr('Ask a question or book a lesson', 'Задайте вопрос или договоритесь об уроке'), level: tr('Chat', 'Чат') }, '<a class="btn" href="#messages" data-go="messages">' + esc(tr('Open', 'Открыть')) + '</a>')
+        ].join('');
+      }
+      $('#homeLive').innerHTML = homeFeed.length
+        ? homeFeed.map((item) =>
+            ctx.row(
+              {
+                title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'),
+                meta: liveRowMetaV2(item),
+                level: liveRowLevelV2(item, creator)
+              },
+              '<a class="btn ' + (item.status === 'live' ? 'primary' : '') + '" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(liveRowActionV2(item, creator)) + '</a>'
+            )
+          ).join('')
+        : emptyLiveBlockV2(creator ? tr('No live or scheduled rooms yet.', 'Пока нет ни активных, ни запланированных комнат.') : tr('No public live sessions right now.', 'Сейчас нет публичных эфиров.'));
+      $('#liveCount').textContent = liveItems.length
+        ? ctx.staticSessionCount(liveItems.length)
+        : (scheduledItems.length
+            ? String(scheduledItems.length) + ' ' + tr('scheduled', 'запланировано')
+            : ctx.staticSessionCount(0));
+    }
+
+    function renderLiveV2() {
+      const creator = ctx.isBusiness();
+      const liveItems = visibleLiveSessionsV2();
+      const scheduledItems = upcomingLiveSessionsV2();
+      const historyItems = archivedLiveSessionsV2();
+      const mine = creator ? ownLiveSessionV2() : null;
+      const feedItems = creator && mine ? liveItems.filter((item) => item.id !== mine.id) : liveItems;
+      const head = document.querySelector('[data-panel="live"] .section-head');
+      if (head) {
+        head.querySelector('h2').textContent = creator ? tr('Live Studio', 'Live Studio') : tr('Live lessons', 'Live-уроки');
+        head.querySelector('span').textContent = creator
+          ? tr('Run live, keep the next room scheduled, and reuse recent sessions.', 'Запускайте эфир, держите расписание под рукой и переиспользуйте недавние комнаты.')
+          : tr('Watch in browser and track upcoming public sessions.', 'Смотрите в браузере и следите за ближайшими публичными сессиями.');
+      }
+
+      $('#liveActiveTitle').textContent = creator ? tr('Active rooms', 'Активные комнаты') : tr('Live now', 'Сейчас в эфире');
+      $('#liveActiveMeta').textContent = liveItems.length
+        ? ctx.staticSessionCount(liveItems.length)
+        : (creator ? tr('No active rooms', 'Нет активных комнат') : tr('No public rooms now', 'Сейчас нет публичных комнат'));
+      $('#liveScheduledTitle').textContent = creator ? tr('Scheduled queue', 'Очередь запуска') : tr('Upcoming sessions', 'Ближайшие сессии');
+      $('#liveScheduledMeta').textContent = scheduledItems.length
+        ? String(scheduledItems.length) + ' ' + tr('upcoming', 'впереди')
+        : (creator ? tr('No upcoming sessions', 'Нет ближайших сессий') : tr('Nothing scheduled', 'Ничего не запланировано'));
+      $('#liveHistoryTitle').textContent = creator ? tr('Recent sessions', 'Недавние сессии') : tr('Host archive', 'Архив хоста');
+      $('#liveHistoryMeta').textContent = creator
+        ? (historyItems.length ? String(historyItems.length) + ' ' + tr('recent', 'недавних') : tr('No recent sessions', 'Нет недавних сессий'))
+        : tr('Available in teacher mode', 'Доступно в режиме преподавателя');
+
+      $('#liveHostPanel').innerHTML = creator ? (
+        '<div class="live-studio-grid">' +
+          '<div class="card live-studio-card">' +
+            '<div><h3>' + esc(tr('Browser studio', 'Браузерная студия')) + '</h3><p>' + esc(tr('Run one operational view for launch, schedule, diagnostics and watch-link handoff.', 'Держите в одной точке запуск, расписание, диагностику и передачу ссылки на просмотр.')) + '</p></div>' +
+            '<div class="live-studio-metrics">' +
+              studioMetricV2(tr('Active', 'Активно'), String(liveItems.length)) +
+              studioMetricV2(tr('Scheduled', 'Запланировано'), String(scheduledItems.length)) +
+              studioMetricV2(tr('Archive', 'Архив'), String(historyItems.length)) +
+            '</div>' +
+            '<div class="live-studio-actions">' +
+              '<a class="btn primary" href="' + ctx.teacherLiveUrl(mine || scheduledItems[0] || historyItems[0]) + '">' + esc(mine ? tr('Re-enter studio', 'Вернуться в студию') : tr('Open studio', 'Открыть студию')) + '</a>' +
+              (mine && !mine.is_private ? '<a class="btn" href="' + ctx.liveUrl(mine) + '" target="_blank" rel="noopener">' + esc(tr('Open watch page', 'Открыть страницу просмотра')) + '</a>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="card live-studio-card">' +
+            (mine
+              ? '<div><h3>' + esc(tr('Your current room', 'Ваша текущая комната')) + '</h3><p>' + esc(liveRowMetaV2(mine)) + '</p></div>' +
+                '<div class="live-studio-metrics">' +
+                  studioMetricV2(tr('Teacher', 'Преподаватель'), mine.teacher_name || tr('Teacher', 'Преподаватель')) +
+                  studioMetricV2(tr('Status', 'Статус'), liveRowLevelV2(mine, true)) +
+                  studioMetricV2(tr('Access', 'Доступ'), mine.is_private ? tr('Private', 'Приватный') : tr('Public', 'Публичный')) +
+                '</div>' +
+                '<div class="live-studio-actions"><a class="btn" href="' + ctx.teacherLiveUrl(mine) + '">' + esc(tr('Manage room', 'Управлять комнатой')) + '</a></div>'
+              : '<div><h3>' + esc(tr('Studio flow', 'Сценарий студии')) + '</h3><p>' + esc(tr('Keep the room lifecycle clean: prepare, schedule, go live, then reuse the session.', 'Держите цикл комнаты простым: подготовка, расписание, запуск и повторное использование.')) + '</p></div>' +
+                '<div class="live-studio-steps">' +
+                  studioStepV2(tr('1. Prepare room', '1. Подготовьте комнату'), tr('Update title, level, language and access before learners arrive.', 'Обновите название, уровень, язык и доступ до прихода учеников.')) +
+                  studioStepV2(tr('2. Schedule or start', '2. Запланируйте или запустите'), tr('Use one room for immediate live start or for the next slot.', 'Используйте одну комнату либо для мгновенного старта, либо для ближайшего слота.')) +
+                  studioStepV2(tr('3. Reuse history', '3. Переиспользуйте историю'), tr('Ended sessions stay visible so the next launch is faster.', 'Завершенные сессии остаются под рукой, чтобы следующий запуск был быстрее.')) +
+                '</div>')
+          + '</div>' +
+        '</div>'
+      ) : '';
+      renderLiveRowsV2('liveList', feedItems, creator, creator ? tr('No additional live rooms right now.', 'Сейчас нет других live-комнат.') : tr('No public live sessions right now.', 'Сейчас нет публичных эфиров.'));
+      renderLiveRowsV2('liveScheduledList', scheduledItems, creator, creator ? tr('No upcoming sessions yet.', 'Пока нет ближайших сессий.') : tr('No public sessions are scheduled yet.', 'Пока нет публичных сессий в расписании.'));
+      renderLiveRowsV2('liveHistoryList', historyItems, creator, creator ? tr('No ended sessions yet.', 'Пока нет завершенных сессий.') : tr('Session history is visible to hosts.', 'История сессий доступна хосту.'));
+    }
+
+    renderHome = renderHomeV2;
+    renderLive = renderLiveV2;
+
     return {
       addLesson,
       addTask,
