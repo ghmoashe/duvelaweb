@@ -15,13 +15,15 @@
         renderWorkspaceSide(true);
         return;
       }
+      var studyHtml = ctx.studyToolsHtml ? ctx.studyToolsHtml() : '';
       $('#workspaceActions').innerHTML =
         '<div style="display:flex;gap:10px;margin-bottom:14px">' +
           '<button class="btn primary" id="openDuelBtn" style="flex:1">⚔️ ' + esc(tr('Duel', 'Дуэль')) + '</button>' +
           '<button class="btn" id="openChessBtn" style="flex:1">♟️ ' + esc(tr('Chess', 'Шахматы')) + '</button>' +
-        '</div>' + ctx.practicesHtml() + ctx.challengesHtml();
+        '</div>' + studyHtml + ctx.practicesHtml() + ctx.challengesHtml();
       $('#openDuelBtn').addEventListener('click', ctx.openDuel);
       $('#openChessBtn').addEventListener('click', ctx.openChess);
+      if (ctx.bindStudyTiles) ctx.bindStudyTiles();
       renderWorkspaceSide(false);
     }
 

@@ -310,6 +310,9 @@
       publishEvent,
       practicesHtml,
       challengesHtml,
+      studyToolsHtml,
+      bindStudyTiles,
+      openStudyTool,
       openPracticeBuilder,
       openChallengeCreate,
       openClassManage,
@@ -330,6 +333,7 @@
   const messagingFeature = window.DuvelaAppMessages.create(featureContext);
   const notificationsFeature = window.DuvelaAppNotifications.create(featureContext);
   const practiceFeature = window.DuvelaAppPractice.create(featureContext);
+  const studyFeature = window.DuvelaAppStudy.create(featureContext);
   const gamesFeature = window.DuvelaAppGames.create(featureContext);
   const businessFeature = window.DuvelaAppBusiness.create(featureContext);
   const classesFeature = window.DuvelaAppClasses.create(featureContext);
@@ -368,6 +372,10 @@
   async function loadPractices() { return practiceFeature.loadPractices(); }
   function practicesHtml() { return practiceFeature.practicesHtml(); }
   function openPractice(id) { return practiceFeature.openPractice(id); }
+
+  function studyToolsHtml() { return studyFeature.studyToolsHtml(); }
+  function bindStudyTiles() { return studyFeature.bindStudyTiles(); }
+  function openStudyTool(id) { return studyFeature.openStudyTool(id); }
 
   async function loadSchedule() { return scheduleFeature.loadSchedule(); }
   function renderSchedule() { return scheduleFeature.renderSchedule(); }
