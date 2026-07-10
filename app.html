@@ -95,6 +95,27 @@
     border-color: rgba(109,63,224,.5);
     box-shadow: 0 0 0 3px rgba(109,63,224,.12);
   }
+  .role-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    background: var(--purple-soft);
+    border-radius: 10px;
+    padding: 9px 12px;
+    color: var(--purple);
+    font-weight: 700;
+    font-size: 13px;
+    width: 100%;
+  }
+  .role-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 99px;
+    background: var(--purple);
+    flex: 0 0 auto;
+  }
   .nav {
     display: grid;
     gap: 2px;
@@ -750,11 +771,7 @@
       <img src="./logo.webp" alt="Duvela">
       <span>Duvela</span>
     </a>
-    <select class="role-select" id="roleSelect" aria-label="Workspace role">
-      <option value="learner">Learner</option>
-      <option value="teacher">Teacher</option>
-      <option value="admin">Administrator</option>
-    </select>
+    <div class="role-badge" id="roleBadge" aria-live="polite">Learner</div>
     <select class="role-select" id="langSelect" aria-label="Language" style="font-weight:800">
       <option value="en">🇬🇧 English</option>
       <option value="ru">🇷🇺 Русский</option>

@@ -4,7 +4,6 @@
   function createRoleAccessFeature(ctx) {
     const {
       $,
-      $$,
       tr,
       esc,
       alert,
@@ -43,22 +42,8 @@
     }
 
     function syncRoleOptions() {
-      const current = session.role;
-      const hasAdmin = Boolean(session.profile?.is_admin);
-      const optionLabels = {
-        learner: roleLabels.learner,
-        teacher: isApprovedForRole('teacher', session.profile)
-          ? roleLabels.teacher
-          : tr('Teacher request', 'Запрос на роль учителя'),
-        admin: roleLabels.admin
-      };
-
-      $$('#roleSelect option').forEach((option) => {
-        option.textContent = optionLabels[option.value] || option.value;
-        if (option.value === 'admin') option.hidden = !hasAdmin;
-      });
-
-      $('#roleSelect').value = current;
+      const badge = $('#roleBadge');
+      if (badge) badge.textContent = roleLabels[session.role] || session.role;
     }
 
     async function submitRoleRequest(targetRole) {

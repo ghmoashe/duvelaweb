@@ -1179,7 +1179,7 @@
 
     if (isHostMode) {
       document.title = tr('Duvela LIVE - teacher studio', 'Duvela LIVE — студия преподавателя');
-      el('modePill').textContent = tr('Bus Web - Teacher Live', 'Bus Web — эфир преподавателя');
+      el('modePill').textContent = tr('Duvela Business - Teacher Live', 'Duvela Business — эфир преподавателя');
       el('studioKicker').textContent = tr('Teacher studio', 'Студия преподавателя');
       el('stageCardTitle').textContent = tr('Broadcast studio', 'Студия эфира');
       el('stageCardCopy').textContent = tr('Camera preview, room status and live controls in one place.', 'Превью камеры, статус комнаты и управление эфиром в одном месте.');
@@ -1229,7 +1229,7 @@
     }
 
     if (teacher) el('title').textContent = teacherWatchTitle(teacher);
-    el('modePill').textContent = isBusiness ? tr('Business viewer', 'Просмотр для бизнеса') : tr('Hub Web viewer', 'Просмотр Hub Web');
+    el('modePill').textContent = isBusiness ? tr('Duvela Business viewer', 'Просмотр Duvela Business') : tr('Duvela Hub viewer', 'Просмотр Duvela Hub');
     el('studioKicker').textContent = tr('Viewer stage', 'Сцена зрителя');
     el('stageCardTitle').textContent = tr('Watch the live lesson in a clean stage view', 'Смотрите урок в удобном формате сцены');
     el('stageCardCopy').textContent = tr('Playback, chat, gifts, and room status stay close without crowding the video.', 'Просмотр, чат, подарки и статус комнаты рядом, но не мешают видео.');

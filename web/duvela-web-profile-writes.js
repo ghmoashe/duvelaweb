@@ -48,34 +48,20 @@
       };
     }
 
-    if (rolesApi.isApprovedForRole(targetRole, roleProfile)) {
-      const patch = {
-        last_web_role: targetRole,
-        updated_at: now,
-      };
-      const result = await supa.from('profiles').update(patch).eq('id', params.userId);
-      if (result.error) throw result.error;
-      return {
-        approved: true,
-        requested: false,
-        now,
-        patch,
-        profile: { ...roleProfile, ...patch },
-      };
-    }
-
     const patch = {
-      requested_role: targetRole,
-      role_request_status: 'pending',
-      requested_role_at: now,
       last_web_role: targetRole,
+      requested_role: null,
+      role_request_status: null,
       updated_at: now,
     };
+    if (targetRole === 'teacher') patch.is_teacher = true;
+    if (targetRole === 'organizer' || targetRole === 'organization') patch.is_organizer = true;
+
     const result = await supa.from('profiles').update(patch).eq('id', params.userId);
     if (result.error) throw result.error;
     return {
-      approved: false,
-      requested: true,
+      approved: true,
+      requested: false,
       now,
       patch,
       profile: { ...roleProfile, ...patch },

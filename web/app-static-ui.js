@@ -14,10 +14,6 @@
       if (videoTabButtons[2]) videoTabButtons[2].textContent = tr('Arts', 'Искусство');
       if (videoTabButtons[3]) videoTabButtons[3].textContent = tr('School', 'Школа');
 
-      $$('#roleSelect option').forEach((option) => {
-        option.textContent = roleLabels[option.value] || option.value;
-      });
-
       const dataT = {
         email: ['Email', 'Email'],
         role: ['Role', 'Роль'],

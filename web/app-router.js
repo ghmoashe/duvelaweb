@@ -4,10 +4,10 @@
 
     function syncShell() {
       const mode = modeKey();
-      const label = mode === 'bus' ? 'Bus Web' : 'Hub Web';
+      const label = mode === 'bus' ? 'Duvela Business' : 'Duvela Hub';
       document.body.classList.toggle('business-mode', mode === 'bus');
       setText('#modeChip', label);
-      setText('#sideStatusTitle', mode === 'bus' ? tr('Bus Web workspace', 'Кабинет Bus Web') : tr('Hub Web workspace', 'Кабинет Hub Web'));
+      setText('#sideStatusTitle', mode === 'bus' ? tr('Duvela Business workspace', 'Кабинет Duvela Business') : tr('Duvela Hub workspace', 'Кабинет Duvela Hub'));
       setText(
         '#sideStatusText',
         mode === 'bus'

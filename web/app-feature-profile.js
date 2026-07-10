@@ -9,9 +9,9 @@
 
     function renderProfile() {
       const displayName = ctx.profile?.full_name || ctx.user.user_metadata?.full_name || (ctx.user.email || tr('Duvela user', 'Пользователь Duvela')).split('@')[0];
-      const meta = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ') || tr('Signed in to ', 'Вход выполнен в ') + (ctx.isBusiness() ? 'Bus Web' : 'Hub Web');
+      const meta = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ') || tr('Signed in to ', 'Вход выполнен в ') + (ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub');
       $('#topName').textContent = displayName;
-      $('#topEmail').textContent = (ctx.isBusiness() ? 'Bus' : 'Hub') + ' - ' + (ctx.user.email || roleLabels[ctx.role]);
+      $('#topEmail').textContent = (ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub') + ' - ' + (ctx.user.email || roleLabels[ctx.role]);
       $('#profileName').textContent = displayName;
       $('#profileMeta').textContent = meta;
       setInput('#profileEmail', ctx.user.email || '');

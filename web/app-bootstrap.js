@@ -1,6 +1,6 @@
 (function () {
   function createAppBootstrap(ctx) {
-    const { $, $$, tr, supa, businessRoles, runtime, session } = ctx;
+    const { $, $$, tr, supa, runtime, session } = ctx;
 
     function closeOverlays() {
       ctx.closeVideo();
@@ -27,26 +27,6 @@
           else ctx.loadPractices().then(ctx.renderWorkspace);
         }
       }));
-
-      $('#roleSelect').addEventListener('change', async (event) => {
-        const targetRole = ctx.normalizeRole(event.target.value);
-        if (businessRoles.has(targetRole) && !ctx.isApprovedForRole(targetRole, session.profile)) {
-          session.requestedBusinessRole = await ctx.submitRoleRequest(targetRole) ? targetRole : null;
-          session.role = ctx.fallbackApprovedRole(session.profile);
-        } else {
-          session.role = targetRole;
-          session.requestedBusinessRole = null;
-        }
-        session.selectedRole = session.role;
-        localStorage.setItem(ctx.storage.roleKey, session.role);
-        const nextUrl = './app.html?role=' + encodeURIComponent(session.role) + (window.location.hash || '#home');
-        history.replaceState(null, '', nextUrl);
-        ctx.renderAll();
-        ctx.setView((window.location.hash || '#home').slice(1));
-        ctx.loadEnrollments().then(() => { ctx.renderCourses(); ctx.renderHome(); });
-        ctx.loadSchedule().then(ctx.renderSchedule);
-        ctx.loadBusinessWorkspace().then(ctx.renderWorkspace);
-      });
 
       $('#videoTabs').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-filter]');
