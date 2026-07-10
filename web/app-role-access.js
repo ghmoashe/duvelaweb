@@ -50,12 +50,6 @@
         teacher: isApprovedForRole('teacher', session.profile)
           ? roleLabels.teacher
           : tr('Teacher request', 'Запрос на роль учителя'),
-        organizer: isApprovedForRole('organizer', session.profile)
-          ? roleLabels.organizer
-          : tr('Organizer request', 'Запрос на роль организатора'),
-        organization: isApprovedForRole('organization', session.profile)
-          ? roleLabels.organization
-          : tr('Organization request', 'Запрос на роль организации'),
         admin: roleLabels.admin
       };
 
