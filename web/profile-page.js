@@ -8,7 +8,7 @@
     teacher: 'Учитель', organizer: 'Организатор', organization: 'Организация',
     liveNow: 'Сейчас в эфире', watch: 'Смотреть',
     openApp: 'Открыть в Duvela', getApp: 'Скачать приложение',
-    courses: 'Курсы', events: 'Ближайшие события', videos: 'Видео',
+    courses: 'Курсы', events: 'Ближайшие события', videos: 'Медиа',
     org: 'Организация', free: 'Бесплатно',
     online: 'Онлайн', inPerson: 'Офлайн'
   } : {
@@ -16,7 +16,7 @@
     teacher: 'Teacher', organizer: 'Organizer', organization: 'Organization',
     liveNow: 'LIVE now', watch: 'Watch',
     openApp: 'Open in Duvela', getApp: 'Get the app',
-    courses: 'Courses', events: 'Upcoming events', videos: 'Videos',
+    courses: 'Courses', events: 'Upcoming events', videos: 'Media',
     org: 'Organization', free: 'Free',
     online: 'Online', inPerson: 'In person'
   };

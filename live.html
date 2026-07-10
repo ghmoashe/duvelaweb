@@ -498,12 +498,190 @@
     cursor: pointer;
     display: none;
   }
+  .viewer-actions {
+    display: grid;
+    gap: 10px;
+  }
+  .viewer-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .viewer-balance {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .viewer-balance b {
+    color: #fff;
+    font-size: 14px;
+  }
+  .chat-shell {
+    display: grid;
+    gap: 10px;
+  }
+  .chat-list {
+    max-height: 280px;
+    overflow: auto;
+    display: grid;
+    gap: 8px;
+    padding-right: 2px;
+  }
+  .chat-empty {
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 14px 12px;
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .chat-message {
+    display: grid;
+    gap: 5px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    background: rgba(255,255,255,.02);
+  }
+  .chat-message.own {
+    background: rgba(124,58,237,.14);
+    border-color: rgba(124,58,237,.34);
+  }
+  .chat-message.system {
+    background: rgba(22,160,133,.12);
+    border-color: rgba(22,160,133,.26);
+  }
+  .chat-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--soft);
+    font-size: 11px;
+    font-weight: 900;
+  }
+  .chat-body {
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .chat-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .chat-form input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100E19;
+    color: #fff;
+    padding: 10px 11px;
+  }
+  .gift-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(5,4,10,.76);
+    backdrop-filter: blur(12px);
+  }
+  .gift-modal.open { display: flex; }
+  .gift-card {
+    width: min(720px, 100%);
+    max-height: min(88vh, 820px);
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(27,24,39,.98);
+    box-shadow: 0 26px 80px rgba(0,0,0,.34);
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+  }
+  .gift-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .gift-head h3 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+  .gift-head p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+  }
+  .gift-close {
+    width: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+  }
+  .gift-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 10px;
+  }
+  .gift-tile {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,.02);
+    padding: 14px 10px;
+    display: grid;
+    gap: 8px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .gift-tile.active {
+    border-color: rgba(124,58,237,.8);
+    box-shadow: inset 0 0 0 1px rgba(124,58,237,.4);
+    background: rgba(124,58,237,.14);
+  }
+  .gift-emoji {
+    font-size: 30px;
+    line-height: 1;
+  }
+  .gift-name {
+    font-size: 13px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .gift-cost {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--muted);
+  }
+  .gift-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
   @media (max-width: 860px) {
     .main { grid-template-columns: 1fr; }
     .topbar { align-items: flex-start; flex-direction: column; }
     .stage { min-height: 220px; }
     .stage-footer { align-items: flex-start; flex-direction: column; }
     .studio-metrics, .facts, .diagnostics, .schedule-grid { grid-template-columns: 1fr; }
+    .chat-form { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -552,6 +730,27 @@
       </div>
 
       <div class="studio-metrics" id="studioMetrics"></div>
+
+      <section class="studio-section" id="viewerActionsSection" style="display:none">
+        <div>
+          <h3 id="viewerActionsTitle">Live interaction</h3>
+          <p id="viewerActionsCopy">Join the room chat and send a gift while the lesson is live.</p>
+        </div>
+        <div class="viewer-actions">
+          <div class="viewer-action-row">
+            <button type="button" class="btn" id="openChat">Open chat</button>
+            <button type="button" class="btn primary" id="openGift">Send gift</button>
+          </div>
+          <div class="viewer-balance" id="viewerBalance">Duvela balance: <b>—</b></div>
+          <div class="chat-shell" id="chatShell" style="display:none">
+            <div class="chat-list" id="chatList"></div>
+            <form class="chat-form" id="chatForm">
+              <input id="chatInput" maxlength="240" placeholder="Write to the teacher..." autocomplete="off">
+              <button type="submit" class="btn primary" id="sendChat">Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
 
       <section class="studio-section" id="setupSection" style="display:none">
         <div>
@@ -679,6 +878,23 @@
       <div class="note" id="note"></div>
     </aside>
   </main>
+</div>
+
+<div class="gift-modal" id="giftModal" aria-hidden="true">
+  <div class="gift-card">
+    <div class="gift-head">
+      <div>
+        <h3 id="giftTitle">Send a gift</h3>
+        <p id="giftCopy">Choose one gift for the live teacher.</p>
+      </div>
+      <button type="button" class="btn ghost gift-close" id="closeGift" aria-label="Close">×</button>
+    </div>
+    <div class="gift-grid" id="giftGrid"></div>
+    <div class="gift-actions">
+      <button type="button" class="btn ghost" id="cancelGift">Cancel</button>
+      <button type="button" class="btn primary" id="sendGift">Send gift</button>
+    </div>
+  </div>
 </div>
 
 <script src="./web/live-page.js"></script>

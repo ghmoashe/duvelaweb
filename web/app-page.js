@@ -86,7 +86,7 @@
   const navLabels = {
     hub: {
       home: tr('Home', 'Главная'),
-      videos: tr('Videos', 'Видео'),
+      videos: tr('Media', 'Медиа'),
       live: tr('Live', 'Эфиры'),
       courses: tr('Courses', 'Курсы'),
       events: tr('Events', 'События'),
@@ -110,7 +110,7 @@
   const titles = {
     hub: {
       home: [tr('Hub dashboard', 'Панель Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Лента обучения, эфиры и практика готовы.')],
-      videos: [tr('Videos', 'Видео'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
+      videos: [tr('Media', 'Медиа'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
       live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
       courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
       events: [tr('Events', 'События'), tr('Meetups, workshops and speaking practice.', 'Встречи, воркшопы и speaking practice.')],
@@ -519,6 +519,3 @@
   });
   appBootstrap.start();
 })();
-
-
-

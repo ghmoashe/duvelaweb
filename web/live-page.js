@@ -25,6 +25,26 @@
   var camEnabled = true;
   var hostScheduledSessions = [];
   var hostHistorySessions = [];
+  var viewerJoined = false;
+  var viewerAgoraUid = null;
+  var viewerRealtimeChannel = null;
+  var viewerMessages = [];
+  var viewerBalance = null;
+  var selectedGiftId = 'heart';
+  var viewerSendingGift = false;
+  var viewerSendingMessage = false;
+  var giftOptions = [
+    { id: 'rose', emoji: '🌹', name: 'Rose', cost: 0 },
+    { id: 'heart', emoji: '❤️', name: 'Heart', cost: 0 },
+    { id: 'coffee', emoji: '☕', name: 'Coffee', cost: 0 },
+    { id: 'book', emoji: '📖', name: 'Book', cost: 0 },
+    { id: 'fire-gift', emoji: '🔥', name: 'Fire gift', cost: 10 },
+    { id: 'crown', emoji: '👑', name: 'Crown', cost: 12 },
+    { id: 'magic-box', emoji: '🎁', name: 'Magic Box', cost: 15 },
+    { id: 'watch', emoji: '⌚', name: 'Watch', cost: 16 },
+    { id: 'diamond', emoji: '💎', name: 'Diamond', cost: 18 },
+    { id: 'duvela-star', emoji: '🌟', name: 'DUVELA Star', cost: 20 }
+  ];
 
   var el = function (id) { return document.getElementById(id); };
 
@@ -47,6 +67,115 @@
   }
   function showOverlay(show) {
     el('overlay').style.display = show ? 'flex' : 'none';
+  }
+  function viewerDisplayName() {
+    return currentUser?.user_metadata?.full_name
+      || currentUser?.email?.split('@')[0]
+      || tr('Student', 'Ученик');
+  }
+  function formatChatTime(value) {
+    if (!value) return '';
+    try {
+      return new Date(value).toLocaleTimeString(isRu ? 'ru-RU' : 'en-GB', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return '';
+    }
+  }
+  function giftCostLabel(cost) {
+    return cost > 0 ? cost + ' coin' : tr('Free', 'Бесплатно');
+  }
+  function upsertViewerMessage(message) {
+    if (!message?.id) return;
+    var existingIndex = viewerMessages.findIndex(function (item) { return item.id === message.id; });
+    if (existingIndex >= 0) viewerMessages.splice(existingIndex, 1, message);
+    else viewerMessages.push(message);
+    viewerMessages.sort(function (a, b) {
+      return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+    });
+  }
+  function renderViewerBalance() {
+    if (!el('viewerBalance')) return;
+    var text;
+    if (!currentUser) {
+      text = tr('Duvela balance: ', 'Баланс Duvela: ') + '—';
+    } else if (viewerBalance == null) {
+      text = tr('Duvela balance: sign in with a learner account for gifts', 'Баланс Duvela: войдите как ученик для подарков');
+    } else {
+      text = tr('Duvela balance: ', 'Баланс Duvela: ') + viewerBalance;
+    }
+    el('viewerBalance').innerHTML = text.replace(/(\d+|—)$/, '<b>$1</b>');
+  }
+  function renderGiftGrid() {
+    if (!el('giftGrid')) return;
+    el('giftGrid').innerHTML = giftOptions.map(function (gift) {
+      return '<button type="button" class="gift-tile' + (gift.id === selectedGiftId ? ' active' : '') + '" data-gift-id="' + esc(gift.id) + '">' +
+        '<span class="gift-emoji">' + esc(gift.emoji) + '</span>' +
+        '<span class="gift-name">' + esc(gift.name) + '</span>' +
+        '<span class="gift-cost">' + esc(giftCostLabel(gift.cost)) + '</span>' +
+      '</button>';
+    }).join('');
+    Array.from(document.querySelectorAll('[data-gift-id]')).forEach(function (node) {
+      node.addEventListener('click', function () {
+        selectedGiftId = node.getAttribute('data-gift-id') || selectedGiftId;
+        renderGiftGrid();
+      });
+    });
+  }
+  function renderViewerMessages() {
+    if (!el('chatList')) return;
+    if (!viewerMessages.length) {
+      el('chatList').innerHTML = '<div class="chat-empty">' + esc(tr('No live messages yet. Start the conversation.', 'Сообщений в эфире пока нет. Начните разговор.')) + '</div>';
+      return;
+    }
+    el('chatList').innerHTML = viewerMessages.map(function (message) {
+      var isOwn = currentUser?.id && message.sender_id === currentUser.id;
+      var classes = 'chat-message';
+      if (message.role === 'system') classes += ' system';
+      else if (isOwn) classes += ' own';
+      return '<div class="' + classes + '">' +
+        '<div class="chat-meta">' +
+          '<span>' + esc(message.sender_name || tr('Live chat', 'Чат эфира')) + '</span>' +
+          '<span>' + esc(formatChatTime(message.created_at)) + '</span>' +
+        '</div>' +
+        '<div class="chat-body">' + esc(message.message || '') + '</div>' +
+      '</div>';
+    }).join('');
+    el('chatList').scrollTop = el('chatList').scrollHeight;
+  }
+  function setViewerControlsEnabled(enabled) {
+    ['openChat', 'openGift', 'chatInput', 'sendChat', 'sendGift'].forEach(function (id) {
+      var node = el(id);
+      if (node) node.disabled = !enabled;
+    });
+  }
+  function openChatPanel() {
+    if (!el('chatShell')) return;
+    el('chatShell').style.display = 'grid';
+    setTimeout(function () { el('chatInput')?.focus(); }, 30);
+  }
+  function closeGiftModal() {
+    if (!el('giftModal')) return;
+    el('giftModal').classList.remove('open');
+    el('giftModal').setAttribute('aria-hidden', 'true');
+  }
+  function openGiftModal() {
+    if (!el('giftModal')) return;
+    renderGiftGrid();
+    el('giftModal').classList.add('open');
+    el('giftModal').setAttribute('aria-hidden', 'false');
+  }
+  async function loadViewerBalance() {
+    if (!currentUser?.id || !supa) {
+      viewerBalance = null;
+      renderViewerBalance();
+      return;
+    }
+    var result = await supa.from('profiles').select('duvela_coin_balance').eq('id', currentUser.id).maybeSingle();
+    viewerBalance = typeof result.data?.duvela_coin_balance === 'number' ? result.data.duvela_coin_balance : null;
+    renderViewerBalance();
   }
   function createAgoraUid(value) {
     var hash = 0;
@@ -495,6 +624,137 @@
     if (result.error || !result.data) throw new Error(tr('This LIVE was not found.', 'Этот LIVE не найден.'));
     return result.data;
   }
+  async function joinViewerParticipant(uid) {
+    if (!currentSession?.id || !currentUser?.id || !supa) return;
+    if (viewerJoined && viewerAgoraUid === uid) return;
+    var result = await supa.from('live_participants').upsert({
+      agora_uid: uid,
+      left_at: null,
+      role: 'audience',
+      session_id: currentSession.id,
+      user_id: currentUser.id
+    }, { onConflict: 'session_id,user_id' });
+    if (result.error) {
+      throw new Error(result.error.message || tr('Could not join the live room.', 'Не удалось войти в live-комнату.'));
+    }
+    viewerJoined = true;
+    viewerAgoraUid = uid;
+  }
+  async function leaveViewerParticipant() {
+    if (!viewerJoined || !currentSession?.id || !currentUser?.id || !supa) return;
+    await supa.from('live_participants')
+      .update({ left_at: new Date().toISOString() })
+      .eq('session_id', currentSession.id)
+      .eq('user_id', currentUser.id);
+    viewerJoined = false;
+    viewerAgoraUid = null;
+  }
+  async function loadViewerMessages() {
+    if (!currentSession?.id || !supa) return;
+    var result = await supa.from('live_messages')
+      .select('id,channel_name,created_at,message,role,sender_id,sender_name,session_id')
+      .eq('session_id', currentSession.id)
+      .order('created_at', { ascending: true })
+      .limit(200);
+    if (result.error) {
+      throw new Error(result.error.message || tr('Could not load live chat.', 'Не удалось загрузить чат эфира.'));
+    }
+    viewerMessages = result.data || [];
+    renderViewerMessages();
+  }
+  async function subscribeViewerRealtime() {
+    if (!currentSession?.id || !supa) return;
+    if (viewerRealtimeChannel) {
+      await supa.removeChannel(viewerRealtimeChannel);
+      viewerRealtimeChannel = null;
+    }
+    viewerRealtimeChannel = supa.channel('live-room-' + currentSession.id + '-' + Date.now());
+    viewerRealtimeChannel
+      .on('postgres_changes', {
+        event: 'INSERT',
+        filter: 'session_id=eq.' + currentSession.id,
+        schema: 'public',
+        table: 'live_messages'
+      }, function (payload) {
+        upsertViewerMessage(payload.new);
+        renderViewerMessages();
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        filter: 'session_id=eq.' + currentSession.id,
+        schema: 'public',
+        table: 'live_gifts'
+      }, function (payload) {
+        upsertViewerMessage({
+          channel_name: currentSession.channel_name,
+          created_at: payload.new.created_at || new Date().toISOString(),
+          id: 'gift-' + payload.new.id,
+          message: (payload.new.sender_name || tr('Student', 'Ученик')) + ' ' + tr('sent', 'отправил') + ' ' + (payload.new.gift_name || tr('a gift', 'подарок')),
+          role: 'system',
+          sender_id: payload.new.sender_id || null,
+          sender_name: tr('Gift', 'Подарок'),
+          session_id: currentSession.id
+        });
+        renderViewerMessages();
+        if (currentUser?.id && payload.new.sender_id === currentUser.id) void loadViewerBalance();
+      });
+    await viewerRealtimeChannel.subscribe();
+  }
+  async function sendViewerMessage() {
+    var text = (el('chatInput')?.value || '').trim();
+    if (!text || !currentSession?.id || !currentUser?.id || !supa || viewerSendingMessage) return;
+    viewerSendingMessage = true;
+    el('sendChat').disabled = true;
+    try {
+      var result = await supa.from('live_messages').insert({
+        channel_name: currentSession.channel_name,
+        message: text,
+        role: 'student',
+        sender_id: currentUser.id,
+        sender_name: viewerDisplayName(),
+        session_id: currentSession.id
+      }).select('id,channel_name,created_at,message,role,sender_id,sender_name,session_id').single();
+      if (result.error || !result.data) {
+        throw new Error(result.error?.message || tr('Could not send the message.', 'Не удалось отправить сообщение.'));
+      }
+      el('chatInput').value = '';
+      upsertViewerMessage(result.data);
+      renderViewerMessages();
+    } finally {
+      viewerSendingMessage = false;
+      el('sendChat').disabled = false;
+    }
+  }
+  async function sendViewerGift() {
+    if (!currentSession?.id || !supa || viewerSendingGift) return;
+    viewerSendingGift = true;
+    el('sendGift').disabled = true;
+    try {
+      var response = await supa.functions.invoke('live-payment', {
+        body: {
+          action: 'gift',
+          giftId: selectedGiftId,
+          senderName: viewerDisplayName(),
+          sessionId: currentSession.id
+        }
+      });
+      if (response.error) {
+        var context = response.error.context;
+        if (context instanceof Response) {
+          var payload = await context.clone().json().catch(function () { return null; });
+          if (payload?.error) throw new Error(payload.error);
+        }
+        throw new Error(response.error.message || tr('Could not send the gift.', 'Не удалось отправить подарок.'));
+      }
+      viewerBalance = typeof response.data?.balanceAfter === 'number' ? response.data.balanceAfter : viewerBalance;
+      renderViewerBalance();
+      closeGiftModal();
+      setNote(tr('Gift sent to the live teacher.', 'Подарок отправлен преподавателю эфира.'));
+    } finally {
+      viewerSendingGift = false;
+      el('sendGift').disabled = false;
+    }
+  }
   function hostSessionPayload(user, status, startedAt, existingSession) {
     var now = new Date().toISOString();
     var topic = el('topicInput').value.trim() || tr('Live lesson', 'Live-урок');
@@ -708,6 +968,7 @@
       var authSession = await ensureViewerSession();
       var user = authSession.user;
       var uid = createAgoraUid(user.id);
+      currentUser = user;
       currentSession = await loadLiveSession(sessionId);
       renderWorkspace(currentSession);
       updateShareLink(currentSession);
@@ -719,6 +980,11 @@
       if (currentSession.status !== 'live') throw new Error(tr('This LIVE has ended.', 'Этот LIVE уже завершен.'));
       if (currentSession.is_private) throw new Error(tr('This is a private lesson. Open the app to request access.', 'Это приватный урок. Откройте приложение, чтобы запросить доступ.'));
       if (currentSession.teacher_name && !teacher) el('title').textContent = teacherWatchTitle(currentSession.teacher_name);
+      await joinViewerParticipant(uid);
+      await loadViewerBalance();
+      await loadViewerMessages();
+      await subscribeViewerRealtime();
+      setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
       var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
@@ -749,6 +1015,8 @@
       setStatus(tr('Not connected', 'Нет подключения'), '');
       setStage('', error?.message || tr('Could not start the stream.', 'Не удалось запустить эфир.'));
       showOverlay(true);
+      setViewerControlsEnabled(false);
+      await stopMedia(false);
       renderWorkspace(currentSession);
     }
   }
@@ -771,6 +1039,17 @@
     if (client) {
       try { await client.leave(); } catch (e) {}
       client = null;
+    }
+    if (!isHostMode) {
+      if (viewerRealtimeChannel) {
+        try { await supa.removeChannel(viewerRealtimeChannel); } catch (e) {}
+        viewerRealtimeChannel = null;
+      }
+      await leaveViewerParticipant();
+      viewerMessages = [];
+      renderViewerMessages();
+      closeGiftModal();
+      setViewerControlsEnabled(false);
     }
     el('toggleMic').style.display = 'none';
     el('toggleCam').style.display = 'none';
@@ -861,7 +1140,7 @@
     el('scheduleSession').addEventListener('click', function () { void scheduleHostSession(); });
     window.addEventListener('beforeunload', function () {
       if (isHostMode) void stopMedia(true);
-      else if (client) void client.leave();
+      else void stopMedia(false);
     });
 
     if (isHostMode) {
@@ -928,6 +1207,30 @@
     el('openApp').textContent = tr('Open in the Duvela app', 'Открыть в приложении Duvela');
     el('dashboardLink').textContent = tr('Back to web dashboard', 'Назад в веб-кабинет');
     el('copyShare').textContent = tr('Copy link', 'Копировать ссылку');
+    el('viewerActionsSection').style.display = 'grid';
+    el('viewerActionsTitle').textContent = tr('Live interaction', 'Взаимодействие в LIVE');
+    el('viewerActionsCopy').textContent = tr('Join the room chat and send a gift while the lesson is live.', 'Подключайтесь к чату комнаты и отправляйте подарки, пока урок в эфире.');
+    el('openChat').textContent = tr('Open chat', 'Открыть чат');
+    el('openGift').textContent = tr('Send gift', 'Отправить подарок');
+    el('giftTitle').textContent = tr('Send a gift', 'Отправить подарок');
+    el('giftCopy').textContent = tr('Choose one gift for the live teacher.', 'Выберите один подарок для преподавателя в эфире.');
+    el('cancelGift').textContent = tr('Cancel', 'Отмена');
+    el('sendGift').textContent = tr('Send gift', 'Отправить подарок');
+    el('chatInput').placeholder = tr('Write to the teacher...', 'Напишите преподавателю...');
+    el('sendChat').textContent = tr('Send', 'Отправить');
+    el('openChat').addEventListener('click', openChatPanel);
+    el('openGift').addEventListener('click', openGiftModal);
+    el('closeGift').addEventListener('click', closeGiftModal);
+    el('cancelGift').addEventListener('click', closeGiftModal);
+    el('sendGift').addEventListener('click', function () { void sendViewerGift(); });
+    el('chatForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      void sendViewerMessage();
+    });
+    renderGiftGrid();
+    renderViewerBalance();
+    renderViewerMessages();
+    setViewerControlsEnabled(false);
     setStatus(sessionId ? tr('Ready to watch', 'Готово к просмотру') : tr('No session selected', 'Сессия не выбрана'), sessionId ? 'ready' : '');
     renderWorkspace({ teacher_name: teacher || '', level: '', language: '', is_private: false });
     if (sessionId) setTimeout(function () { void watch(); }, 250);
