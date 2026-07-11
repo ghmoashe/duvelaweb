@@ -487,6 +487,16 @@
       return '<div class="card empty">' + esc(copy) + '</div>';
     }
 
+    function learnerLiveEmptyStateV2() {
+      return '<div class="card live-empty-state">' +
+        '<div class="live-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="14" height="14" rx="3"></rect><path d="m17 10 4-2v8l-4-2"></path><path d="M8 12h4"></path></svg></div>' +
+        '<div class="live-empty-copy"><h3>' + esc(tr('Nothing is live right now', 'Сейчас нет активных эфиров')) + '</h3>' +
+        '<p>' + esc(tr('Explore a course or check the schedule — new public lessons will appear here automatically.', 'Выберите курс или откройте расписание — новые публичные уроки появятся здесь автоматически.')) + '</p></div>' +
+        '<div class="live-empty-actions"><a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Explore courses', 'Найти курс')) + '</a>' +
+        '<a class="btn" href="#schedule" data-go="schedule">' + esc(tr('Open schedule', 'Открыть расписание')) + '</a></div>' +
+        '</div>';
+    }
+
     function renderLiveRowsV2(target, items, creator, emptyCopy) {
       const node = $(target);
       if (!node) return;
@@ -612,6 +622,8 @@
       $('#liveHistoryMeta').textContent = creator
         ? (historyItems.length ? String(historyItems.length) + ' ' + tr('recent', 'недавних') : tr('No recent sessions', 'Нет недавних сессий'))
         : tr('Available in teacher mode', 'Доступно в режиме преподавателя');
+      const historyBlock = document.querySelector('[data-panel="live"] #liveHistoryList')?.closest('.live-panel-block');
+      if (historyBlock) historyBlock.style.display = creator ? '' : 'none';
 
       $('#liveHostPanel').innerHTML = creator ? (
         '<div class="live-studio-grid">' +
@@ -644,7 +656,7 @@
                 '</div>')
           + '</div>' +
         '</div>'
-      ) : '';
+      ) : (!liveItems.length && !scheduledItems.length ? learnerLiveEmptyStateV2() : '');
       renderLiveRowsV2('liveList', feedItems, creator, creator ? tr('No additional live rooms right now.', 'Сейчас нет других live-комнат.') : tr('No public live sessions right now.', 'Сейчас нет публичных эфиров.'));
       renderLiveRowsV2('liveScheduledList', scheduledItems, creator, creator ? tr('No upcoming sessions yet.', 'Пока нет ближайших сессий.') : tr('No public sessions are scheduled yet.', 'Пока нет публичных сессий в расписании.'));
       renderLiveRowsV2('liveHistoryList', historyItems, creator, creator ? tr('No ended sessions yet.', 'Пока нет завершенных сессий.') : tr('Session history is visible to hosts.', 'История сессий доступна хосту.'));
