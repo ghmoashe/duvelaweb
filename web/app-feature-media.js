@@ -1,8 +1,25 @@
 (function () {
   function createMediaFeature(ctx) {
     const { $, tr, esc, alert, supa, state, runtime, avatarInner } = ctx;
+    const SUPPORTED_UPLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime']);
+
+    function syncUploadAccess() {
+      const isLearner = ctx.role === 'learner';
+      const uploadButton = $('#uploadVideoBtn');
+      const uploadOverlay = $('#uploadOverlay');
+      if (uploadButton) {
+        uploadButton.style.display = isLearner ? 'none' : '';
+        uploadButton.hidden = isLearner;
+        uploadButton.disabled = isLearner;
+      }
+      if (uploadOverlay) {
+        uploadOverlay.hidden = isLearner;
+        if (isLearner) uploadOverlay.classList.remove('open');
+      }
+    }
 
     function renderVideos() {
+      syncUploadAccess();
       const items = state.videos.filter((item) => runtime.currentVideoFilter === 'all' || item.type === runtime.currentVideoFilter);
       $('#videoGrid').innerHTML = items.map((item) => {
         const playable = item.id ? ' data-video="' + esc(item.id) + '"' : '';
@@ -178,6 +195,7 @@
     }
 
     function openUpload() {
+      if (ctx.role === 'learner') return;
       $('#uploadForm').reset();
       $('#upNote').style.display = 'none';
       $('#uploadOverlay').classList.add('open');
@@ -188,21 +206,38 @@
       const note = $('#upNote');
       const file = $('#upFile').files && $('#upFile').files[0];
       if (!file) return;
+      if (!SUPPORTED_UPLOAD_TYPES.has((file.type || '').toLowerCase())) {
+        note.style.color = 'var(--red)';
+        note.textContent = tr('Use JPG, PNG, WEBP, MP4 or MOV files.', 'Используйте файлы JPG, PNG, WEBP, MP4 или MOV.');
+        note.style.display = 'block';
+        return;
+      }
       const isImage = (file.type || '').startsWith('image/');
       const button = $('#upSubmit');
       button.disabled = true;
       button.textContent = tr('Uploading...', 'Загрузка...');
       try {
         const url = await ctx.uploadToBucket('posts', file);
-        const { error } = await supa.from('posts').insert({
+        const insertPayload = {
           user_id: ctx.user.id,
           media_url: url,
           media_type: isImage ? 'image' : 'video',
           caption: $('#upCaption').value.trim() || null,
-          language_level: $('#upLevel').value.trim().toUpperCase() || null,
           shorts_visibility: 'public'
-        });
-        if (error) throw error;
+        };
+        const level = $('#upLevel').value.trim().toUpperCase();
+        if (level) insertPayload.language_level = level;
+        let result = await supa.from('posts').insert(insertPayload);
+        if (result.error && Object.prototype.hasOwnProperty.call(insertPayload, 'language_level')) {
+          result = await supa.from('posts').insert({
+            user_id: insertPayload.user_id,
+            media_url: insertPayload.media_url,
+            media_type: insertPayload.media_type,
+            caption: insertPayload.caption,
+            shorts_visibility: insertPayload.shorts_visibility
+          });
+        }
+        if (result.error) throw result.error;
         $('#uploadOverlay').classList.remove('open');
         await loadVideos();
         renderVideos();

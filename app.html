@@ -658,7 +658,6 @@
     font-size: 13.5px;
   }
   .field textarea { resize: vertical; min-height: 92px; }
-  .mobile-top { display: none; }
   .loading {
     min-height: 100vh;
     display: grid;
@@ -1021,7 +1020,7 @@
     <div class="overlay-head"><h2 id="uploadTitle">Upload a video</h2><button type="button" id="uploadClose" aria-label="Close">✕</button></div>
     <div class="overlay-body">
       <form id="uploadForm">
-        <div class="field"><label for="upFile" id="upFileLabel">Video or image file</label><input id="upFile" type="file" accept="video/*,image/*" required></div>
+        <div class="field"><label for="upFile" id="upFileLabel">Video or image file</label><input id="upFile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,.mov" required></div>
         <div class="field"><label for="upCaption" id="upCaptionLabel">Caption</label><input id="upCaption" maxlength="200"></div>
         <div class="field"><label for="upLevel" id="upLevelLabel">Level (optional)</label><input id="upLevel" placeholder="A1–C2" maxlength="10"></div>
         <button class="btn primary" type="submit" id="upSubmit" style="margin-top:6px">Publish</button>
