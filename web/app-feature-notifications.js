@@ -30,17 +30,18 @@
         return;
       }
       list.innerHTML = state.notifications.map((item) =>
-        '<div class="notif-item' + (item.read ? '' : ' unread') + '"><div class="ndot"></div><div><b>' +
+        '<div class="notif-item' + (item.read ? '' : ' unread') + '"><div class="ndot"></div><div><b style="font-weight:' +
+        (item.read ? '500' : '800') + '">' +
         esc(item.title || tr('Notification', 'Уведомление')) + '</b>' +
         (item.body ? '<p>' + esc(item.body) + '</p>' : '') +
         '<time>' + esc(timeAgo(item.created_at)) + '</time></div></div>'
       ).join('');
     }
 
-    async function openNotifications() {
+    function openNotifications() {
       renderNotifList();
       $('#notifOverlay').classList.add('open');
-      await markAllNotifRead();
+      // Keep unread bold until the user taps "Прочитать все" (#markAllRead).
     }
 
     async function markAllNotifRead() {
