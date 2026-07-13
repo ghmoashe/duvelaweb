@@ -49,52 +49,37 @@ dirs.forEach(copyDir);
 
 const serverDir = path.join(outDir, 'server');
 fs.mkdirSync(serverDir, { recursive: true });
-fs.writeFileSync(path.join(serverDir, 'index.js'), `import fs from 'node:fs';
-import http from 'node:http';
-import path from 'node:path';
+fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders(response) {
+  const headers = new Headers(response.headers);
+  headers.set('x-content-type-options', 'nosniff');
+  headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+  headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=()');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
 
-const root = path.resolve(process.cwd(), 'dist');
-const port = Number(process.env.PORT || 3000);
-const types = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon'
+function assetRequest(request, pathname) {
+  const url = new URL(request.url);
+  url.pathname = pathname;
+  url.search = '';
+  return new Request(url, request);
+}
+
+export default {
+  async fetch(request, env) {
+    if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') {
+      return new Response('Duvela Web asset binding is not available.', { status: 500 });
+    }
+    const url = new URL(request.url);
+    const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
+    const response = await env.ASSETS.fetch(assetRequest(request, pathname));
+    if (response.status !== 404) return withSecurityHeaders(response);
+    return withSecurityHeaders(await env.ASSETS.fetch(assetRequest(request, '/index.html')));
+  }
 };
-
-function safePath(urlPath) {
-  const clean = decodeURIComponent(urlPath.split('?')[0]).replace(/^\\/+/, '');
-  const target = path.resolve(root, clean || 'index.html');
-  if (!target.startsWith(root)) return null;
-  return target;
-}
-
-function send(response, status, body, type) {
-  response.writeHead(status, {
-    'content-type': type || 'text/plain; charset=utf-8',
-    'x-content-type-options': 'nosniff',
-    'referrer-policy': 'strict-origin-when-cross-origin'
-  });
-  response.end(body);
-}
-
-http.createServer((request, response) => {
-  const target = safePath(request.url || '/');
-  if (!target) return send(response, 403, 'Forbidden');
-  const file = fs.existsSync(target) && fs.statSync(target).isDirectory()
-    ? path.join(target, 'index.html')
-    : target;
-  fs.readFile(file, (error, data) => {
-    if (error) return send(response, 404, 'Not found');
-    send(response, 200, data, types[path.extname(file).toLowerCase()] || 'application/octet-stream');
-  });
-}).listen(port, '0.0.0.0', () => {
-  console.log('Duvela Web listening on ' + port);
-});
 `, 'utf8');
 
 console.log(`[build-static-site] Built static site in ${path.relative(root, outDir)}`);
