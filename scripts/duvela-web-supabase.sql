@@ -3,6 +3,8 @@
 -- Edge Functions still need to be deployed separately:
 --   - agora-token
 --   - notify-course-enrollment
+--   - live-payment
+--   - live-restream
 
 create extension if not exists "pgcrypto";
 
@@ -30,6 +32,11 @@ set role_request_status = null
 where requested_role is null
   and role_request_status = 'none';
 
+update public.profiles
+set requested_role = null,
+    role_request_status = null
+where requested_role = 'admin';
+
 alter table public.profiles
   drop constraint if exists profiles_requested_role_check;
 
@@ -37,7 +44,7 @@ alter table public.profiles
   add constraint profiles_requested_role_check
   check (
     requested_role is null
-    or requested_role in ('learner', 'teacher', 'organizer', 'organization', 'admin')
+    or requested_role in ('learner', 'teacher', 'organizer', 'organization')
   );
 
 alter table public.profiles
@@ -221,6 +228,272 @@ create policy "live_sessions_update_teacher"
     and public.can_host_live_session(auth.uid())
   )
   with check (
+    teacher_id = auth.uid()
+    and public.can_host_live_session(auth.uid())
+  );
+
+create table if not exists public.live_participants (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.live_sessions(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  agora_uid bigint not null,
+  role text not null default 'audience',
+  joined_at timestamptz not null default now(),
+  left_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (session_id, user_id),
+  constraint live_participants_role_check check (role in ('host', 'audience', 'moderator'))
+);
+
+create index if not exists live_participants_session_idx
+  on public.live_participants (session_id, left_at);
+
+alter table public.live_participants enable row level security;
+
+drop policy if exists "live_participants_select_authenticated" on public.live_participants;
+create policy "live_participants_select_authenticated"
+  on public.live_participants
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "live_participants_insert_self" on public.live_participants;
+create policy "live_participants_insert_self"
+  on public.live_participants
+  for insert
+  to authenticated
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1
+      from public.live_sessions session
+      where session.id = live_participants.session_id
+        and session.status in ('scheduled', 'live')
+    )
+  );
+
+drop policy if exists "live_participants_update_self" on public.live_participants;
+create policy "live_participants_update_self"
+  on public.live_participants
+  for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+create table if not exists public.live_messages (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.live_sessions(id) on delete cascade,
+  channel_name text not null,
+  sender_id uuid references auth.users(id) on delete set null,
+  sender_name text,
+  role text not null default 'student',
+  message text not null,
+  created_at timestamptz not null default now(),
+  constraint live_messages_role_check check (role in ('student', 'teacher', 'system')),
+  constraint live_messages_message_check check (char_length(message) between 1 and 1000)
+);
+
+create index if not exists live_messages_session_created_idx
+  on public.live_messages (session_id, created_at);
+
+alter table public.live_messages enable row level security;
+
+drop policy if exists "live_messages_select_authenticated" on public.live_messages;
+create policy "live_messages_select_authenticated"
+  on public.live_messages
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "live_messages_insert_self" on public.live_messages;
+create policy "live_messages_insert_self"
+  on public.live_messages
+  for insert
+  to authenticated
+  with check (
+    sender_id = auth.uid()
+    and exists (
+      select 1
+      from public.live_sessions session
+      where session.id = live_messages.session_id
+        and session.channel_name = live_messages.channel_name
+        and session.status = 'live'
+        and (
+          live_messages.role = 'student'
+          or (
+            live_messages.role = 'teacher'
+            and session.teacher_id = auth.uid()
+          )
+        )
+    )
+  );
+
+create table if not exists public.live_gifts (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.live_sessions(id) on delete cascade,
+  channel_name text not null,
+  sender_id uuid references auth.users(id) on delete set null,
+  sender_name text,
+  gift_id text not null,
+  gift_name text not null,
+  cost integer not null default 0,
+  created_at timestamptz not null default now(),
+  constraint live_gifts_cost_check check (cost >= 0),
+  constraint live_gifts_gift_id_check check (gift_id ~ '^[a-z0-9_-]{1,64}$')
+);
+
+create index if not exists live_gifts_session_created_idx
+  on public.live_gifts (session_id, created_at);
+
+alter table public.live_gifts enable row level security;
+
+drop policy if exists "live_gifts_select_authenticated" on public.live_gifts;
+create policy "live_gifts_select_authenticated"
+  on public.live_gifts
+  for select
+  to authenticated
+  using (true);
+
+create or replace function public.send_live_gift(
+  target_session_id uuid,
+  sender_user_id uuid,
+  sender_display_name text,
+  gift_key text,
+  gift_label text,
+  gift_cost integer
+)
+returns table (
+  created_gift_id uuid,
+  balance_after integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_session public.live_sessions%rowtype;
+  next_balance integer;
+  inserted_gift_id uuid;
+begin
+  if gift_cost < 0 then
+    raise exception 'Gift cost cannot be negative.';
+  end if;
+
+  select *
+  into target_session
+  from public.live_sessions
+  where id = target_session_id
+    and status = 'live';
+
+  if target_session.id is null then
+    raise exception 'Live session is not active.';
+  end if;
+
+  if gift_cost > 0 then
+    update public.profiles
+    set vela_coin_balance = coalesce(vela_coin_balance, 0) - gift_cost
+    where id = sender_user_id
+      and coalesce(vela_coin_balance, 0) >= gift_cost
+    returning coalesce(vela_coin_balance, 0)
+    into next_balance;
+
+    if next_balance is null then
+      raise exception 'Insufficient Duvela coin balance.';
+    end if;
+  else
+    select coalesce(profile.vela_coin_balance, 0)
+    into next_balance
+    from public.profiles profile
+    where profile.id = sender_user_id;
+
+    next_balance := coalesce(next_balance, 0);
+  end if;
+
+  insert into public.live_gifts (
+    session_id,
+    channel_name,
+    sender_id,
+    sender_name,
+    gift_id,
+    gift_name,
+    cost
+  )
+  values (
+    target_session.id,
+    target_session.channel_name,
+    sender_user_id,
+    nullif(sender_display_name, ''),
+    gift_key,
+    gift_label,
+    gift_cost
+  )
+  returning id
+  into inserted_gift_id;
+
+  return query select inserted_gift_id, next_balance;
+end;
+$$;
+
+revoke all on function public.send_live_gift(uuid, uuid, text, text, text, integer) from public, anon, authenticated;
+grant execute on function public.send_live_gift(uuid, uuid, text, text, text, integer) to service_role;
+
+create table if not exists public.live_restream_targets (
+  id uuid primary key default gen_random_uuid(),
+  teacher_id uuid not null references auth.users(id) on delete cascade,
+  platform text not null,
+  rtmp_url text,
+  stream_key text,
+  enabled boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (teacher_id, platform),
+  constraint live_restream_targets_platform_check check (platform in ('youtube', 'facebook', 'tiktok')),
+  constraint live_restream_targets_url_check check (rtmp_url is null or rtmp_url ~ '^rtmps?://')
+);
+
+alter table public.live_restream_targets enable row level security;
+
+drop policy if exists "live_restream_targets_select_own" on public.live_restream_targets;
+create policy "live_restream_targets_select_own"
+  on public.live_restream_targets
+  for select
+  to authenticated
+  using (
+    teacher_id = auth.uid()
+    and public.can_host_live_session(auth.uid())
+  );
+
+drop policy if exists "live_restream_targets_insert_own" on public.live_restream_targets;
+create policy "live_restream_targets_insert_own"
+  on public.live_restream_targets
+  for insert
+  to authenticated
+  with check (
+    teacher_id = auth.uid()
+    and public.can_host_live_session(auth.uid())
+  );
+
+drop policy if exists "live_restream_targets_update_own" on public.live_restream_targets;
+create policy "live_restream_targets_update_own"
+  on public.live_restream_targets
+  for update
+  to authenticated
+  using (
+    teacher_id = auth.uid()
+    and public.can_host_live_session(auth.uid())
+  )
+  with check (
+    teacher_id = auth.uid()
+    and public.can_host_live_session(auth.uid())
+  );
+
+drop policy if exists "live_restream_targets_delete_own" on public.live_restream_targets;
+create policy "live_restream_targets_delete_own"
+  on public.live_restream_targets
+  for delete
+  to authenticated
+  using (
     teacher_id = auth.uid()
     and public.can_host_live_session(auth.uid())
   );

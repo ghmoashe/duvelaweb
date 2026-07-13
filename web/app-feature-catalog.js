@@ -287,7 +287,8 @@
         ctx.setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
         ctx.setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
         const myCourse = state.myCourses[0];
-        $('#homeList').innerHTML = [
+        const liveForLearner = (state.live || []).filter((item) => !item.is_private);
+        $('#homeList').innerHTML = learnerHubHeroV2(myCourse, liveForLearner) + [
           myCourse
             ? ctx.row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? tr('Enrolled • confirmed', 'Записан • подтверждено') : tr('Enrollment pending', 'Запись ожидает подтверждения'), level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Open', 'Открыть')) + '</a>')
             : ctx.row({ title: tr('Find your first course', 'Найдите свой первый курс'), meta: tr('Browse structured programs from teachers', 'Посмотрите структурированные программы от преподавателей'), level: tr('New', 'Новый') }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Browse', 'Смотреть')) + '</a>'),
@@ -483,6 +484,40 @@
       return [item.title || tr('Live lesson', 'Live-урок'), liveTimingV2(item)].filter(Boolean).join(' • ');
     }
 
+    function hubQuickCardV2(icon, title, copy, href, primary) {
+      return '<a class="card hub-quick-card" href="' + esc(href) + '" data-go="' + esc(href.replace('#', '')) + '">' +
+        '<div class="hub-quick-icon">' + esc(icon) + '</div>' +
+        '<div><b>' + esc(title) + '</b><span>' + esc(copy) + '</span></div>' +
+        '<span class="tag ' + (primary ? 'teal' : 'blue') + '">' + esc(primary ? tr('Start', 'Start') : tr('Open', 'Open')) + '</span>' +
+      '</a>';
+    }
+
+    function learnerHubHeroV2(myCourse, liveItems) {
+      const level = ctx.profile?.language_level || 'Level';
+      const goal = ctx.profile?.goal_level || tr('Choose a goal in profile', 'Goal');
+      const title = myCourse ? tr('Continue your course', 'Continue your course') : tr('Build today around one clear action', 'Build today around one clear action');
+      const copy = myCourse
+        ? (myCourse.status === 'confirmed'
+            ? tr('Your enrollment is confirmed. Open the course and keep momentum.', 'Your enrollment is confirmed. Open the course and keep momentum.')
+            : tr('Your enrollment is waiting for confirmation. Practice while the teacher reviews it.', 'Your enrollment is waiting for confirmation. Practice while the teacher reviews it.'))
+        : tr('Pick a course, run a short practice, or join the next live room.', 'Pick a course, run a short practice, or join the next live room.');
+      return '<div class="card hub-hero" style="margin-bottom:12px">' +
+        '<div class="hub-hero-top">' +
+          '<div><h2>' + esc(title) + '</h2><p>' + esc(copy) + '</p></div>' +
+          '<div class="hub-pill-row">' +
+            '<span class="tag teal">' + esc(tr('Level: ', 'Level: ') + level) + '</span>' +
+            '<span class="tag blue">' + esc(tr('Goal: ', 'Goal: ') + goal) + '</span>' +
+            '<span class="tag amber">' + esc(liveItems.length ? tr('Live available', 'Live available') : tr('Self-study ready', 'Self-study ready')) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hub-quick-grid">' +
+          hubQuickCardV2('01', myCourse ? tr('Open course', 'Open course') : tr('Find a course', 'Find a course'), myCourse ? (myCourse.title || tr('Your active course', 'Your active course')) : tr('Structured teacher programs', 'Structured teacher programs'), '#courses', true) +
+          hubQuickCardV2('02', tr('Practice now', 'Practice now'), tr('Flashcards, speaking, grammar and exam drills', 'Flashcards, speaking, grammar and exam drills'), '#workspace', false) +
+          hubQuickCardV2('03', liveItems.length ? tr('Join LIVE', 'Join LIVE') : tr('Check schedule', 'Check schedule'), liveItems.length ? tr('Watch an active lesson in browser', 'Watch an active lesson in browser') : tr('Book a lesson or watch upcoming rooms', 'Book a lesson or watch upcoming rooms'), liveItems.length ? '#live' : '#schedule', false) +
+        '</div>' +
+      '</div>';
+    }
+
     function emptyLiveBlockV2(copy) {
       return '<div class="card empty">' + esc(copy) + '</div>';
     }
@@ -565,10 +600,11 @@
         const coins = ctx.profile?.vela_coin_balance ?? 0;
         const speaking = ctx.profile?.speaking_progress ?? 0;
         const myCourse = state.myCourses[0];
+        const liveForLearner = liveItems.filter((item) => !item.is_private);
         ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', ctx.profile?.goal_level ? (tr('Goal: ', 'Цель: ') + ctx.profile.goal_level) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
         ctx.setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
         ctx.setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
-        $('#homeList').innerHTML = [
+        $('#homeList').innerHTML = learnerHubHeroV2(myCourse, liveForLearner) + [
           myCourse
             ? ctx.row({ title: myCourse.title, meta: myCourse.status === 'confirmed' ? tr('Enrolled • confirmed', 'Записан • подтверждено') : tr('Enrollment pending', 'Запись ожидает подтверждения'), level: myCourse.level || '' }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Open', 'Открыть')) + '</a>')
             : ctx.row({ title: tr('Find your first course', 'Найдите свой первый курс'), meta: tr('Browse structured programs from teachers', 'Посмотрите структурированные программы от преподавателей'), level: tr('New', 'Новый') }, '<a class="btn primary" href="#courses" data-go="courses">' + esc(tr('Browse', 'Смотреть')) + '</a>'),

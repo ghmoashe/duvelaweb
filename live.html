@@ -11,6 +11,8 @@
 <meta property="og:image" content="./logo2.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./logo.webp" type="image/webp">
+<link rel="preconnect" href="https://download.agora.io" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -48,6 +50,13 @@
   }
   button, input, select { font: inherit; }
   a { color: inherit; }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--purple-bright);
+    outline-offset: 2px;
+  }
   h1, h2, h3 { letter-spacing: -.01em; }
   .page {
     min-height: 100vh;
@@ -618,7 +627,6 @@
     font-size: 14px;
   }
   .field input:focus, .field select:focus, .share-box input:focus, .chat-form input:focus {
-    outline: none;
     border-color: rgba(167,139,250,.5);
     box-shadow: 0 0 0 3px rgba(124,58,237,.18);
   }
@@ -1372,7 +1380,7 @@
   </main>
 </div>
 
-<div class="gift-modal" id="giftModal" aria-hidden="true">
+<div class="gift-modal" id="giftModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="giftTitle">
   <div class="gift-card">
     <div class="gift-head">
       <div>

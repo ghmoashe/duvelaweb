@@ -137,6 +137,64 @@
         cells.map(([label, value]) => '<div class="card metric" style="min-height:auto;padding:12px"><span>' + esc(label) + '</span><b style="font-size:22px">' + value + '</b></div>').join('') + '</div>';
     }
 
+    function businessAction(label, title, copy, href, tone) {
+      return '<a class="business-action" href="' + esc(href) + '" data-go="' + esc(href.replace('#', '')) + '">' +
+        '<span class="tag ' + (tone || '') + '">' + esc(label) + '</span>' +
+        '<div><b>' + esc(title) + '</b><span>' + esc(copy) + '</span></div>' +
+      '</a>';
+    }
+
+    function businessStep(title, copy, value) {
+      return '<div class="business-step">' +
+        '<span class="tag blue">' + esc(value) + '</span>' +
+        '<b>' + esc(title) + '</b>' +
+        '<p>' + esc(copy) + '</p>' +
+      '</div>';
+    }
+
+    function businessDeskHtml(org) {
+      const activeCourses = state.orgCourses.filter((course) => course.status === 'active').length;
+      const draftCourses = state.orgCourses.filter((course) => course.status && course.status !== 'active').length;
+      const publishedPractices = state.myPractices.filter((practice) => practice.status === 'published').length;
+      const location = [org.city, org.country].filter(Boolean).join(', ') || tr('Business workspace', 'Business workspace');
+      return '<div class="business-desk" style="margin-bottom:14px">' +
+        '<div class="business-desk-top">' +
+          '<div><h2>' + esc(org.name) + '</h2><p>' + esc(location) + '</p></div>' +
+          '<div class="hub-pill-row">' +
+            '<span class="tag teal">' + esc(activeCourses + ' ' + tr('active courses', 'active courses')) + '</span>' +
+            '<span class="tag blue">' + esc(state.orgClasses.length + ' ' + tr('classes', 'classes')) + '</span>' +
+            '<span class="tag amber">' + esc(publishedPractices + ' ' + tr('published practices', 'published practices')) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="business-action-grid">' +
+          businessAction('LIVE', tr('Open Live Studio', 'Open Live Studio'), tr('Start, schedule or reuse a browser room.', 'Start, schedule or reuse a browser room.'), '#live', 'teal') +
+          businessAction('COURSE', tr('Create an offer', 'Create an offer'), tr('Publish a course learners can enroll in.', 'Publish a course learners can enroll in.'), '#workspace', 'blue') +
+          businessAction('EVENT', tr('Publish workshop', 'Publish workshop'), tr('Add online or offline events to the catalog.', 'Add online or offline events to the catalog.'), '#events', 'amber') +
+          businessAction('CHAT', tr('Follow up leads', 'Follow up leads'), tr('Reply to learner questions and requests.', 'Reply to learner questions and requests.'), '#messages', '') +
+        '</div>' +
+        '<div class="business-pipeline">' +
+          businessStep(tr('Catalog health', 'Catalog health'), tr('Keep at least one active offer visible to learners.', 'Keep at least one active offer visible to learners.'), activeCourses + '/' + state.orgCourses.length) +
+          businessStep(tr('Class operations', 'Class operations'), tr('Use sessions and attendance to keep cohorts organized.', 'Use sessions and attendance to keep cohorts organized.'), String(state.orgClasses.length)) +
+          businessStep(tr('Draft queue', 'Draft queue'), tr('Review drafts before the next campaign push.', 'Review drafts before the next campaign push.'), String(draftCourses)) +
+        '</div>' +
+      '</div>';
+    }
+
+    function noOrgOnboardingHtml() {
+      return '<div class="business-desk" style="margin-bottom:14px">' +
+        '<div class="business-desk-top">' +
+          '<div><h2>' + esc(tr('Set up your business workspace', 'Set up your business workspace')) + '</h2>' +
+          '<p>' + esc(tr('Create an organization once, then publish courses, classes, practices and events from one place.', 'Create an organization once, then publish courses, classes, practices and events from one place.')) + '</p></div>' +
+          '<span class="tag amber">' + esc(tr('Setup required', 'Setup required')) + '</span>' +
+        '</div>' +
+        '<div class="business-pipeline">' +
+          businessStep(tr('1. Organization', '1. Organization'), tr('Add name, city and country for public trust.', 'Add name, city and country for public trust.'), tr('Now', 'Now')) +
+          businessStep(tr('2. First offer', '2. First offer'), tr('Create one course or class learners can understand quickly.', 'Create one course or class learners can understand quickly.'), tr('Next', 'Next')) +
+          businessStep(tr('3. Publish activity', '3. Publish activity'), tr('Add LIVE, event or practice to make the page feel active.', 'Add LIVE, event or practice to make the page feel active.'), tr('Then', 'Then')) +
+        '</div>' +
+      '</div>';
+    }
+
     function membersHtml() {
       const roles = ['owner', 'admin', 'teacher', 'client'];
       return '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Members', 'Участники')) + '</h2><span>' + state.orgMembers.length + '</span></div>' +
@@ -179,6 +237,7 @@
       $('#workspacePrimaryTitle').textContent = org ? esc(org.name) : tr('Your organization', 'Ваша организация');
       if (!org) {
         left.innerHTML =
+          noOrgOnboardingHtml() +
           '<p style="font-weight:800;color:var(--soft);margin:0 0 12px">' + esc(tr('Create an organization to publish courses and classes on Duvela.', 'Создайте организацию, чтобы публиковать курсы и классы в Duvela.')) + '</p>' +
           '<form id="orgForm">' +
             '<div class="field"><label>' + esc(tr('Organization name', 'Название организации')) + '</label><input id="orgName" required maxlength="120"></div>' +
@@ -193,6 +252,7 @@
         return;
       }
       left.innerHTML =
+        businessDeskHtml(org) +
         analyticsHtml() +
         '<p style="font-weight:800;color:var(--soft);margin:0 0 12px">' + esc([org.city, org.country].filter(Boolean).join(', ') || tr('Your Duvela organization', 'Ваша организация Duvela')) + '</p>' +
         '<form id="courseForm">' +

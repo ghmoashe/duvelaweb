@@ -127,6 +127,70 @@ async function invokeAgoraToken(label, token, channelName, uid, role) {
   return data;
 }
 
+async function joinLiveParticipant(token, session, user) {
+  const rows = await expectOk('learner live_participants upsert', request('/rest/v1/live_participants?select=*', {
+    method: 'POST',
+    token,
+    headers: {
+      Prefer: 'resolution=merge-duplicates,return=representation',
+    },
+    body: {
+      agora_uid: agoraUid(user.id),
+      left_at: null,
+      role: 'audience',
+      session_id: session.id,
+      user_id: user.id,
+    },
+  }));
+  const participant = Array.isArray(rows) ? rows[0] : null;
+  if (!participant?.id || participant.session_id !== session.id) fail('live_participants upsert did not return the participant.');
+  return participant;
+}
+
+async function sendLiveMessage(token, session, user) {
+  const rows = await expectOk('learner live_messages insert', request('/rest/v1/live_messages?select=*', {
+    method: 'POST',
+    token,
+    headers: { Prefer: 'return=representation' },
+    body: {
+      channel_name: session.channel_name,
+      message: 'Backend E2E hello',
+      role: 'student',
+      sender_id: user.id,
+      sender_name: user.email || 'Duvela learner test',
+      session_id: session.id,
+    },
+  }));
+  const message = Array.isArray(rows) ? rows[0] : null;
+  if (!message?.id || message.message !== 'Backend E2E hello') fail('live_messages insert did not return the message.');
+  return message;
+}
+
+async function invokeLivePayment(token, session) {
+  const data = await expectOk('learner live-payment gift', request('/functions/v1/live-payment', {
+    method: 'POST',
+    token,
+    body: {
+      action: 'gift',
+      giftId: 'heart',
+      senderName: 'Duvela learner test',
+      sessionId: session.id,
+    },
+  }));
+  if (!data?.giftId) fail('live-payment did not return a gift id.');
+  return data;
+}
+
+async function invokeLiveRestreamStatus(token) {
+  const data = await expectOk('teacher live-restream status', request('/functions/v1/live-restream', {
+    method: 'POST',
+    token,
+    body: { action: 'status' },
+  }));
+  if (!data || typeof data.results !== 'object') fail('live-restream status returned an invalid payload.');
+  return data;
+}
+
 async function runPublicChecks() {
   await expectStatus('agora-token requires auth', request('/functions/v1/agora-token', {
     method: 'POST',
@@ -180,9 +244,14 @@ async function main() {
         agoraUid(learner.user.id),
         'subscriber',
       );
+      await joinLiveParticipant(learner.access_token, session, learner.user);
+      await sendLiveMessage(learner.access_token, session, learner.user);
+      await invokeLivePayment(learner.access_token, session);
     } else {
-      log('Learner credentials not set; skipped learner select/subscriber token check.');
+      log('Learner credentials not set; skipped learner select/subscriber token/chat/gift checks.');
     }
+
+    await invokeLiveRestreamStatus(teacher.access_token);
   } finally {
     if (session?.id) await updateLiveSessionEnded(teacher.access_token, session.id);
   }

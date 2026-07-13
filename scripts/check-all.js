@@ -88,6 +88,8 @@ async function main() {
   const server = await startServerIfNeeded();
   try {
     await smokePages();
+    await runNodeScript('check-web-contracts.js');
+    await runNodeScript('check-publish-readiness.js');
     await runNodeScript('check-i18n.js');
     await runNodeScript('check-web-backend-e2e.js', true);
     await runNodeScript('agora-browser-e2e.js', true);

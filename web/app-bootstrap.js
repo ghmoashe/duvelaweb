@@ -18,7 +18,40 @@
       if ($('#chessOverlay').classList.contains('open')) ctx.closeChess();
     }
 
+    function bindOverlayA11y() {
+      const openedState = new WeakMap();
+      const focusableSelector = [
+        'button:not([disabled])',
+        '[href]',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(',');
+
+      const syncOverlay = (overlay) => {
+        const isOpen = overlay.classList.contains('open');
+        const wasOpen = openedState.get(overlay) === true;
+        overlay.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        openedState.set(overlay, isOpen);
+        document.body.classList.toggle('modal-open', $$('.overlay.open').length > 0);
+        if (!isOpen || wasOpen) return;
+        const focusTarget = overlay.querySelector(focusableSelector);
+        if (focusTarget) setTimeout(() => focusTarget.focus(), 0);
+      };
+
+      $$('.overlay').forEach((overlay) => {
+        syncOverlay(overlay);
+        new MutationObserver(() => syncOverlay(overlay)).observe(overlay, {
+          attributes: true,
+          attributeFilter: ['class']
+        });
+      });
+    }
+
     function bindEvents() {
+      bindOverlayA11y();
+
       $$('.nav button').forEach((button) => button.addEventListener('click', () => {
         ctx.setView(button.dataset.view);
         if (button.dataset.view === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);

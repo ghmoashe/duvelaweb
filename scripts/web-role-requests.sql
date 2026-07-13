@@ -32,6 +32,12 @@ set role_request_status = null
 where requested_role is null
   and role_request_status = 'none';
 
+-- admin is an internal privilege, not a browser-requestable business role.
+update public.profiles
+set requested_role = null,
+    role_request_status = null
+where requested_role = 'admin';
+
 -- ── 2. Ограничения на допустимые значения (null = заявки нет) ─────────────────
 alter table public.profiles
   drop constraint if exists profiles_role_request_status_check;
@@ -45,7 +51,7 @@ alter table public.profiles
 alter table public.profiles
   add  constraint profiles_requested_role_check
   check (requested_role is null
-         or requested_role in ('learner', 'teacher', 'organizer', 'organization', 'admin'));
+         or requested_role in ('learner', 'teacher', 'organizer', 'organization'));
 
 -- ── 3. Индекс для админа: быстро найти ожидающие заявки ──────────────────────
 create index if not exists profiles_role_request_pending_idx

@@ -6,6 +6,8 @@
     "bootstrap:test-accounts": "node ./scripts/bootstrap-web-test-accounts.js",
     "check:backend": "node ./scripts/check-web-backend-e2e.js",
     "check:agora": "node ./scripts/agora-browser-e2e.js",
+    "check:contracts": "node ./scripts/check-web-contracts.js",
+    "check:publish": "node ./scripts/check-publish-readiness.js",
     "check": "node ./scripts/check-all.js",
     "check:all": "node ./scripts/check-all.js",
     "check:i18n": "node ./scripts/check-i18n.js",

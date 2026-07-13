@@ -2,6 +2,30 @@
   function createWorkspaceShellFeature(ctx) {
     const { $, tr, esc, roleLabels } = ctx;
 
+    function learnerWorkspaceIntro() {
+      const level = ctx.profile?.language_level || 'B1';
+      const goal = ctx.profile?.goal_level || tr('Next level', 'Next level');
+      return '<div class="card hub-hero" style="margin-bottom:12px">' +
+        '<div class="hub-hero-top">' +
+          '<div><h2>' + esc(tr('Practice launchpad', 'Practice launchpad')) + '</h2>' +
+          '<p>' + esc(tr('Choose one short activity and finish it before switching context.', 'Choose one short activity and finish it before switching context.')) + '</p></div>' +
+          '<div class="hub-pill-row">' +
+            '<span class="tag teal">' + esc(level) + '</span>' +
+            '<span class="tag blue">' + esc(goal) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hub-quick-grid">' +
+          '<button class="card hub-quick-card" id="openDuelBtn" type="button"><div class="hub-quick-icon">VS</div><div><b>' + esc(tr('Duel', 'Duel')) + '</b><span>' + esc(tr('Fast recall under pressure.', 'Fast recall under pressure.')) + '</span></div><span class="tag teal">' + esc(tr('Play', 'Play')) + '</span></button>' +
+          '<button class="card hub-quick-card" id="openChessBtn" type="button"><div class="hub-quick-icon">64</div><div><b>' + esc(tr('Chess', 'Chess')) + '</b><span>' + esc(tr('Train focus between lessons.', 'Train focus between lessons.')) + '</span></div><span class="tag blue">' + esc(tr('Open', 'Open')) + '</span></button>' +
+          '<a class="card hub-quick-card" href="#schedule" data-go="schedule"><div class="hub-quick-icon">1:1</div><div><b>' + esc(tr('Book a lesson', 'Book a lesson')) + '</b><span>' + esc(tr('Find a teacher slot and keep the week planned.', 'Find a teacher slot and keep the week planned.')) + '</span></div><span class="tag amber">' + esc(tr('Schedule', 'Schedule')) + '</span></a>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function focusRow(index, title, copy) {
+      return '<div class="hub-focus-row"><div class="n">' + index + '</div><div><b>' + esc(title) + '</b><p>' + esc(copy) + '</p></div></div>';
+    }
+
     function renderWorkspace() {
       const creator = ctx.isBusiness();
       $('#workspaceNavLabel').textContent = creator ? tr('Workspace', 'Рабочая зона') : tr('Practice', 'Практика');
@@ -17,10 +41,11 @@
       }
       var studyHtml = ctx.studyToolsHtml ? ctx.studyToolsHtml() : '';
       $('#workspaceActions').innerHTML =
-        '<div style="display:flex;gap:10px;margin-bottom:14px">' +
-          '<button class="btn primary" id="openDuelBtn" style="flex:1">⚔️ ' + esc(tr('Duel', 'Дуэль')) + '</button>' +
-          '<button class="btn" id="openChessBtn" style="flex:1">♟️ ' + esc(tr('Chess', 'Шахматы')) + '</button>' +
-        '</div>' + studyHtml + ctx.practicesHtml() + ctx.challengesHtml();
+        learnerWorkspaceIntro() +
+        studyHtml +
+        '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Teacher practices', 'Teacher practices')) + '</h2><span>' + esc(tr('Published by creators', 'Published by creators')) + '</span></div>' +
+        ctx.practicesHtml() +
+        ctx.challengesHtml();
       $('#openDuelBtn').addEventListener('click', ctx.openDuel);
       $('#openChessBtn').addEventListener('click', ctx.openChess);
       if (ctx.bindStudyTiles) ctx.bindStudyTiles();
@@ -54,7 +79,20 @@
       const saved = (() => {
         try { return JSON.parse(localStorage.getItem('duvela.webNote') || '{}'); } catch (error) { return {}; }
       })();
+      const grammar = ctx.profile?.grammar_progress ?? 0;
+      const speaking = ctx.profile?.speaking_progress ?? 0;
+      const vocabulary = ctx.profile?.vocabulary_progress ?? 0;
       side.innerHTML =
+        '<div class="section-head"><h2>' + esc(tr('Today focus', 'Today focus')) + '</h2><span>' + esc(tr('Learner mode', 'Learner mode')) + '</span></div>' +
+        '<div class="hub-focus-card card" style="box-shadow:none">' +
+          focusRow('1', tr('Warm up', 'Warm up'), tr('Run one flashcard or grammar tool before browsing.', 'Run one flashcard or grammar tool before browsing.')) +
+          focusRow('2', tr('Do the hard rep', 'Do the hard rep'), tr('Open a teacher practice or submit one course task.', 'Open a teacher practice or submit one course task.')) +
+          focusRow('3', tr('Close the loop', 'Close the loop'), tr('Save one note or book a teacher slot.', 'Save one note or book a teacher slot.')) +
+        '</div>' +
+        '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Skill balance', 'Skill balance')) + '</h2><span>' + esc(tr('Profile progress', 'Profile progress')) + '</span></div>' +
+        '<div class="prog-row"><div class="prog-label"><span>' + esc(tr('Grammar', 'Grammar')) + '</span><span>' + grammar + '%</span></div><div class="prog-bar"><i style="width:' + grammar + '%"></i></div></div>' +
+        '<div class="prog-row"><div class="prog-label"><span>' + esc(tr('Speaking', 'Speaking')) + '</span><span>' + speaking + '%</span></div><div class="prog-bar"><i style="width:' + speaking + '%"></i></div></div>' +
+        '<div class="prog-row"><div class="prog-label"><span>' + esc(tr('Vocabulary', 'Vocabulary')) + '</span><span>' + vocabulary + '%</span></div><div class="prog-bar"><i style="width:' + vocabulary + '%"></i></div></div>' +
         '<div class="section-head"><h2>' + esc(tr('Learning note', 'Учебная заметка')) + '</h2><span>' + esc(tr('Saved on this device', 'Сохранено на этом устройстве')) + '</span></div>' +
         '<div class="field"><label for="noteText">' + esc(tr('Your note', 'Ваша заметка')) + '</label><textarea id="noteText" placeholder="' + esc(tr('Words to review, goals for the week...', 'Слова на повторение, цели на неделю...')) + '">' + esc(saved.text || '') + '</textarea></div>' +
         '<button class="btn primary" id="noteSave" type="button" style="margin-top:8px">' + esc(tr('Save note', 'Сохранить заметку')) + '</button>' +

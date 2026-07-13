@@ -33,7 +33,7 @@
       const candidate = normalizeRole(targetRole);
       session.requestedBusinessRole = null;
       if (isApprovedForRole(candidate, session.profile)) return candidate;
-      if (businessRoles.has(candidate)) session.requestedBusinessRole = session.profile?.requested_role || candidate;
+      if (rolesApi.isRoleRequestable(candidate)) session.requestedBusinessRole = session.profile?.requested_role || candidate;
       return fallbackApprovedRole(session.profile);
     }
 

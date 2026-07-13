@@ -4,6 +4,7 @@
   const ALL_ROLES = ['learner', 'teacher', 'organizer', 'organization', 'admin'];
   const SIGNUP_ROLES = ['learner', 'teacher', 'organizer', 'organization'];
   const BUSINESS_ROLES = Object.freeze(new Set(['teacher', 'organizer', 'organization', 'admin']));
+  const REQUESTABLE_BUSINESS_ROLES = Object.freeze(new Set(['teacher', 'organizer', 'organization']));
 
   function normalizeRole(role) {
     return ALL_ROLES.includes(role) ? role : 'learner';
@@ -15,6 +16,10 @@
 
   function isBusinessRole(role) {
     return BUSINESS_ROLES.has(role);
+  }
+
+  function isRoleRequestable(role) {
+    return REQUESTABLE_BUSINESS_ROLES.has(role);
   }
 
   function isApprovedForRole(role, profile) {
@@ -103,9 +108,11 @@
     allRoles: Object.freeze(ALL_ROLES.slice()),
     signupRoles: Object.freeze(SIGNUP_ROLES.slice()),
     businessRoles: BUSINESS_ROLES,
+    requestableBusinessRoles: REQUESTABLE_BUSINESS_ROLES,
     normalizeRole,
     normalizeSignupRole,
     isBusinessRole,
+    isRoleRequestable,
     isApprovedForRole,
     fallbackApprovedRole,
     pickWebRole,
