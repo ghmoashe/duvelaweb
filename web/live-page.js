@@ -1050,6 +1050,8 @@
       el('endLive').style.display = 'inline-flex';
       el('toggleMic').style.display = 'inline-flex';
       el('toggleCam').style.display = 'inline-flex';
+      el('pinMaterial').style.display = 'inline-flex';
+      if (currentSession) { subscribeLiveMaterial(currentSession.id); renderLiveMaterial(currentSession.material_url); }
       updateHostControls();
       el('mainAction').textContent = tr('LIVE is running', 'Эфир идёт');
       setStatus(tr('Teacher is LIVE', 'Преподаватель в эфире'), 'live');
@@ -1090,6 +1092,43 @@
       stage.appendChild(node);
     }
     node.querySelector('img').src = url;
+  }
+
+  async function hostToggleMaterial() {
+    if (!currentSession) return;
+    // If material is currently shown, remove it; otherwise open the file picker.
+    if (document.getElementById('liveMaterialOverlay')) {
+      try {
+        await supa.from('live_sessions').update({ material_url: null }).eq('id', currentSession.id);
+        if (materialChannel) materialChannel.send({ type: 'broadcast', event: 'material', payload: { kind: 'clear' } });
+        renderLiveMaterial(null);
+      } catch (e) { /* ignore */ }
+      el('pinMaterial').textContent = tr('Material', 'Материал');
+      return;
+    }
+    el('materialFile').value = '';
+    el('materialFile').click();
+  }
+
+  async function hostUploadMaterial() {
+    var file = el('materialFile').files && el('materialFile').files[0];
+    if (!file || !currentSession || !currentUser) return;
+    try {
+      setNote(tr('Uploading material…', 'Загрузка материала…'));
+      var ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      var path = currentUser.id + '/live-materials/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+      var up = await supa.storage.from('posts').upload(path, file, { contentType: file.type || undefined, upsert: true });
+      if (up.error) throw up.error;
+      var url = supa.storage.from('posts').getPublicUrl(path).data.publicUrl;
+      await supa.from('live_sessions').update({ material_url: url }).eq('id', currentSession.id);
+      if (!materialChannel) subscribeLiveMaterial(currentSession.id);
+      if (materialChannel) materialChannel.send({ type: 'broadcast', event: 'material', payload: { kind: 'set', url: url } });
+      renderLiveMaterial(url);
+      el('pinMaterial').textContent = tr('Remove material', 'Убрать материал');
+      setNote('');
+    } catch (e) {
+      setNote(tr('Material upload failed', 'Не удалось загрузить материал'));
+    }
   }
 
   function subscribeLiveMaterial(id) {
@@ -1212,6 +1251,9 @@
     }
     el('toggleMic').style.display = 'none';
     el('toggleCam').style.display = 'none';
+    el('pinMaterial').style.display = 'none';
+    if (materialChannel) { try { await supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
+    renderLiveMaterial(null);
     setHostSetupDisabled(false);
     if (markSessionEnded && currentSession?.status === 'live') await markEnded();
   }
@@ -1313,6 +1355,8 @@
     el('endLive').addEventListener('click', endHost);
     el('toggleMic').addEventListener('click', function () { void toggleMic(); });
     el('toggleCam').addEventListener('click', function () { void toggleCam(); });
+    el('pinMaterial').addEventListener('click', function () { void hostToggleMaterial(); });
+    el('materialFile').addEventListener('change', function () { void hostUploadMaterial(); });
     el('scheduleSession').addEventListener('click', function () { void scheduleHostSession(); });
     window.addEventListener('beforeunload', function () {
       if (isHostMode) void stopMedia(true);
