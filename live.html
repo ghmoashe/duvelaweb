@@ -1206,6 +1206,15 @@
           <h3 id="viewerActionsTitle">Live interaction</h3>
           <p id="viewerActionsCopy">Join the room chat and send a gift while the lesson is live.</p>
         </div>
+        <div id="viewerFollow" style="display:none;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px">
+            <span id="goalLabel">Followers</span><span id="goalPct"></span>
+          </div>
+          <div style="height:7px;border-radius:999px;background:rgba(128,128,128,0.25);overflow:hidden;margin-bottom:9px">
+            <div id="goalFill" style="height:100%;width:0;border-radius:999px;background:#22C55E;transition:width .4s"></div>
+          </div>
+          <button type="button" class="btn primary" id="followBtn" style="width:100%">Follow</button>
+        </div>
         <div class="viewer-actions">
           <div class="viewer-action-row">
             <button type="button" class="btn" id="openChat">Open chat</button>

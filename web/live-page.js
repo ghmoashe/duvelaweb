@@ -1131,6 +1131,53 @@
     }
   }
 
+  function nextFollowerGoal(n) {
+    var steps = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+    for (var i = 0; i < steps.length; i++) if (steps[i] > n) return steps[i];
+    return Math.ceil((n + 1) / 100000) * 100000;
+  }
+
+  var viewerIsFollowing = false;
+
+  async function renderFollowUi() {
+    var box = el('viewerFollow');
+    if (!box || !currentSession || isHostMode) { if (box) box.style.display = 'none'; return; }
+    var teacherId = currentSession.teacher_id;
+    if (!teacherId) { box.style.display = 'none'; return; }
+    try {
+      var cnt = await supa.from('user_follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', teacherId);
+      var count = cnt.count || 0;
+      var goal = nextFollowerGoal(count);
+      var pct = Math.min(100, Math.round((count / goal) * 100));
+      el('goalLabel').textContent = tr('Followers', 'Подписчики') + ' ' + count + '/' + goal;
+      el('goalPct').textContent = pct + '%';
+      el('goalFill').style.width = pct + '%';
+      if (currentUser && teacherId !== currentUser.id) {
+        var mine = await supa.from('user_follows').select('follower_id').eq('follower_id', currentUser.id).eq('following_id', teacherId).maybeSingle();
+        viewerIsFollowing = !!(mine && mine.data);
+        el('followBtn').textContent = viewerIsFollowing ? tr('Following', 'Вы подписаны') : tr('Follow', 'Подписаться');
+        el('followBtn').style.display = '';
+      } else {
+        el('followBtn').style.display = 'none';
+      }
+      box.style.display = '';
+    } catch (e) { box.style.display = 'none'; }
+  }
+
+  async function toggleViewerFollow() {
+    if (!currentSession || !currentUser) return;
+    var teacherId = currentSession.teacher_id;
+    if (!teacherId || teacherId === currentUser.id) return;
+    try {
+      if (viewerIsFollowing) {
+        await supa.from('user_follows').delete().eq('follower_id', currentUser.id).eq('following_id', teacherId);
+      } else {
+        await supa.from('user_follows').insert({ follower_id: currentUser.id, following_id: teacherId });
+      }
+      await renderFollowUi();
+    } catch (e) { /* ignore */ }
+  }
+
   function subscribeLiveMaterial(id) {
     if (!supa || !id) return;
     if (materialChannel) { try { supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
@@ -1180,6 +1227,7 @@
       await subscribeViewerRealtime();
       renderLiveMaterial(currentSession.material_url);
       subscribeLiveMaterial(sessionId);
+      void renderFollowUi();
       setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
       var token = await getSubscriberToken(currentSession.channel_name, uid);
@@ -1357,6 +1405,7 @@
     el('toggleCam').addEventListener('click', function () { void toggleCam(); });
     el('pinMaterial').addEventListener('click', function () { void hostToggleMaterial(); });
     el('materialFile').addEventListener('change', function () { void hostUploadMaterial(); });
+    if (el('followBtn')) el('followBtn').addEventListener('click', function () { void toggleViewerFollow(); });
     el('scheduleSession').addEventListener('click', function () { void scheduleHostSession(); });
     window.addEventListener('beforeunload', function () {
       if (isHostMode) void stopMedia(true);
