@@ -185,6 +185,76 @@
   function createChannelName(userId) {
     return ('duvela-web-' + userId.replace(/-/g, '').slice(0, 12) + '-' + Date.now().toString(36)).slice(0, 64);
   }
+  var RESTREAM_PLATFORMS = ['youtube', 'facebook', 'tiktok'];
+  var RESTREAM_DEFAULT_URLS = {
+    youtube: 'rtmp://a.rtmp.youtube.com/live2',
+    facebook: 'rtmps://live-api-s.facebook.com:443/rtmp',
+    tiktok: ''
+  };
+  function restreamRow(platform) {
+    return document.querySelector('.restream-row[data-platform="' + platform + '"]');
+  }
+  async function loadRestreamTargets() {
+    if (!supa || !currentUser?.id) return;
+    try {
+      var res = await supa.from('live_restream_targets')
+        .select('platform,rtmp_url,stream_key,enabled')
+        .eq('teacher_id', currentUser.id);
+      var rows = res.data || [];
+      rows.forEach(function (row) {
+        var el2 = restreamRow(row.platform);
+        if (!el2) return;
+        el2.querySelector('.restreamUrl').value = row.rtmp_url || '';
+        el2.querySelector('.restreamKey').value = row.stream_key || '';
+        el2.querySelector('.restreamEnabled').checked = Boolean(row.enabled);
+      });
+    } catch (e) { /* best-effort */ }
+  }
+  async function saveRestreamTargets() {
+    if (!supa || !currentUser?.id) return;
+    var status = el('restreamStatus');
+    var btn = el('saveRestreamBtn');
+    btn.disabled = true;
+    status.textContent = tr('Saving...', 'Сохранение...');
+    try {
+      var payload = RESTREAM_PLATFORMS.map(function (platform) {
+        var row = restreamRow(platform);
+        return {
+          teacher_id: currentUser.id,
+          platform: platform,
+          rtmp_url: row.querySelector('.restreamUrl').value.trim(),
+          stream_key: row.querySelector('.restreamKey').value.trim(),
+          enabled: row.querySelector('.restreamEnabled').checked,
+          updated_at: new Date().toISOString()
+        };
+      }).filter(function (row) { return row.enabled ? Boolean(row.rtmp_url) : true; });
+      var res = await supa.from('live_restream_targets').upsert(payload, { onConflict: 'teacher_id,platform' });
+      status.textContent = res.error
+        ? (tr('Could not save: ', 'Не удалось сохранить: ') + res.error.message)
+        : tr('Saved.', 'Сохранено.');
+    } catch (e) {
+      status.textContent = tr('Could not save.', 'Не удалось сохранить.');
+    } finally {
+      btn.disabled = false;
+      setTimeout(function () { status.textContent = ''; }, 3000);
+    }
+  }
+  async function startRestream(channelName, hostUid) {
+    if (!supa) return;
+    try {
+      var res = await supa.functions.invoke('live-restream', {
+        body: { action: 'start', channelName: channelName, hostUid: hostUid }
+      });
+      var results = res?.data?.results || {};
+      var started = Object.keys(results).filter(function (p) { return results[p] === 'started'; });
+      if (started.length) setNote(tr('Also live on: ', 'Также в эфире на: ') + started.join(', '));
+    } catch (e) { /* best-effort, LIVE itself keeps running */ }
+  }
+  async function stopRestream() {
+    if (!supa) return;
+    try { await supa.functions.invoke('live-restream', { body: { action: 'stop' } }); }
+    catch (e) { /* converters auto-expire */ }
+  }
   function displayName(user) {
     return user.user_metadata?.full_name || user.email?.split('@')[0] || tr('Duvela teacher', 'Преподаватель Duvela');
   }
@@ -970,6 +1040,7 @@
       await markHeartbeat();
       heartbeatTimer = setInterval(markHeartbeat, 30000);
       await loadHostTimeline();
+      void startRestream(currentSession.channel_name, uid);
     } catch (error) {
       el('mainAction').disabled = false;
       el('mainAction').textContent = sessionId ? tr('Open as teacher', 'Открыть как преподаватель') : tr('Start LIVE', 'Начать эфир');
@@ -1093,6 +1164,7 @@
   async function endHost() {
     el('endLive').disabled = true;
     setStatus(tr('Ending LIVE', 'Завершение эфира'), 'ready');
+    void stopRestream();
     await stopMedia(true);
     showOverlay(true);
     el('endLive').style.display = 'none';
@@ -1122,6 +1194,7 @@
       var authSession = await requireSessionForHost();
       currentUser = authSession.user;
       await loadHostTimeline();
+      void loadRestreamTargets();
       if (!sessionId) return;
       currentSession = await loadLiveSession(sessionId);
       if (currentSession.teacher_id && currentSession.teacher_id !== currentUser.id) {
@@ -1153,6 +1226,21 @@
     document.querySelector('label[for="scheduleTimeInput"]').textContent = tr('Start time', 'Время начала');
     document.querySelector('label[for="shareUrl"]').textContent = tr('Student watch link', 'Ссылка для просмотра ученикам');
     document.querySelector('#hostSetup .check-row span').textContent = tr('Private room', 'Приватная комната');
+    el('restreamSummary').textContent = tr('Multistream (YouTube / Facebook / TikTok)', 'Мультитрансляция (YouTube / Facebook / TikTok)');
+    el('saveRestreamBtn').textContent = tr('Save multistream settings', 'Сохранить настройки мультитрансляции');
+    el('restreamIgNote').textContent = tr(
+      'Instagram does not support external streaming — it can only be started from the Instagram app.',
+      'Instagram не поддерживает трансляцию извне — эфир там можно начать только из приложения Instagram.'
+    );
+    RESTREAM_PLATFORMS.forEach(function (platform) {
+      var row = restreamRow(platform);
+      var urlInput = row.querySelector('.restreamUrl');
+      urlInput.placeholder = RESTREAM_DEFAULT_URLS[platform] || tr('Server URL', 'Адрес сервера');
+      if (RESTREAM_DEFAULT_URLS[platform]) urlInput.value = RESTREAM_DEFAULT_URLS[platform];
+      row.querySelector('.restreamKey').placeholder = tr('Stream key', 'Ключ трансляции');
+      row.querySelector('.check-row span').textContent = tr('On', 'Вкл');
+    });
+    el('saveRestreamBtn').addEventListener('click', function () { void saveRestreamTargets(); });
     el('topicInput').value = tr('Live lesson', 'Живой урок');
     el('soundPill').textContent = tr('Tap for sound', 'Нажмите для звука');
     applyDefaultScheduleInputs();

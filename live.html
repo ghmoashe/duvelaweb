@@ -631,6 +631,64 @@
     font-weight: 500;
   }
   .check-row input { width: 16px; height: 16px; accent-color: var(--purple); }
+  #restreamSetup {
+    grid-column: 1 / -1;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: var(--panel-deep);
+  }
+  #restreamSetup summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 650;
+    color: #fff;
+    list-style: none;
+  }
+  #restreamSetup summary::-webkit-details-marker { display: none; }
+  #restreamSetup summary::before { content: "▸ "; color: var(--soft); }
+  #restreamSetup[open] summary::before { content: "▾ "; }
+  .restream-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .restream-row {
+    display: grid;
+    gap: 6px;
+  }
+  .restream-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--muted);
+  }
+  .restream-row-head .check-row {
+    gap: 6px;
+    font-size: 11px;
+  }
+  .restream-row input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    min-height: 38px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,.03);
+    color: #fff;
+    font-size: 13px;
+  }
+  #saveRestreamBtn {
+    margin-top: 10px;
+    width: 100%;
+  }
+  .restream-note {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--soft);
+    line-height: 1.4;
+  }
   .actions {
     display: grid;
     gap: 8px;
@@ -1191,6 +1249,38 @@
             <input type="checkbox" id="privateInput">
             <span>Private room</span>
           </label>
+          <details id="restreamSetup">
+            <summary id="restreamSummary">Multistream (YouTube / Facebook / TikTok)</summary>
+            <div class="restream-grid">
+              <div class="restream-row" data-platform="youtube">
+                <div class="restream-row-head">
+                  <span>YouTube</span>
+                  <label class="check-row"><input type="checkbox" class="restreamEnabled"><span>On</span></label>
+                </div>
+                <input class="restreamUrl" placeholder="rtmp://a.rtmp.youtube.com/live2">
+                <input class="restreamKey" type="password" placeholder="Stream key">
+              </div>
+              <div class="restream-row" data-platform="facebook">
+                <div class="restream-row-head">
+                  <span>Facebook</span>
+                  <label class="check-row"><input type="checkbox" class="restreamEnabled"><span>On</span></label>
+                </div>
+                <input class="restreamUrl" placeholder="rtmps://live-api-s.facebook.com:443/rtmp">
+                <input class="restreamKey" type="password" placeholder="Stream key">
+              </div>
+              <div class="restream-row" data-platform="tiktok">
+                <div class="restream-row-head">
+                  <span>TikTok</span>
+                  <label class="check-row"><input type="checkbox" class="restreamEnabled"><span>On</span></label>
+                </div>
+                <input class="restreamUrl" placeholder="rtmp://…">
+                <input class="restreamKey" type="password" placeholder="Stream key">
+              </div>
+            </div>
+            <button class="btn ghost" id="saveRestreamBtn" type="button">Save multistream settings</button>
+            <p id="restreamStatus" class="restream-note"></p>
+            <p id="restreamIgNote" class="restream-note">Instagram does not support external streaming — it can only be started from the Instagram app.</p>
+          </details>
         </div>
         <div id="scheduleSetup" style="display:none">
           <div class="schedule-grid">
