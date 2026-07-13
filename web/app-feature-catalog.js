@@ -498,7 +498,7 @@
     }
 
     function renderLiveRowsV2(target, items, creator, emptyCopy) {
-      const node = $(target);
+      const node = document.getElementById(target);
       if (!node) return;
       node.innerHTML = items.length
         ? items.map((item) =>
