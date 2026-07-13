@@ -1,6 +1,6 @@
 (function () {
   var AGORA_APP_ID = '7dbbced847dc459ba72f7ee6e2426c11';
-  var LIVE_FIELDS = 'id,channel_name,teacher_id,teacher_name,teacher_avatar_url,language,level,topic,price_per_minute,status,started_at,ended_at,created_at,heartbeat_at,is_private';
+  var LIVE_FIELDS = 'id,channel_name,teacher_id,teacher_name,teacher_avatar_url,language,level,topic,price_per_minute,status,started_at,ended_at,created_at,heartbeat_at,is_private,material_url';
   var config = window.DuvelaWebConfig;
   var LANG_KEY = config.storageKeys.lang;
 
@@ -17,6 +17,7 @@
   var localAudioTrack = null;
   var localVideoTrack = null;
   var currentSession = null;
+  var materialChannel = null;
   var heartbeatTimer = null;
   var sessionPollTimer = null;
   var restreamStatusTimer = null;
@@ -1075,6 +1076,33 @@
       renderWorkspace(currentSession);
     }
   }
+  function renderLiveMaterial(url) {
+    var stage = el('player') && el('player').parentElement;
+    if (!stage) return;
+    var node = document.getElementById('liveMaterialOverlay');
+    if (!url) { if (node) node.remove(); return; }
+    if (!node) {
+      node = document.createElement('div');
+      node.id = 'liveMaterialOverlay';
+      node.style.cssText = 'position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);';
+      node.innerHTML = '<img alt="" style="max-width:94%;max-height:82%;object-fit:contain;border-radius:8px;">';
+      if (getComputedStyle(stage).position === 'static') stage.style.position = 'relative';
+      stage.appendChild(node);
+    }
+    node.querySelector('img').src = url;
+  }
+
+  function subscribeLiveMaterial(id) {
+    if (!supa || !id) return;
+    if (materialChannel) { try { supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
+    materialChannel = supa.channel('live-material-' + id, { config: { broadcast: { self: true } } })
+      .on('broadcast', { event: 'material' }, function (msg) {
+        var p = msg && msg.payload;
+        renderLiveMaterial(p && p.kind === 'set' ? p.url : null);
+      });
+    materialChannel.subscribe();
+  }
+
   async function watch() {
     if (!sessionId) {
       setStage('', tr('No live session selected.', 'Сессия эфира не выбрана.'));
@@ -1111,6 +1139,8 @@
       await loadViewerBalance();
       await loadViewerMessages();
       await subscribeViewerRealtime();
+      renderLiveMaterial(currentSession.material_url);
+      subscribeLiveMaterial(sessionId);
       setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
       var token = await getSubscriberToken(currentSession.channel_name, uid);
@@ -1172,6 +1202,8 @@
         try { await supa.removeChannel(viewerRealtimeChannel); } catch (e) {}
         viewerRealtimeChannel = null;
       }
+      if (materialChannel) { try { await supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
+      renderLiveMaterial(null);
       await leaveViewerParticipant();
       viewerMessages = [];
       renderViewerMessages();
