@@ -49,13 +49,13 @@ dirs.forEach(copyDir);
 
 const serverDir = path.join(outDir, 'server');
 fs.mkdirSync(serverDir, { recursive: true });
-fs.writeFileSync(path.join(serverDir, 'index.js'), `'use strict';
+fs.writeFileSync(path.join(serverDir, 'index.js'), `import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const fs = require('fs');
-const http = require('http');
-const path = require('path');
-
-const root = path.resolve(__dirname, '..');
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(dirname, '..');
 const port = Number(process.env.PORT || 3000);
 const types = {
   '.html': 'text/html; charset=utf-8',
