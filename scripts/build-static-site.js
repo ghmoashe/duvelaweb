@@ -52,10 +52,8 @@ fs.mkdirSync(serverDir, { recursive: true });
 fs.writeFileSync(path.join(serverDir, 'index.js'), `import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(dirname, '..');
+const root = path.resolve(process.cwd(), 'dist');
 const port = Number(process.env.PORT || 3000);
 const types = {
   '.html': 'text/html; charset=utf-8',
