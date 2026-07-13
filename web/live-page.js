@@ -1162,6 +1162,23 @@
       }
       box.style.display = '';
     } catch (e) { box.style.display = 'none'; }
+    void renderRankBadge(teacherId);
+  }
+
+  async function renderRankBadge(teacherId) {
+    var badge = el('rankBadge');
+    if (!badge || !teacherId) return;
+    try {
+      var res = await supa.rpc('live_gift_rank', { p_teacher: teacherId, p_period: 'hour' });
+      var row = res && res.data && (Array.isArray(res.data) ? res.data[0] : res.data);
+      var rank = row ? Number(row.rank) || 0 : 0;
+      if (rank > 0 && rank <= 50) {
+        badge.textContent = '🏆 #' + rank + ' ' + tr('this hour', 'за час');
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+    } catch (e) { badge.style.display = 'none'; }
   }
 
   async function toggleViewerFollow() {
