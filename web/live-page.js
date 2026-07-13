@@ -19,6 +19,7 @@
   var currentSession = null;
   var heartbeatTimer = null;
   var sessionPollTimer = null;
+  var restreamStatusTimer = null;
   var elapsedTimer = null;
   var currentUser = null;
   var micEnabled = true;
@@ -247,13 +248,33 @@
       });
       var results = res?.data?.results || {};
       var started = Object.keys(results).filter(function (p) { return results[p] === 'started'; });
-      if (started.length) setNote(tr('Also live on: ', 'Также в эфире на: ') + started.join(', '));
+      if (started.length) { setNote(tr('Also live on: ', 'Также в эфире на: ') + started.join(', ')); startRestreamStatusPolling(); }
     } catch (e) { /* best-effort, LIVE itself keeps running */ }
   }
   async function stopRestream() {
+    if (restreamStatusTimer) { clearInterval(restreamStatusTimer); restreamStatusTimer = null; }
     if (!supa) return;
     try { await supa.functions.invoke('live-restream', { body: { action: 'stop' } }); }
     catch (e) { /* converters auto-expire */ }
+  }
+  function startRestreamStatusPolling() {
+    if (restreamStatusTimer) clearInterval(restreamStatusTimer);
+    var warned = {};
+    var check = async function () {
+      try {
+        var res = await supa.functions.invoke('live-restream', { body: { action: 'status' } });
+        var results = res?.data?.results || {};
+        Object.keys(results).forEach(function (p) {
+          var s = results[p];
+          if ((s === 'stopped' || s.indexOf('error') === 0) && !warned[p]) {
+            warned[p] = true;
+            setNote(tr(p + ' disconnected', p + ' отключился'));
+          }
+        });
+      } catch (e) { /* ignore */ }
+    };
+    setTimeout(check, 15000);
+    restreamStatusTimer = setInterval(check, 45000);
   }
   function displayName(user) {
     return user.user_metadata?.full_name || user.email?.split('@')[0] || tr('Duvela teacher', 'Преподаватель Duvela');
