@@ -2,6 +2,7 @@
   "name": "duvela-web",
   "private": true,
   "scripts": {
+    "build": "node ./scripts/build-static-site.js",
     "web:full": "node ./scripts/start-web-suite.js",
     "bootstrap:test-accounts": "node ./scripts/bootstrap-web-test-accounts.js",
     "check:backend": "node ./scripts/check-web-backend-e2e.js",
