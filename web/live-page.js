@@ -836,7 +836,7 @@
       var result = await supa.from('live_messages').insert({
         channel_name: currentSession.channel_name,
         message: text,
-        role: 'student',
+        role: 'viewer',
         sender_id: currentUser.id,
         sender_name: viewerDisplayName(),
         session_id: currentSession.id

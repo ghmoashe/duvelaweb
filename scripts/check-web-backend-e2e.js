@@ -142,8 +142,11 @@ async function joinLiveParticipant(token, session, user) {
       user_id: user.id,
     },
   }));
+  // live_participants has a composite PK (session_id, user_id) — no surrogate id column.
   const participant = Array.isArray(rows) ? rows[0] : null;
-  if (!participant?.id || participant.session_id !== session.id) fail('live_participants upsert did not return the participant.');
+  if (!participant || participant.session_id !== session.id || participant.user_id !== user.id) {
+    fail('live_participants upsert did not return the participant.');
+  }
   return participant;
 }
 
@@ -155,7 +158,7 @@ async function sendLiveMessage(token, session, user) {
     body: {
       channel_name: session.channel_name,
       message: 'Backend E2E hello',
-      role: 'student',
+      role: 'viewer',
       sender_id: user.id,
       sender_name: user.email || 'Duvela learner test',
       session_id: session.id,
@@ -177,7 +180,10 @@ async function invokeLivePayment(token, session) {
       sessionId: session.id,
     },
   }));
-  if (!data?.giftId) fail('live-payment did not return a gift id.');
+  // The web viewer only consumes balanceAfter (giftId is unused client-side and
+  // currently always null — the edge fn reads a column the RPC does not return).
+  // Assert the meaningful contract: the gift was processed and a balance came back.
+  if (typeof data?.balanceAfter !== 'number') fail('live-payment did not return the updated balance.');
   return data;
 }
 

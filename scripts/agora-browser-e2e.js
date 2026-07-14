@@ -98,8 +98,12 @@ async function main() {
     await collectErrors(teacherPage, 'teacher', errors);
     await teacherPage.goto(`${WEB_URL}/live.html?app=business&mode=host`, { waitUntil: 'networkidle' });
     await teacherPage.locator('#mainAction').click();
+    // statusText is localized (en/ru), so accept either variant.
     await teacherPage.waitForFunction(
-      () => document.querySelector('#statusText')?.textContent?.includes('Teacher is LIVE'),
+      () => {
+        const text = document.querySelector('#statusText')?.textContent || '';
+        return text.includes('Teacher is LIVE') || text.includes('Преподаватель в эфире');
+      },
       { timeout: 45000 },
     );
     const shareUrl = await teacherPage.locator('#shareUrl').inputValue({ timeout: 10000 });
@@ -114,16 +118,26 @@ async function main() {
     const viewerPage = await viewerContext.newPage();
     await collectErrors(viewerPage, 'viewer', errors);
     await viewerPage.goto(shareUrl, { waitUntil: 'networkidle' });
-    await viewerPage.locator('#mainAction').click();
+    // Authenticated viewers auto-connect (the join button is hidden); anonymous
+    // viewers need a click. Only click when the button is actually visible.
+    if (await viewerPage.locator('#mainAction').isVisible().catch(() => false)) {
+      await viewerPage.locator('#mainAction').click().catch(() => {});
+    }
     await viewerPage.waitForFunction(
-      () => document.querySelector('#statusText')?.textContent?.includes('Watching LIVE'),
+      () => {
+        const text = document.querySelector('#statusText')?.textContent || '';
+        return text.includes('Watching LIVE') || text.includes('Смотрите эфир');
+      },
       { timeout: 60000 },
     );
     log('viewer received Agora LIVE stream.');
 
     await teacherPage.locator('#endLive').click();
     await teacherPage.waitForFunction(
-      () => document.querySelector('#statusText')?.textContent?.includes('LIVE ended'),
+      () => {
+        const text = document.querySelector('#statusText')?.textContent || '';
+        return text.includes('LIVE ended') || text.includes('Эфир завершён');
+      },
       { timeout: 15000 },
     );
     log('teacher LIVE ended and cleaned up.');
