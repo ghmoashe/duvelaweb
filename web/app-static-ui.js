@@ -1,9 +1,11 @@
 (function () {
   function createStaticUiFeature(ctx) {
-    const { $, $$, tr, isRu, roleLabels } = ctx;
+    const { $, $$, tr, isRu, roleLabels, appLang, supportedLocales } = ctx;
 
     function localizeStaticUI() {
-      document.documentElement.lang = isRu ? 'ru' : 'en';
+      const currentLocale = (supportedLocales || []).find((locale) => locale.code === appLang);
+      document.documentElement.lang = appLang || (isRu ? 'ru' : 'en');
+      document.documentElement.dir = currentLocale?.dir || 'ltr';
       document.title = tr('Duvela Web', 'Duvela Web');
       $('#loading').textContent = tr('Opening Duvela Web...', 'Открываем Duvela Web...');
       $('#workspaceNavLabel').textContent = tr('Practice', 'Практика');

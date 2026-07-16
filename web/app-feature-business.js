@@ -156,26 +156,26 @@
       const activeCourses = state.orgCourses.filter((course) => course.status === 'active').length;
       const draftCourses = state.orgCourses.filter((course) => course.status && course.status !== 'active').length;
       const publishedPractices = state.myPractices.filter((practice) => practice.status === 'published').length;
-      const location = [org.city, org.country].filter(Boolean).join(', ') || tr('Business workspace', 'Business workspace');
+      const location = [org.city, org.country].filter(Boolean).join(', ') || tr('Business workspace', 'Бизнес-кабинет');
       return '<div class="business-desk" style="margin-bottom:14px">' +
         '<div class="business-desk-top">' +
           '<div><h2>' + esc(org.name) + '</h2><p>' + esc(location) + '</p></div>' +
           '<div class="hub-pill-row">' +
-            '<span class="tag teal">' + esc(activeCourses + ' ' + tr('active courses', 'active courses')) + '</span>' +
-            '<span class="tag blue">' + esc(state.orgClasses.length + ' ' + tr('classes', 'classes')) + '</span>' +
-            '<span class="tag amber">' + esc(publishedPractices + ' ' + tr('published practices', 'published practices')) + '</span>' +
+            '<span class="tag teal">' + esc(activeCourses + ' ' + tr('active courses', 'активных курсов')) + '</span>' +
+            '<span class="tag blue">' + esc(state.orgClasses.length + ' ' + tr('classes', 'классов')) + '</span>' +
+            '<span class="tag amber">' + esc(publishedPractices + ' ' + tr('published practices', 'опубликованных практик')) + '</span>' +
           '</div>' +
         '</div>' +
         '<div class="business-action-grid">' +
-          businessAction('LIVE', tr('Open Live Studio', 'Open Live Studio'), tr('Start, schedule or reuse a browser room.', 'Start, schedule or reuse a browser room.'), '#live', 'teal') +
-          businessAction('COURSE', tr('Create an offer', 'Create an offer'), tr('Publish a course learners can enroll in.', 'Publish a course learners can enroll in.'), '#workspace', 'blue') +
-          businessAction('EVENT', tr('Publish workshop', 'Publish workshop'), tr('Add online or offline events to the catalog.', 'Add online or offline events to the catalog.'), '#events', 'amber') +
-          businessAction('CHAT', tr('Follow up leads', 'Follow up leads'), tr('Reply to learner questions and requests.', 'Reply to learner questions and requests.'), '#messages', '') +
+          businessAction('LIVE', tr('Open Live Studio', 'Открыть LIVE-студию'), tr('Start, schedule or reuse a browser room.', 'Запускайте, планируйте и повторно используйте браузерную комнату.'), '#live', 'teal') +
+          businessAction('COURSE', tr('Create an offer', 'Создать предложение'), tr('Publish a course learners can enroll in.', 'Опубликуйте курс, на который ученики смогут записаться.'), '#workspace', 'blue') +
+          businessAction('EVENT', tr('Publish workshop', 'Опубликовать воркшоп'), tr('Add online or offline events to the catalog.', 'Добавьте онлайн- или офлайн-события в каталог.'), '#events', 'amber') +
+          businessAction('CHAT', tr('Follow up leads', 'Обработать лиды'), tr('Reply to learner questions and requests.', 'Отвечайте на вопросы и запросы учеников.'), '#messages', '') +
         '</div>' +
         '<div class="business-pipeline">' +
-          businessStep(tr('Catalog health', 'Catalog health'), tr('Keep at least one active offer visible to learners.', 'Keep at least one active offer visible to learners.'), activeCourses + '/' + state.orgCourses.length) +
-          businessStep(tr('Class operations', 'Class operations'), tr('Use sessions and attendance to keep cohorts organized.', 'Use sessions and attendance to keep cohorts organized.'), String(state.orgClasses.length)) +
-          businessStep(tr('Draft queue', 'Draft queue'), tr('Review drafts before the next campaign push.', 'Review drafts before the next campaign push.'), String(draftCourses)) +
+          businessStep(tr('Catalog health', 'Состояние каталога'), tr('Keep at least one active offer visible to learners.', 'Держите хотя бы одно активное предложение видимым для учеников.'), activeCourses + '/' + state.orgCourses.length) +
+          businessStep(tr('Class operations', 'Управление классами'), tr('Use sessions and attendance to keep cohorts organized.', 'Используйте занятия и посещаемость, чтобы держать группы в порядке.'), String(state.orgClasses.length)) +
+          businessStep(tr('Draft queue', 'Очередь черновиков'), tr('Review drafts before the next campaign push.', 'Проверьте черновики перед следующим запуском кампании.'), String(draftCourses)) +
         '</div>' +
       '</div>';
     }
@@ -183,14 +183,14 @@
     function noOrgOnboardingHtml() {
       return '<div class="business-desk" style="margin-bottom:14px">' +
         '<div class="business-desk-top">' +
-          '<div><h2>' + esc(tr('Set up your business workspace', 'Set up your business workspace')) + '</h2>' +
-          '<p>' + esc(tr('Create an organization once, then publish courses, classes, practices and events from one place.', 'Create an organization once, then publish courses, classes, practices and events from one place.')) + '</p></div>' +
-          '<span class="tag amber">' + esc(tr('Setup required', 'Setup required')) + '</span>' +
+          '<div><h2>' + esc(tr('Set up your business workspace', 'Настройте бизнес-кабинет')) + '</h2>' +
+          '<p>' + esc(tr('Create an organization once, then publish courses, classes, practices and events from one place.', 'Создайте организацию один раз, а затем публикуйте курсы, классы, практики и события из одного места.')) + '</p></div>' +
+          '<span class="tag amber">' + esc(tr('Setup required', 'Нужна настройка')) + '</span>' +
         '</div>' +
         '<div class="business-pipeline">' +
-          businessStep(tr('1. Organization', '1. Organization'), tr('Add name, city and country for public trust.', 'Add name, city and country for public trust.'), tr('Now', 'Now')) +
-          businessStep(tr('2. First offer', '2. First offer'), tr('Create one course or class learners can understand quickly.', 'Create one course or class learners can understand quickly.'), tr('Next', 'Next')) +
-          businessStep(tr('3. Publish activity', '3. Publish activity'), tr('Add LIVE, event or practice to make the page feel active.', 'Add LIVE, event or practice to make the page feel active.'), tr('Then', 'Then')) +
+          businessStep(tr('1. Organization', '1. Организация'), tr('Add name, city and country for public trust.', 'Добавьте название, город и страну для доверия со стороны пользователей.'), tr('Now', 'Сейчас')) +
+          businessStep(tr('2. First offer', '2. Первое предложение'), tr('Create one course or class learners can understand quickly.', 'Создайте один курс или класс, который ученикам будет легко понять.'), tr('Next', 'Дальше')) +
+          businessStep(tr('3. Publish activity', '3. Публикация активности'), tr('Add LIVE, event or practice to make the page feel active.', 'Добавьте LIVE, событие или практику, чтобы страница выглядела живой.'), tr('Then', 'Потом')) +
         '</div>' +
       '</div>';
     }

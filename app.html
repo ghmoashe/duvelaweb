@@ -846,8 +846,58 @@
     height: 60px;
     font-size: 22px;
   }
+  .profile-avatar-tools {
+    display: grid;
+    gap: 8px;
+  }
   .profile-head h2 { margin: 0; font-size: 17px; font-weight: 700; }
   .profile-head p { margin: 4px 0 0; color: var(--soft); font-size: 12.5px; font-weight: 500; }
+  .profile-intro {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .profile-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    color: var(--purple);
+    font-size: 11.5px;
+    font-weight: 750;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .profile-section {
+    display: grid;
+    gap: 12px;
+    padding-top: 4px;
+  }
+  .profile-section + .profile-section {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+  .profile-section-title {
+    display: grid;
+    gap: 4px;
+  }
+  .profile-section-title h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .profile-section-title p {
+    margin: 0;
+    color: var(--soft);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
   .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -873,7 +923,44 @@
     min-height: 40px;
     font-size: 13.5px;
   }
+  .field input[readonly] {
+    color: var(--soft);
+    background: #F7F5FC;
+  }
   .field textarea { resize: vertical; min-height: 92px; }
+  .profile-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 4px;
+  }
+  .profile-status {
+    color: var(--teal);
+    font-weight: 900;
+    font-size: 12.5px;
+  }
+  .danger-zone {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(217,45,32,.18);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(217,45,32,.05), rgba(217,45,32,.02));
+  }
+  .danger-zone h3 {
+    margin: 0;
+    color: var(--red);
+    font-size: 15px;
+    font-weight: 800;
+  }
+  .danger-zone p {
+    margin: 0;
+    color: var(--soft);
+    font-size: 12.5px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
   .loading {
     min-height: 100vh;
     display: grid;
@@ -1167,13 +1254,26 @@
     <section class="panel" data-panel="profile">
       <div class="grid-2">
         <form class="card profile-box" id="profileForm">
-          <div class="profile-head">
-            <div class="avatar" id="profileAvatar">D</div>
-            <div>
-              <h2 id="profileName">Duvela user</h2>
-              <p id="profileMeta">Signed in</p>
+          <div class="profile-intro">
+            <div class="profile-head">
+              <div class="avatar" id="profileAvatar">D</div>
+              <div>
+                <h2 id="profileName">Duvela user</h2>
+                <p id="profileMeta">Signed in</p>
+              </div>
             </div>
+            <div class="profile-avatar-tools">
+              <label class="btn" for="pfAvatarFile" id="avatarUploadLabel">Изменить аватар</label>
+              <input id="pfAvatarFile" type="file" accept="image/*" capture="user" style="display:none">
+              <span id="avatarUploadHint" style="color:var(--soft);font-size:12px;line-height:1.4">Браузер запросит доступ к фото или камере устройства.</span>
+            </div>
+            <div class="profile-kicker" id="profileKicker">Profile</div>
           </div>
+          <div class="profile-section">
+            <div class="profile-section-title">
+              <h3 id="profileIdentityTitle">Identity</h3>
+              <p id="profileIdentitySub">Basic account details shown across Duvela.</p>
+            </div>
           <div class="form-grid">
             <div class="field"><label data-t="email">Email</label><input id="profileEmail" readonly></div>
             <div class="field"><label data-t="role">Role</label><input id="profileRole" readonly></div>
@@ -1184,17 +1284,43 @@
             <div class="field"><label data-t="level">Language level</label><input id="pfLevel" placeholder="A1–C2" maxlength="10"></div>
             <div class="field"><label data-t="avatarUrl">Avatar URL</label><input id="pfAvatar" placeholder="https://..."></div>
           </div>
+          </div>
+          <div class="profile-section">
+            <div class="profile-section-title">
+              <h3 id="profilePublicTitle">Public profile</h3>
+              <p id="profilePublicSub">What learners and visitors can see about you.</p>
+            </div>
           <div class="field"><label data-t="bio">Bio</label><textarea id="pfBio" maxlength="500" placeholder="Tell others about you"></textarea></div>
+          </div>
+          <div class="profile-section">
+            <div class="profile-section-title">
+              <h3 id="profileContactsTitle">Contacts</h3>
+              <p id="profileContactsSub">Optional links for students, partners and your audience.</p>
+            </div>
           <div class="form-grid">
             <div class="field"><label>Telegram</label><input id="pfTelegram" placeholder="@handle" maxlength="60"></div>
             <div class="field"><label>Instagram</label><input id="pfInstagram" placeholder="@handle" maxlength="60"></div>
             <div class="field"><label data-t="website">Website</label><input id="pfWebsite" placeholder="https://..." maxlength="200"></div>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          </div>
+          <div class="profile-section">
+            <div class="profile-section-title">
+              <h3 id="profileActionsTitle">Account actions</h3>
+              <p id="profileActionsSub">Save changes, open your public card or leave the web cabinet.</p>
+            </div>
+          <div class="profile-actions">
             <button class="btn primary" type="submit" data-t="save">Save changes</button>
             <span id="profileSaved" style="display:none;color:var(--teal);font-weight:900" data-t="saved">Saved ✓</span>
             <a class="btn" id="publicProfileLink" href="#" style="display:none" data-t="openPublic">Open public profile</a>
             <button class="btn danger" id="signOut" type="button" data-t="signOut">Sign out</button>
+          </div>
+          </div>
+          <div class="danger-zone">
+            <h3 id="deleteAccountTitle">Delete account</h3>
+            <p id="deleteAccountHint">Permanently removes your Duvela web profile and signs you out from this browser.</p>
+            <div class="profile-actions">
+              <button class="btn danger" id="deleteAccountBtn" type="button">Удалить аккаунт</button>
+            </div>
           </div>
         </form>
         <div class="card profile-box" id="progressCard"></div>
@@ -1324,6 +1450,7 @@
 </div>
 </div>
 
+<script src="./locales/web-locales.js"></script>
 <script src="./web/duvela-web-config.js"></script>
 <script src="./web/duvela-web-roles.js"></script>
 <script src="./web/duvela-web-ui.js"></script>

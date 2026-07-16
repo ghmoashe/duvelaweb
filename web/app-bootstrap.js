@@ -140,11 +140,8 @@
       });
 
       $('#profileForm').addEventListener('submit', ctx.saveProfile);
-      const languageSelect = $('#langSelect');
-      if (languageSelect) languageSelect.addEventListener('change', () => {
-        localStorage.setItem(ctx.storage.langKey, languageSelect.value);
-        window.location.reload();
-      });
+      const legacyLanguageSelect = $('#langSelect');
+      if (legacyLanguageSelect) legacyLanguageSelect.style.display = 'none';
 
       $('#videoClose').addEventListener('click', ctx.closeVideo);
       $('#videoOverlay').addEventListener('click', (event) => { if (event.target === $('#videoOverlay')) ctx.closeVideo(); });
@@ -180,6 +177,12 @@
         closeOverlays();
       });
 
+      document.addEventListener('change', (event) => {
+        const languageSelect = event.target.closest('#profileLangSelect');
+        if (!languageSelect) return;
+        ctx.setAppLang(languageSelect.value);
+      });
+
       $('#signOut').addEventListener('click', async () => {
         ctx.messagingFeature.cleanup();
         ctx.gamesFeature.cleanup();
@@ -187,6 +190,7 @@
         await supa.auth.signOut();
         window.location.href = './index.html';
       });
+      if ($('#deleteAccountBtn')) $('#deleteAccountBtn').addEventListener('click', ctx.deleteAccount);
 
       supa.auth.onAuthStateChange((event, nextSession) => {
         if (!nextSession?.user && event === 'SIGNED_OUT') window.location.href = './index.html';

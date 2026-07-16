@@ -1,13 +1,110 @@
 (function () {
   function createProfileFeature(ctx) {
     const { $, tr, esc, alert, supa, state, avatarHtml, avatarInner, timeAgo, roleLabels } = ctx;
+    const localeNames = {
+      en: 'English',
+      de: 'Deutsch',
+      es: 'Español',
+      fr: 'Français',
+      it: 'Italiano',
+      pt: 'Português',
+      nl: 'Nederlands',
+      sv: 'Svenska',
+      no: 'Norsk',
+      pl: 'Polski',
+      cs: 'Čeština',
+      sq: 'Shqip',
+      tr: 'Türkçe',
+      ru: 'Русский',
+      uk: 'Українська',
+      kk: 'Қазақша',
+      az: 'Azərbaycanca',
+      uz: 'Oʻzbek',
+      tg: 'Тоҷикӣ',
+      fa: 'فارسی',
+      ar: 'العربية',
+      vi: 'Tiếng Việt',
+      zh: '中文',
+      ja: '日本語',
+      ko: '한국어'
+    };
+    const localeFlags = {
+      en: '🇬🇧',
+      de: '🇩🇪',
+      es: '🇪🇸',
+      fr: '🇫🇷',
+      it: '🇮🇹',
+      pt: '🇵🇹',
+      nl: '🇳🇱',
+      sv: '🇸🇪',
+      no: '🇳🇴',
+      pl: '🇵🇱',
+      cs: '🇨🇿',
+      sq: '🇦🇱',
+      tr: '🇹🇷',
+      ru: '🇷🇺',
+      uk: '🇺🇦',
+      kk: '🇰🇿',
+      az: '🇦🇿',
+      uz: '🇺🇿',
+      tg: '🇹🇯',
+      fa: '🇮🇷',
+      ar: '🇸🇦',
+      vi: '🇻🇳',
+      zh: '🇨🇳',
+      ja: '🇯🇵',
+      ko: '🇰🇷'
+    };
 
     function setInput(id, value) {
       const node = $(id);
       if (node) node.value = value == null ? '' : value;
     }
 
+    function ensureAppLanguageField() {
+      const sideFoot = document.querySelector('.side-foot');
+      if (!sideFoot) return null;
+      let select = $('#profileLangSelect');
+      let field = $('#sidebarLanguageField');
+      if (select && field) return select;
+      field = document.createElement('div');
+      field.className = 'field';
+      field.id = 'sidebarLanguageField';
+      field.style.marginTop = '14px';
+      field.innerHTML =
+        '<label for="profileLangSelect">' + esc(tr('Switch language', 'Сменить язык')) + '</label>' +
+        '<select id="profileLangSelect" class="role-select" aria-label="' + esc(tr('Switch language', 'Сменить язык')) + '"></select>';
+      if (select && select.parentNode) select.parentNode.remove();
+      sideFoot.appendChild(field);
+      select = $('#profileLangSelect');
+      if (select) {
+        select.innerHTML = (ctx.supportedLocales || []).map((locale) => {
+          const code = String(locale.code || '').toLowerCase();
+          const flag = localeFlags[code] || '🌐';
+          const label = localeNames[code] || locale.name || code.toUpperCase();
+          const title = flag + ' ' + label;
+          return '<option value="' + esc(locale.code) + '">' + esc(title) + '</option>';
+        }).join('');
+      }
+      return select;
+    }
+
     function renderProfile() {
+      const appLanguageSelect = ensureAppLanguageField();
+      if ($('#profileKicker')) $('#profileKicker').textContent = tr('Profile', 'Профиль');
+      if ($('#profileIdentityTitle')) $('#profileIdentityTitle').textContent = tr('Identity', 'Основное');
+      if ($('#profileIdentitySub')) $('#profileIdentitySub').textContent = tr('Basic account details shown across Duvela.', 'Основные данные аккаунта, которые используются в Duvela.');
+      if ($('#profilePublicTitle')) $('#profilePublicTitle').textContent = tr('Public profile', 'Публичный профиль');
+      if ($('#profilePublicSub')) $('#profilePublicSub').textContent = tr('What learners and visitors can see about you.', 'То, что видят ученики и посетители на вашей странице.');
+      if ($('#profileContactsTitle')) $('#profileContactsTitle').textContent = tr('Contacts', 'Контакты');
+      if ($('#profileContactsSub')) $('#profileContactsSub').textContent = tr('Optional links for students, partners and your audience.', 'Дополнительные контакты для учеников, партнёров и вашей аудитории.');
+      if ($('#profileActionsTitle')) $('#profileActionsTitle').textContent = tr('Account actions', 'Действия с аккаунтом');
+      if ($('#profileActionsSub')) $('#profileActionsSub').textContent = tr('Save changes, open your public card or leave the web cabinet.', 'Сохраните изменения, откройте публичную страницу или выйдите из кабинета.');
+      if ($('#avatarUploadLabel')) $('#avatarUploadLabel').textContent = tr('Choose avatar from device', 'Выбрать аватар с устройства');
+      if ($('#avatarUploadHint')) $('#avatarUploadHint').textContent = tr('Your browser will ask for access to photos or camera on this device.', 'Браузер запросит доступ к фото или камере устройства.');
+      if ($('#deleteAccountTitle')) $('#deleteAccountTitle').textContent = tr('Delete account', 'Удалить аккаунт');
+      if ($('#deleteAccountHint')) $('#deleteAccountHint').textContent = tr('Permanently removes your Duvela web profile and signs you out from this browser.', 'Полностью удаляет ваш профиль Duvela Web и завершает сессию в этом браузере.');
+      if ($('#deleteAccountBtn')) $('#deleteAccountBtn').textContent = tr('Delete account', 'Удалить аккаунт');
       const displayName = ctx.profile?.full_name || ctx.user.user_metadata?.full_name || (ctx.user.email || tr('Duvela user', 'Пользователь Duvela')).split('@')[0];
       const meta = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ') || tr('Signed in to ', 'Вход выполнен в ') + (ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub');
       $('#topName').textContent = displayName;
@@ -26,6 +123,7 @@
       setInput('#pfTelegram', ctx.profile?.telegram);
       setInput('#pfInstagram', ctx.profile?.instagram);
       setInput('#pfWebsite', ctx.profile?.website);
+      if (appLanguageSelect) appLanguageSelect.value = ctx.getAppLang();
       avatarHtml('#topAvatar', displayName, ctx.profile?.avatar_url || ctx.user.user_metadata?.avatar_url);
       avatarHtml('#profileAvatar', displayName, ctx.profile?.avatar_url || ctx.user.user_metadata?.avatar_url);
       if (ctx.profile?.id) {
@@ -37,6 +135,7 @@
 
     async function saveProfile(event) {
       event.preventDefault();
+      const avatarFile = $('#pfAvatarFile')?.files?.[0] || null;
       const patch = {
         full_name: $('#pfName').value.trim() || null,
         city: $('#pfCity').value.trim() || null,
@@ -53,16 +152,40 @@
       const button = $('#profileForm button[type="submit"]');
       button.disabled = true;
       try {
+        if (avatarFile) {
+          patch.avatar_url = await ctx.uploadToBucket('posts', avatarFile);
+          setInput('#pfAvatar', patch.avatar_url);
+        }
         const { error } = await supa.from('profiles').update(patch).eq('id', ctx.user.id);
         if (error) throw error;
         ctx.setProfile({ ...(ctx.profile || {}), ...patch });
         $('#profileSaved').style.display = 'inline';
         setTimeout(() => { $('#profileSaved').style.display = 'none'; }, 2500);
+        if ($('#pfAvatarFile')) $('#pfAvatarFile').value = '';
         renderProfile();
       } catch (error) {
         alert(error.message || tr('Could not save the profile.', 'Не удалось сохранить профиль.'));
       } finally {
         button.disabled = false;
+      }
+    }
+
+    async function deleteAccount() {
+      const confirmed = window.confirm(tr(
+        'Delete your Duvela web profile? This will remove your profile data from the web cabinet and sign you out from this browser.',
+        'Удалить ваш профиль Duvela Web? Это удалит данные профиля из веб-кабинета и выполнит выход из этого браузера.'
+      ));
+      if (!confirmed) return;
+      const button = $('#deleteAccountBtn');
+      if (button) button.disabled = true;
+      try {
+        const { error } = await supa.from('profiles').delete().eq('id', ctx.user.id);
+        if (error) throw error;
+        await supa.auth.signOut();
+        window.location.href = './index.html';
+      } catch (error) {
+        alert(error.message || tr('Could not delete the account.', 'Не удалось удалить аккаунт.'));
+        if (button) button.disabled = false;
       }
     }
 
@@ -152,7 +275,10 @@
     async function renderProgressCard() {
       const card = $('#progressCard');
       if (!card) return;
+      const profileGrid = card.parentElement;
       if (ctx.isBusiness()) {
+        card.style.display = 'none';
+        if (profileGrid) profileGrid.style.gridTemplateColumns = 'minmax(0, 1fr)';
         card.innerHTML =
           '<div class="section-head"><h2>' + esc(tr('Account', 'Аккаунт')) + '</h2></div>' +
           '<p style="font-weight:800;color:var(--soft)">' + esc(tr('You are signed in as ', 'Вы вошли как ') + (roleLabels[ctx.role] || ctx.role) + '.') + '</p>' +
@@ -163,6 +289,8 @@
         if (verificationForm) verificationForm.addEventListener('submit', submitVerification);
         return;
       }
+      if (profileGrid) profileGrid.style.gridTemplateColumns = '';
+      card.style.display = '';
       const bars = [
         [tr('Grammar', 'Грамматика'), ctx.profile?.grammar_progress ?? 0],
         [tr('Speaking', 'Speaking'), ctx.profile?.speaking_progress ?? 0],
@@ -223,7 +351,9 @@
     }
 
     return {
+      deleteAccount,
       deletePortfolioItem,
+      ensureAppLanguageField,
       renderProfile,
       renderProgressCard,
       saveProfile
