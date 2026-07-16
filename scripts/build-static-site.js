@@ -63,7 +63,8 @@ const deepARLicense = process.env.DEEPAR_WEB_LICENSE_KEY
 const generatedLicense = `(function(g){g.DUVELA_DEEPAR_WEB_LICENSE_KEY=${JSON.stringify(deepARLicense)};})(window);\n`;
 fs.writeFileSync(path.join(outDir, 'web', 'duvela-deepar-license.js'), generatedLicense, 'utf8');
 
-const filterRoot = path.resolve(root, '..', 'free_package', 'Free Filters');
+const bundledEffectsRoot = path.join(root, 'web', 'effects');
+const externalEffectsRoot = path.resolve(root, '..', 'free_package', 'Free Filters');
 const effectAssets = [
   ['Makeup Look Simple', 'MakeupLook.deepar', 'MakeupLook.deepar'],
   ['Pixel Heart Particles', '8bitHearts.deepar', 'PixelHearts.deepar']
@@ -71,9 +72,11 @@ const effectAssets = [
 const effectsOut = path.join(outDir, 'web', 'effects');
 fs.mkdirSync(effectsOut, { recursive: true });
 effectAssets.forEach(([folder, sourceName, outputName]) => {
-  const source = path.join(filterRoot, folder, sourceName);
+  const bundledSource = path.join(bundledEffectsRoot, outputName);
+  const externalSource = path.join(externalEffectsRoot, folder, sourceName);
+  const source = fs.existsSync(bundledSource) ? bundledSource : externalSource;
   if (!fs.existsSync(source)) {
-    throw new Error(`Missing DeepAR effect: ${source}`);
+    throw new Error(`Missing DeepAR effect: expected ${bundledSource} or ${externalSource}`);
   }
   fs.copyFileSync(source, path.join(effectsOut, outputName));
 });
