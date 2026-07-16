@@ -665,6 +665,17 @@
     el('toggleMic').textContent = micEnabled ? tr('Mute mic', 'Выключить микрофон') : tr('Unmute mic', 'Включить микрофон');
     el('toggleCam').textContent = camEnabled ? tr('Camera off', 'Выключить камеру') : tr('Camera on', 'Включить камеру');
   }
+  function syncHostActionState(session) {
+    if (!isHostMode || !el('hostAction')) return;
+    var isLiveRoom = session?.status === 'live' && isHostPublishing;
+    var hostActionLabel = session?.status === 'scheduled'
+      ? tr('Go LIVE now', 'Выйти в эфир сейчас')
+      : tr('Start LIVE', 'Начать эфир');
+    el('hostAction').style.display = 'inline-flex';
+    el('hostAction').disabled = isLiveRoom;
+    el('hostAction').textContent = isLiveRoom ? tr('LIVE is running', 'Эфир идёт') : hostActionLabel;
+    el('endLive').style.display = isLiveRoom ? 'inline-flex' : 'none';
+  }
   async function toggleMic() {
     if (!localAudioTrack) return;
     micEnabled = !micEnabled;
@@ -1037,13 +1048,15 @@
   }
 
   async function applyLiveEffect(effectId) {
-    selectedLiveEffect = EFFECT_PATHS[effectId] || effectId === 'off' ? effectId : 'makeup';
+    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off') ? effectId : 'makeup';
     updateEffectButtons();
     if (!deepARInstance) return;
     el('previewStatus').textContent = tr('Loading effect...', 'Загрузка эффекта...');
     try {
       if (selectedLiveEffect === 'off') await deepARInstance.clearEffect();
       else await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
+      el('deeparCanvas')?.classList.add('active');
+      el('hostCameraPreview')?.classList.remove('active');
       el('previewStatus').textContent = isHostPublishing
         ? tr('Effect is visible to LIVE viewers.', 'Эффект виден зрителям LIVE.')
         : tr('Practice mode: the effect is private until you press Go LIVE.', 'Режим практики: эффект видите только вы до нажатия «В эфир».');
@@ -1113,6 +1126,7 @@
       showOverlay(false);
       el('flipCamera').style.display = 'inline-flex';
       el('toggleFullscreen').style.display = 'inline-flex';
+      syncHostActionState(currentSession);
     })().catch(function (error) {
       hostPreviewPromise = null;
       el('previewStatus').textContent = error?.message || tr('Camera preview is unavailable.', 'Предпросмотр камеры недоступен.');
@@ -1205,13 +1219,13 @@
       el('title').textContent = currentSession.topic || tr('Teacher LIVE', 'Эфир преподавателя');
       el('subtitle').textContent = tr('You are live from the browser. Students can open the watch link.', 'Вы в эфире из браузера. Ученики могут открыть ссылку для просмотра.');
       showOverlay(false);
-      el('endLive').style.display = 'inline-flex';
       el('toggleMic').style.display = 'inline-flex';
       el('toggleCam').style.display = 'inline-flex';
       el('pinMaterial').style.display = 'inline-flex';
       if (currentSession) { subscribeLiveMaterial(currentSession.id); renderLiveMaterial(currentSession.material_url); }
       updateHostControls();
       el('mainAction').textContent = tr('LIVE is running', 'Эфир идёт');
+      syncHostActionState(currentSession);
       setStatus(tr('Teacher is LIVE', 'Преподаватель в эфире'), 'live');
       el('previewStatus').textContent = tr('LIVE: the selected effect is visible to viewers.', 'LIVE: выбранный эффект виден зрителям.');
       setStage('', '');
@@ -1228,6 +1242,7 @@
     } catch (error) {
       el('mainAction').disabled = false;
       el('mainAction').textContent = sessionId ? tr('Open as teacher', 'Открыть как преподаватель') : tr('Start LIVE', 'Начать эфир');
+      syncHostActionState(currentSession);
       setStatus(tr('Not live', 'Не в эфире'), '');
       setStage('', error?.message || tr('Could not start LIVE.', 'Не удалось начать эфир.'));
       if (createdFreshSession && currentSession?.id && currentUser?.id) {
@@ -1504,6 +1519,7 @@
     currentSession = currentSession ? Object.assign({}, currentSession, { status: 'ended', ended_at: new Date().toISOString() }) : null;
     updateShareLink(currentSession);
     renderWorkspace(currentSession);
+    syncHostActionState(currentSession);
     if (currentUser?.id) await loadHostTimeline();
   }
   function showSoundPill(remoteUser) {
@@ -1537,10 +1553,12 @@
         setStatus(tr('Scheduled', 'Запланирована'), 'ready');
         setStage('', tr('This room is scheduled and ready for launch from this browser.', 'Комната запланирована и готова к запуску из этого браузера.'));
       } else if (currentSession.status === 'ended') {
+        el('mainAction').textContent = tr('Start LIVE', 'Начать эфир');
         setStatus(tr('Ended', 'Завершена'), '');
         setStage('', tr('This room ended earlier. Update details or reuse it for the next lesson.', 'Эта комната уже завершена. Обновите данные или используйте её для следующего урока.'));
       }
       renderWorkspace(currentSession);
+      syncHostActionState(currentSession);
     } catch (error) {
       setNote(error?.message || tr('Could not load teacher session.', 'Не удалось загрузить сессию преподавателя.'));
     }
@@ -1585,6 +1603,7 @@
       setTimeout(function () { el('copyShare').textContent = tr('Copy link', 'Скопировать ссылку'); }, 1200);
     });
     el('endLive').addEventListener('click', endHost);
+    el('hostAction').addEventListener('click', function () { void startHost(); });
     el('toggleMic').addEventListener('click', function () { void toggleMic(); });
     el('toggleCam').addEventListener('click', function () { void toggleCam(); });
     el('flipCamera').addEventListener('click', function () { void flipHostCamera(); });
@@ -1655,6 +1674,7 @@
         is_private: false
       });
       setStatus(tr('Ready for teacher', 'Готово для преподавателя'), 'ready');
+      syncHostActionState(currentSession);
       void preloadHostSession();
       void initializeHostPreview();
       return;
