@@ -89,7 +89,10 @@ const bundledEffectsRoot = path.join(root, 'web', 'effects');
 const externalEffectsRoot = path.resolve(root, '..', 'free_package', 'Free Filters');
 const effectAssets = [
   ['Makeup Look Simple', 'MakeupLook.deepar', 'MakeupLook.deepar'],
-  ['Pixel Heart Particles', '8bitHearts.deepar', 'PixelHearts.deepar']
+  ['Pixel Heart Particles', '8bitHearts.deepar', 'PixelHearts.deepar'],
+  ['Devil Neon Horns', 'Neon_Devil_Horns.deepar', 'DevilNeonHorns.deepar'],
+  ['Fire Effect', 'Fire_Effect.deepar', 'FireEffect.deepar'],
+  ['Vendetta Mask', 'Vendetta_Mask.deepar', 'VendettaMask.deepar']
 ];
 const effectsOut = path.join(outDir, 'web', 'effects');
 fs.mkdirSync(effectsOut, { recursive: true });

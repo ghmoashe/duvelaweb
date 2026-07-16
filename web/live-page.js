@@ -25,7 +25,10 @@
   var isHostPublishing = false;
   var EFFECT_PATHS = {
     makeup: './web/effects/MakeupLook.deepar',
-    hearts: './web/effects/PixelHearts.deepar'
+    hearts: './web/effects/PixelHearts.deepar',
+    devil: './web/effects/DevilNeonHorns.deepar',
+    fire: './web/effects/FireEffect.deepar',
+    mask: './web/effects/VendettaMask.deepar'
   };
   var currentSession = null;
   var materialChannel = null;
