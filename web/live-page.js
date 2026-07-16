@@ -946,7 +946,9 @@
       renderViewerGuestRequestUi();
       setNote(tr('The join request was sent to the teacher.', 'Запрос на участие отправлен преподавателю.'));
     } finally {
-      el('requestJoinBtn').disabled = false;
+      if (!viewerGuestRequest || viewerGuestRequest.status !== 'pending') {
+        el('requestJoinBtn').disabled = false;
+      }
     }
   }
   async function resolveGuestRequest(requestId, status) {
