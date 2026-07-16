@@ -1108,8 +1108,7 @@
             licenseKey: licenseKey,
             canvas: canvas,
             additionalOptions: {
-              cameraConfig: { disableDefaultCamera: true },
-              hint: 'enableFaceTrackingCnn'
+              cameraConfig: { disableDefaultCamera: true }
             }
           });
           await deepARInstance.setVideoElement(fallbackVideo, true);
