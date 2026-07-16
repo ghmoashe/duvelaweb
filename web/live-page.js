@@ -44,8 +44,15 @@
   var viewerJoined = false;
   var viewerAgoraUid = null;
   var viewerRealtimeChannel = null;
+  var guestRequestChannel = null;
   var viewerMessages = [];
   var viewerBalance = null;
+  var viewerGuestRequest = null;
+  var viewerGuestActive = false;
+  var viewerGuestTracks = null;
+  var hostGuestRequests = [];
+  var remoteGuestUsers = {};
+  var teacherAgoraUid = null;
   var selectedGiftId = 'heart';
   var viewerSendingGift = false;
   var viewerSendingMessage = false;
@@ -160,6 +167,81 @@
       '</div>';
     }).join('');
     el('chatList').scrollTop = el('chatList').scrollHeight;
+  }
+  function requestStatusText(status) {
+    if (status === 'approved') return tr('Approved', 'Одобрен');
+    if (status === 'rejected') return tr('Rejected', 'Отклонён');
+    if (status === 'cancelled') return tr('Cancelled', 'Отменён');
+    if (status === 'ended') return tr('Removed', 'Удалён');
+    return tr('Pending', 'Ожидает');
+  }
+  function requestStatusClass(status) {
+    if (status === 'approved') return 'approved';
+    if (status === 'rejected' || status === 'ended') return 'rejected';
+    return 'pending';
+  }
+  function renderGuestStage(user) {
+    if (!el('guestStage')) return;
+    if (!user || !user.videoTrack) {
+      el('guestStage').classList.remove('visible');
+      el('guestStage').innerHTML = '<div class="guest-stage-label" id="guestStageLabel">' + esc(tr('Guest', 'Гость')) + '</div>';
+      return;
+    }
+    el('guestStage').classList.add('visible');
+    el('guestStage').innerHTML = '<div id="guestStagePlayer" style="position:absolute;inset:0"></div><div class="guest-stage-label" id="guestStageLabel">' + esc(user.displayName || tr('Guest', 'Гость')) + '</div>';
+    user.videoTrack.play('guestStagePlayer', { fit: 'cover' });
+  }
+  function renderViewerGuestRequestUi() {
+    if (!el('viewerGuestRequestBox') || isHostMode) return;
+    var visible = Boolean(currentSession?.id && currentSession?.status === 'live' && currentSession?.allow_guest_requests !== false && !currentSession?.is_private);
+    el('viewerGuestRequestBox').style.display = visible ? 'flex' : 'none';
+    el('viewerGuestRequestStatus').style.display = visible ? 'block' : 'none';
+    if (!visible) return;
+    var requestStatus = viewerGuestRequest?.status || '';
+    el('requestJoinBtn').disabled = requestStatus === 'pending' || viewerGuestActive;
+    el('requestJoinBtn').textContent = requestStatus === 'pending'
+      ? tr('Request pending', 'Запрос отправлен')
+      : requestStatus === 'approved'
+        ? tr('Request approved', 'Запрос одобрен')
+        : tr('Request to join', 'Запросить вход');
+    el('joinGuestBtn').style.display = requestStatus === 'approved' && !viewerGuestActive ? 'inline-flex' : 'none';
+    el('joinGuestBtn').disabled = viewerGuestActive;
+    el('joinGuestBtn').textContent = viewerGuestActive ? tr('On stage', 'Уже в эфире') : tr('Join as guest', 'Войти как гость');
+    var statusText = viewerGuestActive
+      ? tr('You are already connected as a guest with your microphone and camera.', 'Вы уже подключены как гость с камерой и микрофоном.')
+      : requestStatus === 'approved'
+        ? tr('The teacher approved your request. You can now join the LIVE as a guest.', 'Преподаватель одобрил запрос. Теперь можно войти в эфир как гость.')
+        : requestStatus === 'rejected'
+          ? tr('The teacher rejected your request.', 'Преподаватель отклонил ваш запрос.')
+          : requestStatus === 'pending'
+            ? tr('Your request is waiting for the teacher review.', 'Ваш запрос ожидает решения преподавателя.')
+            : tr('Ask the teacher to invite you on stage.', 'Отправьте преподавателю запрос на участие в эфире.');
+    el('viewerGuestRequestStatus').textContent = statusText;
+  }
+  function renderGuestRequests() {
+    if (!el('guestRequestsList') || !isHostMode) return;
+    el('guestRequestsSection').style.display = 'grid';
+    if (!hostGuestRequests.length) {
+      el('guestRequestsList').innerHTML = '<div class="request-item"><span>' + esc(tr('No viewer requests yet.', 'Пока нет запросов от зрителей.')) + '</span></div>';
+      return;
+    }
+    el('guestRequestsList').innerHTML = hostGuestRequests.map(function (request) {
+      var meta = requestStatusText(request.status);
+      var requestedAt = formatChatTime(request.requested_at);
+      var actions = request.status === 'pending'
+        ? '<div class="request-actions"><button type="button" class="btn primary" data-request-approve="' + esc(request.id) + '">' + esc(tr('Approve', 'Одобрить')) + '</button><button type="button" class="btn ghost" data-request-reject="' + esc(request.id) + '">' + esc(tr('Reject', 'Отклонить')) + '</button></div>'
+        : '';
+      return '<div class="request-item">' +
+        '<div class="request-item-head"><div><b>' + esc(request.requester_name || tr('Viewer', 'Зритель')) + '</b><span>' + esc(requestedAt ? (meta + ' · ' + requestedAt) : meta) + '</span></div><span class="request-pill ' + esc(requestStatusClass(request.status)) + '">' + esc(meta) + '</span></div>' +
+        actions +
+      '</div>';
+    }).join('');
+    Array.from(document.querySelectorAll('[data-request-approve]')).forEach(function (button) {
+      button.addEventListener('click', function () { void resolveGuestRequest(button.getAttribute('data-request-approve'), 'approved'); });
+    });
+    Array.from(document.querySelectorAll('[data-request-reject]')).forEach(function (button) {
+      button.addEventListener('click', function () { void resolveGuestRequest(button.getAttribute('data-request-reject'), 'rejected'); });
+    });
   }
   function setViewerControlsEnabled(enabled) {
     ['openChat', 'openGift', 'chatInput', 'sendChat', 'sendGift'].forEach(function (id) {
@@ -804,6 +886,94 @@
     viewerJoined = false;
     viewerAgoraUid = null;
   }
+  async function updateViewerParticipantRole(role, uid) {
+    if (!currentSession?.id || !currentUser?.id || !supa) return;
+    await supa.from('live_participants')
+      .update({
+        agora_uid: uid || viewerAgoraUid || 0,
+        left_at: null,
+        role: role
+      })
+      .eq('session_id', currentSession.id)
+      .eq('user_id', currentUser.id);
+  }
+  async function loadViewerGuestRequest() {
+    if (!currentSession?.id || !currentUser?.id || !supa) {
+      viewerGuestRequest = null;
+      renderViewerGuestRequestUi();
+      return;
+    }
+    var result = await supa.from('live_guest_requests')
+      .select('id,session_id,requester_id,requester_name,status,requested_at,resolved_at,resolved_by')
+      .eq('session_id', currentSession.id)
+      .eq('requester_id', currentUser.id)
+      .maybeSingle();
+    viewerGuestRequest = result.data || null;
+    renderViewerGuestRequestUi();
+  }
+  async function loadHostGuestRequests() {
+    if (!currentSession?.id || !supa || !isHostMode) {
+      hostGuestRequests = [];
+      renderGuestRequests();
+      return;
+    }
+    var result = await supa.from('live_guest_requests')
+      .select('id,session_id,requester_id,requester_name,status,requested_at,resolved_at,resolved_by')
+      .eq('session_id', currentSession.id)
+      .order('requested_at', { ascending: true });
+    hostGuestRequests = result.data || [];
+    renderGuestRequests();
+  }
+  async function requestViewerJoin() {
+    if (!currentSession?.id || !currentUser?.id || !supa || currentSession.allow_guest_requests === false) return;
+    el('requestJoinBtn').disabled = true;
+    try {
+      var payload = {
+        requester_id: currentUser.id,
+        requester_name: viewerDisplayName(),
+        session_id: currentSession.id,
+        status: 'pending',
+        requested_at: new Date().toISOString(),
+        resolved_at: null,
+        resolved_by: null
+      };
+      var result = await supa.from('live_guest_requests')
+        .upsert(payload, { onConflict: 'session_id,requester_id' })
+        .select('id,session_id,requester_id,requester_name,status,requested_at,resolved_at,resolved_by')
+        .single();
+      if (result.error || !result.data) throw new Error(result.error?.message || tr('Could not send the request.', 'Не удалось отправить запрос.'));
+      viewerGuestRequest = result.data;
+      renderViewerGuestRequestUi();
+      setNote(tr('The join request was sent to the teacher.', 'Запрос на участие отправлен преподавателю.'));
+    } finally {
+      el('requestJoinBtn').disabled = false;
+    }
+  }
+  async function resolveGuestRequest(requestId, status) {
+    if (!requestId || !currentSession?.id || !currentUser?.id || !supa) return;
+    var result = await supa.from('live_guest_requests')
+      .update({
+        status: status,
+        resolved_at: new Date().toISOString(),
+        resolved_by: currentUser.id
+      })
+      .eq('id', requestId)
+      .eq('session_id', currentSession.id)
+      .select('id,requester_id,status')
+      .single();
+    if (result.error || !result.data) throw new Error(result.error?.message || tr('Could not update the request.', 'Не удалось обновить запрос.'));
+    if (status === 'approved') {
+      await supa.from('live_messages').insert({
+        channel_name: currentSession.channel_name,
+        message: tr('Viewer request approved. You can join the stage now.', 'Запрос зрителя одобрен. Теперь можно войти в эфир как гость.'),
+        role: 'system',
+        sender_id: currentUser.id,
+        sender_name: tr('System', 'Система'),
+        session_id: currentSession.id
+      });
+    }
+    await loadHostGuestRequests();
+  }
   async function loadViewerMessages() {
     if (!currentSession?.id || !supa) return;
     var result = await supa.from('live_messages')
@@ -855,6 +1025,82 @@
       });
     await viewerRealtimeChannel.subscribe();
   }
+  async function subscribeGuestRequests() {
+    if (!currentSession?.id || !supa) return;
+    if (guestRequestChannel) {
+      try { await supa.removeChannel(guestRequestChannel); } catch (e) {}
+      guestRequestChannel = null;
+    }
+    guestRequestChannel = supa.channel('live-guest-requests-' + currentSession.id + '-' + Date.now());
+    guestRequestChannel.on('postgres_changes', {
+      event: '*',
+      filter: 'session_id=eq.' + currentSession.id,
+      schema: 'public',
+      table: 'live_guest_requests'
+    }, function (payload) {
+      if (isHostMode) {
+        void loadHostGuestRequests();
+      }
+      if (currentUser?.id) {
+        var row = payload.new || payload.old;
+        if (row && row.requester_id === currentUser.id) void loadViewerGuestRequest();
+      }
+    });
+    await guestRequestChannel.subscribe();
+  }
+  function attachViewerClientHandlers() {
+    if (!client) return;
+    client.on('user-published', async function (remoteUser, mediaType) {
+      await client.subscribe(remoteUser, mediaType);
+      var isTeacher = teacherAgoraUid && String(remoteUser.uid) === String(teacherAgoraUid);
+      if (mediaType === 'video') {
+        showOverlay(false);
+        if (isTeacher || !teacherAgoraUid) {
+          remoteUser.videoTrack.play('player', { fit: 'cover' });
+          setStatus(tr('Watching LIVE', 'Смотрите эфир'), 'live');
+        } else {
+          remoteGuestUsers[String(remoteUser.uid)] = { uid: remoteUser.uid, videoTrack: remoteUser.videoTrack, displayName: tr('Guest', 'Гость') };
+          renderGuestStage(remoteGuestUsers[String(remoteUser.uid)]);
+        }
+      }
+      if (mediaType === 'audio') {
+        try { remoteUser.audioTrack.play(); }
+        catch (e) { if (isTeacher) showSoundPill(remoteUser); }
+      }
+    });
+    client.on('user-unpublished', function (remoteUser, mediaType) {
+      if (teacherAgoraUid && String(remoteUser.uid) !== String(teacherAgoraUid)) {
+        delete remoteGuestUsers[String(remoteUser.uid)];
+        var firstGuest = Object.keys(remoteGuestUsers)[0];
+        renderGuestStage(firstGuest ? remoteGuestUsers[firstGuest] : null);
+        return;
+      }
+      if (mediaType === 'video') {
+        showOverlay(true);
+        setStage('', tr('The teacher paused the stream.', 'Преподаватель приостановил трансляцию.'));
+      }
+    });
+  }
+  function attachHostGuestHandlers(hostUid) {
+    if (!client) return;
+    client.on('user-published', async function (remoteUser, mediaType) {
+      if (String(remoteUser.uid) === String(hostUid)) return;
+      await client.subscribe(remoteUser, mediaType);
+      if (mediaType === 'video') {
+        remoteGuestUsers[String(remoteUser.uid)] = { uid: remoteUser.uid, videoTrack: remoteUser.videoTrack, displayName: tr('Guest on stage', 'Гость в эфире') };
+        renderGuestStage(remoteGuestUsers[String(remoteUser.uid)]);
+      }
+      if (mediaType === 'audio') {
+        try { remoteUser.audioTrack.play(); } catch (e) {}
+      }
+    });
+    client.on('user-unpublished', function (remoteUser) {
+      if (String(remoteUser.uid) === String(hostUid)) return;
+      delete remoteGuestUsers[String(remoteUser.uid)];
+      var firstGuest = Object.keys(remoteGuestUsers)[0];
+      renderGuestStage(firstGuest ? remoteGuestUsers[firstGuest] : null);
+    });
+  }
   async function sendViewerMessage() {
     var text = (el('chatInput')?.value || '').trim();
     if (!text || !currentSession?.id || !currentUser?.id || !supa || viewerSendingMessage) return;
@@ -864,7 +1110,7 @@
       var result = await supa.from('live_messages').insert({
         channel_name: currentSession.channel_name,
         message: text,
-        role: 'viewer',
+        role: 'student',
         sender_id: currentUser.id,
         sender_name: viewerDisplayName(),
         session_id: currentSession.id
@@ -908,6 +1154,43 @@
     } finally {
       viewerSendingGift = false;
       el('sendGift').disabled = false;
+    }
+  }
+  async function joinViewerAsGuest() {
+    if (!currentSession?.id || !currentUser?.id || !viewerGuestRequest || viewerGuestRequest.status !== 'approved' || viewerGuestActive) return;
+    el('joinGuestBtn').disabled = true;
+    try {
+      var uid = viewerAgoraUid || createAgoraUid(currentUser.id);
+      if (client) {
+        try { await client.leave(); } catch (e) {}
+        client = null;
+      }
+      viewerGuestTracks = await window.AgoraRTC.createMicrophoneAndCameraTracks(
+        { AEC: true, AGC: true, ANS: true },
+        { encoderConfig: '480p_1' }
+      );
+      var token = await getPublisherToken(currentSession.channel_name, uid);
+      client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      attachViewerClientHandlers();
+      await client.setClientRole('host');
+      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      await client.publish(viewerGuestTracks);
+      viewerJoined = true;
+      viewerAgoraUid = uid;
+      viewerGuestActive = true;
+      await updateViewerParticipantRole('guest', uid);
+      renderViewerGuestRequestUi();
+      setNote(tr('You joined the LIVE as a guest.', 'Вы вошли в эфир как гость.'));
+    } catch (error) {
+      if (viewerGuestTracks) {
+        viewerGuestTracks.forEach(function (track) {
+          try { track.stop(); track.close(); } catch (e) {}
+        });
+        viewerGuestTracks = null;
+      }
+      throw error;
+    } finally {
+      el('joinGuestBtn').disabled = false;
     }
   }
   function hostSessionPayload(user, status, startedAt, existingSession) {
@@ -1198,6 +1481,7 @@
       var authSession = await requireSessionForHost();
       currentUser = authSession.user;
       var uid = createAgoraUid(currentUser.id);
+      teacherAgoraUid = uid;
       currentSession = sessionId ? await loadLiveSession(sessionId) : await createLiveSession(currentUser);
       createdFreshSession = !sessionId;
       applySessionToInputs(currentSession);
@@ -1210,6 +1494,7 @@
 
       var token = await getPublisherToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      attachHostGuestHandlers(uid);
       await client.setClientRole('host');
       await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
       await createHostTracks();
@@ -1240,6 +1525,8 @@
       await markHeartbeat();
       heartbeatTimer = setInterval(markHeartbeat, 30000);
       await loadHostTimeline();
+      await loadHostGuestRequests();
+      await subscribeGuestRequests();
       void startRestream(currentSession.channel_name, uid);
     } catch (error) {
       el('mainAction').disabled = false;
@@ -1462,6 +1749,75 @@
       renderWorkspace(currentSession);
     }
   }
+  async function watchLiveViewer() {
+    if (!sessionId) {
+      setStage('', tr('No live session selected.', 'Сессия эфира не выбрана.'));
+      return;
+    }
+    if (!supa || !window.AgoraRTC || !AGORA_APP_ID) {
+      setStage('', tr('Open the app to watch this lesson.', 'Откройте приложение, чтобы посмотреть этот урок.'));
+      return;
+    }
+    if (client) {
+      try { await client.leave(); } catch (e) {}
+      client = null;
+    }
+    el('mainAction').disabled = true;
+    setStatus(tr('Connecting', 'Подключение'), 'ready');
+    setStage('<div class="spinner"></div>', tr('Connecting...', 'Подключение...'));
+    try {
+      var authSession = await ensureViewerSession();
+      var user = authSession.user;
+      var uid = createAgoraUid(user.id);
+      currentUser = user;
+      currentSession = await loadLiveSession(sessionId);
+      if (currentSession.min_viewer_age === 18 && localStorage.getItem('duvela.viewerAge18Confirmed') !== 'true') {
+        var confirmed = window.confirm(tr('This LIVE is for viewers aged 18+. Confirm that you are at least 18 years old.', 'Этот эфир предназначен для зрителей 18+. Подтвердите, что вам уже исполнилось 18 лет.'));
+        if (!confirmed) throw new Error(tr('Age confirmation is required for this LIVE.', 'Для этого эфира требуется подтверждение возраста.'));
+        localStorage.setItem('duvela.viewerAge18Confirmed', 'true');
+      }
+      renderWorkspace(currentSession);
+      updateShareLink(currentSession);
+      startSessionPolling();
+      if (currentSession.status === 'scheduled') {
+        stopElapsedClock();
+        throw new Error(tr('This lesson is scheduled. Keep this page open or reopen it near the start time.', 'Урок запланирован. Не закрывайте страницу или откройте её снова ближе ко времени начала.'));
+      }
+      if (currentSession.status !== 'live') throw new Error(tr('This LIVE has ended.', 'Этот эфир завершён.'));
+      if (currentSession.is_private) throw new Error(tr('This is a private lesson. Open the app to request access.', 'Это приватный урок. Откройте приложение, чтобы запросить доступ.'));
+      if (currentSession.teacher_name && !teacher) el('title').textContent = teacherWatchTitle(currentSession.teacher_name);
+      teacherAgoraUid = currentSession.teacher_id ? createAgoraUid(currentSession.teacher_id) : null;
+      await joinViewerParticipant(uid);
+      await loadViewerBalance();
+      await loadViewerMessages();
+      await subscribeViewerRealtime();
+      await loadViewerGuestRequest();
+      await subscribeGuestRequests();
+      renderLiveMaterial(currentSession.material_url);
+      subscribeLiveMaterial(sessionId);
+      void renderFollowUi();
+      renderViewerGuestRequestUi();
+      setViewerControlsEnabled(true);
+      startElapsedClock(currentSession.started_at || new Date().toISOString());
+      var token = await getSubscriberToken(currentSession.channel_name, uid);
+      client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      await client.setClientRole('audience');
+      attachViewerClientHandlers();
+      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      setStage('<div class="spinner"></div>', tr('Waiting for the teacher camera...', 'Ожидание камеры преподавателя...'));
+      el('mainAction').disabled = false;
+      el('mainAction').textContent = tr('Try again', 'Повторить');
+    } catch (error) {
+      el('mainAction').disabled = false;
+      el('mainAction').textContent = tr('Try again', 'Повторить');
+      setStatus(tr('Not connected', 'Нет подключения'), '');
+      setStage('', error?.message || tr('Could not start the stream.', 'Не удалось запустить трансляцию.'));
+      showOverlay(true);
+      setViewerControlsEnabled(false);
+      await stopMedia(false);
+      renderWorkspace(currentSession);
+    }
+  }
   async function stopMedia(markSessionEnded) {
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;
@@ -1489,11 +1845,24 @@
         try { await supa.removeChannel(viewerRealtimeChannel); } catch (e) {}
         viewerRealtimeChannel = null;
       }
+      if (guestRequestChannel) {
+        try { await supa.removeChannel(guestRequestChannel); } catch (e) {}
+        guestRequestChannel = null;
+      }
       if (materialChannel) { try { await supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
       renderLiveMaterial(null);
       await leaveViewerParticipant();
+      if (viewerGuestTracks) {
+        viewerGuestTracks.forEach(function (track) {
+          try { track.stop(); track.close(); } catch (e) {}
+        });
+        viewerGuestTracks = null;
+      }
+      viewerGuestActive = false;
+      viewerGuestRequest = null;
       viewerMessages = [];
       renderViewerMessages();
+      renderViewerGuestRequestUi();
       closeGiftModal();
       setViewerControlsEnabled(false);
     }
@@ -1501,7 +1870,10 @@
     el('toggleCam').style.display = 'none';
     el('pinMaterial').style.display = 'none';
     if (materialChannel) { try { await supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
+    if (guestRequestChannel) { try { await supa.removeChannel(guestRequestChannel); } catch (e) {} guestRequestChannel = null; }
     renderLiveMaterial(null);
+    renderGuestStage(null);
+    remoteGuestUsers = {};
     setHostSetupDisabled(false);
     if (markSessionEnded && currentSession?.status === 'live') await markEnded();
   }
@@ -1561,6 +1933,8 @@
       }
       renderWorkspace(currentSession);
       syncHostActionState(currentSession);
+      await loadHostGuestRequests();
+      await subscribeGuestRequests();
     } catch (error) {
       setNote(error?.message || tr('Could not load teacher session.', 'Не удалось загрузить сессию преподавателя.'));
     }
@@ -1622,6 +1996,8 @@
     el('pinMaterial').addEventListener('click', function () { void hostToggleMaterial(); });
     el('materialFile').addEventListener('change', function () { void hostUploadMaterial(); });
     if (el('followBtn')) el('followBtn').addEventListener('click', function () { void toggleViewerFollow(); });
+    if (el('requestJoinBtn')) el('requestJoinBtn').addEventListener('click', function () { void requestViewerJoin(); });
+    if (el('joinGuestBtn')) el('joinGuestBtn').addEventListener('click', function () { void joinViewerAsGuest(); });
     el('scheduleSession').addEventListener('click', function () { void scheduleHostSession(); });
     window.addEventListener('beforeunload', function () {
       if (isHostMode) void stopMedia(true);
@@ -1644,6 +2020,7 @@
       el('sideCopy').textContent = tr('Run the live room from the browser, keep session details clear, and hand off learners with the right entry link.', 'Управляйте комнатой эфира из браузера, держите данные сессии в порядке и направляйте учеников по нужной ссылке.');
       el('setupSection').style.display = 'grid';
       el('effectsSection').style.display = 'grid';
+      el('guestRequestsSection').style.display = 'grid';
       el('hostSetup').style.display = 'grid';
       el('scheduleSetup').style.display = 'grid';
       el('setupTitle').textContent = tr('Session setup', 'Настройка сессии');
@@ -1691,7 +2068,7 @@
     el('stageChipSecondary').textContent = tr('Live room access', 'Доступ к комнате эфира');
     el('sideKicker').textContent = tr('Room panel', 'Панель комнаты');
     el('mainAction').textContent = tr('Watch now', 'Смотреть');
-    el('mainAction').addEventListener('click', watch);
+      el('mainAction').addEventListener('click', watchLiveViewer);
     el('dashboardLink').href = './app.html?role=learner#live';
     el('backLink').href = './app.html?role=learner#live';
     el('sideTitle').textContent = tr('Live room', 'Комната эфира');
@@ -1733,7 +2110,7 @@
     setViewerControlsEnabled(false);
     setStatus(sessionId ? tr('Ready to watch', 'Готово к просмотру') : tr('No session selected', 'Сессия не выбрана'), sessionId ? 'ready' : '');
     renderWorkspace({ teacher_name: teacher || '', level: '', language: '', is_private: false });
-    if (sessionId) setTimeout(function () { void watch(); }, 250);
+    if (sessionId) setTimeout(function () { void watchLiveViewer(); }, 250);
   }
 
   setupMode();
