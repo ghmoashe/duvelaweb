@@ -23,29 +23,51 @@ const dirs = [
   'legal'
 ];
 
-function copyFile(relativePath) {
-  const from = path.join(root, relativePath);
-  const to = path.join(outDir, relativePath);
+function removeDirRecursive(targetPath) {
+  if (!fs.existsSync(targetPath)) return;
+  fs.readdirSync(targetPath).forEach((entry) => {
+    const entryPath = path.join(targetPath, entry);
+    const stats = fs.lstatSync(entryPath);
+    if (stats.isDirectory()) {
+      removeDirRecursive(entryPath);
+    } else {
+      fs.unlinkSync(entryPath);
+    }
+  });
+  fs.rmdirSync(targetPath);
+}
+
+function copyFile(from, to) {
   if (!fs.existsSync(from)) return;
   fs.mkdirSync(path.dirname(to), { recursive: true });
   fs.copyFileSync(from, to);
 }
 
-function copyDir(relativePath) {
-  const from = path.join(root, relativePath);
-  const to = path.join(outDir, relativePath);
+function copyDirRecursive(from, to) {
   if (!fs.existsSync(from)) return;
-  fs.cpSync(from, to, {
-    recursive: true,
-    force: true,
-    filter: (source) => !/\.(mp4|mov|avi|mkv)$/i.test(source)
+  const stats = fs.lstatSync(from);
+  if (!stats.isDirectory()) {
+    if (!/\.(mp4|mov|avi|mkv)$/i.test(from)) copyFile(from, to);
+    return;
+  }
+  fs.mkdirSync(to, { recursive: true });
+  fs.readdirSync(from).forEach((entry) => {
+    copyDirRecursive(path.join(from, entry), path.join(to, entry));
   });
 }
 
-fs.rmSync(outDir, { recursive: true, force: true });
+function copyProjectFile(relativePath) {
+  copyFile(path.join(root, relativePath), path.join(outDir, relativePath));
+}
+
+function copyProjectDir(relativePath) {
+  copyDirRecursive(path.join(root, relativePath), path.join(outDir, relativePath));
+}
+
+removeDirRecursive(outDir);
 fs.mkdirSync(outDir, { recursive: true });
-files.forEach(copyFile);
-dirs.forEach(copyDir);
+files.forEach(copyProjectFile);
+dirs.forEach(copyProjectDir);
 
 function readEnvValue(filePath, key) {
   if (!fs.existsSync(filePath)) return '';
