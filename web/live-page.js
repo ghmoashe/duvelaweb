@@ -26,9 +26,9 @@
   var EFFECT_PATHS = {
     makeup: './web/effects/MakeupLook.deepar',
     hearts: './web/effects/PixelHearts.deepar',
-    devil: './web/effects/DevilNeonHorns.deepar',
-    fire: './web/effects/FireEffect.deepar',
-    mask: './web/effects/VendettaMask.deepar'
+    aviators: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/aviators',
+    koala: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/koala',
+    lion: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/lion'
   };
   var currentSession = null;
   var materialChannel = null;
