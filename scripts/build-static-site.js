@@ -47,6 +47,37 @@ fs.mkdirSync(outDir, { recursive: true });
 files.forEach(copyFile);
 dirs.forEach(copyDir);
 
+function readEnvValue(filePath, key) {
+  if (!fs.existsSync(filePath)) return '';
+  const line = fs.readFileSync(filePath, 'utf8')
+    .split(/\r?\n/)
+    .find((entry) => entry.startsWith(`${key}=`));
+  if (!line) return '';
+  return line.slice(key.length + 1).trim().replace(/^['"]|['"]$/g, '');
+}
+
+const businessEnv = path.resolve(root, '..', 'vela academy for business', '.env');
+const deepARLicense = process.env.DEEPAR_WEB_LICENSE_KEY
+  || process.env.EXPO_PUBLIC_DEEPAR_WEB_LICENSE_KEY
+  || readEnvValue(businessEnv, 'EXPO_PUBLIC_DEEPAR_WEB_LICENSE_KEY');
+const generatedLicense = `(function(g){g.DUVELA_DEEPAR_WEB_LICENSE_KEY=${JSON.stringify(deepARLicense)};})(window);\n`;
+fs.writeFileSync(path.join(outDir, 'web', 'duvela-deepar-license.js'), generatedLicense, 'utf8');
+
+const filterRoot = path.resolve(root, '..', 'free_package', 'Free Filters');
+const effectAssets = [
+  ['Makeup Look Simple', 'MakeupLook.deepar', 'MakeupLook.deepar'],
+  ['Pixel Heart Particles', '8bitHearts.deepar', 'PixelHearts.deepar']
+];
+const effectsOut = path.join(outDir, 'web', 'effects');
+fs.mkdirSync(effectsOut, { recursive: true });
+effectAssets.forEach(([folder, sourceName, outputName]) => {
+  const source = path.join(filterRoot, folder, sourceName);
+  if (!fs.existsSync(source)) {
+    throw new Error(`Missing DeepAR effect: ${source}`);
+  }
+  fs.copyFileSync(source, path.join(effectsOut, outputName));
+});
+
 const serverDir = path.join(outDir, 'server');
 fs.mkdirSync(serverDir, { recursive: true });
 fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders(response) {

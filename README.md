@@ -59,11 +59,18 @@ Set `DUVELA_STRICT_PUBLISH=1` to fail the publish check when large local media f
 
 With teacher and learner credentials present, `npm run check:backend` also verifies LIVE session create/update, learner room read, participant join, chat insert, free gift payment, restream status, and Agora publisher/subscriber token generation.
 
+## DeepAR browser effects
+
+Teacher LIVE uses DeepAR Web for the pre-LIVE practice preview and publishes the processed canvas to Agora. Set `DEEPAR_WEB_LICENSE_KEY` (or `EXPO_PUBLIC_DEEPAR_WEB_LICENSE_KEY`) before `npm run build`. For local development the build also reads `../vela academy for business/.env`.
+
+The build copies only `Makeup Look Simple` and `Pixel Heart Particles` from `../free_package/Free Filters` into `dist/web/effects`. Run `npm run web:full` to build first and serve the complete `dist` version with the license and effects.
+
 ## Publish checklist
 
 Before publishing Web/Hub/Business/LIVE:
 
 - Apply `scripts/duvela-web-supabase.sql` and `scripts/web-role-requests.sql` in Supabase.
+- For an existing installation, also apply `scripts/live-setup-controls.sql` to add browser LIVE quality and audience controls.
 - Deploy Edge Functions: `agora-token`, `notify-course-enrollment`, `live-payment`, `live-restream`.
 - Run `npm run check`; for release hardening run `DUVELA_STRICT_PUBLISH=1 npm run check:publish` from a deploy folder that excludes local videos.
 - Publish static files with `_headers` so HTML revalidates while images and shared assets get cache headers.

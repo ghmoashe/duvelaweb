@@ -1,11 +1,12 @@
 'use strict';
 
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const net = require('net');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..', '..');
-const webDir = path.join(root, 'duvela-web');
+const projectDir = path.join(root, 'duvela-web');
+const webDir = path.join(projectDir, 'dist');
 
 const services = [
   {
@@ -32,6 +33,15 @@ function isPortOpen(port) {
 
 async function main() {
   const children = [];
+
+  const build = spawnSync(process.execPath, [path.join(projectDir, 'scripts', 'build-static-site.js')], {
+    cwd: projectDir,
+    env: process.env,
+    stdio: 'inherit',
+  });
+  if (build.status !== 0) {
+    throw new Error('Could not build Duvela Web before starting the local server.');
+  }
 
   for (const service of services) {
     if (await isPortOpen(service.port)) {

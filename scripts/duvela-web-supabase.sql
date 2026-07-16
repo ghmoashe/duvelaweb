@@ -143,13 +143,18 @@ create table if not exists public.live_sessions (
   price_per_minute integer not null default 0,
   status text not null default 'live',
   is_private boolean not null default false,
+  allow_guest_requests boolean not null default true,
+  min_viewer_age integer not null default 0,
+  video_quality text not null default 'auto',
   started_at timestamptz not null default now(),
   ended_at timestamptz,
   heartbeat_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
   constraint live_sessions_channel_name_check check (channel_name ~ '^[a-zA-Z0-9_-]{1,64}$'),
   constraint live_sessions_status_check check (status in ('scheduled', 'live', 'ended')),
-  constraint live_sessions_price_check check (price_per_minute >= 0)
+  constraint live_sessions_price_check check (price_per_minute >= 0),
+  constraint live_sessions_min_viewer_age_check check (min_viewer_age in (0, 18)),
+  constraint live_sessions_video_quality_check check (video_quality in ('auto', '540p', '720p'))
 );
 
 alter table public.live_sessions
@@ -159,7 +164,17 @@ alter table public.live_sessions
   add column if not exists topic text not null default 'Live lesson',
   add column if not exists price_per_minute integer not null default 0,
   add column if not exists is_private boolean not null default false,
+  add column if not exists allow_guest_requests boolean not null default true,
+  add column if not exists min_viewer_age integer not null default 0,
+  add column if not exists video_quality text not null default 'auto',
   add column if not exists heartbeat_at timestamptz not null default now();
+
+alter table public.live_sessions drop constraint if exists live_sessions_min_viewer_age_check;
+alter table public.live_sessions
+  add constraint live_sessions_min_viewer_age_check check (min_viewer_age in (0, 18));
+alter table public.live_sessions drop constraint if exists live_sessions_video_quality_check;
+alter table public.live_sessions
+  add constraint live_sessions_video_quality_check check (video_quality in ('auto', '540p', '720p'));
 
 create index if not exists live_sessions_status_started_idx
   on public.live_sessions (status, started_at desc);

@@ -18,6 +18,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/deepar@5.6.22/js/deepar.js"></script>
+<script src="./web/duvela-deepar-license.js"></script>
 <script src="./web/duvela-web-config.js"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <style>
@@ -302,7 +304,73 @@
     height: 100%;
   }
   #player video { object-fit: cover !important; }
-  body.is-live #player video { transform: scaleX(-1); }
+  #deeparCanvas, #hostCameraPreview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+  body.host-preview #deeparCanvas.active,
+  body.host-preview #hostCameraPreview.active { display: block; }
+  body.host-preview.front-camera #deeparCanvas,
+  body.host-preview.front-camera #hostCameraPreview { transform: scaleX(-1); }
+  .effect-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .effect-choice {
+    min-height: 70px;
+    padding: 10px 8px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255,255,255,.035);
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .effect-choice span { display: block; margin-bottom: 6px; font-size: 22px; }
+  .effect-choice.active {
+    color: #fff;
+    border-color: rgba(167,139,250,.75);
+    background: linear-gradient(145deg, rgba(124,58,237,.38), rgba(236,72,153,.2));
+  }
+  .live-options { display: grid; gap: 10px; }
+  .option-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,.025);
+  }
+  .option-row label { color: var(--muted); font-size: 13px; font-weight: 650; }
+  .option-row select { min-width: 105px; }
+  .preview-status { color: var(--soft); font-size: 12px; line-height: 1.45; }
+  .fullscreen-exit {
+    position: absolute;
+    z-index: 8;
+    right: 14px;
+    bottom: 14px;
+    display: none;
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 999px;
+    background: rgba(8,6,14,.72);
+    color: #fff;
+    backdrop-filter: blur(14px);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+  }
+  .stage:fullscreen .fullscreen-exit { display: inline-flex; align-items: center; }
   .stage-overlay {
     position: absolute;
     inset: 0;
@@ -1152,7 +1220,10 @@
         </div>
       </div>
       <div class="stage">
-        <div id="player"></div>
+        <div id="player">
+          <canvas id="deeparCanvas" width="1280" height="720"></canvas>
+          <video id="hostCameraPreview" autoplay muted playsinline></video>
+        </div>
         <div class="stage-live-strip" id="stageLiveStrip">
           <div class="strip-main">
             <div class="strip-teacher" id="stripTeacher">Teacher</div>
@@ -1176,6 +1247,7 @@
           </div>
         </div>
         <button type="button" class="sound-pill" id="soundPill">Tap for sound</button>
+        <button type="button" class="fullscreen-exit" id="exitFullscreen">Exit full screen</button>
       </div>
       <div class="stage-footer">
         <div class="status-wrap">
@@ -1185,6 +1257,8 @@
         <div class="control-dock">
           <button type="button" class="btn" id="toggleMic" style="display:none">Mute mic</button>
           <button type="button" class="btn" id="toggleCam" style="display:none">Camera off</button>
+          <button type="button" class="btn" id="flipCamera" style="display:none">Flip</button>
+          <button type="button" class="btn" id="toggleFullscreen" style="display:none">Full screen</button>
           <button type="button" class="btn" id="pinMaterial" style="display:none">Материал</button>
           <button type="button" class="btn danger" id="endLive" style="display:none">End LIVE</button>
           <input type="file" id="materialFile" accept="image/*" style="display:none">
@@ -1317,6 +1391,32 @@
             <button type="button" class="btn" id="scheduleSession">Schedule session</button>
           </div>
         </div>
+      </section>
+
+      <section class="studio-section" id="effectsSection" style="display:none">
+        <div>
+          <h3 id="effectsTitle">Camera and effects</h3>
+          <p id="effectsCopy">Prepare your look before going LIVE. Changes also work during the broadcast.</p>
+        </div>
+        <div class="effect-grid" id="effectGrid">
+          <button type="button" class="effect-choice" data-live-effect="off"><span>◯</span>Off</button>
+          <button type="button" class="effect-choice active" data-live-effect="makeup"><span>✨</span>Makeup Look Simple</button>
+          <button type="button" class="effect-choice" data-live-effect="hearts"><span>💗</span>Pixel Heart Particles</button>
+        </div>
+        <div class="live-options">
+          <div class="option-row">
+            <label for="videoQuality">Video quality</label>
+            <select id="videoQuality">
+              <option value="auto">Auto</option>
+              <option value="540p">540p</option>
+              <option value="720p" selected>720p</option>
+            </select>
+          </div>
+          <label class="option-row"><span>Remove background noise</span><input type="checkbox" id="noiseSuppression" checked></label>
+          <label class="option-row"><span>Allow viewer requests</span><input type="checkbox" id="allowViewerRequests" checked></label>
+          <label class="option-row"><span>Audience 18+</span><input type="checkbox" id="audience18Plus"></label>
+        </div>
+        <div class="preview-status" id="previewStatus">Practice mode: camera is preparing. Nothing is being broadcast.</div>
       </section>
 
       <section class="studio-section">
