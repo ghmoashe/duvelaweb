@@ -115,7 +115,7 @@
       profile: tr('Profile', 'Профиль')
     },
     bus: {
-      home: tr('Dashboard', 'Панель'),
+      home: tr('Dashboard', 'Dashboard'),
       videos: tr('Media', 'Медиа'),
       live: tr('Live Studio', 'LIVE-студия'),
       courses: tr('Courses', 'Курсы'),
@@ -139,7 +139,7 @@
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {
-      home: [tr('Bus dashboard', 'Панель Bus'), tr('Your web workspace for live lessons, courses and community activity.', 'Веб-кабинет для эфиров, курсов и работы с аудиторией.')],
+      home: [tr('Dashboard', 'Dashboard'), tr('Your web workspace for live lessons, courses and community activity.', 'Веб-кабинет для эфиров, курсов и работы с аудиторией.')],
       videos: [tr('Media library', 'Медиатека'), tr('Prepare short lessons and public previews for learners.', 'Готовьте короткие уроки и публичные превью для учеников.')],
       live: [tr('Live Studio', 'Live Studio'), tr('Open active lessons and manage public live rooms.', 'Запускайте уроки, держите расписание под рукой и переиспользуйте недавние комнаты.')],
       courses: [tr('Courses', 'Курсы'), tr('Structure offers, cohorts and paid learning programs.', 'Собирайте офферы, потоки и платные программы обучения.')],
