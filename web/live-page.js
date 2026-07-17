@@ -26,6 +26,7 @@
   var EFFECT_PATHS = {
     makeup: './web/effects/MakeupLook.deepar',
     hearts: './web/effects/PixelHearts.deepar',
+    background: './web/effects/background_blur.deepar',
     aviators: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/aviators',
     koala: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/koala',
     lion: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/lion'
@@ -1341,22 +1342,16 @@
   }
 
   async function applyLiveEffect(effectId) {
-    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off' || effectId === 'background') ? effectId : 'makeup';
+    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off') ? effectId : 'makeup';
     updateEffectButtons();
     if (!deepARInstance) return;
     el('previewStatus').textContent = tr('Loading effect...', 'Загрузка эффекта...');
     try {
-      if (selectedLiveEffect === 'off') {
-        await deepARInstance.clearEffect();
-        await deepARInstance.backgroundBlur(false, 0);
-      } else if (selectedLiveEffect === 'background') {
-        // Virtual background: no face effect, just person-segmentation blur.
-        await deepARInstance.clearEffect();
-        await deepARInstance.backgroundBlur(true, 5);
-      } else {
-        await deepARInstance.backgroundBlur(false, 0);
-        await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
-      }
+      // 'background' is the packaged background_blur.deepar — it carries its own
+      // person segmentation, unlike the raw backgroundBlur() API which blurred the
+      // whole frame when the segmentation model was unavailable.
+      if (selectedLiveEffect === 'off') await deepARInstance.clearEffect();
+      else await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
       el('deeparCanvas')?.classList.add('active');
       el('hostCameraPreview')?.classList.remove('active');
       el('previewStatus').textContent = isHostPublishing
