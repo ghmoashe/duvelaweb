@@ -432,7 +432,8 @@
   body.business-mode .metric:nth-child(3) b { color: var(--blue); }
 
   /* ── Business dashboard (rich home) ─────────────────────────────────── */
-  .bus-dash { display: grid; gap: 20px; }
+  .bus-dash { display: grid; gap: 18px; max-width: 860px; }
+  @media (min-width: 1100px) { .bus-dash { max-width: 900px; } }
   .bus-dash svg { width: 1em; height: 1em; }
   .bd-section { display: grid; gap: 10px; }
   .bd-section-head { display: flex; align-items: center; gap: 8px; }

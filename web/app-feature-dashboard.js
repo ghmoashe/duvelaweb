@@ -256,8 +256,8 @@
         quick('workspace', 'var(--teal-soft)', ic.bulb, tr('My practices', 'Мои практики')) +
         '</div>';
 
-      // My Business (LIVE earnings)
-      html += section(tr('My Business', 'Мой бизнес'), null,
+      // My Business (LIVE earnings) — the card carries its own title, so no section heading.
+      html += '<div class="bd-section">' +
         '<div class="bd-business">' +
           '<div class="bd-business-top">' +
             '<span class="bd-business-title">' + esc(tr('My Business', 'Мой бизнес')) + '</span>' +
@@ -276,7 +276,8 @@
             '<a class="bd-btn-outline" href="#events" data-go="events">' + esc(tr('Details', 'Подробнее')) + '</a>' +
             '<a class="bd-btn-solid" href="#profile" data-go="profile">' + esc(tr('Withdraw', 'Вывести')) + '</a>' +
           '</div>' +
-        '</div>');
+        '</div>' +
+        '</div>';
 
       // Manage events
       html += section(tr('Manage events', 'Управление событиями'), null,
