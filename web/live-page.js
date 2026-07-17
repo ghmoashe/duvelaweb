@@ -169,15 +169,14 @@
     el('chatList').scrollTop = el('chatList').scrollHeight;
   }
   function requestStatusText(status) {
-    if (status === 'approved') return tr('Approved', 'Одобрен');
-    if (status === 'rejected') return tr('Rejected', 'Отклонён');
+    if (status === 'accepted') return tr('Approved', 'Одобрен');
+    if (status === 'declined') return tr('Rejected', 'Отклонён');
     if (status === 'cancelled') return tr('Cancelled', 'Отменён');
-    if (status === 'ended') return tr('Removed', 'Удалён');
     return tr('Pending', 'Ожидает');
   }
   function requestStatusClass(status) {
-    if (status === 'approved') return 'approved';
-    if (status === 'rejected' || status === 'ended') return 'rejected';
+    if (status === 'accepted') return 'approved';
+    if (status === 'declined') return 'rejected';
     return 'pending';
   }
   function renderGuestStage(user) {
@@ -201,17 +200,17 @@
     el('requestJoinBtn').disabled = requestStatus === 'pending' || viewerGuestActive;
     el('requestJoinBtn').textContent = requestStatus === 'pending'
       ? tr('Request pending', 'Запрос отправлен')
-      : requestStatus === 'approved'
+      : requestStatus === 'accepted'
         ? tr('Request approved', 'Запрос одобрен')
         : tr('Request to join', 'Запросить вход');
-    el('joinGuestBtn').style.display = requestStatus === 'approved' && !viewerGuestActive ? 'inline-flex' : 'none';
+    el('joinGuestBtn').style.display = requestStatus === 'accepted' && !viewerGuestActive ? 'inline-flex' : 'none';
     el('joinGuestBtn').disabled = viewerGuestActive;
     el('joinGuestBtn').textContent = viewerGuestActive ? tr('On stage', 'Уже в эфире') : tr('Join as guest', 'Войти как гость');
     var statusText = viewerGuestActive
       ? tr('You are already connected as a guest with your microphone and camera.', 'Вы уже подключены как гость с камерой и микрофоном.')
-      : requestStatus === 'approved'
+      : requestStatus === 'accepted'
         ? tr('The teacher approved your request. You can now join the LIVE as a guest.', 'Преподаватель одобрил запрос. Теперь можно войти в эфир как гость.')
-        : requestStatus === 'rejected'
+        : requestStatus === 'declined'
           ? tr('The teacher rejected your request.', 'Преподаватель отклонил ваш запрос.')
           : requestStatus === 'pending'
             ? tr('Your request is waiting for the teacher review.', 'Ваш запрос ожидает решения преподавателя.')
@@ -227,20 +226,20 @@
     }
     el('guestRequestsList').innerHTML = hostGuestRequests.map(function (request) {
       var meta = requestStatusText(request.status);
-      var requestedAt = formatChatTime(request.requested_at);
+      var requestedAt = formatChatTime(request.created_at);
       var actions = request.status === 'pending'
         ? '<div class="request-actions"><button type="button" class="btn primary" data-request-approve="' + esc(request.id) + '">' + esc(tr('Approve', 'Одобрить')) + '</button><button type="button" class="btn ghost" data-request-reject="' + esc(request.id) + '">' + esc(tr('Reject', 'Отклонить')) + '</button></div>'
         : '';
       return '<div class="request-item">' +
-        '<div class="request-item-head"><div><b>' + esc(request.requester_name || tr('Viewer', 'Зритель')) + '</b><span>' + esc(requestedAt ? (meta + ' · ' + requestedAt) : meta) + '</span></div><span class="request-pill ' + esc(requestStatusClass(request.status)) + '">' + esc(meta) + '</span></div>' +
+        '<div class="request-item-head"><div><b>' + esc(request.viewer_name || tr('Viewer', 'Зритель')) + '</b><span>' + esc(requestedAt ? (meta + ' · ' + requestedAt) : meta) + '</span></div><span class="request-pill ' + esc(requestStatusClass(request.status)) + '">' + esc(meta) + '</span></div>' +
         actions +
       '</div>';
     }).join('');
     Array.from(document.querySelectorAll('[data-request-approve]')).forEach(function (button) {
-      button.addEventListener('click', function () { void resolveGuestRequest(button.getAttribute('data-request-approve'), 'approved'); });
+      button.addEventListener('click', function () { void resolveGuestRequest(button.getAttribute('data-request-approve'), 'accepted'); });
     });
     Array.from(document.querySelectorAll('[data-request-reject]')).forEach(function (button) {
-      button.addEventListener('click', function () { void resolveGuestRequest(button.getAttribute('data-request-reject'), 'rejected'); });
+      button.addEventListener('click', function () { void resolveGuestRequest(button.getAttribute('data-request-reject'), 'declined'); });
     });
   }
   function setViewerControlsEnabled(enabled) {
@@ -903,10 +902,12 @@
       renderViewerGuestRequestUi();
       return;
     }
-    var result = await supa.from('live_guest_requests')
-      .select('id,session_id,requester_id,requester_name,status,requested_at,resolved_at,resolved_by')
+    var result = await supa.from('live_join_requests')
+      .select('id,session_id,viewer_id,viewer_name,status,created_at,responded_at')
       .eq('session_id', currentSession.id)
-      .eq('requester_id', currentUser.id)
+      .eq('viewer_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
     viewerGuestRequest = result.data || null;
     renderViewerGuestRequestUi();
@@ -917,29 +918,34 @@
       renderGuestRequests();
       return;
     }
-    var result = await supa.from('live_guest_requests')
-      .select('id,session_id,requester_id,requester_name,status,requested_at,resolved_at,resolved_by')
+    var result = await supa.from('live_join_requests')
+      .select('id,session_id,viewer_id,viewer_name,status,created_at,responded_at')
       .eq('session_id', currentSession.id)
-      .order('requested_at', { ascending: true });
+      .order('created_at', { ascending: true });
     hostGuestRequests = result.data || [];
     renderGuestRequests();
   }
   async function requestViewerJoin() {
     if (!currentSession?.id || !currentUser?.id || !supa || currentSession.allow_guest_requests === false) return;
+    // The mobile apps reuse a still-open request instead of inserting duplicates.
+    if (viewerGuestRequest && (viewerGuestRequest.status === 'pending' || viewerGuestRequest.status === 'accepted')) {
+      renderViewerGuestRequestUi();
+      return;
+    }
     el('requestJoinBtn').disabled = true;
     try {
       var payload = {
-        requester_id: currentUser.id,
-        requester_name: viewerDisplayName(),
+        channel_name: currentSession.channel_name,
+        level: null,
         session_id: currentSession.id,
         status: 'pending',
-        requested_at: new Date().toISOString(),
-        resolved_at: null,
-        resolved_by: null
+        topic: currentSession.topic || 'Live web session',
+        viewer_id: currentUser.id,
+        viewer_name: viewerDisplayName()
       };
-      var result = await supa.from('live_guest_requests')
-        .upsert(payload, { onConflict: 'session_id,requester_id' })
-        .select('id,session_id,requester_id,requester_name,status,requested_at,resolved_at,resolved_by')
+      var result = await supa.from('live_join_requests')
+        .insert(payload)
+        .select('id,session_id,viewer_id,viewer_name,status,created_at,responded_at')
         .single();
       if (result.error || !result.data) throw new Error(result.error?.message || tr('Could not send the request.', 'Не удалось отправить запрос.'));
       viewerGuestRequest = result.data;
@@ -953,18 +959,17 @@
   }
   async function resolveGuestRequest(requestId, status) {
     if (!requestId || !currentSession?.id || !currentUser?.id || !supa) return;
-    var result = await supa.from('live_guest_requests')
+    var result = await supa.from('live_join_requests')
       .update({
         status: status,
-        resolved_at: new Date().toISOString(),
-        resolved_by: currentUser.id
+        responded_at: new Date().toISOString()
       })
       .eq('id', requestId)
       .eq('session_id', currentSession.id)
-      .select('id,requester_id,status')
+      .select('id,viewer_id,status')
       .single();
     if (result.error || !result.data) throw new Error(result.error?.message || tr('Could not update the request.', 'Не удалось обновить запрос.'));
-    if (status === 'approved') {
+    if (status === 'accepted') {
       await supa.from('live_messages').insert({
         channel_name: currentSession.channel_name,
         message: tr('Viewer request approved. You can join the stage now.', 'Запрос зрителя одобрен. Теперь можно войти в эфир как гость.'),
@@ -1038,14 +1043,14 @@
       event: '*',
       filter: 'session_id=eq.' + currentSession.id,
       schema: 'public',
-      table: 'live_guest_requests'
+      table: 'live_join_requests'
     }, function (payload) {
       if (isHostMode) {
         void loadHostGuestRequests();
       }
       if (currentUser?.id) {
         var row = payload.new || payload.old;
-        if (row && row.requester_id === currentUser.id) void loadViewerGuestRequest();
+        if (row && row.viewer_id === currentUser.id) void loadViewerGuestRequest();
       }
     });
     await guestRequestChannel.subscribe();
@@ -1159,7 +1164,7 @@
     }
   }
   async function joinViewerAsGuest() {
-    if (!currentSession?.id || !currentUser?.id || !viewerGuestRequest || viewerGuestRequest.status !== 'approved' || viewerGuestActive) return;
+    if (!currentSession?.id || !currentUser?.id || !viewerGuestRequest || viewerGuestRequest.status !== 'accepted' || viewerGuestActive) return;
     el('joinGuestBtn').disabled = true;
     try {
       var uid = viewerAgoraUid || createAgoraUid(currentUser.id);
@@ -1336,13 +1341,22 @@
   }
 
   async function applyLiveEffect(effectId) {
-    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off') ? effectId : 'makeup';
+    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off' || effectId === 'background') ? effectId : 'makeup';
     updateEffectButtons();
     if (!deepARInstance) return;
     el('previewStatus').textContent = tr('Loading effect...', 'Загрузка эффекта...');
     try {
-      if (selectedLiveEffect === 'off') await deepARInstance.clearEffect();
-      else await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
+      if (selectedLiveEffect === 'off') {
+        await deepARInstance.clearEffect();
+        await deepARInstance.backgroundBlur(false, 0);
+      } else if (selectedLiveEffect === 'background') {
+        // Virtual background: no face effect, just person-segmentation blur.
+        await deepARInstance.clearEffect();
+        await deepARInstance.backgroundBlur(true, 5);
+      } else {
+        await deepARInstance.backgroundBlur(false, 0);
+        await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
+      }
       el('deeparCanvas')?.classList.add('active');
       el('hostCameraPreview')?.classList.remove('active');
       el('previewStatus').textContent = isHostPublishing
