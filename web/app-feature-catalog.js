@@ -264,17 +264,6 @@
 
     function renderHome() {
       const creator = ctx.isBusiness();
-      const busDash = document.getElementById('busDashboard');
-      const genericHome = document.getElementById('genericHome');
-      // Business/creator mode gets the rich dashboard; learners keep the simple home.
-      if (creator && ctx.busDashboard) {
-        if (busDash) busDash.hidden = false;
-        if (genericHome) genericHome.hidden = true;
-        ctx.busDashboard.render();
-        return;
-      }
-      if (busDash) busDash.hidden = true;
-      if (genericHome) genericHome.hidden = false;
       const homeHeads = document.querySelectorAll('[data-panel="home"] .section-head');
       if (homeHeads[0]) {
         homeHeads[0].querySelector('h2').textContent = creator ? tr('Creator desk', 'Рабочий стол автора') : tr('Continue learning', 'Продолжить обучение');
@@ -562,6 +551,17 @@
 
     function renderHomeV2() {
       const creator = ctx.isBusiness();
+      const busDash = document.getElementById('busDashboard');
+      const genericHome = document.getElementById('genericHome');
+      // Business/creator mode gets the rich dashboard; learners keep the simple home.
+      if (creator && ctx.busDashboard) {
+        if (busDash) busDash.hidden = false;
+        if (genericHome) genericHome.hidden = true;
+        ctx.busDashboard.render();
+        return;
+      }
+      if (busDash) busDash.hidden = true;
+      if (genericHome) genericHome.hidden = false;
       const liveItems = visibleLiveSessionsV2();
       const scheduledItems = upcomingLiveSessionsV2();
       const historyItems = archivedLiveSessionsV2();
