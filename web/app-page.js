@@ -354,6 +354,8 @@
   const practiceBuilderFeature = window.DuvelaAppPracticeBuilder.create(featureContext);
   const profileFeature = window.DuvelaAppProfile.create(featureContext);
   const workspaceShellFeature = window.DuvelaAppWorkspaceShell.create(featureContext);
+  const busDashboardFeature = window.DuvelaBusinessDashboard.create(featureContext);
+  featureContext.busDashboard = busDashboardFeature;
   const catalogFeature = window.DuvelaAppCatalog.create(featureContext);
   const messagingFeature = window.DuvelaAppMessages.create(featureContext);
   const notificationsFeature = window.DuvelaAppNotifications.create(featureContext);

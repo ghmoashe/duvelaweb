@@ -74,6 +74,12 @@
         if (go) {
           event.preventDefault();
           ctx.setView(go.dataset.go);
+          // Mirror the nav-button loaders so panels reached via data-go still hydrate.
+          if (go.dataset.go === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
+          if (go.dataset.go === 'workspace') {
+            if (ctx.isBusiness()) ctx.loadBusinessWorkspace().then(ctx.renderWorkspace);
+            else ctx.loadPractices().then(ctx.renderWorkspace);
+          }
         }
         const enroll = event.target.closest('[data-enroll]');
         if (enroll) { event.preventDefault(); ctx.enrollCourse(enroll.dataset.enroll); return; }
