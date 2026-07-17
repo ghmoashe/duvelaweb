@@ -244,6 +244,9 @@
         '<span class="bd-golive-btn">' + ic.live + esc(tr('Go Live', 'В эфир')) + '</span>' +
         '</a>';
 
+      // Two-column body on wide screens: actions/business on the left, insights on the right.
+      html += '<div class="bd-grid"><div class="bd-col">';
+
       // Quick actions
       html += '<div class="bd-quick-grid">' +
         quick('live', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир')) +
@@ -288,6 +291,9 @@
           manageRow('workspace', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи'), tr('Motivate students', 'Мотивируйте учеников')) +
         '</div>');
 
+      // Right column: insights (gifts + recent sessions + analytics).
+      html += '</div><div class="bd-col">';
+
       // My Gifts
       const topGift = data && data.topGifts && data.topGifts[0];
       const topViewer = data && data.topViewers && data.topViewers[0];
@@ -327,7 +333,7 @@
           '<span>' + esc(tr('Your completed LIVE sessions will appear here with earnings and duration.', 'Ваши завершённые эфиры появятся здесь с доходом и длительностью.')) + '</span></div>' +
           '<a class="bd-btn-solid" href="' + esc(liveUrl) + '">' + esc(tr('Go Live now', 'В эфир сейчас')) + '</a></div>';
       }
-      html += section(tr('Recent LIVE Sessions', 'Недавние LIVE сессии'), ic.live,
+      html += section(tr('Recent LIVE Sessions', 'Недавние LIVE сессии'), null,
         '<div class="bd-card">' + recentBody + '</div>');
 
       // Analytics
@@ -338,7 +344,7 @@
       }).join('');
       const activityTotal = (data && data.activity ? data.activity : []).reduce((sum, value) => sum + value, 0);
 
-      html += section(tr('Analytics', 'Аналитика'), '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>',
+      html += section(tr('Analytics', 'Аналитика'), null,
         '<div class="bd-card bd-analytics">' +
           '<div class="bd-metric-grid">' +
             statTile(ic.eye, tr('Video Views', 'Просмотры видео'), v(num(data && data.viewsCount))) +
@@ -359,6 +365,8 @@
             '<div class="bd-bars">' + bars + '</div>' +
           '</div>' +
         '</div>');
+
+      html += '</div></div>'; // close right column + grid
 
       return html;
     }
