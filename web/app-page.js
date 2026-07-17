@@ -105,6 +105,7 @@
   const navLabels = {
     hub: {
       home: tr('Home', 'Главная'),
+      management: tr('Management', 'Управление'),
       videos: tr('Media', 'Медиа'),
       live: tr('Live', 'Эфиры'),
       courses: tr('Courses', 'Курсы'),
@@ -116,6 +117,7 @@
     },
     bus: {
       home: tr('Dashboard', 'Dashboard'),
+      management: tr('Management', 'Management'),
       videos: tr('Media', 'Медиа'),
       live: tr('Live Studio', 'LIVE-студия'),
       courses: tr('Courses', 'Курсы'),
@@ -129,6 +131,7 @@
   const titles = {
     hub: {
       home: [tr('Hub dashboard', 'Панель Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Лента обучения, эфиры и практика готовы.')],
+      management: [tr('Management', 'Управление'), tr('Events, courses, live and challenges in one place.', 'События, курсы, эфиры и челленджи в одном месте.')],
       videos: [tr('Media', 'Медиа'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
       live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
       courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
@@ -140,6 +143,7 @@
     },
     bus: {
       home: [tr('Dashboard', 'Dashboard'), tr('Your web workspace for live lessons, courses and community activity.', 'Веб-кабинет для эфиров, курсов и работы с аудиторией.')],
+      management: [tr('Management', 'Management'), tr('Events, courses, live and challenges in one place.', 'События, курсы, эфиры и челленджи в одном месте.')],
       videos: [tr('Media library', 'Медиатека'), tr('Prepare short lessons and public previews for learners.', 'Готовьте короткие уроки и публичные превью для учеников.')],
       live: [tr('Live Studio', 'Live Studio'), tr('Open active lessons and manage public live rooms.', 'Запускайте уроки, держите расписание под рукой и переиспользуйте недавние комнаты.')],
       courses: [tr('Courses', 'Курсы'), tr('Structure offers, cohorts and paid learning programs.', 'Собирайте офферы, потоки и платные программы обучения.')],
@@ -285,6 +289,7 @@
   async function confirmEnrollment(enrollId) { return catalogFeature.confirmEnrollment(enrollId); }
   function openCertificate(courseId) { return catalogFeature.openCertificate(courseId); }
   function renderHome() { return catalogFeature.renderHome(); }
+  function renderManagement() { return managementFeature.render(); }
   function renderLive() { return catalogFeature.renderLive(); }
   function renderCourses() { return catalogFeature.renderCourses(); }
   function renderEvents() { return catalogFeature.renderEvents(); }
@@ -356,6 +361,8 @@
   const workspaceShellFeature = window.DuvelaAppWorkspaceShell.create(featureContext);
   const busDashboardFeature = window.DuvelaBusinessDashboard.create(featureContext);
   featureContext.busDashboard = busDashboardFeature;
+  const managementFeature = window.DuvelaBusinessManagement.create(featureContext);
+  featureContext.management = managementFeature;
   const catalogFeature = window.DuvelaAppCatalog.create(featureContext);
   const messagingFeature = window.DuvelaAppMessages.create(featureContext);
   const notificationsFeature = window.DuvelaAppNotifications.create(featureContext);
@@ -527,6 +534,7 @@
     renderCourses,
     renderEvents,
     renderHome,
+    renderManagement,
     renderLive,
     renderSchedule,
     renderVideos,

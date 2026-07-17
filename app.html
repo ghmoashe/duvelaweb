@@ -533,6 +533,50 @@
   .bd-bar.empty { background: #E7E0F4; }
 
   @media (max-width: 560px) { .bd-business-pills { grid-template-columns: 1fr; } }
+
+  /* ── Management page ────────────────────────────────────────────────── */
+  .nav-business-only { display: none; }
+  body.business-mode .nav-business-only { display: flex; }
+  .mg-wrap { display: grid; gap: 16px; max-width: 860px; }
+  .mg-wrap svg { width: 1em; height: 1em; }
+  .mg-loading { padding: 40px; text-align: center; color: var(--soft); font-weight: 700; }
+  .mg-tabs { display: flex; gap: 4px; padding: 5px; border-radius: 16px; background: linear-gradient(90deg, #5B2DC9, #A855F7, #C026D3); }
+  .mg-tab { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; cursor: pointer; background: transparent; color: rgba(255,255,255,.82); font-weight: 800; font-size: 13px; padding: 10px 8px; border-radius: 12px; }
+  .mg-tab-ic { display: inline-flex; font-size: 15px; }
+  .mg-tab.active { background: #fff; color: var(--purple); }
+  .mg-summary { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .mg-summary-ic { width: 46px; height: 46px; border-radius: 14px; background: var(--purple-soft); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 22px; flex: none; }
+  .mg-summary-ic.teal { background: var(--teal-soft); color: var(--teal); }
+  .mg-summary-ic.red { background: var(--red-soft); color: var(--red); }
+  .mg-summary-ic.purple { background: var(--purple-soft); color: var(--purple); }
+  .mg-summary-copy { flex: 1; min-width: 0; display: grid; gap: 3px; }
+  .mg-summary-copy b { font-size: 17px; font-weight: 800; }
+  .mg-summary-copy span { font-size: 12px; color: var(--soft); font-weight: 700; }
+  .mg-btn-solid { text-decoration: none; background: var(--purple); color: #fff; border-radius: 12px; padding: 11px 16px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .mg-btn-solid.teal { background: var(--teal); }
+  .mg-btn-solid.purple { background: #7140D8; }
+  .mg-seg { display: flex; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 6px; }
+  .mg-seg-btn { flex: 1; border: 0; cursor: pointer; background: transparent; color: var(--soft); font-weight: 800; font-size: 14px; padding: 11px; border-radius: 10px; }
+  .mg-seg-btn.active { background: var(--purple); color: #fff; }
+  .mg-list { display: grid; gap: 10px; }
+  .mg-row { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; box-shadow: var(--shadow); }
+  .mg-row:hover { border-color: rgba(109,63,224,.35); }
+  .mg-row-ic { width: 42px; height: 42px; border-radius: 13px; background: var(--purple-soft); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; flex: none; }
+  .mg-row-ic.teal { background: var(--teal-soft); color: var(--teal); }
+  .mg-row-ic.red { background: var(--red-soft); color: var(--red); }
+  .mg-row-ic.purple { background: var(--purple-soft); color: #7140D8; }
+  .mg-row-copy { flex: 1; min-width: 0; display: grid; gap: 3px; }
+  .mg-row-copy b { font-size: 15px; font-weight: 800; }
+  .mg-row-copy > span { font-size: 12px; color: var(--soft); font-weight: 700; }
+  .mg-chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mg-chip { font-size: 11px; font-weight: 800; color: var(--purple); background: var(--purple-soft); border-radius: 7px; padding: 2px 7px; }
+  .mg-row-tag { font-size: 13px; font-weight: 800; color: var(--teal); white-space: nowrap; }
+  .mg-chevron { color: var(--purple); font-size: 22px; font-weight: 700; }
+  .mg-empty { display: grid; justify-items: center; gap: 10px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 28px 20px; box-shadow: var(--shadow); }
+  .mg-empty-ic { width: 54px; height: 54px; border-radius: 16px; background: var(--purple-soft); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 26px; }
+  .mg-empty b { font-size: 17px; }
+  .mg-empty p { margin: 0; font-size: 13px; color: var(--soft); font-weight: 600; max-width: 380px; }
+  .mg-empty .mg-btn-solid { margin-top: 4px; padding: 12px 24px; font-size: 14px; }
   .business-desk {
     padding: 18px;
     display: grid;
@@ -1213,6 +1257,7 @@
     </select>
     <nav class="nav" aria-label="Application navigation">
       <button class="active" data-view="home" aria-label="Home"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span><span>Home</span></button>
+      <button data-view="management" class="nav-business-only" aria-label="Management"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span>Management</span></button>
       <button data-view="videos" aria-label="Videos"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span><span>Videos</span></button>
       <button data-view="live" aria-label="Live"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg></span><span>Live</span></button>
       <button data-view="courses" aria-label="Courses"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 012-2h13v16H6.5A2.5 2.5 0 004 21.5"/><path d="M8 7h7"/></svg></span><span>Courses</span></button>
@@ -1242,13 +1287,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
         <span class="bell-dot" id="notifDot" style="display:none"></span>
       </button>
-      <div class="user-chip">
-        <div class="avatar" id="topAvatar">D</div>
-        <div>
-          <b id="topName">Duvela user</b>
-          <span id="topEmail">Signed in</span>
-        </div>
-      </div>
     </header>
 
     <div class="notice" id="accessNotice" style="display:none"></div>
@@ -1272,6 +1310,10 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="panel" data-panel="management">
+      <div id="managementPanel" class="mg-wrap"></div>
     </section>
 
     <section class="panel" data-panel="videos">
@@ -1572,6 +1614,7 @@
 <script src="./web/app-feature-practice-builder.js"></script>
 <script src="./web/app-feature-workspace-shell.js"></script>
 <script src="./web/app-feature-dashboard.js"></script>
+<script src="./web/app-feature-management.js"></script>
 <script src="./web/app-feature-business.js"></script>
 <script src="./web/app-feature-classes.js"></script>
 <script src="./web/app-feature-catalog.js"></script>
