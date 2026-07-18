@@ -348,6 +348,7 @@
       openClassManage,
       openCourseDetail,
       openEventDetail,
+      openVideoItem,
       openPractice,
       openChess,
       openDuel,
@@ -380,6 +381,7 @@
   function renderVideos() { return mediaFeature.renderVideos(); }
   async function loadVideos() { return mediaFeature.loadVideos(); }
   function openVideo(id) { return mediaFeature.openVideo(id); }
+  function openVideoItem(item) { return mediaFeature.openVideoItem(item); }
   function closeVideo() { return mediaFeature.closeVideo(); }
   async function toggleLike(postId) { return mediaFeature.toggleLike(postId); }
   function openUpload() { return mediaFeature.openUpload(); }

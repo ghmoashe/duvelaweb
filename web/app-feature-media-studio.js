@@ -31,6 +31,17 @@
       posts = ((r && r.data) || []).filter(function (p) { return !p.shorts_deleted_at; });
     }
 
+    // Map a stored post to the shape the shared player (ctx.openVideoItem) expects.
+    function toPlayerItem(p) {
+      const thumb = p.mux_thumbnail_url || p.cover_url ||
+        (p.mux_playback_id ? 'https://image.mux.com/' + p.mux_playback_id + '/thumbnail.jpg?width=640' : (p.media_type === 'image' ? p.media_url : null));
+      return {
+        id: p.id, title: p.caption || '', level: p.language_level || '',
+        media_type: p.media_type, media_url: p.media_url,
+        playback_id: p.mux_playback_id || null, caption: p.caption || null, image: thumb
+      };
+    }
+
     const IC = {
       yt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.9-.5-5.8a3 3 0 00-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 001.5 6.2 62 62 0 001 12c0 3.9.5 5.8.5 5.8a3 3 0 002.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8zM10 15.5v-7l6 3.5z"/></svg>',
       play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg>',
@@ -76,7 +87,7 @@
           thumb = t ? '<img src="' + esc(t) + '" alt="">' : '<span class="ms-thumb-ph">' + IC.play + '</span>';
         }
         return '<div class="ms-item">' +
-          '<div class="ms-thumb">' + thumb +
+          '<div class="ms-thumb" data-ms-play="' + esc(p.id) + '">' + thumb +
             (kind !== 'photos' ? '<span class="ms-thumb-play">' + IC.play + '</span>' : '') +
             (p.language_level ? '<span class="ms-thumb-lvl">' + esc(p.language_level) + '</span>' : '') +
           '</div>' +
@@ -191,6 +202,13 @@
       if (add) add.addEventListener('click', function () { const i = host.querySelector('#msYtInput'); if (i) ytValue = i.value; void addYoutube(); });
       Array.prototype.forEach.call(host.querySelectorAll('[data-ms-del]'), function (b) {
         b.addEventListener('click', function () { void removePost(b.getAttribute('data-ms-del')); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-ms-play]'), function (t) {
+        t.addEventListener('click', function () {
+          const id = t.getAttribute('data-ms-play');
+          const post = (posts || []).filter(function (p) { return p.id === id; })[0];
+          if (post && ctx.openVideoItem) ctx.openVideoItem(toPlayerItem(post));
+        });
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-ms-upload]'), function (b) {
         b.addEventListener('click', function () { pickFile(b.getAttribute('data-ms-upload')); });

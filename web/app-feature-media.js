@@ -87,9 +87,14 @@
     }
 
     function openVideo(id) {
-      const item = state.videos.find((entry) => entry.id === id);
+      playItem(state.videos.find((entry) => entry.id === id));
+    }
+
+    // Play any media item directly (used by the media studio, which owns its own
+    // posts and must not depend on the browse feed's state.videos array).
+    function playItem(item) {
       if (!item) return;
-      $('#videoOverlayTitle').textContent = item.title;
+      $('#videoOverlayTitle').textContent = item.title || '';
       const body = $('#videoOverlayBody');
       if (item.media_type === 'youtube') {
         const youtubeId = parseYouTubeId(item.media_url);
@@ -267,6 +272,7 @@
       loadVideos,
       openUpload,
       openVideo,
+      openVideoItem: playItem,
       renderVideos,
       toggleLike,
       uploadPost
