@@ -363,6 +363,8 @@
   featureContext.busDashboard = busDashboardFeature;
   const managementFeature = window.DuvelaBusinessManagement.create(featureContext);
   featureContext.management = managementFeature;
+  const mediaStudioFeature = window.DuvelaBusinessMediaStudio.create(featureContext);
+  featureContext.mediaStudio = mediaStudioFeature;
   const catalogFeature = window.DuvelaAppCatalog.create(featureContext);
   const messagingFeature = window.DuvelaAppMessages.create(featureContext);
   const notificationsFeature = window.DuvelaAppNotifications.create(featureContext);

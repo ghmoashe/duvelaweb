@@ -19,6 +19,17 @@
     }
 
     function renderVideos() {
+      const studio = document.getElementById('mediaStudio');
+      const browse = document.getElementById('mediaBrowse');
+      // Business/creator mode gets the media studio (own Videos/Shorts/Photos); learners keep the browse feed.
+      if (ctx.isBusiness() && ctx.mediaStudio) {
+        if (studio) studio.hidden = false;
+        if (browse) browse.hidden = true;
+        ctx.mediaStudio.render();
+        return;
+      }
+      if (studio) studio.hidden = true;
+      if (browse) browse.hidden = false;
       syncUploadAccess();
       const items = state.videos.filter((item) => runtime.currentVideoFilter === 'all' || item.type === runtime.currentVideoFilter);
       $('#videoGrid').innerHTML = items.map((item) => {

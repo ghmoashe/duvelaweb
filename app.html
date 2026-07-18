@@ -584,6 +584,40 @@
   .mg-empty b { font-size: 17px; }
   .mg-empty p { margin: 0; font-size: 13px; color: var(--soft); font-weight: 600; max-width: 380px; }
   .mg-empty .mg-btn-solid { margin-top: 4px; padding: 12px 24px; font-size: 14px; }
+
+  /* ── Media studio ───────────────────────────────────────────────────── */
+  .ms-wrap { display: grid; gap: 16px; max-width: 720px; }
+  .ms-wrap svg { width: 1em; height: 1em; }
+  .ms-loading { padding: 40px; text-align: center; color: var(--soft); font-weight: 700; }
+  .ms-tabs { display: flex; gap: 4px; padding: 5px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .ms-tab { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; cursor: pointer; background: transparent; color: var(--soft); font-weight: 800; font-size: 14px; padding: 11px 8px; border-radius: 12px; }
+  .ms-tab-ic { display: inline-flex; font-size: 16px; }
+  .ms-tab.active { background: var(--purple-soft); color: var(--purple); }
+  .ms-composer { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow); }
+  .ms-input-row { display: flex; align-items: center; gap: 10px; background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 6px 6px 6px 6px; }
+  .ms-yt-badge { width: 40px; height: 40px; border-radius: 11px; background: var(--red-soft); color: var(--red); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; flex: none; }
+  .ms-input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 15px; color: var(--ink); padding: 8px 6px; outline: none; }
+  .ms-level-label { font-size: 13px; font-weight: 800; color: var(--soft); }
+  .ms-levels { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ms-level { border: 1px solid var(--line); background: var(--panel); color: var(--soft); border-radius: 12px; padding: 10px 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
+  .ms-level.active { border-color: var(--purple); background: var(--purple-soft); color: var(--purple); }
+  .ms-add-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; cursor: pointer; background: #FF0000; color: #fff; border-radius: 14px; padding: 14px; font-weight: 800; font-size: 15px; }
+  .ms-add-btn:disabled { opacity: .6; cursor: default; }
+  .ms-notice { font-size: 13px; font-weight: 700; color: var(--red); }
+  .ms-upload { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px dashed var(--purple); background: var(--purple-soft); color: var(--purple); border-radius: 14px; padding: 16px; font-weight: 800; font-size: 15px; cursor: pointer; }
+  .ms-upload:disabled { opacity: .6; cursor: default; }
+  .ms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .ms-item { position: relative; }
+  .ms-thumb { position: relative; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; background: var(--purple-soft); display: flex; align-items: center; justify-content: center; }
+  .ms-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .ms-thumb-ph, .ms-thumb-play { color: #fff; }
+  .ms-thumb-play { position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.42); border-radius: 999px; font-size: 20px; }
+  .ms-thumb-lvl { position: absolute; left: 8px; bottom: 8px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(0,0,0,.55); border-radius: 7px; padding: 2px 7px; }
+  .ms-del { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 0; cursor: pointer; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--red); display: inline-flex; align-items: center; justify-content: center; font-size: 15px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+  .ms-empty { display: grid; justify-items: center; gap: 8px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 28px 20px; box-shadow: var(--shadow); }
+  .ms-empty-ic { width: 54px; height: 54px; border-radius: 16px; background: var(--red-soft); color: var(--red); display: inline-flex; align-items: center; justify-content: center; font-size: 26px; }
+  .ms-empty b { font-size: 17px; }
+  .ms-empty p { margin: 0; font-size: 13px; color: var(--soft); font-weight: 600; max-width: 360px; }
   .business-desk {
     padding: 18px;
     display: grid;
@@ -1324,16 +1358,19 @@
     </section>
 
     <section class="panel" data-panel="videos">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div class="tabs" id="videoTabs" style="margin-bottom:0">
-          <button class="active" data-filter="all">All</button>
-          <button data-filter="language">Languages</button>
-          <button data-filter="arts">Arts</button>
-          <button data-filter="school">School</button>
+      <div id="mediaStudio" class="ms-wrap" hidden></div>
+      <div id="mediaBrowse">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="tabs" id="videoTabs" style="margin-bottom:0">
+            <button class="active" data-filter="all">All</button>
+            <button data-filter="language">Languages</button>
+            <button data-filter="arts">Arts</button>
+            <button data-filter="school">School</button>
+          </div>
+          <button class="btn primary" id="uploadVideoBtn" type="button">Upload</button>
         </div>
-        <button class="btn primary" id="uploadVideoBtn" type="button">Upload</button>
+        <div class="video-grid" id="videoGrid" style="margin-top:14px"></div>
       </div>
-      <div class="video-grid" id="videoGrid" style="margin-top:14px"></div>
     </section>
 
     <section class="panel" data-panel="live">
@@ -1622,6 +1659,7 @@
 <script src="./web/app-feature-workspace-shell.js"></script>
 <script src="./web/app-feature-dashboard.js"></script>
 <script src="./web/app-feature-management.js"></script>
+<script src="./web/app-feature-media-studio.js"></script>
 <script src="./web/app-feature-business.js"></script>
 <script src="./web/app-feature-classes.js"></script>
 <script src="./web/app-feature-catalog.js"></script>
