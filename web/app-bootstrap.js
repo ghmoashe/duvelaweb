@@ -55,6 +55,7 @@
       $$('.nav button').forEach((button) => button.addEventListener('click', () => {
         ctx.setView(button.dataset.view);
         if (button.dataset.view === 'videos') ctx.renderVideos();
+        if (button.dataset.view === 'profile') ctx.renderProfile();
         if (button.dataset.view === 'management') ctx.renderManagement();
         if (button.dataset.view === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
         if (button.dataset.view === 'workspace') {

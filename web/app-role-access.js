@@ -1,5 +1,5 @@
 (function () {
-  const PROFILE_COLUMNS = 'id,full_name,avatar_url,city,country,language,language_level,learning_languages,bio,telegram,instagram,website,is_teacher,is_organizer,is_admin,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level';
+  const PROFILE_COLUMNS = 'id,full_name,avatar_url,cover_url,city,country,language,language_level,learning_languages,teaches_languages,bio,interests,profile_interests,telegram,instagram,tiktok,facebook,linkedin,youtube,website,is_teacher,is_organizer,is_admin,is_verified,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level';
 
   function createRoleAccessFeature(ctx) {
     const {
