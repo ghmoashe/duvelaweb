@@ -90,30 +90,17 @@
     }
 
     function renderProfile() {
-      // Business gets the mobile-style profile view; the editable form stays behind
-      // "Edit Profile". The form below is still populated so it's ready when opened.
+      // Business gets the mobile-style profile view (which owns its own Edit and
+      // Verification screens internally); learners keep the plain editable form.
       const pv = document.getElementById('profileView');
       const pe = document.getElementById('profileEdit');
-      const backBtn = document.getElementById('profileBackBtn');
-      if (backBtn) {
-        const backLabel = backBtn.querySelector('[data-t="backToProfile"]');
-        if (backLabel) backLabel.textContent = tr('Back to profile', 'Назад к профилю');
-        backBtn.onclick = function () {
-          if (pv) pv.hidden = false;
-          if (pe) pe.hidden = true;
-          backBtn.hidden = true;
-          if (ctx.profileView) ctx.profileView.render();
-        };
-      }
       if (ctx.isBusiness() && ctx.profileView) {
         if (pv) pv.hidden = false;
         if (pe) pe.hidden = true;
-        if (backBtn) backBtn.hidden = true;
         ctx.profileView.render();
       } else {
         if (pv) pv.hidden = true;
         if (pe) pe.hidden = false;
-        if (backBtn) backBtn.hidden = true;
       }
       const appLanguageSelect = ensureAppLanguageField();
       if ($('#profileKicker')) $('#profileKicker').textContent = tr('Profile', 'Профиль');

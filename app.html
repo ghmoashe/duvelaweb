@@ -622,11 +622,13 @@
   /* ── Profile view (business) ────────────────────────────────────────── */
   .pv-wrap { display: grid; gap: 14px; max-width: 640px; }
   .pv-wrap svg { width: 1em; height: 1em; }
-  .pv-back { justify-self: start; border: 1px solid var(--line); background: var(--panel); color: var(--purple); font-weight: 800; font-size: 14px; padding: 8px 14px; border-radius: 999px; cursor: pointer; margin-bottom: 12px; }
   .pv-cover { position: relative; border-radius: 20px; min-height: 150px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 14px; margin-bottom: 44px; }
   .pv-certified { background: #fff; color: var(--purple); font-weight: 800; font-size: 13px; padding: 8px 14px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  .pv-cover-cam { width: 34px; height: 34px; border-radius: 999px; border: 0; cursor: pointer; background: rgba(255,255,255,.92); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
   .pv-cover-avatar { position: absolute; left: 50%; bottom: -40px; transform: translateX(-50%); width: 92px; height: 92px; border-radius: 999px; overflow: hidden; border: 4px solid var(--panel); background: linear-gradient(135deg,#5B2DC9,#C026D3); color: #fff; font-weight: 800; font-size: 26px; display: flex; align-items: center; justify-content: center; }
   .pv-cover-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .pv-avatar-cam { position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 999px; border: 2px solid var(--panel); cursor: pointer; background: var(--purple); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+  .pv-toast { text-align: center; font-size: 13px; font-weight: 800; color: var(--teal); }
   .pv-headline { display: flex; align-items: center; justify-content: center; gap: 10px; }
   .pv-headline h2 { margin: 0; font-size: 24px; font-weight: 800; }
   .pv-share { width: 36px; height: 36px; border-radius: 999px; border: 0; cursor: pointer; background: var(--purple-soft); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 17px; }
@@ -672,6 +674,35 @@
   .pv-action-ic { width: 44px; height: 44px; border-radius: 999px; background: var(--purple-soft); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; }
   .pv-action-ic.teal { background: var(--teal-soft); color: var(--teal); }
   @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } }
+  .pv-dot-list { display: grid; gap: 8px; }
+  .pv-dot-row { display: flex; align-items: center; gap: 9px; color: var(--soft); font-weight: 600; }
+  .pv-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--purple); flex: none; }
+
+  /* ── Profile edit / verify ──────────────────────────────────────────── */
+  .pv-backlink { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; cursor: pointer; color: var(--purple); font-weight: 800; font-size: 14px; padding: 6px 0; }
+  .pv-notice { font-size: 13px; font-weight: 700; color: var(--red); }
+  .pv-field { display: grid; gap: 6px; }
+  .pv-field label { font-size: 12px; font-weight: 800; color: var(--soft); }
+  .pv-field input, .pv-field textarea { border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; font: inherit; color: var(--ink); background: var(--panel-soft); }
+  .pv-field textarea { min-height: 84px; resize: vertical; }
+  .pv-field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 4px; }
+  .pv-toggle-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .pv-toggle-chip { border: 1px solid var(--line); background: var(--panel); color: var(--soft); border-radius: 999px; padding: 8px 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
+  .pv-toggle-chip.active { border-color: var(--purple); background: var(--purple-soft); color: var(--purple); }
+  .pv-chip-editor { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pv-chip-edit { display: inline-flex; align-items: center; gap: 6px; background: var(--purple-soft); color: var(--purple); border-radius: 999px; padding: 7px 8px 7px 13px; font-weight: 800; font-size: 13px; }
+  .pv-chip-edit button { width: 18px; height: 18px; border: 0; cursor: pointer; background: rgba(90,53,214,.14); color: var(--purple); border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; padding: 0; }
+  .pv-chip-add-row { display: flex; gap: 8px; margin-top: 6px; }
+  .pv-chip-add-row input { flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 10px 13px; font: inherit; background: var(--panel-soft); }
+  .pv-chip-add-btn { width: 40px; border: 0; cursor: pointer; border-radius: 12px; background: var(--purple); color: #fff; font-weight: 800; font-size: 18px; }
+  .pv-edit-actions { display: flex; gap: 12px; margin-top: 6px; }
+  .pv-btn-outline, .pv-btn-solid { flex: 1; border-radius: 14px; padding: 13px; font-weight: 800; font-size: 15px; cursor: pointer; text-align: center; }
+  .pv-btn-outline { border: 1.5px solid var(--purple); background: var(--panel); color: var(--purple); }
+  .pv-btn-solid { border: 0; background: var(--purple); color: #fff; }
+  .pv-btn-solid:disabled { opacity: .6; cursor: default; }
+  .pv-card > .pv-sec-label:first-of-type { margin-top: 4px; }
+  .pv-card .pv-field + .pv-sec-label, .pv-card .pv-field-grid + .pv-sec-label, .pv-card .pv-toggle-chips + .pv-sec-label, .pv-card .pv-chip-add-row + .pv-sec-label { margin-top: 18px; }
+  @media (max-width: 560px) { .pv-field-grid { grid-template-columns: 1fr; } }
   .business-desk {
     padding: 18px;
     display: grid;
@@ -1499,7 +1530,6 @@
 
     <section class="panel" data-panel="profile">
       <div id="profileView" class="pv-wrap" hidden></div>
-      <button type="button" id="profileBackBtn" class="pv-back" hidden>← <span data-t="backToProfile">Back to profile</span></button>
       <div id="profileEdit">
       <div class="grid-2">
         <form class="card profile-box" id="profileForm">
