@@ -20,8 +20,13 @@
   var hostCameraStream = null;
   var deepARCanvasStream = null;
   var hostPreviewPromise = null;
-  var selectedLiveEffect = 'makeup';
+  var selectedLiveEffect = 'off';
   var cameraFacingMode = 'user';
+  var selectedCameraId = '';
+  var selectedMicrophoneId = '';
+  var screenShareTrack = null;
+  var whiteboardColor = '#6D3FE0';
+  var whiteboardWidth = 5;
   var isHostPublishing = false;
   var EFFECT_PATHS = {
     makeup: './web/effects/MakeupLook.deepar',
@@ -33,6 +38,10 @@
   };
   var currentSession = null;
   var materialChannel = null;
+  var reactionChannel = null;
+  var liveReactionCount = 0;
+  var peakViewerCount = 0;
+  var pdfMaterialPage = 1;
   var heartbeatTimer = null;
   var sessionPollTimer = null;
   var restreamStatusTimer = null;
@@ -756,6 +765,7 @@
     var hostActionLabel = session?.status === 'scheduled'
       ? tr('Go LIVE now', 'Выйти в эфир сейчас')
       : tr('Start LIVE', 'Начать эфир');
+    if (session?.status === 'ended') hostActionLabel = tr('Start a new LIVE', 'Начать новый эфир');
     el('hostAction').style.display = 'inline-flex';
     el('hostAction').disabled = isLiveRoom;
     el('hostAction').textContent = isLiveRoom ? tr('LIVE is running', 'Эфир идёт') : hostActionLabel;
@@ -1314,11 +1324,13 @@
   }
   async function markHeartbeat() {
     if (!currentSession?.id) return;
+    var viewers=client?.remoteUsers?.length||0; peakViewerCount=Math.max(peakViewerCount,viewers);
     await supa.from('live_sessions').update({
       heartbeat_at: new Date().toISOString(),
       status: 'live',
       ended_at: null
     }).eq('id', currentSession.id);
+    try { await supa.rpc('update_live_audience_metrics',{target_session_id:currentSession.id,current_viewers:viewers,join_increment:0}); } catch(_) {}
   }
   async function markEnded() {
     if (!currentSession?.id || !currentUser?.id) return;
@@ -1342,7 +1354,7 @@
   }
 
   async function applyLiveEffect(effectId) {
-    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off') ? effectId : 'makeup';
+    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off') ? effectId : 'off';
     updateEffectButtons();
     if (!deepARInstance) return;
     el('previewStatus').textContent = tr('Loading effect...', 'Загрузка эффекта...');
@@ -1350,10 +1362,15 @@
       // 'background' is the packaged background_blur.deepar — it carries its own
       // person segmentation, unlike the raw backgroundBlur() API which blurred the
       // whole frame when the segmentation model was unavailable.
-      if (selectedLiveEffect === 'off') await deepARInstance.clearEffect();
-      else await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
-      el('deeparCanvas')?.classList.add('active');
-      el('hostCameraPreview')?.classList.remove('active');
+      if (selectedLiveEffect === 'off') {
+        await deepARInstance.clearEffect();
+        el('deeparCanvas')?.classList.remove('active');
+        el('hostCameraPreview')?.classList.add('active');
+      } else {
+        await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
+        el('deeparCanvas')?.classList.add('active');
+        el('hostCameraPreview')?.classList.remove('active');
+      }
       el('previewStatus').textContent = isHostPublishing
         ? tr('Effect is visible to LIVE viewers.', 'Эффект виден зрителям LIVE.')
         : tr('Practice mode: the effect is private until you press Go LIVE.', 'Режим практики: эффект видите только вы до нажатия «В эфир».');
@@ -1367,7 +1384,7 @@
     var nextStream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        facingMode: { ideal: facingMode },
+        ...(selectedCameraId ? { deviceId: { exact: selectedCameraId } } : { facingMode: { ideal: facingMode } }),
         width: { ideal: profile.width },
         height: { ideal: profile.height },
         frameRate: { ideal: profile.frameRate, max: 30 }
@@ -1435,12 +1452,13 @@
     await initializeHostPreview();
     var profile = selectedVideoProfile();
     localAudioTrack = await window.AgoraRTC.createMicrophoneAudioTrack({
+      microphoneId: selectedMicrophoneId || undefined,
       AEC: true,
       AGC: true,
       ANS: Boolean(el('noiseSuppression')?.checked)
     });
     var sourceTrack;
-    if (deepARInstance) {
+    if (deepARInstance && selectedLiveEffect !== 'off') {
       deepARInstance.setFps(profile.frameRate);
       deepARCanvasStream = el('deeparCanvas').captureStream(profile.frameRate);
       sourceTrack = deepARCanvasStream.getVideoTracks()[0];
@@ -1475,6 +1493,21 @@
     else void stage.requestFullscreen();
   }
 
+  async function toggleHostScreenShare() {
+    if (!isHostMode) return false;
+    if (screenShareTrack) {
+      screenShareTrack.stop(); screenShareTrack = null;
+      var restore = (deepARInstance && selectedLiveEffect !== 'off') ? el('deeparCanvas').captureStream(30).getVideoTracks()[0] : hostCameraStream?.getVideoTracks()[0]?.clone();
+      if (localVideoTrack && restore) await localVideoTrack.replaceTrack(restore, true);
+      setScenePreset('camera', true); return false;
+    }
+    var display = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+    screenShareTrack = display.getVideoTracks()[0];
+    if (localVideoTrack) await localVideoTrack.replaceTrack(screenShareTrack, true);
+    screenShareTrack.addEventListener('ended', function () { void toggleHostScreenShare(); }, { once:true });
+    setScenePreset('presentation', true); return true;
+  }
+
   async function startHost() {
     if (!supa || !window.AgoraRTC || !AGORA_APP_ID) {
       setStage('', tr('Live studio is not configured.', 'Студия эфира не настроена.'));
@@ -1495,6 +1528,11 @@
       teacherAgoraUid = uid;
       currentSession = sessionId ? await loadLiveSession(sessionId) : await createLiveSession(currentUser);
       createdFreshSession = !sessionId;
+      if (currentSession && currentSession.status === 'ended') {
+        currentSession = await createLiveSession(currentUser);
+        createdFreshSession = true;
+        sessionId = '';
+      }
       applySessionToInputs(currentSession);
       if (currentSession.teacher_id && currentSession.teacher_id !== currentUser.id) {
         throw new Error(tr('This LIVE belongs to another teacher.', 'Этот эфир принадлежит другому преподавателю.'));
@@ -1513,6 +1551,7 @@
       camEnabled = true;
       await client.publish([localAudioTrack, localVideoTrack]);
       isHostPublishing = true;
+      el('stageChipSecondary').textContent = tr('Broadcasting now', 'Идёт трансляция');
 
       el('title').textContent = currentSession.topic || tr('Teacher LIVE', 'Эфир преподавателя');
       el('subtitle').textContent = tr('You are live from the browser. Students can open the watch link.', 'Вы в эфире из браузера. Ученики могут открыть ссылку для просмотра.');
@@ -1520,7 +1559,7 @@
       el('toggleMic').style.display = 'inline-flex';
       el('toggleCam').style.display = 'inline-flex';
       el('pinMaterial').style.display = 'inline-flex';
-      if (currentSession) { subscribeLiveMaterial(currentSession.id); renderLiveMaterial(currentSession.material_url); }
+      if (currentSession) { subscribeLiveMaterial(currentSession.id); subscribeLiveReactions(currentSession.id); renderLiveMaterial(currentSession.material_url); }
       updateHostControls();
       el('mainAction').textContent = tr('LIVE is running', 'Эфир идёт');
       syncHostActionState(currentSession);
@@ -1561,14 +1600,16 @@
       node = document.createElement('div');
       node.id = 'liveMaterialOverlay';
       node.style.cssText = 'position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);';
-      node.innerHTML = '<img alt="" style="max-width:94%;max-height:82%;object-fit:contain;border-radius:8px;"><iframe title="Lesson material" style="display:none;width:94%;height:88%;border:0;border-radius:8px;background:#fff"></iframe>';
+      node.innerHTML = '<img alt="" style="max-width:94%;max-height:82%;object-fit:contain;border-radius:8px;"><iframe title="Lesson material" style="display:none;width:94%;height:88%;border:0;border-radius:8px;background:#fff"></iframe><div class="pdf-controls" style="display:none"><button type="button" data-pdf-page="-1">‹</button><span>1</span><button type="button" data-pdf-page="1">›</button></div>';
+      node.addEventListener('click',function(event){var button=event.target.closest('[data-pdf-page]');if(!button)return;pdfMaterialPage=Math.max(1,pdfMaterialPage+Number(button.dataset.pdfPage));node.querySelector('.pdf-controls span').textContent=pdfMaterialPage;node.querySelector('iframe').src=node.dataset.pdfUrl+'#page='+pdfMaterialPage+'&toolbar=0';});
       if (getComputedStyle(stage).position === 'static') stage.style.position = 'relative';
       stage.appendChild(node);
     }
     var isPdf = /\.pdf(?:$|\?)/i.test(url);
     node.querySelector('img').style.display = isPdf ? 'none' : 'block';
     node.querySelector('iframe').style.display = isPdf ? 'block' : 'none';
-    if (isPdf) node.querySelector('iframe').src = url;
+    node.querySelector('.pdf-controls').style.display = isPdf ? 'flex' : 'none';
+    if (isPdf) { node.dataset.pdfUrl=url; node.querySelector('iframe').src = url+'#page='+pdfMaterialPage+'&toolbar=0'; }
     else node.querySelector('img').src = url;
   }
 
@@ -1605,13 +1646,13 @@
     var drawing = false, last = null;
     function point(event) { var rect = canvas.getBoundingClientRect(); return { x:(event.clientX-rect.left)/rect.width, y:(event.clientY-rect.top)/rect.height }; }
     canvas.addEventListener('pointerdown', function (event) { drawing=true; last=point(event); canvas.setPointerCapture(event.pointerId); });
-    canvas.addEventListener('pointermove', function (event) { if(!drawing) return; var next=point(event); drawWhiteboardStroke(last,next); if(materialChannel) materialChannel.send({type:'broadcast',event:'whiteboard',payload:{kind:'stroke',from:last,to:next}}); last=next; });
+    canvas.addEventListener('pointermove', function (event) { if(!drawing) return; var next=point(event); last.color=whiteboardColor; last.width=whiteboardWidth; drawWhiteboardStroke(last,next); if(materialChannel) materialChannel.send({type:'broadcast',event:'whiteboard',payload:{kind:'stroke',from:last,to:next}}); last=next; });
     canvas.addEventListener('pointerup', function(){ drawing=false; last=null; });
     return canvas;
   }
 
   function drawWhiteboardStroke(from, to) {
-    var canvas=ensureWhiteboard(), context=canvas.getContext('2d'); context.strokeStyle='#6D3FE0'; context.lineWidth=5; context.lineCap='round'; context.beginPath(); context.moveTo(from.x*canvas.width,from.y*canvas.height); context.lineTo(to.x*canvas.width,to.y*canvas.height); context.stroke();
+    var canvas=ensureWhiteboard(), context=canvas.getContext('2d'); context.strokeStyle=from.color||whiteboardColor; context.lineWidth=from.width||whiteboardWidth; context.lineCap='round'; context.beginPath(); context.moveTo(from.x*canvas.width,from.y*canvas.height); context.lineTo(to.x*canvas.width,to.y*canvas.height); context.stroke();
   }
 
   function clearWhiteboard(broadcast) {
@@ -1748,6 +1789,20 @@
     materialChannel.subscribe();
   }
 
+  function showLiveReaction(emoji) {
+    var stage=document.querySelector('.stage'); if(!stage)return; var node=document.createElement('span'); node.className='floating-reaction'; node.textContent=emoji; node.style.left=(15+Math.random()*70)+'%'; stage.appendChild(node); setTimeout(function(){node.remove();},2600);
+    liveReactionCount++;
+  }
+  function subscribeLiveReactions(id) {
+    if(!supa||!id)return; if(reactionChannel){try{supa.removeChannel(reactionChannel);}catch(_){} }
+    reactionChannel=supa.channel('live-reactions-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'live_reactions',filter:'session_id=eq.'+id},function(payload){showLiveReaction(payload.new.emoji);}).subscribe();
+  }
+  async function sendLiveReaction(emoji) {
+    if(!currentSession?.id||!currentUser?.id)return;
+    if(!reactionChannel)subscribeLiveReactions(currentSession.id);
+    var result=await supa.from('live_reactions').insert({session_id:currentSession.id,user_id:currentUser.id,emoji:emoji}); if(result.error)throw result.error;
+  }
+
   async function watch() {
     if (!sessionId) {
       setStage('', tr('No live session selected.', 'Сессия эфира не выбрана.'));
@@ -1791,6 +1846,7 @@
       await subscribeViewerRealtime();
       renderLiveMaterial(currentSession.material_url);
       subscribeLiveMaterial(sessionId);
+      subscribeLiveReactions(sessionId);
       void renderFollowUi();
       setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
@@ -1874,6 +1930,7 @@
       await subscribeGuestRequests();
       renderLiveMaterial(currentSession.material_url);
       subscribeLiveMaterial(sessionId);
+      subscribeLiveReactions(sessionId);
       void renderFollowUi();
       renderViewerGuestRequestUi();
       setViewerControlsEnabled(true);
@@ -1915,6 +1972,7 @@
     }
     deepARCanvasStream = null;
     isHostPublishing = false;
+    if (isHostMode && el('stageChipSecondary')) el('stageChipSecondary').textContent = tr('Not broadcasting', 'Не транслируется');
     if (client) {
       try { await client.leave(); } catch (e) {}
       client = null;
@@ -2057,7 +2115,7 @@
       el('copyShare').textContent = tr('Copied', 'Скопировано');
       setTimeout(function () { el('copyShare').textContent = tr('Copy link', 'Скопировать ссылку'); }, 1200);
     });
-    el('endLive').addEventListener('click', endHost);
+    el('endLive').addEventListener('click', function () { if (window.confirm(tr('End this LIVE for everyone?', 'Завершить эфир для всех?'))) void endHost(); });
     el('hostAction').addEventListener('click', function () { void startHostWithCountdown(); });
     el('toggleMic').addEventListener('click', function () { void toggleMic(); });
     el('toggleCam').addEventListener('click', function () { void toggleCam(); });
@@ -2098,6 +2156,17 @@
       el('stageChipSecondary').textContent = tr('Camera + mic live', 'Камера и микрофон в эфире');
       el('sideKicker').textContent = tr('Studio panel', 'Панель студии');
       el('badgeText').textContent = 'TEACHER LIVE';
+      el('stageChipSecondary').textContent = tr('Not broadcasting', 'Не транслируется');
+      el('scenePresetLabel').textContent = tr('Scene layout', 'Сцена');
+      el('scenePreset').options[0].textContent = tr('Camera', 'Камера');
+      el('scenePreset').options[1].textContent = tr('Presentation + camera', 'Презентация и камера');
+      el('scenePreset').options[2].textContent = tr('Whiteboard', 'Интерактивная доска');
+      el('scenePreset').options[3].textContent = tr('Focus', 'Фокус');
+      el('coverImageLabel').textContent = tr('Cover image', 'Обложка');
+      el('coverImageBtn').textContent = tr('Choose cover', 'Выбрать обложку');
+      el('whiteboardLabel').textContent = tr('Whiteboard', 'Доска');
+      el('whiteboardToggle').textContent = tr('Open board', 'Открыть доску');
+      el('whiteboardClear').textContent = tr('Clear', 'Очистить');
       el('title').textContent = sessionId ? tr('Enter teacher LIVE', 'Войти в эфир преподавателя') : tr('Start teacher LIVE', 'Начать эфир преподавателя');
       el('subtitle').textContent = tr('Create a live room and publish camera plus microphone from this browser.', 'Создайте комнату эфира и транслируйте камеру и микрофон прямо из браузера.');
       el('sideTitle').textContent = tr('Teacher controls', 'Управление преподавателя');
@@ -2139,7 +2208,6 @@
       setStatus(tr('Ready for teacher', 'Готово для преподавателя'), 'ready');
       syncHostActionState(currentSession);
       void preloadHostSession();
-      void initializeHostPreview();
       return;
     }
 
@@ -2197,5 +2265,18 @@
     if (sessionId) setTimeout(function () { void watchLiveViewer(); }, 250);
   }
 
+  window.DuvelaLiveStudioApi = {
+    isHost: isHostMode,
+    setDevices: async function (cameraId, microphoneId) { selectedCameraId=cameraId||''; selectedMicrophoneId=microphoneId||''; if(isHostMode) { if(hostCameraStream) await openHostCamera(cameraFacingMode); else await initializeHostPreview(); } },
+    toggleScreenShare: toggleHostScreenShare,
+    setScene: function (preset) { setScenePreset(preset, true); },
+    clearBoard: function () { clearWhiteboard(true); },
+    setBoardTool: function (color,width) { whiteboardColor=color||whiteboardColor; whiteboardWidth=Number(width)||whiteboardWidth; },
+    sendReaction: sendLiveReaction,
+    addModerator: async function (userId) { if(!currentSession?.id||!currentUser?.id)throw new Error(tr('Start or open a room first.','Сначала откройте или создайте комнату.')); var result=await supa.from('live_moderators').upsert({session_id:currentSession.id,user_id:userId,added_by:currentUser.id});if(result.error)throw result.error;return true; },
+    getStats: function () { return { peakViewers:peakViewerCount,reactions:liveReactionCount,messages:viewerMessages.length,guests:Object.keys(remoteGuestUsers).length }; },
+    getSession: function () { return currentSession; },
+    isPublishing: function () { return isHostPublishing; }
+  };
   setupMode();
 })();
