@@ -4,6 +4,7 @@
     const CHAT_PROFILE_FIELDS = 'id,full_name,avatar_url,city,country';
     let threadChannel = null;
     let chatSearchTimer = null;
+    const renderedMessageIds = new Set();
     let chatGroupMode = false;
     const chatGroupSel = new Map();
     let lastPeopleResults = [];
@@ -115,10 +116,31 @@
     function renderThread(messages) {
       const body = $('#threadBody');
       if (!body) return;
+      renderedMessageIds.clear();
+      messages.forEach((message) => { if (message.id) renderedMessageIds.add(message.id); });
       body.innerHTML = messages.length
         ? messages.map((message) => '<div class="bubble ' + (message.sender_id === ctx.user.id ? 'me' : 'them') + '">' + esc(message.body) + '</div>').join('')
         : '<div class="empty">' + esc(tr('No messages yet. Say hello.', 'Сообщений пока нет. Напишите первым.')) + '</div>';
       body.scrollTop = body.scrollHeight;
+    }
+
+    // Appends one message, ignoring duplicates so an optimistic append and the
+    // realtime INSERT for the same row don't both render a bubble.
+    function appendMessage(message) {
+      if (!message || (message.id && renderedMessageIds.has(message.id))) return;
+      if (message.id) renderedMessageIds.add(message.id);
+      const body = $('#threadBody');
+      if (!body) return;
+      const empty = body.querySelector('.empty');
+      if (empty) body.innerHTML = '';
+      body.insertAdjacentHTML('beforeend', '<div class="bubble ' + (message.sender_id === ctx.user.id ? 'me' : 'them') + '">' + esc(message.body) + '</div>');
+      body.scrollTop = body.scrollHeight;
+      const conversation = state.conversations.find((item) => item.id === message.conversation_id);
+      if (conversation) {
+        conversation.lastMessage = message.body;
+        conversation.lastAt = message.created_at || new Date().toISOString();
+        renderConversations();
+      }
     }
 
     async function openConversation(id) {
@@ -143,30 +165,33 @@
       if (threadChannel) supa.removeChannel(threadChannel);
       threadChannel = supa.channel('thread-' + id + '-' + Date.now())
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'conversation_id=eq.' + id }, (payload) => {
-          const message = payload.new;
-          const body = $('#threadBody');
-          const empty = body.querySelector('.empty');
-          if (empty) body.innerHTML = '';
-          body.insertAdjacentHTML('beforeend', '<div class="bubble ' + (message.sender_id === ctx.user.id ? 'me' : 'them') + '">' + esc(message.body) + '</div>');
-          body.scrollTop = body.scrollHeight;
-          if (conversation) {
-            conversation.lastMessage = message.body;
-            conversation.lastAt = message.created_at;
-            renderConversations();
-          }
+          appendMessage(payload.new);
         }).subscribe();
     }
 
     async function sendCurrentMessage(body) {
       const text = body.trim();
       if (!text || !state.activeConversationId) return;
-      $('#composeInput').value = '';
-      try {
-        await supa.from('chat_messages').insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body: text });
-      } catch (error) {
+      const input = $('#composeInput');
+      input.value = '';
+      const restore = (error) => {
         console.warn('send failed', error);
-        $('#composeInput').value = text;
-        alert(tr('Could not send the message.', 'Не удалось отправить сообщение.'));
+        input.value = text;
+        alert((error && error.message) || tr('Could not send the message.', 'Не удалось отправить сообщение.'));
+      };
+      try {
+        // supabase-js resolves with { data, error } instead of throwing, so the
+        // error MUST be checked explicitly — otherwise a rejected insert looks
+        // like a successful send that silently vanishes.
+        const result = await supa.from('chat_messages')
+          .insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body: text })
+          .select('id,conversation_id,sender_id,body,created_at')
+          .single();
+        if (result.error) { restore(result.error); return; }
+        // Render immediately instead of waiting on the realtime echo.
+        appendMessage(result.data);
+      } catch (error) {
+        restore(error);
       }
     }
 
