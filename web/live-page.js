@@ -1561,11 +1561,68 @@
       node = document.createElement('div');
       node.id = 'liveMaterialOverlay';
       node.style.cssText = 'position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);';
-      node.innerHTML = '<img alt="" style="max-width:94%;max-height:82%;object-fit:contain;border-radius:8px;">';
+      node.innerHTML = '<img alt="" style="max-width:94%;max-height:82%;object-fit:contain;border-radius:8px;"><iframe title="Lesson material" style="display:none;width:94%;height:88%;border:0;border-radius:8px;background:#fff"></iframe>';
       if (getComputedStyle(stage).position === 'static') stage.style.position = 'relative';
       stage.appendChild(node);
     }
-    node.querySelector('img').src = url;
+    var isPdf = /\.pdf(?:$|\?)/i.test(url);
+    node.querySelector('img').style.display = isPdf ? 'none' : 'block';
+    node.querySelector('iframe').style.display = isPdf ? 'block' : 'none';
+    if (isPdf) node.querySelector('iframe').src = url;
+    else node.querySelector('img').src = url;
+  }
+
+  async function startHostWithCountdown() {
+    if (isHostPublishing) return startHost();
+    var stage = document.querySelector('.stage');
+    var overlay = document.createElement('div');
+    overlay.className = 'live-countdown';
+    stage.appendChild(overlay);
+    for (var count = 3; count > 0; count--) {
+      overlay.textContent = count;
+      overlay.style.animation = 'none'; void overlay.offsetWidth; overlay.style.animation = '';
+      await new Promise(function (resolve) { setTimeout(resolve, 850); });
+    }
+    overlay.textContent = 'LIVE';
+    await new Promise(function (resolve) { setTimeout(resolve, 500); });
+    overlay.remove();
+    return startHost();
+  }
+
+  function setScenePreset(preset, broadcast) {
+    document.body.classList.remove('scene-camera','scene-presentation','scene-board','scene-focus');
+    document.body.classList.add('scene-' + preset);
+    var canvas = ensureWhiteboard();
+    canvas.style.display = preset === 'board' ? 'block' : '';
+    if (broadcast && materialChannel) materialChannel.send({ type:'broadcast', event:'scene', payload:{ preset:preset } });
+  }
+
+  function ensureWhiteboard() {
+    var stage = document.querySelector('.stage');
+    var canvas = document.getElementById('liveWhiteboard');
+    if (canvas) return canvas;
+    canvas = document.createElement('canvas'); canvas.id = 'liveWhiteboard'; canvas.width = 1280; canvas.height = 720; stage.appendChild(canvas);
+    var drawing = false, last = null;
+    function point(event) { var rect = canvas.getBoundingClientRect(); return { x:(event.clientX-rect.left)/rect.width, y:(event.clientY-rect.top)/rect.height }; }
+    canvas.addEventListener('pointerdown', function (event) { drawing=true; last=point(event); canvas.setPointerCapture(event.pointerId); });
+    canvas.addEventListener('pointermove', function (event) { if(!drawing) return; var next=point(event); drawWhiteboardStroke(last,next); if(materialChannel) materialChannel.send({type:'broadcast',event:'whiteboard',payload:{kind:'stroke',from:last,to:next}}); last=next; });
+    canvas.addEventListener('pointerup', function(){ drawing=false; last=null; });
+    return canvas;
+  }
+
+  function drawWhiteboardStroke(from, to) {
+    var canvas=ensureWhiteboard(), context=canvas.getContext('2d'); context.strokeStyle='#6D3FE0'; context.lineWidth=5; context.lineCap='round'; context.beginPath(); context.moveTo(from.x*canvas.width,from.y*canvas.height); context.lineTo(to.x*canvas.width,to.y*canvas.height); context.stroke();
+  }
+
+  function clearWhiteboard(broadcast) {
+    var canvas=ensureWhiteboard(); canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    if(broadcast && materialChannel) materialChannel.send({type:'broadcast',event:'whiteboard',payload:{kind:'clear'}});
+  }
+
+  function chooseCoverImage() { el('coverImageFile').value=''; el('coverImageFile').click(); }
+  function previewCoverImage() {
+    var file=el('coverImageFile').files&&el('coverImageFile').files[0]; if(!file) return;
+    var url=URL.createObjectURL(file); setStage('<img src="'+url+'" alt="" style="width:100%;height:100%;object-fit:cover">', tr('Cover ready. Camera remains private until LIVE starts.','Обложка готова. Камера останется приватной до начала эфира.'));
   }
 
   async function hostToggleMaterial() {
@@ -1672,10 +1729,21 @@
   function subscribeLiveMaterial(id) {
     if (!supa || !id) return;
     if (materialChannel) { try { supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
-    materialChannel = supa.channel('live-material-' + id, { config: { broadcast: { self: true } } })
+    materialChannel = supa.channel('live-material-' + id, { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'material' }, function (msg) {
         var p = msg && msg.payload;
         renderLiveMaterial(p && p.kind === 'set' ? p.url : null);
+      })
+      .on('broadcast', { event: 'whiteboard' }, function (msg) {
+        var p = msg && msg.payload;
+        if (!p) return;
+        setScenePreset('board');
+        if (p.kind === 'clear') clearWhiteboard(false);
+        if (p.kind === 'stroke' && p.from && p.to) drawWhiteboardStroke(p.from, p.to);
+      })
+      .on('broadcast', { event: 'scene' }, function (msg) {
+        var p = msg && msg.payload;
+        if (p && p.preset) setScenePreset(p.preset, false);
       });
     materialChannel.subscribe();
   }
@@ -1990,7 +2058,7 @@
       setTimeout(function () { el('copyShare').textContent = tr('Copy link', 'Скопировать ссылку'); }, 1200);
     });
     el('endLive').addEventListener('click', endHost);
-    el('hostAction').addEventListener('click', function () { void startHost(); });
+    el('hostAction').addEventListener('click', function () { void startHostWithCountdown(); });
     el('toggleMic').addEventListener('click', function () { void toggleMic(); });
     el('toggleCam').addEventListener('click', function () { void toggleCam(); });
     el('flipCamera').addEventListener('click', function () { void flipHostCamera(); });
@@ -2006,6 +2074,11 @@
     });
     el('pinMaterial').addEventListener('click', function () { void hostToggleMaterial(); });
     el('materialFile').addEventListener('change', function () { void hostUploadMaterial(); });
+    el('scenePreset').addEventListener('change', function () { setScenePreset(el('scenePreset').value, true); });
+    el('coverImageBtn').addEventListener('click', chooseCoverImage);
+    el('coverImageFile').addEventListener('change', previewCoverImage);
+    el('whiteboardToggle').addEventListener('click', function () { el('scenePreset').value='board'; setScenePreset('board', true); });
+    el('whiteboardClear').addEventListener('click', function () { clearWhiteboard(true); });
     if (el('followBtn')) el('followBtn').addEventListener('click', function () { void toggleViewerFollow(); });
     if (el('requestJoinBtn')) el('requestJoinBtn').addEventListener('click', function () { void requestViewerJoin(); });
     if (el('joinGuestBtn')) el('joinGuestBtn').addEventListener('click', function () { void joinViewerAsGuest(); });
@@ -2050,7 +2123,7 @@
       el('timelineHistoryTitle').textContent = tr('Recent', 'Недавние');
       el('scheduleSession').textContent = tr('Schedule session', 'Запланировать сессию');
       el('mainAction').textContent = sessionId ? tr('Open as teacher', 'Открыть как преподаватель') : tr('Start LIVE', 'Начать эфир');
-      el('mainAction').addEventListener('click', startHost);
+      el('mainAction').addEventListener('click', function () { void startHostWithCountdown(); });
       el('dashboardLink').href = './app.html?role=teacher#live';
       el('backLink').href = './app.html?role=teacher#live';
       el('openApp').textContent = tr('Open in the Duvela app', 'Открыть в приложении Duvela');
