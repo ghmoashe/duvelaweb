@@ -39,9 +39,9 @@
     }
     const membersResult = await supa.from('chat_participants').select('user_id').eq('conversation_id', conversationId);
     const memberIds = (membersResult.data || []).map((row) => row.user_id).sort();
-    const conversation = await supa.from('chat_conversations').select('created_by').eq('id', conversationId).maybeSingle();
-    const initializer = (conversation.data && conversation.data.created_by) || memberIds[0];
-    if (!memberIds.length || initializer !== userId) throw new Error('Waiting for the conversation owner to initialize encryption.');
+    const claim = await supa.rpc('claim_chat_e2ee_initialization', { target_conversation_id: conversationId });
+    if (claim.error) throw claim.error;
+    if (!memberIds.length || claim.data !== userId) throw new Error('Encryption is being initialized by another participant. Please try again shortly.');
     const identities = await supa.from('chat_e2ee_identities').select('user_id,public_key').in('user_id', memberIds);
     if ((identities.data || []).length !== memberIds.length) throw new Error('Every participant must open the updated chat once before encrypted messages can be sent.');
     const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);

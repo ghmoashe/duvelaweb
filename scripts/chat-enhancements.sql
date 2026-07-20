@@ -32,6 +32,40 @@ create table if not exists public.chat_e2ee_envelopes (
   created_at timestamptz not null default now(),
   primary key (conversation_id, user_id)
 );
+create table if not exists public.chat_e2ee_initializers (
+  conversation_id uuid primary key references public.chat_conversations(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  claimed_at timestamptz not null default now()
+);
+alter table public.chat_e2ee_initializers enable row level security;
+drop policy if exists "members view e2ee initializer" on public.chat_e2ee_initializers;
+create policy "members view e2ee initializer" on public.chat_e2ee_initializers for select to authenticated
+  using (public.is_chat_participant(conversation_id));
+
+create or replace function public.claim_chat_e2ee_initialization(target_conversation_id uuid)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare claimed_user uuid;
+begin
+  if auth.uid() is null or not public.is_chat_participant(target_conversation_id) then
+    raise exception 'Conversation access denied';
+  end if;
+  insert into public.chat_e2ee_initializers (conversation_id, user_id)
+  values (target_conversation_id, auth.uid())
+  on conflict (conversation_id) do update
+    set user_id = case
+      when chat_e2ee_initializers.claimed_at < now() - interval '2 minutes'
+       and not exists (select 1 from public.chat_e2ee_envelopes e where e.conversation_id = target_conversation_id)
+      then auth.uid() else chat_e2ee_initializers.user_id end,
+    claimed_at = case
+      when chat_e2ee_initializers.claimed_at < now() - interval '2 minutes'
+       and not exists (select 1 from public.chat_e2ee_envelopes e where e.conversation_id = target_conversation_id)
+      then now() else chat_e2ee_initializers.claimed_at end
+  returning user_id into claimed_user;
+  return claimed_user;
+end;
+$$;
+revoke all on function public.claim_chat_e2ee_initialization(uuid) from public, anon;
+grant execute on function public.claim_chat_e2ee_initialization(uuid) to authenticated;
 alter table public.chat_e2ee_identities enable row level security;
 alter table public.chat_e2ee_identities add column if not exists last_seen_at timestamptz;
 alter table public.chat_e2ee_envelopes enable row level security;
@@ -45,7 +79,7 @@ drop policy if exists "members create e2ee envelopes" on public.chat_e2ee_envelo
 create policy "members create e2ee envelopes" on public.chat_e2ee_envelopes for insert to authenticated with check (
   public.is_chat_participant(conversation_id)
   and exists (select 1 from public.chat_participants target where target.conversation_id = chat_e2ee_envelopes.conversation_id and target.user_id = chat_e2ee_envelopes.user_id)
-  and exists (select 1 from public.chat_conversations c where c.id = chat_e2ee_envelopes.conversation_id and c.created_by = auth.uid())
+  and exists (select 1 from public.chat_e2ee_initializers i where i.conversation_id = chat_e2ee_envelopes.conversation_id and i.user_id = auth.uid())
 );
 
 create or replace function public.enforce_chat_rate_limit()
