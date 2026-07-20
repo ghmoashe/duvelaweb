@@ -76,7 +76,7 @@
       return '<div class="mg-empty">' +
         '<span class="mg-empty-ic">' + icon + '</span>' +
         '<b>' + esc(title) + '</b><p>' + esc(text) + '</p>' +
-        (btnLabel ? '<a class="mg-btn-solid" ' + btnAttrs + '>' + esc(btnLabel) + '</a>' : '') +
+        (btnLabel ? '<button type="button" class="mg-btn-solid" ' + btnAttrs + '>' + esc(btnLabel) + '</button>' : '') +
         '</div>';
     }
 
@@ -90,7 +90,7 @@
         '<span class="mg-summary-ic">' + IC.cal + '</span>' +
         '<div class="mg-summary-copy"><b>' + esc(String(events.length) + ' ' + tr('events', 'событий')) + '</b>' +
         '<span>' + esc(upcoming.length + ' ' + tr('upcoming', 'предстоящих') + ' | ' + past.length + ' ' + tr('past', 'прошедших')) + '</span></div>' +
-        '<a class="mg-btn-solid" ' + go('workspace') + '>' + esc(tr('New event', 'Новое событие')) + '</a>' +
+        '<button type="button" class="mg-btn-solid" data-mg-new-event>' + esc(tr('New event', 'Новое событие')) + '</button>' +
         '</div>';
 
       html += '<div class="mg-seg">' +
@@ -111,7 +111,7 @@
           eventsSub === 'upcoming' ? tr('No upcoming events', 'Нет предстоящих событий') : tr('No past events', 'Нет прошедших событий'),
           eventsSub === 'upcoming' ? tr('Create an event and it will appear here.', 'Создайте событие — и оно появится здесь.') : tr('Past events will be listed here.', 'Здесь будут показаны прошедшие события.'),
           eventsSub === 'upcoming' ? tr('Create event', 'Создать событие') : null,
-          go('workspace'));
+          'data-mg-new-event');
       }
       return html;
     }
@@ -119,15 +119,23 @@
     function renderCoursesTab() {
       var courses = data.courses;
       if (!courses.length) {
-        return emptyCard(IC.book, tr('No courses yet', 'Пока нет курсов'),
-          tr('Build your first course offer for learners.', 'Соберите первый курс для учеников.'),
-          tr('Create course', 'Создать курс'), go('workspace'));
+        return '<div class="mg-empty">' +
+          '<span class="mg-empty-ic teal">' + IC.book + '</span>' +
+          '<b>' + esc(tr('No courses yet', 'Пока нет курсов')) + '</b>' +
+          '<p>' + esc(tr('Build your first course offer for learners, or import many at once from Excel.', 'Соберите первый курс для учеников или импортируйте сразу много из Excel.')) + '</p>' +
+          '<div class="mg-empty-actions">' +
+            '<button type="button" class="mg-btn-solid teal" data-mg-new-course>' + esc(tr('Create course', 'Создать курс')) + '</button>' +
+            '<button type="button" class="mg-btn-outline" data-mg-import-course>' + esc(tr('Import from Excel', 'Импорт из Excel')) + '</button>' +
+          '</div></div>';
       }
       var html = '<div class="mg-summary">' +
         '<span class="mg-summary-ic teal">' + IC.book + '</span>' +
         '<div class="mg-summary-copy"><b>' + esc(courses.length + ' ' + tr('courses', 'курсов')) + '</b>' +
         '<span>' + esc(tr('Manage your programs', 'Управляйте программами')) + '</span></div>' +
-        '<a class="mg-btn-solid teal" ' + go('workspace') + '>' + esc(tr('New course', 'Новый курс')) + '</a>' +
+        '<div class="mg-summary-actions">' +
+          '<button type="button" class="mg-btn-outline sm" data-mg-import-course>' + esc(tr('Import', 'Импорт')) + '</button>' +
+          '<button type="button" class="mg-btn-solid teal sm" data-mg-new-course>' + esc(tr('New course', 'Новый курс')) + '</button>' +
+        '</div>' +
         '</div>';
       html += '<div class="mg-list">' + courses.map(function (c) {
         var tags = [c.level, c.language].filter(Boolean).map(function (t) { return '<span class="mg-chip">' + esc(t) + '</span>'; }).join('');
@@ -145,13 +153,13 @@
       if (!live.length) {
         return emptyCard(IC.live, tr('No scheduled LIVE yet', 'Пока нет запланированных эфиров'),
           tr('Plan an online session with your students.', 'Запланируйте онлайн-сессию с учениками.'),
-          tr('Schedule Live', 'Запланировать эфир'), go('live'));
+          tr('Schedule Live', 'Запланировать эфир'), 'data-mg-schedule-live');
       }
       var html = '<div class="mg-summary">' +
         '<span class="mg-summary-ic red">' + IC.live + '</span>' +
         '<div class="mg-summary-copy"><b>' + esc(tr('Scheduled LIVE', 'Запланированные эфиры')) + '</b>' +
         '<span>' + esc(tr('Upcoming online sessions', 'Ближайшие онлайн-сессии')) + '</span></div>' +
-        '<a class="mg-btn-solid" ' + go('live') + '>' + esc(tr('Schedule', 'Запланировать')) + '</a>' +
+        '<button type="button" class="mg-btn-solid" data-mg-schedule-live>' + esc(tr('Schedule', 'Запланировать')) + '</button>' +
         '</div>';
       html += '<div class="mg-list">' + live.map(function (ev) {
         return '<a class="mg-row" href="#events" data-go="events" data-event-open="' + esc(ev.id) + '">' +
@@ -168,13 +176,13 @@
       if (!ch.length) {
         return emptyCard(IC.trophy, tr('No challenges yet', 'Пока нет челленджей'),
           tr('Motivate students with a learning challenge.', 'Мотивируйте учеников учебным челленджем.'),
-          tr('Create challenge', 'Создать челлендж'), go('workspace'));
+          tr('Create challenge', 'Создать челлендж'), 'data-mg-new-challenge');
       }
       var html = '<div class="mg-summary">' +
         '<span class="mg-summary-ic purple">' + IC.trophy + '</span>' +
         '<div class="mg-summary-copy"><b>' + esc(ch.length + ' ' + tr('challenges', 'челленджей')) + '</b>' +
         '<span>' + esc(tr('Motivate students', 'Мотивируйте учеников')) + '</span></div>' +
-        '<a class="mg-btn-solid purple" ' + go('workspace') + '>' + esc(tr('New challenge', 'Новый челлендж')) + '</a>' +
+        '<button type="button" class="mg-btn-solid purple" data-mg-new-challenge>' + esc(tr('New challenge', 'Новый челлендж')) + '</button>' +
         '</div>';
       html += '<div class="mg-list">' + ch.map(function (c) {
         var meta = [c.target_level, c.exam_type].filter(Boolean).join(' · ');
@@ -219,6 +227,365 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-course-open]'), function (a) {
         a.addEventListener('click', function () { if (ctx.openCourseDetail) ctx.openCourseDetail(a.getAttribute('data-course-open')); });
       });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-course]'), function (b) {
+        b.addEventListener('click', function () { openCourseModal(); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-import-course]'), function (b) {
+        b.addEventListener('click', function () { pickCourseExcel(); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-event]'), function (b) {
+        b.addEventListener('click', function () { openEventModal(false); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-schedule-live]'), function (b) {
+        b.addEventListener('click', function () { openEventModal(true); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-challenge]'), function (b) {
+        b.addEventListener('click', function () { openChallengeModal(); });
+      });
+    }
+
+    // ── Course creation (modal) ─────────────────────────────────────────────
+    var courseCover = null;      // uploaded cover URL
+    var courseSaving = false;
+    var courseNotice = '';
+
+    function el(id) { return document.getElementById(id); }
+
+    // courses.organization_id is NOT NULL and insert RLS needs an org role, so a
+    // teacher without an org gets a personal one created on first course.
+    async function ensureOrg() {
+      if (ctx.state && ctx.state.myOrg) return ctx.state.myOrg;
+      var name = ((ctx.profile && ctx.profile.full_name) || tr('My', 'Мой') + ' teacher').trim() + ' · Duvela';
+      var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32) + '-' + Math.random().toString(36).slice(2, 6);
+      var orgRes = await safe(supa.from('organizations').insert({ owner_id: ctx.user.id, name: name, slug: slug }).select('id,name').single());
+      if (!orgRes || !orgRes.data) return null;
+      await safe(supa.from('organization_memberships').insert({ organization_id: orgRes.data.id, user_id: ctx.user.id, role: 'owner', status: 'active' }));
+      if (ctx.state) ctx.state.myOrg = orgRes.data;
+      return orgRes.data;
+    }
+
+    // Generic create-modal shell shared by course/event/challenge.
+    function openModal(title, paintFn) {
+      var overlay = el('courseCreateOverlay');
+      var titleEl = el('ccTitle');
+      if (titleEl) titleEl.textContent = title;
+      paintFn();
+      if (overlay) {
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
+        overlay.onclick = function (e) { if (e.target === overlay) closeModal(); };
+      }
+      document.body.classList.add('modal-open');
+      var closeBtn = el('ccClose');
+      if (closeBtn) closeBtn.onclick = closeModal;
+    }
+    function closeModal() {
+      var overlay = el('courseCreateOverlay');
+      if (overlay) { overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true'); }
+      document.body.classList.remove('modal-open');
+    }
+    function afterCreate() {
+      closeModal();
+      if (ctx.loadPublicData) ctx.loadPublicData();
+      return load(ctx.user.id);
+    }
+
+    function openCourseModal() {
+      courseCover = null; courseNotice = ''; courseSaving = false;
+      openModal(tr('Create course', 'Создать курс'), paintCourseModal);
+    }
+    var closeCourseModal = closeModal;
+
+    function field(id, label, type, placeholder) {
+      return '<div class="pv-field"><label>' + esc(label) + '</label>' +
+        '<input id="' + id + '" type="' + (type || 'text') + '" placeholder="' + esc(placeholder || '') + '"></div>';
+    }
+
+    function paintCourseModal() {
+      var body = el('ccBody');
+      if (!body) return;
+      var coverStyle = courseCover
+        ? 'background-image:url(' + esc(courseCover) + ');background-size:cover;background-position:center;'
+        : '';
+      body.innerHTML =
+        '<button type="button" class="cc-cover" id="ccCoverBtn" style="' + coverStyle + '">' +
+          (courseCover ? '' : '<span>+ ' + esc(tr('Add cover photo', 'Добавить обложку')) + '</span>') +
+        '</button>' +
+        '<input type="file" id="ccCoverFile" accept="image/*" hidden>' +
+        '<div class="pv-field" style="margin-top:12px"><label>' + esc(tr('Title', 'Название')) + ' *</label>' +
+          '<input id="ccTitleInput" type="text" placeholder="' + esc(tr('e.g. English A1 → A2', 'напр. Английский A1 → A2')) + '"></div>' +
+        '<div class="pv-field-grid">' +
+          field('ccLevel', tr('Level', 'Уровень'), 'text', 'A1–C2') +
+          field('ccLanguage', tr('Language', 'Язык'), 'text', tr('English', 'Английский')) +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          field('ccPrice', tr('Price', 'Цена'), 'number', '0') +
+          '<div class="pv-field"><label>' + esc(tr('Currency', 'Валюта')) + '</label>' +
+            '<select id="ccCurrency"><option value="EUR">EUR €</option><option value="USD">USD $</option></select></div>' +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          field('ccStart', tr('Start date', 'Дата начала'), 'date') +
+          field('ccEnd', tr('End date', 'Дата окончания'), 'date') +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          field('ccSchedule', tr('Schedule', 'Расписание'), 'text', tr('Mon/Wed 18:00', 'Пн/Ср 18:00')) +
+          field('ccLocation', tr('Location', 'Место'), 'text', tr('Online / address', 'Онлайн / адрес')) +
+        '</div>' +
+        '<div class="pv-field"><label>' + esc(tr('Description', 'Описание')) + '</label>' +
+          '<textarea id="ccDesc" maxlength="800" placeholder="' + esc(tr('What learners will get from this course', 'Что ученики получат от курса')) + '"></textarea></div>' +
+        '<label class="cc-check"><input type="checkbox" id="ccPublish" checked> ' + esc(tr('Publish now (visible to learners)', 'Опубликовать сейчас (видно ученикам)')) + '</label>' +
+        (courseNotice ? '<div class="pv-notice">' + esc(courseNotice) + '</div>' : '') +
+        '<div class="pv-edit-actions">' +
+          '<button type="button" class="pv-btn-outline" id="ccImport">' + esc(tr('Import Excel', 'Импорт Excel')) + '</button>' +
+          '<button type="button" class="pv-btn-solid" id="ccSubmit"' + (courseSaving ? ' disabled' : '') + '>' + esc(courseSaving ? tr('Saving…', 'Сохранение…') : tr('Create course', 'Создать курс')) + '</button>' +
+        '</div>' +
+        '<p class="cc-hint">' + esc(tr('Excel columns: title, level, language, price, schedule, description', 'Колонки Excel: title, level, language, price, schedule, description')) + '</p>';
+
+      var coverBtn = el('ccCoverBtn'); var coverFile = el('ccCoverFile');
+      if (coverBtn && coverFile) {
+        coverBtn.onclick = function () { coverFile.click(); };
+        coverFile.onchange = function () {
+          var f = coverFile.files && coverFile.files[0];
+          if (f) void uploadCover(f);
+        };
+      }
+      var submit = el('ccSubmit');
+      if (submit) submit.onclick = function () { void submitCourse(); };
+      var imp = el('ccImport');
+      if (imp) imp.onclick = function () { pickCourseExcel(); };
+    }
+
+    async function uploadCover(file) {
+      courseNotice = tr('Uploading cover…', 'Загрузка обложки…'); paintCourseModal();
+      try {
+        courseCover = await ctx.uploadToBucket('posts', file);
+        courseNotice = '';
+      } catch (e) { courseNotice = tr('Could not upload the cover.', 'Не удалось загрузить обложку.'); }
+      paintCourseModal();
+    }
+
+    async function submitCourse() {
+      // Read EVERY field before any repaint — paintCourseModal() rebuilds the inputs.
+      var val = function (id) { return (el(id) && el(id).value.trim()) || ''; };
+      var title = val('ccTitleInput');
+      if (!title) { courseNotice = tr('Enter a course title.', 'Введите название курса.'); paintCourseModal(); return; }
+      var priceRaw = val('ccPrice');
+      var fields = {
+        level: val('ccLevel').toUpperCase() || null,
+        language: val('ccLanguage') || null,
+        price: priceRaw !== '' && !isNaN(Number(priceRaw)) ? Number(priceRaw) : null,
+        currency: (el('ccCurrency') && el('ccCurrency').value) || null,
+        starts_on: val('ccStart') || null, ends_on: val('ccEnd') || null,
+        schedule: val('ccSchedule') || null, location: val('ccLocation') || null,
+        description: val('ccDesc') || null,
+        status: (el('ccPublish') && el('ccPublish').checked) ? 'active' : 'draft'
+      };
+      courseSaving = true; courseNotice = ''; paintCourseModal();
+      var org = await ensureOrg();
+      if (!org) { courseSaving = false; courseNotice = tr('Could not prepare your workspace. Try again.', 'Не удалось подготовить рабочее пространство. Попробуйте ещё раз.'); paintCourseModal(); return; }
+      var row = {
+        organization_id: org.id, created_by: ctx.user.id, title: title,
+        cover_image_url: courseCover || null,
+        level: fields.level, language: fields.language, price: fields.price, currency: fields.currency,
+        starts_on: fields.starts_on, ends_on: fields.ends_on, schedule: fields.schedule,
+        location: fields.location, description: fields.description, status: fields.status
+      };
+      var res = await safe(supa.from('courses').insert(row));
+      courseSaving = false;
+      if (!res) { courseNotice = tr('Could not create the course.', 'Не удалось создать курс.'); paintCourseModal(); return; }
+      closeCourseModal();
+      if (ctx.loadPublicData) ctx.loadPublicData();
+      await load(ctx.user.id);
+      activeTab = 'courses';
+      paint();
+    }
+
+    function pickCourseExcel() {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.xlsx,.xls,.csv';
+      input.onchange = function () { var f = input.files && input.files[0]; if (f) void importCourseExcel(f); };
+      input.click();
+    }
+
+    async function importCourseExcel(file) {
+      if (!window.XLSX) { ctx.alert(tr('Spreadsheet library not loaded.', 'Библиотека таблиц не загрузилась.')); return; }
+      var org = await ensureOrg();
+      if (!org) { ctx.alert(tr('Could not prepare your workspace.', 'Не удалось подготовить рабочее пространство.')); return; }
+      try {
+        var buf = await file.arrayBuffer();
+        var wb = window.XLSX.read(buf, { type: 'array' });
+        var rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+        var lookup = function (obj, key) { for (var k in obj) { if (k.toLowerCase().trim() === key) return obj[k]; } return ''; };
+        var payload = rows.map(function (r) {
+          var t = String(lookup(r, 'title') || '').trim();
+          if (!t) return null;
+          var pr = String(lookup(r, 'price') || '').trim();
+          return {
+            organization_id: org.id, created_by: ctx.user.id, title: t,
+            level: String(lookup(r, 'level') || '').trim().toUpperCase() || null,
+            language: String(lookup(r, 'language') || '').trim() || null,
+            price: pr && !isNaN(Number(pr)) ? Number(pr) : null,
+            schedule: String(lookup(r, 'schedule') || '').trim() || null,
+            description: String(lookup(r, 'description') || '').trim() || null,
+            status: 'active'
+          };
+        }).filter(Boolean);
+        if (!payload.length) { ctx.alert(tr('No valid rows — need a "title" column.', 'Нет валидных строк — нужна колонка "title".')); return; }
+        var res = await safe(supa.from('courses').insert(payload));
+        if (!res) { ctx.alert(tr('Import failed.', 'Импорт не удался.')); return; }
+        closeCourseModal();
+        if (ctx.loadPublicData) ctx.loadPublicData();
+        await load(ctx.user.id);
+        activeTab = 'courses';
+        paint();
+        ctx.alert('✓ ' + payload.length + ' ' + tr('courses imported.', 'курсов импортировано.'));
+      } catch (e) {
+        ctx.alert((e && e.message) || tr('Import failed.', 'Импорт не удался.'));
+      }
+    }
+
+    // ── Event / Schedule Live creation ──────────────────────────────────────
+    var eventCover = null, eventSaving = false, eventNotice = '', eventIsLive = false;
+
+    function openEventModal(isLive) {
+      eventCover = null; eventSaving = false; eventNotice = ''; eventIsLive = !!isLive;
+      openModal(isLive ? tr('Schedule LIVE', 'Запланировать эфир') : tr('Create event', 'Создать событие'), paintEventModal);
+    }
+
+    function paintEventModal() {
+      var body = el('ccBody');
+      if (!body) return;
+      var coverStyle = eventCover ? 'background-image:url(' + esc(eventCover) + ');background-size:cover;background-position:center;' : '';
+      var fmtOptions = eventIsLive
+        ? '<option value="online">' + esc(tr('Online', 'Онлайн')) + '</option>'
+        : '<option value="online">' + esc(tr('Online', 'Онлайн')) + '</option><option value="offline">' + esc(tr('In person', 'Офлайн')) + '</option><option value="hybrid">' + esc(tr('Hybrid', 'Гибрид')) + '</option>';
+      body.innerHTML =
+        '<button type="button" class="cc-cover" id="evCoverBtn" style="' + coverStyle + '">' + (eventCover ? '' : '<span>+ ' + esc(tr('Add cover photo', 'Добавить обложку')) + '</span>') + '</button>' +
+        '<input type="file" id="evCoverFile" accept="image/*" hidden>' +
+        '<div class="pv-field" style="margin-top:12px"><label>' + esc(tr('Title', 'Название')) + ' *</label>' +
+          '<input id="evTitleInput" type="text" placeholder="' + esc(eventIsLive ? tr('e.g. Speaking Club B1', 'напр. Speaking Club B1') : tr('e.g. Grammar Workshop', 'напр. Грамматический воркшоп')) + '"></div>' +
+        '<div class="pv-field-grid">' +
+          field('evDateInput', tr('Date', 'Дата'), 'date') +
+          field('evTimeInput', tr('Time', 'Время'), 'time') +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          '<div class="pv-field"><label>' + esc(tr('Format', 'Формат')) + '</label><select id="evFormatInput">' + fmtOptions + '</select></div>' +
+          field('evLangInput', tr('Language', 'Язык'), 'text', tr('English', 'Английский')) +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          field('evCityInput', tr('Location', 'Место'), 'text', tr('City / address / link', 'Город / адрес / ссылка')) +
+          field('evPriceInput', tr('Price (0 = free)', 'Цена (0 = бесплатно)'), 'number', '0') +
+        '</div>' +
+        '<div class="pv-field"><label>' + esc(tr('Description', 'Описание')) + '</label>' +
+          '<textarea id="evDescInput" maxlength="800" placeholder="' + esc(tr('What is this session about', 'О чём эта сессия')) + '"></textarea></div>' +
+        (eventNotice ? '<div class="pv-notice">' + esc(eventNotice) + '</div>' : '') +
+        '<div class="pv-edit-actions">' +
+          '<button type="button" class="pv-btn-outline" id="evCancel">' + esc(tr('Cancel', 'Отмена')) + '</button>' +
+          '<button type="button" class="pv-btn-solid" id="evSubmit"' + (eventSaving ? ' disabled' : '') + '>' + esc(eventSaving ? tr('Saving…', 'Сохранение…') : (eventIsLive ? tr('Schedule', 'Запланировать') : tr('Publish event', 'Опубликовать'))) + '</button>' +
+        '</div>';
+      var coverBtn = el('evCoverBtn'), coverFile = el('evCoverFile');
+      if (coverBtn && coverFile) {
+        coverBtn.onclick = function () { coverFile.click(); };
+        coverFile.onchange = function () { var f = coverFile.files && coverFile.files[0]; if (f) void uploadEventCover(f); };
+      }
+      var cancel = el('evCancel'); if (cancel) cancel.onclick = closeModal;
+      var submit = el('evSubmit'); if (submit) submit.onclick = function () { void submitEvent(); };
+    }
+
+    async function uploadEventCover(file) {
+      eventNotice = tr('Uploading cover…', 'Загрузка обложки…'); paintEventModal();
+      try { eventCover = await ctx.uploadToBucket('events', file); eventNotice = ''; }
+      catch (e) { eventNotice = tr('Could not upload the cover.', 'Не удалось загрузить обложку.'); }
+      paintEventModal();
+    }
+
+    async function submitEvent() {
+      var val = function (id) { return (el(id) && el(id).value.trim()) || ''; };
+      var title = val('evTitleInput');
+      if (!title) { eventNotice = tr('Enter a title.', 'Введите название.'); paintEventModal(); return; }
+      var priceRaw = val('evPriceInput');
+      var isPaid = priceRaw !== '' && Number(priceRaw) > 0;
+      var row = {
+        organizer_id: ctx.user.id, title: title,
+        description: val('evDescInput') || null,
+        event_date: val('evDateInput') || null,
+        event_time: val('evTimeInput') || null,
+        format: (el('evFormatInput') && el('evFormatInput').value) || 'online',
+        language: val('evLangInput') || null,
+        city: val('evCityInput') || null,
+        is_paid: isPaid, price_amount: isPaid ? Number(priceRaw) : null,
+        image_url: eventCover || null
+      };
+      eventSaving = true; eventNotice = ''; paintEventModal();
+      var res = await safe(supa.from('events').insert(row));
+      eventSaving = false;
+      if (!res) { eventNotice = tr('Could not create the event.', 'Не удалось создать событие.'); paintEventModal(); return; }
+      await afterCreate();
+      activeTab = eventIsLive ? 'live' : 'events';
+      eventsSub = 'upcoming';
+      paint();
+    }
+
+    // ── Challenge creation ──────────────────────────────────────────────────
+    var challengeSaving = false, challengeNotice = '';
+
+    function openChallengeModal() {
+      challengeSaving = false; challengeNotice = '';
+      openModal(tr('Create challenge', 'Создать челлендж'), paintChallengeModal);
+    }
+
+    function paintChallengeModal() {
+      var body = el('ccBody');
+      if (!body) return;
+      var today = new Date().toISOString().slice(0, 10);
+      var in30 = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+      body.innerHTML =
+        '<div class="pv-field"><label>' + esc(tr('Title', 'Название')) + ' *</label>' +
+          '<input id="chTitleInput" type="text" placeholder="' + esc(tr('e.g. 30-day speaking challenge', 'напр. 30 дней разговорной практики')) + '"></div>' +
+        '<div class="pv-field-grid">' +
+          field('chLevelInput', tr('Target level', 'Целевой уровень'), 'text', 'B1') +
+          field('chExamInput', tr('Exam type', 'Тип экзамена'), 'text', 'IELTS') +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          '<div class="pv-field"><label>' + esc(tr('Start date', 'Дата начала')) + '</label><input id="chStartInput" type="date" value="' + today + '"></div>' +
+          '<div class="pv-field"><label>' + esc(tr('End date', 'Дата окончания')) + '</label><input id="chEndInput" type="date" value="' + in30 + '"></div>' +
+        '</div>' +
+        '<div class="pv-field-grid">' +
+          field('chDialogsInput', tr('Daily dialogs', 'Диалогов в день'), 'number', '0') +
+          field('chWordsInput', tr('Daily words', 'Слов в день'), 'number', '0') +
+        '</div>' +
+        (challengeNotice ? '<div class="pv-notice">' + esc(challengeNotice) + '</div>' : '') +
+        '<div class="pv-edit-actions">' +
+          '<button type="button" class="pv-btn-outline" id="chCancel">' + esc(tr('Cancel', 'Отмена')) + '</button>' +
+          '<button type="button" class="pv-btn-solid" id="chSubmit"' + (challengeSaving ? ' disabled' : '') + '>' + esc(challengeSaving ? tr('Saving…', 'Сохранение…') : tr('Create challenge', 'Создать челлендж')) + '</button>' +
+        '</div>';
+      var cancel = el('chCancel'); if (cancel) cancel.onclick = closeModal;
+      var submit = el('chSubmit'); if (submit) submit.onclick = function () { void submitChallenge(); };
+    }
+
+    async function submitChallenge() {
+      var val = function (id) { return (el(id) && el(id).value.trim()) || ''; };
+      var num = function (id) { return Math.max(0, Number(val(id)) || 0); };
+      var title = val('chTitleInput');
+      if (!title) { challengeNotice = tr('Enter a title.', 'Введите название.'); paintChallengeModal(); return; }
+      // started_at & ends_at are NOT NULL — always provide both.
+      var start = val('chStartInput') || new Date().toISOString().slice(0, 10);
+      var end = val('chEndInput') || new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+      var row = {
+        created_by: ctx.user.id, title: title,
+        target_level: val('chLevelInput') || null,
+        exam_type: val('chExamInput') || null,
+        started_at: start, ends_at: end,
+        daily_min_dialogs: num('chDialogsInput'), daily_min_words: num('chWordsInput')
+      };
+      challengeSaving = true; challengeNotice = ''; paintChallengeModal();
+      var res = await safe(supa.from('challenges').insert(row));
+      challengeSaving = false;
+      if (!res) { challengeNotice = tr('Could not create the challenge.', 'Не удалось создать челлендж.'); paintChallengeModal(); return; }
+      await afterCreate();
+      activeTab = 'challenges';
+      paint();
     }
 
     function render() {

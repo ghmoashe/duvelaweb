@@ -136,17 +136,20 @@
       const doneTasks = tasks.filter((task) => mySubByTask.has(task.id)).length;
       const pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
       let html =
-        (course.image ? '<img src="' + esc(course.image) + '" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px">' : '') +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
-          (course.level ? '<span class="tag">' + esc(course.level) + '</span>' : '') +
-          '<span class="tag teal">' + esc(formatMoney(course)) + '</span>' +
-          (course.schedule ? '<span class="tag blue">' + esc(course.schedule) + '</span>' : '') +
+        '<div class="cd-cover"' + (course.image ? ' style="background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.45)),url(' + esc(course.image) + ')"' : '') + '>' +
+          '<span class="cd-cover-title">' + esc(course.title || tr('Course', 'Курс')) + '</span>' +
         '</div>' +
-        '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(course.description || tr('No description yet.', 'Описания пока нет.')) + '</p>';
+        '<div class="pv-chips" style="margin:12px 0">' +
+          (course.level ? '<span class="pv-chip">' + esc(course.level) + '</span>' : '') +
+          '<span class="pv-chip teal">' + esc(formatMoney(course)) + '</span>' +
+          (course.schedule ? '<span class="pv-chip">' + esc(course.schedule) + '</span>' : '') +
+          (course.language ? '<span class="pv-chip">' + esc(course.language) + '</span>' : '') +
+        '</div>' +
+        '<p class="cd-desc">' + esc(course.description || tr('No description yet.', 'Описания пока нет.')) + '</p>';
       if (!owner && totalTasks) {
         html += '<div class="prog-row" style="margin-top:14px"><div class="prog-label"><span>' + esc(tr('Course progress', 'Прогресс курса')) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
       }
-      html += '<h3 style="margin:16px 0 6px;font-size:15px">' + esc(tr('Lessons', 'Уроки')) + '</h3>';
+      html += '<div class="cd-sec">' + esc(tr('Lessons', 'Уроки')) + '</div>';
       if (owner) {
         html += '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:8px"><input id="newLessonTitle" placeholder="' + esc(tr('New lesson title', 'Название урока')) + '" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel-soft)"><button class="btn primary" data-add-lesson="1">' + esc(tr('Add', 'Добавить')) + '</button></div>';
       }
@@ -156,7 +159,7 @@
         (owner ? '<div class="card" style="padding:8px;margin:0 0 12px;display:flex;gap:6px;flex-wrap:wrap"><input id="nt-' + esc(lesson.id) + '" placeholder="' + esc(tr('New task/homework', 'Новое задание')) + '" style="flex:1;min-width:140px;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--panel-soft)"><input id="ntm-' + esc(lesson.id) + '" type="number" min="1" value="100" title="max" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--panel-soft)"><button class="btn" data-add-task="' + esc(lesson.id) + '">' + esc(tr('Add task', 'Задание')) + '</button></div>' : '')
       ).join('') : '<div class="empty">' + esc(tr('No lessons yet.', 'Уроков пока нет.')) + '</div>';
       if (owner) {
-        html += '<h3 style="margin:16px 0 6px;font-size:15px">' + esc(tr('Enrollments', 'Записи')) + ' (' + enrollments.length + ')</h3>' +
+        html += '<div class="cd-sec">' + esc(tr('Enrollments', 'Записи')) + ' (' + enrollments.length + ')</div>' +
           (enrollments.length ? enrollments.map((enrollment) =>
             '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(enrollment.full_name || tr('Student', 'Студент')) + '</h3><p>' + esc(enrollment.status) + '</p></div>' + (enrollment.status === 'pending' ? '<button class="btn primary" data-confirm-enroll="' + esc(enrollment.id) + '">' + esc(tr('Confirm', 'Подтвердить')) + '</button>' : '<span class="tag teal">' + esc(tr('Confirmed', 'Подтверждён')) + '</span>') + '</div>'
           ).join('') : '<div class="empty">' + esc(tr('No enrollments yet.', 'Записей пока нет.')) + '</div>');

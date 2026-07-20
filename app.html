@@ -584,6 +584,30 @@
   .mg-empty b { font-size: 17px; }
   .mg-empty p { margin: 0; font-size: 13px; color: var(--soft); font-weight: 600; max-width: 380px; }
   .mg-empty .mg-btn-solid { margin-top: 4px; padding: 12px 24px; font-size: 14px; }
+  .mg-empty-ic.teal { background: var(--teal-soft); color: var(--teal); }
+  .mg-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+  .mg-summary-actions { display: flex; gap: 8px; flex: none; }
+  .mg-btn-outline { border: 1.5px solid var(--purple); background: var(--panel); color: var(--purple); border-radius: 12px; padding: 11px 16px; font-weight: 800; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .mg-btn-solid.sm, .mg-btn-outline.sm { padding: 9px 13px; }
+  /* course detail (mobile-style) */
+  .cd-cover { position: relative; min-height: 140px; border-radius: 14px; display: flex; align-items: flex-end; padding: 14px; background: linear-gradient(135deg,#5B2DC9,#C026D3); background-size: cover; background-position: center; }
+  .cd-cover-title { color: #fff; font-size: 20px; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  .cd-desc { margin: 0; font-weight: 600; color: var(--soft); line-height: 1.6; }
+  .cd-sec { margin: 18px 0 8px; font-size: 12px; font-weight: 800; color: var(--purple); text-transform: uppercase; letter-spacing: .05em; }
+  .pv-chip.teal { background: var(--teal-soft); color: var(--teal); }
+  /* schedule (mobile-style) */
+  .sch-avatar { width: 42px; height: 42px; border-radius: 999px; overflow: hidden; flex: none; background: linear-gradient(135deg,#5B2DC9,#C026D3); color: #fff; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; }
+  .sch-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .sch-cancel { border: 1.5px solid var(--red); background: var(--panel); color: var(--red); border-radius: 10px; padding: 8px 12px; font-weight: 800; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .sch-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .sch-head b { font-size: 17px; font-weight: 800; }
+  .sch-back { border: 0; background: transparent; color: var(--purple); font-weight: 800; font-size: 14px; cursor: pointer; padding: 0; }
+  .sch-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+  /* course-create modal */
+  .cc-cover { width: 100%; min-height: 120px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--panel-soft); color: var(--purple); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .cc-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-weight: 700; color: var(--soft); font-size: 13px; }
+  .cc-hint { margin: 8px 0 0; font-size: 11px; color: var(--muted); font-weight: 600; }
+  #ccBody .pv-field select { border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; font: inherit; color: var(--ink); background: var(--panel-soft); }
 
   /* ── Media studio ───────────────────────────────────────────────────── */
   .ms-wrap { display: grid; gap: 16px; max-width: 720px; }
@@ -1287,8 +1311,8 @@
   .conv { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; cursor: pointer; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); transition: background .15s ease; }
   .conv:hover { background: var(--panel-soft); }
   .conv.active { background: var(--purple-soft); border-color: var(--purple); }
-  .conv .avatar { width: 42px; height: 42px; }
-  .conv h3 { margin: 0; font-size: 13.5px; font-weight: 650; line-height: 1.25; }
+  .conv .avatar { width: 44px; height: 44px; background: linear-gradient(135deg,#5B2DC9,#C026D3); color: #fff; font-weight: 800; }
+  .conv h3 { margin: 0; font-size: 14px; font-weight: 800; line-height: 1.25; }
   .conv p { margin: 3px 0 0; color: var(--soft); font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .conv .unread { width: 19px; height: 19px; border-radius: 50%; background: var(--purple); color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center; }
   .thread-col { display: flex; flex-direction: column; min-height: 480px; max-height: 74vh; }
@@ -1357,7 +1381,8 @@
   .opt-btn:hover { background: var(--panel-soft); }
   .opt-btn.correct { background: var(--teal-soft); border-color: var(--teal); color: var(--teal); }
   .opt-btn.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); }
-  .slot-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 8px 14px; margin: 0 8px 8px 0; font-weight: 600; font-size: 13px; }
+  .slot-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 10px 16px; font-weight: 800; font-size: 13px; cursor: pointer; color: var(--ink); }
+  .slot-chip:hover { border-color: var(--purple); background: var(--purple-soft); color: var(--purple); }
   @media (max-width: 760px) {
     .msg-wrap { grid-template-columns: 1fr; }
     .thread-col { display: none; }
@@ -1655,6 +1680,13 @@
         <div id="upNote" style="display:none;margin-top:8px;font-weight:900"></div>
       </form>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="courseCreateOverlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ccTitle">
+  <div class="overlay-card" style="width:min(560px,100%)">
+    <div class="overlay-head"><h2 id="ccTitle">Create course</h2><button type="button" id="ccClose" aria-label="Close">✕</button></div>
+    <div class="overlay-body" id="ccBody"></div>
   </div>
 </div>
 
