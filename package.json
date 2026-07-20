@@ -13,5 +13,8 @@
     "check:all": "node ./scripts/check-all.js",
     "check:i18n": "node ./scripts/check-i18n.js",
     "import:legal": "node ./scripts/import-legal-content.js"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
   }
 }

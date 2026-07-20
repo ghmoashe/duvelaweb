@@ -18,6 +18,8 @@
   if (!api.isHost) return;
   const side = document.querySelector('.side-card');
   const dock = document.querySelector('.control-dock');
+  reactionDock.classList.add('host-dock');
+  dock.prepend(reactionDock);
   let meterStream = null;
   let meterFrame = 0;
 
@@ -31,7 +33,7 @@
 
   const map = {
     setup: ['setupSection','timelineSection'], design: ['effectsSection'], materials: ['linksTitle'],
-    people: ['guestRequestsSection','viewerActionsSection'], health: ['diagnosticsSection','checklistTitle','detailsTitle']
+    people: ['guestRequestsSection'], health: ['diagnosticsSection','checklistTitle','detailsTitle']
   };
   const sections = Array.from(side.querySelectorAll('.studio-section'));
   sections.forEach((section) => section.dataset.studioGroup = 'setup');
@@ -40,7 +42,7 @@
   }));
   function showTab(name) {
     tabs.querySelectorAll('button').forEach((button)=>button.classList.toggle('active',button.dataset.studioTab===name));
-    sections.forEach((section)=>{ section.style.display=section.dataset.studioGroup===name?'grid':'none'; });
+    sections.forEach((section)=>{ section.style.display=section.id==='viewerActionsSection'?'none':(section.dataset.studioGroup===name?'grid':'none'); });
   }
   tabs.addEventListener('click',(event)=>{ const button=event.target.closest('[data-studio-tab]'); if(button) showTab(button.dataset.studioTab); });
   showTab('setup');
@@ -48,12 +50,18 @@
 
   dock.insertAdjacentHTML('afterbegin','<button type="button" class="btn" id="studioShareScreen">▣ '+t('Share screen','Экран')+'</button><button type="button" class="btn" id="studioNotesBtn">✎ '+t('Notes','Заметки')+'</button><button type="button" class="btn" id="studioPlanBtn">◷ '+t('Lesson plan','План')+'</button>');
   document.getElementById('studioShareScreen').addEventListener('click',async function(){ try { const on=await api.toggleScreenShare(); this.classList.toggle('primary',on); this.textContent=on?t('Stop sharing','Остановить экран'):t('Share screen','Экран'); } catch(error){ alert(error.message); } });
+  window.addEventListener('duvela:screen-share',(event)=>{const button=document.getElementById('studioShareScreen');if(!button)return;const on=Boolean(event.detail?.active);button.classList.toggle('primary',on);button.textContent=on?t('Stop sharing','Остановить экран'):t('Share screen','Экран');});
 
   const privateTools=document.createElement('section'); privateTools.className='studio-section'; privateTools.id='privateTeacherTools'; privateTools.dataset.studioGroup='materials';
   privateTools.innerHTML='<div><h3>'+t('Private teacher workspace','Личное пространство преподавателя')+'</h3><p>'+t('These notes are stored only in this browser and are never shown to viewers.','Эти данные хранятся только в браузере и не видны зрителям.')+'</p></div><textarea id="studioPrivateNotes" rows="6" placeholder="'+t('Private notes…','Личные заметки…')+'"></textarea><div class="lesson-plan-row"><input id="lessonPlanText" placeholder="'+t('Lesson stage','Этап урока')+'"><input id="lessonPlanMinutes" type="number" min="1" value="10"><button class="btn" id="lessonPlanStart">'+t('Start timer','Запустить')+'</button></div><div class="plan-timer" id="lessonPlanTimer">10:00</div>';
   side.insertBefore(privateTools, document.getElementById('linksTitle')?.closest('.studio-section') || null); sections.push(privateTools);
   const notesKey='duvela.live.notes.'+(new URLSearchParams(location.search).get('s')||'new');
   const notes=privateTools.querySelector('#studioPrivateNotes'); notes.value=localStorage.getItem(notesKey)||''; notes.addEventListener('input',()=>localStorage.setItem(notesKey,notes.value));
+  const materialTools=document.createElement('div');materialTools.className='studio-tool-card';materialTools.innerHTML='<h3>'+t('PDF and lesson materials','PDF и материалы урока')+'</h3><p>'+t('Preview a PDF or image before LIVE. During a broadcast it is shown to viewers on the stage.','Проверьте PDF или изображение до эфира. Во время трансляции материал появится на сцене у зрителей.')+'</p><div class="studio-inline"><button class="btn primary" id="studioChooseMaterial">'+t('Choose PDF or image','Выбрать PDF или изображение')+'</button><button class="btn" id="studioRemoveMaterial">'+t('Remove from stage','Убрать со сцены')+'</button></div><span id="studioMaterialName">'+t('No material selected','Материал не выбран')+'</span>';
+  privateTools.prepend(materialTools);
+  materialTools.querySelector('#studioChooseMaterial').onclick=()=>{const input=document.getElementById('materialFile');if(input){input.value='';input.click();}};
+  document.getElementById('materialFile')?.addEventListener('change',(event)=>{const file=event.target.files?.[0];if(!file)return;materialTools.querySelector('#studioMaterialName').textContent=file.name;api.previewMaterial(URL.createObjectURL(file),file.type);});
+  materialTools.querySelector('#studioRemoveMaterial').onclick=()=>{const overlay=document.getElementById('liveMaterialOverlay');if(overlay&&api.isPublishing())document.getElementById('pinMaterial')?.click();else api.clearMaterialPreview();materialTools.querySelector('#studioMaterialName').textContent=t('No material selected','Материал не выбран');};
   function openPrivateTools(){ showTab('materials'); notes.focus(); }
   document.getElementById('studioNotesBtn').addEventListener('click',openPrivateTools); document.getElementById('studioPlanBtn').addEventListener('click',openPrivateTools);
   const peopleSection=document.getElementById('guestRequestsSection');if(peopleSection){peopleSection.insertAdjacentHTML('afterbegin','<div class="moderator-box"><h3>'+t('Moderator','Модератор')+'</h3><p>'+t('Add a trusted Duvela user by profile ID.','Добавьте доверенного пользователя Duvela по ID профиля.')+'</p><div class="lesson-plan-row"><input id="moderatorUserId" placeholder="User UUID"><button class="btn" id="addModerator">'+t('Add','Добавить')+'</button></div></div>');document.getElementById('addModerator').addEventListener('click',async()=>{try{await api.addModerator(document.getElementById('moderatorUserId').value.trim());alert(t('Moderator added.','Модератор добавлен.'));}catch(error){alert(error.message);}});}
