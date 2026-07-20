@@ -71,15 +71,43 @@
     function renderConversations() {
       const list = $('#conversationList');
       if (!list) return;
+      const search = $('#chatSearchInput');
+      if (search) {
+        search.placeholder = tr('Search chats...', 'Поиск по чатам...');
+        if (!search.dataset.bound) {
+          search.dataset.bound = '1';
+          search.addEventListener('input', renderConversations);
+        }
+      }
+      const label = $('#newChatBtnLabel');
+      if (label) label.textContent = tr('New chat', 'Новый чат');
+
+      const query = (search && search.value.trim().toLowerCase()) || '';
+      const visible = query
+        ? state.conversations.filter((conversation) =>
+            (conversation.name || '').toLowerCase().indexOf(query) >= 0 ||
+            (conversation.lastMessage || '').toLowerCase().indexOf(query) >= 0)
+        : state.conversations;
+
       if (!state.conversations.length) {
-        list.innerHTML = '<div class="card empty">' + esc(tr('No conversations yet. Tap "New chat" to message a teacher or learner.', 'Диалогов пока нет. Нажмите «Новый чат», чтобы написать преподавателю или ученику.')) + '</div>';
+        list.innerHTML = '<div class="msg-empty"><b>' + esc(tr('No conversations yet', 'Диалогов пока нет')) + '</b>' +
+          '<p>' + esc(tr('Start one with the "New chat" button to message a teacher or learner.', 'Нажмите «Новый чат», чтобы написать преподавателю или ученику.')) + '</p></div>';
         return;
       }
-      list.innerHTML = state.conversations.map((conversation) =>
+      if (!visible.length) {
+        list.innerHTML = '<div class="msg-empty"><b>' + esc(tr('Nothing found', 'Ничего не найдено')) + '</b>' +
+          '<p>' + esc(tr('No chats match your search.', 'Под запрос не подошёл ни один чат.')) + '</p></div>';
+        return;
+      }
+      list.innerHTML = visible.map((conversation) =>
         '<div class="conv' + (conversation.id === state.activeConversationId ? ' active' : '') + '" data-conv="' + esc(conversation.id) + '">' +
           '<div class="avatar">' + avatarInner(conversation.name, conversation.avatarUrl) + '</div>' +
-          '<div><h3>' + esc(conversation.name) + '</h3><p>' + esc(conversation.lastMessage || tr('No messages yet', 'Сообщений пока нет')) + '</p></div>' +
-          (conversation.unread ? '<div class="unread">' + conversation.unread + '</div>' : '<div></div>') +
+          '<div class="conv-main"><h3>' + esc(conversation.name) + '</h3>' +
+          '<p>' + esc(conversation.lastMessage || tr('No messages yet', 'Сообщений пока нет')) + '</p></div>' +
+          '<div class="conv-meta">' +
+            '<span class="conv-time">' + esc(conversation.lastAt && ctx.timeAgo ? ctx.timeAgo(conversation.lastAt) : '') + '</span>' +
+            (conversation.unread ? '<span class="unread">' + conversation.unread + '</span>' : '') +
+          '</div>' +
         '</div>'
       ).join('');
     }
