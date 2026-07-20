@@ -1497,12 +1497,14 @@
     if (!isHostMode) return false;
     if (screenShareTrack) {
       screenShareTrack.stop(); screenShareTrack = null;
+      document.getElementById('hostScreenPreview')?.remove();
       var restore = (deepARInstance && selectedLiveEffect !== 'off') ? el('deeparCanvas').captureStream(30).getVideoTracks()[0] : hostCameraStream?.getVideoTracks()[0]?.clone();
       if (localVideoTrack && restore) await localVideoTrack.replaceTrack(restore, true);
       setScenePreset('camera', true); return false;
     }
     var display = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
     screenShareTrack = display.getVideoTracks()[0];
+    var screenPreview=document.createElement('video');screenPreview.id='hostScreenPreview';screenPreview.autoplay=true;screenPreview.muted=true;screenPreview.playsInline=true;screenPreview.srcObject=display;el('player').appendChild(screenPreview);await screenPreview.play();
     if (localVideoTrack) await localVideoTrack.replaceTrack(screenShareTrack, true);
     screenShareTrack.addEventListener('ended', function () { void toggleHostScreenShare(); }, { once:true });
     setScenePreset('presentation', true); return true;
@@ -1543,6 +1545,10 @@
 
       var token = await getPublisherToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      client.on('connection-state-change', function (current, previous, reason) {
+        window.dispatchEvent(new CustomEvent('duvela:live-connection', { detail:{ current:current, previous:previous, reason:reason } }));
+        if (current === 'DISCONNECTED') isHostPublishing = false;
+      });
       attachHostGuestHandlers(uid);
       await client.setClientRole('host');
       await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
@@ -1785,6 +1791,9 @@
       .on('broadcast', { event: 'scene' }, function (msg) {
         var p = msg && msg.payload;
         if (p && p.preset) setScenePreset(p.preset, false);
+      })
+      .on('broadcast', { event: 'studio-event' }, function (msg) {
+        window.dispatchEvent(new CustomEvent('duvela:studio-event', { detail: msg && msg.payload }));
       });
     materialChannel.subscribe();
   }
@@ -2270,6 +2279,11 @@
     setDevices: async function (cameraId, microphoneId) { selectedCameraId=cameraId||''; selectedMicrophoneId=microphoneId||''; if(isHostMode) { if(hostCameraStream) await openHostCamera(cameraFacingMode); else await initializeHostPreview(); } },
     toggleScreenShare: toggleHostScreenShare,
     setScene: function (preset) { setScenePreset(preset, true); },
+    previewScene: function (preset) { setScenePreset(preset, false); },
+    setMicrophoneVolume: function (value) { if (localAudioTrack?.setVolume) localAudioTrack.setVolume(Math.max(0, Math.min(100, Number(value) || 0))); },
+    broadcastEvent: function (payload) { if (!materialChannel) throw new Error(tr('Open a LIVE room first.', 'Сначала откройте LIVE-комнату.')); return materialChannel.send({ type:'broadcast', event:'studio-event', payload:payload }); },
+    recoverBroadcast: async function () { if (isHostPublishing) return true; await startHost(); return isHostPublishing; },
+    endBroadcast: endHost,
     clearBoard: function () { clearWhiteboard(true); },
     setBoardTool: function (color,width) { whiteboardColor=color||whiteboardColor; whiteboardWidth=Number(width)||whiteboardWidth; },
     sendReaction: sendLiveReaction,
