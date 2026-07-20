@@ -704,6 +704,8 @@ alter table public.chat_participants add column if not exists is_pinned boolean 
 alter table public.chat_participants add column if not exists is_archived boolean not null default false;
 alter table public.chat_participants add column if not exists is_blocked boolean not null default false;
 alter table public.chat_messages add column if not exists edited_at timestamptz;
+alter table public.chat_messages add column if not exists reply_to_id uuid references public.chat_messages(id) on delete set null;
+alter table public.chat_messages add column if not exists forwarded_from_id uuid references public.chat_messages(id) on delete set null;
 
 create index if not exists chat_participants_user_id_idx
   on public.chat_participants(user_id);
