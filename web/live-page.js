@@ -66,6 +66,7 @@
   var viewerGuestTracks = null;
   var hostGuestRequests = [];
   var remoteGuestUsers = {};
+  var activeSpeakerUid = '';
   var teacherAgoraUid = null;
   var selectedGiftId = 'heart';
   var viewerSendingGift = false;
@@ -203,6 +204,15 @@
     el('guestStage').classList.add('visible');
     el('guestStage').innerHTML = '<div id="guestStagePlayer" style="position:absolute;inset:0"></div><div class="guest-stage-label" id="guestStageLabel">' + esc(user.displayName || tr('Guest', 'Гость')) + '</div>';
     user.videoTrack.play('guestStagePlayer', { fit: 'cover' });
+  }
+  function renderGuestGrid() {
+    var container=el('guestStage');if(!container)return;var guests=Object.keys(remoteGuestUsers).map(function(key){return remoteGuestUsers[key];}).filter(function(item){return item&&item.videoTrack;});
+    if(!guests.length){container.classList.remove('visible','multi');container.innerHTML='<div class="guest-stage-label">'+esc(tr('Guest','Гость'))+'</div>';return;}
+    container.classList.add('visible');container.classList.toggle('multi',guests.length>1);container.innerHTML=guests.slice(0,6).map(function(item,index){return '<div class="guest-tile '+(String(item.uid)===String(activeSpeakerUid)?'active-speaker':'')+'" data-guest-uid="'+esc(item.uid)+'"><div class="guest-tile-player" id="guestStagePlayer'+index+'"></div><div class="guest-tile-label">'+esc(item.displayName||tr('Guest','Гость'))+'</div></div>';}).join('');
+    guests.slice(0,6).forEach(function(item,index){item.videoTrack.play('guestStagePlayer'+index,{fit:'cover'});});
+  }
+  function attachActiveSpeaker(clientInstance) {
+    if(!clientInstance||typeof clientInstance.enableAudioVolumeIndicator!=='function')return;clientInstance.enableAudioVolumeIndicator();clientInstance.on('volume-indicator',function(volumes){var loudest=(volumes||[]).filter(function(item){return item.level>5;}).sort(function(a,b){return b.level-a.level;})[0];if(!loudest)return;activeSpeakerUid=String(loudest.uid);document.querySelectorAll('.guest-tile').forEach(function(tile){tile.classList.toggle('active-speaker',tile.dataset.guestUid===activeSpeakerUid);});});
   }
   function renderViewerGuestRequestUi() {
     if (!el('viewerGuestRequestBox') || isHostMode) return;
@@ -1082,7 +1092,7 @@
           setStatus(tr('Watching LIVE', 'Смотрите эфир'), 'live');
         } else {
           remoteGuestUsers[String(remoteUser.uid)] = { uid: remoteUser.uid, videoTrack: remoteUser.videoTrack, displayName: tr('Guest', 'Гость') };
-          renderGuestStage(remoteGuestUsers[String(remoteUser.uid)]);
+          renderGuestGrid();
         }
       }
       if (mediaType === 'audio') {
@@ -1094,7 +1104,7 @@
       if (teacherAgoraUid && String(remoteUser.uid) !== String(teacherAgoraUid)) {
         delete remoteGuestUsers[String(remoteUser.uid)];
         var firstGuest = Object.keys(remoteGuestUsers)[0];
-        renderGuestStage(firstGuest ? remoteGuestUsers[firstGuest] : null);
+        renderGuestGrid();
         return;
       }
       if (mediaType === 'video') {
@@ -1110,7 +1120,7 @@
       await client.subscribe(remoteUser, mediaType);
       if (mediaType === 'video') {
         remoteGuestUsers[String(remoteUser.uid)] = { uid: remoteUser.uid, videoTrack: remoteUser.videoTrack, displayName: tr('Guest on stage', 'Гость в эфире') };
-        renderGuestStage(remoteGuestUsers[String(remoteUser.uid)]);
+        renderGuestGrid();
       }
       if (mediaType === 'audio') {
         try { remoteUser.audioTrack.play(); } catch (e) {}
@@ -1120,7 +1130,7 @@
       if (String(remoteUser.uid) === String(hostUid)) return;
       delete remoteGuestUsers[String(remoteUser.uid)];
       var firstGuest = Object.keys(remoteGuestUsers)[0];
-      renderGuestStage(firstGuest ? remoteGuestUsers[firstGuest] : null);
+      renderGuestGrid();
     });
   }
   async function sendViewerMessage() {
@@ -1193,6 +1203,7 @@
       );
       var token = await getPublisherToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      attachActiveSpeaker(client);
       attachViewerClientHandlers();
       await client.setClientRole('host');
       await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
@@ -1551,6 +1562,7 @@
 
       var token = await getPublisherToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      attachActiveSpeaker(client);
       client.on('connection-state-change', function (current, previous, reason) {
         window.dispatchEvent(new CustomEvent('duvela:live-connection', { detail:{ current:current, previous:previous, reason:reason } }));
         if (current === 'DISCONNECTED') isHostPublishing = false;
@@ -1642,16 +1654,19 @@
   async function countPdfPages(url) {
     try{var buffer=await fetch(url).then(function(response){return response.arrayBuffer();});var text=new TextDecoder('latin1').decode(buffer);var matches=text.match(/\/Type\s*\/Page\b/g);return matches?matches.length:0;}catch(e){return 0;}
   }
+  function pdfAnnotationStorageKey(url){var room=currentSession?.id||sessionId||'practice';var tail=String(url||'pdf').slice(-80);return 'duvela.live.pdf.annotations.'+room+'.'+tail;}
+  function savePdfAnnotations(canvas,url){if(!canvas||!isHostMode)return;try{localStorage.setItem(pdfAnnotationStorageKey(url),canvas.toDataURL('image/png'));}catch(e){}}
+  function restorePdfAnnotations(canvas,url){if(!canvas)return;try{var saved=localStorage.getItem(pdfAnnotationStorageKey(url));if(!saved)return;var image=new Image();image.onload=function(){canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);};image.src=saved;}catch(e){}}
   function enhancePdfOverlay(node,url) {
     if(!node||node.dataset.pdfEnhanced===url)return;node.dataset.pdfEnhanced=url;
     var controls=node.querySelector('.pdf-controls');if(!controls)return;
     controls.innerHTML='<button type="button" data-pdf-page="-1" title="Previous page">‹</button><input type="number" min="1" value="1" data-pdf-jump aria-label="Page"><span data-pdf-count>/ ?</span><button type="button" data-pdf-page="1" title="Next page">›</button><button type="button" data-pdf-zoom="-25" title="Zoom out">−</button><span data-pdf-zoom-label>100%</span><button type="button" data-pdf-zoom="25" title="Zoom in">+</button><button type="button" data-pdf-tool="laser" title="Laser pointer">⌖</button><button type="button" data-pdf-tool="draw" title="Draw">✎</button><button type="button" data-pdf-tool="highlight" title="Highlight">▰</button><button type="button" data-pdf-clear title="Clear annotations">⌫</button><button type="button" data-pdf-fullscreen title="Full screen">⛶</button>';
     if(!isHostMode)controls.querySelectorAll('[data-pdf-tool],[data-pdf-clear]').forEach(function(button){button.style.display='none';});
-    var canvas=document.createElement('canvas');canvas.className='pdf-annotation';canvas.width=1280;canvas.height=720;node.appendChild(canvas);var laser=document.createElement('i');laser.className='pdf-laser';node.appendChild(laser);
+    var canvas=document.createElement('canvas');canvas.className='pdf-annotation';canvas.width=1280;canvas.height=720;node.appendChild(canvas);restorePdfAnnotations(canvas,url);var laser=document.createElement('i');laser.className='pdf-laser';node.appendChild(laser);
     pdfMaterialPage=1;pdfMaterialZoom=100;pdfMaterialPages=0;updatePdfMaterialView(false);countPdfPages(url).then(function(total){if(document.getElementById('liveMaterialOverlay')!==node)return;pdfMaterialPages=total;updatePdfMaterialView(false);});
-    controls.addEventListener('click',function(event){event.stopPropagation();var page=event.target.closest('[data-pdf-page]'),zoom=event.target.closest('[data-pdf-zoom]'),tool=event.target.closest('[data-pdf-tool]');if(page){pdfMaterialPage+=Number(page.dataset.pdfPage);updatePdfMaterialView(isHostMode);}if(zoom){pdfMaterialZoom+=Number(zoom.dataset.pdfZoom);updatePdfMaterialView(isHostMode);}if(tool&&isHostMode){pdfToolMode=tool.dataset.pdfTool;canvas.style.pointerEvents='auto';controls.querySelectorAll('[data-pdf-tool]').forEach(function(button){button.classList.toggle('active',button===tool);});}if(event.target.closest('[data-pdf-clear]')&&isHostMode){canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);if(materialChannel)materialChannel.send({type:'broadcast',event:'pdf-annotation',payload:{kind:'clear'}});}if(event.target.closest('[data-pdf-fullscreen]')){if(document.fullscreenElement)document.exitFullscreen();else node.requestFullscreen();}});
+    controls.addEventListener('click',function(event){event.stopPropagation();var page=event.target.closest('[data-pdf-page]'),zoom=event.target.closest('[data-pdf-zoom]'),tool=event.target.closest('[data-pdf-tool]');if(page){pdfMaterialPage+=Number(page.dataset.pdfPage);updatePdfMaterialView(isHostMode);}if(zoom){pdfMaterialZoom+=Number(zoom.datasetPdfZoom||zoom.dataset.pdfZoom);updatePdfMaterialView(isHostMode);}if(tool&&isHostMode){pdfToolMode=tool.dataset.pdfTool;canvas.style.pointerEvents='auto';controls.querySelectorAll('[data-pdf-tool]').forEach(function(button){button.classList.toggle('active',button===tool);});}if(event.target.closest('[data-pdf-clear]')&&isHostMode){canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);try{localStorage.removeItem(pdfAnnotationStorageKey(url));}catch(e){}if(materialChannel)materialChannel.send({type:'broadcast',event:'pdf-annotation',payload:{kind:'clear'}});}if(event.target.closest('[data-pdf-fullscreen]')){if(document.fullscreenElement)document.exitFullscreen();else node.requestFullscreen();}});
     controls.querySelector('[data-pdf-jump]').addEventListener('change',function(event){pdfMaterialPage=Number(event.target.value)||1;updatePdfMaterialView(isHostMode);});
-    var last=null;function point(event){var rect=canvas.getBoundingClientRect();return{x:(event.clientX-rect.left)/rect.width,y:(event.clientY-rect.top)/rect.height};}canvas.addEventListener('pointerdown',function(event){if(!isHostMode)return;last=point(event);canvas.setPointerCapture(event.pointerId);});canvas.addEventListener('pointermove',function(event){if(!isHostMode)return;var next=point(event);if(pdfToolMode==='laser'){laser.style.display='block';laser.style.left=(next.x*100)+'%';laser.style.top=(next.y*100)+'%';if(materialChannel)materialChannel.send({type:'broadcast',event:'pdf-annotation',payload:{kind:'laser',point:next}});return;}if((pdfToolMode==='draw'||pdfToolMode==='highlight')&&last){var highlight=pdfToolMode==='highlight',color=highlight?'rgba(255,221,45,.38)':'#ff3158',width=highlight?24:4;drawPdfAnnotation(last,next,color,width);if(materialChannel)materialChannel.send({type:'broadcast',event:'pdf-annotation',payload:{kind:'stroke',from:last,to:next,color:color,width:width}});last=next;}});canvas.addEventListener('pointerup',function(){last=null;});canvas.addEventListener('pointerleave',function(){last=null;});
+    var last=null;function point(event){var rect=canvas.getBoundingClientRect();return{x:(event.clientX-rect.left)/rect.width,y:(event.clientY-rect.top)/rect.height};}canvas.addEventListener('pointerdown',function(event){if(!isHostMode)return;last=point(event);canvas.setPointerCapture(event.pointerId);});canvas.addEventListener('pointermove',function(event){if(!isHostMode)return;var next=point(event);if(pdfToolMode==='laser'){laser.style.display='block';laser.style.left=(next.x*100)+'%';laser.style.top=(next.y*100)+'%';if(materialChannel)materialChannel.send({type:'broadcast',event:'pdf-annotation',payload:{kind:'laser',point:next}});return;}if((pdfToolMode==='draw'||pdfToolMode==='highlight')&&last){var highlight=pdfToolMode==='highlight',color=highlight?'rgba(255,221,45,.38)':'#ff3158',width=highlight?24:4;drawPdfAnnotation(last,next,color,width);if(materialChannel)materialChannel.send({type:'broadcast',event:'pdf-annotation',payload:{kind:'stroke',from:last,to:next,color:color,width:width}});last=next;}});canvas.addEventListener('pointerup',function(){last=null;savePdfAnnotations(canvas,url);});canvas.addEventListener('pointerleave',function(){if(last)savePdfAnnotations(canvas,url);last=null;});
   }
 
   async function startHostWithCountdown() {
@@ -1726,6 +1741,10 @@
   async function hostUploadMaterial() {
     var file = el('materialFile').files && el('materialFile').files[0];
     if (!file || !currentSession || !currentUser) return;
+    if (file.type !== 'application/pdf' && ['image/jpeg','image/png','image/webp'].indexOf(file.type) < 0) {
+      setNote(tr('Choose a PDF, JPG, PNG or WebP file.', 'Выберите файл PDF, JPG, PNG или WebP.'));
+      return;
+    }
     try {
       setNote(tr('Uploading material…', 'Загрузка материала…'));
       var ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
@@ -1902,6 +1921,7 @@
       startElapsedClock(currentSession.started_at || new Date().toISOString());
       var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      attachActiveSpeaker(client);
       await client.setClientRole('audience');
       client.on('user-published', async function (remoteUser, mediaType) {
         await client.subscribe(remoteUser, mediaType);
@@ -1987,6 +2007,7 @@
       startElapsedClock(currentSession.started_at || new Date().toISOString());
       var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      attachActiveSpeaker(client);
       await client.setClientRole('audience');
       attachViewerClientHandlers();
       await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
@@ -2065,8 +2086,8 @@
     if (materialChannel) { try { await supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
     if (guestRequestChannel) { try { await supa.removeChannel(guestRequestChannel); } catch (e) {} guestRequestChannel = null; }
     renderLiveMaterial(null);
-    renderGuestStage(null);
     remoteGuestUsers = {};
+    renderGuestGrid();
     setHostSetupDisabled(false);
     if (markSessionEnded && currentSession?.status === 'live') await markEnded();
   }
@@ -2328,6 +2349,7 @@
     setScene: function (preset) { setScenePreset(preset, true); },
     previewScene: function (preset) { setScenePreset(preset, false); },
     setMicrophoneVolume: function (value) { if (localAudioTrack?.setVolume) localAudioTrack.setVolume(Math.max(0, Math.min(100, Number(value) || 0))); },
+    setAdaptiveQuality: async function (quality) { if(!localVideoTrack?.setEncoderConfiguration)return false;var profiles={low:{width:640,height:360,frameRate:15,bitrateMin:250,bitrateMax:600},medium:{width:960,height:540,frameRate:24,bitrateMin:500,bitrateMax:1200},high:{width:1280,height:720,frameRate:30,bitrateMin:800,bitrateMax:2200}};await localVideoTrack.setEncoderConfiguration(profiles[quality]||profiles.medium);return true; },
     broadcastEvent: function (payload) { if (!materialChannel) throw new Error(tr('Open a LIVE room first.', 'Сначала откройте LIVE-комнату.')); return materialChannel.send({ type:'broadcast', event:'studio-event', payload:payload }); },
     previewMaterial: function (url, mimeType) { renderLiveMaterial(url, mimeType); },
     clearMaterialPreview: function () { renderLiveMaterial(null); },
