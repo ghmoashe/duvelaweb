@@ -544,6 +544,7 @@
   /* ── Management page ────────────────────────────────────────────────── */
   .nav-business-only { display: none; }
   body.business-mode .nav-business-only { display: flex; }
+  body:not(.business-mode) .nav .nav-business-only { display:none !important; }
   .mg-wrap { display: grid; gap: 16px; max-width: 860px; }
   .mg-wrap svg { width: 1em; height: 1em; }
   .mg-loading { padding: 40px; text-align: center; color: var(--soft); font-weight: 700; }
@@ -722,16 +723,26 @@
   .lh-video-thumb { position:relative;aspect-ratio:16/10;border-radius:17px;overflow:hidden;background:linear-gradient(135deg,#eee7ff,#dfd3f7); }
   .lh-video-thumb img { width:100%;height:100%;object-fit:cover; }
   .lh-video-thumb span { position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:20px;text-shadow:0 2px 12px #000; }
+  .lh-video-thumb i { position:absolute;left:0;bottom:0;height:4px;background:linear-gradient(90deg,#6d3fe0,#c026d3); }
   .lh-continue h3,.lh-continue p { margin:0; }.lh-continue p { margin-top:6px;color:var(--soft);font-size:13px; }
   .lh-levels { display:flex;gap:10px;overflow:auto;color:var(--purple);font-size:13px; }.lh-levels>* { white-space:nowrap;border:1px solid var(--line);border-radius:999px;background:var(--panel);padding:8px 13px; }
   .lh-event-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
   .lh-event { overflow:hidden;border:1px solid var(--line);border-radius:22px;background:var(--panel);box-shadow:var(--shadow);cursor:pointer; }
   .lh-event-cover { position:relative;aspect-ratio:16/8;display:grid;place-items:center;background:linear-gradient(135deg,#2d184d,#8b3ff1);color:#fff;font-weight:950;letter-spacing:.08em; }
   .lh-event-cover img { width:100%;height:100%;object-fit:cover; }.lh-event-cover b { position:absolute;right:13px;top:13px;padding:5px 10px;border-radius:999px;background:rgba(20,15,30,.7);font-size:11px; }
+  .lh-save { position:absolute;left:13px;top:13px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.9);color:var(--purple);font-size:21px;cursor:pointer; }.lh-save.active { background:var(--purple);color:#fff; }
   .lh-event-body { padding:17px; }.lh-event-body h3,.lh-event-body p { margin:0; }.lh-event-body p { margin-top:6px;color:var(--soft);font-size:13px; }
   .lh-event-meta { display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid var(--line);color:var(--soft);font-size:12px;font-weight:750; }
+  .lh-event-foot { display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;font-size:12px;font-weight:800; }.lh-event-foot button { border:0;border-radius:10px;background:var(--purple);color:#fff;padding:8px 12px;font-weight:850;cursor:pointer; }
   .lh-mini-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }.lh-mini { display:flex;align-items:center;gap:11px;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--ink);text-decoration:none; }.lh-mini-icon { width:39px;height:39px;display:grid;place-items:center;border-radius:12px;background:var(--purple-soft);color:var(--purple); }.lh-mini span:last-child { display:grid;gap:3px;min-width:0; }.lh-mini b,.lh-mini small { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }.lh-mini small { color:var(--soft); }.lh-empty,.lh-no-results { padding:26px;border:1px dashed var(--line);border-radius:18px;text-align:center;color:var(--soft);font-weight:750; }
-  @media(max-width:760px){.lh-event-grid,.lh-mini-grid{grid-template-columns:1fr}.lh-continue{grid-template-columns:130px minmax(0,1fr)}.lh-primary-tabs a{padding:10px 15px}}
+  .lh-filter-panel { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:13px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow); }.lh-filter-panel select { min-height:42px;border:1px solid var(--line);border-radius:11px;background:var(--panel-soft);padding:0 11px;color:var(--ink);font-weight:750; }
+  .lh-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px; }.lh-stats div { display:grid;justify-items:center;gap:3px;padding:14px;border:1px solid var(--line);border-radius:15px;background:var(--panel);box-shadow:var(--shadow); }.lh-stats b { color:var(--purple);font-size:22px; }.lh-stats span { color:var(--soft);font-size:11px;font-weight:800; }
+  .lh-next,.lh-live-strip { display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:var(--shadow); }.lh-next>span { width:44px;height:44px;display:grid;place-items:center;border-radius:13px;background:var(--purple-soft);color:var(--purple);font-size:22px; }.lh-next div,.lh-live-strip div { flex:1;display:grid;gap:3px; }.lh-next p,.lh-next small,.lh-live-strip small { margin:0;color:var(--soft);font-size:11px;font-weight:800; }.lh-next a,.lh-live-strip a,.lh-course-progress a { border-radius:11px;background:var(--purple);color:#fff;text-decoration:none;padding:10px 14px;font-weight:850; }
+  .lh-live-strip { color:#fff;border:0;background:linear-gradient(135deg,#2c0e59,#6d28d9); }.lh-live-strip small { color:#ffacb7; }.lh-live-strip a { background:#ef4444; }
+  .lh-course-progress { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:var(--shadow); }.lh-course-progress div { display:grid;gap:3px; }.lh-course-progress small { color:var(--soft); }.lh-course-progress strong { color:var(--purple); }.lh-course-progress>i { grid-column:1/-1;height:7px;border-radius:999px;background:var(--purple-soft);overflow:hidden; }.lh-course-progress>i span { display:block;height:100%;background:linear-gradient(90deg,#6d3fe0,#c026d3); }.lh-course-progress a { grid-column:1/-1;text-align:center; }
+  .lh-mobile-nav { display:none; }
+  body:not(.business-mode) #uploadVideoBtn,body:not(.business-mode) [data-mg-new-event],body:not(.business-mode) [data-mg-new-course],body:not(.business-mode) #courseForm { display:none !important; }
+  @media(max-width:760px){.learner-home{padding-bottom:78px}.lh-event-grid,.lh-mini-grid{grid-template-columns:1fr}.lh-continue{grid-template-columns:130px minmax(0,1fr)}.lh-primary-tabs a{padding:10px 15px}.lh-filter-panel{grid-template-columns:1fr}.lh-mobile-nav{position:fixed;z-index:80;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(16px)}.lh-mobile-nav a{display:grid;justify-items:center;gap:3px;color:var(--soft);text-decoration:none;font-size:18px}.lh-mobile-nav span{font-size:10px;font-weight:800}.lh-mobile-nav a.active{color:var(--purple)}}
   @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } }
   .pv-dot-list { display: grid; gap: 8px; }
   .pv-dot-row { display: flex; align-items: center; gap: 9px; color: var(--soft); font-weight: 600; }
@@ -1907,16 +1918,16 @@
 
 <script src="./locales/web-locales.js"></script>
 <script src="./web/duvela-web-config.js"></script>
-<script src="./web/duvela-web-roles.js"></script>
+<script src="./web/duvela-web-roles.js?v=20260721-2"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js"></script>
 <script src="./web/app-store.js"></script>
-<script src="./web/app-router.js"></script>
-<script src="./web/app-bootstrap.js"></script>
-<script src="./web/app-role-access.js"></script>
+<script src="./web/app-router.js?v=20260721-2"></script>
+<script src="./web/app-bootstrap.js?v=20260721-2"></script>
+<script src="./web/app-role-access.js?v=20260721-2"></script>
 <script src="./web/app-static-ui.js"></script>
 <script src="./web/app-public-data.js"></script>
-<script src="./web/app-feature-media.js"></script>
+<script src="./web/app-feature-media.js?v=20260721-2"></script>
 <script src="./web/app-feature-profile.js"></script>
 <script src="./web/app-feature-practice-builder.js"></script>
 <script src="./web/app-feature-workspace-shell.js"></script>
@@ -1926,7 +1937,7 @@
 <script src="./web/app-feature-profile-view.js?v=20260721-2"></script>
 <script src="./web/app-feature-business.js"></script>
 <script src="./web/app-feature-classes.js"></script>
-<script src="./web/app-feature-catalog.js?v=20260721-2"></script>
+<script src="./web/app-feature-catalog.js?v=20260721-3"></script>
 <script src="./web/app-feature-schedule.js"></script>
 <script src="./web/app-feature-gamification.js"></script>
 <script src="./web/app-feature-search.js"></script>
@@ -1936,6 +1947,6 @@
 <script src="./web/app-feature-practice.js"></script>
 <script src="./web/app-feature-study.js"></script>
 <script src="./web/app-feature-games.js"></script>
-<script src="./web/app-page.js"></script>
+<script src="./web/app-page.js?v=20260721-3"></script>
 </body>
 </html>

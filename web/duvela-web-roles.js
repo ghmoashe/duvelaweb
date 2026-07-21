@@ -38,16 +38,8 @@
   }
 
   function pickWebRole(profile, hasOrganization) {
-    const preferredRole = normalizeRole((profile && (profile.last_web_role || profile.requested_role)) || '');
+    const preferredRole = normalizeRole((profile && profile.last_web_role) || '');
     if (preferredRole !== 'learner' && isApprovedForRole(preferredRole, profile)) return preferredRole;
-    if (
-      preferredRole !== 'learner'
-      && profile
-      && profile.requested_role === preferredRole
-      && profile.role_request_status === 'pending'
-    ) {
-      return preferredRole;
-    }
     if (profile && profile.is_admin) return 'admin';
     if (profile && profile.is_teacher) return 'teacher';
     if (profile && profile.is_organizer) return hasOrganization ? 'organization' : 'organizer';
@@ -58,7 +50,7 @@
     try {
       const result = await supa
         .from('profiles')
-        .select('is_teacher,is_organizer,is_admin,requested_role,role_request_status,last_web_role')
+        .select('is_teacher,is_organizer,is_admin,last_web_role')
         .eq('id', userId)
         .maybeSingle();
       if (!result.error && result.data) return result.data;

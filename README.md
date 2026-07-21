@@ -73,6 +73,7 @@ Before publishing Web/Hub/Business/LIVE:
 - For an existing installation, also apply `scripts/live-setup-controls.sql` to add browser LIVE quality and audience controls.
 - Deploy Edge Functions: `agora-token`, `notify-course-enrollment`, `live-payment`, `live-restream`, `notify-live-start`.
 - Run `scripts/live-audience-notifications.sql` in the Supabase SQL Editor to enable reliable viewer presence and deduplicated LIVE-start notifications.
+- Run `scripts/fixed-registration-roles.sql` to assign learner/teacher/organizer roles once at registration and remove the old pending role-request flow.
 - Run `npm run check`; for release hardening run `DUVELA_STRICT_PUBLISH=1 npm run check:publish` from a deploy folder that excludes local videos.
 - Publish static files with `_headers` so HTML revalidates while images and shared assets get cache headers.
 - Verify production URLs for `index.html`, `app.html`, `live.html`, `profile.html`, and `legal.html`.

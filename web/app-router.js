@@ -22,7 +22,8 @@
 
     function setView(view) {
       const copy = titles[modeKey()];
-      const known = copy[view] ? view : 'home';
+      const allowedView = modeKey() !== 'bus' && view === 'management' ? 'home' : view;
+      const known = copy[allowedView] ? allowedView : 'home';
       $$('.nav button').forEach((button) => button.classList.toggle('active', button.dataset.view === known));
       $$('.panel').forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === known));
       $('#viewTitle').textContent = copy[known][0];

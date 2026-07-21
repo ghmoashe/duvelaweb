@@ -114,6 +114,17 @@
         } else {
           player.src = hlsSrc;
         }
+        if (item.id) {
+          const progressKey = 'duvela.video.progress.' + item.id;
+          const savedPercent = Math.max(0, Math.min(95, Number(localStorage.getItem(progressKey)) || 0));
+          player.addEventListener('loadedmetadata', function () {
+            if (savedPercent && Number.isFinite(player.duration)) player.currentTime = player.duration * savedPercent / 100;
+          }, { once:true });
+          player.addEventListener('timeupdate', function () {
+            if (!Number.isFinite(player.duration) || player.duration <= 0) return;
+            localStorage.setItem(progressKey, String(Math.min(100, Math.round(player.currentTime / player.duration * 100))));
+          });
+        }
       }
       if (item.caption) body.insertAdjacentHTML('beforeend', '<p style="margin-top:12px;font-weight:800;color:var(--soft)">' + esc(item.caption) + '</p>');
       if (item.id) {

@@ -96,16 +96,12 @@
   function syncRoleOptions() {
     return roleAccessFeature.syncRoleOptions();
   }
-  async function submitRoleRequest(targetRole) {
-    return roleAccessFeature.submitRoleRequest(targetRole);
-  }
   function renderAccessNotice() {
     return roleAccessFeature.renderAccessNotice();
   }
   const navLabels = {
     hub: {
       home: tr('Home', 'Главная'),
-      management: tr('Management', 'Управление'),
       videos: tr('Media', 'Медиа'),
       live: tr('Live', 'Эфиры'),
       courses: tr('Courses', 'Курсы'),
@@ -131,7 +127,6 @@
   const titles = {
     hub: {
       home: [tr('Hub dashboard', 'Панель Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Лента обучения, эфиры и практика готовы.')],
-      management: [tr('Management', 'Управление'), tr('Events, courses, live and challenges in one place.', 'События, курсы, эфиры и челленджи в одном месте.')],
       videos: [tr('Media', 'Медиа'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
       live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
       courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
@@ -553,7 +548,6 @@
     setView,
     startChatWith,
     submitPractice,
-    submitRoleRequest,
     submitTask,
     subscribeNotifications,
     syncRoleOptions,

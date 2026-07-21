@@ -56,7 +56,7 @@
         ctx.setView(button.dataset.view);
         if (button.dataset.view === 'videos') ctx.renderVideos();
         if (button.dataset.view === 'profile') ctx.renderProfile();
-        if (button.dataset.view === 'management') ctx.renderManagement();
+        if (button.dataset.view === 'management' && ctx.isBusiness()) ctx.renderManagement();
         if (button.dataset.view === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
         if (button.dataset.view === 'workspace') {
           if (ctx.isBusiness()) ctx.loadBusinessWorkspace().then(ctx.renderWorkspace);
@@ -78,7 +78,7 @@
           event.preventDefault();
           ctx.setView(go.dataset.go);
           // Mirror the nav-button loaders so panels reached via data-go still hydrate.
-          if (go.dataset.go === 'management') ctx.renderManagement();
+          if (go.dataset.go === 'management' && ctx.isBusiness()) ctx.renderManagement();
           if (go.dataset.go === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
           if (go.dataset.go === 'workspace') {
             if (ctx.isBusiness()) ctx.loadBusinessWorkspace().then(ctx.renderWorkspace);
@@ -239,7 +239,7 @@
       $('#app').style.display = 'grid';
       const initialView = (window.location.hash || '#home').slice(1);
       ctx.setView(initialView);
-      if (initialView === 'management') ctx.renderManagement();
+      if (initialView === 'management' && ctx.isBusiness()) ctx.renderManagement();
       ctx.loadConversations();
       ctx.subscribeNotifications();
       clearInterval(runtime.liveRefreshTimer);

@@ -138,16 +138,8 @@
         console.warn('profile upsert skipped', error);
       }
 
-      if (!rolesApi.isBusinessRole(currentRole)) return;
-
-      try {
-        await profileWritesApi.persistBusinessRoleSelection(supa, rolesApi, {
-          userId,
-          targetRole: currentRole,
-        });
-      } catch (error) {
-        console.warn('role request update skipped', error);
-      }
+      // The immutable account role is assigned by the database from
+      // auth.users.raw_user_meta_data.web_role during the first registration.
     }
 
     async function handleLoginSubmit(event) {
