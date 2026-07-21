@@ -18,6 +18,25 @@
       }
     }
 
+    function renderLearnerMedia() {
+      if (!['shorts', 'videos', 'live'].includes(runtime.currentVideoFilter)) runtime.currentVideoFilter = 'shorts';
+      const items = state.videos || [], active = runtime.currentVideoFilter;
+      const progress = (item) => Math.max(0, Math.min(100, Number(localStorage.getItem('duvela.video.progress.' + item.id)) || 0));
+      const thumb = (item) => item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<span class="lm-placeholder">DUVELA</span>';
+      const videoCard = (item) => '<article class="lm-video" data-video="' + esc(item.id || '') + '" data-media-search="' + esc([item.title, item.meta, item.level].filter(Boolean).join(' ').toLowerCase()) + '"><div class="lm-video-cover">' + thumb(item) + '<span class="lm-play">▶</span>' + (progress(item) ? '<span class="lm-progress"><i style="width:' + progress(item) + '%"></i></span>' : '') + '</div><div class="lm-video-copy"><b>' + esc(item.title || tr('Duvela lesson', 'Урок Duvela')) + '</b><span>' + esc(item.meta || 'Duvela') + ' · ' + esc(item.level || tr('All levels', 'Все уровни')) + '</span></div></article>';
+      const liveRows = (state.live || []).concat(state.liveScheduled || []).slice(0, 10);
+      const liveCard = (item) => '<a class="lm-live-card" href="#live" data-go="live"><span class="lm-live-cover">' + (item.cover_url || item.image ? '<img src="' + esc(item.cover_url || item.image) + '" alt="">' : '<span class="lm-placeholder">LIVE</span>') + '<b>' + (item.status === 'live' || item.is_live ? '● LIVE' : '◷ ' + esc(tr('Upcoming', 'Скоро'))) + '</b></span><span><strong>' + esc(item.title || item.teacher_name || tr('Live lesson', 'Живой урок')) + '</strong><small>' + esc(item.teacher_name || item.meta || tr('Join the lesson in real time', 'Присоединяйтесь к уроку в реальном времени')) + '</small></span></a>';
+      const shorts = items.slice(0, 8);
+      $('#videoTabs').querySelectorAll('[data-filter]').forEach((button) => button.classList.toggle('active', button.dataset.filter === active));
+      $('#videoGrid').innerHTML = '<div class="learner-media"><div class="lm-top"><div><span class="lm-kicker">DUVELA MEDIA</span><h2>' + esc(active === 'shorts' ? tr('Learn in a minute', 'Учитесь за минуту') : active === 'videos' ? tr('Video lessons', 'Видеоуроки') : tr('LIVE lessons', 'LIVE-уроки')) + '</h2></div><label class="lm-search">⌕<input id="learnerMediaSearch" placeholder="' + esc(tr('Search media…', 'Поиск в медиа…')) + '"></label></div>' +
+        (active === 'shorts' ? '<div class="lm-shorts">' + (shorts.length ? shorts.map((item, index) => '<article class="lm-short" data-video="' + esc(item.id || '') + '" data-media-search="' + esc([item.title, item.meta, item.level].filter(Boolean).join(' ').toLowerCase()) + '"><div class="lm-short-media">' + thumb(item) + '<span class="lm-short-shade"></span><span class="lm-short-index">' + String(index + 1).padStart(2, '0') + '</span><span class="lm-short-play">▶</span><div class="lm-short-copy"><span class="tag">' + esc(item.level || tr('Quick lesson', 'Быстрый урок')) + '</span><h3>' + esc(item.title || tr('Duvela short', 'Короткий урок Duvela')) + '</h3><p>@' + esc(item.meta || 'duvela') + '</p></div><div class="lm-short-actions"><span>♡</span><span>◯</span><span>↗</span></div></div></article>').join('') : '<div class="lm-empty">' + esc(tr('Short lessons will appear here.', 'Короткие уроки появятся здесь.')) + '</div>') + '</div>' : '') +
+        (active === 'videos' ? '<div class="lm-section-head"><b>' + esc(tr('Recommended for your level', 'Рекомендации для вашего уровня')) + '</b><span>' + items.length + ' ' + esc(tr('lessons', 'уроков')) + '</span></div><div class="lm-video-grid">' + (items.length ? items.map(videoCard).join('') : '<div class="lm-empty">' + esc(tr('Videos will appear here.', 'Видео появятся здесь.')) + '</div>') + '</div>' : '') +
+        (active === 'live' ? '<div class="lm-live-head"><span class="lm-pulse"></span><div><b>' + esc(tr('Learn together in real time', 'Учитесь вместе в реальном времени')) + '</b><small>' + esc(tr('Ask questions, react and join the lesson.', 'Задавайте вопросы, реагируйте и участвуйте в уроке.')) + '</small></div></div><div class="lm-live-grid">' + (liveRows.length ? liveRows.map(liveCard).join('') : '<div class="lm-empty">' + esc(tr('There are no active broadcasts yet. Upcoming lessons will appear here.', 'Активных эфиров пока нет. Здесь появятся ближайшие уроки.')) + '</div>') + '</div>' : '') +
+        '<nav class="lh-mobile-nav lm-mobile-nav"><a href="#home" data-go="home">⌂<span>' + esc(tr('Home', 'Главная')) + '</span></a><a class="active" href="#videos" data-go="videos">▶<span>' + esc(tr('Media', 'Медиа')) + '</span></a><a href="#workspace" data-go="workspace">✦<span>' + esc(tr('Practice', 'Практика')) + '</span></a><a href="#messages" data-go="messages">▣<span>' + esc(tr('Inbox', 'Сообщения')) + '</span></a><a href="#profile" data-go="profile">♙<span>' + esc(tr('Profile', 'Профиль')) + '</span></a></nav></div>';
+      const search = $('#learnerMediaSearch');
+      if (search) search.oninput = () => { const query = search.value.trim().toLowerCase(); $('#videoGrid').querySelectorAll('[data-media-search]').forEach((card) => { card.hidden = Boolean(query && !card.dataset.mediaSearch.includes(query)); }); };
+    }
+
     function renderVideos() {
       const studio = document.getElementById('mediaStudio');
       const browse = document.getElementById('mediaBrowse');
@@ -31,6 +50,8 @@
       if (studio) studio.hidden = true;
       if (browse) browse.hidden = false;
       syncUploadAccess();
+      renderLearnerMedia();
+      return;
       const items = state.videos.filter((item) => runtime.currentVideoFilter === 'all' || item.type === runtime.currentVideoFilter);
       $('#videoGrid').innerHTML = items.map((item) => {
         const playable = item.id ? ' data-video="' + esc(item.id) + '"' : '';
