@@ -55,6 +55,22 @@
   showTab('setup');
   const savedScene=localStorage.getItem('duvela.live.scene')||'camera'; const sceneSelect=document.getElementById('scenePreset'); if(sceneSelect){sceneSelect.value=savedScene;sceneSelect.addEventListener('change',()=>localStorage.setItem('duvela.live.scene',sceneSelect.value));}
 
+  dock.insertAdjacentHTML('afterbegin','<button type="button" class="btn" id="studioChatBtn">💬 '+t('Chat','Чат')+'</button>');
+  const hostChatSection=document.createElement('section');
+  hostChatSection.className='studio-section host-chat-section';
+  hostChatSection.dataset.studioGroup='people';
+  hostChatSection.innerHTML='<div><h3>'+t('LIVE chat','Чат эфира')+'</h3><p>'+t('Messages from learners appear here in real time.','Сообщения учеников появляются здесь в реальном времени.')+'</p></div>';
+  const hostChatShell=document.getElementById('chatShell');
+  if(hostChatShell){hostChatShell.style.display='grid';hostChatSection.appendChild(hostChatShell);}
+  side.appendChild(hostChatSection);sections.push(hostChatSection);
+  const chatInput=document.getElementById('chatInput'),chatForm=document.getElementById('chatForm'),chatButton=document.getElementById('studioChatBtn');
+  if(chatInput)chatInput.placeholder=t('Write to the LIVE chat…','Напишите в чат эфира…');
+  if(document.getElementById('sendChat'))document.getElementById('sendChat').textContent=t('Send','Отправить');
+  if(chatForm&&!chatForm.dataset.hostBound){chatForm.dataset.hostBound='true';chatForm.addEventListener('submit',async(event)=>{event.preventDefault();const text=chatInput?.value.trim();if(!text)return;try{await api.sendChatMessage(text);}catch(error){alert(error.message);}});}
+  async function openHostChat(){showTab('people');hostChatSection.scrollIntoView({behavior:'smooth',block:'start'});try{await api.initializeChat();chatInput?.focus();}catch(error){alert(error.message);}}
+  if(chatButton)chatButton.onclick=openHostChat;
+  let chatReady=false;const chatBootstrap=setInterval(async()=>{if(chatReady||!api.getSession())return;try{chatReady=await api.initializeChat();if(chatReady)clearInterval(chatBootstrap);}catch(_){}},1000);
+
   dock.insertAdjacentHTML('afterbegin','<button type="button" class="btn" id="studioShareScreen">▣ '+t('Share screen','Экран')+'</button><button type="button" class="btn" id="studioNotesBtn">✎ '+t('Notes','Заметки')+'</button><button type="button" class="btn" id="studioPlanBtn">◷ '+t('Lesson plan','План')+'</button>');
   dock.insertAdjacentHTML('beforeend','<button type="button" class="btn" id="studioRecord">● '+t('Record','Запись')+'</button>');
   document.getElementById('studioRecord').onclick=async function(){try{if(api.isRecording()){await api.stopRecording();this.classList.remove('danger');this.textContent='● '+t('Record','Запись');}else{api.startRecording();this.classList.add('danger');this.textContent='■ '+t('Stop recording','Остановить запись');}}catch(error){alert(error.message);}};
@@ -132,6 +148,11 @@
 
   const peopleTools=document.createElement('div');peopleTools.className='studio-tool-card';peopleTools.innerHTML='<h3>'+t('Raised hands and guests','Поднятые руки и гости')+'</h3><p>'+t('Requests below form the speaking queue. Approve a learner to invite them on stage; reject to remove them from the queue.','Запросы ниже образуют очередь выступающих. Одобрите ученика, чтобы пригласить его на сцену, или отклоните, чтобы убрать из очереди.')+'</p><div class="studio-inline"><span>✋ '+t('Queue is ordered by request time','Очередь по времени запроса')+'</span></div>';
   peopleSection?.insertBefore(peopleTools,peopleSection.firstChild);if(document.getElementById('guestRequestsTitle'))document.getElementById('guestRequestsTitle').textContent=t('Raised-hand queue','Очередь поднятых рук');
+  const onlineTools=document.createElement('div');onlineTools.className='studio-tool-card';onlineTools.innerHTML='<div class="studio-inline" style="justify-content:space-between"><h3>'+t('Viewers online','Зрители онлайн')+'</h3><b id="onlineViewerCount">0</b></div><div id="onlineViewerList"><p>'+t('No viewers connected yet.','Зрители пока не подключились.')+'</p></div>';
+  peopleSection?.insertBefore(onlineTools,peopleTools.nextSibling);
+  function viewerInitials(name){return String(name||'D').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase();}
+  async function refreshOnlineViewers(){if(!api.getSession())return;try{const viewers=await api.getOnlineViewers();onlineTools.querySelector('#onlineViewerCount').textContent=String(viewers.length);onlineTools.querySelector('#onlineViewerList').innerHTML=viewers.length?viewers.map(viewer=>'<div class="online-viewer"><span class="online-viewer-avatar">'+(viewer.avatarUrl?'<img src="'+viewer.avatarUrl.replace(/"/g,'&quot;')+'" alt="">':viewerInitials(viewer.name))+'</span><span><b>'+viewer.name.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</b><small>'+t(viewer.role==='guest'?'Guest on stage':'Watching now',viewer.role==='guest'?'Гость в эфире':'Смотрит сейчас')+'</small></span><i></i></div>').join(''):'<p>'+t('No viewers connected yet.','Зрители пока не подключились.')+'</p>';}catch(error){onlineTools.querySelector('#onlineViewerList').innerHTML='<p>'+t('Could not update the viewer list.','Не удалось обновить список зрителей.')+'</p>';}}
+  setInterval(refreshOnlineViewers,5000);setTimeout(refreshOnlineViewers,1200);
 
   const pollBox=document.createElement('div');pollBox.className='studio-tool-card';pollBox.innerHTML='<h3>'+t('Live poll','Опрос в эфире')+'</h3><input id="pollQuestion" placeholder="'+t('Question','Вопрос')+'"><input id="pollOptions" placeholder="'+t('Options separated by commas','Варианты через запятую')+'"><div class="studio-inline"><button class="btn primary" id="startPoll">'+t('Launch poll','Запустить опрос')+'</button><button class="btn" id="closePoll">'+t('Close','Закрыть')+'</button><b id="pollVotes">0 '+t('votes','ответов')+'</b></div><div class="poll-results" id="pollResults"></div>';
   privateTools.appendChild(pollBox);let activePoll='',pollVotes=0,pollOptionLabels=[],pollOptionVotes=[];

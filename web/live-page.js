@@ -56,6 +56,7 @@
   var hostScheduledSessions = [];
   var hostHistorySessions = [];
   var viewerJoined = false;
+  var viewerPresenceTimer = null;
   var viewerAgoraUid = null;
   var viewerRealtimeChannel = null;
   var guestRequestChannel = null;
@@ -897,15 +898,23 @@
       left_at: null,
       role: 'audience',
       session_id: currentSession.id,
-      user_id: currentUser.id
+      user_id: currentUser.id,
+      updated_at: new Date().toISOString()
     }, { onConflict: 'session_id,user_id' });
     if (result.error) {
       throw new Error(result.error.message || tr('Could not join the live room.', 'Не удалось подключиться к комнате эфира.'));
     }
     viewerJoined = true;
     viewerAgoraUid = uid;
+    clearInterval(viewerPresenceTimer);
+    viewerPresenceTimer = setInterval(function () {
+      if (!viewerJoined || !currentSession?.id || !currentUser?.id) return;
+      void supa.from('live_participants').update({ left_at:null, updated_at:new Date().toISOString() }).eq('session_id',currentSession.id).eq('user_id',currentUser.id);
+    }, 20000);
   }
   async function leaveViewerParticipant() {
+    clearInterval(viewerPresenceTimer);
+    viewerPresenceTimer = null;
     if (!viewerJoined || !currentSession?.id || !currentUser?.id || !supa) return;
     await supa.from('live_participants')
       .update({ left_at: new Date().toISOString() })
@@ -1146,9 +1155,9 @@
       var result = await supa.from('live_messages').insert({
         channel_name: currentSession.channel_name,
         message: text,
-        role: 'student',
+        role: isHostMode ? 'teacher' : 'student',
         sender_id: currentUser.id,
-        sender_name: viewerDisplayName(),
+        sender_name: isHostMode ? (currentSession.teacher_name || displayName(currentUser)) : viewerDisplayName(),
         session_id: currentSession.id
       }).select('id,channel_name,created_at,message,role,sender_id,sender_name,session_id').single();
       if (result.error || !result.data) {
@@ -1603,7 +1612,13 @@
       el('toggleMic').style.display = 'inline-flex';
       el('toggleCam').style.display = 'inline-flex';
       el('pinMaterial').style.display = 'inline-flex';
-      if (currentSession) { subscribeLiveMaterial(currentSession.id); subscribeLiveReactions(currentSession.id); renderLiveMaterial(currentSession.material_url); }
+      if (currentSession) {
+        subscribeLiveMaterial(currentSession.id);
+        subscribeLiveReactions(currentSession.id);
+        renderLiveMaterial(currentSession.material_url);
+        await loadViewerMessages();
+        await subscribeViewerRealtime();
+      }
       updateHostControls();
       el('mainAction').textContent = tr('LIVE is running', 'Эфир идёт');
       syncHostActionState(currentSession);
@@ -1618,6 +1633,7 @@
       startSessionPolling();
       await markHeartbeat();
       heartbeatTimer = setInterval(markHeartbeat, 30000);
+      void supa.functions.invoke('notify-live-start', { body:{ sessionId:currentSession.id } }).catch(function (error) { console.warn('LIVE start notification failed:', error?.message || error); });
       await loadHostTimeline();
       await loadHostGuestRequests();
       await subscribeGuestRequests();
@@ -1875,6 +1891,10 @@
       })
       .on('broadcast', { event: 'studio-event' }, function (msg) {
         window.dispatchEvent(new CustomEvent('duvela:studio-event', { detail: msg && msg.payload }));
+      })
+      .on('broadcast', { event: 'reaction' }, function (msg) {
+        var p = msg && msg.payload;
+        if (p && p.emoji) showLiveReaction(p.emoji);
       });
     materialChannel.subscribe();
   }
@@ -1885,12 +1905,16 @@
   }
   function subscribeLiveReactions(id) {
     if(!supa||!id)return; if(reactionChannel){try{supa.removeChannel(reactionChannel);}catch(_){} }
-    reactionChannel=supa.channel('live-reactions-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'live_reactions',filter:'session_id=eq.'+id},function(payload){showLiveReaction(payload.new.emoji);}).subscribe();
+    reactionChannel=supa.channel('live-reactions-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'live_reactions',filter:'session_id=eq.'+id},function(payload){if(!materialChannel&&payload.new?.emoji)showLiveReaction(payload.new.emoji);}).subscribe();
   }
   async function sendLiveReaction(emoji) {
-    if(!currentSession?.id||!currentUser?.id)return;
+    emoji=String(emoji||'').trim();
+    if(!emoji||!currentSession?.id||!currentUser?.id)throw new Error(tr('Start or join a LIVE room first.','Сначала запустите эфир или войдите в LIVE-комнату.'));
+    showLiveReaction(emoji);
+    if(!materialChannel)subscribeLiveMaterial(currentSession.id);
+    if(materialChannel)await materialChannel.send({type:'broadcast',event:'reaction',payload:{emoji:emoji,userId:currentUser.id}});
     if(!reactionChannel)subscribeLiveReactions(currentSession.id);
-    var result=await supa.from('live_reactions').insert({session_id:currentSession.id,user_id:currentUser.id,emoji:emoji}); if(result.error)throw result.error;
+    var result=await supa.from('live_reactions').insert({session_id:currentSession.id,user_id:currentUser.id,emoji:emoji});if(result.error)console.warn('Reaction analytics was not saved:',result.error.message);return true;
   }
 
   async function watch() {
@@ -2399,6 +2423,9 @@
     clearBoard: function () { clearWhiteboard(true); },
     setBoardTool: function (color,width) { whiteboardColor=color||whiteboardColor; whiteboardWidth=Number(width)||whiteboardWidth; },
     sendReaction: sendLiveReaction,
+    initializeChat: async function () { if(!currentSession?.id)return false;await loadViewerMessages();await subscribeViewerRealtime();return true; },
+    sendChatMessage: async function (text) { if(el('chatInput'))el('chatInput').value=String(text||'');await sendViewerMessage();return true; },
+    getOnlineViewers: async function () { if(!currentSession?.id||!supa)return [];var cutoff=new Date(Date.now()-60000).toISOString();var result=await supa.from('live_participants').select('user_id,role,joined_at,updated_at').eq('session_id',currentSession.id).is('left_at',null).gte('updated_at',cutoff).neq('role','host').order('joined_at',{ascending:true});if(result.error)throw result.error;var rows=result.data||[],ids=rows.map(function(row){return row.user_id;});if(!ids.length)return [];var profiles=await supa.from('profiles').select('id,full_name,avatar_url').in('id',ids);var byId={};(profiles.data||[]).forEach(function(profile){byId[profile.id]=profile;});return rows.map(function(row){var profile=byId[row.user_id]||{};return{userId:row.user_id,name:profile.full_name||tr('Duvela viewer','Зритель Duvela'),avatarUrl:profile.avatar_url||'',role:row.role,joinedAt:row.joined_at};}); },
     addModerator: async function (userId) { if(!currentSession?.id||!currentUser?.id)throw new Error(tr('Start or open a room first.','Сначала откройте или создайте комнату.')); var result=await supa.from('live_moderators').upsert({session_id:currentSession.id,user_id:userId,added_by:currentUser.id});if(result.error)throw result.error;return true; },
     getStats: function () { return { peakViewers:peakViewerCount,reactions:liveReactionCount,messages:viewerMessages.length,guests:Object.keys(remoteGuestUsers).length }; },
     getSession: function () { return currentSession; },

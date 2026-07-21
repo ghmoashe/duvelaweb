@@ -71,7 +71,8 @@ Before publishing Web/Hub/Business/LIVE:
 
 - Apply `scripts/duvela-web-supabase.sql` and `scripts/web-role-requests.sql` in Supabase.
 - For an existing installation, also apply `scripts/live-setup-controls.sql` to add browser LIVE quality and audience controls.
-- Deploy Edge Functions: `agora-token`, `notify-course-enrollment`, `live-payment`, `live-restream`.
+- Deploy Edge Functions: `agora-token`, `notify-course-enrollment`, `live-payment`, `live-restream`, `notify-live-start`.
+- Run `scripts/live-audience-notifications.sql` in the Supabase SQL Editor to enable reliable viewer presence and deduplicated LIVE-start notifications.
 - Run `npm run check`; for release hardening run `DUVELA_STRICT_PUBLISH=1 npm run check:publish` from a deploy folder that excludes local videos.
 - Publish static files with `_headers` so HTML revalidates while images and shared assets get cache headers.
 - Verify production URLs for `index.html`, `app.html`, `live.html`, `profile.html`, and `legal.html`.
@@ -86,6 +87,7 @@ LIVE also expects these Edge Functions to be deployed:
 - `notify-course-enrollment`: handles course enrollment notifications
 - `live-payment`: validates gifts, charges `profiles.vela_coin_balance`, and writes `live_gifts`
 - `live-restream`: currently a safe restream status/stub endpoint; real RTMP restream still needs provider integration and secrets
+- `notify-live-start`: sends one in-app notification to every follower when a teacher actually starts a LIVE session
 
 Function source for the LIVE additions lives under `supabase/functions/`.
 
