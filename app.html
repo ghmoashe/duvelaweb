@@ -697,6 +697,15 @@
   .pv-action:hover { border-color: rgba(109,63,224,.35); }
   .pv-action-ic { width: 44px; height: 44px; border-radius: 999px; background: var(--purple-soft); color: var(--purple); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; }
   .pv-action-ic.teal { background: var(--teal-soft); color: var(--teal); }
+  .pv-account-card { display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow); }
+  .pv-account-card h3,.pv-account-card p { margin:0; }
+  .pv-account-card p { margin-top:4px;color:var(--soft);font-size:12px;font-weight:650;line-height:1.45; }
+  .pv-account-actions { display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end; }
+  .pv-account-btn { min-height:42px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font-weight:850;cursor:pointer;white-space:nowrap; }
+  .pv-account-btn:hover { border-color:var(--purple);color:var(--purple); }
+  .pv-account-btn.danger { border-color:rgba(217,45,32,.35);background:rgba(217,45,32,.06);color:var(--red); }
+  .pv-account-btn.danger:hover { background:var(--red);color:#fff; }
+  @media (max-width:700px) { .pv-account-card { align-items:stretch;flex-direction:column; } .pv-account-actions,.pv-account-btn { width:100%; } }
   @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } }
   .pv-dot-list { display: grid; gap: 8px; }
   .pv-dot-row { display: flex; align-items: center; gap: 9px; color: var(--soft); font-weight: 600; }
@@ -1888,7 +1897,7 @@
 <script src="./web/app-feature-dashboard.js"></script>
 <script src="./web/app-feature-management.js"></script>
 <script src="./web/app-feature-media-studio.js"></script>
-<script src="./web/app-feature-profile-view.js"></script>
+<script src="./web/app-feature-profile-view.js?v=20260721-2"></script>
 <script src="./web/app-feature-business.js"></script>
 <script src="./web/app-feature-classes.js"></script>
 <script src="./web/app-feature-catalog.js"></script>

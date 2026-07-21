@@ -242,6 +242,9 @@
         '<button type="button" class="pv-action" data-pv-act="lang"><span class="pv-action-ic">' + IC.globe + '</span>' + esc(tr('Change Language', 'Сменить язык')) + '</button>' +
         '<button type="button" class="pv-action" data-pv-act="invite"><span class="pv-action-ic teal">' + IC.gift + '</span>' + esc(tr('Invite Friends', 'Пригласить друзей')) + '</button>' +
         '</div>';
+      html += '<div class="pv-account-card"><div><h3>' + esc(tr('Account', 'Аккаунт')) + '</h3><p>' + esc(tr('Manage your session or permanently remove the web profile.', 'Управляйте текущей сессией или удалите профиль без возможности восстановления.')) + '</p></div>' +
+        '<div class="pv-account-actions"><button type="button" class="pv-account-btn" data-pv-act="signout">↪ ' + esc(tr('Sign out', 'Выйти')) + '</button>' +
+        '<button type="button" class="pv-account-btn danger" data-pv-act="delete">♲ ' + esc(tr('Delete account', 'Удалить аккаунт')) + '</button></div></div>';
 
       return html;
     }
@@ -547,7 +550,10 @@
             const link = window.location.origin + '/index.html';
             if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { ctx.alert(tr('Invite link copied.', 'Ссылка-приглашение скопирована.')); }).catch(function () {});
             else ctx.alert(link);
+            return;
           }
+          if (act === 'signout') { document.getElementById('signOut')?.click(); return; }
+          if (act === 'delete') { document.getElementById('deleteAccountBtn')?.click(); }
         });
       });
     }
