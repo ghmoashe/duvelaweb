@@ -552,6 +552,31 @@
         : emptyLiveBlockV2(emptyCopy);
     }
 
+    function learnerHomeV3(liveItems, scheduledItems) {
+      const host = document.getElementById('genericHome');
+      if (!host) return;
+      const video = state.videos[0] || {};
+      const events = (state.events || []).slice(0, 4);
+      const courses = (state.courses || []).slice(0, 4);
+      const live = (liveItems || []).slice(0, 4);
+      const eventCard = (item) => '<article class="lh-event" data-home-card="'+esc([item.title,item.city,item.meta,item.description].filter(Boolean).join(' ').toLowerCase())+'"'+(item.id?' data-event="'+esc(item.id)+'"':'')+'>'+
+        '<div class="lh-event-cover">'+(item.image?'<img src="'+esc(item.image)+'" alt="">':'<span>DUVELA</span>')+'<b>'+esc(item.is_online?tr('Online','Онлайн'):tr('Offline','Офлайн'))+'</b></div>'+
+        '<div class="lh-event-body"><h3>'+esc(item.title||tr('Language meetup','Языковая встреча'))+'</h3><p>'+esc([item.language,item.level].filter(Boolean).join(' · ')||item.description||tr('Practice with the Duvela community','Практика с сообществом Duvela'))+'</p><div class="lh-event-meta"><span>⌖ '+esc(item.city||tr('Duvela community','Сообщество Duvela'))+'</span><span>□ '+esc(item.event_date?formatDate(item.event_date):item.meta||tr('Upcoming','Скоро'))+'</span></div></div></article>';
+      const miniCard = (item,kind) => '<a class="lh-mini" href="#'+kind+'" data-go="'+kind+'" data-home-card="'+esc([item.title,item.description,item.teacher_name].filter(Boolean).join(' ').toLowerCase())+'"><span class="lh-mini-icon">'+(kind==='courses'?'▣':'◉')+'</span><span><b>'+esc(item.title||item.teacher_name||tr('Duvela lesson','Урок Duvela'))+'</b><small>'+esc(item.level||item.description||tr('Open details','Открыть подробнее'))+'</small></span></a>';
+      host.innerHTML='<div class="learner-home">'+
+        '<div class="lh-search-row"><label class="lh-search">⌕<input id="learnerHomeSearch" placeholder="'+esc(tr('Search events, courses and LIVE…','Поиск событий, курсов и LIVE…'))+'"></label><a class="lh-filter" href="#events" data-go="events" aria-label="'+esc(tr('Open filters','Открыть фильтры'))+'">☷</a></div>'+
+        '<nav class="lh-primary-tabs"><a class="active" href="#events" data-go="events">▦ '+esc(tr('Events','События'))+'</a><a href="#courses" data-go="courses">▣ '+esc(tr('Courses','Курсы'))+'</a><a href="#live" data-go="live">◉ '+esc(tr('Live','Эфиры'))+'</a><a href="#workspace" data-go="workspace">♕ '+esc(tr('Challenges','Челленджи'))+'</a></nav>'+
+        '<div class="lh-filter-tabs"><button class="active">'+esc(tr('All','Все'))+'</button><button>'+esc(tr('Upcoming','Предстоящие'))+'</button><button>'+esc(tr('Today','Сегодня'))+'</button><button>'+esc(tr('Weekend','Выходные'))+'</button></div>'+
+        '<section class="lh-section"><div class="lh-heading"><h2>▶ '+esc(tr('Continue watching','Продолжить просмотр'))+'</h2><a href="#videos" data-go="videos">'+esc(tr('All media','Все медиа'))+'</a></div>'+
+          '<article class="lh-continue"'+(video.id?' data-video="'+esc(video.id)+'"':'')+' data-home-card="'+esc([video.title,video.meta].filter(Boolean).join(' ').toLowerCase())+'"><div class="lh-video-thumb">'+(video.image?'<img src="'+esc(video.image)+'" alt="">':'')+'<span>▶</span></div><div><h3>'+esc(video.title||tr('Choose your first video','Выберите первое видео'))+'</h3><p>'+esc(video.meta||tr('Lessons from Duvela teachers','Уроки преподавателей Duvela'))+'</p></div></article></section>'+
+        '<div class="lh-levels"><b>✦ '+esc(tr('Your level','Ваш уровень'))+': '+esc(ctx.profile?.language_level||'A1')+'</b><span>'+esc(tr('Recommended for you','Рекомендовано для вас'))+'</span></div>'+
+        '<section class="lh-section"><div class="lh-heading"><h2>'+esc(tr('Events near you','События для вас'))+'</h2><a href="#events" data-go="events">'+esc(tr('See all','Смотреть все'))+'</a></div><div class="lh-event-grid">'+(events.length?events.map(eventCard).join(''):'<div class="lh-empty">'+esc(tr('New events will appear here.','Новые события появятся здесь.'))+'</div>')+'</div></section>'+
+        '<section class="lh-section"><div class="lh-heading"><h2>'+esc(tr('Courses and LIVE','Курсы и LIVE'))+'</h2></div><div class="lh-mini-grid">'+courses.map(item=>miniCard(item,'courses')).concat(live.map(item=>miniCard(item,'live'))).join('')+'</div></section>'+
+        '<div class="lh-no-results" id="learnerHomeEmpty" hidden>'+esc(tr('Nothing matched your search.','По вашему запросу ничего не найдено.'))+'</div></div>';
+      const search=host.querySelector('#learnerHomeSearch');
+      search?.addEventListener('input',()=>{const query=search.value.trim().toLowerCase(),cards=Array.from(host.querySelectorAll('[data-home-card]'));let visible=0;cards.forEach(card=>{const show=!query||card.dataset.homeCard.includes(query);card.hidden=!show;if(show)visible++;});host.querySelector('#learnerHomeEmpty').hidden=Boolean(visible||!query);});
+    }
+
     function renderHomeV2() {
       const creator = ctx.isBusiness();
       const busDash = document.getElementById('busDashboard');
@@ -568,6 +593,10 @@
       const liveItems = visibleLiveSessionsV2();
       const scheduledItems = upcomingLiveSessionsV2();
       const historyItems = archivedLiveSessionsV2();
+      if (!creator) {
+        learnerHomeV3(liveItems.filter((item) => !item.is_private), scheduledItems.filter((item) => !item.is_private));
+        return;
+      }
       const homeFeed = (liveItems.length ? liveItems : scheduledItems).slice(0, 3);
       const homeHeads = document.querySelectorAll('[data-panel="home"] .section-head');
       if (homeHeads[0]) {
