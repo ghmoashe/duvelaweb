@@ -345,6 +345,10 @@
   .guest-tile.active-speaker { border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.22); }
   .guest-tile-player { position:absolute;inset:0; }
   .guest-tile-label { position:absolute;left:8px;bottom:8px;z-index:2;padding:4px 7px;border-radius:8px;background:rgba(0,0,0,.68);color:#fff;font-size:11px;font-weight:800; }
+  .guest-admin { position:absolute;right:8px;top:8px;z-index:3;display:flex;gap:5px; }
+  .guest-admin button { width:28px;height:28px;border:0;border-radius:50%;background:rgba(22,17,32,.88);color:#fff;cursor:pointer; }
+  .guest-admin button:last-child { background:rgba(190,35,48,.92);font-size:18px; }
+  .guest-tile.pinned { grid-column:1/-1;min-height:190px;border-color:#f4c04c; }
   .guest-stage video { width: 100%; height: 100%; object-fit: cover; }
   .guest-stage-label {
     position: absolute;
@@ -774,8 +778,11 @@
   .production-lower-third b,.production-lower-third span { display:block; }
   .production-lower-third span { margin-top:3px;color:#c9bddb;font-size:12px; }
   .production-caption { position:absolute;left:10%;right:10%;bottom:22px;padding:10px 16px;border-radius:12px;background:rgba(0,0,0,.78);color:#fff;text-align:center;font-size:18px;font-weight:800; }
-  .material-library { display:grid;gap:7px;max-height:180px;overflow:auto; }
-  .material-library button { display:flex;justify-content:space-between;width:100%;text-align:left; }
+  .material-library { display:grid;gap:7px;max-height:180px;overflow-y:auto;overflow-x:hidden; }
+  .material-library button { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;width:100%;min-width:0;text-align:left; }
+  .material-library button.active { border-color:#8b5cf6;background:rgba(139,92,246,.16); }
+  .material-library button span { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .material-library button small { white-space:nowrap;color:var(--soft); }
   .poll-results { display:grid;gap:7px; }
   .poll-result-row { position:relative;overflow:hidden;padding:8px 10px;border:1px solid var(--line);border-radius:9px; }
   .poll-result-row i { position:absolute;inset:0 auto 0 0;background:rgba(139,92,246,.22); }
@@ -1716,7 +1723,7 @@
   </div>
 </div>
 
-<script src="./web/live-page.js?v=20260721-6"></script>
-<script src="./web/live-studio-ui.js?v=20260721-6"></script>
+<script src="./web/live-page.js?v=20260721-9"></script>
+<script src="./web/live-studio-ui.js?v=20260721-9"></script>
 </body>
 </html>

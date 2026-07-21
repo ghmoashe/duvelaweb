@@ -132,7 +132,23 @@ async function main() {
     );
     log('viewer received Agora LIVE stream.');
 
+    // Verify production studio controls are present and host-only viewer actions stay hidden.
+    await teacherPage.locator('[data-studio-tab="materials"]').click();
+    await teacherPage.locator('#studioChoosePdf').waitFor({ state: 'visible' });
+    if (await teacherPage.locator('#viewerActionsSection').isVisible()) {
+      throw new Error('Viewer chat/gift controls leaked into teacher studio mode.');
+    }
+    await teacherPage.locator('[data-studio-tab="setup"]').click();
+    await teacherPage.locator('#studioRecord').waitFor({ state: 'visible' });
+    log('teacher production controls verified.');
+
     await teacherPage.locator('#endLive').click();
+    const endDialog = teacherPage.locator('.prelive-modal.open').filter({ hasText: /END LIVE|ЗАВЕРШЕНИЕ ЭФИРА/ });
+    if (await endDialog.isVisible().catch(() => false)) {
+      const confirmation = await endDialog.locator('input').getAttribute('placeholder');
+      await endDialog.locator('input').fill(confirmation || 'END');
+      await endDialog.locator('[data-end]').click();
+    }
     await teacherPage.waitForFunction(
       () => {
         const text = document.querySelector('#statusText')?.textContent || '';

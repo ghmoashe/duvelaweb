@@ -67,6 +67,10 @@
   var hostGuestRequests = [];
   var remoteGuestUsers = {};
   var activeSpeakerUid = '';
+  var liveRecorder = null;
+  var liveRecordingChunks = [];
+  var serverCaptionActive = false;
+  var serverCaptionRecorder = null;
   var teacherAgoraUid = null;
   var selectedGiftId = 'heart';
   var viewerSendingGift = false;
@@ -208,7 +212,7 @@
   function renderGuestGrid() {
     var container=el('guestStage');if(!container)return;var guests=Object.keys(remoteGuestUsers).map(function(key){return remoteGuestUsers[key];}).filter(function(item){return item&&item.videoTrack;});
     if(!guests.length){container.classList.remove('visible','multi');container.innerHTML='<div class="guest-stage-label">'+esc(tr('Guest','Гость'))+'</div>';return;}
-    container.classList.add('visible');container.classList.toggle('multi',guests.length>1);container.innerHTML=guests.slice(0,6).map(function(item,index){return '<div class="guest-tile '+(String(item.uid)===String(activeSpeakerUid)?'active-speaker':'')+'" data-guest-uid="'+esc(item.uid)+'"><div class="guest-tile-player" id="guestStagePlayer'+index+'"></div><div class="guest-tile-label">'+esc(item.displayName||tr('Guest','Гость'))+'</div></div>';}).join('');
+    container.classList.add('visible');container.classList.toggle('multi',guests.length>1);container.innerHTML=guests.slice(0,6).map(function(item,index){return '<div class="guest-tile '+(String(item.uid)===String(activeSpeakerUid)?'active-speaker':'')+'" data-guest-uid="'+esc(item.uid)+'"><div class="guest-tile-player" id="guestStagePlayer'+index+'"></div><div class="guest-tile-label">'+esc(item.displayName||tr('Guest','Гость'))+'</div>'+(isHostMode?'<div class="guest-admin"><button type="button" data-mute-guest="'+esc(item.uid)+'" title="Mute guest">♩</button><button type="button" data-pin-guest="'+esc(item.uid)+'" title="Pin guest">⌖</button><button type="button" data-remove-guest="'+esc(item.uid)+'" title="Remove guest">×</button></div>':'')+'</div>';}).join('');
     guests.slice(0,6).forEach(function(item,index){item.videoTrack.play('guestStagePlayer'+index,{fit:'cover'});});
   }
   function attachActiveSpeaker(clientInstance) {
@@ -1226,6 +1230,9 @@
       el('joinGuestBtn').disabled = false;
     }
   }
+  async function leaveViewerGuestStage() {
+    if(!viewerGuestActive)return;try{if(client&&viewerGuestTracks)await client.unpublish(viewerGuestTracks);}catch(_){}if(viewerGuestTracks){viewerGuestTracks.forEach(function(track){try{track.stop();track.close();}catch(_){}});viewerGuestTracks=null;}viewerGuestActive=false;try{await updateViewerParticipantRole('viewer',viewerAgoraUid);}catch(_){}renderViewerGuestRequestUi();setNote(tr('The teacher removed you from the stage.','Преподаватель убрал вас со сцены.'));
+  }
   function hostSessionPayload(user, status, startedAt, existingSession) {
     var now = new Date().toISOString();
     var topic = el('topicInput').value.trim() || tr('Live lesson', 'Живой урок');
@@ -1526,6 +1533,19 @@
     window.dispatchEvent(new CustomEvent('duvela:screen-share', { detail:{ active:true } }));
     setScenePreset('presentation', true); return true;
   }
+  function startLocalRecording() {
+    if(liveRecorder&&liveRecorder.state==='recording')return true;if(!window.MediaRecorder||!localVideoTrack)throw new Error(tr('Recording is not supported or LIVE is not running.','Запись не поддерживается или эфир не запущен.'));var tracks=[];var video=localVideoTrack.getMediaStreamTrack?.();var audio=localAudioTrack?.getMediaStreamTrack?.();if(video)tracks.push(video);if(audio)tracks.push(audio);var stream=new MediaStream(tracks);var mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(function(type){return MediaRecorder.isTypeSupported(type);})||'';liveRecordingChunks=[];liveRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);liveRecorder.ondataavailable=function(event){if(event.data?.size)liveRecordingChunks.push(event.data);};liveRecorder.start(1000);return true;
+  }
+  async function stopLocalRecording() {
+    if(!liveRecorder||liveRecorder.state==='inactive')return false;var recorder=liveRecorder;await new Promise(function(resolve){recorder.addEventListener('stop',resolve,{once:true});recorder.stop();});var blob=new Blob(liveRecordingChunks,{type:recorder.mimeType||'video/webm'});var url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='duvela-live-'+new Date().toISOString().replace(/[:.]/g,'-')+'.webm';document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(url);},30000);liveRecorder=null;liveRecordingChunks=[];return true;
+  }
+  async function sendCaptionChunk(blob,language) {
+    if(!blob?.size||!currentSession?.id)return;var auth=await supa.auth.getSession();var token=auth.data?.session?.access_token;if(!token)return;var config=window.DuvelaWebConfig;var response=await fetch(config.supabaseUrl+'/functions/v1/live-transcribe',{method:'POST',headers:{apikey:config.supabaseAnonKey,Authorization:'Bearer '+token,'Content-Type':blob.type||'audio/webm','x-session-id':currentSession.id,'x-language':language||''},body:blob});var data=await response.json().catch(function(){return{};});if(!response.ok)throw new Error(data.error||tr('Transcription failed.','Не удалось распознать речь.'));var text=String(data.text||'').trim();if(text){var payload={kind:'caption',text:text};window.dispatchEvent(new CustomEvent('duvela:studio-event',{detail:payload}));if(materialChannel)await materialChannel.send({type:'broadcast',event:'studio-event',payload:payload});}
+  }
+  function startServerCaptions(language) {
+    if(serverCaptionActive)return true;var track=localAudioTrack?.getMediaStreamTrack?.();if(!track||!window.MediaRecorder)throw new Error(tr('Start LIVE before server captions.','Сначала запустите эфир.'));serverCaptionActive=true;var cycle=function(){if(!serverCaptionActive)return;var chunks=[];var recorder=new MediaRecorder(new MediaStream([track.clone()]));serverCaptionRecorder=recorder;recorder.ondataavailable=function(event){if(event.data?.size)chunks.push(event.data);};recorder.onstop=function(){if(chunks.length)sendCaptionChunk(new Blob(chunks,{type:recorder.mimeType||'audio/webm'}),language).catch(function(error){setNote(error.message);});if(serverCaptionActive)setTimeout(cycle,150);};recorder.start();setTimeout(function(){if(recorder.state==='recording')recorder.stop();},7000);};cycle();return true;
+  }
+  function stopServerCaptions(){serverCaptionActive=false;if(serverCaptionRecorder?.state==='recording')serverCaptionRecorder.stop();serverCaptionRecorder=null;return true;}
 
   async function startHost() {
     if (!supa || !window.AgoraRTC || !AGORA_APP_ID) {
@@ -1753,6 +1773,7 @@
       if (up.error) throw up.error;
       var url = supa.storage.from('posts').getPublicUrl(path).data.publicUrl;
       await supa.from('live_sessions').update({ material_url: url }).eq('id', currentSession.id);
+      try { await supa.from('live_materials').insert({session_id:currentSession.id,teacher_id:currentUser.id,name:file.name,public_url:url,mime_type:file.type,size_bytes:file.size}); } catch (_) {}
       if (!materialChannel) subscribeLiveMaterial(currentSession.id);
       if (materialChannel) materialChannel.send({ type: 'broadcast', event: 'material', payload: { kind: 'set', url: url } });
       renderLiveMaterial(url);
@@ -2031,6 +2052,8 @@
     clearInterval(sessionPollTimer);
     sessionPollTimer = null;
     stopElapsedClock();
+    if(liveRecorder&&liveRecorder.state==='recording')await stopLocalRecording();
+    stopServerCaptions();
     if (screenShareTrack) {
       try { screenShareTrack.stop(); } catch (e) {}
       screenShareTrack = null;
@@ -2351,6 +2374,24 @@
     setMicrophoneVolume: function (value) { if (localAudioTrack?.setVolume) localAudioTrack.setVolume(Math.max(0, Math.min(100, Number(value) || 0))); },
     setAdaptiveQuality: async function (quality) { if(!localVideoTrack?.setEncoderConfiguration)return false;var profiles={low:{width:640,height:360,frameRate:15,bitrateMin:250,bitrateMax:600},medium:{width:960,height:540,frameRate:24,bitrateMin:500,bitrateMax:1200},high:{width:1280,height:720,frameRate:30,bitrateMin:800,bitrateMax:2200}};await localVideoTrack.setEncoderConfiguration(profiles[quality]||profiles.medium);return true; },
     broadcastEvent: function (payload) { if (!materialChannel) throw new Error(tr('Open a LIVE room first.', 'Сначала откройте LIVE-комнату.')); return materialChannel.send({ type:'broadcast', event:'studio-event', payload:payload }); },
+    listMaterials: async function () { if(!currentSession?.id||!supa)return [];var result=await supa.from('live_materials').select('id,name,public_url,mime_type,size_bytes,created_at').eq('session_id',currentSession.id).order('created_at',{ascending:false});if(result.error)return [];return result.data||[]; },
+    createPoll: async function (question,options) { if(!currentSession?.id||!currentUser?.id)throw new Error(tr('Start a LIVE room first.','Сначала запустите LIVE-комнату.'));var poll=await supa.from('live_polls').insert({session_id:currentSession.id,teacher_id:currentUser.id,question:question,status:'open'}).select('id').single();if(poll.error)throw poll.error;var rows=options.map(function(label,index){return{poll_id:poll.data.id,label:label,position:index};});var added=await supa.from('live_poll_options').insert(rows).select('id,label,position');if(added.error)throw added.error;return{id:poll.data.id,options:(added.data||[]).sort(function(a,b){return a.position-b.position;})}; },
+    votePoll: async function (pollId,optionId) { if(!currentUser?.id)throw new Error(tr('Sign in to vote.','Войдите, чтобы проголосовать.'));var result=await supa.from('live_poll_votes').insert({poll_id:pollId,option_id:optionId,user_id:currentUser.id});if(result.error)throw result.error;return true; },
+    closePoll: async function (pollId) { if(!pollId)return;var result=await supa.from('live_polls').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',pollId);if(result.error)throw result.error; },
+    pollResults: async function (pollId) { if(!pollId)return [];var options=await supa.from('live_poll_options').select('id,label,position').eq('poll_id',pollId).order('position');if(options.error)return [];var votes=await supa.from('live_poll_votes').select('option_id').eq('poll_id',pollId);if(votes.error)return [];return(options.data||[]).map(function(option){return{id:option.id,label:option.label,count:(votes.data||[]).filter(function(vote){return vote.option_id===option.id;}).length};}); },
+    saveQualitySample: async function (quality) { if(!currentSession?.id||!currentUser?.id||!supa)return;var stats={};try{stats=client?.getRTCStats?.()||{};}catch(_){}var row={session_id:currentSession.id,user_id:currentUser.id,role:isHostMode?'teacher':(viewerGuestActive?'guest':'viewer'),network_quality:quality,rtt_ms:Number(stats.RTT||stats.rtt)||null,send_bitrate:Number(stats.SendBitrate||stats.sendBitrate)||null,receive_bitrate:Number(stats.ReceiveBitrate||stats.receiveBitrate)||null,packet_loss:null};var result=await supa.from('live_quality_samples').insert(row);if(result.error)return false;return true; },
+    removeGuest: function (uid) { if(!materialChannel)throw new Error(tr('Open a LIVE room first.','Сначала откройте LIVE-комнату.'));return materialChannel.send({type:'broadcast',event:'studio-event',payload:{kind:'guest-command',action:'remove',uid:String(uid)}}); },
+    muteGuest: function (uid) { if(!materialChannel)throw new Error(tr('Open a LIVE room first.','Сначала откройте LIVE-комнату.'));return materialChannel.send({type:'broadcast',event:'studio-event',payload:{kind:'guest-command',action:'mute',uid:String(uid)}}); },
+    getAgoraUid: function () { return viewerAgoraUid==null?'':String(viewerAgoraUid); },
+    leaveGuestStage: leaveViewerGuestStage,
+    muteGuestSelf: async function(){if(viewerGuestTracks?.[0])await viewerGuestTracks[0].setEnabled(false);},
+    startRecording: startLocalRecording,
+    stopRecording: stopLocalRecording,
+    isRecording: function(){return Boolean(liveRecorder&&liveRecorder.state==='recording');},
+    startServerCaptions: startServerCaptions,
+    stopServerCaptions: stopServerCaptions,
+    serverCaptionsActive: function(){return serverCaptionActive;},
+    exportAnnotatedPdf: async function(){var node=document.getElementById('liveMaterialOverlay'),canvas=node?.querySelector('.pdf-annotation');if(!node?.dataset.pdfUrl||!canvas||!currentSession?.id)throw new Error(tr('Open an uploaded PDF with annotations first.','Сначала откройте загруженный PDF с пометками.'));if(!node.dataset.pdfUrl.startsWith('https://'))throw new Error(tr('Wait until the PDF upload completes.','Дождитесь завершения загрузки PDF.'));var result=await supa.functions.invoke('live-export-pdf',{body:{sessionId:currentSession.id,sourceUrl:node.dataset.pdfUrl,page:pdfMaterialPage,annotation:canvas.toDataURL('image/png')}});if(result.error||!result.data?.url)throw new Error(result.error?.message||result.data?.error||tr('PDF export failed.','Не удалось экспортировать PDF.'));var link=document.createElement('a');link.href=result.data.url;link.download='duvela-annotated.pdf';link.target='_blank';document.body.appendChild(link);link.click();link.remove();return result.data.url;},
     previewMaterial: function (url, mimeType) { renderLiveMaterial(url, mimeType); },
     clearMaterialPreview: function () { renderLiveMaterial(null); },
     recoverBroadcast: async function () { if (isHostPublishing) return true; await startHost(); return isHostPublishing; },
