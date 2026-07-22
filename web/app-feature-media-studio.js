@@ -143,7 +143,7 @@
       notice = ''; busy = true; paint();
       const r = await safe(supa.from('posts').insert({
         user_id: ctx.user.id, media_type: 'youtube', media_url: id,
-        language_level: ytLevel, shorts_visibility: 'public', caption: null
+        media_kind: 'video', language_level: ytLevel, shorts_visibility: 'public', caption: null
       }));
       busy = false;
       if (r && r.error) { notice = tr('Could not save the video.', 'Не удалось сохранить видео.'); paint(); return; }
@@ -172,11 +172,17 @@
       busy = true; notice = ''; paint();
       try {
         const url = await ctx.uploadToBucket('posts', file);
-        const r = await supa.from('posts').insert({
+        const payload = {
           user_id: ctx.user.id, media_url: url,
           media_type: kind === 'photos' ? 'image' : 'video',
+          media_kind: kind === 'shorts' || kind === 'photos' ? 'short' : 'video',
           shorts_visibility: 'public', caption: null
-        });
+        };
+        let r = await supa.from('posts').insert(payload);
+        if (r.error && /media_kind/i.test(r.error.message || '')) {
+          delete payload.media_kind;
+          r = await supa.from('posts').insert(payload);
+        }
         if (r.error) throw r.error;
         await loadPosts(ctx.user.id);
       } catch (e) {
