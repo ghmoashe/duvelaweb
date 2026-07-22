@@ -95,12 +95,16 @@
       const pv = document.getElementById('profileView');
       const pe = document.getElementById('profileEdit');
       if (ctx.isBusiness() && ctx.profileView) {
+        if (pe) pe.classList.remove('learner-profile-edit');
         if (pv) pv.hidden = false;
         if (pe) pe.hidden = true;
         ctx.profileView.render();
       } else {
         if (pv) pv.hidden = true;
-        if (pe) pe.hidden = false;
+        if (pe) {
+          pe.hidden = false;
+          pe.classList.add('learner-profile-edit');
+        }
       }
       const appLanguageSelect = ensureAppLanguageField();
       if ($('#profileKicker')) $('#profileKicker').textContent = tr('Profile', 'Профиль');
@@ -138,11 +142,40 @@
       if (appLanguageSelect) appLanguageSelect.value = ctx.getAppLang();
       avatarHtml('#topAvatar', displayName, ctx.profile?.avatar_url || ctx.user.user_metadata?.avatar_url);
       avatarHtml('#profileAvatar', displayName, ctx.profile?.avatar_url || ctx.user.user_metadata?.avatar_url);
+      renderLearnerProfileHero(displayName, meta);
       if (ctx.profile?.id) {
         $('#publicProfileLink').href = './profile.html?id=' + encodeURIComponent(ctx.profile.id);
         $('#publicProfileLink').style.display = 'inline-flex';
       }
       renderProgressCard();
+    }
+
+    function renderLearnerProfileHero(displayName, meta) {
+      if (ctx.isBusiness()) return;
+      const intro = document.querySelector('#profileForm .profile-intro');
+      if (!intro) return;
+      let summary = $('#learnerProfileSummary');
+      if (!summary) {
+        summary = document.createElement('div');
+        summary.id = 'learnerProfileSummary';
+        summary.className = 'learner-profile-summary';
+        intro.appendChild(summary);
+      }
+      const languages = Array.isArray(ctx.profile?.learning_languages) && ctx.profile.learning_languages.length
+        ? ctx.profile.learning_languages
+        : [ctx.profile?.language].filter(Boolean);
+      const level = ctx.profile?.language_level || 'A1';
+      summary.innerHTML =
+        '<div class="learner-profile-badges">' +
+          '<span>🎓 ' + esc(tr('Learner', 'Ученик')) + '</span>' +
+          '<span>✨ ' + esc(tr('Level', 'Уровень')) + ' ' + esc(level) + '</span>' +
+          languages.slice(0, 4).map((language) => '<span>🌐 ' + esc(language) + '</span>').join('') +
+        '</div>' +
+        '<p class="learner-profile-welcome">' + esc(tr('Your learning profile, goals and progress in one place.', 'Ваш учебный профиль, цели и прогресс в одном месте.')) + '</p>';
+      const name = $('#profileName');
+      const location = $('#profileMeta');
+      if (name) name.textContent = displayName;
+      if (location) location.textContent = meta;
     }
 
     async function saveProfile(event) {
@@ -303,6 +336,7 @@
       }
       if (profileGrid) profileGrid.style.gridTemplateColumns = '';
       card.style.display = '';
+      card.classList.add('learner-progress-card');
       const bars = [
         [tr('Grammar', 'Грамматика'), ctx.profile?.grammar_progress ?? 0],
         [tr('Speaking', 'Speaking'), ctx.profile?.speaking_progress ?? 0],
@@ -318,6 +352,12 @@
         ctx.walletHtml() +
         leaderboardShellHtml() +
         '<div id="rankBox" style="margin-top:6px"><div class="empty">' + esc(tr('Loading…', 'Загрузка…')) + '</div></div>';
+      card.insertAdjacentHTML('afterbegin',
+        '<div class="learner-stat-grid">' +
+          '<div><b>' + Number(ctx.profile?.score || 0).toLocaleString() + '</b><span>XP</span></div>' +
+          '<div><b>' + Number(ctx.profile?.vela_coin_balance || 0).toLocaleString() + '</b><span>' + esc(tr('Coins', 'Монеты')) + '</span></div>' +
+          '<div><b>' + esc(ctx.profile?.language_level || 'A1') + '</b><span>' + esc(tr('Level', 'Уровень')) + '</span></div>' +
+        '</div>');
       const filter = $('#rankFilter');
       if (filter) filter.addEventListener('change', () => {
         state.leaderLang = filter.value;
