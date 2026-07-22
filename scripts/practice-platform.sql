@@ -35,6 +35,59 @@ create table if not exists public.practice_achievements (
   unlocked_at timestamptz not null default now(), metadata jsonb not null default '{}'::jsonb,
   primary key(user_id,achievement_id)
 );
+create table if not exists public.practice_subscriptions (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  status text not null default 'inactive' check(status in ('inactive','active','past_due','cancelled')),
+  plan text not null default 'premium_monthly', current_period_end timestamptz, created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create table if not exists public.practice_reminders (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  enabled boolean not null default false, reminder_time time not null default '18:00', timezone text not null default 'Europe/Berlin', updated_at timestamptz not null default now()
+);
+create table if not exists public.practice_language_settings (
+  user_id uuid not null references auth.users(id) on delete cascade, language text not null, level text not null default 'A1', active boolean not null default false,
+  updated_at timestamptz not null default now(), primary key(user_id,language)
+);
+create table if not exists public.practice_feedback (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
+  teacher_id uuid references auth.users(id) on delete set null, practice_id uuid, session_id uuid references public.practice_sessions(id) on delete set null,
+  score integer, feedback text, created_at timestamptz not null default now()
+);
+create table if not exists public.practice_assignments (
+  id uuid primary key default gen_random_uuid(), practice_id uuid not null, teacher_id uuid not null references auth.users(id) on delete cascade,
+  student_id uuid not null references auth.users(id) on delete cascade, due_at timestamptz, status text not null default 'assigned' check(status in ('assigned','submitted','reviewed')),
+  created_at timestamptz not null default now(), unique(practice_id,student_id)
+);
+
+-- Compatibility migration for projects where these tables were created by an
+-- earlier Practice version. CREATE TABLE IF NOT EXISTS does not add columns to
+-- an existing table, so add every column used by the current RLS policies.
+alter table public.practice_assignments add column if not exists student_id uuid references auth.users(id) on delete cascade;
+alter table public.practice_assignments add column if not exists teacher_id uuid references auth.users(id) on delete cascade;
+alter table public.practice_assignments add column if not exists practice_id uuid;
+alter table public.practice_assignments add column if not exists due_at timestamptz;
+alter table public.practice_assignments add column if not exists status text default 'assigned';
+alter table public.practice_assignments add column if not exists created_at timestamptz default now();
+
+alter table public.practice_feedback add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.practice_feedback add column if not exists teacher_id uuid references auth.users(id) on delete set null;
+alter table public.practice_feedback add column if not exists practice_id uuid;
+alter table public.practice_feedback add column if not exists session_id uuid references public.practice_sessions(id) on delete set null;
+alter table public.practice_feedback add column if not exists score integer;
+alter table public.practice_feedback add column if not exists feedback text;
+alter table public.practice_feedback add column if not exists created_at timestamptz default now();
+
+-- Preserve owners from common legacy column names when they are present.
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='practice_assignments' and column_name='learner_id') then
+    execute 'update public.practice_assignments set student_id=learner_id where student_id is null';
+  elsif exists (select 1 from information_schema.columns where table_schema='public' and table_name='practice_assignments' and column_name='user_id') then
+    execute 'update public.practice_assignments set student_id=user_id where student_id is null';
+  end if;
+end $$;
+create index if not exists practice_assignments_student_idx on public.practice_assignments(student_id);
+create index if not exists practice_assignments_teacher_idx on public.practice_assignments(teacher_id);
 
 alter table public.practice_sessions enable row level security;
 alter table public.practice_progress enable row level security;
@@ -42,10 +95,23 @@ alter table public.practice_mistakes enable row level security;
 alter table public.practice_saved_words enable row level security;
 alter table public.practice_streaks enable row level security;
 alter table public.practice_achievements enable row level security;
-do $$ declare t text; begin foreach t in array array['practice_sessions','practice_progress','practice_mistakes','practice_saved_words','practice_streaks','practice_achievements'] loop
+alter table public.practice_subscriptions enable row level security;
+alter table public.practice_reminders enable row level security;
+alter table public.practice_language_settings enable row level security;
+alter table public.practice_feedback enable row level security;
+alter table public.practice_assignments enable row level security;
+do $$ declare t text; begin foreach t in array array['practice_sessions','practice_progress','practice_mistakes','practice_saved_words','practice_streaks','practice_achievements','practice_reminders','practice_language_settings'] loop
   execute format('drop policy if exists "users manage own %1$s" on public.%1$I',t);
   execute format('create policy "users manage own %1$s" on public.%1$I for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid())',t);
 end loop; end $$;
+drop policy if exists "users read own practice subscription" on public.practice_subscriptions;
+create policy "users read own practice subscription" on public.practice_subscriptions for select to authenticated using(user_id=auth.uid());
+drop policy if exists "users read own practice feedback" on public.practice_feedback;
+create policy "users read own practice feedback" on public.practice_feedback for select to authenticated using(user_id=auth.uid() or teacher_id=auth.uid());
+drop policy if exists "students and teachers read practice assignments" on public.practice_assignments;
+create policy "students and teachers read practice assignments" on public.practice_assignments for select to authenticated using(student_id=auth.uid() or teacher_id=auth.uid());
+drop policy if exists "teachers manage practice assignments" on public.practice_assignments;
+create policy "teachers manage practice assignments" on public.practice_assignments for all to authenticated using(teacher_id=auth.uid()) with check(teacher_id=auth.uid());
 
 create or replace function public.complete_practice_session(
   p_client_session_id text,p_tool_id text,p_language text,p_level text,p_score integer,p_total integer,p_duration_seconds integer,p_xp integer,p_state jsonb default '{}'::jsonb

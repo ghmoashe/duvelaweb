@@ -5,10 +5,14 @@
 
     async function loadPractices() {
       try {
-        const { data } = await supa.from('teacher_practices')
-          .select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count')
-          .eq('status', 'published').order('rating_avg', { ascending: false }).limit(30);
-        state.practices = data || [];
+        const [practiceResult,assignmentResult,feedbackResult] = await Promise.all([
+          supa.from('teacher_practices').select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count').eq('status', 'published').order('rating_avg', { ascending: false }).limit(30),
+          supa.from('practice_assignments').select('practice_id,due_at,status,created_at').eq('student_id',ctx.user.id),
+          supa.from('practice_feedback').select('practice_id,score,feedback,created_at').eq('user_id',ctx.user.id).order('created_at',{ ascending:false })
+        ]);
+        state.practices = practiceResult.data || [];
+        state.practiceAssignments = assignmentResult.data || [];
+        state.practiceFeedback = feedbackResult.data || [];
         if (state.practices.length) {
           const ids = state.practices.map((practice) => practice.id);
           const { data: ratings } = await supa.from('teacher_practice_ratings')
@@ -23,8 +27,12 @@
 
     function practicesHtml() {
       if (!state.practices.length) return '<div class="empty">' + esc(tr('No practices yet. Check back soon.', 'Практик пока нет. Загляните позже.')) + '</div>';
-      return state.practices.map((practice) =>
+      return state.practices.map((practice) => {
+        const assignment = (state.practiceAssignments || []).find((item) => String(item.practice_id) === String(practice.id));
+        const feedback = (state.practiceFeedback || []).find((item) => String(item.practice_id) === String(practice.id));
+        return (
         '<div class="card prac-card" data-practice="' + esc(practice.id) + '">' +
+          (assignment ? '<span class="practice-assigned">📌 ' + esc(tr('Assigned','Задано')) + (assignment.due_at ? ' · ' + new Date(assignment.due_at).toLocaleDateString() : '') + '</span>' : '') +
           '<h3>' + esc(practice.title) + '</h3>' +
           (practice.description ? '<p>' + esc(practice.description) + '</p>' : '') +
           '<div class="prac-meta">' +
@@ -32,9 +40,8 @@
             (practice.target ? '<span class="tag blue">' + esc(practice.target) + '</span>' : '') +
             '<span class="tag amber">★ ' + Number(practice.rating_avg || 0).toFixed(1) + ' (' + (practice.rating_count || 0) + ')</span>' +
             '<span style="color:var(--muted);font-weight:800;font-size:12px">' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + '</span>' +
-          '</div>' +
-        '</div>'
-      ).join('');
+          '</div>' + (feedback ? '<div class="practice-teacher-feedback"><b>💬 ' + esc(tr('Teacher feedback','Комментарий преподавателя')) + (feedback.score != null ? ' · ' + Number(feedback.score) : '') + '</b><p>' + esc(feedback.feedback || tr('Reviewed','Проверено')) + '</p></div>' : '') + '</div>');
+      }).join('');
     }
 
     async function openPractice(id) {
