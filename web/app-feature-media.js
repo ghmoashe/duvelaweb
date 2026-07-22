@@ -274,6 +274,7 @@
           user_id: ctx.user.id,
           media_url: url,
           media_type: isImage ? 'image' : 'video',
+          media_kind: ($('#upMediaKind') && $('#upMediaKind').value) || (isImage ? 'short' : 'video'),
           caption: $('#upCaption').value.trim() || null,
           shorts_visibility: 'public'
         };
