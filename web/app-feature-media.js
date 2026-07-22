@@ -19,7 +19,7 @@
     }
 
     function renderLearnerMedia() {
-      if (!['shorts', 'videos', 'live'].includes(runtime.currentVideoFilter)) runtime.currentVideoFilter = 'shorts';
+      if (!['shorts', 'videos', 'live'].includes(runtime.currentVideoFilter)) runtime.currentVideoFilter = 'videos';
       const items = state.videos || [], active = runtime.currentVideoFilter;
       const progress = (item) => Math.max(0, Math.min(100, Number(localStorage.getItem('duvela.video.progress.' + item.id)) || 0));
       const thumb = (item) => item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<span class="lm-placeholder">DUVELA</span>';
