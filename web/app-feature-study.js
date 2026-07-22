@@ -533,6 +533,9 @@
       if (overlay) overlay.classList.remove('open');
       if (studyState && studyState.examTimerId) clearInterval(studyState.examTimerId);
       if (studyState && studyState.timerId) clearInterval(studyState.timerId);
+      if (studyState && studyState.duelTimerId) clearInterval(studyState.duelTimerId);
+      if (studyState && studyState.searchTimerId) clearInterval(studyState.searchTimerId);
+      if (studyState && studyState.challengeChannel) supa.removeChannel(studyState.challengeChannel);
       persistResume();
       studyState = null;
       aiChatState = null;
@@ -592,6 +595,7 @@
         case 'categories': return renderCategories();
         case 'scenarios': return renderScenarios();
         case 'duel': return renderSocialChallenge('duel');
+        case 'duelmatch': return renderDuelMatch();
         case 'team': return renderSocialChallenge('team');
         case 'exam': return renderExam();
         case 'mistakes': return renderMistakes();
@@ -1174,8 +1178,83 @@
     }
 
     async function renderSocialChallenge(mode) {
-      var host=$('#studyToolBody'),team=mode==='team';host.innerHTML='<div class="social-challenge"><span>'+(team?'👥':'⚔️')+'</span><small>DUVELA '+(team?'TEAM':'DUEL')+'</small><h2>'+esc(team?tr('Team challenge','Командное задание'):tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(team?tr('Complete 30 correct answers together this week.','Вместе дайте 30 правильных ответов за неделю.'):tr('Both learners receive the same five questions.','Оба ученика получают одинаковые пять вопросов.'))+'</p><div class="social-score"><b id="myChallengeScore">0</b><span>'+(team?'TEAM':'VS')+'</span><b id="opponentScore">—</b></div><div id="challengeMembers"></div><button class="btn primary" id="socialStart">'+esc(team?tr('Join a team','Вступить в команду'):tr('Find opponent','Найти соперника'))+'</button></div>';
-      $('#socialStart').onclick=async function(){var button=this;button.disabled=true;button.textContent=tr('Searching…','Поиск…');try{var prefs=loadPrefs(),level=(prefs.levels||{})[studyState.lang]||'A1',waiting=await supa.from('practice_challenges').select('id,created_by,goal').eq('kind',mode).eq('status','waiting').eq('language',studyState.lang).neq('created_by',uid()).order('created_at',{ascending:true}).limit(1).maybeSingle(),challenge=waiting.data;if(!challenge){var created=await supa.from('practice_challenges').insert({kind:mode,created_by:uid(),language:studyState.lang,level:level,goal:team?30:5,status:'waiting'}).select().single();if(created.error)throw created.error;challenge=created.data;}await supa.from('practice_challenge_members').upsert({challenge_id:challenge.id,user_id:uid(),score:0,completed:0});if(waiting.data&&!team)await supa.from('practice_challenges').update({status:'active',starts_at:new Date().toISOString()}).eq('id',challenge.id);studyState.challengeId=challenge.id;button.textContent=tr('Start challenge','Начать соревнование');button.disabled=false;async function refresh(){var members=await supa.from('practice_challenge_members').select('user_id,score,completed').eq('challenge_id',challenge.id);var list=members.data||[],mine=list.find(function(row){return row.user_id===uid();}),others=list.filter(function(row){return row.user_id!==uid();});$('#myChallengeScore').textContent=Number(mine&&mine.score||0);$('#opponentScore').textContent=others.length?others.reduce(function(sum,row){return sum+Number(row.score||0);},0):tr('Waiting…','Ожидание…');$('#challengeMembers').textContent=list.length+' '+tr('participants online','участников онлайн');}await refresh();studyState.challengeChannel=supa.channel('practice-challenge-'+challenge.id).on('postgres_changes',{event:'*',schema:'public',table:'practice_challenge_members',filter:'challenge_id=eq.'+challenge.id},refresh).subscribe();button.onclick=function(){studyState.tool='grammar';studyState.data=null;studyState.idx=0;renderTool();};}catch(error){button.disabled=false;button.textContent=tr('Try again','Повторить');alert(error.message||tr('Challenge service is unavailable.','Сервис соревнований недоступен.'));}};
+      var host=$('#studyToolBody'),team=mode==='team';
+      host.innerHTML='<div class="social-challenge"><span>'+(team?'👥':'⚔️')+'</span><small>DUVELA '+(team?'TEAM':'DUEL')+'</small><h2>'+esc(team?tr('Team challenge','Командное задание'):tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(team?tr('Complete 30 correct answers together this week.','Вместе дайте 30 правильных ответов за неделю.'):tr('First we look for a learner online. If nobody is available, you play immediately against the Duvela Bot.','Сначала ищем ученика онлайн. Если никого нет, вы сразу играете с ботом Duvela.'))+'</p><div class="social-score"><b id="myChallengeScore">0</b><span>'+(team?'TEAM':'VS')+'</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status">'+esc(team?tr('Team matchmaking is ready','Командный подбор готов'):tr('Ready to search','Готово к поиску'))+'</div><button class="btn primary" id="socialStart">'+esc(team?tr('Join a team','Вступить в команду'):tr('Find opponent','Найти соперника'))+'</button></div>';
+      $('#socialStart').onclick=async function(){
+        var button=this;if(team)return startLegacyTeam(button);button.disabled=true;
+        var seconds=4,status=$('#challengeMembers'),challenge=null,foundOpponent=false;
+        button.textContent=tr('Searching online…','Ищем онлайн…');
+        status.innerHTML='<span class="duel-search-dot"></span>'+esc(tr('Looking for a learner at your level','Ищем ученика вашего уровня'))+' · <b id="duelSearchSeconds">'+seconds+'</b>';
+        try{
+          if(uid()){
+            var prefs=loadPrefs(),level=(prefs.levels||{})[studyState.lang]||'A1';
+            var waiting=await supa.from('practice_challenges').select('id,created_by,goal').eq('kind','duel').eq('status','waiting').eq('language',studyState.lang).neq('created_by',uid()).order('created_at',{ascending:true}).limit(1).maybeSingle();
+            challenge=waiting.data;
+            if(challenge){foundOpponent=true;await supa.from('practice_challenges').update({status:'active',starts_at:new Date().toISOString()}).eq('id',challenge.id);}
+            else {var created=await supa.from('practice_challenges').insert({kind:'duel',created_by:uid(),language:studyState.lang,level:level,goal:5,status:'waiting'}).select().single();if(!created.error)challenge=created.data;}
+            if(challenge)await supa.from('practice_challenge_members').upsert({challenge_id:challenge.id,user_id:uid(),score:0,completed:0});
+          }
+        }catch(e){challenge=null;}
+        function launch(bot){
+          if(studyState.searchTimerId)clearInterval(studyState.searchTimerId);
+          studyState.searchTimerId=null;studyState.challengeId=challenge&&challenge.id||null;studyState.duelBot=bot;
+          studyState.duelOpponentName=bot?tr('Duvela Bot','Бот Duvela'):tr('Learner online','Ученик онлайн');
+          studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.data=shuffle((GRAMMAR[studyState.lang]||GRAMMAR.de).slice()).slice(0,5);studyState.idx=0;studyState.score=0;studyState.total=5;
+          $('#studyOverlayTitle').textContent='⚔️ '+tr('Learner duel','Дуэль учеников');renderTool();
+        }
+        if(foundOpponent)return launch(false);
+        studyState.searchTimerId=setInterval(async function(){
+          seconds--;var counter=$('#duelSearchSeconds');if(counter)counter.textContent=Math.max(0,seconds);
+          if(challenge&&uid())try{var members=await supa.from('practice_challenge_members').select('user_id').eq('challenge_id',challenge.id);if((members.data||[]).some(function(row){return row.user_id!==uid();})){foundOpponent=true;launch(false);return;}}catch(e){}
+          if(seconds<=0){if(challenge)try{await supa.from('practice_challenges').update({status:'completed'}).eq('id',challenge.id);}catch(e){}launch(true);}
+        },1000);
+      };
+    }
+
+    async function startLegacyTeam(button){
+      button.disabled=true;button.textContent=tr('Joining…','Подключаем…');
+      try{
+        var prefs=loadPrefs(),level=(prefs.levels||{})[studyState.lang]||'A1';
+        var waiting=await supa.from('practice_challenges').select('id,created_by,goal').eq('kind','team').eq('status','waiting').eq('language',studyState.lang).order('created_at',{ascending:true}).limit(1).maybeSingle(),challenge=waiting.data;
+        if(!challenge){var created=await supa.from('practice_challenges').insert({kind:'team',created_by:uid(),language:studyState.lang,level:level,goal:30,status:'waiting'}).select().single();if(created.error)throw created.error;challenge=created.data;}
+        await supa.from('practice_challenge_members').upsert({challenge_id:challenge.id,user_id:uid(),score:0,completed:0});studyState.challengeId=challenge.id;
+        async function refresh(){var members=await supa.from('practice_challenge_members').select('user_id,score').eq('challenge_id',challenge.id),list=members.data||[],mine=list.find(function(row){return row.user_id===uid();});var my=$('#myChallengeScore'),all=$('#opponentScore'),label=$('#challengeMembers');if(my)my.textContent=Number(mine&&mine.score||0);if(all)all.textContent=list.reduce(function(sum,row){return sum+Number(row.score||0);},0);if(label)label.textContent=list.length+' '+tr('participants online','участников онлайн');}
+        await refresh();studyState.challengeChannel=supa.channel('practice-challenge-'+challenge.id).on('postgres_changes',{event:'*',schema:'public',table:'practice_challenge_members',filter:'challenge_id=eq.'+challenge.id},refresh).subscribe();button.disabled=false;button.textContent=tr('Start team practice','Начать командную практику');button.onclick=function(){studyState.tool='grammar';studyState.data=null;studyState.idx=0;renderTool();};
+      }catch(error){button.disabled=false;button.textContent=tr('Try again','Повторить');alert(error.message||tr('Team service is unavailable.','Командный сервис недоступен.'));}
+    }
+
+    function renderDuelMatch(){
+      var host=$('#studyToolBody'),deck=studyState.data||[];
+      if(!studyState.duelStartedAt){
+        studyState.duelStartedAt=Date.now();
+        if(studyState.duelBot)studyState.duelTimerId=setInterval(function(){
+          if(!studyState||studyState.tool!=='duelmatch'||studyState.finished)return;
+          if(studyState.duelOpponentScore<5&&Math.random()<.72)studyState.duelOpponentScore++;
+          updateDuelScoreboard();
+        },4200);
+      }
+      if(studyState.idx>=deck.length)return finishDuelMatch();
+      var item=deck[studyState.idx];
+      host.innerHTML='<div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'You').charAt(0).toUpperCase())+'</span><small>'+esc(tr('YOU','ВЫ'))+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👤')+'</span><small>'+esc(studyState.duelOpponentName)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div>'+counterHtml(studyState.idx,deck.length)+'<div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
+      Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(button){button.onclick=function(){
+        var selected=Number(button.getAttribute('data-duel-answer')),ok=selected===item.a;
+        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(node){node.disabled=true;var value=Number(node.getAttribute('data-duel-answer'));if(value===item.a)node.classList.add('correct');else if(value===selected)node.classList.add('wrong');});
+        feedback(ok,{prompt:item.q,chosen:item.opts[selected],correct:item.opts[item.a],explanation:answerExplanation(item)});if(ok)studyState.score++;else logMistake(studyState.lang,item.q,item.opts,item.a,'duel');
+        updateDuelScoreboard();if(studyState.challengeId&&uid())supa.from('practice_challenge_members').update({score:studyState.score,completed:studyState.idx+1}).eq('challenge_id',studyState.challengeId).eq('user_id',uid()).then(function(){});
+        $('#duelAnswerFeedback').innerHTML='<div class="inline-answer '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Point for you!','Очко вам!'):tr('The opponent can get ahead','Соперник может выйти вперёд'))+'</b><p>'+esc(item.opts[item.a])+'</p><button class="btn primary" id="duelContinue">'+esc(studyState.idx+1>=deck.length?tr('Show result','Показать результат'):tr('Next question','Следующий вопрос'))+' →</button></div>';
+        $('#duelContinue').onclick=function(){studyState.idx++;renderDuelMatch();};
+      };});
+    }
+
+    function updateDuelScoreboard(){var mine=$('#duelMyLive'),opponent=$('#duelOpponentLive');if(mine)mine.textContent=studyState.score;if(opponent)opponent.textContent=studyState.duelOpponentScore;}
+
+    async function finishDuelMatch(){
+      if(studyState.duelTimerId){clearInterval(studyState.duelTimerId);studyState.duelTimerId=null;}
+      if(!studyState.duelBot&&studyState.challengeId&&uid())try{var members=await supa.from('practice_challenge_members').select('user_id,score').eq('challenge_id',studyState.challengeId);var rival=(members.data||[]).find(function(row){return row.user_id!==uid();});studyState.duelOpponentScore=Number(rival&&rival.score||0);}catch(e){}
+      var mine=Number(studyState.score||0),rivalScore=Number(studyState.duelOpponentScore||0),won=mine>rivalScore,tie=mine===rivalScore,xp=won?25:tie?15:10;
+      studyState.finished=true;bumpProgress('duel',xp);if(!uid())awardXp(xp);clearResume();
+      $('#studyToolBody').innerHTML='<div class="duel-result '+(won?'win':tie?'tie':'lose')+'"><span>'+(won?'🏆':tie?'🤝':'💪')+'</span><small>DUVELA DUEL</small><h2>'+esc(won?tr('Victory!','Победа!'):tie?tr('A draw!','Ничья!'):tr('Great fight!','Отличная борьба!'))+'</h2><p>'+esc(won?tr('You were more accurate and earned a duel win.','Вы были точнее и одержали победу в дуэли.'):tie?tr('You finished with the same score.','Вы завершили дуэль с одинаковым счётом.'):tr('Review the mistakes and challenge the rival again.','Повторите ошибки и вызовите соперника снова.'))+'</p><div class="duel-final-score"><b>'+mine+'</b><span>:</span><b>'+rivalScore+'</b></div><strong>+'+xp+' XP</strong><div class="result-actions"><button class="btn" id="duelReview">'+esc(tr('Review mistakes','Повторить ошибки'))+'</button><button class="btn primary" id="duelAgain">'+esc(tr('New duel','Новая дуэль'))+'</button></div></div>';
+      $('#duelReview').onclick=function(){openStudyTool('mistakes');};$('#duelAgain').onclick=function(){openStudyTool('duel');};
     }
 
     // ---- 10. Mistake center ----
