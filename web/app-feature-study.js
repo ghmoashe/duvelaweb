@@ -461,7 +461,8 @@
       if (!tool) return;
       ensureOverlay();
       if (id !== 'ai') aiChatState = null;
-      studyState = { tool:id,lang:(restored && restored.lang) || currentLang(),idx:(restored && restored.idx) || 0,score:(restored && restored.score) || 0,clientSessionId:(restored && restored.clientSessionId) || sessionId(),startedAt:(restored && restored.startedAt) || Date.now() };
+      var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
+      studyState = { tool:id,lang:germanOnly ? 'de' : ((restored && restored.lang) || currentLang()),idx:(restored && restored.idx) || 0,score:(restored && restored.score) || 0,clientSessionId:(restored && restored.clientSessionId) || sessionId(),startedAt:(restored && restored.startedAt) || Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
       $('#studyOverlay').classList.add('open');
       renderTool();
@@ -469,7 +470,7 @@
 
     function renderTool() {
       var body = $('#studyOverlayBody');
-      var showPicker = studyState.tool !== 'mistakes' && studyState.tool !== 'ai';
+      var showPicker = ['mistakes','ai','articles','wquestion','perfekt'].indexOf(studyState.tool) < 0;
       var pickerRow = showPicker ? '<div style="display:flex;align-items:center;gap:10px">' + langPicker() + '</div>' : '';
       body.innerHTML = pickerRow + '<div id="studyToolBody"></div>';
       var sel = $('#studyLang');
@@ -575,13 +576,14 @@
         btn.addEventListener('click', function () {
           var chosen = btn.getAttribute('data-art');
           var ok = chosen === item.art;
+          feedback(ok);
           if (ok) { studyState.score++; clearMistake(studyState.lang, item.noun); }
           else logMistake(studyState.lang, item.noun, ['der', 'die', 'das'], ['der', 'die', 'das'].indexOf(item.art), 'article');
           $('#artFb').innerHTML = ok
             ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
             : '<span style="color:#d64545">' + esc(tr('Answer: ', 'Ответ: ')) + item.art + ' ' + esc(item.noun) + '</span>';
           Array.prototype.forEach.call(host.querySelectorAll('[data-art]'), function (b) { b.disabled = true; });
-          setTimeout(function () { studyState.idx++; renderArticles(); }, 850);
+          setTimeout(function () { studyState.idx++; persistResume(); renderArticles(); }, 850);
         });
       });
     }

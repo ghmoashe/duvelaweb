@@ -2,26 +2,6 @@
   function createWorkspaceShellFeature(ctx) {
     const { $, tr, esc, roleLabels } = ctx;
 
-    function learnerWorkspaceIntro() {
-      const level = ctx.profile?.language_level || 'B1';
-      const goal = ctx.profile?.goal_level || tr('Next level', 'Next level');
-      return '<div class="card hub-hero" style="margin-bottom:12px">' +
-        '<div class="hub-hero-top">' +
-          '<div><h2>' + esc(tr('Practice launchpad', 'Practice launchpad')) + '</h2>' +
-          '<p>' + esc(tr('Choose one short activity and finish it before switching context.', 'Choose one short activity and finish it before switching context.')) + '</p></div>' +
-          '<div class="hub-pill-row">' +
-            '<span class="tag teal">' + esc(level) + '</span>' +
-            '<span class="tag blue">' + esc(goal) + '</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="hub-quick-grid">' +
-          '<button class="card hub-quick-card" id="openDuelBtn" type="button"><div class="hub-quick-icon">VS</div><div><b>' + esc(tr('Duel', 'Duel')) + '</b><span>' + esc(tr('Fast recall under pressure.', 'Fast recall under pressure.')) + '</span></div><span class="tag teal">' + esc(tr('Play', 'Play')) + '</span></button>' +
-          '<button class="card hub-quick-card" id="openChessBtn" type="button"><div class="hub-quick-icon">64</div><div><b>' + esc(tr('Chess', 'Chess')) + '</b><span>' + esc(tr('Train focus between lessons.', 'Train focus between lessons.')) + '</span></div><span class="tag blue">' + esc(tr('Open', 'Open')) + '</span></button>' +
-          '<a class="card hub-quick-card" href="#schedule" data-go="schedule"><div class="hub-quick-icon">1:1</div><div><b>' + esc(tr('Book a lesson', 'Book a lesson')) + '</b><span>' + esc(tr('Find a teacher slot and keep the week planned.', 'Find a teacher slot and keep the week planned.')) + '</span></div><span class="tag amber">' + esc(tr('Schedule', 'Schedule')) + '</span></a>' +
-        '</div>' +
-      '</div>';
-    }
-
     function focusRow(index, title, copy) {
       return '<div class="hub-focus-row"><div class="n">' + index + '</div><div><b>' + esc(title) + '</b><p>' + esc(copy) + '</p></div></div>';
     }
@@ -35,19 +15,18 @@
         : tr('Take practices from teachers.', 'Проходите практики от преподавателей.');
       $('#workspacePrimaryTitle').textContent = creator ? tr('Creator actions', 'Действия автора') : tr('Teacher practices', 'Практики от преподавателей');
       if (creator) {
+        document.querySelector('[data-panel="workspace"]')?.classList.remove('learner-practice-panel');
         ctx.renderBusinessWorkspace();
         renderWorkspaceSide(true);
         return;
       }
+      document.querySelector('[data-panel="workspace"]')?.classList.add('learner-practice-panel');
       var studyHtml = ctx.studyToolsHtml ? ctx.studyToolsHtml() : '';
       $('#workspaceActions').innerHTML =
-        learnerWorkspaceIntro() +
         studyHtml +
         '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Teacher practices', 'Teacher practices')) + '</h2><span>' + esc(tr('Published by creators', 'Published by creators')) + '</span></div>' +
         ctx.practicesHtml() +
         ctx.challengesHtml();
-      $('#openDuelBtn').addEventListener('click', ctx.openDuel);
-      $('#openChessBtn').addEventListener('click', ctx.openChess);
       if (ctx.bindStudyTiles) ctx.bindStudyTiles();
       renderWorkspaceSide(false);
     }
