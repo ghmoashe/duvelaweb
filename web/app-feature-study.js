@@ -176,19 +176,34 @@
     const MISTAKE_KEY = 'duvela.study.mistakes';
     const SAVED_WORDS_KEY = 'duvela.study.savedWords';
 
+    const W_QUESTIONS = [
+      { q:'___ wohnst du?',opts:['Wo','Wer','Was','Wann'],a:0 }, { q:'___ heißt du?',opts:['Wie','Wo','Warum','Wen'],a:0 },
+      { q:'___ kommt heute?',opts:['Wer','Wo','Wie','Wann'],a:0 }, { q:'___ lernst du Deutsch?',opts:['Warum','Wohin','Wem','Wessen'],a:0 }
+    ];
+    const PERFEKT = [
+      { q:'Ich ___ nach Berlin gefahren.',opts:['bin','habe','ist','hat'],a:0 }, { q:'Wir ___ Deutsch gelernt.',opts:['haben','sind','hat','seid'],a:0 },
+      { q:'Sie ___ ein Buch gelesen.',opts:['hat','ist','haben','seid'],a:0 }, { q:'Er ist früh ___.',opts:['gekommen','gekommt','kommen','gekomme'],a:0 }
+    ];
+
     const TOOLS = [
-      { id: 'flashcards', icon: '🔤', title: tr('Flashcards', 'Флешкарты'), desc: tr('Learn words with flip cards', 'Учите слова карточками') },
-      { id: 'articles', icon: '🇩🇪', title: tr('Guess the article', 'Угадай артикль'), desc: tr('German der / die / das', 'Немецкий der / die / das') },
-      { id: 'memory', icon: '🃏', title: tr('Memory match', 'Мемори'), desc: tr('Match word to translation', 'Соедини слово и перевод') },
-      { id: 'grammar', icon: '📘', title: tr('Grammar quiz', 'Грамматика'), desc: tr('Fill the correct form', 'Выберите правильную форму') },
-      { id: 'wordusage', icon: '✍️', title: tr('Word usage', 'Употребление слов'), desc: tr('Pick the word that fits', 'Подберите подходящее слово') },
-      { id: 'listening', icon: '🎧', title: tr('Listening lab', 'Аудирование'), desc: tr('Type what you hear', 'Запишите, что услышали') },
-      { id: 'reading', icon: '📖', title: tr('Reading lab', 'Чтение'), desc: tr('Read and answer questions', 'Прочитайте и ответьте на вопросы') },
-      { id: 'writing', icon: '📝', title: tr('Writing lab', 'Письмо'), desc: tr('Write and self-check', 'Пишите и проверяйте себя') },
-      { id: 'exam', icon: '⏱️', title: tr('Exam mode', 'Режим экзамена'), desc: tr('Timed mixed quiz', 'Смешанный квиз на время') },
-      { id: 'mistakes', icon: '🧠', title: tr('Mistake center', 'Центр ошибок'), desc: tr('Review what you got wrong', 'Повторите свои ошибки') },
-      { id: 'essentials', icon: '📗', title: tr('Essentials', 'Основы'), desc: tr('Short core lessons', 'Короткие базовые уроки') },
-      { id: 'ai', icon: '🤖', title: tr('AI practice coach', 'ИИ-репетитор'), desc: tr('Chat and get corrections', 'Общайтесь и получайте исправления') }
+      { id:'adaptive',icon:'✦',category:'path',accent:'purple',title:tr('Adaptive path','Адаптивный маршрут'),desc:tr('Next practice based on your mistakes','Следующее упражнение по вашим ошибкам') },
+      { id:'vocabulary',icon:'Aa',category:'vocabulary',accent:'teal',title:tr('Vocabulary trainer','Словарный тренажёр'),desc:tr('Learn, save and repeat words','Учите, сохраняйте и повторяйте слова') },
+      { id:'flashcards',icon:'🔤',category:'vocabulary',accent:'teal',title:tr('Flashcards','Флешкарты'),desc:tr('Learn words with flip cards','Учите слова карточками') },
+      { id:'memory',icon:'🃏',category:'vocabulary',accent:'pink',title:tr('Memory match','Мемори'),desc:tr('Match word to translation','Соедините слово и перевод') },
+      { id:'wordusage',icon:'✍️',category:'vocabulary',accent:'pink',title:tr('Word usage','Употребление слов'),desc:tr('Pick the word that fits','Подберите подходящее слово') },
+      { id:'grammar',icon:'📘',category:'grammar',accent:'blue',title:tr('Grammar academy','Академия грамматики'),desc:tr('Choose the correct form','Выберите правильную форму') },
+      { id:'articles',icon:'DE',category:'grammar',accent:'amber',title:tr('Guess the article','Угадай артикль'),desc:tr('German der / die / das','Немецкий der / die / das') },
+      { id:'wquestion',icon:'W?',category:'grammar',accent:'amber',title:tr('W-questions','W-вопросы'),desc:tr('Build German questions','Стройте вопросы на немецком') },
+      { id:'perfekt',icon:'✓',category:'grammar',accent:'purple',title:tr('German Perfekt','Немецкий Perfekt'),desc:tr('Practice the spoken past tense','Практика прошедшего времени') },
+      { id:'listening',icon:'🎧',category:'skills',accent:'teal',title:tr('Listening lab','Аудирование'),desc:tr('Listen, type and check','Слушайте, записывайте и проверяйте') },
+      { id:'reading',icon:'📖',category:'skills',accent:'blue',title:tr('Reading lab','Лаборатория чтения'),desc:tr('Read and answer questions','Читайте и отвечайте на вопросы') },
+      { id:'readingarticles',icon:'▤',category:'skills',accent:'blue',title:tr('Reading articles','Статьи для чтения'),desc:tr('Longer texts with vocabulary','Тексты и новая лексика') },
+      { id:'writing',icon:'📝',category:'skills',accent:'pink',title:tr('Writing lab','Письмо'),desc:tr('Write and self-check','Пишите и проверяйте себя') },
+      { id:'essentials',icon:'📗',category:'courses',accent:'teal',title:tr('Language essentials','Основы языка'),desc:tr('Short core lessons','Короткие базовые уроки') },
+      { id:'exam',icon:'⏱',category:'progress',accent:'amber',premium:true,title:tr('Exam mode','Режим экзамена'),desc:tr('Timed mixed challenge','Смешанный экзамен на время') },
+      { id:'mistakes',icon:'!',category:'progress',accent:'red',title:tr('Mistake center','Центр ошибок'),desc:tr('Review everything you missed','Повторите все свои ошибки') },
+      { id:'history',icon:'↺',category:'progress',accent:'purple',title:tr('Practice history','История практики'),desc:tr('XP, sessions and completed tools','XP, занятия и завершённые режимы') },
+      { id:'ai',icon:'🤖',category:'coach',accent:'purple',premium:true,title:tr('Duvela AI coach','ИИ-тренер Duvela'),desc:tr('Speak, write and get corrections','Общайтесь и получайте исправления') }
     ];
 
     // ---- helpers ----
@@ -279,25 +294,33 @@
     function studyToolsHtml() {
       const p = loadProgress();
       const done = (p.xp || 0);
-      return '<div class="study-wrap" style="margin-bottom:18px">' +
-        '<div class="section-head" style="margin-bottom:10px"><h2 style="font-size:16px">' + esc(tr('Study tools', 'Инструменты обучения')) + '</h2>' +
-        '<span style="color:var(--soft);font-weight:800">' + esc(tr('Self-study', 'Самостоятельно')) + ' · ' + done + ' XP</span></div>' +
-        '<div class="study-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">' +
+      const completed = TOOLS.filter(function (tool) { return p[tool.id]; }).length;
+      const goal = Math.max(100, Math.ceil((done + 1) / 100) * 100);
+      const percent = Math.min(100, Math.round(done / goal * 100));
+      return '<section class="mobile-practice-hub">' +
+        '<div class="mph-goal"><div class="mph-goal-head"><span class="mph-goal-icon">⚑</span><div><small>' + esc(tr('Your learning goal', 'Ваша учебная цель')) + '</small><h2>' + esc(tr('Reach the next language level', 'Дойти до следующего уровня')) + '</h2></div><strong>' + percent + '%</strong></div><div class="mph-track"><i style="width:' + percent + '%"></i></div><div class="mph-goal-meta"><span>' + esc((ctx.profile && ctx.profile.language_level) || 'A1') + ' · ' + done + ' XP</span><span>' + completed + ' / ' + TOOLS.length + ' ' + esc(tr('activities', 'практик')) + '</span></div></div>' +
+        '<div class="mph-toolbar"><div><small>' + esc(tr('PERSONAL PRACTICE HUB', 'ПЕРСОНАЛЬНЫЙ PRACTICE HUB')) + '</small><h2>' + esc(tr('Choose your next activity', 'Выберите следующую практику')) + '</h2></div><div class="mph-filters"><button class="active" data-study-filter="all">' + esc(tr('All', 'Все')) + '</button><button data-study-filter="grammar">' + esc(tr('Grammar', 'Грамматика')) + '</button><button data-study-filter="vocabulary">' + esc(tr('Vocabulary', 'Словарь')) + '</button><button data-study-filter="skills">' + esc(tr('Skills', 'Навыки')) + '</button><button data-study-filter="progress">' + esc(tr('Progress', 'Прогресс')) + '</button></div></div>' +
+        '<div class="study-grid mph-grid">' +
         TOOLS.map(function (tool) {
-          return '<button class="card study-tile" data-study="' + esc(tool.id) + '" ' +
-            'style="text-align:left;cursor:pointer;padding:14px;border:1px solid var(--line);border-radius:14px">' +
-            '<div style="font-size:26px;margin-bottom:6px">' + tool.icon + '</div>' +
-            '<div style="font-weight:900;font-size:14px">' + esc(tool.title) + '</div>' +
-            '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-top:2px">' + esc(tool.desc) + '</div>' +
-          '</button>';
+          var sessions = Number(p[tool.id]) || 0;
+          return '<button class="study-tile mph-card ' + esc(tool.accent || 'purple') + '" data-study="' + esc(tool.id) + '" data-study-category="' + esc(tool.category || '') + '">' +
+            '<div class="mph-card-top"><span class="mph-icon">' + tool.icon + '</span>' + (tool.premium ? '<span class="mph-premium">◆ PRO</span>' : sessions ? '<span class="mph-done">✓ ' + sessions + '</span>' : '<span class="mph-new">' + esc(tr('Start', 'Начать')) + '</span>') + '</div>' +
+            '<div><h3>' + esc(tool.title) + '</h3><p>' + esc(tool.desc) + '</p></div><span class="mph-open">' + esc(tr('Open practice', 'Открыть практику')) + ' →</span></button>';
         }).join('') +
-        '</div></div>';
+        '</div></section>';
     }
 
     function bindStudyTiles() {
       var tiles = document.querySelectorAll('.study-tile');
       Array.prototype.forEach.call(tiles, function (tile) {
         tile.addEventListener('click', function () { openStudyTool(tile.getAttribute('data-study')); });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-study-filter]'), function (button) {
+        button.addEventListener('click', function () {
+          var filter = button.getAttribute('data-study-filter');
+          Array.prototype.forEach.call(document.querySelectorAll('[data-study-filter]'), function (item) { item.classList.toggle('active', item === button); });
+          Array.prototype.forEach.call(document.querySelectorAll('[data-study-category]'), function (tile) { tile.hidden = filter !== 'all' && tile.getAttribute('data-study-category') !== filter; });
+        });
       });
     }
 
@@ -354,15 +377,21 @@
     function renderToolBody() {
       switch (studyState.tool) {
         case 'flashcards': return renderFlashcards();
+        case 'vocabulary': return renderFlashcards();
+        case 'adaptive': return renderAdaptivePath();
         case 'articles': return renderArticles();
         case 'memory': return renderMemory();
         case 'grammar': return renderGrammar();
+        case 'wquestion': return renderSpecialQuiz(W_QUESTIONS, renderToolBody);
+        case 'perfekt': return renderSpecialQuiz(PERFEKT, renderToolBody);
         case 'wordusage': return renderWordUsage();
         case 'listening': return renderListening();
         case 'reading': return renderReading();
+        case 'readingarticles': return renderReading();
         case 'writing': return renderWriting();
         case 'exam': return renderExam();
         case 'mistakes': return renderMistakes();
+        case 'history': return renderPracticeHistory();
         case 'essentials': return renderEssentials();
         case 'ai': return renderAiPractice();
       }
@@ -503,6 +532,32 @@
           }
         });
       });
+    }
+
+    function renderAdaptivePath() {
+      var mistakes = loadMistakes();
+      var recommended = mistakes.length ? 'mistakes' : (currentLang() === 'de' ? 'grammar' : 'vocabulary');
+      var target = TOOLS.find(function (tool) { return tool.id === recommended; }) || TOOLS[1];
+      var progress = loadProgress();
+      var host = $('#studyToolBody');
+      host.innerHTML = '<div class="adaptive-path"><span class="adaptive-orbit">✦</span><small>' + esc(tr('PERSONAL NEXT STEP', 'ПЕРСОНАЛЬНЫЙ СЛЕДУЮЩИЙ ШАГ')) + '</small><h2>' + esc(target.title) + '</h2><p>' + esc(mistakes.length ? tr('We found topics worth repeating from your recent mistakes.', 'Мы нашли темы, которые стоит повторить по недавним ошибкам.') : tr('Start with a focused activity selected for your language.', 'Начните с практики, подобранной для вашего языка.')) + '</p><div><span>' + mistakes.length + ' ' + esc(tr('mistakes to review', 'ошибок на повторение')) + '</span><span>' + (progress.xp || 0) + ' XP</span></div><button class="btn primary" id="adaptiveStart">' + esc(tr('Start recommended practice', 'Начать рекомендованную практику')) + '</button></div>';
+      $('#adaptiveStart').onclick = function () {
+        studyState = { tool:recommended,lang:currentLang(),idx:0,score:0 };
+        $('#studyOverlayTitle').textContent = target.icon + ' ' + target.title;
+        renderTool();
+      };
+    }
+
+    function renderSpecialQuiz(source, rerender) {
+      if (!studyState.data) studyState.data = shuffle(source);
+      quizStep(studyState.data, rerender, function (item) { return item.q; });
+    }
+
+    function renderPracticeHistory() {
+      var progress = loadProgress();
+      var rows = TOOLS.filter(function (tool) { return Number(progress[tool.id]) > 0; }).sort(function (a,b) { return Number(progress[b.id]) - Number(progress[a.id]); });
+      $('#studyToolBody').innerHTML = '<div class="practice-history-summary"><span><b>' + (progress.xp || 0) + '</b>XP</span><span><b>' + rows.reduce(function (sum,tool) { return sum + Number(progress[tool.id] || 0); },0) + '</b>' + esc(tr('Sessions', 'Занятий')) + '</span><span><b>' + loadMistakes().length + '</b>' + esc(tr('Mistakes', 'Ошибок')) + '</span></div><div class="practice-history-list">' + (rows.length ? rows.map(function (tool) { return '<button data-history-tool="' + esc(tool.id) + '"><span>' + tool.icon + '</span><div><b>' + esc(tool.title) + '</b><small>' + Number(progress[tool.id]) + ' ' + esc(tr('completed sessions', 'завершённых занятий')) + '</small></div><strong>→</strong></button>'; }).join('') : '<div class="empty">' + esc(tr('Complete your first practice and it will appear here.', 'Завершите первую практику — она появится здесь.')) + '</div>') + '</div>';
+      Array.prototype.forEach.call(document.querySelectorAll('[data-history-tool]'), function (button) { button.onclick = function () { openStudyTool(button.getAttribute('data-history-tool')); }; });
     }
 
     // ---- 4. Grammar quiz ----
