@@ -561,7 +561,7 @@
       var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || {};
       body.innerHTML = '<div class="practice-stage-intro"><span>' + (tool.icon || '✦') + '</span><div><small>' + esc(tr('TRAINING MODE','ТРЕНИРОВОЧНЫЙ РЕЖИМ')) + '</small><h3>' + esc(tool.title || '') + '</h3><p>' + esc(tool.desc || '') + '</p></div></div>' +
         '<div class="practice-session-line"><div><i id="practiceSessionBar"></i></div><span id="practiceSessionStep">1 / 10</span></div>' +
-        '<div class="practice-gamebar"><span id="practiceLives">♥♥♥</span><span id="practiceCombo">🔥 0</span><button type="button" data-practice-help="hint">💡 ' + esc(tr('Hint','Подсказка')) + '</button><button type="button" data-practice-help="explain">? ' + esc(tr('Explain','Объяснить')) + '</button><button type="button" data-practice-help="speed">🔊 0.9×</button><button type="button" data-practice-help="timer">⏱ ' + esc(tr('No timer','Без таймера')) + '</button></div><div id="practiceCoach" class="practice-coach" hidden></div>' +
+        '<div class="practice-gamebar"><div class="practice-status"><span id="practiceLives">♥♥♥</span><span id="practiceCombo">🔥 0</span></div><details class="practice-tools"><summary>⚙ '+esc(tr('Help and options','Помощь и настройки'))+'</summary><div><button type="button" data-practice-help="hint">💡 ' + esc(tr('Hint','Подсказка')) + '</button><button type="button" data-practice-help="explain">? ' + esc(tr('Explain','Объяснить')) + '</button><button type="button" data-practice-help="speed">🔊 0.9×</button><button type="button" data-practice-help="timer">⏱ ' + esc(tr('No timer','Без таймера')) + '</button></div></details></div><div id="practiceCoach" class="practice-coach" hidden></div>' +
         pickerRow + '<div id="studyToolBody" class="practice-workspace"></div>';
       var sel = $('#studyLang');
       if (sel) sel.addEventListener('change', function () {
@@ -734,8 +734,9 @@
           $('#artFb').innerHTML = ok
             ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
             : '<span style="color:#d64545">' + esc(tr('Answer: ', 'Ответ: ')) + item.art + ' ' + esc(item.noun) + '</span>';
+          $('#artFb').insertAdjacentHTML('beforeend','<p class="answer-explanation">'+esc(answerExplanation(item))+'</p><button class="btn primary answer-continue" id="artContinue">'+esc(tr('Continue','Продолжить'))+' →</button>');
           Array.prototype.forEach.call(host.querySelectorAll('[data-art]'), function (b) { b.disabled = true; });
-          setTimeout(function () { studyState.idx++; persistResume(); renderArticles(); }, 850);
+          $('#artContinue').onclick=function(){studyState.idx++;persistResume();renderArticles();};
         });
       });
     }
@@ -912,7 +913,8 @@
             ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
             : '<span style="color:#d64545">' + esc(tr('Answer: ', 'Ответ: ')) + esc(item.opts[item.a]) + '</span>';
           $('#quizFb').insertAdjacentHTML('beforeend','<p class="answer-explanation">'+esc(answerExplanation(item))+'</p>');
-          setTimeout(function () { studyState.idx++; persistResume(); rerender(); }, 900);
+          $('#quizFb').insertAdjacentHTML('beforeend','<button class="btn primary answer-continue" id="quizContinue">'+esc(tr('Continue','Продолжить'))+' →</button>');
+          $('#quizContinue').onclick=function(){studyState.idx++;persistResume();rerender();};
         });
       });
     }
@@ -1028,7 +1030,8 @@
           $('#rdFb').innerHTML = ok
             ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
             : '<span style="color:#d64545">' + esc(tr('Answer: ', 'Ответ: ')) + esc(question.opts[question.a]) + '</span>';
-          setTimeout(function () { d.qIdx++; renderReading(); }, 900);
+          $('#rdFb').insertAdjacentHTML('beforeend','<p class="answer-explanation">'+esc(answerExplanation(question))+'</p><button class="btn primary answer-continue" id="readingContinue">'+esc(tr('Continue','Продолжить'))+' →</button>');
+          $('#readingContinue').onclick=function(){d.qIdx++;renderReading();};
         });
       });
     }
@@ -1152,7 +1155,7 @@
       var deck=studyState.data;if(studyState.idx>=deck.length)return finishTool(studyState.score+' / '+deck.length,12);var item=deck[studyState.idx],chosen=[];studyState.total=deck.length;
       $('#studyToolBody').innerHTML=counterHtml(studyState.idx,deck.length)+'<div class="sentence-drop" id="sentenceDrop"><span>'+esc(tr('Tap words in the correct order','Нажимайте слова в правильном порядке'))+'</span></div><div class="sentence-bank">'+item.words.map(function(word,i){return '<button data-word="'+i+'">'+esc(word)+'</button>';}).join('')+'</div><button class="btn primary" id="sentenceCheck" disabled>'+esc(tr('Check sentence','Проверить предложение'))+'</button>';
       Array.prototype.forEach.call(document.querySelectorAll('[data-word]'),function(button){button.onclick=function(){chosen.push(button.textContent);button.disabled=true;$('#sentenceDrop').innerHTML=chosen.map(function(word){return '<b>'+esc(word)+'</b>';}).join(' ');$('#sentenceCheck').disabled=chosen.length!==item.words.length;};});
-      $('#sentenceCheck').onclick=function(){var ok=chosen.join(' ')===item.sentence;feedback(ok);if(ok)studyState.score++;else logMistake(studyState.lang,item.sentence,item.words,0,'sentence');setTimeout(function(){studyState.idx++;renderSentenceBuilder();},900);};
+      $('#sentenceCheck').onclick=function(){var ok=chosen.join(' ')===item.sentence;feedback(ok,{prompt:tr('Build the sentence','Соберите предложение'),chosen:chosen.join(' '),correct:item.sentence,explanation:tr('Word order keeps the subject, verb and the remaining information in a natural sequence.','Порядок слов сохраняет естественную последовательность: подлежащее, глагол и остальная информация.')});if(ok)studyState.score++;else logMistake(studyState.lang,item.sentence,item.words,0,'sentence');this.disabled=true;$('#sentenceDrop').insertAdjacentHTML('afterend','<div class="inline-answer '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Perfect order','Правильный порядок'):tr('Correct sentence','Правильное предложение'))+'</b><p>'+esc(item.sentence)+'</p><button class="btn primary" id="sentenceContinue">'+esc(tr('Continue','Продолжить'))+' →</button></div>');$('#sentenceContinue').onclick=function(){studyState.idx++;renderSentenceBuilder();};};
     }
 
     function renderCategories() {
@@ -1160,14 +1163,14 @@
       if (!studyState.data) studyState.data=shuffle(Object.keys(groups).reduce(function(all,key){return all.concat(groups[key].map(function(word){return {word:word,group:key};}));},[]));
       var deck=studyState.data;if(studyState.idx>=deck.length)return finishTool(studyState.score+' / '+deck.length,18);var item=deck[studyState.idx];studyState.total=deck.length;
       $('#studyToolBody').innerHTML=counterHtml(studyState.idx,deck.length)+'<div class="category-word">'+esc(item.word)+'</div><p class="category-instruction">'+esc(tr('Choose its category','Выберите категорию'))+'</p><div class="category-zones">'+Object.keys(groups).map(function(group){return '<button data-category="'+group+'"><span>'+(group==='Food'?'🍎':group==='People'?'👤':'📍')+'</span><b>'+esc(group)+'</b></button>';}).join('')+'</div>';
-      Array.prototype.forEach.call(document.querySelectorAll('[data-category]'),function(button){button.onclick=function(){var ok=button.getAttribute('data-category')===item.group;feedback(ok);if(ok)studyState.score++;setTimeout(function(){studyState.idx++;renderCategories();},750);};});
+      Array.prototype.forEach.call(document.querySelectorAll('[data-category]'),function(button){button.onclick=function(){var chosen=button.getAttribute('data-category'),ok=chosen===item.group;feedback(ok,{prompt:item.word,chosen:chosen,correct:item.group,explanation:tr('This word belongs to the shown meaning group.','Это слово относится к указанной смысловой группе.')});if(ok)studyState.score++;Array.prototype.forEach.call(document.querySelectorAll('[data-category]'),function(node){node.disabled=true;});document.querySelector('.category-zones').insertAdjacentHTML('afterend','<div class="inline-answer '+(ok?'ok':'bad')+'"><b>'+esc(item.word+' → '+item.group)+'</b><button class="btn primary" id="categoryContinue">'+esc(tr('Continue','Продолжить'))+' →</button></div>');$('#categoryContinue').onclick=function(){studyState.idx++;renderCategories();};};});
     }
 
     function renderScenarios() {
       var scenes=[{icon:'☕',place:tr('At the cafe','В кафе'),line:tr('The waiter asks what you would like.','Официант спрашивает, что вы хотите.'),opts:[tr('I would like a coffee, please.','Я хотел бы кофе, пожалуйста.'),tr('The station is blue.','Вокзал синий.'),tr('Yesterday tomorrow.','Вчера завтра.')],a:0},{icon:'✈️',place:tr('At the airport','В аэропорту'),line:tr('You need to find your gate. What do you ask?','Вам нужно найти выход. Что вы спросите?'),opts:[tr('Where is gate twelve?','Где выход двенадцать?'),tr('I eat a ticket.','Я ем билет.'),tr('Close the coffee.','Закройте кофе.')],a:0},{icon:'💼',place:tr('At work','На работе'),line:tr('Introduce yourself to a new colleague.','Представьтесь новому коллеге.'),opts:[tr('Hello, my name is… Nice to meet you.','Здравствуйте, меня зовут… Приятно познакомиться.'),tr('Give me the airport.','Дайте мне аэропорт.'),tr('No sentence.','Нет предложения.')],a:0}];
       if(!studyState.data)studyState.data=scenes;var deck=studyState.data;if(studyState.idx>=deck.length)return finishTool(studyState.score+' / '+deck.length,15);var scene=deck[studyState.idx];studyState.total=deck.length;
       $('#studyToolBody').innerHTML='<div class="scenario-scene"><span>'+scene.icon+'</span><small>'+esc(tr('ROLE PLAY','РОЛЕВАЯ ИГРА'))+'</small><h2>'+esc(scene.place)+'</h2><p>'+esc(scene.line)+'</p></div><div class="scenario-options">'+scene.opts.map(function(option,i){return '<button data-scene-answer="'+i+'">'+esc(option)+'</button>';}).join('')+'</div>';
-      Array.prototype.forEach.call(document.querySelectorAll('[data-scene-answer]'),function(button){button.onclick=function(){var ok=Number(button.getAttribute('data-scene-answer'))===scene.a;feedback(ok);if(ok)studyState.score++;setTimeout(function(){studyState.idx++;renderScenarios();},950);};});
+      Array.prototype.forEach.call(document.querySelectorAll('[data-scene-answer]'),function(button){button.onclick=function(){var chosen=Number(button.getAttribute('data-scene-answer')),ok=chosen===scene.a;feedback(ok,{prompt:scene.line,chosen:scene.opts[chosen],correct:scene.opts[scene.a],explanation:tr('This response is polite, meaningful and appropriate for the situation.','Этот ответ вежливый, понятный и подходит к ситуации.')});if(ok)studyState.score++;Array.prototype.forEach.call(document.querySelectorAll('[data-scene-answer]'),function(node){node.disabled=true;});document.querySelector('.scenario-options').insertAdjacentHTML('afterend','<div class="inline-answer '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('The conversation continues','Разговор продолжается'):tr('A better response','Лучший ответ'))+'</b><p>'+esc(scene.opts[scene.a])+'</p><button class="btn primary" id="scenarioContinue">'+esc(tr('Continue story','Продолжить историю'))+' →</button></div>');$('#scenarioContinue').onclick=function(){studyState.idx++;renderScenarios();};};});
     }
 
     async function renderSocialChallenge(mode) {
