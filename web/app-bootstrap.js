@@ -218,10 +218,11 @@
         return;
       }
       session.user = authSession.user;
+      const requestedEventId = new URLSearchParams(window.location.search).get('event');
       bindEvents();
       await ctx.loadProfile();
       localStorage.setItem(ctx.storage.roleKey, session.role);
-      history.replaceState(null, '', './app.html?role=' + encodeURIComponent(session.role) + (window.location.hash || '#home'));
+      history.replaceState(null, '', './app.html?role=' + encodeURIComponent(session.role) + (requestedEventId ? '&event=' + encodeURIComponent(requestedEventId) : '') + (window.location.hash || '#home'));
       await Promise.all([
         ctx.loadPublicData(),
         ctx.loadEnrollments(),
@@ -239,6 +240,7 @@
       $('#app').style.display = 'grid';
       const initialView = (window.location.hash || '#home').slice(1);
       ctx.setView(initialView);
+      if (requestedEventId) ctx.openEventDetail(requestedEventId);
       if (initialView === 'management' && ctx.isBusiness()) ctx.renderManagement();
       ctx.loadConversations();
       ctx.subscribeNotifications();

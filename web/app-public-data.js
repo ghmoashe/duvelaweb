@@ -136,6 +136,11 @@
       }
 
       await Promise.all(tasks);
+      try {
+        const { data: statuses } = await supa.from('events').select('id,status');
+        const statusById = new Map((statuses || []).map((item) => [item.id, item.status]));
+        state.events.forEach((item) => { item.status = statusById.get(item.id) || 'published'; });
+      } catch (_) { /* status workflow migration is optional */ }
     }
 
     function getEventColumns() {

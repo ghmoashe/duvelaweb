@@ -13,31 +13,109 @@
       let organizer = null;
       let myStatus = null;
       let going = 0;
+      let participants = [];
+      let views = 0;
       try {
-        const [{ data: org }, { count }, { data: mine }] = await Promise.all([
+        const [{ data: org }, { count }, { data: mine }, { data: rsvps }, viewResult] = await Promise.all([
           item.organizer_id ? supa.from('profiles').select('full_name').eq('id', item.organizer_id).maybeSingle() : Promise.resolve({ data: null }),
           supa.from('event_rsvps').select('*', { count: 'exact', head: true }).eq('event_id', id).eq('status', 'going'),
-          supa.from('event_rsvps').select('status').eq('event_id', id).eq('user_id', ctx.user.id).maybeSingle()
+          supa.from('event_rsvps').select('status').eq('event_id', id).eq('user_id', ctx.user.id).maybeSingle(),
+          item.organizer_id === ctx.user.id ? supa.from('event_rsvps').select('user_id,status').eq('event_id', id).eq('status', 'going') : Promise.resolve({ data: [] }),
+          supa.rpc('track_event_view', { target_event_id: id })
         ]);
         organizer = org;
         going = count || 0;
         myStatus = mine && mine.status;
+        views = Number(viewResult && viewResult.data) || 0;
+        if (rsvps && rsvps.length) {
+          const ids = rsvps.map((entry) => entry.user_id);
+          const { data: profiles } = await supa.from('profiles').select('id,full_name').in('id', ids);
+          participants = rsvps.map((entry) => ({ ...entry, name: (profiles || []).find((profile) => profile.id === entry.user_id)?.full_name || tr('Student', 'Ученик') }));
+        }
       } catch (error) {
         /* counts optional */
       }
       const attending = myStatus === 'going';
-      const when = [item.event_date ? formatDate(item.event_date) : '', item.event_time ? item.event_time.slice(0, 5) : ''].filter(Boolean).join(' · ');
+      const isOwner = !!(item.organizer_id && ctx.user && item.organizer_id === ctx.user.id);
+      const capacity = Number(item.max_participants) || 0;
+      const capacityText = capacity ? going + ' / ' + capacity : String(going);
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const when = [item.event_date ? formatDate(item.event_date) : '', item.event_time ? item.event_time.slice(0, 5) : '', timezone].filter(Boolean).join(' · ');
       body.innerHTML =
         (item.image ? '<img src="' + esc(item.image) + '" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px">' : '') +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
           (when ? '<span class="tag blue">' + esc(when) + '</span>' : '') +
           '<span class="tag">' + esc(item.is_online ? tr('Online', 'Онлайн') : (item.city || tr('In person', 'Оффлайн'))) + '</span>' +
           '<span class="tag amber">' + esc(formatMoney(item)) + '</span>' +
-          (going ? '<span class="tag teal">' + going + ' ' + esc(tr('going', 'идут')) + '</span>' : '') +
+          '<span class="tag teal">' + esc(capacityText + ' ' + tr('going', 'участников')) + '</span>' +
         '</div>' +
         (organizer && organizer.full_name ? '<p style="font-weight:800;color:var(--soft);margin:0 0 8px">' + esc(tr('By ', 'Организатор: ') + organizer.full_name) + '</p>' : '') +
         '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(item.description || tr('No description yet.', 'Описания пока нет.')) + '</p>' +
-        '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'Отменить участие') : tr('RSVP — I will attend', 'Пойду')) + '</button></div>';
+        (isOwner
+          ? '<div class="event-owner-tools"><div class="event-owner-head"><span class="tag teal">' + esc(tr('You are the organizer', 'Вы организатор')) + '</span><span>' + esc(item.status === 'canceled' ? tr('Canceled', 'Отменено') : item.status === 'draft' ? tr('Draft', 'Черновик') : item.event_date && item.event_date < new Date().toISOString().slice(0,10) ? tr('Completed', 'Завершено') : tr('Published', 'Опубликовано')) + '</span></div><div class="event-owner-stats"><span><b>' + views + '</b>' + esc(tr('Views', 'Просмотры')) + '</span><span><b>' + going + '</b>' + esc(tr('Registrations', 'Регистрации')) + '</span><span><b>' + (capacity ? Math.round(going / capacity * 100) : 0) + '%</b>' + esc(tr('Capacity', 'Заполнение')) + '</span></div>' +
+              '<div class="event-owner-actions"><button class="btn primary" data-event-live>' + esc(tr('Start LIVE', 'Начать эфир')) + '</button><button class="btn" data-event-edit>' + esc(tr('Edit', 'Редактировать')) + '</button><button class="btn" data-event-copy>' + esc(tr('Copy link', 'Копировать ссылку')) + '</button><button class="btn" data-event-calendar>' + esc(tr('Add to calendar', 'В календарь')) + '</button><button class="btn" data-event-message>' + esc(tr('Message participants', 'Написать участникам')) + '</button><button class="btn" data-event-cancel>' + esc(tr('Cancel event', 'Отменить событие')) + '</button><button class="btn danger" data-event-delete>' + esc(tr('Delete', 'Удалить')) + '</button></div>' +
+              '<div class="event-edit-form" data-event-edit-form hidden><div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Title', 'Название')) + '</label><input data-ee-title value="' + esc(item.title || '') + '"></div><div class="pv-field"><label>' + esc(tr('Capacity', 'Количество мест')) + '</label><input data-ee-capacity type="number" min="0" value="' + esc(item.max_participants || '') + '"></div></div><div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Date', 'Дата')) + '</label><input data-ee-date type="date" value="' + esc(item.event_date || '') + '"></div><div class="pv-field"><label>' + esc(tr('Time', 'Время')) + '</label><input data-ee-time type="time" value="' + esc((item.event_time || '').slice(0,5)) + '"></div></div><button class="btn primary" data-event-save>' + esc(tr('Save changes', 'Сохранить')) + '</button></div>' +
+              '<div class="event-participants"><h3>' + esc(tr('Participants', 'Участники')) + ' (' + going + ')</h3>' + (participants.length ? participants.map((person) => '<div><span class="sch-avatar">' + esc(person.name.charAt(0).toUpperCase()) + '</span><b>' + esc(person.name) + '</b></div>').join('') : '<p>' + esc(tr('No registrations yet.', 'Регистраций пока нет.')) + '</p>') + '</div></div>'
+          : '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'Отменить участие') : tr('RSVP — I will attend', 'Пойду')) + '</button></div>');
+      if (isOwner) bindEventOwnerActions(item);
+    }
+
+    function eventShareUrl(item) {
+      return location.origin + location.pathname + '?event=' + encodeURIComponent(item.id) + '#events';
+    }
+
+    function bindEventOwnerActions(item) {
+      const body = $('#eventOverlayBody');
+      const edit = body.querySelector('[data-event-edit]'), form = body.querySelector('[data-event-edit-form]');
+      if (edit && form) edit.onclick = () => { form.hidden = !form.hidden; };
+      body.querySelector('[data-event-copy]').onclick = async () => {
+        await navigator.clipboard.writeText(eventShareUrl(item));
+        alert(tr('Event link copied.', 'Ссылка на событие скопирована.'));
+      };
+      body.querySelector('[data-event-live]').onclick = () => {
+        location.href = 'live.html?app=business&mode=host&t=' + encodeURIComponent(item.title || 'Duvela LIVE');
+      };
+      body.querySelector('[data-event-calendar]').onclick = () => downloadEventCalendar(item);
+      body.querySelector('[data-event-cancel]').onclick = async () => {
+        if (!window.confirm(tr('Cancel this event and notify participants?', 'Отменить событие и уведомить участников?'))) return;
+        const result = await supa.from('events').update({ status:'canceled' }).eq('id',item.id).eq('organizer_id',ctx.user.id);
+        if (result.error) { alert(result.error.message); return; }
+        item.status='canceled'; openEventDetail(item.id);
+      };
+      body.querySelector('[data-event-message]').onclick = async () => {
+        const message = window.prompt(tr('Message for all participants', 'Сообщение всем участникам'));
+        if (!message) return;
+        const result = await supa.rpc('notify_event_participants', { target_event_id: item.id, message_body: message });
+        alert(result.error ? result.error.message : tr('Message sent.', 'Сообщение отправлено.'));
+      };
+      body.querySelector('[data-event-save]').onclick = async () => {
+        const date = body.querySelector('[data-ee-date]').value, time = body.querySelector('[data-ee-time]').value;
+        if (date && date < new Date().toISOString().slice(0,10) && !window.confirm(tr('This date is in the past. Save anyway?', 'Эта дата уже прошла. Всё равно сохранить?'))) return;
+        if (date && time) {
+          const conflict = await supa.from('events').select('id,title').eq('organizer_id', ctx.user.id).eq('event_date', date).eq('event_time', time).neq('id', item.id).limit(1);
+          if ((conflict.data || []).length && !window.confirm(tr('Another event starts at the same time. Save anyway?', 'Другое событие начинается в это же время. Всё равно сохранить?'))) return;
+        }
+        const payload = { title: body.querySelector('[data-ee-title]').value.trim(), event_date: date || null, event_time: time || null, max_participants: Number(body.querySelector('[data-ee-capacity]').value) || null };
+        if (!payload.title) return;
+        const result = await supa.from('events').update(payload).eq('id', item.id).eq('organizer_id', ctx.user.id);
+        if (result.error) { alert(result.error.message); return; }
+        Object.assign(item, payload); openEventDetail(item.id); void ctx.loadPublicData?.();
+      };
+      body.querySelector('[data-event-delete]').onclick = async () => {
+        if (!window.confirm(tr('Delete this event? Participants will be notified.', 'Удалить событие? Участники получат уведомление.'))) return;
+        const result = await supa.from('events').delete().eq('id', item.id).eq('organizer_id', ctx.user.id);
+        if (result.error) { alert(result.error.message); return; }
+        $('#eventOverlay').classList.remove('open'); state.events = state.events.filter((entry) => entry.id !== item.id); renderEvents();
+      };
+    }
+
+    function downloadEventCalendar(item) {
+      const compact = (value) => value.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+      const start = new Date((item.event_date || new Date().toISOString().slice(0,10)) + 'T' + ((item.event_time || '12:00').slice(0,5)) + ':00');
+      const end = new Date(start.getTime() + 60 * 60 * 1000);
+      const text = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Duvela//Events//EN','BEGIN:VEVENT','UID:' + item.id + '@duvela','DTSTART:' + compact(start.toISOString()),'DTEND:' + compact(end.toISOString()),'SUMMARY:' + (item.title || 'Duvela Event'),'DESCRIPTION:' + (item.description || ''),'URL:' + eventShareUrl(item),'END:VEVENT','END:VCALENDAR'].join('\r\n');
+      const url = URL.createObjectURL(new Blob([text], { type:'text/calendar;charset=utf-8' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'duvela-event.ics'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     async function toggleRsvp(eventId) {
@@ -353,13 +431,21 @@
         head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Events & workshops', 'События и воркшопы') : tr('Events', 'События');
         head.querySelector('span').textContent = ctx.isBusiness() ? tr('Calendar and tickets', 'Календарь и билеты') : tr('Online and offline', 'Онлайн и офлайн');
       }
-      $('#eventList').innerHTML = state.events.map((item) =>
-        '<div class="card row"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + '>' +
+      const today = new Date().toISOString().slice(0,10);
+      const eventList = $('#eventList');
+      eventList.innerHTML = '<div class="event-catalog-tabs"><button class="active" data-event-filter="upcoming">' + esc(tr('Upcoming', 'Предстоящие')) + '</button><button data-event-filter="past">' + esc(tr('Past', 'Прошедшие')) + '</button><button data-event-filter="draft">' + esc(tr('Drafts', 'Черновики')) + '</button><button data-event-filter="canceled">' + esc(tr('Canceled', 'Отменённые')) + '</button></div>' + state.events.map((item) =>
+        '<div class="card row event-row" data-event-period="' + (item.status === 'draft' ? 'draft' : item.status === 'canceled' ? 'canceled' : item.event_date && item.event_date < today ? 'past' : 'upcoming') + '"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + '>' +
           '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'E').charAt(0))) + '</div>' +
           '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || item.description || tr('Upcoming event', 'Ближайшее событие')) + '</p></div>' +
           '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + (item.is_online ? '<span class="tag">' + esc(tr('Online', 'Онлайн')) + '</span>' : '') + '<span class="tag amber">' + esc(formatMoney(item)) + '</span></div>' +
         '</div>'
-      ).join('') || '<div class="card empty">' + esc(tr('No upcoming events.', 'Ближайших событий пока нет.')) + '</div>';
+      ).join('');
+      const applyEventFilter = (period) => {
+        eventList.querySelectorAll('[data-event-period]').forEach((card) => { card.hidden = card.dataset.eventPeriod !== period; });
+        eventList.querySelectorAll('[data-event-filter]').forEach((button) => button.classList.toggle('active', button.dataset.eventFilter === period));
+      };
+      eventList.querySelectorAll('[data-event-filter]').forEach((button) => { button.onclick = () => applyEventFilter(button.dataset.eventFilter); });
+      applyEventFilter('upcoming');
     }
 
     async function loadEnrollments() {
