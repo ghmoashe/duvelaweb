@@ -32,7 +32,7 @@
     async function load(uid) {
       const [ev, co, ch] = await Promise.all([
         safe(supa.from('events').select(ctx.getEventColumns()).eq('organizer_id', uid).order('event_date', { ascending: true })),
-        safe(supa.from('courses').select('id,title,level,language,status,price,currency,cover_image_url,starts_on,ends_on,schedule,location,created_at').eq('created_by', uid).order('created_at', { ascending: false })),
+        safe(supa.from('courses').select('id,title,description,level,language,status,price,currency,cover_image_url,starts_on,ends_on,schedule,location,created_at').eq('created_by', uid).neq('status', 'archived').order('created_at', { ascending: false })),
         safe(supa.from('challenges').select('id,title,target_level,exam_type,started_at,ends_at').order('created_at', { ascending: false }).limit(20))
       ]);
       data = { events: (ev && ev.data) || [], courses: (co && co.data) || [], challenges: (ch && ch.data) || [] };
@@ -49,6 +49,17 @@
       const d = ev.event_date ? new Date(ev.event_date + 'T00:00:00').toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
       const t = ev.event_time ? String(ev.event_time).slice(0, 5) : '';
       return [d, t].filter(Boolean).join(' · ') || tr('No date set', 'Дата не задана');
+    }
+    function shortDate(value) {
+      if (!value) return '';
+      var date = new Date(String(value).slice(0, 10) + 'T00:00:00');
+      if (isNaN(date.getTime())) return String(value);
+      return date.toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    function coursePeriod(course) {
+      var start = shortDate(course.starts_on), end = shortDate(course.ends_on);
+      if (start && end) return start + ' — ' + end;
+      return start || end || tr('Dates not set', 'Даты не указаны');
     }
 
     var IC = {
@@ -137,13 +148,32 @@
           '<button type="button" class="mg-btn-solid teal sm" data-mg-new-course>' + esc(tr('New course', 'Новый курс')) + '</button>' +
         '</div>' +
         '</div>';
-      html += '<div class="mg-list">' + courses.map(function (c) {
+      html += '<div class="mg-course-list">' + courses.map(function (c) {
         var tags = [c.level, c.language].filter(Boolean).map(function (t) { return '<span class="mg-chip">' + esc(t) + '</span>'; }).join('');
-        return '<a class="mg-row" href="#courses" data-go="courses" data-course-open="' + esc(c.id) + '">' +
-          '<span class="mg-row-ic teal">' + IC.book + '</span>' +
-          '<span class="mg-row-copy"><b>' + esc(c.title || tr('Untitled course', 'Без названия')) + '</b>' +
-          '<span class="mg-chip-row">' + tags + '</span></span>' +
-          '<span class="mg-row-tag">' + esc(priceText(c)) + '</span></a>';
+        var cover = c.cover_image_url
+          ? '<img src="' + esc(c.cover_image_url) + '" alt="">'
+          : '<span>' + IC.book + '</span>';
+        var statusLabels = {
+          draft: tr('Draft', 'Черновик'), active: tr('Published', 'Опубликован'),
+          closed: tr('Enrollment closed', 'Набор закрыт'), completed: tr('Completed', 'Завершён')
+        };
+        var status = statusLabels[c.status] || tr('Published', 'Опубликован');
+        return '<article class="mg-course-card">' +
+          '<div class="mg-course-cover">' + cover + '</div>' +
+          '<div class="mg-course-main">' +
+            '<div class="mg-course-title"><div><h3>' + esc(c.title || tr('Untitled course', 'Без названия')) + '</h3><div class="mg-chip-row">' + tags + '</div></div>' +
+              '<span class="mg-status' + (c.status === 'draft' ? ' draft' : '') + '">' + esc(status) + '</span></div>' +
+            '<div class="mg-course-facts">' +
+              '<span><b>' + esc(tr('Period', 'Период')) + '</b>' + esc(coursePeriod(c)) + '</span>' +
+              '<span><b>' + esc(tr('Schedule', 'Расписание')) + '</b>' + esc(c.schedule || tr('Not set', 'Не указано')) + '</span>' +
+              '<span><b>' + esc(tr('Location', 'Место')) + '</b>' + esc(c.location || tr('Online', 'Онлайн')) + '</span>' +
+            '</div>' +
+            '<div class="mg-course-footer"><strong>' + esc(priceText(c)) + '</strong><div class="mg-course-actions">' +
+              '<button type="button" class="mg-btn-outline sm" data-course-open="' + esc(c.id) + '">' + esc(tr('Program', 'Программа')) + '</button>' +
+              '<button type="button" class="mg-btn-outline sm" data-course-edit="' + esc(c.id) + '">' + esc(tr('Edit', 'Изменить')) + '</button>' +
+              '<button type="button" class="mg-btn-danger sm" data-course-archive="' + esc(c.id) + '">' + esc(tr('Archive', 'В архив')) + '</button>' +
+            '</div></div>' +
+          '</div></article>';
       }).join('') + '</div>';
       return html;
     }
@@ -227,6 +257,15 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-course-open]'), function (a) {
         a.addEventListener('click', function () { if (ctx.openCourseDetail) ctx.openCourseDetail(a.getAttribute('data-course-open')); });
       });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-course-delete]'), function (button) {
+        button.addEventListener('click', function () { void deleteCourse(button.getAttribute('data-course-delete')); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-course-edit]'), function (button) {
+        button.addEventListener('click', function () { openCourseModal(button.getAttribute('data-course-edit')); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-course-archive]'), function (button) {
+        button.addEventListener('click', function () { void archiveCourse(button.getAttribute('data-course-archive')); });
+      });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-course]'), function (b) {
         b.addEventListener('click', function () { openCourseModal(); });
       });
@@ -248,6 +287,36 @@
     var courseCover = null;      // uploaded cover URL
     var courseSaving = false;
     var courseNotice = '';
+    var courseEditing = null;
+    var courseDirty = false;
+    var coursePreview = false;
+
+    async function archiveCourse(id) {
+      var course = data.courses.find(function (item) { return String(item.id) === String(id); });
+      if (!window.confirm(tr('Move this course to the archive?', 'Переместить курс в архив?'))) return;
+      var result = await supa.from('courses').update({ status: 'archived' }).eq('id', id).eq('created_by', ctx.user.id);
+      if (result.error) { ctx.alert(result.error.message || tr('Could not archive the course.', 'Не удалось архивировать курс.')); return; }
+      data.courses = data.courses.filter(function (item) { return String(item.id) !== String(id); });
+      paint();
+    }
+
+    async function deleteCourse(id) {
+      var course = data && data.courses && data.courses.find(function (item) { return String(item.id) === String(id); });
+      var title = course && course.title ? ' «' + course.title + '»' : '';
+      if (!window.confirm(tr('Delete course', 'Удалить курс') + title + '?')) return;
+      var result;
+      try {
+        result = await supa.from('courses').delete().eq('id', id).eq('created_by', ctx.user.id);
+      } catch (e) {
+        result = { error: e };
+      }
+      if (result && result.error) {
+        ctx.alert(tr('Could not delete the course.', 'Не удалось удалить курс.'));
+        return;
+      }
+      await load(ctx.user.id);
+      paint();
+    }
 
     function el(id) { return document.getElementById(id); }
 
@@ -280,8 +349,10 @@
       if (closeBtn) closeBtn.onclick = closeModal;
     }
     function closeModal() {
+      if (courseDirty && !window.confirm(tr('Discard unsaved changes?', 'Закрыть без сохранения изменений?'))) return;
       var overlay = el('courseCreateOverlay');
       if (overlay) { overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true'); }
+      courseDirty = false;
       document.body.classList.remove('modal-open');
     }
     function afterCreate() {
@@ -290,15 +361,17 @@
       return load(ctx.user.id);
     }
 
-    function openCourseModal() {
-      courseCover = null; courseNotice = ''; courseSaving = false;
-      openModal(tr('Create course', 'Создать курс'), paintCourseModal);
+    function openCourseModal(id) {
+      courseEditing = id ? data.courses.find(function (item) { return String(item.id) === String(id); }) || null : null;
+      courseCover = courseEditing && courseEditing.cover_image_url || null;
+      courseNotice = ''; courseSaving = false; courseDirty = false; coursePreview = false;
+      openModal(courseEditing ? tr('Edit course', 'Редактировать курс') : tr('Create course', 'Создать курс'), paintCourseModal);
     }
     var closeCourseModal = closeModal;
 
-    function field(id, label, type, placeholder) {
+    function field(id, label, type, placeholder, value) {
       return '<div class="pv-field"><label>' + esc(label) + '</label>' +
-        '<input id="' + id + '" type="' + (type || 'text') + '" placeholder="' + esc(placeholder || '') + '"></div>';
+        '<input id="' + id + '" type="' + (type || 'text') + '" placeholder="' + esc(placeholder || '') + '" value="' + esc(value == null ? '' : value) + '"></div>';
     }
 
     function paintCourseModal() {
@@ -307,41 +380,45 @@
       var coverStyle = courseCover
         ? 'background-image:url(' + esc(courseCover) + ');background-size:cover;background-position:center;'
         : '';
+      var c = courseEditing || {};
       body.innerHTML =
+        (coursePreview ? '<div class="cc-preview"><div class="cc-preview-cover"' + (courseCover ? ' style="background-image:url(' + esc(courseCover) + ')"' : '') + '></div><div><small>' + esc(tr('Learner preview', 'Предпросмотр для ученика')) + '</small><h3>' + esc(c.title || tr('New course', 'Новый курс')) + '</h3><p>' + esc(c.description || tr('The description will appear here.', 'Здесь появится описание курса.')) + '</p></div></div>' : '') +
         '<button type="button" class="cc-cover" id="ccCoverBtn" style="' + coverStyle + '">' +
           (courseCover ? '' : '<span>+ ' + esc(tr('Add cover photo', 'Добавить обложку')) + '</span>') +
         '</button>' +
         '<input type="file" id="ccCoverFile" accept="image/*" hidden>' +
         '<div class="pv-field" style="margin-top:12px"><label>' + esc(tr('Title', 'Название')) + ' *</label>' +
-          '<input id="ccTitleInput" type="text" placeholder="' + esc(tr('e.g. English A1 → A2', 'напр. Английский A1 → A2')) + '"></div>' +
+          '<input id="ccTitleInput" type="text" placeholder="' + esc(tr('e.g. English A1 → A2', 'напр. Английский A1 → A2')) + '" value="' + esc(c.title || '') + '"></div>' +
         '<div class="pv-field-grid">' +
-          field('ccLevel', tr('Level', 'Уровень'), 'text', 'A1–C2') +
-          field('ccLanguage', tr('Language', 'Язык'), 'text', tr('English', 'Английский')) +
+          field('ccLevel', tr('Level', 'Уровень'), 'text', 'A1–C2', c.level) +
+          field('ccLanguage', tr('Language', 'Язык'), 'text', tr('English', 'Английский'), c.language) +
         '</div>' +
         '<div class="pv-field-grid">' +
-          field('ccPrice', tr('Price', 'Цена'), 'number', '0') +
+          field('ccPrice', tr('Price', 'Цена'), 'number', '0', c.price) +
           '<div class="pv-field"><label>' + esc(tr('Currency', 'Валюта')) + '</label>' +
             '<select id="ccCurrency"><option value="EUR">EUR €</option><option value="USD">USD $</option></select></div>' +
         '</div>' +
         '<div class="pv-field-grid">' +
-          field('ccStart', tr('Start date', 'Дата начала'), 'date') +
-          field('ccEnd', tr('End date', 'Дата окончания'), 'date') +
+          field('ccStart', tr('Start date', 'Дата начала'), 'date', '', c.starts_on) +
+          field('ccEnd', tr('End date', 'Дата окончания'), 'date', '', c.ends_on) +
         '</div>' +
         '<div class="pv-field-grid">' +
-          field('ccSchedule', tr('Schedule', 'Расписание'), 'text', tr('Mon/Wed 18:00', 'Пн/Ср 18:00')) +
-          field('ccLocation', tr('Location', 'Место'), 'text', tr('Online / address', 'Онлайн / адрес')) +
+          field('ccSchedule', tr('Schedule', 'Расписание'), 'text', tr('Mon/Wed 18:00', 'Пн/Ср 18:00'), c.schedule) +
+          field('ccLocation', tr('Location', 'Место'), 'text', tr('Online / address', 'Онлайн / адрес'), c.location) +
         '</div>' +
         '<div class="pv-field"><label>' + esc(tr('Description', 'Описание')) + '</label>' +
-          '<textarea id="ccDesc" maxlength="800" placeholder="' + esc(tr('What learners will get from this course', 'Что ученики получат от курса')) + '"></textarea></div>' +
-        '<label class="cc-check"><input type="checkbox" id="ccPublish" checked> ' + esc(tr('Publish now (visible to learners)', 'Опубликовать сейчас (видно ученикам)')) + '</label>' +
+          '<textarea id="ccDesc" maxlength="800" placeholder="' + esc(tr('What learners will get from this course', 'Что ученики получат от курса')) + '">' + esc(c.description || '') + '</textarea></div>' +
+        '<div class="pv-field"><label>' + esc(tr('Status', 'Статус')) + '</label><select id="ccStatus"><option value="draft">' + esc(tr('Draft', 'Черновик')) + '</option><option value="active">' + esc(tr('Published', 'Опубликован')) + '</option><option value="closed">' + esc(tr('Enrollment closed', 'Набор закрыт')) + '</option><option value="completed">' + esc(tr('Completed', 'Завершён')) + '</option></select></div>' +
         (courseNotice ? '<div class="pv-notice">' + esc(courseNotice) + '</div>' : '') +
         '<div class="pv-edit-actions">' +
-          '<button type="button" class="pv-btn-outline" id="ccImport">' + esc(tr('Import Excel', 'Импорт Excel')) + '</button>' +
-          '<button type="button" class="pv-btn-solid" id="ccSubmit"' + (courseSaving ? ' disabled' : '') + '>' + esc(courseSaving ? tr('Saving…', 'Сохранение…') : tr('Create course', 'Создать курс')) + '</button>' +
+          '<button type="button" class="pv-btn-outline" id="ccPreview">' + esc(tr('Preview', 'Предпросмотр')) + '</button>' +
+          '<button type="button" class="pv-btn-solid" id="ccSubmit"' + (courseSaving ? ' disabled' : '') + '>' + esc(courseSaving ? tr('Saving…', 'Сохранение…') : (courseEditing ? tr('Save changes', 'Сохранить') : tr('Create course', 'Создать курс'))) + '</button>' +
         '</div>' +
         '<p class="cc-hint">' + esc(tr('Excel columns: title, level, language, price, schedule, description', 'Колонки Excel: title, level, language, price, schedule, description')) + '</p>';
 
       var coverBtn = el('ccCoverBtn'); var coverFile = el('ccCoverFile');
+      var statusSelect = el('ccStatus'); if (statusSelect) statusSelect.value = c.status || 'draft';
+      var currencySelect = el('ccCurrency'); if (currencySelect && c.currency) currencySelect.value = c.currency;
       if (coverBtn && coverFile) {
         coverBtn.onclick = function () { coverFile.click(); };
         coverFile.onchange = function () {
@@ -351,11 +428,22 @@
       }
       var submit = el('ccSubmit');
       if (submit) submit.onclick = function () { void submitCourse(); };
-      var imp = el('ccImport');
-      if (imp) imp.onclick = function () { pickCourseExcel(); };
+      var preview = el('ccPreview');
+      if (preview) preview.onclick = function () { captureCourseForm(); coursePreview = !coursePreview; paintCourseModal(); };
+      Array.prototype.forEach.call(body.querySelectorAll('input,textarea,select'), function (input) { input.addEventListener('input', function () { courseDirty = true; }); });
+    }
+
+    function captureCourseForm() {
+      if (!courseEditing) courseEditing = {};
+      var value = function (id) { return el(id) ? el(id).value : ''; };
+      courseEditing.title = value('ccTitleInput'); courseEditing.level = value('ccLevel'); courseEditing.language = value('ccLanguage');
+      courseEditing.price = value('ccPrice'); courseEditing.starts_on = value('ccStart'); courseEditing.ends_on = value('ccEnd');
+      courseEditing.schedule = value('ccSchedule'); courseEditing.location = value('ccLocation'); courseEditing.description = value('ccDesc');
+      courseEditing.status = value('ccStatus') || 'draft'; courseEditing.currency = value('ccCurrency') || 'EUR';
     }
 
     async function uploadCover(file) {
+      courseDirty = true;
       courseNotice = tr('Uploading cover…', 'Загрузка обложки…'); paintCourseModal();
       try {
         courseCover = await ctx.uploadToBucket('posts', file);
@@ -369,6 +457,7 @@
       var val = function (id) { return (el(id) && el(id).value.trim()) || ''; };
       var title = val('ccTitleInput');
       if (!title) { courseNotice = tr('Enter a course title.', 'Введите название курса.'); paintCourseModal(); return; }
+      captureCourseForm();
       var priceRaw = val('ccPrice');
       var fields = {
         level: val('ccLevel').toUpperCase() || null,
@@ -378,8 +467,16 @@
         starts_on: val('ccStart') || null, ends_on: val('ccEnd') || null,
         schedule: val('ccSchedule') || null, location: val('ccLocation') || null,
         description: val('ccDesc') || null,
-        status: (el('ccPublish') && el('ccPublish').checked) ? 'active' : 'draft'
+        status: (el('ccStatus') && el('ccStatus').value) || 'draft'
       };
+      if (fields.starts_on && fields.ends_on && fields.ends_on < fields.starts_on) {
+        courseNotice = tr('End date cannot be before start date.', 'Дата окончания не может быть раньше даты начала.'); paintCourseModal(); return;
+      }
+      var collision = data.courses.some(function (item) {
+        return (!courseEditing || String(item.id) !== String(courseEditing.id)) && fields.schedule && item.schedule &&
+          item.schedule.toLowerCase() === fields.schedule.toLowerCase() && fields.starts_on && item.starts_on === fields.starts_on;
+      });
+      if (collision && !window.confirm(tr('Another course has the same start date and schedule. Save anyway?', 'У другого курса совпадают дата начала и расписание. Всё равно сохранить?'))) return;
       courseSaving = true; courseNotice = ''; paintCourseModal();
       var org = await ensureOrg();
       if (!org) { courseSaving = false; courseNotice = tr('Could not prepare your workspace. Try again.', 'Не удалось подготовить рабочее пространство. Попробуйте ещё раз.'); paintCourseModal(); return; }
@@ -390,10 +487,15 @@
         starts_on: fields.starts_on, ends_on: fields.ends_on, schedule: fields.schedule,
         location: fields.location, description: fields.description, status: fields.status
       };
-      var res = await safe(supa.from('courses').insert(row));
+      var res;
+      try {
+        res = courseEditing && courseEditing.id
+          ? await supa.from('courses').update(row).eq('id', courseEditing.id).eq('created_by', ctx.user.id)
+          : await supa.from('courses').insert(row);
+      } catch (e) { res = { error: e }; }
       courseSaving = false;
-      if (!res) { courseNotice = tr('Could not create the course.', 'Не удалось создать курс.'); paintCourseModal(); return; }
-      closeCourseModal();
+      if (!res || res.error) { courseNotice = (res && res.error && res.error.message) || tr('Could not save the course.', 'Не удалось сохранить курс.'); paintCourseModal(); return; }
+      courseDirty = false; closeCourseModal();
       if (ctx.loadPublicData) ctx.loadPublicData();
       await load(ctx.user.id);
       activeTab = 'courses';
@@ -474,7 +576,7 @@
           field('evLangInput', tr('Language', 'Язык'), 'text', tr('English', 'Английский')) +
         '</div>' +
         '<div class="pv-field-grid">' +
-          field('evCityInput', tr('Location', 'Место'), 'text', tr('City / address / link', 'Город / адрес / ссылка')) +
+          '<div id="evLocationField">' + field('evCityInput', tr('Location', 'Место'), 'text', tr('City or address', 'Город или адрес')) + '</div>' +
           field('evPriceInput', tr('Price (0 = free)', 'Цена (0 = бесплатно)'), 'number', '0') +
         '</div>' +
         '<div class="pv-field"><label>' + esc(tr('Description', 'Описание')) + '</label>' +
@@ -491,6 +593,17 @@
       }
       var cancel = el('evCancel'); if (cancel) cancel.onclick = closeModal;
       var submit = el('evSubmit'); if (submit) submit.onclick = function () { void submitEvent(); };
+      var format = el('evFormatInput');
+      if (format) { format.onchange = syncEventLocation; syncEventLocation(); }
+    }
+
+    function syncEventLocation() {
+      var format = el('evFormatInput'), fieldWrap = el('evLocationField'), input = el('evCityInput');
+      if (!format || !fieldWrap || !input) return;
+      var isRemote = format.value === 'online';
+      fieldWrap.hidden = isRemote;
+      input.disabled = isRemote;
+      if (isRemote) input.value = '';
     }
 
     async function uploadEventCover(file) {
@@ -506,14 +619,15 @@
       if (!title) { eventNotice = tr('Enter a title.', 'Введите название.'); paintEventModal(); return; }
       var priceRaw = val('evPriceInput');
       var isPaid = priceRaw !== '' && Number(priceRaw) > 0;
+      var format = (el('evFormatInput') && el('evFormatInput').value) || 'online';
       var row = {
         organizer_id: ctx.user.id, title: title,
         description: val('evDescInput') || null,
         event_date: val('evDateInput') || null,
         event_time: val('evTimeInput') || null,
-        format: (el('evFormatInput') && el('evFormatInput').value) || 'online',
+        format: format,
         language: val('evLangInput') || null,
-        city: val('evCityInput') || null,
+        city: format === 'online' ? null : (val('evCityInput') || null),
         is_paid: isPaid, price_amount: isPaid ? Number(priceRaw) : null,
         image_url: eventCover || null
       };
