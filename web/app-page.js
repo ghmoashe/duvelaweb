@@ -127,7 +127,7 @@
   const titles = {
     hub: {
       home: [tr('Hub dashboard', 'Панель Hub'), tr('Your learning feed, live lessons and practice tools are ready.', 'Лента обучения, эфиры и практика готовы.')],
-      videos: [tr('Media', 'Медиа'), tr('Short lessons matched to your level.', 'Короткие уроки под ваш уровень.')],
+      videos: [tr('Media', 'Медиа'), tr('Videos, Shorts and live lessons in one place.', 'Видео, Shorts и прямые эфиры в одном месте.')],
       live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
       courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
       events: [tr('Events', 'События'), tr('Meetups, workshops and speaking practice.', 'Встречи, воркшопы и speaking practice.')],

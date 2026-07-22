@@ -785,9 +785,13 @@
   /* Desktop-first media layout, modelled on YouTube Web. */
   body:not(.business-mode) [data-panel="videos"]{max-width:none}
   body:not(.business-mode) #mediaBrowse{width:100%}
+  body:not(.business-mode) #videoGrid{display:block!important;width:100%;margin-top:0!important}
   body:not(.business-mode) #mediaBrowse>div:first-child{justify-content:flex-start;border-bottom:1px solid var(--line);padding:10px 0 14px}
   body:not(.business-mode) #videoTabs{display:flex;width:auto;overflow:visible}
   body:not(.business-mode) #videoTabs button{min-width:104px;padding:9px 18px;border-radius:9px;font-size:14px}
+  body:not(.business-mode) #videoTabs button[data-filter="videos"]:before{content:"▶ ";font-size:11px}
+  body:not(.business-mode) #videoTabs button[data-filter="shorts"]:before{content:"⚡ ";color:#7c3aed}
+  body:not(.business-mode) #videoTabs button[data-filter="live"]:before{content:"● ";color:#f03}
   body:not(.business-mode) .learner-media{padding-top:12px}
   body:not(.business-mode) .lm-top{display:grid;grid-template-columns:minmax(220px,1fr) minmax(420px,620px) minmax(220px,1fr);align-items:center;padding:4px 0 8px}
   body:not(.business-mode) .lm-top>div:first-child{grid-column:1}
@@ -1988,7 +1992,7 @@
 <script src="./web/app-role-access.js?v=20260721-2"></script>
 <script src="./web/app-static-ui.js"></script>
 <script src="./web/app-public-data.js"></script>
-<script src="./web/app-feature-media.js?v=20260722-2"></script>
+<script src="./web/app-feature-media.js?v=20260722-3"></script>
 <script src="./web/app-feature-profile.js"></script>
 <script src="./web/app-feature-practice-builder.js"></script>
 <script src="./web/app-feature-workspace-shell.js"></script>
