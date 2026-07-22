@@ -1,0 +1,84 @@
+-- Duvela Practice 2.0 shared mobile/web persistence.
+create table if not exists public.practice_sessions (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
+  client_session_id text not null, tool_id text not null, language text not null default 'de', level text,
+  status text not null default 'active' check(status in ('active','completed','abandoned')),
+  current_step integer not null default 0, score integer not null default 0, total integer not null default 0,
+  duration_seconds integer not null default 0, xp_awarded integer not null default 0,
+  state jsonb not null default '{}'::jsonb, started_at timestamptz not null default now(), completed_at timestamptz,
+  unique(user_id,client_session_id)
+);
+create table if not exists public.practice_progress (
+  user_id uuid not null references auth.users(id) on delete cascade, tool_id text not null, language text not null default 'de',
+  level text, sessions integer not null default 0, correct integer not null default 0, attempted integer not null default 0,
+  xp integer not null default 0, best_score integer not null default 0, last_practiced_at timestamptz,
+  primary key(user_id,tool_id,language)
+);
+create table if not exists public.practice_mistakes (
+  user_id uuid not null references auth.users(id) on delete cascade, mistake_key text not null, language text not null,
+  tool_id text not null, prompt text not null, options jsonb not null default '[]', correct_index integer,
+  attempts integer not null default 1, mastered_at timestamptz, updated_at timestamptz not null default now(),
+  primary key(user_id,mistake_key)
+);
+create table if not exists public.practice_saved_words (
+  user_id uuid not null references auth.users(id) on delete cascade, language text not null, word text not null,
+  translation text, box integer not null default 1, ease numeric not null default 2.5, due_at timestamptz not null default now(),
+  repetitions integer not null default 0, updated_at timestamptz not null default now(), primary key(user_id,language,word)
+);
+create table if not exists public.practice_streaks (
+  user_id uuid primary key references auth.users(id) on delete cascade, current_streak integer not null default 0,
+  longest_streak integer not null default 0, last_practice_date date, daily_goal integer not null default 1,
+  today_sessions integer not null default 0, updated_at timestamptz not null default now()
+);
+create table if not exists public.practice_achievements (
+  user_id uuid not null references auth.users(id) on delete cascade, achievement_id text not null,
+  unlocked_at timestamptz not null default now(), metadata jsonb not null default '{}'::jsonb,
+  primary key(user_id,achievement_id)
+);
+
+alter table public.practice_sessions enable row level security;
+alter table public.practice_progress enable row level security;
+alter table public.practice_mistakes enable row level security;
+alter table public.practice_saved_words enable row level security;
+alter table public.practice_streaks enable row level security;
+alter table public.practice_achievements enable row level security;
+do $$ declare t text; begin foreach t in array array['practice_sessions','practice_progress','practice_mistakes','practice_saved_words','practice_streaks','practice_achievements'] loop
+  execute format('drop policy if exists "users manage own %1$s" on public.%1$I',t);
+  execute format('create policy "users manage own %1$s" on public.%1$I for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid())',t);
+end loop; end $$;
+
+create or replace function public.complete_practice_session(
+  p_client_session_id text,p_tool_id text,p_language text,p_level text,p_score integer,p_total integer,p_duration_seconds integer,p_xp integer,p_state jsonb default '{}'::jsonb
+) returns jsonb language plpgsql security definer set search_path=public as $$
+declare uid uuid:=auth.uid(); existing public.practice_sessions; today date:=current_date; streak public.practice_streaks;
+begin
+  if uid is null then raise exception 'Authentication required'; end if;
+  select * into existing from public.practice_sessions where user_id=uid and client_session_id=p_client_session_id for update;
+  if existing.id is not null and existing.status='completed' then
+    return jsonb_build_object('awarded',false,'xp',existing.xp_awarded,'reason','already_completed');
+  end if;
+  insert into public.practice_sessions(user_id,client_session_id,tool_id,language,level,status,current_step,score,total,duration_seconds,xp_awarded,state,completed_at)
+  values(uid,p_client_session_id,p_tool_id,coalesce(p_language,'de'),p_level,'completed',p_total,p_score,p_total,greatest(p_duration_seconds,0),greatest(p_xp,0),coalesce(p_state,'{}'),now())
+  on conflict(user_id,client_session_id) do update set status='completed',score=excluded.score,total=excluded.total,duration_seconds=excluded.duration_seconds,xp_awarded=excluded.xp_awarded,state=excluded.state,completed_at=now();
+  insert into public.practice_progress(user_id,tool_id,language,level,sessions,correct,attempted,xp,best_score,last_practiced_at)
+  values(uid,p_tool_id,coalesce(p_language,'de'),p_level,1,greatest(p_score,0),greatest(p_total,0),greatest(p_xp,0),greatest(p_score,0),now())
+  on conflict(user_id,tool_id,language) do update set sessions=practice_progress.sessions+1,correct=practice_progress.correct+excluded.correct,attempted=practice_progress.attempted+excluded.attempted,xp=practice_progress.xp+excluded.xp,best_score=greatest(practice_progress.best_score,excluded.best_score),level=excluded.level,last_practiced_at=now();
+  insert into public.practice_streaks(user_id,current_streak,longest_streak,last_practice_date,today_sessions)
+  values(uid,1,1,today,1) on conflict(user_id) do update set
+    current_streak=case when practice_streaks.last_practice_date=today then practice_streaks.current_streak when practice_streaks.last_practice_date=today-1 then practice_streaks.current_streak+1 else 1 end,
+    longest_streak=greatest(practice_streaks.longest_streak,case when practice_streaks.last_practice_date=today-1 then practice_streaks.current_streak+1 else 1 end),
+    today_sessions=case when practice_streaks.last_practice_date=today then practice_streaks.today_sessions+1 else 1 end,last_practice_date=today,updated_at=now();
+  update public.profiles set score=coalesce(score,0)+greatest(p_xp,0) where id=uid;
+  select * into streak from public.practice_streaks where user_id=uid;
+  if streak.current_streak >= 3 then
+    insert into public.practice_achievements(user_id,achievement_id,metadata) values(uid,'streak-3',jsonb_build_object('streak',streak.current_streak)) on conflict do nothing;
+  end if;
+  if (select count(*) from public.practice_sessions where user_id=uid and status='completed') >= 10 then
+    insert into public.practice_achievements(user_id,achievement_id,metadata) values(uid,'practice-10',jsonb_build_object('source','web-mobile')) on conflict do nothing;
+  end if;
+  if (select coalesce(sum(xp),0) from public.practice_progress where user_id=uid) >= 500 then
+    insert into public.practice_achievements(user_id,achievement_id,metadata) values(uid,'xp-500',jsonb_build_object('rank','Explorer')) on conflict do nothing;
+  end if;
+  return jsonb_build_object('awarded',true,'xp',greatest(p_xp,0),'streak',streak.current_streak,'todaySessions',streak.today_sessions);
+end $$;
+grant execute on function public.complete_practice_session(text,text,text,text,integer,integer,integer,integer,jsonb) to authenticated;

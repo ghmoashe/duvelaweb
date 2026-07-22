@@ -2,6 +2,8 @@
   function createStudyFeature(ctx) {
     const { $, tr, esc, supa } = ctx;
     const PROGRESS_KEY = 'duvela.study.progress';
+    const RESUME_KEY = 'duvela.study.resume';
+    const PREFS_KEY = 'duvela.study.preferences';
     let studyState = null;
     let aiChatState = null;
 
@@ -175,6 +177,12 @@
 
     const MISTAKE_KEY = 'duvela.study.mistakes';
     const SAVED_WORDS_KEY = 'duvela.study.savedWords';
+    const SKILL_GROUP = {
+      flashcards:'vocabulary', vocabulary:'vocabulary', memory:'vocabulary', wordusage:'vocabulary',
+      grammar:'grammar', articles:'grammar', wquestion:'grammar', perfekt:'grammar',
+      listening:'listening', speaking:'speaking', reading:'reading', readingarticles:'reading', writing:'writing',
+      exam:'exam', essentials:'grammar', ai:'speaking', mistakes:'review'
+    };
 
     const W_QUESTIONS = [
       { q:'___ wohnst du?',opts:['Wo','Wer','Was','Wann'],a:0 }, { q:'___ heißt du?',opts:['Wie','Wo','Warum','Wen'],a:0 },
@@ -186,6 +194,7 @@
     ];
 
     const TOOLS = [
+      { id:'speaking',icon:'🎙',category:'skills',accent:'purple',title:tr('Speaking & pronunciation','Говорение и произношение'),desc:tr('Speak aloud and improve every word','Говорите вслух и улучшайте каждое слово') },
       { id:'adaptive',icon:'✦',category:'path',accent:'purple',title:tr('Adaptive path','Адаптивный маршрут'),desc:tr('Next practice based on your mistakes','Следующее упражнение по вашим ошибкам') },
       { id:'vocabulary',icon:'Aa',category:'vocabulary',accent:'teal',title:tr('Vocabulary trainer','Словарный тренажёр'),desc:tr('Learn, save and repeat words','Учите, сохраняйте и повторяйте слова') },
       { id:'flashcards',icon:'🔤',category:'vocabulary',accent:'teal',title:tr('Flashcards','Флешкарты'),desc:tr('Learn words with flip cards','Учите слова карточками') },
@@ -218,6 +227,79 @@
       p[toolId] = (p[toolId] || 0) + 1;
       p.xp = (p.xp || 0) + xp;
       saveProgress(p);
+    }
+
+    function uid() { return ctx.user && ctx.user.id; }
+    function sessionId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'web-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    }
+    function loadPrefs() {
+      try { return Object.assign({ sound:true, reducedMotion:false, largeText:false }, JSON.parse(localStorage.getItem(PREFS_KEY) || '{}')); }
+      catch (e) { return { sound:true, reducedMotion:false, largeText:false }; }
+    }
+    function savePrefs(next) {
+      localStorage.setItem(PREFS_KEY, JSON.stringify(next));
+      document.documentElement.classList.toggle('practice-reduced-motion', !!next.reducedMotion);
+      document.documentElement.classList.toggle('practice-large-text', !!next.largeText);
+    }
+    function feedback(ok) {
+      var prefs = loadPrefs();
+      if (!prefs.sound || !window.AudioContext) return;
+      try {
+        var ac = new AudioContext(), osc = ac.createOscillator(), gain = ac.createGain();
+        osc.frequency.value = ok ? 660 : 190; gain.gain.setValueAtTime(.045, ac.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001, ac.currentTime + .14);
+        osc.connect(gain); gain.connect(ac.destination); osc.start(); osc.stop(ac.currentTime + .15);
+      } catch (e) { /* browser may block audio */ }
+    }
+    function persistResume() {
+      if (!studyState || ['history','mistakes'].indexOf(studyState.tool) >= 0) return;
+      try { localStorage.setItem(RESUME_KEY, JSON.stringify({ tool:studyState.tool,lang:studyState.lang,idx:studyState.idx || 0,score:studyState.score || 0,clientSessionId:studyState.clientSessionId,startedAt:studyState.startedAt,at:Date.now() })); }
+      catch (e) { /* ignore */ }
+    }
+    function clearResume() { localStorage.removeItem(RESUME_KEY); }
+    function readResume() {
+      try { var value = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null'); return value && Date.now() - value.at < 7 * 86400000 ? value : null; }
+      catch (e) { return null; }
+    }
+    async function syncPracticeData() {
+      if (!uid() || !navigator.onLine) return;
+      try {
+        var mistakes = loadMistakes().map(function (m) { return { user_id:uid(),mistake_key:m.lang + '|' + m.prompt,language:m.lang,tool_id:m.kind || 'mcq',prompt:m.prompt,options:m.opts || [],correct_index:m.a,updated_at:new Date(m.at || Date.now()).toISOString() }; });
+        if (mistakes.length) await supa.from('practice_mistakes').upsert(mistakes, { onConflict:'user_id,mistake_key' });
+        var words = loadSavedWords().map(function (w) { return { user_id:uid(),language:w.lang,word:w.w,translation:w.t,updated_at:new Date().toISOString() }; });
+        if (words.length) await supa.from('practice_saved_words').upsert(words, { onConflict:'user_id,language,word' });
+      } catch (e) { /* offline-first: retry next load */ }
+    }
+    async function hydratePracticeData() {
+      if (!uid() || !navigator.onLine) return;
+      try {
+        var results = await Promise.all([
+          supa.from('practice_progress').select('tool_id,sessions,xp,best_score,correct,attempted').eq('user_id',uid()),
+          supa.from('practice_mistakes').select('language,prompt,options,correct_index,tool_id,updated_at').eq('user_id',uid()).is('mastered_at',null),
+          supa.from('practice_saved_words').select('language,word,translation,box,due_at').eq('user_id',uid()),
+          supa.from('practice_streaks').select('current_streak,longest_streak,today_sessions,daily_goal').eq('user_id',uid()).maybeSingle()
+        ]);
+        var progress = loadProgress();
+        (results[0].data || []).forEach(function (row) { progress[row.tool_id] = Math.max(Number(progress[row.tool_id] || 0),Number(row.sessions || 0)); });
+        progress.serverXp = (results[0].data || []).reduce(function (sum,row) { return sum + Number(row.xp || 0); },0);
+        progress.xp = Math.max(Number(progress.xp || 0),progress.serverXp); progress.streak = results[3].data || progress.streak || null; saveProgress(progress);
+        if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,at:new Date(row.updated_at).getTime() }; }));
+        if ((results[2].data || []).length) localStorage.setItem(SAVED_WORDS_KEY,JSON.stringify(results[2].data.map(function (row) { return { lang:row.language,w:row.word,t:row.translation,box:row.box,dueAt:row.due_at }; })));
+      } catch (e) { /* tables may not be installed yet */ }
+    }
+    async function loadMobileBanks() {
+      try {
+        var response = await fetch('./web/content/listening-lab-bank.json');
+        if (!response.ok) return;
+        var bank = await response.json();
+        (bank.tasks || []).forEach(function (task) {
+          var lang = task.target === 'german' ? 'de' : task.target === 'spanish' ? 'es' : 'en';
+          var text = task.speechText || task.transcript;
+          if (text && !(LISTEN[lang] || []).some(function (item) { return item.text === text; })) (LISTEN[lang] || LISTEN.de).push({ text:text,hint:String(task.level || '').toUpperCase() + ' · ' + (task.prompt || '') });
+        });
+      } catch (e) { /* bundled starter bank remains available */ }
     }
 
     function loadMistakes() {
@@ -293,12 +375,19 @@
     // ---- public: tools grid in learner workspace ----
     function studyToolsHtml() {
       const p = loadProgress();
+      const resume = readResume();
+      const prefs = loadPrefs();
       const done = (p.xp || 0);
       const completed = TOOLS.filter(function (tool) { return p[tool.id]; }).length;
       const goal = Math.max(100, Math.ceil((done + 1) / 100) * 100);
       const percent = Math.min(100, Math.round(done / goal * 100));
+      const rank = done >= 2000 ? tr('Master','Мастер') : done >= 500 ? tr('Explorer','Исследователь') : done >= 100 ? tr('Rising learner','Растущий ученик') : tr('Starter','Новичок');
+      const streak = p.streak && Number(p.streak.current_streak || 0);
       return '<section class="mobile-practice-hub">' +
+        (resume ? '<button type="button" class="practice-resume" data-study-resume="1"><b>▶ ' + esc(tr('Continue practice','Продолжить практику')) + '</b><span>' + esc(resume.tool) + ' · ' + Number(resume.idx || 0) + ' ' + esc(tr('steps completed','шагов пройдено')) + '</span></button>' : '') +
+        '<div class="practice-quick-settings" aria-label="Practice settings"><button type="button" data-practice-pref="sound" aria-pressed="' + prefs.sound + '">🔊 ' + esc(tr('Sound','Звук')) + '</button><button type="button" data-practice-pref="reducedMotion" aria-pressed="' + prefs.reducedMotion + '">◌ ' + esc(tr('Less motion','Меньше движения')) + '</button><button type="button" data-practice-pref="largeText" aria-pressed="' + prefs.largeText + '">A+ ' + esc(tr('Large text','Крупный текст')) + '</button></div>' +
         '<div class="mph-goal"><div class="mph-goal-head"><span class="mph-goal-icon">⚑</span><div><small>' + esc(tr('Your learning goal', 'Ваша учебная цель')) + '</small><h2>' + esc(tr('Reach the next language level', 'Дойти до следующего уровня')) + '</h2></div><strong>' + percent + '%</strong></div><div class="mph-track"><i style="width:' + percent + '%"></i></div><div class="mph-goal-meta"><span>' + esc((ctx.profile && ctx.profile.language_level) || 'A1') + ' · ' + done + ' XP</span><span>' + completed + ' / ' + TOOLS.length + ' ' + esc(tr('activities', 'практик')) + '</span></div></div>' +
+        '<div class="practice-rank-strip"><span>🔥 <b>' + (streak || 0) + '</b> ' + esc(tr('day streak','дней подряд')) + '</span><span>🏅 <b>' + esc(rank) + '</b></span><span>🎯 <b>' + Number(p.streak && p.streak.today_sessions || 0) + '/' + Number(p.streak && p.streak.daily_goal || 1) + '</b> ' + esc(tr('today','сегодня')) + '</span></div>' +
         '<div class="mph-toolbar"><div><small>' + esc(tr('PERSONAL PRACTICE HUB', 'ПЕРСОНАЛЬНЫЙ PRACTICE HUB')) + '</small><h2>' + esc(tr('Choose your next activity', 'Выберите следующую практику')) + '</h2></div><div class="mph-filters"><button class="active" data-study-filter="all">' + esc(tr('All', 'Все')) + '</button><button data-study-filter="grammar">' + esc(tr('Grammar', 'Грамматика')) + '</button><button data-study-filter="vocabulary">' + esc(tr('Vocabulary', 'Словарь')) + '</button><button data-study-filter="skills">' + esc(tr('Skills', 'Навыки')) + '</button><button data-study-filter="progress">' + esc(tr('Progress', 'Прогресс')) + '</button></div></div>' +
         '<div class="study-grid mph-grid">' +
         TOOLS.map(function (tool) {
@@ -322,6 +411,21 @@
           Array.prototype.forEach.call(document.querySelectorAll('[data-study-category]'), function (tile) { tile.hidden = filter !== 'all' && tile.getAttribute('data-study-category') !== filter; });
         });
       });
+      var resumeButton = document.querySelector('[data-study-resume]');
+      if (resumeButton) resumeButton.addEventListener('click', function () {
+        var saved = readResume(); if (!saved) return;
+        openStudyTool(saved.tool, saved);
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-practice-pref]'), function (button) {
+        button.addEventListener('click', function () {
+          var prefs = loadPrefs(), key = button.getAttribute('data-practice-pref'); prefs[key] = !prefs[key]; savePrefs(prefs);
+          button.setAttribute('aria-pressed', String(!!prefs[key]));
+        });
+      });
+      savePrefs(loadPrefs());
+      syncPracticeData();
+      hydratePracticeData();
+      loadMobileBanks();
     }
 
     // ---- overlay plumbing ----
@@ -346,17 +450,18 @@
       var overlay = $('#studyOverlay');
       if (overlay) overlay.classList.remove('open');
       if (studyState && studyState.examTimerId) clearInterval(studyState.examTimerId);
+      persistResume();
       studyState = null;
       aiChatState = null;
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     }
 
-    function openStudyTool(id) {
+    function openStudyTool(id, restored) {
       var tool = TOOLS.find(function (t) { return t.id === id; });
       if (!tool) return;
       ensureOverlay();
       if (id !== 'ai') aiChatState = null;
-      studyState = { tool: id, lang: currentLang(), idx: 0, score: 0 };
+      studyState = { tool:id,lang:(restored && restored.lang) || currentLang(),idx:(restored && restored.idx) || 0,score:(restored && restored.score) || 0,clientSessionId:(restored && restored.clientSessionId) || sessionId(),startedAt:(restored && restored.startedAt) || Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
       $('#studyOverlay').classList.add('open');
       renderTool();
@@ -386,6 +491,7 @@
         case 'perfekt': return renderSpecialQuiz(PERFEKT, renderToolBody);
         case 'wordusage': return renderWordUsage();
         case 'listening': return renderListening();
+        case 'speaking': return renderSpeaking();
         case 'reading': return renderReading();
         case 'readingarticles': return renderReading();
         case 'writing': return renderWriting();
@@ -593,6 +699,7 @@
         btn.addEventListener('click', function () {
           var chosen = Number(btn.getAttribute('data-opt'));
           var ok = chosen === item.a;
+          feedback(ok);
           if (ok) { studyState.score++; clearMistake(studyState.lang, item.q); }
           else logMistake(studyState.lang, item.q, item.opts, item.a, 'mcq');
           Array.prototype.forEach.call(host.querySelectorAll('[data-opt]'), function (b, i) {
@@ -603,9 +710,40 @@
           $('#quizFb').innerHTML = ok
             ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
             : '<span style="color:#d64545">' + esc(tr('Answer: ', 'Ответ: ')) + esc(item.opts[item.a]) + '</span>';
-          setTimeout(function () { studyState.idx++; rerender(); }, 900);
+          setTimeout(function () { studyState.idx++; persistResume(); rerender(); }, 900);
         });
       });
+    }
+
+    function similarity(expected, actual) {
+      var clean = function (value) { return String(value || '').toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zа-яёäöüß0-9 ]/gi, ' ').trim().split(/\s+/).filter(Boolean); };
+      var target = clean(expected), heard = clean(actual), matched = target.filter(function (word) { return heard.indexOf(word) >= 0; });
+      return { percent:target.length ? Math.round(matched.length / target.length * 100) : 0, words:target.map(function (word) { return { word:word, ok:heard.indexOf(word) >= 0 }; }) };
+    }
+
+    function renderSpeaking() {
+      if (!studyState.data) studyState.data = shuffle((LISTEN[studyState.lang] || LISTEN.de).map(function (item) { return item.text; }));
+      var deck = studyState.data;
+      if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 4);
+      var phrase = deck[studyState.idx], host = $('#studyToolBody');
+      var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      host.innerHTML = counterHtml(studyState.idx, deck.length) +
+        '<div class="speaking-card"><small>' + esc(tr('SAY THIS PHRASE','ПРОИЗНЕСИТЕ ФРАЗУ')) + '</small><h2>' + esc(phrase) + '</h2><button class="btn" id="spListen">🔊 ' + esc(tr('Listen','Слушать')) + '</button><button class="btn primary" id="spRecord">🎙 ' + esc(tr('Start speaking','Начать говорить')) + '</button><div id="spResult" aria-live="polite"></div></div>';
+      $('#spListen').onclick = function () { var utterance = new SpeechSynthesisUtterance(phrase); utterance.lang = SPEECH_LOCALE[studyState.lang] || 'de-DE'; speechSynthesis.cancel(); speechSynthesis.speak(utterance); };
+      $('#spRecord').onclick = function () {
+        if (!Recognition) { $('#spResult').innerHTML = '<p class="practice-warning">' + esc(tr('Speech recognition is not supported in this browser. Try Chrome or Edge.','Распознавание речи не поддерживается. Используйте Chrome или Edge.')) + '</p>'; return; }
+        var button = $('#spRecord'), recognition = new Recognition(); recognition.lang = SPEECH_LOCALE[studyState.lang] || 'de-DE'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+        button.disabled = true; button.textContent = '● ' + tr('Listening…','Слушаю…');
+        recognition.onresult = function (event) {
+          var heard = event.results[0][0].transcript, result = similarity(phrase, heard), ok = result.percent >= 70;
+          feedback(ok); if (ok) studyState.score++; else logMistake(studyState.lang, phrase, [], null, 'pronunciation');
+          $('#spResult').innerHTML = '<p><b>' + esc(tr('I heard: ','Я услышал: ')) + '</b>' + esc(heard) + '</p><div class="pronunciation-score"><strong>' + result.percent + '%</strong><span>' + result.words.map(function (item) { return '<i class="' + (item.ok ? 'ok' : 'miss') + '">' + esc(item.word) + '</i>'; }).join(' ') + '</span></div>';
+          setTimeout(function () { studyState.idx++; persistResume(); renderSpeaking(); }, 1800);
+        };
+        recognition.onerror = function () { button.disabled = false; button.textContent = '🎙 ' + tr('Try again','Повторить'); $('#spResult').textContent = tr('Microphone permission or speech service is unavailable.','Нет доступа к микрофону или сервису речи.'); };
+        recognition.onend = function () { button.disabled = false; };
+        recognition.start();
+      };
     }
 
     // ---- 6. Listening lab (TTS) ----
@@ -899,6 +1037,7 @@
         (aiChatState.error ? '<div style="color:#d64545;font-weight:800;margin-bottom:8px">' + esc(aiChatState.error) + '</div>' : '') +
         '<div style="display:flex;gap:8px">' +
           '<input id="aiInput" placeholder="' + esc(tr('Type your answer...', 'Напишите ответ...')) + '" style="flex:1" autocomplete="off">' +
+          '<button class="btn" id="aiMic" type="button" aria-label="Voice answer">🎙</button>' +
           '<button class="btn primary" id="aiSend"' + (aiChatState.busy ? ' disabled' : '') + '>' + (aiChatState.busy ? '…' : esc(tr('Send', 'Отпр.'))) + '</button>' +
         '</div>' +
         '<button class="btn" id="aiEnd" style="width:100%;margin-top:10px">' + esc(tr('End session', 'Завершить сессию')) + '</button>';
@@ -917,6 +1056,15 @@
       }
       $('#aiSend').addEventListener('click', send);
       $('#aiInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
+      $('#aiMic').addEventListener('click', function () {
+        var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!Recognition) { aiChatState.error = tr('Voice input is unavailable in this browser.','Голосовой ввод недоступен в этом браузере.'); renderAiPractice(); return; }
+        var recognition = new Recognition(), button = $('#aiMic'); recognition.lang = SPEECH_LOCALE[studyState.lang] || 'de-DE'; button.textContent = '●'; button.disabled = true;
+        recognition.onresult = function (event) { $('#aiInput').value = event.results[0][0].transcript; };
+        recognition.onerror = function () { aiChatState.error = tr('Microphone is unavailable.','Микрофон недоступен.'); };
+        recognition.onend = function () { button.textContent = '🎙'; button.disabled = false; };
+        recognition.start();
+      });
       $('#aiEnd').addEventListener('click', function () {
         var xp = Math.min(30, aiChatState.turns * 5);
         aiChatState = null;
@@ -971,9 +1119,21 @@
       renderAiPractice();
     }
 
-    function finishTool(scoreText, xp) {
-      bumpProgress(studyState.tool, xp);
-      awardXp(xp);
+    async function finishTool(scoreText, xp) {
+      var finished = studyState, total = finished.data && finished.data.length ? finished.data.length : Math.max(finished.idx || 0, 1);
+      var duration = Math.max(1, Math.round((Date.now() - (finished.startedAt || Date.now())) / 1000));
+      var awarded = false;
+      if (uid() && navigator.onLine) {
+        try {
+          var result = await supa.rpc('complete_practice_session', { p_client_session_id:finished.clientSessionId || sessionId(),p_tool_id:finished.tool,p_language:finished.lang || 'de',p_level:(ctx.profile && ctx.profile.language_level) || null,p_score:Number(finished.score) || 0,p_total:total,p_duration_seconds:duration,p_xp:Math.max(0,Number(xp) || 0),p_state:{ source:'web',skill:SKILL_GROUP[finished.tool] || finished.tool } });
+          awarded = !result.error && result.data && result.data.awarded !== false;
+          if (!result.error && ctx.profile && awarded) ctx.setProfile(Object.assign({},ctx.profile,{ score:Number(ctx.profile.score || 0) + xp }));
+          if (!result.error && result.data) { var local = loadProgress(); local.streak = Object.assign({},local.streak || {},{ current_streak:result.data.streak,today_sessions:result.data.todaySessions }); saveProgress(local); }
+        } catch (e) { /* offline-first fallback */ }
+      }
+      bumpProgress(finished.tool, xp);
+      if (!uid()) awardXp(xp);
+      clearResume(); syncPracticeData();
       var host = $('#studyToolBody');
       host.innerHTML = finishHtml(scoreText).replace('{xp}', xp);
       wireAgain();

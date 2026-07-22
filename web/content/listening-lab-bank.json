@@ -1,0 +1,210 @@
+{
+  "$schema": "./listening-lab-bank.schema.json",
+  "schemaVersion": 1,
+  "clips": [
+    {
+      "id": "goethe-a2-track05-dialog1",
+      "file": "german-exams/goethe/a2/hoeren/track-05.mp3",
+      "startMs": 0,
+      "endMs": 30000
+    },
+    {
+      "id": "goethe-a2-track07-dialog1",
+      "file": "german-exams/goethe/a2/hoeren/track-07.mp3",
+      "startMs": 0,
+      "endMs": 38000
+    },
+    {
+      "id": "goethe-b1-track02-dialog2",
+      "file": "german-exams/goethe/b1/hoeren/B1-track-02.mp3",
+      "startMs": 41000,
+      "endMs": 81000
+    },
+    {
+      "id": "goethe-b1-track02-dialog3",
+      "file": "german-exams/goethe/b1/hoeren/B1-track-02.mp3",
+      "startMs": 81000,
+      "endMs": 121000
+    }
+  ],
+  "tasks": [
+    {
+      "answer": "einen Kaffee und ein Stück Apfelkuchen",
+      "id": "de-a1-cafe",
+      "level": "a1",
+      "mode": "choice",
+      "options": [
+        "einen Kaffee und ein Stück Apfelkuchen",
+        "einen Tee und ein Brötchen",
+        "nur ein Glas Wasser"
+      ],
+      "prompt": "Was bestellt die Kundin?",
+      "speechText": "Guten Morgen. Was möchten Sie? Ich möchte einen Kaffee und ein Stück Apfelkuchen, bitte. Sehr gern.",
+      "target": "german",
+      "transcript": "Guten Morgen. Was möchten Sie? Ich möchte einen Kaffee und ein Stück Apfelkuchen, bitte. Sehr gern."
+    },
+    {
+      "answer": "zehn",
+      "id": "de-a1-course-time",
+      "level": "a1",
+      "mode": "cloze",
+      "prompt": "Der Deutschkurs beginnt um ___ Uhr.",
+      "speechText": "Hallo Anna. Der Deutschkurs beginnt heute nicht um neun Uhr, sondern um zehn Uhr. Danke für die Information.",
+      "target": "german",
+      "transcript": "Hallo Anna. Der Deutschkurs beginnt heute nicht um neun Uhr, sondern um zehn Uhr. Danke für die Information."
+    },
+    {
+      "answer": "Der Zug fährt um acht Uhr ab.",
+      "id": "de-a1-train-dictation",
+      "level": "a1",
+      "mode": "dictation",
+      "prompt": "Schreibe den gehörten Satz.",
+      "speechText": "Der Zug fährt um acht Uhr ab.",
+      "target": "german",
+      "transcript": "Der Zug fährt um acht Uhr ab."
+    },
+    {
+      "answer": "mit der U-Bahn",
+      "audioClipId": "goethe-a2-track07-dialog1",
+      "id": "de-a2-work-transport",
+      "level": "a2",
+      "mode": "choice",
+      "options": [
+        "mit der U-Bahn",
+        "mit dem Fahrrad",
+        "mit dem Auto"
+      ],
+      "prompt": "Wie fährt Anna zur Arbeit?",
+      "shadowPhrase": "Ich fahre mit der U-Bahn zur Arbeit.",
+      "speechText": "Musst du weit zur Arbeit fahren? Nein, nur etwa zwanzig Minuten mit der U-Bahn. Das ist praktisch.",
+      "target": "german",
+      "transcript": "Musst du weit zur Arbeit fahren? Nein, nur etwa zwanzig Minuten mit der U-Bahn. Das ist praktisch."
+    },
+    {
+      "answer": "Ich möchte einen Termin bei Dr. Müller vereinbaren.",
+      "audioClipId": "goethe-a2-track05-dialog1",
+      "id": "de-a2-doctor-dictation",
+      "level": "a2",
+      "mode": "dictation",
+      "prompt": "Schreibe den gehörten Satz.",
+      "shadowPhrase": "Ich möchte einen Termin bei Dr. Müller vereinbaren.",
+      "speechText": "Ich möchte einen Termin bei Doktor Müller vereinbaren.",
+      "target": "german",
+      "transcript": "Ich möchte einen Termin bei Dr. Müller vereinbaren."
+    },
+    {
+      "answer": "weil sie etwas für die Umwelt tun und sich mehr bewegen möchte",
+      "audioClipId": "goethe-b1-track02-dialog2",
+      "id": "de-b1-bike",
+      "level": "b1",
+      "mode": "choice",
+      "options": [
+        "weil sie etwas für die Umwelt tun und sich mehr bewegen möchte",
+        "weil ihr Auto kaputt ist",
+        "weil die Fahrt mit dem Bus zu teuer ist"
+      ],
+      "prompt": "Warum fährt Laura mit dem Fahrrad?",
+      "shadowPhrase": "Ich möchte etwas für die Umwelt tun und mich mehr bewegen.",
+      "speechText": "Früher bin ich immer mit dem Auto zur Arbeit gefahren. Jetzt fahre ich mit dem Fahrrad. Ich möchte etwas für die Umwelt tun und mich mehr bewegen.",
+      "target": "german",
+      "transcript": "Früher bin ich immer mit dem Auto zur Arbeit gefahren. Jetzt fahre ich mit dem Fahrrad. Ich möchte etwas für die Umwelt tun und mich mehr bewegen."
+    },
+    {
+      "answer": "Unternehmen",
+      "audioClipId": "goethe-b1-track02-dialog3",
+      "id": "de-b1-training",
+      "level": "b1",
+      "mode": "cloze",
+      "prompt": "Die Kosten übernimmt das ___.",
+      "shadowPhrase": "Die Kosten übernimmt das Unternehmen.",
+      "speechText": "Die Fortbildung dauert drei Tage und findet während der Arbeitszeit statt. Die Kosten übernimmt das Unternehmen.",
+      "target": "german",
+      "transcript": "Die Fortbildung dauert drei Tage und findet während der Arbeitszeit statt. Die Kosten übernimmt das Unternehmen."
+    },
+    {
+      "answer": "a coffee and a piece of apple cake",
+      "id": "en-a1-cafe",
+      "level": "a1",
+      "mode": "choice",
+      "options": [
+        "a coffee and a piece of apple cake",
+        "tea and toast",
+        "only water"
+      ],
+      "prompt": "What does the customer order?",
+      "speechText": "Good morning. What would you like? I would like a coffee and a piece of apple cake, please.",
+      "target": "english",
+      "transcript": "Good morning. What would you like? I would like a coffee and a piece of apple cake, please."
+    },
+    {
+      "answer": "ten",
+      "id": "en-a1-course-time",
+      "level": "a1",
+      "mode": "cloze",
+      "prompt": "The English class starts at ___ o'clock.",
+      "speechText": "The English class does not start at nine today. It starts at ten o'clock in room twelve.",
+      "target": "english",
+      "transcript": "The English class does not start at nine today. It starts at ten o'clock in room twelve."
+    },
+    {
+      "answer": "The train leaves at eight o'clock.",
+      "id": "en-a1-train-dictation",
+      "level": "a1",
+      "mode": "dictation",
+      "prompt": "Write the sentence you hear.",
+      "speechText": "The train leaves at eight o'clock.",
+      "target": "english",
+      "transcript": "The train leaves at eight o'clock."
+    },
+    {
+      "answer": "by subway",
+      "id": "en-a2-work-transport",
+      "level": "a2",
+      "mode": "choice",
+      "options": [
+        "by subway",
+        "by bicycle",
+        "by car"
+      ],
+      "prompt": "How does Anna travel to work?",
+      "speechText": "Do you travel far to work? No. It only takes about twenty minutes by subway.",
+      "target": "english",
+      "transcript": "Do you travel far to work? No. It only takes about twenty minutes by subway."
+    },
+    {
+      "answer": "I would like to make an appointment for Thursday morning.",
+      "id": "en-a2-appointment",
+      "level": "a2",
+      "mode": "dictation",
+      "prompt": "Write the sentence you hear.",
+      "speechText": "I would like to make an appointment for Thursday morning.",
+      "target": "english",
+      "transcript": "I would like to make an appointment for Thursday morning."
+    },
+    {
+      "answer": "to improve his digital skills",
+      "id": "en-b1-online-course",
+      "level": "b1",
+      "mode": "choice",
+      "options": [
+        "to improve his digital skills",
+        "to meet his old colleagues",
+        "to prepare for a holiday"
+      ],
+      "prompt": "Why is Thomas taking the online course?",
+      "speechText": "The online course is flexible, so I usually study at weekends. I want to improve my digital skills and find a better job later.",
+      "target": "english",
+      "transcript": "The online course is flexible, so I usually study at weekends. I want to improve my digital skills and find a better job later."
+    },
+    {
+      "answer": "Friday",
+      "id": "en-b1-delivery",
+      "level": "b1",
+      "mode": "cloze",
+      "prompt": "The laptop should arrive by ___.",
+      "speechText": "There was a problem with the delivery. Your laptop should arrive by Friday at the latest.",
+      "target": "english",
+      "transcript": "There was a problem with the delivery. Your laptop should arrive by Friday at the latest."
+    }
+  ]
+}

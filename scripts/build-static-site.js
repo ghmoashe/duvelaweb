@@ -11,6 +11,7 @@ const files = [
   'live.html',
   'profile.html',
   'legal.html',
+  'sw.js',
   'logo.webp',
   'logo2.png',
   '_headers',
