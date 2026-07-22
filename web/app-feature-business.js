@@ -99,6 +99,10 @@
         console.warn('my practices load failed', error);
       }
       try {
+        const { data: submissions } = await supa.from('practice_submissions').select('id,student_id,tool_id,submission_type,content_text,media_url,status,score,feedback,created_at').eq('teacher_id',ctx.user.id).order('created_at',{ascending:false}).limit(30);
+        state.practiceSubmissions=submissions||[];
+      } catch(error){state.practiceSubmissions=[];console.warn('practice submissions load failed',error);}
+      try {
         const { data: portfolio } = await supa.from('organizer_portfolio')
           .select('id,title,description,image_url,created_at').eq('user_id', ctx.user.id).order('created_at', { ascending: false }).limit(20);
         state.portfolio = portfolio || [];
@@ -294,11 +298,14 @@
         (state.myPractices.length ? state.myPractices.map((practice) =>
           '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(practice.title) + '</h3><p>' + esc([practice.target, practice.level].filter(Boolean).join(' · ')) + ' · ' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + ' · ★ ' + (Number(practice.rating_avg || 0).toFixed(1)) + ' (' + (practice.rating_count || 0) + ')</p></div><span class="tag ' + (practice.status === 'published' ? 'teal' : '') + '">' + esc(practice.status === 'published' ? tr('Live', 'Активна') : (practice.status || tr('Draft', 'Черновик'))) + '</span></div>'
         ).join('') : '<div class="empty">' + esc(tr('No practices yet.', 'Практик пока нет.')) + '</div>') +
+        '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">'+esc(tr('Work awaiting review','Работы на проверку'))+'</h2><span>'+Number((state.practiceSubmissions||[]).filter((item)=>item.status==='submitted').length)+'</span></div>'+
+        ((state.practiceSubmissions||[]).length?(state.practiceSubmissions||[]).map((item)=>'<article class="submission-review"><div><b>'+esc(item.submission_type==='speaking'?tr('Speaking response','Ответ Speaking'):tr('Writing response','Ответ Writing'))+'</b><small>'+new Date(item.created_at).toLocaleString()+' · '+esc(item.status)+'</small></div>'+(item.media_url?'<audio controls src="'+esc(item.media_url)+'"></audio>':'')+(item.content_text?'<p>'+esc(item.content_text)+'</p>':'')+'<div class="submission-review-form"><input type="number" min="0" max="100" value="'+(item.score==null?'':Number(item.score))+'" placeholder="0–100" data-submission-score="'+esc(item.id)+'"><input value="'+esc(item.feedback||'')+'" placeholder="'+esc(tr('Teacher feedback','Комментарий преподавателя'))+'" data-submission-feedback="'+esc(item.id)+'"><button class="btn" data-review-submission="'+esc(item.id)+'">'+esc(tr('Save review','Сохранить проверку'))+'</button></div></article>').join(''):'<div class="empty">'+esc(tr('No submitted work yet.','Отправленных работ пока нет.'))+'</div>')+
         membersHtml();
       $('#courseForm').addEventListener('submit', createCourse);
       $('#classForm').addEventListener('submit', createClass);
       $('#createPracticeBtn').addEventListener('click', ctx.openPracticeBuilder);
       if ($('#createChallengeBtn')) $('#createChallengeBtn').addEventListener('click', ctx.openChallengeCreate);
+      $$('[data-review-submission]').forEach((button)=>button.addEventListener('click',async()=>{const id=button.dataset.reviewSubmission,score=$('[data-submission-score="'+id+'"]')?.value,feedback=$('[data-submission-feedback="'+id+'"]')?.value;button.disabled=true;const result=await supa.from('practice_submissions').update({score:score===''?null:Number(score),feedback:feedback||null,status:'reviewed',reviewed_at:new Date().toISOString()}).eq('id',id).eq('teacher_id',ctx.user.id);if(result.error){alert(result.error.message);button.disabled=false;}else{button.textContent='✓ '+tr('Saved','Сохранено');}}));
       $$('[data-member-role]').forEach((select) => select.addEventListener('change', (event) => changeMemberRole(select.dataset.memberRole, event.target.value)));
       const importButton = $('#importXlsxBtn');
       if (importButton) importButton.addEventListener('click', () => $('#xlsxFile').click());

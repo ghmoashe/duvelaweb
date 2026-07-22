@@ -89,6 +89,31 @@ end $$;
 create index if not exists practice_assignments_student_idx on public.practice_assignments(student_id);
 create index if not exists practice_assignments_teacher_idx on public.practice_assignments(teacher_id);
 
+create table if not exists public.practice_resume (
+  user_id uuid primary key references auth.users(id) on delete cascade, tool_id text not null, language text not null default 'de',
+  level text, current_step integer not null default 0, score integer not null default 0, state jsonb not null default '{}'::jsonb,
+  client_session_id text, updated_at timestamptz not null default now()
+);
+create table if not exists public.practice_submissions (
+  id uuid primary key default gen_random_uuid(), student_id uuid not null references auth.users(id) on delete cascade,
+  teacher_id uuid references auth.users(id) on delete set null, assignment_id uuid, tool_id text not null,
+  submission_type text not null check(submission_type in ('speaking','writing')), content_text text, media_url text,
+  status text not null default 'submitted' check(status in ('submitted','reviewed','returned')),
+  score integer, feedback text, created_at timestamptz not null default now(), reviewed_at timestamptz
+);
+create table if not exists public.practice_challenges (
+  id uuid primary key default gen_random_uuid(), kind text not null check(kind in ('duel','team')), created_by uuid not null references auth.users(id) on delete cascade,
+  language text not null default 'de', level text not null default 'A1', status text not null default 'waiting' check(status in ('waiting','active','completed','cancelled')),
+  goal integer not null default 5, starts_at timestamptz, ends_at timestamptz, created_at timestamptz not null default now()
+);
+create table if not exists public.practice_challenge_members (
+  challenge_id uuid not null references public.practice_challenges(id) on delete cascade, user_id uuid not null references auth.users(id) on delete cascade,
+  score integer not null default 0, completed integer not null default 0, joined_at timestamptz not null default now(), primary key(challenge_id,user_id)
+);
+create index if not exists practice_submissions_student_idx on public.practice_submissions(student_id,created_at desc);
+create index if not exists practice_submissions_teacher_idx on public.practice_submissions(teacher_id,status,created_at desc);
+create index if not exists practice_challenges_status_idx on public.practice_challenges(kind,status,created_at desc);
+
 alter table public.practice_sessions enable row level security;
 alter table public.practice_progress enable row level security;
 alter table public.practice_mistakes enable row level security;
@@ -100,6 +125,10 @@ alter table public.practice_reminders enable row level security;
 alter table public.practice_language_settings enable row level security;
 alter table public.practice_feedback enable row level security;
 alter table public.practice_assignments enable row level security;
+alter table public.practice_resume enable row level security;
+alter table public.practice_submissions enable row level security;
+alter table public.practice_challenges enable row level security;
+alter table public.practice_challenge_members enable row level security;
 do $$ declare t text; begin foreach t in array array['practice_sessions','practice_progress','practice_mistakes','practice_saved_words','practice_streaks','practice_achievements','practice_reminders','practice_language_settings'] loop
   execute format('drop policy if exists "users manage own %1$s" on public.%1$I',t);
   execute format('create policy "users manage own %1$s" on public.%1$I for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid())',t);
@@ -112,6 +141,31 @@ drop policy if exists "students and teachers read practice assignments" on publi
 create policy "students and teachers read practice assignments" on public.practice_assignments for select to authenticated using(student_id=auth.uid() or teacher_id=auth.uid());
 drop policy if exists "teachers manage practice assignments" on public.practice_assignments;
 create policy "teachers manage practice assignments" on public.practice_assignments for all to authenticated using(teacher_id=auth.uid()) with check(teacher_id=auth.uid());
+drop policy if exists "users manage own practice resume" on public.practice_resume;
+create policy "users manage own practice resume" on public.practice_resume for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists "students and teachers read submissions" on public.practice_submissions;
+create policy "students and teachers read submissions" on public.practice_submissions for select to authenticated using(student_id=auth.uid() or teacher_id=auth.uid());
+drop policy if exists "students create submissions" on public.practice_submissions;
+create policy "students create submissions" on public.practice_submissions for insert to authenticated with check(student_id=auth.uid());
+drop policy if exists "teachers review submissions" on public.practice_submissions;
+create policy "teachers review submissions" on public.practice_submissions for update to authenticated using(teacher_id=auth.uid()) with check(teacher_id=auth.uid());
+drop policy if exists "authenticated read challenges" on public.practice_challenges;
+create policy "authenticated read challenges" on public.practice_challenges for select to authenticated using(true);
+drop policy if exists "users create challenges" on public.practice_challenges;
+create policy "users create challenges" on public.practice_challenges for insert to authenticated with check(created_by=auth.uid());
+drop policy if exists "creators update challenges" on public.practice_challenges;
+create policy "creators update challenges" on public.practice_challenges for update to authenticated using(created_by=auth.uid()) with check(created_by=auth.uid());
+drop policy if exists "members read challenge members" on public.practice_challenge_members;
+create policy "members read challenge members" on public.practice_challenge_members for select to authenticated using(true);
+drop policy if exists "users join challenges" on public.practice_challenge_members;
+create policy "users join challenges" on public.practice_challenge_members for insert to authenticated with check(user_id=auth.uid());
+drop policy if exists "users update own challenge score" on public.practice_challenge_members;
+create policy "users update own challenge score" on public.practice_challenge_members for update to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+do $$ begin
+  if exists (select 1 from pg_publication where pubname='supabase_realtime') and not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='practice_challenge_members') then
+    alter publication supabase_realtime add table public.practice_challenge_members;
+  end if;
+end $$;
 
 create or replace function public.complete_practice_session(
   p_client_session_id text,p_tool_id text,p_language text,p_level text,p_score integer,p_total integer,p_duration_seconds integer,p_xp integer,p_state jsonb default '{}'::jsonb
