@@ -17,7 +17,7 @@
       let attendance = [];
       try {
         const [sessionsResult, rosterResult] = await Promise.all([
-          supa.from('class_sessions').select('id,title,starts_at,status').eq('class_id', classId).order('starts_at', { ascending: false }).limit(30),
+          supa.from('class_sessions').select('id,title,starts_at,ends_at,duration_min,status').eq('class_id', classId).order('starts_at', { ascending: false }).limit(30),
           supa.from('class_clients').select('id,client_id,status,profiles(full_name,avatar_url)').eq('class_id', classId).neq('status', 'removed')
         ]);
         sessions = sessionsResult.data || [];
@@ -39,7 +39,9 @@
       body.innerHTML =
         '<div class="section-head"><h2 style="font-size:15px">' + esc(tr('Sessions', 'Сессии')) + '</h2></div>' +
         '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="csTitle" placeholder="' + esc(tr('Session title', 'Название сессии')) + '" style="' + inputStyle + '"><input id="csWhen" type="datetime-local" style="' + inputStyle + '"><button class="btn primary" data-add-session="1">' + esc(tr('Add', 'Добавить')) + '</button></div>' +
-        (sessions.length ? sessions.map((session) => '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(session.title || tr('Session', 'Сессия')) + '</h3><p>' + esc(session.starts_at ? formatDate(session.starts_at) : '') + '</p></div><button class="btn' + (selectedSessionId === session.id ? ' primary' : '') + '" data-session-att="' + esc(session.id) + '">' + esc(tr('Attendance', 'Посещаемость')) + '</button></div>').join('') : '<div class="empty">' + esc(tr('No sessions yet.', 'Сессий пока нет.')) + '</div>') +
+        (sessions.length ? sessions.map((session) => '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(session.title || tr('Session', 'Сессия')) + '</h3><p>' + esc(session.starts_at ? formatDate(session.starts_at) : '') + ' · ' + esc(session.status || 'scheduled') + '</p></div><div class="class-session-actions">' +
+          (session.status !== 'cancelled' && session.status !== 'ended' ? '<button class="btn" data-session-reschedule="' + esc(session.id) + '">' + esc(tr('Reschedule', 'Перенести')) + '</button><button class="btn danger" data-session-cancel="' + esc(session.id) + '">' + esc(tr('Cancel', 'Отменить')) + '</button>' : '') +
+          '<button class="btn' + (selectedSessionId === session.id ? ' primary' : '') + '" data-session-att="' + esc(session.id) + '">' + esc(tr('Attendance', 'Посещаемость')) + '</button></div></div>').join('') : '<div class="empty">' + esc(tr('No sessions yet.', 'Сессий пока нет.')) + '</div>') +
         '<div class="section-head" style="margin-top:16px"><h2 style="font-size:15px">' + esc(tr('Students', 'Ученики')) + '</h2>' + (selectedSessionId ? '<span>' + esc(tr('Marking attendance', 'Отметка посещаемости')) + '</span>' : '') + '</div>' +
         '<input id="clsStudentSearch" class="search" placeholder="' + esc(tr('Add student by name...', 'Добавить ученика по имени...')) + '"><div id="clsStudentResults"></div>' +
         (roster.length ? roster.map((member) => {
@@ -57,6 +59,12 @@
         classroomLink.href = './classroom.html?s=' + encodeURIComponent(sessionId);
         classroomLink.textContent = tr('Open classroom', 'Открыть класс');
         button.parentElement.insertBefore(classroomLink, button);
+      });
+      body.querySelectorAll('[data-session-reschedule]').forEach((button) => {
+        button.onclick = () => rescheduleSession(button.dataset.sessionReschedule, sessions, roster.length);
+      });
+      body.querySelectorAll('[data-session-cancel]').forEach((button) => {
+        button.onclick = () => cancelSession(button.dataset.sessionCancel, roster.length);
       });
       $('#clsStudentSearch').addEventListener('input', (event) => {
         clearTimeout(clsStudentTimer);
@@ -105,6 +113,47 @@
       } catch (error) {
         alert(error.message || tr('Could not create the session.', 'Не удалось создать сессию.'));
       }
+    }
+
+    async function rescheduleSession(sessionId, sessions, learnerCount) {
+      const session = sessions.find((item) => String(item.id) === String(sessionId));
+      if (!session) return;
+      const local = new Date(session.starts_at);
+      local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+      const nextValue = window.prompt(
+        tr('New date and time (Europe/Berlin):', 'Новая дата и время (Europe/Berlin):'),
+        local.toISOString().slice(0, 16)
+      );
+      if (!nextValue || nextValue === local.toISOString().slice(0, 16)) return;
+      if (learnerCount && !window.confirm(tr(
+        learnerCount + ' learners will receive a rescheduling notification. Continue?',
+        learnerCount + ' учеников получат уведомление о переносе. Продолжить?'
+      ))) return;
+      const startsAt = new Date(nextValue);
+      const duration = session.duration_min || Math.max(15, Math.round((Date.parse(session.ends_at) - Date.parse(session.starts_at)) / 60000) || 60);
+      const { error } = await supa.from('class_sessions').update({
+        starts_at: startsAt.toISOString(),
+        ends_at: new Date(startsAt.getTime() + duration * 60000).toISOString(),
+        join_opens_at: new Date(startsAt.getTime() - 30 * 60000).toISOString(),
+        updated_at: new Date().toISOString()
+      }).eq('id', sessionId);
+      if (error) return alert(error.message || tr('Could not reschedule the lesson.', 'Не удалось перенести урок.'));
+      openClassManage(currentClassId);
+    }
+
+    async function cancelSession(sessionId, learnerCount) {
+      const reason = window.prompt(tr('Cancellation reason:', 'Причина отмены:'));
+      if (reason === null) return;
+      if (learnerCount && !window.confirm(tr(
+        learnerCount + ' learners will receive a cancellation notification. Continue?',
+        learnerCount + ' учеников получат уведомление об отмене. Продолжить?'
+      ))) return;
+      const { error } = await supa.from('class_sessions').update({
+        status: 'cancelled', cancellation_reason: reason.trim() || null,
+        cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString()
+      }).eq('id', sessionId);
+      if (error) return alert(error.message || tr('Could not cancel the lesson.', 'Не удалось отменить урок.'));
+      openClassManage(currentClassId);
     }
 
     async function markAttendance(clientId, status) {

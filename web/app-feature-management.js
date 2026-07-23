@@ -62,6 +62,27 @@
       if (start && end) return start + ' — ' + end;
       return start || end || tr('Dates not set', 'Даты не указаны');
     }
+    function buildZoomStarts(firstLesson, repeatMode, weekdays, courseEnd) {
+      if (!firstLesson) return [];
+      var first = new Date(firstLesson);
+      if (isNaN(first.getTime())) return [];
+      if (repeatMode !== 'weekly') return [first];
+      var selected = weekdays && weekdays.length ? weekdays : [first.getDay()];
+      var last = courseEnd ? new Date(courseEnd + 'T23:59:59') : first;
+      var result = [];
+      for (var cursor = new Date(first); cursor <= last && result.length < 100; cursor.setDate(cursor.getDate() + 1)) {
+        if (cursor >= first && selected.indexOf(cursor.getDay()) >= 0) result.push(new Date(cursor));
+      }
+      return result;
+    }
+    function zoomPreviewText(course) {
+      var starts = buildZoomStarts(course.first_lesson, course.zoom_repeat, course.zoom_weekdays, course.ends_on);
+      if (!starts.length) return tr('Choose the first lesson to preview the schedule.', 'Укажите первый урок, чтобы увидеть расписание.');
+      var locale = ctx.isRu ? 'ru-RU' : 'en-US';
+      var first = starts[0].toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
+      var last = starts[starts.length - 1].toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
+      return starts.length + ' ' + tr('lessons', 'уроков') + ' · ' + first + (starts.length > 1 ? ' — ' + last : '') + ' · Europe/Berlin';
+    }
 
     var IC = {
       cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>',
@@ -150,6 +171,10 @@
         '</div>' +
         '</div>';
       html += '<div class="mg-course-list">' + courses.map(function (c) {
+        var courseGroup = ((state && state.orgClasses) || []).find(function (group) { return String(group.course_id) === String(c.id); });
+        var nextSession = courseGroup && (data.classSessions || []).filter(function (session) {
+          return String(session.class_id) === String(courseGroup.id) && session.status !== 'cancelled' && session.status !== 'ended' && Date.parse(session.starts_at) >= Date.now() - 21600000;
+        })[0];
         var tags = [c.level, c.language].filter(Boolean).map(function (t) { return '<span class="mg-chip">' + esc(t) + '</span>'; }).join('') +
           (c.zoom_enabled ? '<span class="mg-chip" style="color:var(--purple)">Zoom Classroom · ' + esc(c.max_students || 25) + '</span>' : '');
         var cover = c.cover_image_url
@@ -169,8 +194,10 @@
               '<span><b>' + esc(tr('Period', 'Период')) + '</b>' + esc(coursePeriod(c)) + '</span>' +
               '<span><b>' + esc(tr('Schedule', 'Расписание')) + '</b>' + esc(c.schedule || tr('Not set', 'Не указано')) + '</span>' +
               '<span><b>' + esc(tr('Location', 'Место')) + '</b>' + esc(c.location || tr('Online', 'Онлайн')) + '</span>' +
+              (c.zoom_enabled ? '<span><b>' + esc(tr('Next Zoom lesson', 'Ближайший Zoom-урок')) + '</b>' + esc(nextSession ? new Date(nextSession.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }) : tr('Not scheduled', 'Не запланирован')) + '</span>' : '') +
             '</div>' +
             '<div class="mg-course-footer"><strong>' + esc(priceText(c)) + '</strong><div class="mg-course-actions">' +
+              (courseGroup ? '<button type="button" class="mg-btn-outline sm" data-mg-manage-class="' + esc(courseGroup.id) + '">' + esc(tr('Schedule', 'Расписание')) + '</button>' : '') +
               '<button type="button" class="mg-btn-outline sm" data-course-open="' + esc(c.id) + '">' + esc(tr('Program', 'Программа')) + '</button>' +
               '<button type="button" class="mg-btn-outline sm" data-course-edit="' + esc(c.id) + '">' + esc(tr('Edit', 'Изменить')) + '</button>' +
               '<button type="button" class="mg-btn-danger sm" data-course-archive="' + esc(c.id) + '">' + esc(tr('Archive', 'В архив')) + '</button>' +
@@ -387,8 +414,24 @@
       return load(ctx.user.id);
     }
 
-    function openCourseModal(id) {
-      courseEditing = id ? data.courses.find(function (item) { return String(item.id) === String(id); }) || null : null;
+    async function openCourseModal(id) {
+      courseEditing = id ? Object.assign({}, data.courses.find(function (item) { return String(item.id) === String(id); }) || null) : null;
+      if (courseEditing && courseEditing.zoom_enabled) {
+        var linkedGroup = ((state && state.orgClasses) || []).find(function (group) { return String(group.course_id) === String(id); });
+        if (linkedGroup) {
+          courseEditing.group_name = linkedGroup.name || '';
+          var existing = await safe(supa.from('class_sessions').select('starts_at,duration_min').eq('class_id', linkedGroup.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(100));
+          var rows = existing.data || [];
+          if (rows[0]) {
+            var first = new Date(rows[0].starts_at);
+            first.setMinutes(first.getMinutes() - first.getTimezoneOffset());
+            courseEditing.first_lesson = first.toISOString().slice(0, 16);
+            courseEditing.zoom_duration = rows[0].duration_min || 60;
+            courseEditing.zoom_repeat = rows.length > 1 ? 'weekly' : 'none';
+            courseEditing.zoom_weekdays = Array.from(new Set(rows.map(function (row) { return new Date(row.starts_at).getDay(); })));
+          }
+        }
+      }
       courseCover = courseEditing && courseEditing.cover_image_url || null;
       courseNotice = ''; courseSaving = false; courseDirty = false; coursePreview = false;
       openModal(courseEditing ? tr('Edit course', 'Редактировать курс') : tr('Create course', 'Создать курс'), paintCourseModal);
@@ -444,7 +487,7 @@
             field('ccZoomDuration', tr('Lesson duration (minutes)', 'Длительность урока (минуты)'), 'number', '60', c.zoom_duration || 60) +
           '</div><div class="cc-weekdays" id="ccZoomWeekdays"><span>' + esc(tr('Lesson days:', 'Дни уроков:')) + '</span>' +
             ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function (day, index) { return '<label><input type="checkbox" value="' + index + '"> ' + esc(day) + '</label>'; }).join('') +
-          '</div><p class="cc-zoom-note">' + esc(tr('Only confirmed learners can enter. The room opens 30 minutes before each lesson.', 'Войти смогут только подтверждённые ученики. Комната откроется за 30 минут до урока.')) + '</p></div></section>' +
+          '</div><div class="cc-timezone"><b>' + esc(tr('Time zone', 'Часовой пояс')) + ':</b> Europe/Berlin</div><div class="cc-zoom-preview" id="ccZoomPreview">' + esc(zoomPreviewText(c)) + '</div><p class="cc-zoom-note">' + esc(tr('Only confirmed learners can enter. The room opens 30 minutes before each lesson.', 'Войти смогут только подтверждённые ученики. Комната откроется за 30 минут до урока.')) + '</p></div></section>' +
         '<div class="pv-field"><label>' + esc(tr('Description', 'Описание')) + '</label>' +
           '<textarea id="ccDesc" maxlength="800" placeholder="' + esc(tr('What learners will get from this course', 'Что ученики получат от курса')) + '">' + esc(c.description || '') + '</textarea></div>' +
         '<div class="pv-field"><label>' + esc(tr('Status', 'Статус')) + '</label><select id="ccStatus"><option value="draft">' + esc(tr('Draft', 'Черновик')) + '</option><option value="active">' + esc(tr('Published', 'Опубликован')) + '</option><option value="closed">' + esc(tr('Enrollment closed', 'Набор закрыт')) + '</option><option value="completed">' + esc(tr('Completed', 'Завершён')) + '</option></select></div>' +
@@ -459,9 +502,23 @@
       var statusSelect = el('ccStatus'); if (statusSelect) statusSelect.value = c.status || 'draft';
       var currencySelect = el('ccCurrency'); if (currencySelect && c.currency) currencySelect.value = c.currency;
       var deliverySelect = el('ccDeliveryMode'); if (deliverySelect && c.delivery_mode && c.delivery_mode !== 'self_paced') deliverySelect.value = c.delivery_mode;
+      var repeatSelect = el('ccZoomRepeat'); if (repeatSelect) repeatSelect.value = c.zoom_repeat || 'none';
+      (c.zoom_weekdays || []).forEach(function (day) { var box = body.querySelector('#ccZoomWeekdays input[value="' + day + '"]'); if (box) box.checked = true; });
       var zoomToggle = el('ccZoomEnabled');
-      function syncZoomFields() { var fields = el('ccZoomFields'); if (fields && zoomToggle) fields.hidden = !zoomToggle.checked; }
+      function syncZoomFields() {
+        var fields = el('ccZoomFields'); if (fields && zoomToggle) fields.hidden = !zoomToggle.checked;
+        var weekdays = el('ccZoomWeekdays'); if (weekdays && repeatSelect) weekdays.hidden = repeatSelect.value !== 'weekly';
+      }
       if (zoomToggle) { zoomToggle.onchange = function () { courseDirty = true; syncZoomFields(); }; syncZoomFields(); }
+      function refreshZoomPreview() {
+        captureCourseForm();
+        var previewNode = el('ccZoomPreview');
+        if (previewNode) previewNode.textContent = zoomPreviewText(courseEditing || {});
+        syncZoomFields();
+      }
+      if (repeatSelect) repeatSelect.onchange = refreshZoomPreview;
+      ['ccFirstLesson','ccZoomDuration','ccEnd'].forEach(function (id) { var node = el(id); if (node) node.addEventListener('change', refreshZoomPreview); });
+      body.querySelectorAll('#ccZoomWeekdays input').forEach(function (node) { node.addEventListener('change', refreshZoomPreview); });
       if (coverBtn && coverFile) {
         coverBtn.onclick = function () { coverFile.click(); };
         coverFile.onchange = function () {
@@ -532,6 +589,15 @@
       if (fields.starts_on && fields.ends_on && fields.ends_on < fields.starts_on) {
         courseNotice = tr('End date cannot be before start date.', 'Дата окончания не может быть раньше даты начала.'); paintCourseModal(); return;
       }
+      if (zoomEnabled && !firstLesson) {
+        courseNotice = tr('Choose the date and time of the first Zoom lesson.', 'Укажите дату и время первого Zoom-урока.'); paintCourseModal(); return;
+      }
+      if (zoomEnabled && zoomRepeat === 'weekly' && !zoomWeekdays.length) {
+        courseNotice = tr('Choose at least one lesson day.', 'Выберите хотя бы один день урока.'); paintCourseModal(); return;
+      }
+      if (zoomEnabled && zoomRepeat === 'weekly' && !fields.ends_on) {
+        courseNotice = tr('Set the course end date for a weekly schedule.', 'Для еженедельного расписания укажите дату окончания курса.'); paintCourseModal(); return;
+      }
       var collision = data.courses.some(function (item) {
         return (!courseEditing || String(item.id) !== String(courseEditing.id)) && fields.schedule && item.schedule &&
           item.schedule.toLowerCase() === fields.schedule.toLowerCase() && fields.starts_on && item.starts_on === fields.starts_on;
@@ -573,20 +639,26 @@
           courseNotice = tr('Course saved, but its Zoom group could not be created: ', 'Курс сохранён, но Zoom-группа не создана: ') + (groupResult.error && groupResult.error.message || '');
           paintCourseModal(); return;
         }
-        if (!editingCourseId && firstLesson) {
-          var firstDate = new Date(firstLesson);
-          var selectedDays = zoomWeekdays.length ? zoomWeekdays : [firstDate.getDay()];
-          var lastDate = fields.ends_on ? new Date(fields.ends_on + 'T23:59:59') : firstDate;
-          var sessionStarts = [];
-          if (zoomRepeat === 'weekly') {
-            for (var cursor = new Date(firstDate); cursor <= lastDate && sessionStarts.length < 100; cursor.setDate(cursor.getDate() + 1)) {
-              if (cursor >= firstDate && selectedDays.indexOf(cursor.getDay()) >= 0) sessionStarts.push(new Date(cursor));
+        if (firstLesson) {
+          var sessionStarts = buildZoomStarts(firstLesson, zoomRepeat, zoomWeekdays, fields.ends_on);
+          var existingSessions = await supa.from('class_sessions').select('id,starts_at,status').eq('class_id', groupResult.data.id).order('starts_at', { ascending: true });
+          var existingRows = existingSessions.data || [];
+          var existingTimes = new Set(existingRows.filter(function (item) { return item.status !== 'cancelled'; }).map(function (item) { return new Date(item.starts_at).toISOString(); }));
+          var missingStarts = sessionStarts.filter(function (startsAt) { return !existingTimes.has(startsAt.toISOString()); });
+          if (editingCourseId && missingStarts.length && existingRows.length) {
+            var enrolledCount = (await supa.from('course_enrollments').select('id', { count: 'exact', head: true }).eq('course_id', courseId).eq('status', 'confirmed')).count || 0;
+            if (enrolledCount && !window.confirm(tr(
+              'This schedule change adds lessons for enrolled learners. Continue and notify them?',
+              'Изменение добавит уроки для уже записанных учеников. Продолжить и уведомить их?'
+            ))) {
+              courseNotice = tr('The course was saved without changing its lesson schedule.', 'Курс сохранён без изменения расписания уроков.');
+              paintCourseModal(); return;
             }
-          } else sessionStarts.push(firstDate);
+          }
           var recurrenceId = crypto.randomUUID ? crypto.randomUUID() : null;
-          await supa.from('class_sessions').insert(sessionStarts.map(function (startsAt, index) {
+          if (missingStarts.length) await supa.from('class_sessions').insert(missingStarts.map(function (startsAt, index) {
             return {
-              class_id: groupResult.data.id, title: title + (sessionStarts.length > 1 ? ' · ' + (index + 1) : ''),
+              class_id: groupResult.data.id, title: title + (sessionStarts.length > 1 ? ' · ' + (existingRows.length + index + 1) : ''),
               starts_at: startsAt.toISOString(), ends_at: new Date(startsAt.getTime() + zoomDuration * 60000).toISOString(),
               join_opens_at: new Date(startsAt.getTime() - 30 * 60000).toISOString(),
               duration_min: zoomDuration, recurrence_group_id: recurrenceId,

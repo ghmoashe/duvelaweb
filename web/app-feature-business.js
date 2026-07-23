@@ -79,7 +79,7 @@
         if (org) {
           const [{ data: courses }, { data: classes }] = await Promise.all([
             supa.from('courses').select('id,title,level,status,price,currency,created_at').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(30),
-            supa.from('classes').select('id,name,level,language,starts_at,format').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(30)
+            supa.from('classes').select('id,name,level,language,starts_at,format,course_id').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(30)
           ]);
           state.orgCourses = courses || [];
           state.orgClasses = classes || [];
