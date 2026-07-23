@@ -50,6 +50,14 @@
             : '';
           return '<div class="card row" style="grid-template-columns:36px minmax(0,1fr) auto"><div class="avatar" style="width:36px;height:36px">' + avatarInner(name, member.profiles && member.profiles.avatar_url) + '</div><div style="min-width:0"><h3>' + esc(name) + '</h3></div><div style="display:flex;gap:6px;white-space:nowrap">' + controls + '</div></div>';
         }).join('') : '<div class="empty">' + esc(tr('No students yet.', 'Учеников пока нет.')) + '</div>');
+      body.querySelectorAll('[data-session-att]').forEach((button) => {
+        const sessionId = button.getAttribute('data-session-att');
+        const classroomLink = document.createElement('a');
+        classroomLink.className = 'btn primary';
+        classroomLink.href = './classroom.html?s=' + encodeURIComponent(sessionId);
+        classroomLink.textContent = tr('Open classroom', 'Открыть класс');
+        button.parentElement.insertBefore(classroomLink, button);
+      });
       $('#clsStudentSearch').addEventListener('input', (event) => {
         clearTimeout(clsStudentTimer);
         const value = event.target.value;
@@ -91,7 +99,7 @@
         return;
       }
       try {
-        const { error } = await supa.from('class_sessions').insert({ class_id: currentClassId, title, starts_at: new Date(when).toISOString(), created_by: ctx.user.id, status: 'scheduled' });
+        const { error } = await supa.from('class_sessions').insert({ class_id: currentClassId, title, starts_at: new Date(when).toISOString(), created_by: ctx.user.id, status: 'scheduled', provider: 'zoom', max_participants: 25 });
         if (error) throw error;
         openClassManage(currentClassId);
       } catch (error) {

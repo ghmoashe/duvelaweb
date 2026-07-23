@@ -350,6 +350,38 @@
   .guest-admin button:last-child { background:rgba(190,35,48,.92);font-size:18px; }
   .guest-tile.pinned { grid-column:1/-1;min-height:190px;border-color:#f4c04c; }
   .guest-stage video { width: 100%; height: 100%; object-fit: cover; }
+  body.classroom-gallery .stage { background:#09070e; }
+  body.classroom-gallery .stage:not(:has(.live-material-overlay.visible)) #player {
+    inset:14px auto 14px 14px;
+    width:calc(62% - 21px);
+    height:auto;
+    border-radius:16px;
+    overflow:hidden;
+    background:#111019;
+  }
+  body.classroom-gallery .guest-stage.visible {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    top:14px;
+    right:14px;
+    bottom:14px;
+    width:calc(38% - 21px);
+    height:auto;
+    aspect-ratio:auto;
+    padding:0;
+    border:0;
+    overflow:auto;
+    background:transparent;
+    box-shadow:none;
+  }
+  body.classroom-gallery .guest-stage.visible:not(.multi) { grid-template-columns:1fr; }
+  body.classroom-gallery .guest-stage.visible:not(.multi) .guest-tile { position:relative;inset:auto; }
+  body.classroom-gallery .stage-live-strip { right:calc(38% + 8px); }
+  .camera-off-avatar { position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;background:radial-gradient(circle at 50% 35%,#30244b,#100d18 72%);color:#cfc4e8; }
+  .camera-off-avatar b { display:grid;place-items:center;width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:30px;box-shadow:0 12px 28px rgba(124,58,237,.35); }
+  .camera-off-avatar span { font-size:12px;font-weight:700; }
+  .guest-mic-state { margin-right:5px; }
   .guest-stage-label {
     position: absolute;
     left: 8px;
@@ -1388,6 +1420,10 @@
       max-height: none;
       overflow: visible;
     }
+    body.classroom-gallery .stage { min-height:520px; }
+    body.classroom-gallery .stage:not(:has(.live-material-overlay.visible)) #player { inset:10px 10px auto;width:auto;height:56%; }
+    body.classroom-gallery .guest-stage.visible { left:10px;right:10px;top:calc(56% + 18px);bottom:10px;width:auto;height:auto;grid-template-columns:repeat(2,minmax(0,1fr)); }
+    body.classroom-gallery .stage-live-strip { right:20px; }
   }
 </style>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>

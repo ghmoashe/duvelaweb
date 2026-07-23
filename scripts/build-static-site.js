@@ -69,6 +69,8 @@ removeDirRecursive(outDir);
 fs.mkdirSync(outDir, { recursive: true });
 files.forEach(copyProjectFile);
 dirs.forEach(copyProjectDir);
+copyFile(path.join(root, '.classroom-build', 'classroom.html'), path.join(outDir, 'classroom.html'));
+copyDirRecursive(path.join(root, '.classroom-build', 'assets'), path.join(outDir, 'assets'));
 
 function readEnvValue(filePath, key) {
   if (!fs.existsSync(filePath)) return '';

@@ -94,6 +94,7 @@
             (item.mux_playback_id ? 'https://image.mux.com/' + item.mux_playback_id + '/thumbnail.jpg?width=640' : (item.media_type === 'image' ? item.media_url : null));
           return {
             id: item.id,
+            user_id: item.user_id,
             title: item.caption || tr('Duvela lesson', 'Урок Duvela'),
             meta: (author && author.full_name) || 'Duvela',
             image: thumb,
@@ -240,6 +241,13 @@
       $('#commentInput').value = '';
       try {
         await supa.from('post_comments').insert({ post_id: postId, user_id: ctx.user.id, comment: body });
+        // Notify the post author (fire and forget, skip own posts).
+        const post = state.videos.find((item) => String(item.id) === String(postId));
+        if (post && post.user_id && post.user_id !== ctx.user.id) {
+          void supa.functions.invoke('notify-teacher-event', {
+            body: { actorName: (ctx.profile && ctx.profile.full_name) || 'A student', eventType: 'new_comment', postTitle: post.caption || null, teacherId: post.user_id }
+          }).catch(() => {});
+        }
         renderVideoSocial(postId);
       } catch (error) {
         alert(error.message || tr('Could not post the comment.', 'Не удалось отправить комментарий.'));
@@ -291,6 +299,10 @@
           });
         }
         if (result.error) throw result.error;
+        // Fire-and-forget push to followers (same as the mobile apps).
+        void supa.functions.invoke('notify-new-post', {
+          body: { postTitle: insertPayload.caption, teacherId: ctx.user.id }
+        }).catch(() => {});
         $('#uploadOverlay').classList.remove('open');
         await loadVideos();
         renderVideos();

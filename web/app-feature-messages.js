@@ -200,6 +200,7 @@
       const body = await e2ee.encryptText(supa, ctx.user.id, target.id, message.body);
       const result = await supa.from('chat_messages').insert({ conversation_id: target.id, sender_id: ctx.user.id, body, forwarded_from_id: message.id });
       if (result.error) alert(result.error.message);
+      else void supa.functions.invoke('notify-chat-message', { body: { conversationId: target.id } }).catch(() => {});
     }
 
     async function reactToMessage(id) {
@@ -228,6 +229,7 @@
         const body = await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, '📎 ' + file.name);
         const result = await supa.from('chat_messages').insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body, attachment_path: path, attachment_name: file.name, attachment_type: file.type, attachment_iv: encrypted.iv });
         if (result.error) throw result.error;
+        void supa.functions.invoke('notify-chat-message', { body: { conversationId: state.activeConversationId } }).catch(() => {});
       } catch (error) { alert(error.message || tr('Could not send the file.', 'Не удалось отправить файл.')); }
     }
 
@@ -426,6 +428,10 @@
           .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv')
           .single();
         if (result.error) { restore(result.error); return; }
+        // Push + in-app feed for the other participants. E2EE chat — the push
+        // deliberately carries NO plaintext preview (function falls back to a
+        // generic "Новое сообщение" title/body).
+        void supa.functions.invoke('notify-chat-message', { body: { conversationId: state.activeConversationId } }).catch(() => {});
         // Render immediately instead of waiting on the realtime echo.
         appendMessage(Object.assign({}, result.data, { body: text }));
         setReply(null);

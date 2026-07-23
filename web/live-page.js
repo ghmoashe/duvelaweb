@@ -211,10 +211,16 @@
     user.videoTrack.play('guestStagePlayer', { fit: 'cover' });
   }
   function renderGuestGrid() {
-    var container=el('guestStage');if(!container)return;var guests=Object.keys(remoteGuestUsers).map(function(key){return remoteGuestUsers[key];}).filter(function(item){return item&&item.videoTrack;});
-    if(!guests.length){container.classList.remove('visible','multi');container.innerHTML='<div class="guest-stage-label">'+esc(tr('Guest','Гость'))+'</div>';return;}
-    container.classList.add('visible');container.classList.toggle('multi',guests.length>1);container.innerHTML=guests.slice(0,6).map(function(item,index){return '<div class="guest-tile '+(String(item.uid)===String(activeSpeakerUid)?'active-speaker':'')+'" data-guest-uid="'+esc(item.uid)+'"><div class="guest-tile-player" id="guestStagePlayer'+index+'"></div><div class="guest-tile-label">'+esc(item.displayName||tr('Guest','Гость'))+'</div>'+(isHostMode?'<div class="guest-admin"><button type="button" data-mute-guest="'+esc(item.uid)+'" title="Mute guest">♩</button><button type="button" data-pin-guest="'+esc(item.uid)+'" title="Pin guest">⌖</button><button type="button" data-remove-guest="'+esc(item.uid)+'" title="Remove guest">×</button></div>':'')+'</div>';}).join('');
-    guests.slice(0,6).forEach(function(item,index){item.videoTrack.play('guestStagePlayer'+index,{fit:'cover'});});
+    var container=el('guestStage');if(!container)return;
+    var guests=Object.keys(remoteGuestUsers).map(function(key){return remoteGuestUsers[key];}).filter(Boolean);
+    document.body.classList.toggle('classroom-gallery',guests.length>0);
+    if(!guests.length){container.classList.remove('visible','multi');container.innerHTML='<div class="guest-stage-label">'+esc(tr('Students','Ученики'))+'</div>';return;}
+    container.classList.add('visible');container.classList.toggle('multi',guests.length>1);
+    container.innerHTML=guests.slice(0,9).map(function(item,index){
+      var name=item.displayName||tr('Student','Ученик'),initial=String(name).trim().charAt(0).toUpperCase()||'D';
+      return '<div class="guest-tile '+(String(item.uid)===String(activeSpeakerUid)?'active-speaker':'')+(item.videoTrack?'':' camera-off')+'" data-guest-uid="'+esc(item.uid)+'"><div class="guest-tile-player" id="guestStagePlayer'+index+'">'+(!item.videoTrack?'<div class="camera-off-avatar"><b>'+esc(initial)+'</b><span>'+esc(tr('Camera is off','Камера выключена'))+'</span></div>':'')+'</div><div class="guest-tile-label"><span class="guest-mic-state">'+(item.audioTrack?'🎙':'🔇')+'</span>'+esc(name)+(item.isLocal?' · '+esc(tr('You','Вы')):'')+'</div>'+(isHostMode?'<div class="guest-admin"><button type="button" data-mute-guest="'+esc(item.uid)+'" title="Mute guest">♩</button><button type="button" data-pin-guest="'+esc(item.uid)+'" title="Pin guest">⌖</button><button type="button" data-remove-guest="'+esc(item.uid)+'" title="Remove guest">×</button></div>':'')+'</div>';
+    }).join('');
+    guests.slice(0,9).forEach(function(item,index){if(item.videoTrack)item.videoTrack.play('guestStagePlayer'+index,{fit:'cover'});});
   }
   function attachActiveSpeaker(clientInstance) {
     if(!clientInstance||typeof clientInstance.enableAudioVolumeIndicator!=='function')return;clientInstance.enableAudioVolumeIndicator();clientInstance.on('volume-indicator',function(volumes){var loudest=(volumes||[]).filter(function(item){return item.level>5;}).sort(function(a,b){return b.level-a.level;})[0];if(!loudest)return;activeSpeakerUid=String(loudest.uid);document.querySelectorAll('.guest-tile').forEach(function(tile){tile.classList.toggle('active-speaker',tile.dataset.guestUid===activeSpeakerUid);});});
@@ -791,15 +797,21 @@
     el('endLive').style.display = isLiveRoom ? 'inline-flex' : 'none';
   }
   async function toggleMic() {
-    if (!localAudioTrack) return;
+    var track=viewerGuestActive&&viewerGuestTracks?viewerGuestTracks.find(function(item){return item&&item.trackMediaType==='audio';}):localAudioTrack;
+    if (!track) return;
     micEnabled = !micEnabled;
-    await localAudioTrack.setEnabled(micEnabled);
+    await track.setEnabled(micEnabled);
+    if(viewerGuestActive&&remoteGuestUsers[String(viewerAgoraUid)])remoteGuestUsers[String(viewerAgoraUid)].audioTrack=micEnabled?track:null;
+    renderGuestGrid();
     updateHostControls();
   }
   async function toggleCam() {
-    if (!localVideoTrack) return;
+    var track=viewerGuestActive&&viewerGuestTracks?viewerGuestTracks.find(function(item){return item&&item.trackMediaType==='video';}):localVideoTrack;
+    if (!track) return;
     camEnabled = !camEnabled;
-    await localVideoTrack.setEnabled(camEnabled);
+    await track.setEnabled(camEnabled);
+    if(viewerGuestActive&&remoteGuestUsers[String(viewerAgoraUid)])remoteGuestUsers[String(viewerAgoraUid)].videoTrack=camEnabled?track:null;
+    renderGuestGrid();
     updateHostControls();
   }
   function startSessionPolling() {
@@ -1104,19 +1116,19 @@
           remoteUser.videoTrack.play('player', { fit: 'cover' });
           setStatus(tr('Watching LIVE', 'Смотрите эфир'), 'live');
         } else {
-          remoteGuestUsers[String(remoteUser.uid)] = { uid: remoteUser.uid, videoTrack: remoteUser.videoTrack, displayName: tr('Guest', 'Гость') };
+          remoteGuestUsers[String(remoteUser.uid)]=Object.assign(remoteGuestUsers[String(remoteUser.uid)]||{uid:remoteUser.uid,displayName:tr('Student','Ученик')},{videoTrack:remoteUser.videoTrack});
           renderGuestGrid();
         }
       }
       if (mediaType === 'audio') {
+        if(!isTeacher){remoteGuestUsers[String(remoteUser.uid)]=Object.assign(remoteGuestUsers[String(remoteUser.uid)]||{uid:remoteUser.uid,displayName:tr('Student','Ученик')},{audioTrack:remoteUser.audioTrack});renderGuestGrid();}
         try { remoteUser.audioTrack.play(); }
         catch (e) { if (isTeacher) showSoundPill(remoteUser); }
       }
     });
     client.on('user-unpublished', function (remoteUser, mediaType) {
       if (teacherAgoraUid && String(remoteUser.uid) !== String(teacherAgoraUid)) {
-        delete remoteGuestUsers[String(remoteUser.uid)];
-        var firstGuest = Object.keys(remoteGuestUsers)[0];
+        var guest=remoteGuestUsers[String(remoteUser.uid)];if(guest){if(mediaType==='video')guest.videoTrack=null;if(mediaType==='audio')guest.audioTrack=null;}
         renderGuestGrid();
         return;
       }
@@ -1132,19 +1144,20 @@
       if (String(remoteUser.uid) === String(hostUid)) return;
       await client.subscribe(remoteUser, mediaType);
       if (mediaType === 'video') {
-        remoteGuestUsers[String(remoteUser.uid)] = { uid: remoteUser.uid, videoTrack: remoteUser.videoTrack, displayName: tr('Guest on stage', 'Гость в эфире') };
+        remoteGuestUsers[String(remoteUser.uid)]=Object.assign(remoteGuestUsers[String(remoteUser.uid)]||{uid:remoteUser.uid,displayName:tr('Student','Ученик')},{videoTrack:remoteUser.videoTrack});
         renderGuestGrid();
       }
       if (mediaType === 'audio') {
+        remoteGuestUsers[String(remoteUser.uid)]=Object.assign(remoteGuestUsers[String(remoteUser.uid)]||{uid:remoteUser.uid,displayName:tr('Student','Ученик')},{audioTrack:remoteUser.audioTrack});renderGuestGrid();
         try { remoteUser.audioTrack.play(); } catch (e) {}
       }
     });
-    client.on('user-unpublished', function (remoteUser) {
+    client.on('user-unpublished', function (remoteUser,mediaType) {
       if (String(remoteUser.uid) === String(hostUid)) return;
-      delete remoteGuestUsers[String(remoteUser.uid)];
-      var firstGuest = Object.keys(remoteGuestUsers)[0];
+      var guest=remoteGuestUsers[String(remoteUser.uid)];if(guest){if(mediaType==='video')guest.videoTrack=null;if(mediaType==='audio')guest.audioTrack=null;}
       renderGuestGrid();
     });
+    client.on('user-left',function(remoteUser){delete remoteGuestUsers[String(remoteUser.uid)];renderGuestGrid();});
   }
   async function sendViewerMessage() {
     var text = (el('chatInput')?.value || '').trim();
@@ -1210,10 +1223,11 @@
         try { await client.leave(); } catch (e) {}
         client = null;
       }
-      viewerGuestTracks = await window.AgoraRTC.createMicrophoneAndCameraTracks(
-        { AEC: true, AGC: true, ANS: true },
-        { encoderConfig: '480p_1' }
-      );
+      var guestMic=null,guestCam=null;
+      try { guestMic=await window.AgoraRTC.createMicrophoneAudioTrack({AEC:true,AGC:true,ANS:true}); } catch(error) {}
+      try { guestCam=await window.AgoraRTC.createCameraVideoTrack({encoderConfig:'480p_1'}); } catch(error) {}
+      viewerGuestTracks=[guestMic,guestCam].filter(Boolean);
+      if(!viewerGuestTracks.length)throw new Error(tr('Allow microphone or camera access to join the lesson.','Разрешите доступ к микрофону или камере, чтобы войти в урок.'));
       var token = await getPublisherToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       attachActiveSpeaker(client);
@@ -1221,9 +1235,15 @@
       await client.setClientRole('host');
       await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
       await client.publish(viewerGuestTracks);
+      remoteGuestUsers[String(uid)]={uid:uid,displayName:viewerDisplayName(),audioTrack:guestMic,videoTrack:guestCam,isLocal:true};
+      renderGuestGrid();
       viewerJoined = true;
       viewerAgoraUid = uid;
       viewerGuestActive = true;
+      micEnabled=!!guestMic;camEnabled=!!guestCam;
+      el('toggleMic').style.display=guestMic?'inline-flex':'none';
+      el('toggleCam').style.display=guestCam?'inline-flex':'none';
+      updateHostControls();
       await updateViewerParticipantRole('guest', uid);
       renderViewerGuestRequestUi();
       setNote(tr('You joined the LIVE as a guest.', 'Вы вошли в эфир как гость.'));
@@ -1240,7 +1260,7 @@
     }
   }
   async function leaveViewerGuestStage() {
-    if(!viewerGuestActive)return;try{if(client&&viewerGuestTracks)await client.unpublish(viewerGuestTracks);}catch(_){}if(viewerGuestTracks){viewerGuestTracks.forEach(function(track){try{track.stop();track.close();}catch(_){}});viewerGuestTracks=null;}viewerGuestActive=false;try{await updateViewerParticipantRole('viewer',viewerAgoraUid);}catch(_){}renderViewerGuestRequestUi();setNote(tr('The teacher removed you from the stage.','Преподаватель убрал вас со сцены.'));
+    if(!viewerGuestActive)return;try{if(client&&viewerGuestTracks)await client.unpublish(viewerGuestTracks);}catch(_){}if(viewerGuestTracks){viewerGuestTracks.forEach(function(track){try{track.stop();track.close();}catch(_){}});viewerGuestTracks=null;}delete remoteGuestUsers[String(viewerAgoraUid)];renderGuestGrid();viewerGuestActive=false;try{await updateViewerParticipantRole('viewer',viewerAgoraUid);}catch(_){}renderViewerGuestRequestUi();setNote(tr('The teacher removed you from the stage.','Преподаватель убрал вас со сцены.'));
   }
   function hostSessionPayload(user, status, startedAt, existingSession) {
     var now = new Date().toISOString();
@@ -1859,6 +1879,10 @@
         await supa.from('user_follows').delete().eq('follower_id', currentUser.id).eq('following_id', teacherId);
       } else {
         await supa.from('user_follows').insert({ follower_id: currentUser.id, following_id: teacherId });
+        // Notify the teacher — fire and forget (same as the mobile apps).
+        void supa.functions.invoke('notify-teacher-event', {
+          body: { actorName: viewerDisplayName(), eventType: 'new_follower', teacherId: teacherId }
+        }).catch(function () {});
       }
       await renderFollowUi();
     } catch (e) { /* ignore */ }

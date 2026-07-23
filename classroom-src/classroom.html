@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Duvela Classroom</title>
+  <link rel="icon" href="/logo.webp">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+  <div id="prejoin" class="prejoin">
+    <section class="join-card">
+      <div class="brand"><img src="/logo.webp" alt="">Duvela Classroom</div>
+      <div class="preview"><video id="previewVideo" autoplay muted playsinline></video><div id="previewEmpty">Камера выключена</div></div>
+      <h1 id="joinTitle">Групповой урок</h1>
+      <p>Проверьте камеру и микрофон перед входом.</p>
+      <div class="join-options">
+        <button id="previewMic" class="toggle active">🎙 Микрофон</button>
+        <button id="previewCam" class="toggle active">🎥 Камера</button>
+      </div>
+      <button id="joinBtn" class="primary">Войти в урок</button>
+      <p id="joinStatus" class="status"></p>
+    </section>
+  </div>
+  <main id="room" class="room" hidden>
+    <header><div class="brand"><img src="/logo.webp" alt="">Duvela Classroom</div><div><b id="roomTitle">Урок</b><span id="roomTime">00:00</span></div><button id="leaveTop" class="danger">Выйти</button></header>
+    <div class="workspace">
+      <section class="stage"><div id="gallery" class="gallery"></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas></div></section>
+      <aside id="sidePanel" class="side-panel">
+        <nav><button data-panel="people" class="active">Участники <i id="peopleCount">0</i></button><button data-panel="chat">Чат <i id="chatBadge">0</i></button></nav>
+        <section id="peoplePanel"><div id="peopleList"></div></section>
+        <section id="chatPanel" hidden><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…"><button>➤</button></form></section>
+      </aside>
+    </div>
+    <footer>
+      <button id="micBtn">🎙 <span>Микрофон</span></button>
+      <button id="camBtn">🎥 <span>Камера</span></button>
+      <button id="shareBtn">▣ <span>Экран</span></button>
+      <button id="peopleBtn">👥 <span>Участники</span></button>
+      <button id="chatBtn">💬 <span>Чат</span></button>
+      <button id="handBtn">✋ <span>Поднять руку</span></button>
+      <button id="leaveBtn" class="danger">Выйти</button>
+    </footer>
+  </main>
+</body>
+</html>

@@ -147,6 +147,7 @@
       }));
       busy = false;
       if (r && r.error) { notice = tr('Could not save the video.', 'Не удалось сохранить видео.'); paint(); return; }
+      void supa.functions.invoke('notify-new-post', { body: { postTitle: null, teacherId: ctx.user.id } }).catch(function () {});
       ytValue = ''; ytLevel = null;
       await loadPosts(ctx.user.id); paint();
     }
@@ -184,6 +185,7 @@
           r = await supa.from('posts').insert(payload);
         }
         if (r.error) throw r.error;
+        void supa.functions.invoke('notify-new-post', { body: { postTitle: payload.caption, teacherId: ctx.user.id } }).catch(function () {});
         await loadPosts(ctx.user.id);
       } catch (e) {
         notice = (e && e.message) || tr('Upload failed.', 'Не удалось загрузить.');
