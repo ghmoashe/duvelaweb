@@ -31,6 +31,9 @@ let timer = null;
 let attendanceTimer = null;
 let waitingTimer = null;
 let roomRole = 'participant';
+let reviewRating = 0;
+let endingForAll = false;
+const raisedUsers = new Set();
 
 function initials(name = 'Duvela') {
   return name.trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
@@ -145,7 +148,8 @@ async function renderUsers() {
     }
   }
   $('peopleCount').textContent = users.length;
-  $('peopleList').innerHTML = users.map((user) => `<div class="person"><span class="mini">${esc(initials(user.displayName))}</span><b>${esc(user.displayName)}</b><span>${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}</span></div>`).join('');
+  const ownId = client.getCurrentUserInfo()?.userId;
+  $('peopleList').innerHTML = users.map((user) => `<div class="person"><span class="mini">${esc(initials(user.displayName))}</span><b>${esc(user.displayName)} ${raisedUsers.has(user.userId) ? '<i class="raised-mark">✋</i>' : ''}</b><span>${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}</span>${roomRole === 'host' && user.userId !== ownId ? `<span class="person-actions"><button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : ''}</div>`).join('');
 }
 
 function showPanel(kind) {
@@ -153,7 +157,37 @@ function showPanel(kind) {
   document.querySelectorAll('[data-panel]').forEach((button) => button.classList.toggle('active', button.dataset.panel === kind));
   $('peoplePanel').hidden = kind !== 'people';
   $('chatPanel').hidden = kind !== 'chat';
+  $('materialsPanel').hidden = kind !== 'materials';
   if (kind === 'chat') $('chatBadge').textContent = '0';
+}
+
+function showReaction(emoji) {
+  const node = document.createElement('span');
+  node.className = 'floating-class-reaction';
+  node.textContent = emoji;
+  node.style.left = `${35 + Math.random() * 30}%`;
+  $('reactionLayer').append(node);
+  setTimeout(() => node.remove(), 2300);
+}
+
+async function sendClassCommand(payload, userId) {
+  if (!joined) return;
+  await client.getCommandClient().send(JSON.stringify(payload), userId);
+}
+
+function handleClassCommand(message) {
+  let payload;
+  try { payload = JSON.parse(message.text); } catch { return; }
+  if (payload.type === 'reaction' && payload.emoji) showReaction(payload.emoji);
+  if (payload.type === 'hand') {
+    if (payload.raised) raisedUsers.add(message.senderId); else raisedUsers.delete(message.senderId);
+    void renderUsers();
+  }
+  if (payload.type === 'host-action' && message.senderId !== client.getCurrentUserInfo()?.userId) {
+    if (payload.action === 'mute') void media?.muteAudio();
+    if (payload.action === 'stop-video') void media?.stopVideo();
+  }
+  if (payload.type === 'materials-changed') void loadMaterials();
 }
 
 function bindZoomEvents() {
@@ -174,6 +208,23 @@ function bindZoomEvents() {
       try { await media.startShareView($('shareCanvas'), payload.userId); } catch {}
     } else {
       $('shareStage').hidden = true;
+    }
+  });
+  client.on('command-channel-message', handleClassCommand);
+  client.on('connection-change', (payload) => {
+    const state = String(payload?.state || '').toLowerCase();
+    let banner = document.querySelector('.reconnect');
+    if (state.includes('reconnect') || state.includes('fail') || state.includes('closed')) {
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.className = 'reconnect';
+        document.body.append(banner);
+      }
+      banner.textContent = navigator.onLine ? 'Восстанавливаем соединение…' : 'Нет интернета. Ждём подключения…';
+    } else if (state.includes('connected')) {
+      banner?.remove();
+      void renderUsers();
+      void loadMaterials();
     }
   });
 }
@@ -213,6 +264,7 @@ async function join() {
       void supa.from('class_sessions').update({ status: 'live' }).eq('id', sessionId).eq('created_by', me.id);
       await renderWaitingRoom();
       waitingTimer = setInterval(renderWaitingRoom, 3000);
+      $('addMaterialBtn').hidden = false;
     }
     await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'join' });
     attendanceTimer = setInterval(() => { void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'heartbeat' }); }, 30000);
@@ -228,6 +280,7 @@ async function join() {
       $('roomTime').textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
     }, 1000);
     await renderUsers();
+    await loadMaterials();
   } catch (error) {
     setStatus(error?.message || 'Не удалось войти в урок.', true);
     $('joinBtn').disabled = false;
@@ -262,18 +315,55 @@ async function toggleShare() {
   }
 }
 
-async function leave() {
+async function loadMaterials() {
+  if (!supa || !sessionId) return;
+  const { data, error } = await supa.from('class_session_materials')
+    .select('id,title,file_url,mime_type,allow_download,sort_order')
+    .eq('session_id', sessionId).order('sort_order').order('created_at');
+  if (error) {
+    $('materialsList').innerHTML = '<p>Материалы пока недоступны.</p>';
+    return;
+  }
+  const rows = data || [];
+  $('materialsList').innerHTML = rows.length ? rows.map((item) => `<div class="material-row"><span>${item.mime_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.mime_type || 'Материал')}</small></div>${item.allow_download || roomRole === 'host' ? `<a href="${esc(item.file_url)}" target="_blank" rel="noopener"><button>Открыть</button></a>` : '<small>Только просмотр</small>'}</div>`).join('') : '<p>Материалов к этому уроку пока нет.</p>';
+}
+
+async function uploadMaterial(file) {
+  if (roomRole !== 'host' || !file) return;
+  const path = `classroom/${sessionId}/${crypto.randomUUID ? crypto.randomUUID() : Date.now()}-${file.name.replace(/[^\w.\-]+/g, '_')}`;
+  const uploaded = await supa.storage.from('posts').upload(path, file, { contentType: file.type, upsert: false });
+  if (uploaded.error) throw uploaded.error;
+  const publicUrl = supa.storage.from('posts').getPublicUrl(path).data.publicUrl;
+  const saved = await supa.from('class_session_materials').insert({
+    session_id: sessionId, added_by: me.id, title: file.name,
+    file_url: publicUrl, mime_type: file.type, allow_download: true
+  });
+  if (saved.error) throw saved.error;
+  await loadMaterials();
+  await sendClassCommand({ type: 'materials-changed' });
+}
+
+async function performLeave(endForAll = false) {
   clearInterval(timer);
   clearInterval(attendanceTimer);
   clearInterval(waitingTimer);
   try { await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' }); } catch {}
-  try { if (joined) await client.leave(); } catch {}
-  if (roomRole === 'host') {
+  if (roomRole === 'host' && endForAll) {
     try { await supa.from('class_sessions').update({ status: 'ended' }).eq('id', sessionId).eq('created_by', me.id); } catch {}
   }
-  location.href = roomRole === 'host'
-    ? './app.html?role=teacher#management'
-    : './app.html?role=learner#schedule';
+  try { if (joined) await client.leave(endForAll); } catch {}
+  joined = false;
+  if (roomRole === 'host') {
+    location.href = './app.html?role=teacher#management';
+  } else {
+    $('reviewDuration').textContent = `Вы были на уроке ${$('roomTime').textContent || '00:00'}.`;
+    $('reviewDialog').hidden = false;
+  }
+}
+
+function leave() {
+  $('leaveDialog').hidden = false;
+  $('endForAllBtn').hidden = roomRole !== 'host';
 }
 
 $('previewMic').onclick = () => { micOn = !micOn; $('previewMic').classList.toggle('active', micOn); };
@@ -284,9 +374,69 @@ $('camBtn').onclick = toggleCam;
 $('shareBtn').onclick = toggleShare;
 $('peopleBtn').onclick = () => showPanel('people');
 $('chatBtn').onclick = () => showPanel('chat');
-$('handBtn').onclick = () => { raised = !raised; $('handBtn').classList.toggle('off', raised); $('handBtn').querySelector('span').textContent = raised ? 'Опустить руку' : 'Поднять руку'; };
+$('materialsBtn').onclick = () => showPanel('materials');
+$('handBtn').onclick = async () => {
+  raised = !raised;
+  $('handBtn').classList.toggle('off', raised);
+  $('handBtn').querySelector('span').textContent = raised ? 'Опустить руку' : 'Поднять руку';
+  await sendClassCommand({ type: 'hand', raised });
+};
+$('reactionBtn').onclick = () => { $('reactionChoices').hidden = !$('reactionChoices').hidden; };
+$('reactionChoices').onclick = async (event) => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  const emoji = button.textContent.trim();
+  showReaction(emoji);
+  $('reactionChoices').hidden = true;
+  await sendClassCommand({ type: 'reaction', emoji });
+};
 $('leaveBtn').onclick = $('leaveTop').onclick = leave;
 document.querySelectorAll('[data-panel]').forEach((button) => button.onclick = () => showPanel(button.dataset.panel));
+$('peopleList').onclick = async (event) => {
+  const button = event.target.closest('[data-moderate]');
+  if (!button || roomRole !== 'host') return;
+  const userId = Number(button.dataset.zoomUser);
+  const action = button.dataset.moderate;
+  if (action === 'remove') {
+    if (confirm('Удалить участника из урока?')) await client.removeUser(userId);
+    return;
+  }
+  if (action === 'mute') await media.muteAudio(userId);
+  if (action === 'stop-video') await sendClassCommand({ type: 'host-action', action: 'stop-video' }, userId);
+};
+$('addMaterialBtn').onclick = () => $('materialFile').click();
+$('materialFile').onchange = async () => {
+  const file = $('materialFile').files?.[0];
+  if (!file) return;
+  try { await uploadMaterial(file); } catch (error) { alert(error?.message || 'Не удалось добавить материал.'); }
+  $('materialFile').value = '';
+};
+$('exitOnlyBtn').onclick = () => { $('leaveDialog').hidden = true; void performLeave(false); };
+$('endForAllBtn').onclick = () => {
+  if (!confirm('Завершить урок для всех участников?')) return;
+  endingForAll = true;
+  $('leaveDialog').hidden = true;
+  void performLeave(true);
+};
+$('leaveCancelBtn').onclick = () => { $('leaveDialog').hidden = true; };
+$('reviewStars').onclick = (event) => {
+  const buttons = Array.from($('reviewStars').querySelectorAll('button'));
+  const index = buttons.indexOf(event.target.closest('button'));
+  if (index < 0) return;
+  reviewRating = index + 1;
+  buttons.forEach((button, buttonIndex) => button.classList.toggle('active', buttonIndex < reviewRating));
+};
+$('reviewSaveBtn').onclick = async () => {
+  const comment = $('reviewComment').value.trim();
+  if (reviewRating) {
+    const result = await supa.from('class_session_reviews').upsert({
+      session_id: sessionId, user_id: me.id, rating: reviewRating, comment,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'session_id,user_id' });
+    if (result.error) return alert(result.error.message || 'Не удалось сохранить отзыв.');
+  }
+  location.href = './app.html?role=learner#schedule';
+};
 $('chatForm').onsubmit = async (event) => {
   event.preventDefault();
   const value = $('chatInput').value.trim();
@@ -305,7 +455,7 @@ $('waitingList').onclick = async (event) => {
 addEventListener('online', runDiagnostics);
 addEventListener('offline', runDiagnostics);
 addEventListener('beforeunload', () => {
-  if (joined) void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' });
+  if (joined && !endingForAll) void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' });
 });
 
 loadIdentity().then(async () => { await runDiagnostics(); await preview(); }).catch((error) => setStatus(error.message, true));

@@ -1,0 +1,21 @@
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.panel-head button,.material-row button{border:1px solid #473b58;border-radius:9px;background:#2c2239;color:#fff;padding:7px 9px}
+.material-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:9px;margin:8px 0;padding:10px;border:1px solid #30283a;border-radius:12px;background:#1e1827}
+.material-row>span{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:#7541e8}
+.material-row b,.material-row small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.material-row small{margin-top:3px;color:#a89daf}
+.reaction-menu{position:relative}.reaction-menu>button{height:52px}
+.reaction-menu>div{position:absolute;display:flex;gap:4px;left:50%;bottom:62px;transform:translateX(-50%);padding:7px;border:1px solid #3b3446;border-radius:999px;background:#201929;box-shadow:0 14px 36px #0008}
+.reaction-menu>div button{min-width:38px;border:0;background:transparent;font-size:20px}
+.reaction-layer{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}
+.floating-class-reaction{position:absolute;left:50%;bottom:90px;font-size:54px;animation:classReaction 2.2s ease-out forwards}
+@keyframes classReaction{0%{opacity:0;transform:translate(-50%,20px) scale(.5)}20%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + 80px),-420px) scale(1.3)}}
+.person-actions{display:flex;gap:4px;margin-left:auto}.person-actions button{padding:5px 7px;font-size:11px}.raised-mark{color:#ffca45}
+.dialog{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:#08060dbb;backdrop-filter:blur(8px)}
+.dialog[hidden]{display:none}.dialog>section{width:min(520px,100%);padding:24px;border:1px solid #3d334a;border-radius:22px;background:#181320;box-shadow:0 25px 80px #000b}
+.dialog h2{margin-top:0}.dialog p{color:#aca2b8}.dialog section>div:not(.review-stars){display:flex;gap:8px;flex-wrap:wrap}
+.dialog button{border:1px solid #40364b;border-radius:11px;background:#27202f;color:#fff;padding:10px 14px}
+.review-stars{display:flex;justify-content:center;gap:8px;margin:18px}.review-stars button{border:0;background:transparent;color:#5b5068;font-size:35px;padding:0}.review-stars button.active{color:#ffbd2e}
+.dialog textarea{width:100%;min-height:110px;margin:0 0 14px;padding:12px;border:1px solid #40364b;border-radius:12px;background:#0f0c15;color:#fff;resize:vertical}
+.reconnect{position:fixed;z-index:70;left:50%;top:20px;transform:translateX(-50%);padding:10px 16px;border-radius:99px;background:#ffc94a;color:#2d2100;font-weight:800;box-shadow:0 10px 30px #0007}
+@media(max-width:850px){.reaction-menu>div{position:fixed;left:50%;bottom:82px}.dialog>section{max-height:90vh;overflow:auto}}

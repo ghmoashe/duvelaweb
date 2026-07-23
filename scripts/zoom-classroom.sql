@@ -216,7 +216,8 @@ end $$;
 alter table if exists public.courses
   add column if not exists delivery_mode text not null default 'self_paced',
   add column if not exists zoom_enabled boolean not null default false,
-  add column if not exists max_students integer not null default 25;
+  add column if not exists max_students integer not null default 25,
+  add column if not exists timezone text not null default 'Europe/Berlin';
 
 alter table if exists public.courses
   drop constraint if exists courses_delivery_mode_check;
@@ -256,3 +257,68 @@ drop trigger if exists course_enrollment_adds_zoom_group on public.course_enroll
 create trigger course_enrollment_adds_zoom_group
 after insert or update of status on public.course_enrollments
 for each row execute function public.sync_course_enrollment_to_zoom_group();
+
+-- Shared lesson materials shown inside Zoom Classroom.
+create table if not exists public.class_session_materials (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.class_sessions(id) on delete cascade,
+  added_by uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  file_url text not null,
+  mime_type text,
+  allow_download boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.class_session_materials
+  add column if not exists added_by uuid references auth.users(id) on delete cascade,
+  add column if not exists allow_download boolean not null default true,
+  add column if not exists sort_order integer not null default 0;
+alter table public.class_session_materials enable row level security;
+drop policy if exists "classroom members view materials" on public.class_session_materials;
+create policy "classroom members view materials" on public.class_session_materials
+for select to authenticated using (
+  exists (
+    select 1 from public.class_sessions s
+    join public.classes c on c.id=s.class_id
+    left join public.course_enrollments e on e.course_id=c.course_id
+      and e.user_id=auth.uid() and e.status='confirmed'
+    left join public.class_clients cc on cc.class_id=c.id
+      and cc.client_id=auth.uid() and cc.status<>'removed'
+    where s.id=session_id and (s.created_by=auth.uid() or e.id is not null or cc.id is not null)
+  )
+);
+drop policy if exists "teachers manage classroom materials" on public.class_session_materials;
+create policy "teachers manage classroom materials" on public.class_session_materials
+for all to authenticated using (
+  exists(select 1 from public.class_sessions s where s.id=session_id and s.created_by=auth.uid())
+) with check (
+  added_by=auth.uid()
+  and exists(select 1 from public.class_sessions s where s.id=session_id and s.created_by=auth.uid())
+);
+
+-- Learner post-lesson rating and private note.
+create table if not exists public.class_session_reviews (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.class_sessions(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  rating integer check (rating between 1 and 5),
+  comment text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(session_id,user_id)
+);
+alter table public.class_session_reviews enable row level security;
+drop policy if exists "learners manage own classroom review" on public.class_session_reviews;
+create policy "learners manage own classroom review" on public.class_session_reviews
+for all to authenticated using (user_id=auth.uid()) with check (user_id=auth.uid());
+drop policy if exists "teachers read classroom reviews" on public.class_session_reviews;
+create policy "teachers read classroom reviews" on public.class_session_reviews
+for select to authenticated using (
+  exists(select 1 from public.class_sessions s where s.id=session_id and s.created_by=auth.uid())
+);
+
+-- Push workers can consume the same durable queue as the web notification bell.
+alter table if exists public.class_session_notifications
+  add column if not exists deep_link text,
+  add column if not exists push_sent_at timestamptz;

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Duvela Classroom</title>
   <link rel="icon" href="/logo.webp">
+  <link rel="stylesheet" href="./classroom-extra.css">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script type="module" src="./main.js"></script>
@@ -33,9 +34,10 @@
     <div class="workspace">
       <section class="stage"><div id="gallery" class="gallery"></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas></div></section>
       <aside id="sidePanel" class="side-panel">
-        <nav><button data-panel="people" class="active">Участники <i id="peopleCount">0</i></button><button data-panel="chat">Чат <i id="chatBadge">0</i></button></nav>
+        <nav><button data-panel="people" class="active">Участники <i id="peopleCount">0</i></button><button data-panel="chat">Чат <i id="chatBadge">0</i></button><button data-panel="materials">Материалы</button></nav>
         <section id="peoplePanel"><div id="waitingWrap" hidden><h3>Ожидают входа</h3><div id="waitingList"></div></div><div id="peopleList"></div></section>
         <section id="chatPanel" hidden><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…"><button>➤</button></form></section>
+        <section id="materialsPanel" hidden><div class="panel-head"><h3>Материалы урока</h3><button id="addMaterialBtn" hidden>+ Добавить</button></div><div id="materialsList"></div><input id="materialFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden></section>
       </aside>
     </div>
     <footer>
@@ -44,9 +46,14 @@
       <button id="shareBtn">▣ <span>Экран</span></button>
       <button id="peopleBtn">👥 <span>Участники</span></button>
       <button id="chatBtn">💬 <span>Чат</span></button>
+      <button id="materialsBtn">📄 <span>Материалы</span></button>
       <button id="handBtn">✋ <span>Поднять руку</span></button>
+      <div class="reaction-menu"><button id="reactionBtn">😊 <span>Реакции</span></button><div id="reactionChoices" hidden><button>👏</button><button>👍</button><button>❤️</button><button>😂</button><button>🎉</button></div></div>
       <button id="leaveBtn" class="danger">Выйти</button>
     </footer>
   </main>
+  <div id="reactionLayer" class="reaction-layer"></div>
+  <div id="leaveDialog" class="dialog" hidden><section><h2>Завершение урока</h2><p>Можно выйти и вернуться или завершить комнату для всех участников.</p><div><button id="exitOnlyBtn">Выйти</button><button id="endForAllBtn" class="danger" hidden>Завершить для всех</button><button id="leaveCancelBtn">Отмена</button></div></section></div>
+  <div id="reviewDialog" class="dialog" hidden><section><h2>Как прошёл урок?</h2><p id="reviewDuration"></p><div id="reviewStars" class="review-stars"><button>★</button><button>★</button><button>★</button><button>★</button><button>★</button></div><textarea id="reviewComment" maxlength="800" placeholder="Короткий отзыв или заметка…"></textarea><button id="reviewSaveBtn" class="primary">Сохранить и продолжить</button></section></div>
 </body>
 </html>

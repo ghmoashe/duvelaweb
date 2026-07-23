@@ -487,7 +487,7 @@
             field('ccZoomDuration', tr('Lesson duration (minutes)', 'Длительность урока (минуты)'), 'number', '60', c.zoom_duration || 60) +
           '</div><div class="cc-weekdays" id="ccZoomWeekdays"><span>' + esc(tr('Lesson days:', 'Дни уроков:')) + '</span>' +
             ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function (day, index) { return '<label><input type="checkbox" value="' + index + '"> ' + esc(day) + '</label>'; }).join('') +
-          '</div><div class="cc-timezone"><b>' + esc(tr('Time zone', 'Часовой пояс')) + ':</b> Europe/Berlin</div><div class="cc-zoom-preview" id="ccZoomPreview">' + esc(zoomPreviewText(c)) + '</div><p class="cc-zoom-note">' + esc(tr('Only confirmed learners can enter. The room opens 30 minutes before each lesson.', 'Войти смогут только подтверждённые ученики. Комната откроется за 30 минут до урока.')) + '</p></div></section>' +
+          '</div><div class="pv-field" style="margin-top:10px"><label>' + esc(tr('Course time zone', 'Часовой пояс курса')) + '</label><input id="ccTimezone" list="ccTimezoneList" value="' + esc(c.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin') + '"><datalist id="ccTimezoneList"><option value="Europe/Berlin"><option value="Europe/London"><option value="Europe/Kyiv"><option value="Asia/Dubai"><option value="Asia/Tashkent"><option value="America/New_York"></datalist></div><div class="cc-timezone"><b>' + esc(tr('Your device time zone', 'Часовой пояс устройства')) + ':</b> ' + esc(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin') + '</div><div class="cc-zoom-preview" id="ccZoomPreview">' + esc(zoomPreviewText(c)) + '</div><p class="cc-zoom-note">' + esc(tr('Only confirmed learners can enter. The room opens 30 minutes before each lesson.', 'Войти смогут только подтверждённые ученики. Комната откроется за 30 минут до урока.')) + '</p></div></section>' +
         '<div class="pv-field"><label>' + esc(tr('Description', 'Описание')) + '</label>' +
           '<textarea id="ccDesc" maxlength="800" placeholder="' + esc(tr('What learners will get from this course', 'Что ученики получат от курса')) + '">' + esc(c.description || '') + '</textarea></div>' +
         '<div class="pv-field"><label>' + esc(tr('Status', 'Статус')) + '</label><select id="ccStatus"><option value="draft">' + esc(tr('Draft', 'Черновик')) + '</option><option value="active">' + esc(tr('Published', 'Опубликован')) + '</option><option value="closed">' + esc(tr('Enrollment closed', 'Набор закрыт')) + '</option><option value="completed">' + esc(tr('Completed', 'Завершён')) + '</option></select></div>' +
@@ -547,6 +547,7 @@
       courseEditing.zoom_repeat = value('ccZoomRepeat') || 'none';
       courseEditing.zoom_duration = Number(value('ccZoomDuration')) || 60;
       courseEditing.zoom_weekdays = Array.prototype.map.call(document.querySelectorAll('#ccZoomWeekdays input:checked'), function (node) { return Number(node.value); });
+      courseEditing.timezone = value('ccTimezone') || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin';
     }
 
     async function uploadCover(file) {
@@ -613,7 +614,7 @@
         starts_on: fields.starts_on, ends_on: fields.ends_on, schedule: fields.schedule,
         location: fields.location, description: fields.description, status: fields.status,
         zoom_enabled: fields.zoom_enabled, delivery_mode: fields.delivery_mode,
-        max_students: fields.max_students
+        max_students: fields.max_students, timezone: courseEditing.timezone || 'Europe/Berlin'
       };
       var res;
       try {

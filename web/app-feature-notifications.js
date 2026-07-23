@@ -59,11 +59,27 @@
 
     function subscribeNotifications() {
       try {
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().catch(() => {});
+        }
         supa.channel('notif-' + ctx.user.id)
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + ctx.user.id }, (payload) => {
             state.notifications.unshift(payload.new);
             renderNotifBadge();
             if ($('#notifOverlay').classList.contains('open')) renderNotifList();
+            if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+              const notice = new Notification(payload.new.title || tr('Duvela notification', 'Уведомление Duvela'), {
+                body: payload.new.body || '',
+                icon: './logo.webp',
+                tag: payload.new.type + '-' + payload.new.id
+              });
+              notice.onclick = () => {
+                window.focus();
+                location.href = payload.new.type && payload.new.type.indexOf('zoom_class_') === 0
+                  ? './app.html?role=learner#schedule'
+                  : './app.html';
+              };
+            }
           }).subscribe();
       } catch (error) {
         /* realtime optional */
