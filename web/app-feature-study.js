@@ -439,6 +439,29 @@
         '</select>';
     }
 
+    function buildAdaptiveDailyPlan(progress, prefs, goal) {
+      var readiness=skillReadiness(progress), mistakes=loadMistakes(), due=mistakes.filter(function(item){return !item.dueAt||item.dueAt<=Date.now();});
+      var minutes=Math.max(10,Number(goal&&goal.minutes||20)), count=minutes>=45?4:minutes>=20?3:2;
+      var skills=['grammar','vocabulary','reading','listening','writing','speaking'];
+      var skillTool={grammar:'grammar',vocabulary:'flashcards',reading:'reading',listening:'listening',writing:'writing',speaking:'speaking'};
+      var skillTitle={
+        grammar:tr('Repair a grammar gap','Закрыть пробел в грамматике'),vocabulary:tr('Warm-up words','Разминка со словами'),
+        reading:tr('Read for meaning','Чтение на понимание'),listening:tr('Train your ear','Тренировка аудирования'),
+        writing:tr('Write with feedback','Письмо с обратной связью'),speaking:tr('Speak with AI feedback','Говорение с AI-проверкой')
+      };
+      var ordered=skills.slice().sort(function(a,b){return Number(readiness[a]||0)-Number(readiness[b]||0);}), plan=[];
+      if(due.length)plan.push({tool:'mistakes',title:tr('Review due mistakes','Повторить ошибки по графику'),meta:Math.min(10,due.length)+' '+tr('cards due','карточек на сегодня'),reason:tr('Spaced repetition is due today','Сегодня срок интервального повторения')});
+      ordered.forEach(function(skill){
+        if(plan.length>=count||plan.some(function(item){return item.tool===skillTool[skill];}))return;
+        var score=Number(readiness[skill]||0);
+        plan.push({tool:skillTool[skill],title:skillTitle[skill],meta:(plan.length?7:5)+' min · '+skill,reason:score<45?tr('Your lowest readiness skill','Сейчас это самый слабый навык'):tr('Keeps this skill balanced','Поддерживает баланс навыков')});
+      });
+      if(examDaysLeft(goal)!==null&&examDaysLeft(goal)<=21&&plan.length<count&&!plan.some(function(item){return item.tool==='exam';})) {
+        plan.push({tool:'exam',title:tr('Exam checkpoint','Экзаменационная проверка'),meta:'10 min · '+String(goal.exam||'exam').toUpperCase(),reason:tr('Your exam date is getting closer','Дата экзамена приближается')});
+      }
+      return plan.slice(0,count);
+    }
+
     // ---- public: tools grid in learner workspace ----
     function studyToolsHtml() {
       const p = loadProgress();
@@ -454,7 +477,7 @@
       const regularTools = TOOLS.filter(function (tool) { return !tool.premium; });
       const prefsLevel = prefs.levels && prefs.levels[prefs.practiceLang] || 'A1';
       const premiumActive = practicePremium || !!p.premiumActive || !!(ctx.profile && (ctx.profile.is_premium || ctx.profile.premium));
-      const readiness=skillReadiness(p),weak=weakTopics(),examGoal=loadExamGoal(),daysLeft=examDaysLeft(examGoal);
+      const readiness=skillReadiness(p),weak=weakTopics(),examGoal=loadExamGoal(),daysLeft=examDaysLeft(examGoal),dailyPlan=buildAdaptiveDailyPlan(p,prefs,examGoal);
       function toolCard(tool) {
         var sessions = Number(p[tool.id]) || 0;
         return '<button class="study-tile mph-card ' + esc(tool.accent || 'purple') + (tool.premium ? ' premium-card' : '') + '" data-study="' + esc(tool.id) + '" data-study-category="' + esc(tool.category || '') + '"' + (tool.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
@@ -469,7 +492,7 @@
         '<div class="practice-rank-strip"><span>🔥 <b>' + (streak || 0) + '</b> ' + esc(tr('day streak','дней подряд')) + '</span><span>🏅 <b>' + esc(rank) + '</b></span><span>🎯 <b>' + Number(p.streak && p.streak.today_sessions || 0) + '/' + Number(p.streak && p.streak.daily_goal || 1) + '</b> ' + esc(tr('today','сегодня')) + '</span></div>' +
         '<section class="exam-journey"><div class="exam-journey-main"><small>'+esc(tr('EXAM JOURNEY','ПУТЬ К ЭКЗАМЕНУ'))+'</small><div><h2>'+esc(examGoal.exam.toUpperCase().replace('-',' '))+'</h2><strong>'+readiness.overall+'%</strong></div><p>'+esc(daysLeft===null?tr('Set an exam date and get a personal daily plan.','Укажите дату экзамена и получите личный план на каждый день.'):daysLeft+' '+tr('days until the exam','дней до экзамена'))+'</p><div class="exam-readiness-track"><i style="width:'+readiness.overall+'%"></i></div><button type="button" class="btn" data-exam-plan="1">'+esc(daysLeft===null?tr('Create my plan','Создать мой план'):tr('Change goal','Изменить цель'))+'</button></div><div class="skill-readiness">'+[['reading','Reading'],['listening','Listening'],['grammar','Grammar'],['writing','Writing'],['speaking','Speaking']].map(function(item){return '<button type="button" data-readiness-tool="'+item[0]+'"><span><b>'+item[1]+'</b><strong>'+readiness[item[0]]+'%</strong></span><i><em style="width:'+readiness[item[0]]+'%"></em></i></button>';}).join('')+'</div></section>'+
         '<section class="weak-map"><div class="weak-map-head"><div><small>'+esc(tr('SMART REVIEW','УМНОЕ ПОВТОРЕНИЕ'))+'</small><h2>'+esc(tr('Topics needing attention','Темы, которым нужно внимание'))+'</h2></div><span>'+loadMistakes().filter(function(item){return !item.dueAt||item.dueAt<=Date.now();}).length+' '+esc(tr('due today','на сегодня'))+'</span></div><div class="weak-topic-grid">'+(weak.length?weak.map(function(item){var mastery=Math.max(12,100-item.count*14);return '<button type="button" data-weak-tool="'+item.tool+'"><span><b>'+esc(item.label)+'</b><small>'+item.count+' '+esc(tr('errors','ошибок'))+'</small></span><strong>'+mastery+'%</strong><i><em style="width:'+mastery+'%"></em></i></button>';}).join(''):'<div class="weak-empty">✓ '+esc(tr('No weak patterns yet. Complete a practice to build your map.','Слабых тем пока нет. Пройдите практику, чтобы построить карту.'))+'</div>')+'</div></section>'+
-        '<div class="practice-daily"><div class="practice-daily-head"><div><small>' + esc(tr('DAILY PLAN','ПЛАН НА СЕГОДНЯ')) + '</small><h2>' + esc(tr('Three short steps','Три коротких шага')) + '</h2></div><b>' + Math.min(3,Number(p.streak && p.streak.today_sessions || 0)) + '/3</b></div><div class="practice-daily-list"><button data-study="flashcards"><i>1</i><span><b>' + esc(tr('Warm-up words','Разминка со словами')) + '</b><small>5 min · Vocabulary</small></span><em>→</em></button><button data-study="grammar"><i>2</i><span><b>' + esc(tr('Grammar focus','Фокус на грамматике')) + '</b><small>7 min · ' + esc(prefsLevel) + '</small></span><em>→</em></button><button data-study="' + (loadMistakes().length ? 'mistakes' : 'speaking') + '"><i>3</i><span><b>' + esc(loadMistakes().length ? tr('Review weak topics','Повторить слабые темы') : tr('Speaking finish','Завершить говорением')) + '</b><small>5 min · ' + loadMistakes().length + ' ' + esc(tr('mistakes','ошибок')) + '</small></span><em>→</em></button></div></div>' +
+        '<div class="practice-daily adaptive-daily"><div class="practice-daily-head"><div><small>' + esc(tr('ADAPTIVE DAILY PLAN','АДАПТИВНЫЙ ПЛАН НА СЕГОДНЯ')) + '</small><h2>' + esc(tr('Built from your progress and exam goal','Составлен по вашему прогрессу и цели экзамена')) + '</h2></div><b>' + Math.min(dailyPlan.length,Number(p.streak && p.streak.today_sessions || 0)) + '/'+dailyPlan.length+'</b></div><div class="practice-daily-list">'+dailyPlan.map(function(item,index){return '<button data-study="'+esc(item.tool)+'"><i>'+(index+1)+'</i><span><b>'+esc(item.title)+'</b><small>'+esc(item.meta)+'</small><u>'+esc(item.reason)+'</u></span><em>→</em></button>';}).join('')+'</div></div>' +
         '<div class="practice-section-title premium-title"><div><small>DUVELA PREMIUM</small><h2>★ ' + esc(tr('Premium practice','Премиум-практика')) + '</h2></div><span>' + esc(tr('Personal tools and exams','Персональные инструменты и экзамены')) + '</span></div>' +
         '<div class="study-grid mph-grid premium-grid">' + premiumTools.map(toolCard).join('') + '</div>' +
         '<div class="mph-toolbar"><div><small>' + esc(tr('PRACTICE LIBRARY', 'БИБЛИОТЕКА ПРАКТИКИ')) + '</small><h2>' + esc(tr('All practice','Все практики')) + '</h2></div><div class="mph-filters"><button class="active" data-study-filter="all">' + esc(tr('All', 'Все')) + '</button><button data-study-filter="grammar">' + esc(tr('Grammar', 'Грамматика')) + '</button><button data-study-filter="vocabulary">' + esc(tr('Vocabulary', 'Словарь')) + '</button><button data-study-filter="skills">' + esc(tr('Skills', 'Навыки')) + '</button><button data-study-filter="progress">' + esc(tr('Progress', 'Прогресс')) + '</button></div></div>' +
@@ -968,6 +991,39 @@
       return { percent:target.length ? Math.round(matched.length / target.length * 100) : 0, words:target.map(function (word) { return { word:word, ok:heard.indexOf(word) >= 0 }; }) };
     }
 
+    async function requestAiEvaluation(tool, payload) {
+      var body = Object.assign({
+        action: tool === 'writing' ? 'evaluate-writing' : 'evaluate-speaking',
+        language: studyState.lang,
+        level: (loadPrefs().levels || {})[studyState.lang] || 'A1',
+        nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US'
+      }, payload || {});
+      var response = await supa.functions.invoke('practice-ai-evaluate', { body:body });
+      if (response.error || !response.data || !response.data.evaluation) {
+        throw new Error(response.error && response.error.message || response.data && response.data.error || tr('AI evaluation is temporarily unavailable.','AI-проверка временно недоступна.'));
+      }
+      if (uid()) {
+        supa.from('practice_ai_evaluations').insert({
+          user_id:uid(), tool_id:tool, language:body.language, level:body.level,
+          prompt:body.prompt || body.expected || '', answer_text:body.text || body.transcript || '',
+          result:response.data.evaluation, model:response.data.model || null
+        }).then(function(){},function(){});
+      }
+      return response.data.evaluation;
+    }
+
+    function evaluationHtml(result, pronunciation) {
+      var criteria = result.criteria || {};
+      var rows = pronunciation === undefined
+        ? [[tr('Task completion','Выполнение задания'),criteria.taskCompletion],[tr('Communication','Коммуникация'),criteria.communication],[tr('Grammar','Грамматика'),criteria.grammar],[tr('Vocabulary','Словарь'),criteria.vocabulary]]
+        : [[tr('Speech match','Совпадение речи'),pronunciation],[tr('Task completion','Выполнение задания'),criteria.taskCompletion],[tr('Grammar','Грамматика'),criteria.grammar],[tr('Fluency','Беглость'),criteria.fluency],[tr('Vocabulary','Словарь'),criteria.vocabulary]];
+      return '<div class="writing-evaluation ai-evaluation"><header><span>✨</span><div><small>'+esc(tr('AI EVALUATION','AI-ПРОВЕРКА'))+'</small><h3>'+Number(result.overall || 0)+' / 100</h3></div></header><p class="ai-summary">'+esc(result.summary || '')+'</p><div>'+rows.map(function(row){var score=Math.max(0,Math.min(100,Number(row[1]||0)));return '<span><small>'+esc(row[0])+'</small><b>'+score+'%</b><i><em style="width:'+score+'%"></em></i></span>';}).join('')+'</div>'+
+        ((result.strengths||[]).length?'<article class="ai-strengths"><b>'+esc(tr('What already works','Что уже получается'))+'</b><ul>'+result.strengths.map(function(item){return '<li>'+esc(item)+'</li>';}).join('')+'</ul></article>':'')+
+        ((result.corrections||[]).length?'<article class="ai-corrections"><b>'+esc(tr('Corrections with explanation','Исправления с объяснением'))+'</b>'+result.corrections.map(function(item){return '<p><del>'+esc(item.original)+'</del><br><strong>'+esc(item.corrected)+'</strong><small>'+esc(item.explanation)+'</small></p>';}).join('')+'</article>':'')+
+        (result.improvedVersion?'<article><b>'+esc(tr('Improved version','Улучшенная версия'))+'</b><p>'+esc(result.improvedVersion)+'</p></article>':'')+
+        '<article><b>'+esc(tr('Next improvement','Следующее улучшение'))+'</b><p>'+esc(result.nextStep || '')+'</p></article></div>';
+    }
+
     function renderSpeaking() {
       if(!studyState.speakingMode){
         $('#studyToolBody').innerHTML='<div class="speaking-mode-head"><span>🎙</span><div><small>'+esc(tr('AI SPEAKING PRACTICE','РАЗГОВОРНАЯ ПРАКТИКА'))+'</small><h2>'+esc(tr('Choose a real exam situation','Выберите ситуацию настоящего экзамена'))+'</h2></div></div><div class="speaking-modes">'+[['intro','1','3 min',tr('Introduce yourself or share an experience','Расскажите о себе или своём опыте')],['discuss','2','6 min',tr('Discuss a topic and support your opinion','Обсудите тему и обоснуйте мнение')],['plan','3','5 min',tr('Plan something together','Спланируйте что-нибудь вместе')]].map(function(item){return '<button data-speaking-mode="'+item[0]+'"><i>'+item[1]+'</i><span><b>'+esc(item[3])+'</b><small>'+item[2]+'</small></span><em>→</em></button>';}).join('')+'</div>';
@@ -986,13 +1042,21 @@
         var button = $('#spRecord'), recognition = new Recognition(),recorder=null,stream=null,chunks=[]; recognition.lang = SPEECH_LOCALE[studyState.lang] || 'de-DE'; recognition.interimResults = false; recognition.maxAlternatives = 1;
         try{if(navigator.mediaDevices&&window.MediaRecorder){stream=await navigator.mediaDevices.getUserMedia({audio:true});recorder=new MediaRecorder(stream);recorder.ondataavailable=function(event){if(event.data&&event.data.size)chunks.push(event.data);};recorder.onstop=function(){studyState.lastAudioBlob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});stream.getTracks().forEach(function(track){track.stop();});};recorder.start();}}catch(e){stream=null;}
         button.disabled = true; button.textContent = '● ' + tr('Listening…','Слушаю…');$('#voiceWave').hidden=false;
-        recognition.onresult = function (event) {
+        recognition.onresult = async function (event) {
           var heard = event.results[0][0].transcript, result = similarity(phrase, heard), ok = result.percent >= 70;
           feedback(ok); if (ok) studyState.score++; else logMistake(studyState.lang, phrase, [], null, 'pronunciation');
           studyState.lastTranscript=heard;$('#voiceWave').hidden=true;
-          var fluency=Math.min(100,Math.max(35,result.percent+8)),grammar=Math.min(100,Math.max(30,result.percent-4)),task=Math.min(100,Math.max(40,result.percent+3));
-          $('#spResult').innerHTML = '<p><b>' + esc(tr('I heard: ','Я услышал: ')) + '</b>' + esc(heard) + '</p><div class="pronunciation-score"><strong>' + result.percent + '%</strong><span>' + result.words.map(function (item) { return '<i class="' + (item.ok ? 'ok' : 'miss') + '">' + esc(item.word) + '</i>'; }).join(' ') + '</span></div><div class="speaking-rubric">'+[['Pronunciation',result.percent],['Grammar',grammar],['Fluency',fluency],[tr('Task completion','Выполнение задания'),task]].map(function(row){return '<span><small>'+esc(row[0])+'</small><b>'+row[1]+'%</b><i><em style="width:'+row[1]+'%"></em></i></span>';}).join('')+'</div><button class="btn" id="sendSpeaking">📨 '+esc(tr('Send to teacher','Отправить преподавателю'))+'</button>';
-          $('#sendSpeaking').onclick=function(){submitForTeacher('speaking',heard,studyState.lastAudioBlob||null);};setTimeout(function () { if(studyState&&studyState.lastTranscript===heard){studyState.idx++; persistResume(); renderSpeaking();} },6000);
+          $('#spResult').innerHTML = '<p><b>' + esc(tr('I heard: ','Я услышал: ')) + '</b>' + esc(heard) + '</p><div class="pronunciation-score"><strong>' + result.percent + '%</strong><span>' + result.words.map(function (item) { return '<i class="' + (item.ok ? 'ok' : 'miss') + '">' + esc(item.word) + '</i>'; }).join(' ') + '</span></div><div class="ai-checking"><i></i><span>'+esc(tr('AI examiner is checking grammar, vocabulary and task completion…','AI-экзаменатор проверяет грамматику, словарь и выполнение задания…'))+'</span></div>';
+          try {
+            var evaluation=await requestAiEvaluation('speaking',{transcript:heard,expected:phrase,prompt:phrase});
+            if(!studyState||studyState.lastTranscript!==heard)return;
+            $('#spResult').insertAdjacentHTML('beforeend',evaluationHtml(evaluation,result.percent));
+          } catch(error) {
+            $('#spResult').insertAdjacentHTML('beforeend','<p class="practice-warning">'+esc(error.message)+'</p>');
+          }
+          $('#spResult').insertAdjacentHTML('beforeend','<div class="ai-result-actions"><button class="btn" id="sendSpeaking">📨 '+esc(tr('Send to teacher','Отправить преподавателю'))+'</button><button class="btn primary" id="speakingNext">'+esc(tr('Next task','Следующее задание'))+' →</button></div>');
+          $('#sendSpeaking').onclick=function(){submitForTeacher('speaking',heard,studyState.lastAudioBlob||null);};
+          $('#speakingNext').onclick=function(){studyState.idx++;persistResume();renderSpeaking();};
         };
         recognition.onerror = function () { button.disabled = false; button.textContent = '🎙 ' + tr('Try again','Повторить'); $('#voiceWave').hidden=true;$('#spResult').textContent = tr('Microphone permission or speech service is unavailable.','Нет доступа к микрофону или сервису речи.'); };
         recognition.onend = function () { button.disabled = false;if(recorder&&recorder.state!=='inactive')recorder.stop();else if(stream)stream.getTracks().forEach(function(track){track.stop();}); };
@@ -1112,7 +1176,7 @@
         $('#wrCount').textContent = words + ' ' + tr('words', 'слов');
       });
       $('#wrSend').onclick=function(){submitForTeacher('writing',$('#wrText').value,null);};
-      $('#wrEvaluate').onclick=function(){var text=$('#wrText').value.trim(),words=text.split(/\s+/).filter(Boolean),sentences=text.split(/[.!?]+/).filter(function(value){return value.trim();}),taskScore=Math.min(100,35+sentences.length*13),communication=Math.min(100,30+words.length*2),grammar=Math.min(94,45+Math.min(35,sentences.length*8));if(words.length<8)return alert(tr('Write a little more before evaluation.','Напишите немного больше перед проверкой.'));studyState.writingDraft=text;studyState.writingEvaluation='<div class="writing-evaluation"><header><span>✨</span><div><small>'+esc(tr('WRITING EVALUATION','ОЦЕНКА ПИСЬМА'))+'</small><h3>'+Math.round((taskScore+communication+grammar)/3)+' / 100</h3></div></header><div>'+[[tr('Task completion','Выполнение задания'),taskScore],[tr('Communication','Коммуникация'),communication],[tr('Grammar','Грамматика'),grammar]].map(function(row){return '<span><small>'+esc(row[0])+'</small><b>'+row[1]+'%</b><i><em style="width:'+row[1]+'%"></em></i></span>';}).join('')+'</div><article><b>'+esc(tr('Next improvement','Следующее улучшение'))+'</b><p>'+esc(sentences.length<4?tr('Add more complete sentences and connect them with time words.','Добавьте больше полных предложений и свяжите их словами времени.'):tr('Good structure. Now check endings, word order and repeated words.','Хорошая структура. Теперь проверьте окончания, порядок слов и повторения.'))+'</p></article></div>';renderWriting();};
+      $('#wrEvaluate').onclick=async function(){var text=$('#wrText').value.trim(),words=text.split(/\s+/).filter(Boolean);if(words.length<8)return alert(tr('Write a little more before evaluation.','Напишите немного больше перед проверкой.'));studyState.writingDraft=text;var button=this;button.disabled=true;button.textContent=tr('AI is checking…','AI проверяет…');$('#writingEvaluation').innerHTML='<div class="ai-checking"><i></i><span>'+esc(tr('Checking task completion, grammar, vocabulary and clarity…','Проверяем выполнение задания, грамматику, словарь и ясность…'))+'</span></div>';try{var evaluation=await requestAiEvaluation('writing',{text:text,prompt:task.prompt});studyState.writingEvaluation=evaluationHtml(evaluation);renderWriting();}catch(error){button.disabled=false;button.textContent='✨ '+tr('Evaluate my writing','Проверить мою работу');$('#writingEvaluation').innerHTML='<p class="practice-warning">'+esc(error.message)+'</p>';}};
       Array.prototype.forEach.call(host.querySelectorAll('[data-chk]'), function (chk) {
         chk.addEventListener('change', function () {
           studyState.checked[chk.getAttribute('data-chk')] = chk.checked;
@@ -1140,10 +1204,73 @@
       }
       return shuffle(deck);
     }
+    function mockBlueprint() {
+      return [
+        {id:'reading',icon:'📖',title:'Reading',minutes:15},
+        {id:'listening',icon:'🎧',title:'Listening',minutes:15},
+        {id:'grammar',icon:'✎',title:'Language',minutes:15},
+        {id:'writing',icon:'📝',title:'Writing',minutes:20},
+        {id:'speaking',icon:'🎙',title:'Speaking',minutes:10}
+      ];
+    }
+    function startFullMock() {
+      studyState.mock={sections:mockBlueprint(),index:0,scores:{},startedAt:Date.now(),answers:{},evaluations:{}};
+      studyState.data=null;studyState.idx=0;studyState.score=0;renderMockSection();
+    }
+    function renderMockSection() {
+      var mock=studyState.mock, section=mock.sections[mock.index], host=$('#studyToolBody');
+      if(!section)return finishFullMock();
+      if(studyState.examTimerId){clearInterval(studyState.examTimerId);studyState.examTimerId=null;}
+      studyState.examEndAt=Date.now()+section.minutes*60000;
+      studyState.examTimerId=setInterval(function(){var el=$('#mockTimer');if(!el)return;var left=Math.max(0,Math.round((studyState.examEndAt-Date.now())/1000));el.textContent=(left/60|0)+':'+String(left%60).padStart(2,'0');if(!left)completeMockSection();},500);
+      var nav='<div class="mock-progress">'+mock.sections.map(function(item,index){return '<span class="'+(index<mock.index?'done':index===mock.index?'active':'')+'"><i>'+item.icon+'</i><b>'+esc(item.title)+'</b></span>';}).join('')+'</div>';
+      var header='<div class="mock-section-head"><div><small>'+esc(tr('FULL MOCK EXAM','ПОЛНЫЙ ПРОБНЫЙ ЭКЗАМЕН'))+'</small><h2>'+section.icon+' '+esc(section.title)+'</h2></div><strong id="mockTimer">'+section.minutes+':00</strong></div>';
+      if(section.id==='writing'){
+        var writing=(WRITING[studyState.lang]||WRITING.de)[0];
+        host.innerHTML=nav+header+'<div class="mock-task"><b>'+esc(writing.prompt)+'</b><p>'+esc(tr('Write a complete answer. AI evaluation is included in the section result.','Напишите полный ответ. AI-проверка войдёт в результат секции.'))+'</p><textarea id="mockWriting" rows="10" placeholder="'+esc(tr('Your answer…','Ваш ответ…'))+'">'+esc(mock.answers.writing||'')+'</textarea><div class="mock-actions"><button class="btn primary" id="mockSectionDone">'+esc(tr('Submit section','Сдать секцию'))+' →</button></div></div>';
+        $('#mockSectionDone').onclick=function(){mock.answers.writing=$('#mockWriting').value.trim();completeMockSection();};return;
+      }
+      if(section.id==='speaking'){
+        host.innerHTML=nav+header+'<div class="mock-task mock-speaking"><span>🎙</span><h3>'+esc(tr('Speak for 60–90 seconds about your learning goals and explain why they matter.','Говорите 60–90 секунд о своих учебных целях и объясните, почему они важны.'))+'</h3><p>'+esc(tr('Use the microphone or type the recognized transcript if speech recognition is unavailable.','Используйте микрофон или введите распознанный текст, если распознавание недоступно.'))+'</p><textarea id="mockSpeaking" rows="7" placeholder="'+esc(tr('Recognized speech…','Распознанная речь…'))+'">'+esc(mock.answers.speaking||'')+'</textarea><div class="mock-actions"><button class="btn" id="mockRecord">🎙 '+esc(tr('Record answer','Записать ответ'))+'</button><button class="btn primary" id="mockSectionDone">'+esc(tr('Submit section','Сдать секцию'))+' →</button></div></div>';
+        $('#mockRecord').onclick=function(){var Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition)return alert(tr('Speech recognition is unavailable. Type your answer instead.','Распознавание речи недоступно. Введите ответ текстом.'));var recognition=new Recognition();recognition.lang=SPEECH_LOCALE[studyState.lang]||'de-DE';recognition.interimResults=false;this.disabled=true;this.textContent=tr('Listening…','Слушаю…');recognition.onresult=function(event){$('#mockSpeaking').value=event.results[0][0].transcript;};recognition.onend=function(){var button=$('#mockRecord');if(button){button.disabled=false;button.textContent='🎙 '+tr('Record again','Записать снова');}};recognition.start();};
+        $('#mockSectionDone').onclick=function(){mock.answers.speaking=$('#mockSpeaking').value.trim();completeMockSection();};return;
+      }
+      var deck;
+      if(section.id==='reading'){var passage=(READING[studyState.lang]||READING.de)[0];deck=passage.questions.map(function(q){return {q:q.q,opts:q.opts,a:q.a,context:passage.text};});}
+      else if(section.id==='listening'){deck=(LISTEN[studyState.lang]||LISTEN.de).slice(0,5).map(function(item){var opts=shuffle([item.text,item.text.split(' ').reverse().join(' '),item.hint,'—']);return {q:tr('Listen and choose the sentence','Прослушайте и выберите предложение'),opts:opts,a:opts.indexOf(item.text),speechText:item.text};});}
+      else deck=buildExamDeck(studyState.lang).slice(0,10);
+      mock.deck=deck;mock.question=0;mock.correct=0;renderMockQuestion(nav,header);
+    }
+    function renderMockQuestion(nav,header) {
+      var mock=studyState.mock,section=mock.sections[mock.index],item=mock.deck[mock.question],host=$('#studyToolBody');
+      if(!item)return completeMockSection();
+      host.innerHTML=nav+header+'<div class="mock-question"><small>'+(mock.question+1)+' / '+mock.deck.length+'</small>'+(item.context?'<p class="mock-reading-text">'+esc(item.context)+'</p>':'')+'<h3>'+esc(item.q)+'</h3>'+(item.speechText?'<button class="btn" id="mockListen">🔊 '+esc(tr('Play audio','Прослушать'))+'</button>':'')+'<div class="mock-options">'+item.opts.map(function(option,index){return '<button data-mock-option="'+index+'">'+esc(option)+'</button>';}).join('')+'</div></div>';
+      if(item.speechText)$('#mockListen').onclick=function(){var u=new SpeechSynthesisUtterance(item.speechText);u.lang=SPEECH_LOCALE[studyState.lang]||'de-DE';speechSynthesis.cancel();speechSynthesis.speak(u);};
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mock-option]'),function(button){button.onclick=function(){if(Number(button.getAttribute('data-mock-option'))===item.a)mock.correct++;mock.question++;renderMockQuestion(nav,header);};});
+    }
+    async function completeMockSection() {
+      var mock=studyState.mock;if(!mock||mock.completing)return;mock.completing=true;
+      if(studyState.examTimerId){clearInterval(studyState.examTimerId);studyState.examTimerId=null;}
+      var section=mock.sections[mock.index],host=$('#studyToolBody');
+      if(section.id==='writing'||section.id==='speaking'){
+        var text=mock.answers[section.id]||'',prompt=section.id==='writing'?(WRITING[studyState.lang]||WRITING.de)[0].prompt:tr('Explain your learning goals and why they matter.','Объясните свои учебные цели и почему они важны.');
+        host.innerHTML='<div class="ai-checking exam-ai-checking"><i></i><span>'+esc(tr('AI examiner is scoring this section…','AI-экзаменатор оценивает секцию…'))+'</span></div>';
+        try{var evaluation=await requestAiEvaluation(section.id,{text:text,transcript:text,prompt:prompt,expected:prompt});mock.evaluations[section.id]=evaluation;mock.scores[section.id]=Number(evaluation.overall||0);}catch(error){mock.scores[section.id]=0;mock.evaluations[section.id]={summary:error.message,nextStep:tr('Repeat this section when AI evaluation is available.','Повторите секцию, когда AI-проверка будет доступна.')};}
+      } else mock.scores[section.id]=Math.round((mock.correct||0)/Math.max(1,(mock.deck||[]).length)*100);
+      mock.index++;mock.completing=false;renderMockSection();
+    }
+    function finishFullMock() {
+      var mock=studyState.mock,scores=mock.scores,keys=mock.sections.map(function(item){return item.id;}),overall=Math.round(keys.reduce(function(sum,key){return sum+Number(scores[key]||0);},0)/keys.length),passed=overall>=60,duration=Math.round((Date.now()-mock.startedAt)/1000);
+      if(uid())supa.from('practice_mock_exams').insert({user_id:uid(),exam_type:(loadExamGoal().exam||'duvela-mock'),language:studyState.lang,level:(loadPrefs().levels||{})[studyState.lang]||'A1',section_scores:scores,overall:overall,passed:passed,duration_seconds:duration}).then(function(){},function(){});
+      bumpProgress('exam',Math.max(10,Math.round(overall/5)));clearResume();
+      $('#studyToolBody').innerHTML='<div class="mock-result '+(passed?'passed':'retry')+'"><span>'+(passed?'🏆':'🎯')+'</span><small>'+esc(tr('MOCK EXAM RESULT','РЕЗУЛЬТАТ ПРОБНОГО ЭКЗАМЕНА'))+'</small><h2>'+overall+' / 100</h2><p>'+esc(passed?tr('Pass level reached. Keep strengthening the lowest section.','Проходной уровень достигнут. Продолжайте укреплять слабейшую секцию.'):tr('Not at pass level yet — now you know exactly what to train.','До проходного уровня пока не хватает — теперь понятно, что тренировать.'))+'</p><div class="mock-score-grid">'+mock.sections.map(function(section){return '<button data-result-tool="'+section.id+'"><span>'+section.icon+'</span><b>'+esc(section.title)+'</b><strong>'+Number(scores[section.id]||0)+'%</strong></button>';}).join('')+'</div><div class="mock-result-actions"><button class="btn" id="mockReview">'+esc(tr('Train weakest skill','Тренировать слабый навык'))+'</button><button class="btn primary" id="mockAgain">'+esc(tr('Take another mock','Пройти ещё раз'))+'</button></div></div>';
+      $('#mockAgain').onclick=startFullMock;$('#mockReview').onclick=function(){var weakest=keys.sort(function(a,b){return Number(scores[a]||0)-Number(scores[b]||0);})[0];openStudyTool(weakest==='grammar'?'grammar':weakest);};
+      Array.prototype.forEach.call(document.querySelectorAll('[data-result-tool]'),function(button){button.onclick=function(){var tool=button.getAttribute('data-result-tool');openStudyTool(tool==='grammar'?'grammar':tool);};});
+    }
     function renderExam() {
       if (!studyState.examType) {
         $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>Goethe · Cambridge · A1–C2</p></div></div><div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
-        Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
+        Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if(type==='mixed')return startFullMock(); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
       }
       if (!studyState.data) {
         if (studyState.examType === 'reading') { var passage=(READING[studyState.lang]||READING.de)[0]; studyState.data=passage.questions.slice(); }

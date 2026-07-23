@@ -116,6 +116,32 @@ create table if not exists public.practice_exam_goals (
   exam_date date not null, days_per_week integer not null default 5 check(days_per_week between 1 and 7),
   minutes_per_day integer not null default 20 check(minutes_per_day between 5 and 180), updated_at timestamptz not null default now()
 );
+create table if not exists public.practice_ai_evaluations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  tool_id text not null check(tool_id in ('speaking','writing')),
+  language text not null,
+  level text,
+  prompt text,
+  answer_text text not null,
+  result jsonb not null default '{}'::jsonb,
+  model text,
+  created_at timestamptz not null default now()
+);
+create table if not exists public.practice_mock_exams (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  exam_type text not null,
+  language text not null,
+  level text,
+  section_scores jsonb not null default '{}'::jsonb,
+  overall integer not null check(overall between 0 and 100),
+  passed boolean not null default false,
+  duration_seconds integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists practice_ai_evaluations_user_idx on public.practice_ai_evaluations(user_id,created_at desc);
+create index if not exists practice_mock_exams_user_idx on public.practice_mock_exams(user_id,created_at desc);
 alter table public.practice_mistakes add column if not exists topic_id text;
 alter table public.practice_mistakes add column if not exists review_step integer not null default 0;
 alter table public.practice_mistakes add column if not exists due_at timestamptz not null default now();
@@ -140,6 +166,8 @@ alter table public.practice_submissions enable row level security;
 alter table public.practice_challenges enable row level security;
 alter table public.practice_challenge_members enable row level security;
 alter table public.practice_exam_goals enable row level security;
+alter table public.practice_ai_evaluations enable row level security;
+alter table public.practice_mock_exams enable row level security;
 do $$ declare t text; begin foreach t in array array['practice_sessions','practice_progress','practice_mistakes','practice_saved_words','practice_streaks','practice_achievements','practice_reminders','practice_language_settings'] loop
   execute format('drop policy if exists "users manage own %1$s" on public.%1$I',t);
   execute format('create policy "users manage own %1$s" on public.%1$I for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid())',t);
@@ -174,6 +202,10 @@ drop policy if exists "users update own challenge score" on public.practice_chal
 create policy "users update own challenge score" on public.practice_challenge_members for update to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 drop policy if exists "users manage own exam goal" on public.practice_exam_goals;
 create policy "users manage own exam goal" on public.practice_exam_goals for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists "users manage own ai evaluations" on public.practice_ai_evaluations;
+create policy "users manage own ai evaluations" on public.practice_ai_evaluations for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists "users manage own mock exams" on public.practice_mock_exams;
+create policy "users manage own mock exams" on public.practice_mock_exams for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 do $$ begin
   if exists (select 1 from pg_publication where pubname='supabase_realtime') and not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='practice_challenge_members') then
     alter publication supabase_realtime add table public.practice_challenge_members;
