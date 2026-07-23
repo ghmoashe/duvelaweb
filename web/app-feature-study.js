@@ -308,13 +308,13 @@
     }
     function persistResume() {
       if (!studyState || ['history','mistakes'].indexOf(studyState.tool) >= 0) return;
-      var resume={ tool:studyState.tool,lang:studyState.lang,idx:studyState.idx || 0,score:studyState.score || 0,clientSessionId:studyState.clientSessionId,startedAt:studyState.startedAt,at:Date.now() };
-      try { localStorage.setItem(RESUME_KEY, JSON.stringify(resume)); if(uid()&&navigator.onLine)supa.from('practice_resume').upsert({user_id:uid(),tool_id:resume.tool,language:resume.lang,level:(loadPrefs().levels||{})[resume.lang]||'A1',current_step:resume.idx,score:resume.score,state:{startedAt:resume.startedAt},client_session_id:resume.clientSessionId,updated_at:new Date().toISOString()}); }
+      var resume={ tool:studyState.tool,lang:studyState.lang,level:studyState.level||currentPracticeLevel(studyState.lang),idx:studyState.idx || 0,score:studyState.score || 0,clientSessionId:studyState.clientSessionId,startedAt:studyState.startedAt,at:Date.now() };
+      try { localStorage.setItem(RESUME_KEY, JSON.stringify(resume)); if(uid()&&navigator.onLine)supa.from('practice_resume').upsert({user_id:uid(),tool_id:resume.tool,language:resume.lang,level:resume.level,current_step:resume.idx,score:resume.score,state:{startedAt:resume.startedAt},client_session_id:resume.clientSessionId,updated_at:new Date().toISOString()}); }
       catch (e) { /* ignore */ }
     }
     function clearResume() { localStorage.removeItem(RESUME_KEY); if(uid()&&navigator.onLine)supa.from('practice_resume').delete().eq('user_id',uid()); }
     function readResume() {
-      try { var value = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null'); return value && Date.now() - value.at < 7 * 86400000 ? value : null; }
+      try { var value=JSON.parse(localStorage.getItem(RESUME_KEY)||'null');if(!value||Date.now()-value.at>=7*86400000)return null;value.level=normalizePracticeLevel(value.level,'A1');return value.lang===currentLang()&&value.level===currentPracticeLevel(value.lang)?value:null; }
       catch (e) { return null; }
     }
     async function syncPracticeData() {
@@ -343,7 +343,7 @@
           supa.from('practice_achievements').select('achievement_id,unlocked_at,metadata').eq('user_id',uid()).order('unlocked_at',{ ascending:false }),
           supa.from('practice_subscriptions').select('status,current_period_end').eq('user_id',uid()).eq('status','active').maybeSingle(),
           supa.from('practice_language_settings').select('language,level,active').eq('user_id',uid()),
-          supa.from('practice_resume').select('tool_id,language,current_step,score,state,client_session_id,updated_at').eq('user_id',uid()).maybeSingle(),
+          supa.from('practice_resume').select('tool_id,language,level,current_step,score,state,client_session_id,updated_at').eq('user_id',uid()).maybeSingle(),
           supa.from('practice_exam_goals').select('exam_type,exam_date,days_per_week,minutes_per_day,updated_at').eq('user_id',uid()).maybeSingle(),
           supa.from('learner_language_profiles').select('language,current_level,is_active,practice_progress,score').eq('user_id',uid())
         ]);
@@ -354,7 +354,7 @@
         progress.sessions = results[4].data || progress.sessions || []; progress.achievements = results[5].data || progress.achievements || [];
         practicePremium = !!(results[6].data && results[6].data.status === 'active'); progress.premiumActive=practicePremium; saveProgress(progress);
         if ((results[7].data || []).length) { var prefs=loadPrefs();prefs.levels=prefs.levels||{};(results[7].data||[]).forEach(function(row){prefs.levels[row.language]=row.level;if(row.active)prefs.practiceLang=row.language;});savePrefs(prefs); }
-        if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime();if(!local||cloudAt>Number(local.at||0))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloud.state&&cloud.state.startedAt||Date.now(),at:cloudAt})); }
+        if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime(),cloudLevel=normalizePracticeLevel(cloud.level,'A1');if(cloud.language===currentLang()&&cloudLevel===currentPracticeLevel(cloud.language)&&(!local||cloudAt>Number(local.at||0)))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,level:cloudLevel,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloud.state&&cloud.state.startedAt||Date.now(),at:cloudAt})); }
         if(results[9]&&results[9].data){var exam=results[9].data;localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify({exam:exam.exam_type,date:exam.exam_date,daysPerWeek:exam.days_per_week,minutes:exam.minutes_per_day}));}
         if(results[10]&&(results[10].data||[]).length){var languagePrefs=loadPrefs();languagePrefs.levels=languagePrefs.levels||{};(results[10].data||[]).forEach(function(row){var target=normalizePracticeTarget(row.language);if(!target)return;languagePrefs.levels[target]=String(row.current_level||'A1').toUpperCase();if(row.is_active){languagePrefs.practiceTarget=target;languagePrefs.practiceLang=target;}});savePrefs(languagePrefs);}
         if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,reviewStep:Number(row.review_step||0),dueAt:new Date(row.due_at||Date.now()).getTime(),at:new Date(row.updated_at).getTime() }; }));
@@ -370,7 +370,14 @@
         (bank.tasks || []).forEach(function (task) {
           var lang = task.target === 'german' ? 'de' : task.target === 'spanish' ? 'es' : 'en';
           var text = task.speechText || task.transcript;
+          task._webLevel=normalizePracticeLevel(task.level,'A1');
           if (text && !(LISTEN[lang] || []).some(function (item) { return item.text === text; })) (LISTEN[lang] || LISTEN.de).push({ text:text,hint:String(task.level || '').toUpperCase() + ' · ' + (task.prompt || '') });
+        });
+        Object.keys(LISTEN).forEach(function(code){
+          (LISTEN[code]||[]).forEach(function(item){
+            var source=(bank.tasks||[]).find(function(task){return (task.speechText||task.transcript)===item.text;});
+            if(source)item.level=source._webLevel;
+          });
         });
       } catch (e) { /* bundled starter bank remains available */ }
     }
@@ -429,6 +436,29 @@
       if (low.indexOf('esp') >= 0 || low.indexOf('исп') >= 0 || low.indexOf('spanish') >= 0) return 'es';
       if (low.indexOf('eng') >= 0 || low.indexOf('англ') >= 0) return 'en';
       return studyState && studyState.lang ? studyState.lang : 'de';
+    }
+
+    function normalizePracticeLevel(value, fallback) {
+      var match=String(value||'').trim().toUpperCase().match(/\b(A1|A2|B1|B2|C1|C2)\b/);
+      return match?match[1]:(fallback||'A1');
+    }
+    function currentPracticeLevel(lang) {
+      var prefs=loadPrefs(),code=lang||currentLang();
+      return normalizePracticeLevel((prefs.levels||{})[code]||(ctx.profile&&ctx.profile.language_level),'A1');
+    }
+    function exactLevelItems(items, level) {
+      var list=Array.isArray(items)?items:[],wanted=normalizePracticeLevel(level,'A1'),split=Math.ceil(list.length/2);
+      return list.map(function(item,index){
+        return item&&item.level?item:Object.assign({},item,{level:index<split?'A1':'A2'});
+      }).filter(function(item){return normalizePracticeLevel(item.level,'A1')===wanted;});
+    }
+    function strictBank(bank, lang, level) {
+      return exactLevelItems((bank&&bank[lang])||[],level);
+    }
+    function noLevelContent() {
+      var host=$('#studyToolBody');
+      if(!host)return;
+      host.innerHTML='<div class="empty"><h3>'+esc(tr('No tasks for this exact level yet','Для этого точного уровня заданий пока нет'))+'</h3><p>'+esc(tr('We did not replace them with easier or harder tasks.','Мы не подменяем их заданиями проще или сложнее.'))+'</p><strong>'+esc(String(studyState.lang||'').toUpperCase()+' · '+studyState.level)+'</strong></div>';
     }
 
     function shuffle(arr) {
@@ -657,9 +687,11 @@
       ensureOverlay();
       if (id !== 'ai') aiChatState = null;
       var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
-      studyState = { tool:id,lang:germanOnly ? 'de' : ((restored && restored.lang) || currentLang()),idx:(restored && restored.idx) || 0,score:(restored && restored.score) || 0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,clientSessionId:(restored && restored.clientSessionId) || sessionId(),startedAt:(restored && restored.startedAt) || Date.now() };
+      var sessionLang=germanOnly?'de':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
+      var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
+      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
-      $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + ((loadPrefs().levels || {})[studyState.lang] || (ctx.profile && ctx.profile.language_level) || 'A1');
+      $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + studyState.level;
       $('#studyOverlay').setAttribute('data-practice-tool', id);
       $('#studyOverlay').setAttribute('data-practice-accent', tool.accent || 'purple');
       $('#studyOverlay').classList.add('open', 'practice-immersive');
@@ -677,7 +709,7 @@
         pickerRow + '<div id="studyToolBody" class="practice-workspace"></div>';
       var sel = $('#studyLang');
       if (sel) sel.addEventListener('change', function () {
-        studyState.lang = sel.value; studyState.idx = 0; studyState.score = 0; studyState.data = null; renderToolBody();
+        studyState.lang=sel.value;studyState.level=currentPracticeLevel(sel.value);studyState.idx=0;studyState.score=0;studyState.data=null;clearResume();renderToolBody();
       });
       Array.prototype.forEach.call(body.querySelectorAll('[data-practice-help]'), function (button) { button.onclick = function () { handlePracticeHelp(button); }; });
       renderToolBody();
@@ -798,8 +830,9 @@
 
     // ---- 1. Flashcards ----
     function renderFlashcards() {
-      if (!studyState.data) studyState.data = shuffle(VOCAB[studyState.lang] || VOCAB.de);
+      if (!studyState.data) studyState.data=shuffle(strictBank(VOCAB,studyState.lang,studyState.level));
       var deck = studyState.data;
+      if(!deck.length)return noLevelContent();
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 2);
       var card = deck[studyState.idx];
       var host = $('#studyToolBody');
@@ -832,8 +865,9 @@
 
     // ---- 2. Guess the article ----
     function renderArticles() {
-      if (!studyState.data) studyState.data = shuffle(ARTICLES).slice(0, 10);
+      if (!studyState.data) studyState.data=shuffle(exactLevelItems(ARTICLES,studyState.level)).slice(0,10);
       var deck = studyState.data;
+      if(!deck.length)return noLevelContent();
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 2);
       var item = deck[studyState.idx];
       var host = $('#studyToolBody');
@@ -865,7 +899,8 @@
     function renderMemory() {
       var host = $('#studyToolBody');
       if (!studyState.data) {
-        var pool = shuffle(VOCAB[studyState.lang] || VOCAB.de).slice(0, 6);
+        var pool=shuffle(strictBank(VOCAB,studyState.lang,studyState.level)).slice(0,6);
+        if(!pool.length)return noLevelContent();
         var cards = [];
         pool.forEach(function (item, i) {
           cards.push({ id: i, face: item.w, kind: 'w' });
@@ -986,22 +1021,24 @@
         Array.prototype.forEach.call(document.querySelectorAll('[data-grammar-topic]'),function (button) { button.onclick = function () { studyState.grammarTopic = button.getAttribute('data-grammar-topic'); studyState.data = null; renderGrammar(); }; }); return;
       }
       if (!studyState.data) {
-        var source = GRAMMAR[studyState.lang] || GRAMMAR.de;
-        if (studyState.grammarTopic === 'articles' && studyState.lang === 'de') source = ARTICLES.map(function (item) { return { q:'___ ' + item.noun,opts:['der','die','das'],a:['der','die','das'].indexOf(item.art) }; });
-        if (studyState.grammarTopic === 'sentences' && studyState.lang === 'de') source = W_QUESTIONS;
+        var source=strictBank(GRAMMAR,studyState.lang,studyState.level);
+        if (studyState.grammarTopic === 'articles' && studyState.lang === 'de') source=exactLevelItems(ARTICLES,studyState.level).map(function (item) { return { q:'___ ' + item.noun,opts:['der','die','das'],a:['der','die','das'].indexOf(item.art),level:item.level }; });
+        if (studyState.grammarTopic === 'sentences' && studyState.lang === 'de') source=exactLevelItems(W_QUESTIONS,studyState.level);
         studyState.data = shuffle(source);
       }
+      if(!studyState.data.length)return noLevelContent();
       quizStep(studyState.data, renderGrammar, function (item) { return item.q; });
     }
 
     // ---- 5. Word usage ----
     function renderWordUsage() {
       if (!studyState.data) {
-        studyState.data = shuffle(WORD_USAGE[studyState.lang] || WORD_USAGE.de).map(function (item) {
+        studyState.data=shuffle(strictBank(WORD_USAGE,studyState.lang,studyState.level)).map(function (item) {
           var correctIdx = item.opts.indexOf(item.a);
           return { q: item.s, opts: item.opts, a: correctIdx < 0 ? 0 : correctIdx };
         });
       }
+      if(!studyState.data.length)return noLevelContent();
       quizStep(studyState.data, renderWordUsage, function (item) { return item.q; });
     }
 
@@ -1083,8 +1120,9 @@
         $('#studyToolBody').innerHTML='<div class="speaking-mode-head"><span>🎙</span><div><small>'+esc(tr('AI SPEAKING PRACTICE','РАЗГОВОРНАЯ ПРАКТИКА'))+'</small><h2>'+esc(tr('Choose a real exam situation','Выберите ситуацию настоящего экзамена'))+'</h2></div></div><div class="speaking-modes">'+[['intro','1','3 min',tr('Introduce yourself or share an experience','Расскажите о себе или своём опыте')],['discuss','2','6 min',tr('Discuss a topic and support your opinion','Обсудите тему и обоснуйте мнение')],['plan','3','5 min',tr('Plan something together','Спланируйте что-нибудь вместе')]].map(function(item){return '<button data-speaking-mode="'+item[0]+'"><i>'+item[1]+'</i><span><b>'+esc(item[3])+'</b><small>'+item[2]+'</small></span><em>→</em></button>';}).join('')+'</div>';
         Array.prototype.forEach.call(document.querySelectorAll('[data-speaking-mode]'),function(button){button.onclick=function(){studyState.speakingMode=button.getAttribute('data-speaking-mode');studyState.data=null;renderSpeaking();};});return;
       }
-      if (!studyState.data) studyState.data = shuffle((LISTEN[studyState.lang] || LISTEN.de).map(function (item) { return item.text; }));
+      if (!studyState.data) studyState.data=shuffle(strictBank(LISTEN,studyState.lang,studyState.level).map(function(item){return item.text;}));
       var deck = studyState.data;
+      if(!deck.length)return noLevelContent();
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 4);
       var phrase = deck[studyState.idx], host = $('#studyToolBody');
       var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1120,8 +1158,9 @@
 
     // ---- 6. Listening lab (TTS) ----
     function renderListening() {
-      if (!studyState.data) studyState.data = shuffle(LISTEN[studyState.lang] || LISTEN.de);
+      if (!studyState.data) studyState.data=shuffle(strictBank(LISTEN,studyState.lang,studyState.level));
       var deck = studyState.data;
+      if(!deck.length)return noLevelContent();
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 3);
       var item = deck[studyState.idx];
       var host = $('#studyToolBody');
@@ -1167,7 +1206,11 @@
 
     // ---- 7. Reading lab ----
     function renderReading() {
-      if (!studyState.data) studyState.data = { passage: (READING[studyState.lang] || READING.de)[0], qIdx: 0, answered: false };
+      if (!studyState.data) {
+        var passages=strictBank(READING,studyState.lang,studyState.level);
+        if(!passages.length)return noLevelContent();
+        studyState.data={passage:passages[0],qIdx:0,answered:false};
+      }
       var d = studyState.data;
       var passage = d.passage;
       var host = $('#studyToolBody');
@@ -1205,7 +1248,8 @@
     // ---- 8. Writing lab (self-check) ----
     function renderWriting() {
       if (!studyState.data) {
-        var picks = shuffle(WRITING[studyState.lang] || WRITING.de);
+        var picks=shuffle(strictBank(WRITING,studyState.lang,studyState.level));
+        if(!picks.length)return noLevelContent();
         studyState.data = picks[0];
         studyState.checked = {};
       }
@@ -1244,15 +1288,15 @@
     }
 
     // ---- 9. Exam mode (timed mixed quiz) ----
-    function buildExamDeck(lang) {
+    function buildExamDeck(lang, level) {
       var deck = [];
-      (GRAMMAR[lang] || GRAMMAR.de).forEach(function (g) { deck.push({ q: g.q, opts: g.opts, a: g.a }); });
-      (WORD_USAGE[lang] || WORD_USAGE.de).forEach(function (w) {
+      strictBank(GRAMMAR,lang,level).forEach(function (g) { deck.push({ q:g.q,opts:g.opts,a:g.a,level:g.level }); });
+      strictBank(WORD_USAGE,lang,level).forEach(function (w) {
         var ci = w.opts.indexOf(w.a);
         deck.push({ q: w.s, opts: w.opts, a: ci < 0 ? 0 : ci });
       });
       if (lang === 'de') {
-        shuffle(ARTICLES).slice(0, 6).forEach(function (ar) {
+        shuffle(exactLevelItems(ARTICLES,level)).slice(0,6).forEach(function (ar) {
           deck.push({ q: '___ ' + ar.noun, opts: ['der', 'die', 'das'], a: ['der', 'die', 'das'].indexOf(ar.art) });
         });
       }
@@ -1280,7 +1324,8 @@
       var nav='<div class="mock-progress">'+mock.sections.map(function(item,index){return '<span class="'+(index<mock.index?'done':index===mock.index?'active':'')+'"><i>'+item.icon+'</i><b>'+esc(item.title)+'</b></span>';}).join('')+'</div>';
       var header='<div class="mock-section-head"><div><small>'+esc(tr('FULL MOCK EXAM','ПОЛНЫЙ ПРОБНЫЙ ЭКЗАМЕН'))+'</small><h2>'+section.icon+' '+esc(section.title)+'</h2></div><strong id="mockTimer">'+section.minutes+':00</strong></div>';
       if(section.id==='writing'){
-        var writing=(WRITING[studyState.lang]||WRITING.de)[0];
+        var writing=strictBank(WRITING,studyState.lang,studyState.level)[0];
+        if(!writing)return noLevelContent();
         host.innerHTML=nav+header+'<div class="mock-task"><b>'+esc(writing.prompt)+'</b><p>'+esc(tr('Write a complete answer. AI evaluation is included in the section result.','Напишите полный ответ. AI-проверка войдёт в результат секции.'))+'</p><textarea id="mockWriting" rows="10" placeholder="'+esc(tr('Your answer…','Ваш ответ…'))+'">'+esc(mock.answers.writing||'')+'</textarea><div class="mock-actions"><button class="btn primary" id="mockSectionDone">'+esc(tr('Submit section','Сдать секцию'))+' →</button></div></div>';
         $('#mockSectionDone').onclick=function(){mock.answers.writing=$('#mockWriting').value.trim();completeMockSection();};return;
       }
@@ -1290,9 +1335,10 @@
         $('#mockSectionDone').onclick=function(){mock.answers.speaking=$('#mockSpeaking').value.trim();completeMockSection();};return;
       }
       var deck;
-      if(section.id==='reading'){var passage=(READING[studyState.lang]||READING.de)[0];deck=passage.questions.map(function(q){return {q:q.q,opts:q.opts,a:q.a,context:passage.text};});}
+      if(section.id==='reading'){var passage=strictBank(READING,studyState.lang,studyState.level)[0];if(!passage)return noLevelContent();deck=passage.questions.map(function(q){return {q:q.q,opts:q.opts,a:q.a,context:passage.text};});}
       else if(section.id==='listening'){deck=(LISTEN[studyState.lang]||LISTEN.de).slice(0,5).map(function(item){var opts=shuffle([item.text,item.text.split(' ').reverse().join(' '),item.hint,'—']);return {q:tr('Listen and choose the sentence','Прослушайте и выберите предложение'),opts:opts,a:opts.indexOf(item.text),speechText:item.text};});}
-      else deck=buildExamDeck(studyState.lang).slice(0,10);
+      else deck=buildExamDeck(studyState.lang,studyState.level).slice(0,10);
+      if(!deck.length)return noLevelContent();
       mock.deck=deck;mock.question=0;mock.correct=0;renderMockQuestion(nav,header);
     }
     function renderMockQuestion(nav,header) {
@@ -1307,7 +1353,7 @@
       if(studyState.examTimerId){clearInterval(studyState.examTimerId);studyState.examTimerId=null;}
       var section=mock.sections[mock.index],host=$('#studyToolBody');
       if(section.id==='writing'||section.id==='speaking'){
-        var text=mock.answers[section.id]||'',prompt=section.id==='writing'?(WRITING[studyState.lang]||WRITING.de)[0].prompt:tr('Explain your learning goals and why they matter.','Объясните свои учебные цели и почему они важны.');
+        var text=mock.answers[section.id]||'',writingTask=strictBank(WRITING,studyState.lang,studyState.level)[0],prompt=section.id==='writing'&&writingTask?writingTask.prompt:tr('Explain your learning goals and why they matter.','Объясните свои учебные цели и почему они важны.');
         host.innerHTML='<div class="ai-checking exam-ai-checking"><i></i><span>'+esc(tr('AI examiner is scoring this section…','AI-экзаменатор оценивает секцию…'))+'</span></div>';
         try{var evaluation=await requestAiEvaluation(section.id,{text:text,transcript:text,prompt:prompt,expected:prompt});mock.evaluations[section.id]=evaluation;mock.scores[section.id]=Number(evaluation.overall||0);}catch(error){mock.scores[section.id]=0;mock.evaluations[section.id]={summary:error.message,nextStep:tr('Repeat this section when AI evaluation is available.','Повторите секцию, когда AI-проверка будет доступна.')};}
       } else mock.scores[section.id]=Math.round((mock.correct||0)/Math.max(1,(mock.deck||[]).length)*100);
@@ -1327,9 +1373,10 @@
         Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if(type==='mixed')return startFullMock(); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
       }
       if (!studyState.data) {
-        if (studyState.examType === 'reading') { var passage=(READING[studyState.lang]||READING.de)[0]; studyState.data=passage.questions.slice(); }
+        if (studyState.examType === 'reading') { var passage=strictBank(READING,studyState.lang,studyState.level)[0];if(!passage)return noLevelContent();studyState.data=passage.questions.slice(); }
         else if (studyState.examType === 'listening') { studyState.data=(LISTEN[studyState.lang]||LISTEN.de).slice(0,6).map(function (item) { return { q:tr('Listen and choose the correct sentence','Прослушайте и выберите правильное предложение'),speechText:item.text,opts:shuffle([item.text,item.text.split(' ').reverse().join(' '),item.hint,'—']),answerText:item.text }; }).map(function (item) { item.a=item.opts.indexOf(item.answerText);return item; }); }
-        else studyState.data = buildExamDeck(studyState.lang);
+        else studyState.data=buildExamDeck(studyState.lang,studyState.level);
+        if(!studyState.data.length)return noLevelContent();
         studyState.examEndAt = Date.now() + 90000;
         studyState.examTimerId = setInterval(examTick, 500);
       }

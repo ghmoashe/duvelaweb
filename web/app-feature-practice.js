@@ -2,6 +2,24 @@
   function createPracticeFeature(ctx) {
     const { $, $$, tr, esc, state, supa } = ctx;
     let practiceState = null;
+    function learnerCriteria() {
+      let prefs={};
+      try { prefs=JSON.parse(localStorage.getItem('duvela.study.preferences')||'{}'); } catch(error) {}
+      const aliases={de:'de',german:'de',deutsch:'de',en:'en',english:'en',englisch:'en',es:'es',spanish:'es',spanisch:'es'};
+      const raw=String(prefs.practiceTarget||prefs.practiceLang||'de').toLowerCase();
+      const target=aliases[raw]||aliases[raw.split(/[-_]/)[0]]||'de';
+      const level=String((prefs.levels||{})[target]||(ctx.profile&&ctx.profile.language_level)||'A1').toUpperCase().match(/A1|A2|B1|B2|C1|C2/);
+      return {target,level:level?level[0]:'A1'};
+    }
+    function normalizeTarget(value) {
+      const aliases={de:'de',german:'de',deutsch:'de',en:'en',english:'en',englisch:'en',es:'es',spanish:'es',spanisch:'es'};
+      const raw=String(value||'').trim().toLowerCase();
+      return aliases[raw]||aliases[raw.split(/[-_]/)[0]]||raw;
+    }
+    function matchesLearner(practice) {
+      const criteria=learnerCriteria();
+      return normalizeTarget(practice.target)===criteria.target&&String(practice.level||'').toUpperCase()===criteria.level;
+    }
 
     async function loadPractices() {
       try {
@@ -10,7 +28,7 @@
           supa.from('practice_assignments').select('practice_id,due_at,status,created_at').eq('student_id',ctx.user.id),
           supa.from('practice_feedback').select('practice_id,score,feedback,created_at').eq('user_id',ctx.user.id).order('created_at',{ ascending:false })
         ]);
-        state.practices = practiceResult.data || [];
+        state.practices=(practiceResult.data||[]).filter(matchesLearner);
         state.practiceAssignments = assignmentResult.data || [];
         state.practiceFeedback = feedbackResult.data || [];
         if (state.practices.length) {
@@ -46,7 +64,7 @@
 
     async function openPractice(id) {
       const practice = state.practices.find((item) => item.id === id);
-      if (!practice) return;
+      if (!practice || !matchesLearner(practice)) return;
       practiceState = { practice, items: [], idx: 0, score: 0, answered: false };
       $('#practiceOverlayTitle').textContent = practice.title;
       const body = $('#practiceOverlayBody');
