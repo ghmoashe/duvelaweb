@@ -28,6 +28,8 @@ let sharing = false;
 let raised = false;
 let startedAt = 0;
 let timer = null;
+let attendanceTimer = null;
+let waitingTimer = null;
 let roomRole = 'participant';
 
 function initials(name = 'Duvela') {
@@ -79,8 +81,36 @@ async function loadIdentity() {
 
 async function token() {
   const result = await supa.functions.invoke('zoom-video-token', { body: { sessionId } });
+  if (result.data?.waiting) return result.data;
   if (result.error || !result.data?.token) throw new Error(result.data?.error || result.error?.message || 'Не удалось открыть Zoom Classroom.');
   return result.data;
+}
+
+function diagnostic(id, ok, text) {
+  const node = $(id);
+  node.className = ok ? 'ok' : 'bad';
+  node.textContent = `${ok ? '✓' : '!'} ${text}`;
+}
+
+async function runDiagnostics() {
+  diagnostic('diagBrowser', !!(window.WebAssembly && window.RTCPeerConnection), 'Браузер');
+  diagnostic('diagNetwork', navigator.onLine, navigator.connection?.effectiveType ? `Интернет · ${navigator.connection.effectiveType}` : 'Интернет');
+  diagnostic('diagCamera', !!navigator.mediaDevices?.getUserMedia, 'Камера');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    diagnostic('diagMic', true, 'Микрофон');
+    stream.getTracks().forEach((track) => track.stop());
+  } catch {
+    diagnostic('diagMic', false, 'Микрофон');
+  }
+}
+
+async function renderWaitingRoom() {
+  if (roomRole !== 'host') return;
+  const { data } = await supa.from('class_waiting_room').select('id,user_id,status').eq('session_id', sessionId).eq('status', 'waiting');
+  const rows = data || [];
+  $('waitingWrap').hidden = !rows.length;
+  $('waitingList').innerHTML = rows.map((row) => `<div class="waiting-person"><b>${esc(row.user_id.slice(0, 8))}</b><button class="admit" data-wait="${row.id}" data-decision="admitted">Впустить</button><button data-wait="${row.id}" data-decision="denied">Отклонить</button></div>`).join('');
 }
 
 function tile(user) {
@@ -154,6 +184,25 @@ async function join() {
   try {
     previewStream?.getTracks().forEach((track) => track.stop());
     const auth = await token();
+    if (auth.waiting) {
+      setStatus('Запрос отправлен. Ждём, когда преподаватель впустит вас…');
+      $('joinBtn').disabled = true;
+      clearInterval(waitingTimer);
+      waitingTimer = setInterval(async () => {
+        try {
+          const retry = await token();
+          if (retry.token) {
+            clearInterval(waitingTimer);
+            $('joinBtn').disabled = false;
+            void join();
+          }
+        } catch (error) {
+          clearInterval(waitingTimer);
+          setStatus(error?.message || 'Вход отклонён.', true);
+        }
+      }, 3000);
+      return;
+    }
     roomRole = auth.role || 'participant';
     await client.init('en-US', 'Global', { patchJsMedia: true, stayAwake: true });
     bindZoomEvents();
@@ -162,7 +211,11 @@ async function join() {
     joined = true;
     if (roomRole === 'host') {
       void supa.from('class_sessions').update({ status: 'live' }).eq('id', sessionId).eq('created_by', me.id);
+      await renderWaitingRoom();
+      waitingTimer = setInterval(renderWaitingRoom, 3000);
     }
+    await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'join' });
+    attendanceTimer = setInterval(() => { void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'heartbeat' }); }, 30000);
     if (micOn) await media.startAudio();
     if (camOn) {
       await media.startVideo();
@@ -211,6 +264,9 @@ async function toggleShare() {
 
 async function leave() {
   clearInterval(timer);
+  clearInterval(attendanceTimer);
+  clearInterval(waitingTimer);
+  try { await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' }); } catch {}
   try { if (joined) await client.leave(); } catch {}
   if (roomRole === 'host') {
     try { await supa.from('class_sessions').update({ status: 'ended' }).eq('id', sessionId).eq('created_by', me.id); } catch {}
@@ -238,5 +294,18 @@ $('chatForm').onsubmit = async (event) => {
   await client.getChatClient().sendToAll(value);
   $('chatInput').value = '';
 };
+$('waitingList').onclick = async (event) => {
+  const button = event.target.closest('[data-wait]');
+  if (!button || roomRole !== 'host') return;
+  await supa.from('class_waiting_room').update({
+    status: button.dataset.decision, decided_at: new Date().toISOString(), decided_by: me.id
+  }).eq('id', button.dataset.wait);
+  await renderWaitingRoom();
+};
+addEventListener('online', runDiagnostics);
+addEventListener('offline', runDiagnostics);
+addEventListener('beforeunload', () => {
+  if (joined) void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' });
+});
 
-loadIdentity().then(preview).catch((error) => setStatus(error.message, true));
+loadIdentity().then(async () => { await runDiagnostics(); await preview(); }).catch((error) => setStatus(error.message, true));

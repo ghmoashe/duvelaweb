@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
 
   const service = createClient(supabaseUrl, serviceKey);
   const { data: session, error: sessionError } = await service.from("class_sessions")
-    .select("id,class_id,title,starts_at,status,created_by,provider,session_name")
+    .select("id,class_id,title,starts_at,status,created_by,provider,session_name,waiting_room_enabled,duration_min")
     .eq("id", sessionId)
     .maybeSingle();
   if (sessionError || !session) return json({ error: "Class session not found." }, 404);
@@ -65,15 +65,29 @@ Deno.serve(async (req) => {
   const isTeacher = session.created_by === user.id;
   let isMember = false;
   if (!isTeacher) {
-    const { data: membership } = await service.from("class_clients")
-      .select("id")
-      .eq("class_id", session.class_id)
-      .eq("client_id", user.id)
-      .neq("status", "removed")
+    const { data: linkedClass } = await service.from("classes")
+      .select("course_id")
+      .eq("id", session.class_id)
       .maybeSingle();
-    isMember = Boolean(membership);
+    if (linkedClass?.course_id) {
+      const { data: enrollment } = await service.from("course_enrollments")
+        .select("id")
+        .eq("course_id", linkedClass.course_id)
+        .eq("user_id", user.id)
+        .eq("status", "confirmed")
+        .maybeSingle();
+      isMember = Boolean(enrollment);
+    } else {
+      const { data: membership } = await service.from("class_clients")
+        .select("id")
+        .eq("class_id", session.class_id)
+        .eq("client_id", user.id)
+        .neq("status", "removed")
+        .maybeSingle();
+      isMember = Boolean(membership);
+    }
   }
-  if (!isTeacher && !isMember) return json({ error: "You are not enrolled in this class." }, 403);
+  if (!isTeacher && !isMember) return json({ error: "A confirmed course enrollment is required to enter this classroom." }, 403);
   if (!isTeacher && ["ended", "cancelled"].includes(String(session.status))) {
     return json({ error: "This class session has ended." }, 409);
   }
@@ -83,6 +97,18 @@ Deno.serve(async (req) => {
     const latestJoin = startTime + 6 * 60 * 60 * 1000;
     if (Date.now() < earliestJoin) return json({ error: "The classroom opens 30 minutes before the lesson." }, 425);
     if (Date.now() > latestJoin) return json({ error: "This class session has ended." }, 409);
+  }
+
+  if (!isTeacher && session.waiting_room_enabled) {
+    const { data: waiting } = await service.from("class_waiting_room")
+      .select("status").eq("session_id", session.id).eq("user_id", user.id).maybeSingle();
+    if (waiting?.status === "denied") return json({ error: "The teacher declined this entry request." }, 403);
+    if (waiting?.status !== "admitted") {
+      await service.from("class_waiting_room").upsert({
+        session_id: session.id, user_id: user.id, status: "waiting", requested_at: new Date().toISOString(),
+      }, { onConflict: "session_id,user_id" });
+      return json({ waiting: true, topic: session.session_name, title: session.title });
+    }
   }
 
   const now = Math.floor(Date.now() / 1000);

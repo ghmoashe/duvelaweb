@@ -20,6 +20,10 @@
         <button id="previewMic" class="toggle active">🎙 Микрофон</button>
         <button id="previewCam" class="toggle active">🎥 Камера</button>
       </div>
+      <div class="diagnostics">
+        <span id="diagBrowser">○ Браузер</span><span id="diagNetwork">○ Интернет</span>
+        <span id="diagCamera">○ Камера</span><span id="diagMic">○ Микрофон</span>
+      </div>
       <button id="joinBtn" class="primary">Войти в урок</button>
       <p id="joinStatus" class="status"></p>
     </section>
@@ -30,7 +34,7 @@
       <section class="stage"><div id="gallery" class="gallery"></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas></div></section>
       <aside id="sidePanel" class="side-panel">
         <nav><button data-panel="people" class="active">Участники <i id="peopleCount">0</i></button><button data-panel="chat">Чат <i id="chatBadge">0</i></button></nav>
-        <section id="peoplePanel"><div id="peopleList"></div></section>
+        <section id="peoplePanel"><div id="waitingWrap" hidden><h3>Ожидают входа</h3><div id="waitingList"></div></div><div id="peopleList"></div></section>
         <section id="chatPanel" hidden><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…"><button>➤</button></form></section>
       </aside>
     </div>

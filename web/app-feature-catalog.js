@@ -144,9 +144,12 @@
       let mySubs = [];
       let allSubs = [];
       let enrollments = [];
+      let zoomClass = null;
+      let zoomSessions = [];
+      let ownEnrollmentStatus = null;
       try {
         const [{ data: metaResult }, { data: lessonRows }, { data: taskRows }] = await Promise.all([
-          supa.from('courses').select('created_by,organization_id,status').eq('id', courseId).maybeSingle(),
+          supa.from('courses').select('created_by,organization_id,status,zoom_enabled,delivery_mode').eq('id', courseId).maybeSingle(),
           supa.from('course_lessons').select('id,order_index,title,description').eq('course_id', courseId).order('order_index', { ascending: true }),
           supa.from('lesson_tasks').select('id,lesson_id,order_index,title,description,max_score').eq('course_id', courseId).order('order_index', { ascending: true })
         ]);
@@ -157,6 +160,23 @@
         /* optional */
       }
       const owner = !!(meta && meta.created_by === ctx.user.id);
+      if (meta && meta.zoom_enabled) {
+        try {
+          const { data: classRow } = await supa.from('classes').select('id,name').eq('course_id', courseId).maybeSingle();
+          zoomClass = classRow || null;
+          if (zoomClass) {
+            const { data: sessionRows } = await supa.from('class_sessions')
+              .select('id,title,starts_at,ends_at,status,duration_min,join_opens_at')
+              .eq('class_id', zoomClass.id).order('starts_at', { ascending: true });
+            zoomSessions = sessionRows || [];
+          }
+          if (!owner) {
+            const { data: ownEnrollment } = await supa.from('course_enrollments')
+              .select('status').eq('course_id', courseId).eq('user_id', ctx.user.id).maybeSingle();
+            ownEnrollmentStatus = ownEnrollment && ownEnrollment.status;
+          }
+        } catch (error) { /* optional Zoom course data */ }
+      }
       try {
         if (owner) {
           const [{ data: enrollmentRows }, { data: submissionRows }] = await Promise.all([
@@ -226,6 +246,24 @@
         '<p class="cd-desc">' + esc(course.description || tr('No description yet.', 'Описания пока нет.')) + '</p>';
       if (!owner && totalTasks) {
         html += '<div class="prog-row" style="margin-top:14px"><div class="prog-label"><span>' + esc(tr('Course progress', 'Прогресс курса')) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
+      }
+      if (zoomClass) {
+        const now = Date.now();
+        const upcoming = zoomSessions.filter((session) => session.status !== 'cancelled' && session.status !== 'ended' && Date.parse(session.ends_at || session.starts_at) + 21600000 > now);
+        const next = upcoming[0];
+        const confirmed = owner || ownEnrollmentStatus === 'confirmed';
+        const opensAt = next ? Date.parse(next.join_opens_at || next.starts_at) - (next.join_opens_at ? 0 : 1800000) : 0;
+        const canJoin = !!(next && confirmed && (owner || now >= opensAt) && next.status !== 'cancelled');
+        const nextLabel = next ? new Date(next.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }) : tr('No upcoming lessons', 'Ближайших уроков нет');
+        html += '<section class="cd-zoom-classroom"><div class="cd-zoom-icon">▦</div><div class="cd-zoom-main"><small>ZOOM CLASSROOM</small><h3>' + esc(zoomClass.name || course.title) + '</h3><p>' + esc(nextLabel) + (next ? ' · ' + (next.duration_min || 60) + ' ' + esc(tr('min', 'мин')) : '') + '</p>' +
+          (!confirmed && !owner ? '<div class="cd-zoom-warning">' + esc(tr('The teacher must confirm your enrollment before entry.', 'Для входа преподаватель должен подтвердить вашу запись.')) + '</div>' : '') +
+          (next && confirmed && !canJoin ? '<div class="cd-zoom-warning">' + esc(tr('The entry button opens 30 minutes before the lesson.', 'Кнопка входа откроется за 30 минут до урока.')) + '</div>' : '') +
+          '</div>' + (next ? '<a class="btn primary' + (canJoin ? '' : ' disabled') + '" ' + (canJoin ? 'href="./classroom.html?s=' + esc(next.id) + '"' : 'aria-disabled="true"') + '>' + esc(owner ? tr('Open classroom', 'Открыть класс') : tr('Enter lesson', 'Войти в урок')) + '</a>' : '') + '</section>';
+        if (zoomSessions.length) {
+          html += '<div class="cd-sec">' + esc(tr('Class calendar', 'Расписание группы')) + '</div><div class="cd-session-list">' +
+            zoomSessions.map((session) => '<div class="cd-session-row"><span class="n">▦</span><div><b>' + esc(session.title || course.title) + '</b><p>' + esc(new Date(session.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })) + '</p></div><span class="tag ' + (session.status === 'cancelled' ? '' : 'teal') + '">' + esc(session.status) + '</span></div>').join('') +
+          '</div>';
+        }
       }
       html += '<div class="cd-sec">' + esc(tr('Lessons', 'Уроки')) + '</div>';
       if (owner) {
