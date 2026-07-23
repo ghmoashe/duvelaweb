@@ -4,10 +4,10 @@
   // Live / Challenges) with per-tab summary + list + empty states. View-only lists;
   // create/schedule buttons route to the existing web workspace/live panels.
   function createManagement(ctx) {
-    const { tr, esc, supa } = ctx;
+    const { tr, esc, supa, state } = ctx;
     let activeTab = 'events';
     let eventsSub = 'upcoming';
-    let data = null;    // {events, courses, challenges}
+    let data = null;    // {events, courses, challenges, classSessions}
     let loadedFor = null;
 
     function todayStr() {
@@ -30,12 +30,13 @@
     }
 
     async function load(uid) {
-      const [ev, co, ch] = await Promise.all([
+      const [ev, co, ch, cs] = await Promise.all([
         safe(supa.from('events').select(ctx.getEventColumns()).eq('organizer_id', uid).order('event_date', { ascending: true })),
         safe(supa.from('courses').select('id,title,description,level,language,status,price,currency,cover_image_url,starts_on,ends_on,schedule,location,created_at').eq('created_by', uid).neq('status', 'archived').order('created_at', { ascending: false })),
-        safe(supa.from('challenges').select('id,title,target_level,exam_type,started_at,ends_at').order('created_at', { ascending: false }).limit(20))
+        safe(supa.from('challenges').select('id,title,target_level,exam_type,started_at,ends_at').order('created_at', { ascending: false }).limit(20)),
+        safe(supa.from('class_sessions').select('id,class_id,title,starts_at,status,provider').eq('created_by', uid).order('starts_at', { ascending: true }).limit(40))
       ]);
-      data = { events: (ev && ev.data) || [], courses: (co && co.data) || [], challenges: (ch && ch.data) || [] };
+      data = { events: (ev && ev.data) || [], courses: (co && co.data) || [], challenges: (ch && ch.data) || [], classSessions: (cs && cs.data) || [] };
     }
 
     function go(view) {
@@ -175,29 +176,42 @@
             '</div></div>' +
           '</div></article>';
       }).join('') + '</div>';
+      var groups = (state && state.orgClasses) || [];
+      html += '<div class="section-head" style="margin-top:22px"><div><h2 style="font-size:18px">' + esc(tr('Study groups', 'Учебные группы')) + '</h2><p style="margin:3px 0 0;color:var(--soft);font-size:12px">' + esc(tr('Groups connect enrolled learners with Zoom Classroom lessons.', 'Группы связывают учеников с уроками Zoom Classroom.')) + '</p></div><button type="button" class="mg-btn-solid teal sm" data-mg-new-class>' + esc(tr('New group', 'Новая группа')) + '</button></div>';
+      html += groups.length ? '<div class="mg-list">' + groups.map(function (group) {
+        return '<button type="button" class="mg-row" data-mg-manage-class="' + esc(group.id) + '" style="width:100%;text-align:left">' +
+          '<span class="mg-row-ic teal">' + IC.book + '</span><span class="mg-row-copy"><b>' + esc(group.name || tr('Study group', 'Учебная группа')) + '</b>' +
+          '<span>' + esc([group.language, group.level, group.format === 'offline' ? tr('In person', 'Офлайн') : tr('Online', 'Онлайн')].filter(Boolean).join(' · ')) + '</span></span>' +
+          '<span class="mg-row-tag">' + esc(tr('Students and lessons', 'Ученики и уроки')) + '</span></button>';
+      }).join('') + '</div>' : emptyCard(IC.book, tr('No study groups yet', 'Учебных групп пока нет'), tr('Create a group, add learners and schedule a Zoom lesson.', 'Создайте группу, добавьте учеников и запланируйте Zoom-урок.'), tr('Create group', 'Создать группу'), 'data-mg-new-class');
       return html;
     }
 
     function renderLiveTab() {
       var live = data.events.filter(function (e) { return isUpcoming(e) && isOnline(e); });
-      if (!live.length) {
-        return emptyCard(IC.live, tr('No scheduled LIVE yet', 'Пока нет запланированных эфиров'),
-          tr('Plan an online session with your students.', 'Запланируйте онлайн-сессию с учениками.'),
-          tr('Schedule Live', 'Запланировать эфир'), 'data-mg-schedule-live');
-      }
+      var classrooms = (data.classSessions || []).filter(function (s) { return s.status !== 'ended' && s.status !== 'cancelled'; });
       var html = '<div class="mg-summary">' +
         '<span class="mg-summary-ic red">' + IC.live + '</span>' +
-        '<div class="mg-summary-copy"><b>' + esc(tr('Scheduled LIVE', 'Запланированные эфиры')) + '</b>' +
-        '<span>' + esc(tr('Upcoming online sessions', 'Ближайшие онлайн-сессии')) + '</span></div>' +
-        '<button type="button" class="mg-btn-solid" data-mg-schedule-live>' + esc(tr('Schedule', 'Запланировать')) + '</button>' +
+        '<div class="mg-summary-copy"><b>' + esc(tr('Online lessons and broadcasts', 'Онлайн-уроки и эфиры')) + '</b>' +
+        '<span>' + esc(tr('Zoom for interactive classes · Agora for mass LIVE', 'Zoom для групповых уроков · Agora для массовых LIVE')) + '</span></div>' +
+        '<div class="mg-summary-actions"><button type="button" class="mg-btn-solid sm" data-mg-schedule-class>' + esc(tr('Group lesson', 'Групповой урок')) + '</button>' +
+        '<button type="button" class="mg-btn-outline sm" data-mg-schedule-live>' + esc(tr('Mass LIVE', 'Массовый LIVE')) + '</button></div>' +
         '</div>';
-      html += '<div class="mg-list">' + live.map(function (ev) {
+      html += '<div class="mg-broadcast-choice"><div class="card"><b>Zoom Classroom</b><p>' + esc(tr('Interactive lesson: student cameras, microphones, chat and screen sharing.', 'Интерактивный урок: камеры учеников, микрофоны, чат и демонстрация экрана.')) + '</p></div><div class="card"><b>Agora LIVE</b><p>' + esc(tr('Public broadcast: large audience, reactions and gifts.', 'Публичный эфир: большая аудитория, реакции и подарки.')) + '</p></div></div>';
+      if (classrooms.length) html += '<div class="section-head"><h2 style="font-size:16px">' + esc(tr('Group lessons', 'Групповые уроки')) + '</h2><span>Zoom</span></div><div class="mg-list">' + classrooms.map(function (session) {
+        return '<a class="mg-row" href="./classroom.html?s=' + encodeURIComponent(session.id) + '">' +
+          '<span class="mg-row-ic purple">' + IC.live + '</span><span class="mg-row-copy"><b>' + esc(session.title || tr('Group lesson', 'Групповой урок')) + '</b>' +
+          '<span>' + esc(session.starts_at ? new Date(session.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US') : '') + ' · Zoom Classroom</span></span>' +
+          '<span class="mg-row-tag">' + esc(session.status === 'live' ? tr('Join', 'Войти') : tr('Open', 'Открыть')) + '</span></a>';
+      }).join('') + '</div>';
+      if (live.length) html += '<div class="section-head"><h2 style="font-size:16px">' + esc(tr('Mass broadcasts', 'Массовые эфиры')) + '</h2><span>Agora</span></div><div class="mg-list">' + live.map(function (ev) {
         return '<a class="mg-row" href="#events" data-go="events" data-event-open="' + esc(ev.id) + '">' +
           '<span class="mg-row-ic red">' + IC.live + '</span>' +
           '<span class="mg-row-copy"><b>' + esc(ev.title || tr('LIVE session', 'LIVE сессия')) + '</b>' +
           '<span>' + esc(eventWhen(ev)) + '</span></span>' +
           '<span class="mg-chevron">›</span></a>';
       }).join('') + '</div>';
+      if (!classrooms.length && !live.length) html += emptyCard(IC.live, tr('Nothing scheduled yet', 'Пока ничего не запланировано'), tr('Choose a group lesson or a mass broadcast above.', 'Выберите групповой урок или массовый эфир выше.'));
       return html;
     }
 
@@ -272,11 +286,22 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-import-course]'), function (b) {
         b.addEventListener('click', function () { pickCourseExcel(); });
       });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-class]'), function (b) {
+        b.addEventListener('click', openStudyGroupModal);
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-manage-class]'), function (b) {
+        b.addEventListener('click', function () {
+          if (ctx.openClassManage) ctx.openClassManage(b.getAttribute('data-mg-manage-class'));
+        });
+      });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-event]'), function (b) {
         b.addEventListener('click', function () { openEventModal(false); });
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-schedule-live]'), function (b) {
         b.addEventListener('click', function () { openEventModal(true); });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-schedule-class]'), function (b) {
+        b.addEventListener('click', openClassSessionModal);
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-challenge]'), function (b) {
         b.addEventListener('click', function () { openChallengeModal(); });
@@ -548,6 +573,110 @@
     }
 
     // ── Event / Schedule Live creation ──────────────────────────────────────
+    var groupSaving = false, groupNotice = '';
+
+    function openStudyGroupModal() {
+      groupSaving = false; groupNotice = '';
+      openModal(tr('Create study group', 'Создать учебную группу'), paintStudyGroupModal);
+    }
+
+    function paintStudyGroupModal() {
+      var body = el('ccBody');
+      if (!body) return;
+      var hasOrganization = !!(state && state.myOrg && state.myOrg.id);
+      body.innerHTML =
+        '<div class="cc-provider-card"><span class="mg-row-ic teal">' + IC.book + '</span><div><b>' + esc(tr('Study group', 'Учебная группа')) + '</b><p>' + esc(tr('Add learners to this group, track attendance and run Zoom Classroom lessons.', 'Добавляйте учеников, отмечайте посещаемость и проводите уроки Zoom Classroom.')) + '</p></div></div>' +
+        (!hasOrganization ? '<div class="pv-notice">' + esc(tr('Create your Duvela organization first.', 'Сначала создайте организацию Duvela.')) + '</div>' : '') +
+        '<div class="pv-field"><label>' + esc(tr('Group name', 'Название группы')) + ' *</label><input id="groupNameInput" placeholder="' + esc(tr('e.g. German A2 Evening', 'например: Немецкий A2 — вечер')) + '"></div>' +
+        '<div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Language', 'Язык')) + '</label><input id="groupLanguageInput" placeholder="German"></div>' +
+        '<div class="pv-field"><label>' + esc(tr('Level', 'Уровень')) + '</label><select id="groupLevelInput">' + ['A1','A2','B1','B2','C1','C2'].map(function (level) { return '<option>' + level + '</option>'; }).join('') + '</select></div></div>' +
+        '<div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Format', 'Формат')) + '</label><select id="groupFormatInput"><option value="online">' + esc(tr('Online', 'Онлайн')) + '</option><option value="offline">' + esc(tr('In person', 'Офлайн')) + '</option></select></div>' +
+        '<div class="pv-field"><label>' + esc(tr('Start date', 'Дата начала')) + '</label><input id="groupStartInput" type="date"></div></div>' +
+        (groupNotice ? '<div class="pv-notice">' + esc(groupNotice) + '</div>' : '') +
+        '<div class="pv-edit-actions"><button type="button" class="pv-btn-outline" id="groupCancel">' + esc(tr('Cancel', 'Отмена')) + '</button><button type="button" class="pv-btn-solid" id="groupSubmit"' + (!hasOrganization || groupSaving ? ' disabled' : '') + '>' + esc(groupSaving ? tr('Creating…', 'Создание…') : tr('Create group', 'Создать группу')) + '</button></div>';
+      var cancel = el('groupCancel'); if (cancel) cancel.onclick = closeModal;
+      var submit = el('groupSubmit'); if (submit) submit.onclick = function () { void submitStudyGroup(); };
+    }
+
+    async function submitStudyGroup() {
+      var name = (el('groupNameInput') && el('groupNameInput').value.trim()) || '';
+      if (!name || !state.myOrg) {
+        groupNotice = tr('Enter a group name.', 'Введите название группы.');
+        paintStudyGroupModal(); return;
+      }
+      groupSaving = true; groupNotice = ''; paintStudyGroupModal();
+      var start = (el('groupStartInput') && el('groupStartInput').value) || '';
+      var result = await supa.from('classes').insert({
+        organization_id: state.myOrg.id,
+        teacher_id: ctx.user.id,
+        name: name,
+        language: (el('groupLanguageInput') && el('groupLanguageInput').value.trim()) || null,
+        level: (el('groupLevelInput') && el('groupLevelInput').value) || 'A1',
+        format: (el('groupFormatInput') && el('groupFormatInput').value) || 'online',
+        starts_at: start ? new Date(start + 'T09:00:00').toISOString() : null
+      }).select('id,name,language,level,format,starts_at').single();
+      groupSaving = false;
+      if (result.error || !result.data) {
+        groupNotice = (result.error && result.error.message) || tr('Could not create the group.', 'Не удалось создать группу.');
+        paintStudyGroupModal(); return;
+      }
+      state.orgClasses = [result.data].concat(state.orgClasses || []);
+      closeModal();
+      paint();
+      if (ctx.openClassManage) ctx.openClassManage(result.data.id);
+    }
+
+    var classSaving = false, classNotice = '';
+
+    function openClassSessionModal() {
+      classSaving = false; classNotice = '';
+      openModal(tr('Schedule group lesson', 'Запланировать групповой урок'), paintClassSessionModal);
+    }
+
+    function paintClassSessionModal() {
+      var body = el('ccBody');
+      if (!body) return;
+      var classes = (state && state.orgClasses) || [];
+      var options = classes.map(function (item) {
+        return '<option value="' + esc(item.id) + '">' + esc(item.name || tr('Class', 'Класс')) + ' · ' + esc([item.language, item.level].filter(Boolean).join(' ')) + '</option>';
+      }).join('');
+      body.innerHTML =
+        '<div class="cc-provider-card"><span class="mg-row-ic purple">' + IC.live + '</span><div><b>Zoom Classroom</b><p>' + esc(tr('Interactive class with student cameras, microphones, chat and screen sharing. Up to 25 participants.', 'Интерактивный урок с камерами учеников, микрофонами, чатом и демонстрацией экрана. До 25 участников.')) + '</p></div></div>' +
+        (classes.length ? '<div class="pv-field"><label>' + esc(tr('Student class', 'Учебный класс')) + ' *</label><select id="classGroupInput">' + options + '</select></div>' : '<div class="pv-notice">' + esc(tr('Create a class and add students before scheduling a group lesson.', 'Сначала создайте класс и добавьте учеников, затем запланируйте групповой урок.')) + '</div>') +
+        '<div class="pv-field"><label>' + esc(tr('Lesson title', 'Название урока')) + ' *</label><input id="classTitleInput" placeholder="' + esc(tr('e.g. German conversation A2', 'например: Немецкий разговорный A2')) + '"></div>' +
+        '<div class="pv-field"><label>' + esc(tr('Start date and time', 'Дата и время начала')) + ' *</label><input id="classWhenInput" type="datetime-local"></div>' +
+        (classNotice ? '<div class="pv-notice">' + esc(classNotice) + '</div>' : '') +
+        '<div class="pv-edit-actions"><button type="button" class="pv-btn-outline" id="classCancel">' + esc(tr('Cancel', 'Отмена')) + '</button>' +
+        (classes.length ? '<button type="button" class="pv-btn-solid" id="classSubmit"' + (classSaving ? ' disabled' : '') + '>' + esc(classSaving ? tr('Saving…', 'Сохранение…') : tr('Schedule Zoom lesson', 'Запланировать Zoom-урок')) + '</button>' : '<a class="pv-btn-solid" href="#workspace" data-go="workspace">' + esc(tr('Create class', 'Создать класс')) + '</a>') + '</div>';
+      var cancel = el('classCancel'); if (cancel) cancel.onclick = closeModal;
+      var submit = el('classSubmit'); if (submit) submit.onclick = function () { void submitClassSession(); };
+    }
+
+    async function submitClassSession() {
+      var classId = (el('classGroupInput') && el('classGroupInput').value) || '';
+      var title = (el('classTitleInput') && el('classTitleInput').value.trim()) || '';
+      var when = (el('classWhenInput') && el('classWhenInput').value) || '';
+      if (!classId || !title || !when) {
+        classNotice = tr('Choose a class, title and start time.', 'Выберите класс, название и время начала.');
+        paintClassSessionModal(); return;
+      }
+      classSaving = true; classNotice = ''; paintClassSessionModal();
+      var result = await supa.from('class_sessions').insert({
+        class_id: classId, title: title, starts_at: new Date(when).toISOString(),
+        created_by: ctx.user.id, status: 'scheduled', provider: 'zoom', max_participants: 25
+      }).select('id').single();
+      classSaving = false;
+      if (result.error || !result.data) {
+        classNotice = (result.error && result.error.message) || tr('Could not schedule the lesson.', 'Не удалось запланировать урок.');
+        paintClassSessionModal(); return;
+      }
+      closeModal();
+      await load(ctx.user.id);
+      activeTab = 'live';
+      paint();
+      location.href = './classroom.html?s=' + encodeURIComponent(result.data.id);
+    }
+
     var eventCover = null, eventSaving = false, eventNotice = '', eventIsLive = false;
 
     function openEventModal(isLive) {
@@ -709,7 +838,7 @@
       paint();
       if (loadedFor !== uid) {
         loadedFor = uid;
-        load(uid).then(paint).catch(function () { data = { events: [], courses: [], challenges: [] }; paint(); });
+        load(uid).then(paint).catch(function () { data = { events: [], courses: [], challenges: [], classSessions: [] }; paint(); });
       }
       return null;
     }

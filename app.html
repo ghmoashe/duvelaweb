@@ -590,6 +590,19 @@
   .mg-empty-ic.teal { background: var(--teal-soft); color: var(--teal); }
   .mg-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
   .mg-summary-actions { display: flex; gap: 8px; flex: none; }
+  .mg-broadcast-choice { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+  .mg-broadcast-choice .card { padding:16px; border-radius:16px; }
+  .mg-broadcast-choice b { display:block; font-size:16px; margin-bottom:5px; }
+  .mg-broadcast-choice p { margin:0; color:var(--soft); font-size:12px; line-height:1.5; }
+  .cc-provider-card { display:flex; align-items:flex-start; gap:12px; padding:14px; margin-bottom:14px; border:1px solid #DED3FF; border-radius:16px; background:linear-gradient(135deg,#F7F2FF,#FFF); }
+  .cc-provider-card b { display:block; font-size:16px; margin-bottom:4px; }
+  .cc-provider-card p { margin:0; color:var(--soft); font-size:12px; line-height:1.5; }
+  @media (max-width:700px) {
+    .mg-broadcast-choice { grid-template-columns:1fr; }
+    .mg-summary { align-items:flex-start; flex-wrap:wrap; }
+    .mg-summary-actions { width:100%; }
+    .mg-summary-actions .mg-btn-solid,.mg-summary-actions .mg-btn-outline { flex:1; }
+  }
   .mg-btn-outline { border: 1.5px solid var(--purple); background: var(--panel); color: var(--purple); border-radius: 12px; padding: 11px 16px; font-weight: 800; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .mg-btn-solid.sm, .mg-btn-outline.sm { padding: 9px 13px; }
   .mg-course-list { display:grid; gap:14px; }
