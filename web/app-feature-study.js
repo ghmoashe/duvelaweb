@@ -9,6 +9,7 @@
     let studyState = null;
     let aiChatState = null;
     let practicePremium = false;
+    let practiceHydrated = false;
 
     // ---- content banks (offline, bundled) ----
     const VOCAB = {
@@ -227,8 +228,12 @@
       { id:'sentences',icon:'⇄',category:'grammar',accent:'blue',title:tr('Sentence builder','Конструктор предложений'),desc:tr('Put words into the correct order','Соберите слова в правильном порядке') },
       { id:'categories',icon:'▦',category:'vocabulary',accent:'teal',title:tr('Word sorting','Сортировка слов'),desc:tr('Sort vocabulary into categories','Распределите слова по категориям') },
       { id:'scenarios',icon:'☕',category:'skills',accent:'pink',title:tr('Role-play stories','Ролевые ситуации'),desc:tr('Cafe, travel, work and everyday choices','Кафе, путешествия, работа и ежедневные диалоги') },
-      { id:'duel',icon:'⚔',category:'progress',accent:'red',title:tr('Learner duel','Дуэль учеников'),desc:tr('A fast score challenge with another learner','Быстрое соревнование по очкам') },
+      { id:'duel',icon:'⚡',category:'progress',accent:'red',premium:true,title:tr('Duel','Дуэль'),desc:tr('Real-time match with a learner at your level','Матч в реальном времени с учеником вашего уровня') },
       { id:'team',icon:'👥',category:'progress',accent:'purple',title:tr('Team challenge','Командное задание'),desc:tr('Complete a shared language goal','Выполните общую языковую цель') }
+    );
+    TOOLS.push(
+      { id:'liveTeacher',icon:'▣',category:'coach',accent:'red',premium:true,title:tr('Practice LIVE with Teacher','LIVE-практика с преподавателем'),desc:tr('Speaking, questions and real-time feedback','Говорение, вопросы и обратная связь в реальном времени') },
+      { id:'chess',icon:'♞',category:'chess',accent:'purple',title:'Chess',desc:tr('Play and train focus between lessons','Играйте и тренируйте концентрацию между уроками') }
     );
 
     // ---- helpers ----
@@ -326,7 +331,8 @@
     }
     function queueOfflineSession(payload) { try { var queue=JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY)||'[]'); if(!queue.some(function(item){return item.p_client_session_id===payload.p_client_session_id;}))queue.push(payload);localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(queue.slice(-100))); } catch(e){} }
     async function hydratePracticeData() {
-      if (!uid() || !navigator.onLine) return;
+      if (!uid() || !navigator.onLine || practiceHydrated) return;
+      practiceHydrated=true;
       try {
         var results = await Promise.all([
           supa.from('practice_progress').select('tool_id,sessions,xp,best_score,correct,attempted').eq('user_id',uid()),
@@ -338,7 +344,8 @@
           supa.from('practice_subscriptions').select('status,current_period_end').eq('user_id',uid()).eq('status','active').maybeSingle(),
           supa.from('practice_language_settings').select('language,level,active').eq('user_id',uid()),
           supa.from('practice_resume').select('tool_id,language,current_step,score,state,client_session_id,updated_at').eq('user_id',uid()).maybeSingle(),
-          supa.from('practice_exam_goals').select('exam_type,exam_date,days_per_week,minutes_per_day,updated_at').eq('user_id',uid()).maybeSingle()
+          supa.from('practice_exam_goals').select('exam_type,exam_date,days_per_week,minutes_per_day,updated_at').eq('user_id',uid()).maybeSingle(),
+          supa.from('learner_language_profiles').select('language,current_level,is_active,practice_progress,score').eq('user_id',uid())
         ]);
         var progress = loadProgress();
         (results[0].data || []).forEach(function (row) { progress[row.tool_id] = Math.max(Number(progress[row.tool_id] || 0),Number(row.sessions || 0)); });
@@ -349,8 +356,10 @@
         if ((results[7].data || []).length) { var prefs=loadPrefs();prefs.levels=prefs.levels||{};(results[7].data||[]).forEach(function(row){prefs.levels[row.language]=row.level;if(row.active)prefs.practiceLang=row.language;});savePrefs(prefs); }
         if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime();if(!local||cloudAt>Number(local.at||0))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloud.state&&cloud.state.startedAt||Date.now(),at:cloudAt})); }
         if(results[9]&&results[9].data){var exam=results[9].data;localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify({exam:exam.exam_type,date:exam.exam_date,daysPerWeek:exam.days_per_week,minutes:exam.minutes_per_day}));}
+        if(results[10]&&(results[10].data||[]).length){var languagePrefs=loadPrefs();languagePrefs.levels=languagePrefs.levels||{};(results[10].data||[]).forEach(function(row){var target=normalizePracticeTarget(row.language);if(!target)return;languagePrefs.levels[target]=String(row.current_level||'A1').toUpperCase();if(row.is_active){languagePrefs.practiceTarget=target;languagePrefs.practiceLang=target;}});savePrefs(languagePrefs);}
         if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,reviewStep:Number(row.review_step||0),dueAt:new Date(row.due_at||Date.now()).getTime(),at:new Date(row.updated_at).getTime() }; }));
         if ((results[2].data || []).length) localStorage.setItem(SAVED_WORDS_KEY,JSON.stringify(results[2].data.map(function (row) { return { lang:row.language,w:row.word,t:row.translation,box:row.box,dueAt:row.due_at }; })));
+        if(ctx.renderWorkspace)ctx.renderWorkspace();
       } catch (e) { /* tables may not be installed yet */ }
     }
     async function loadMobileBanks() {
@@ -462,6 +471,34 @@
       return plan.slice(0,count);
     }
 
+    function normalizePracticeTarget(value) {
+      var key=String(value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      var aliases={de:'de',deutsch:'de',german:'de',aleman:'de',en:'en',english:'en',englisch:'en',ingles:'en',es:'es',spanish:'es',spanisch:'es',espanol:'es',chess:'chess'};
+      return aliases[key]||aliases[key.split(/[-_]/)[0]]||null;
+    }
+    function learnerPracticeTargets(prefs) {
+      var languages=Array.isArray(ctx.profile&&ctx.profile.learning_languages)?ctx.profile.learning_languages:[];
+      var targets=[], levels=Object.assign({},prefs.levels||{}), learningTargets=ctx.profile&&ctx.profile.learning_targets;
+      languages.forEach(function(language){var target=normalizePracticeTarget(language);if(target&&target!=='chess'&&targets.indexOf(target)<0)targets.push(target);});
+      if(Array.isArray(learningTargets))learningTargets.forEach(function(item){
+        if(!item||typeof item!=='object')return;
+        if(item.levels&&typeof item.levels==='object')Object.keys(item.levels).forEach(function(language){var target=normalizePracticeTarget(language);if(target)levels[target]=String(item.levels[language]||'A1').toUpperCase();});
+        var target=normalizePracticeTarget(item.language);if(target&&targets.indexOf(target)<0)targets.push(target);
+        var subs=Array.isArray(item.subcategories)?item.subcategories.map(function(value){return String(value).toLowerCase();}):[];
+        if(subs.indexOf('chess')>=0&&targets.indexOf('chess')<0)targets.push('chess');
+      });
+      if(!targets.length)targets.push(normalizePracticeTarget(prefs.practiceTarget||prefs.practiceLang)||'de');
+      return {targets:targets,levels:levels};
+    }
+    function targetLabel(target) {
+      return target==='de'?tr('German','Немецкий'):target==='en'?tr('English','Английский'):target==='es'?tr('Spanish','Испанский'):'Chess';
+    }
+    function toolsForTarget(target) {
+      if(target==='chess')return TOOLS.filter(function(tool){return tool.id==='chess';});
+      var germanOnly=['articles','wquestion','perfekt'];
+      return TOOLS.filter(function(tool){return tool.id!=='chess'&&(target==='de'||germanOnly.indexOf(tool.id)<0);});
+    }
+
     // ---- public: tools grid in learner workspace ----
     function studyToolsHtml() {
       const p = loadProgress();
@@ -473,19 +510,24 @@
       const percent = Math.min(100, Math.round(done / goal * 100));
       const rank = done >= 2000 ? tr('Master','Мастер') : done >= 500 ? tr('Explorer','Исследователь') : done >= 100 ? tr('Rising learner','Растущий ученик') : tr('Starter','Новичок');
       const streak = p.streak && Number(p.streak.current_streak || 0);
-      const premiumTools = TOOLS.filter(function (tool) { return tool.premium; });
-      const regularTools = TOOLS.filter(function (tool) { return !tool.premium; });
-      const prefsLevel = prefs.levels && prefs.levels[prefs.practiceLang] || 'A1';
       const premiumActive = practicePremium || !!p.premiumActive || !!(ctx.profile && (ctx.profile.is_premium || ctx.profile.premium));
       const readiness=skillReadiness(p),weak=weakTopics(),examGoal=loadExamGoal(),daysLeft=examDaysLeft(examGoal),dailyPlan=buildAdaptiveDailyPlan(p,prefs,examGoal);
+      const targetData=learnerPracticeTargets(prefs),activeTarget=targetData.targets.indexOf(prefs.practiceTarget)>=0?prefs.practiceTarget:targetData.targets[0];
+      prefs.levels=Object.assign({},prefs.levels||{},targetData.levels);prefs.practiceTarget=activeTarget;if(activeTarget!=='chess')prefs.practiceLang=activeTarget;
+      savePrefs(prefs);
+      const targetTools=toolsForTarget(activeTarget);
+      const premiumOrder=['adaptive','ai','liveTeacher','exam','essentials','duel'];
+      const premiumTools=premiumOrder.map(function(id){return targetTools.find(function(tool){return tool.id===id;});}).filter(Boolean);
+      const regularTools=targetTools.filter(function(tool){return !tool.premium;});
       function toolCard(tool) {
         var sessions = Number(p[tool.id]) || 0;
+        var title=tool.id==='essentials'?(activeTarget==='de'?tr('Deutsch Trainer','Тренажёр немецкого'):targetLabel(activeTarget)+' '+tr('Trainer','тренажёр')):tool.title;
         return '<button class="study-tile mph-card ' + esc(tool.accent || 'purple') + (tool.premium ? ' premium-card' : '') + '" data-study="' + esc(tool.id) + '" data-study-category="' + esc(tool.category || '') + '"' + (tool.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
           '<div class="mph-card-top"><span class="mph-icon">' + tool.icon + '</span>' + (tool.premium ? '<span class="mph-premium">' + (premiumActive ? '★ PREMIUM' : '🔒 PREMIUM') + '</span>' : sessions ? '<span class="mph-done">✓ ' + sessions + '</span>' : '<span class="mph-new">' + esc(tr('Start', 'Начать')) + '</span>') + '</div>' +
-          '<div class="mph-card-copy"><h3>' + esc(tool.title) + '</h3><p>' + esc(tool.desc) + '</p></div><span class="mph-open">' + esc(tr('Open practice', 'Открыть практику')) + ' →</span></button>';
+          '<div class="mph-card-copy"><h3>' + esc(title) + '</h3><p>' + esc(tool.desc) + '</p></div><span class="mph-open">' + esc(tool.id==='liveTeacher'?tr('Join LIVE','Войти в LIVE'):tool.id==='duel'?tr('Find a rival','Найти соперника'):tr('Open practice', 'Открыть практику')) + ' →</span></button>';
       }
-      return '<section class="mobile-practice-hub">' +
-        '<div class="practice-language-bar"><div><small>' + esc(tr('LEARNING LANGUAGE','ЯЗЫК ОБУЧЕНИЯ')) + '</small><select id="practiceLanguage"><option value="de"' + (prefs.practiceLang === 'de' ? ' selected' : '') + '>🇩🇪 Deutsch</option><option value="en"' + (prefs.practiceLang === 'en' ? ' selected' : '') + '>🇬🇧 English</option><option value="es"' + (prefs.practiceLang === 'es' ? ' selected' : '') + '>🇪🇸 Español</option></select></div><div><small>' + esc(tr('YOUR LEVEL','ВАШ УРОВЕНЬ')) + '</small><select id="practiceLevel">' + ['A1','A2','B1','B2','C1','C2'].map(function (level) { return '<option' + (level === prefsLevel ? ' selected' : '') + '>' + level + '</option>'; }).join('') + '</select></div></div>' +
+      return '<section class="mobile-practice-hub target-'+esc(activeTarget)+'">' +
+        '<div class="practice-target-switcher" role="tablist" aria-label="'+esc(tr('Your practice subjects','Ваши направления практики'))+'">'+targetData.targets.map(function(target){var level=targetData.levels[target]||prefs.levels[target]||ctx.profile&&ctx.profile.language_level||'A1';return '<button type="button" role="tab" aria-selected="'+(target===activeTarget)+'" class="'+(target===activeTarget?'active':'')+'" data-practice-target="'+esc(target)+'"><span>'+(target==='chess'?'🎮':'文')+'</span><b>'+esc(targetLabel(target))+'<small>'+esc(String(level).toUpperCase())+'</small></b><em>→</em></button>';}).join('')+'</div>' +
         (resume ? '<button type="button" class="practice-resume" data-study-resume="1"><b>▶ ' + esc(tr('Continue practice','Продолжить практику')) + '</b><span>' + esc(resume.tool) + ' · ' + Number(resume.idx || 0) + ' ' + esc(tr('steps completed','шагов пройдено')) + '</span></button>' : '') +
         '<div class="practice-quick-settings" aria-label="Practice settings"><button type="button" data-practice-pref="sound" aria-pressed="' + prefs.sound + '">🔊 ' + esc(tr('Sound','Звук')) + '</button><button type="button" data-practice-pref="reducedMotion" aria-pressed="' + prefs.reducedMotion + '">◌ ' + esc(tr('Less motion','Меньше движения')) + '</button><button type="button" data-practice-pref="largeText" aria-pressed="' + prefs.largeText + '">A+ ' + esc(tr('Large text','Крупный текст')) + '</button></div>' +
         '<div class="mph-goal"><div class="mph-goal-head"><span class="mph-goal-icon">⚑</span><div><small>' + esc(tr('Your learning goal', 'Ваша учебная цель')) + '</small><h2>' + esc(tr('Reach the next language level', 'Дойти до следующего уровня')) + '</h2></div><strong>' + percent + '%</strong></div><div class="mph-track"><i style="width:' + percent + '%"></i></div><div class="mph-goal-meta"><span>' + esc((ctx.profile && ctx.profile.language_level) || 'A1') + ' · ' + done + ' XP</span><span>' + completed + ' / ' + TOOLS.length + ' ' + esc(tr('activities', 'практик')) + '</span></div></div>' +
@@ -493,8 +535,7 @@
         '<section class="exam-journey"><div class="exam-journey-main"><small>'+esc(tr('EXAM JOURNEY','ПУТЬ К ЭКЗАМЕНУ'))+'</small><div><h2>'+esc(examGoal.exam.toUpperCase().replace('-',' '))+'</h2><strong>'+readiness.overall+'%</strong></div><p>'+esc(daysLeft===null?tr('Set an exam date and get a personal daily plan.','Укажите дату экзамена и получите личный план на каждый день.'):daysLeft+' '+tr('days until the exam','дней до экзамена'))+'</p><div class="exam-readiness-track"><i style="width:'+readiness.overall+'%"></i></div><button type="button" class="btn" data-exam-plan="1">'+esc(daysLeft===null?tr('Create my plan','Создать мой план'):tr('Change goal','Изменить цель'))+'</button></div><div class="skill-readiness">'+[['reading','Reading'],['listening','Listening'],['grammar','Grammar'],['writing','Writing'],['speaking','Speaking']].map(function(item){return '<button type="button" data-readiness-tool="'+item[0]+'"><span><b>'+item[1]+'</b><strong>'+readiness[item[0]]+'%</strong></span><i><em style="width:'+readiness[item[0]]+'%"></em></i></button>';}).join('')+'</div></section>'+
         '<section class="weak-map"><div class="weak-map-head"><div><small>'+esc(tr('SMART REVIEW','УМНОЕ ПОВТОРЕНИЕ'))+'</small><h2>'+esc(tr('Topics needing attention','Темы, которым нужно внимание'))+'</h2></div><span>'+loadMistakes().filter(function(item){return !item.dueAt||item.dueAt<=Date.now();}).length+' '+esc(tr('due today','на сегодня'))+'</span></div><div class="weak-topic-grid">'+(weak.length?weak.map(function(item){var mastery=Math.max(12,100-item.count*14);return '<button type="button" data-weak-tool="'+item.tool+'"><span><b>'+esc(item.label)+'</b><small>'+item.count+' '+esc(tr('errors','ошибок'))+'</small></span><strong>'+mastery+'%</strong><i><em style="width:'+mastery+'%"></em></i></button>';}).join(''):'<div class="weak-empty">✓ '+esc(tr('No weak patterns yet. Complete a practice to build your map.','Слабых тем пока нет. Пройдите практику, чтобы построить карту.'))+'</div>')+'</div></section>'+
         '<div class="practice-daily adaptive-daily"><div class="practice-daily-head"><div><small>' + esc(tr('ADAPTIVE DAILY PLAN','АДАПТИВНЫЙ ПЛАН НА СЕГОДНЯ')) + '</small><h2>' + esc(tr('Built from your progress and exam goal','Составлен по вашему прогрессу и цели экзамена')) + '</h2></div><b>' + Math.min(dailyPlan.length,Number(p.streak && p.streak.today_sessions || 0)) + '/'+dailyPlan.length+'</b></div><div class="practice-daily-list">'+dailyPlan.map(function(item,index){return '<button data-study="'+esc(item.tool)+'"><i>'+(index+1)+'</i><span><b>'+esc(item.title)+'</b><small>'+esc(item.meta)+'</small><u>'+esc(item.reason)+'</u></span><em>→</em></button>';}).join('')+'</div></div>' +
-        '<div class="practice-section-title premium-title"><div><small>DUVELA PREMIUM</small><h2>★ ' + esc(tr('Premium practice','Премиум-практика')) + '</h2></div><span>' + esc(tr('Personal tools and exams','Персональные инструменты и экзамены')) + '</span></div>' +
-        '<div class="study-grid mph-grid premium-grid">' + premiumTools.map(toolCard).join('') + '</div>' +
+        (premiumTools.length?'<div class="practice-section-title premium-title"><div><small>DUVELA PREMIUM</small><h2>★ ' + esc(tr('Premium practice','Премиум-практика')) + '</h2></div><span>' + esc(tr('Personal tools and exams','Персональные инструменты и экзамены')) + '</span></div><div class="study-grid mph-grid premium-grid">' + premiumTools.map(toolCard).join('') + '</div>':'') +
         '<div class="mph-toolbar"><div><small>' + esc(tr('PRACTICE LIBRARY', 'БИБЛИОТЕКА ПРАКТИКИ')) + '</small><h2>' + esc(tr('All practice','Все практики')) + '</h2></div><div class="mph-filters"><button class="active" data-study-filter="all">' + esc(tr('All', 'Все')) + '</button><button data-study-filter="grammar">' + esc(tr('Grammar', 'Грамматика')) + '</button><button data-study-filter="vocabulary">' + esc(tr('Vocabulary', 'Словарь')) + '</button><button data-study-filter="skills">' + esc(tr('Skills', 'Навыки')) + '</button><button data-study-filter="progress">' + esc(tr('Progress', 'Прогресс')) + '</button></div></div>' +
         '<div class="study-grid mph-grid regular-grid">' + regularTools.map(toolCard).join('') + '</div></section>';
     }
@@ -502,7 +543,20 @@
     function bindStudyTiles() {
       var tiles = document.querySelectorAll('.study-tile');
       Array.prototype.forEach.call(tiles, function (tile) {
-        tile.addEventListener('click', function () { if (tile.getAttribute('data-premium-locked')) return showPremiumAccess(); openStudyTool(tile.getAttribute('data-study')); });
+        tile.addEventListener('click', function () {
+          if (tile.getAttribute('data-premium-locked')) return showPremiumAccess();
+          var tool=tile.getAttribute('data-study');
+          if(tool==='liveTeacher'){location.hash='live';return;}
+          if(tool==='chess'){if(ctx.openChess)ctx.openChess();return;}
+          openStudyTool(tool);
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-practice-target]'),function(button){
+        button.addEventListener('click',async function(){
+          var target=button.getAttribute('data-practice-target'),prefs=loadPrefs();prefs.practiceTarget=target;
+          if(target!=='chess'){prefs.practiceLang=target;if(uid()){await supa.from('practice_language_settings').update({active:false}).eq('user_id',uid());await supa.from('practice_language_settings').upsert({user_id:uid(),language:target,level:(prefs.levels||{})[target]||'A1',active:true,updated_at:new Date().toISOString()});}}
+          savePrefs(prefs);var panel=document.querySelector('[data-panel="workspace"]');if(panel&&ctx.renderWorkspace)ctx.renderWorkspace();else location.reload();
+        });
       });
       Array.prototype.forEach.call(document.querySelectorAll('.practice-daily [data-study]'), function (tile) { tile.addEventListener('click',function () { openStudyTool(tile.getAttribute('data-study')); }); });
       Array.prototype.forEach.call(document.querySelectorAll('[data-weak-tool],[data-readiness-tool]'),function(button){button.onclick=function(){var tool=button.getAttribute('data-weak-tool')||button.getAttribute('data-readiness-tool');openStudyTool(tool);};});
