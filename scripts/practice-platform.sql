@@ -110,6 +110,16 @@ create table if not exists public.practice_challenge_members (
   challenge_id uuid not null references public.practice_challenges(id) on delete cascade, user_id uuid not null references auth.users(id) on delete cascade,
   score integer not null default 0, completed integer not null default 0, joined_at timestamptz not null default now(), primary key(challenge_id,user_id)
 );
+create table if not exists public.practice_exam_goals (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  exam_type text not null default 'telc-b1' check(exam_type in ('telc-b1','telc-b2','goethe-b1','dtz','testdaf')),
+  exam_date date not null, days_per_week integer not null default 5 check(days_per_week between 1 and 7),
+  minutes_per_day integer not null default 20 check(minutes_per_day between 5 and 180), updated_at timestamptz not null default now()
+);
+alter table public.practice_mistakes add column if not exists topic_id text;
+alter table public.practice_mistakes add column if not exists review_step integer not null default 0;
+alter table public.practice_mistakes add column if not exists due_at timestamptz not null default now();
+alter table public.practice_mistakes add column if not exists last_reviewed_at timestamptz;
 create index if not exists practice_submissions_student_idx on public.practice_submissions(student_id,created_at desc);
 create index if not exists practice_submissions_teacher_idx on public.practice_submissions(teacher_id,status,created_at desc);
 create index if not exists practice_challenges_status_idx on public.practice_challenges(kind,status,created_at desc);
@@ -129,6 +139,7 @@ alter table public.practice_resume enable row level security;
 alter table public.practice_submissions enable row level security;
 alter table public.practice_challenges enable row level security;
 alter table public.practice_challenge_members enable row level security;
+alter table public.practice_exam_goals enable row level security;
 do $$ declare t text; begin foreach t in array array['practice_sessions','practice_progress','practice_mistakes','practice_saved_words','practice_streaks','practice_achievements','practice_reminders','practice_language_settings'] loop
   execute format('drop policy if exists "users manage own %1$s" on public.%1$I',t);
   execute format('create policy "users manage own %1$s" on public.%1$I for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid())',t);
@@ -161,6 +172,8 @@ drop policy if exists "users join challenges" on public.practice_challenge_membe
 create policy "users join challenges" on public.practice_challenge_members for insert to authenticated with check(user_id=auth.uid());
 drop policy if exists "users update own challenge score" on public.practice_challenge_members;
 create policy "users update own challenge score" on public.practice_challenge_members for update to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists "users manage own exam goal" on public.practice_exam_goals;
+create policy "users manage own exam goal" on public.practice_exam_goals for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 do $$ begin
   if exists (select 1 from pg_publication where pubname='supabase_realtime') and not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='practice_challenge_members') then
     alter publication supabase_realtime add table public.practice_challenge_members;

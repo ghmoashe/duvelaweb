@@ -5,6 +5,7 @@
     const RESUME_KEY = 'duvela.study.resume';
     const PREFS_KEY = 'duvela.study.preferences';
     const OFFLINE_QUEUE_KEY = 'duvela.study.offlineQueue';
+    const EXAM_GOAL_KEY = 'duvela.study.examGoal';
     let studyState = null;
     let aiChatState = null;
     let practicePremium = false;
@@ -237,6 +238,18 @@
     function saveProgress(next) {
       try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
     }
+    function loadExamGoal() {
+      try { return Object.assign({ exam:'telc-b1',date:'',daysPerWeek:5,minutes:20 },JSON.parse(localStorage.getItem(EXAM_GOAL_KEY)||'{}')); }
+      catch(e){ return { exam:'telc-b1',date:'',daysPerWeek:5,minutes:20 }; }
+    }
+    function examDaysLeft(goal) { if(!goal.date)return null;return Math.max(0,Math.ceil((new Date(goal.date+'T12:00:00')-Date.now())/86400000)); }
+    function skillReadiness(progress) {
+      var sessions=progress.sessions||[],groups=['reading','listening','grammar','writing','speaking'],result={};
+      groups.forEach(function(group){var rows=sessions.filter(function(row){return (SKILL_GROUP[row.tool_id]||row.tool_id)===group;}).slice(0,12),attempted=rows.reduce(function(sum,row){return sum+Number(row.total||0);},0),correct=rows.reduce(function(sum,row){return sum+Number(row.score||0);},0);result[group]=attempted?Math.round(correct/attempted*100):0;});
+      result.overall=Math.round(groups.reduce(function(sum,key){return sum+result[key];},0)/groups.length);return result;
+    }
+    function mistakeTopic(item){var text=String(item.prompt||'').toLowerCase();if(item.kind==='pronunciation')return {id:'pronunciation',label:tr('Pronunciation','Произношение'),tool:'speaking'};if(/der|die|das|article|артик/.test(text))return {id:'articles',label:'der / die / das',tool:'articles'};if(/perfekt|gefahren|gelernt|gelesen|gekommen/.test(text))return {id:'perfekt',label:'Perfekt',tool:'perfekt'};if(/wer|wie|wo|warum|wann/.test(text))return {id:'questions',label:tr('Question words','Вопросительные слова'),tool:'wquestion'};if(item.kind==='sentence')return {id:'word-order',label:tr('Word order','Порядок слов'),tool:'sentences'};return {id:'forms',label:tr('Verb forms and grammar','Формы глаголов и грамматика'),tool:'grammar'};}
+    function weakTopics(){var grouped={};loadMistakes().forEach(function(item){var topic=mistakeTopic(item);if(!grouped[topic.id])grouped[topic.id]={id:topic.id,label:topic.label,tool:topic.tool,count:0};grouped[topic.id].count++;});return Object.keys(grouped).map(function(key){return grouped[key];}).sort(function(a,b){return b.count-a.count;}).slice(0,4);}
     function bumpProgress(toolId, xp) {
       const p = loadProgress();
       p[toolId] = (p[toolId] || 0) + 1;
@@ -302,7 +315,7 @@
     async function syncPracticeData() {
       if (!uid() || !navigator.onLine) return;
       try {
-        var mistakes = loadMistakes().map(function (m) { return { user_id:uid(),mistake_key:m.lang + '|' + m.prompt,language:m.lang,tool_id:m.kind || 'mcq',prompt:m.prompt,options:m.opts || [],correct_index:m.a,updated_at:new Date(m.at || Date.now()).toISOString() }; });
+        var mistakes = loadMistakes().map(function (m) { return { user_id:uid(),mistake_key:m.lang + '|' + m.prompt,language:m.lang,tool_id:m.kind || 'mcq',topic_id:mistakeTopic(m).id,prompt:m.prompt,options:m.opts || [],correct_index:m.a,review_step:Number(m.reviewStep||0),due_at:new Date(m.dueAt||Date.now()).toISOString(),updated_at:new Date(m.at || Date.now()).toISOString() }; });
         if (mistakes.length) await supa.from('practice_mistakes').upsert(mistakes, { onConflict:'user_id,mistake_key' });
         var words = loadSavedWords().map(function (w) { return { user_id:uid(),language:w.lang,word:w.w,translation:w.t,updated_at:new Date().toISOString() }; });
         if (words.length) await supa.from('practice_saved_words').upsert(words, { onConflict:'user_id,language,word' });
@@ -317,14 +330,15 @@
       try {
         var results = await Promise.all([
           supa.from('practice_progress').select('tool_id,sessions,xp,best_score,correct,attempted').eq('user_id',uid()),
-          supa.from('practice_mistakes').select('language,prompt,options,correct_index,tool_id,updated_at').eq('user_id',uid()).is('mastered_at',null),
+          supa.from('practice_mistakes').select('language,prompt,options,correct_index,tool_id,review_step,due_at,updated_at').eq('user_id',uid()).is('mastered_at',null),
           supa.from('practice_saved_words').select('language,word,translation,box,due_at').eq('user_id',uid()),
           supa.from('practice_streaks').select('current_streak,longest_streak,today_sessions,daily_goal').eq('user_id',uid()).maybeSingle(),
           supa.from('practice_sessions').select('tool_id,language,score,total,xp_awarded,completed_at,duration_seconds').eq('user_id',uid()).eq('status','completed').order('completed_at',{ ascending:false }).limit(90),
           supa.from('practice_achievements').select('achievement_id,unlocked_at,metadata').eq('user_id',uid()).order('unlocked_at',{ ascending:false }),
           supa.from('practice_subscriptions').select('status,current_period_end').eq('user_id',uid()).eq('status','active').maybeSingle(),
           supa.from('practice_language_settings').select('language,level,active').eq('user_id',uid()),
-          supa.from('practice_resume').select('tool_id,language,current_step,score,state,client_session_id,updated_at').eq('user_id',uid()).maybeSingle()
+          supa.from('practice_resume').select('tool_id,language,current_step,score,state,client_session_id,updated_at').eq('user_id',uid()).maybeSingle(),
+          supa.from('practice_exam_goals').select('exam_type,exam_date,days_per_week,minutes_per_day,updated_at').eq('user_id',uid()).maybeSingle()
         ]);
         var progress = loadProgress();
         (results[0].data || []).forEach(function (row) { progress[row.tool_id] = Math.max(Number(progress[row.tool_id] || 0),Number(row.sessions || 0)); });
@@ -334,7 +348,8 @@
         practicePremium = !!(results[6].data && results[6].data.status === 'active'); progress.premiumActive=practicePremium; saveProgress(progress);
         if ((results[7].data || []).length) { var prefs=loadPrefs();prefs.levels=prefs.levels||{};(results[7].data||[]).forEach(function(row){prefs.levels[row.language]=row.level;if(row.active)prefs.practiceLang=row.language;});savePrefs(prefs); }
         if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime();if(!local||cloudAt>Number(local.at||0))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloud.state&&cloud.state.startedAt||Date.now(),at:cloudAt})); }
-        if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,at:new Date(row.updated_at).getTime() }; }));
+        if(results[9]&&results[9].data){var exam=results[9].data;localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify({exam:exam.exam_type,date:exam.exam_date,daysPerWeek:exam.days_per_week,minutes:exam.minutes_per_day}));}
+        if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,reviewStep:Number(row.review_step||0),dueAt:new Date(row.due_at||Date.now()).getTime(),at:new Date(row.updated_at).getTime() }; }));
         if ((results[2].data || []).length) localStorage.setItem(SAVED_WORDS_KEY,JSON.stringify(results[2].data.map(function (row) { return { lang:row.language,w:row.word,t:row.translation,box:row.box,dueAt:row.due_at }; })));
       } catch (e) { /* tables may not be installed yet */ }
     }
@@ -361,11 +376,12 @@
       var list = loadMistakes();
       var key = lang + '|' + prompt;
       list = list.filter(function (m) { return (m.lang + '|' + m.prompt) !== key; });
-      list.push({ lang: lang, prompt: prompt, opts: opts, a: correctIdx, kind: kind || 'mcq', at: Date.now() });
+      var previous=loadMistakes().find(function(m){return (m.lang+'|'+m.prompt)===key;}),step=Math.min(3,Number(previous&&previous.reviewStep||0));
+      list.push({ lang:lang,prompt:prompt,opts:opts,a:correctIdx,kind:kind||'mcq',at:Date.now(),reviewStep:step,dueAt:Date.now()+[1,3,7,14][step]*86400000 });
       saveMistakes(list);
     }
     function clearMistake(lang, prompt) {
-      var list = loadMistakes().filter(function (m) { return (m.lang + '|' + m.prompt) !== (lang + '|' + prompt); });
+      var list=loadMistakes().map(function(m){if((m.lang+'|'+m.prompt)!==(lang+'|'+prompt))return m;var next=Math.min(3,Number(m.reviewStep||0)+1);return Object.assign({},m,{reviewStep:next,dueAt:Date.now()+[1,3,7,14][next]*86400000,mastered:next>=3});}).filter(function(m){return !m.mastered;});
       saveMistakes(list);
     }
 
@@ -438,6 +454,7 @@
       const regularTools = TOOLS.filter(function (tool) { return !tool.premium; });
       const prefsLevel = prefs.levels && prefs.levels[prefs.practiceLang] || 'A1';
       const premiumActive = practicePremium || !!p.premiumActive || !!(ctx.profile && (ctx.profile.is_premium || ctx.profile.premium));
+      const readiness=skillReadiness(p),weak=weakTopics(),examGoal=loadExamGoal(),daysLeft=examDaysLeft(examGoal);
       function toolCard(tool) {
         var sessions = Number(p[tool.id]) || 0;
         return '<button class="study-tile mph-card ' + esc(tool.accent || 'purple') + (tool.premium ? ' premium-card' : '') + '" data-study="' + esc(tool.id) + '" data-study-category="' + esc(tool.category || '') + '"' + (tool.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
@@ -450,6 +467,8 @@
         '<div class="practice-quick-settings" aria-label="Practice settings"><button type="button" data-practice-pref="sound" aria-pressed="' + prefs.sound + '">🔊 ' + esc(tr('Sound','Звук')) + '</button><button type="button" data-practice-pref="reducedMotion" aria-pressed="' + prefs.reducedMotion + '">◌ ' + esc(tr('Less motion','Меньше движения')) + '</button><button type="button" data-practice-pref="largeText" aria-pressed="' + prefs.largeText + '">A+ ' + esc(tr('Large text','Крупный текст')) + '</button></div>' +
         '<div class="mph-goal"><div class="mph-goal-head"><span class="mph-goal-icon">⚑</span><div><small>' + esc(tr('Your learning goal', 'Ваша учебная цель')) + '</small><h2>' + esc(tr('Reach the next language level', 'Дойти до следующего уровня')) + '</h2></div><strong>' + percent + '%</strong></div><div class="mph-track"><i style="width:' + percent + '%"></i></div><div class="mph-goal-meta"><span>' + esc((ctx.profile && ctx.profile.language_level) || 'A1') + ' · ' + done + ' XP</span><span>' + completed + ' / ' + TOOLS.length + ' ' + esc(tr('activities', 'практик')) + '</span></div></div>' +
         '<div class="practice-rank-strip"><span>🔥 <b>' + (streak || 0) + '</b> ' + esc(tr('day streak','дней подряд')) + '</span><span>🏅 <b>' + esc(rank) + '</b></span><span>🎯 <b>' + Number(p.streak && p.streak.today_sessions || 0) + '/' + Number(p.streak && p.streak.daily_goal || 1) + '</b> ' + esc(tr('today','сегодня')) + '</span></div>' +
+        '<section class="exam-journey"><div class="exam-journey-main"><small>'+esc(tr('EXAM JOURNEY','ПУТЬ К ЭКЗАМЕНУ'))+'</small><div><h2>'+esc(examGoal.exam.toUpperCase().replace('-',' '))+'</h2><strong>'+readiness.overall+'%</strong></div><p>'+esc(daysLeft===null?tr('Set an exam date and get a personal daily plan.','Укажите дату экзамена и получите личный план на каждый день.'):daysLeft+' '+tr('days until the exam','дней до экзамена'))+'</p><div class="exam-readiness-track"><i style="width:'+readiness.overall+'%"></i></div><button type="button" class="btn" data-exam-plan="1">'+esc(daysLeft===null?tr('Create my plan','Создать мой план'):tr('Change goal','Изменить цель'))+'</button></div><div class="skill-readiness">'+[['reading','Reading'],['listening','Listening'],['grammar','Grammar'],['writing','Writing'],['speaking','Speaking']].map(function(item){return '<button type="button" data-readiness-tool="'+item[0]+'"><span><b>'+item[1]+'</b><strong>'+readiness[item[0]]+'%</strong></span><i><em style="width:'+readiness[item[0]]+'%"></em></i></button>';}).join('')+'</div></section>'+
+        '<section class="weak-map"><div class="weak-map-head"><div><small>'+esc(tr('SMART REVIEW','УМНОЕ ПОВТОРЕНИЕ'))+'</small><h2>'+esc(tr('Topics needing attention','Темы, которым нужно внимание'))+'</h2></div><span>'+loadMistakes().filter(function(item){return !item.dueAt||item.dueAt<=Date.now();}).length+' '+esc(tr('due today','на сегодня'))+'</span></div><div class="weak-topic-grid">'+(weak.length?weak.map(function(item){var mastery=Math.max(12,100-item.count*14);return '<button type="button" data-weak-tool="'+item.tool+'"><span><b>'+esc(item.label)+'</b><small>'+item.count+' '+esc(tr('errors','ошибок'))+'</small></span><strong>'+mastery+'%</strong><i><em style="width:'+mastery+'%"></em></i></button>';}).join(''):'<div class="weak-empty">✓ '+esc(tr('No weak patterns yet. Complete a practice to build your map.','Слабых тем пока нет. Пройдите практику, чтобы построить карту.'))+'</div>')+'</div></section>'+
         '<div class="practice-daily"><div class="practice-daily-head"><div><small>' + esc(tr('DAILY PLAN','ПЛАН НА СЕГОДНЯ')) + '</small><h2>' + esc(tr('Three short steps','Три коротких шага')) + '</h2></div><b>' + Math.min(3,Number(p.streak && p.streak.today_sessions || 0)) + '/3</b></div><div class="practice-daily-list"><button data-study="flashcards"><i>1</i><span><b>' + esc(tr('Warm-up words','Разминка со словами')) + '</b><small>5 min · Vocabulary</small></span><em>→</em></button><button data-study="grammar"><i>2</i><span><b>' + esc(tr('Grammar focus','Фокус на грамматике')) + '</b><small>7 min · ' + esc(prefsLevel) + '</small></span><em>→</em></button><button data-study="' + (loadMistakes().length ? 'mistakes' : 'speaking') + '"><i>3</i><span><b>' + esc(loadMistakes().length ? tr('Review weak topics','Повторить слабые темы') : tr('Speaking finish','Завершить говорением')) + '</b><small>5 min · ' + loadMistakes().length + ' ' + esc(tr('mistakes','ошибок')) + '</small></span><em>→</em></button></div></div>' +
         '<div class="practice-section-title premium-title"><div><small>DUVELA PREMIUM</small><h2>★ ' + esc(tr('Premium practice','Премиум-практика')) + '</h2></div><span>' + esc(tr('Personal tools and exams','Персональные инструменты и экзамены')) + '</span></div>' +
         '<div class="study-grid mph-grid premium-grid">' + premiumTools.map(toolCard).join('') + '</div>' +
@@ -463,6 +482,8 @@
         tile.addEventListener('click', function () { if (tile.getAttribute('data-premium-locked')) return showPremiumAccess(); openStudyTool(tile.getAttribute('data-study')); });
       });
       Array.prototype.forEach.call(document.querySelectorAll('.practice-daily [data-study]'), function (tile) { tile.addEventListener('click',function () { openStudyTool(tile.getAttribute('data-study')); }); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-weak-tool],[data-readiness-tool]'),function(button){button.onclick=function(){var tool=button.getAttribute('data-weak-tool')||button.getAttribute('data-readiness-tool');openStudyTool(tool);};});
+      var examPlanButton=document.querySelector('[data-exam-plan]');if(examPlanButton)examPlanButton.onclick=function(){openExamPlanner();};
       var languageSelect = $('#practiceLanguage'), levelSelect = $('#practiceLevel');
       if (languageSelect) languageSelect.onchange = async function () { var prefs = loadPrefs(); prefs.practiceLang = languageSelect.value; savePrefs(prefs); if(uid()){await supa.from('practice_language_settings').update({active:false}).eq('user_id',uid());await supa.from('practice_language_settings').upsert({user_id:uid(),language:prefs.practiceLang,level:(prefs.levels||{})[prefs.practiceLang]||'A1',active:true,updated_at:new Date().toISOString()});} var panel = document.querySelector('[data-panel="workspace"]'); if (panel) ctx.renderWorkspace ? ctx.renderWorkspace() : location.reload(); };
       if (levelSelect) levelSelect.onchange = function () { var prefs = loadPrefs(); prefs.levels = prefs.levels || {}; prefs.levels[prefs.practiceLang] = levelSelect.value; savePrefs(prefs); if(uid())supa.from('practice_language_settings').upsert({user_id:uid(),language:prefs.practiceLang,level:levelSelect.value,active:true,updated_at:new Date().toISOString()}); };
@@ -491,6 +512,17 @@
       loadMobileBanks();
       if (!window.__duvelaPracticeUnloadBound) { window.__duvelaPracticeUnloadBound = true; window.addEventListener('beforeunload',function (event) { if (studyState && !studyState.finished && (studyState.dirty || Number(studyState.idx || 0)>0)) { persistResume(); event.preventDefault(); event.returnValue = ''; } }); }
       if (!window.__duvelaPracticeOnlineBound) { window.__duvelaPracticeOnlineBound=true; window.addEventListener('online',syncPracticeData); }
+    }
+
+    function openExamPlanner(){
+      ensureOverlay();var goal=loadExamGoal();studyState={tool:'examplan',lang:currentLang(),idx:0,score:0,lives:3,answers:[],startedAt:Date.now(),clientSessionId:sessionId(),examGoal:goal};
+      $('#studyOverlayTitle').textContent='🎯 '+tr('Exam plan','План к экзамену');$('#studyOverlayKicker').textContent=tr('PERSONAL JOURNEY','ПЕРСОНАЛЬНЫЙ МАРШРУТ');$('#studyOverlay').setAttribute('data-practice-tool','examplan');$('#studyOverlay').setAttribute('data-practice-accent','purple');$('#studyOverlay').classList.add('open','practice-immersive');renderTool();
+    }
+
+    function renderExamPlanner(){
+      var goal=studyState.examGoal||loadExamGoal(),days=examDaysLeft(goal),host=$('#studyToolBody');
+      host.innerHTML='<div class="exam-plan-form"><div class="exam-plan-hero"><span>🎯</span><div><small>'+esc(tr('YOUR EXAM GOAL','ВАША ЦЕЛЬ'))+'</small><h2>'+esc(tr('Build a realistic plan','Составьте реалистичный план'))+'</h2><p>'+esc(tr('Duvela adapts the daily steps to your exam, available time and weak skills.','Duvela подстроит ежедневные шаги под экзамен, доступное время и слабые навыки.'))+'</p></div></div><div class="exam-plan-fields"><label><span>'+esc(tr('Exam','Экзамен'))+'</span><select id="examGoalType"><option value="telc-b1">TELC B1</option><option value="telc-b2">TELC B2</option><option value="goethe-b1">Goethe B1</option><option value="dtz">DTZ</option><option value="testdaf">TestDaF</option></select></label><label><span>'+esc(tr('Exam date','Дата экзамена'))+'</span><input id="examGoalDate" type="date" value="'+esc(goal.date||'')+'"></label><label><span>'+esc(tr('Days per week','Дней в неделю'))+'</span><select id="examGoalDays">'+[2,3,4,5,6,7].map(function(value){return '<option'+(value===Number(goal.daysPerWeek)?' selected':'')+'>'+value+'</option>';}).join('')+'</select></label><label><span>'+esc(tr('Minutes per day','Минут в день'))+'</span><select id="examGoalMinutes">'+[10,15,20,30,45,60].map(function(value){return '<option'+(value===Number(goal.minutes)?' selected':'')+'>'+value+'</option>';}).join('')+'</select></label></div><div class="exam-plan-preview"><b>'+esc(days===null?tr('Choose your date','Выберите дату'):days+' '+tr('days available','дней в запасе'))+'</b><span>'+esc(tr('Practice → Review → Understand → Repeat','Практика → разбор → понимание → повторение'))+'</span></div><button class="btn primary" id="saveExamGoal">'+esc(tr('Create my plan','Создать мой план'))+'</button></div>';
+      $('#examGoalType').value=goal.exam;$('#saveExamGoal').onclick=async function(){var next={exam:$('#examGoalType').value,date:$('#examGoalDate').value,daysPerWeek:Number($('#examGoalDays').value),minutes:Number($('#examGoalMinutes').value)};if(!next.date)return alert(tr('Choose the exam date.','Выберите дату экзамена.'));localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify(next));if(uid())try{await supa.from('practice_exam_goals').upsert({user_id:uid(),exam_type:next.exam,exam_date:next.date,days_per_week:next.daysPerWeek,minutes_per_day:next.minutes,updated_at:new Date().toISOString()});}catch(e){}closeStudy();if(ctx.renderWorkspace)ctx.renderWorkspace();else location.reload();};
     }
 
     function showPremiumAccess() {
@@ -561,7 +593,7 @@
       var body = $('#studyOverlayBody');
       var showPicker = ['mistakes','ai','articles','wquestion','perfekt'].indexOf(studyState.tool) < 0;
       var pickerRow = showPicker ? '<div style="display:flex;align-items:center;gap:10px">' + langPicker() + '</div>' : '';
-      var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || {};
+      var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || (studyState.tool==='examplan'?{icon:'🎯',title:tr('Exam plan','План к экзамену'),desc:tr('A personal route to exam day','Персональный маршрут до экзамена')}:{icon:'⚔️',title:tr('Learner duel','Дуэль учеников'),desc:tr('Answer faster and more accurately','Отвечайте быстрее и точнее')});
       body.innerHTML = '<div class="practice-stage-intro"><span>' + (tool.icon || '✦') + '</span><div><small>' + esc(tr('TRAINING MODE','ТРЕНИРОВОЧНЫЙ РЕЖИМ')) + '</small><h3>' + esc(tool.title || '') + '</h3><p>' + esc(tool.desc || '') + '</p></div></div>' +
         '<div class="practice-session-line"><div><i id="practiceSessionBar"></i></div><span id="practiceSessionStep">1 / 10</span></div>' +
         '<div class="practice-gamebar"><div class="practice-status"><span id="practiceLives">♥♥♥</span><span id="practiceCombo">🔥 0</span></div><details class="practice-tools"><summary>⚙ '+esc(tr('Help and options','Помощь и настройки'))+'</summary><div><button type="button" data-practice-help="hint">💡 ' + esc(tr('Hint','Подсказка')) + '</button><button type="button" data-practice-help="explain">? ' + esc(tr('Explain','Объяснить')) + '</button><button type="button" data-practice-help="speed">🔊 0.9×</button><button type="button" data-practice-help="timer">⏱ ' + esc(tr('No timer','Без таймера')) + '</button></div></details></div><div id="practiceCoach" class="practice-coach" hidden></div>' +
@@ -596,6 +628,7 @@
         case 'scenarios': return renderScenarios();
         case 'duel': return renderSocialChallenge('duel');
         case 'duelmatch': return renderDuelMatch();
+        case 'examplan': return renderExamPlanner();
         case 'team': return renderSocialChallenge('team');
         case 'exam': return renderExam();
         case 'mistakes': return renderMistakes();
@@ -648,6 +681,12 @@
       if (studyState.tool==='articles') return tr('German noun gender determines whether der, die or das is used. Save this noun together with its article.','Род немецкого существительного определяет артикль der, die или das. Запоминайте существительное сразу вместе с артиклем.');
       if (studyState.tool==='wordusage') return tr('Meaning and surrounding words determine which option fits naturally.','Значение и соседние слова определяют, какой вариант подходит естественно.');
       return tr('Compare the correct option with the complete sentence and repeat it aloud once.','Сравните правильный вариант с полным предложением и один раз произнесите его вслух.');
+    }
+    function explanationPanel(item,chosen,ok){
+      var correct=item.opts[item.a],base=answerExplanation(item),prompt=String(item.q||'');
+      var rule=/___/.test(prompt)?tr('The form must match the person, tense and sentence meaning.','Форма должна соответствовать лицу, времени и смыслу предложения.'):tr('Use the complete sentence to identify the intended meaning.','Используйте полное предложение, чтобы определить нужный смысл.');
+      var tip=studyState.lang==='de'?tr('Read the complete German sentence aloud with the correct option.','Прочитайте полное немецкое предложение вслух с правильным вариантом.'):tr('Say the corrected sentence aloud once.','Один раз произнесите исправленное предложение вслух.');
+      return '<div class="why-panel '+(ok?'ok':'bad')+'"><header><span>'+(ok?'✓':'!')+'</span><div><small>'+esc(ok?tr('CORRECT','ВЕРНО'):tr('LET’S UNDERSTAND','РАЗБЕРЁМ ОШИБКУ'))+'</small><b>'+esc(ok?tr('You recognised the pattern','Вы распознали правило'):tr('You chose ','Вы выбрали ')+chosen)+'</b></div></header>'+(!ok?'<article><small>'+esc(tr('WHY IT DOES NOT FIT','ПОЧЕМУ НЕ ПОДХОДИТ'))+'</small><p>'+esc(tr('This option does not match the form or meaning required in this exact sentence.','Этот вариант не соответствует форме или смыслу, который нужен именно в этом предложении.'))+'</p></article>':'')+'<article><small>'+esc(tr('WHY THIS IS CORRECT','ПОЧЕМУ ЭТО ВЕРНО'))+'</small><p><b>'+esc(correct)+'</b> — '+esc(base)+'</p></article><article><small>'+esc(tr('RULE','ПРАВИЛО'))+'</small><p>'+esc(rule)+'</p></article><article class="why-tip"><small>'+esc(tr('MEMORY TIP','КАК ЗАПОМНИТЬ'))+'</small><p>'+esc(tip)+'</p></article></div>';
     }
 
     async function submitForTeacher(type,text,blob) {
@@ -916,7 +955,7 @@
           $('#quizFb').innerHTML = ok
             ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
             : '<span style="color:#d64545">' + esc(tr('Answer: ', 'Ответ: ')) + esc(item.opts[item.a]) + '</span>';
-          $('#quizFb').insertAdjacentHTML('beforeend','<p class="answer-explanation">'+esc(answerExplanation(item))+'</p>');
+          $('#quizFb').insertAdjacentHTML('beforeend',explanationPanel(item,item.opts[chosen],ok));
           $('#quizFb').insertAdjacentHTML('beforeend','<button class="btn primary answer-continue" id="quizContinue">'+esc(tr('Continue','Продолжить'))+' →</button>');
           $('#quizContinue').onclick=function(){studyState.idx++;persistResume();rerender();};
         });
@@ -930,6 +969,10 @@
     }
 
     function renderSpeaking() {
+      if(!studyState.speakingMode){
+        $('#studyToolBody').innerHTML='<div class="speaking-mode-head"><span>🎙</span><div><small>'+esc(tr('AI SPEAKING PRACTICE','РАЗГОВОРНАЯ ПРАКТИКА'))+'</small><h2>'+esc(tr('Choose a real exam situation','Выберите ситуацию настоящего экзамена'))+'</h2></div></div><div class="speaking-modes">'+[['intro','1','3 min',tr('Introduce yourself or share an experience','Расскажите о себе или своём опыте')],['discuss','2','6 min',tr('Discuss a topic and support your opinion','Обсудите тему и обоснуйте мнение')],['plan','3','5 min',tr('Plan something together','Спланируйте что-нибудь вместе')]].map(function(item){return '<button data-speaking-mode="'+item[0]+'"><i>'+item[1]+'</i><span><b>'+esc(item[3])+'</b><small>'+item[2]+'</small></span><em>→</em></button>';}).join('')+'</div>';
+        Array.prototype.forEach.call(document.querySelectorAll('[data-speaking-mode]'),function(button){button.onclick=function(){studyState.speakingMode=button.getAttribute('data-speaking-mode');studyState.data=null;renderSpeaking();};});return;
+      }
       if (!studyState.data) studyState.data = shuffle((LISTEN[studyState.lang] || LISTEN.de).map(function (item) { return item.text; }));
       var deck = studyState.data;
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 4);
@@ -947,7 +990,8 @@
           var heard = event.results[0][0].transcript, result = similarity(phrase, heard), ok = result.percent >= 70;
           feedback(ok); if (ok) studyState.score++; else logMistake(studyState.lang, phrase, [], null, 'pronunciation');
           studyState.lastTranscript=heard;$('#voiceWave').hidden=true;
-          $('#spResult').innerHTML = '<p><b>' + esc(tr('I heard: ','Я услышал: ')) + '</b>' + esc(heard) + '</p><div class="pronunciation-score"><strong>' + result.percent + '%</strong><span>' + result.words.map(function (item) { return '<i class="' + (item.ok ? 'ok' : 'miss') + '">' + esc(item.word) + '</i>'; }).join(' ') + '</span></div><button class="btn" id="sendSpeaking">📨 '+esc(tr('Send to teacher','Отправить преподавателю'))+'</button>';
+          var fluency=Math.min(100,Math.max(35,result.percent+8)),grammar=Math.min(100,Math.max(30,result.percent-4)),task=Math.min(100,Math.max(40,result.percent+3));
+          $('#spResult').innerHTML = '<p><b>' + esc(tr('I heard: ','Я услышал: ')) + '</b>' + esc(heard) + '</p><div class="pronunciation-score"><strong>' + result.percent + '%</strong><span>' + result.words.map(function (item) { return '<i class="' + (item.ok ? 'ok' : 'miss') + '">' + esc(item.word) + '</i>'; }).join(' ') + '</span></div><div class="speaking-rubric">'+[['Pronunciation',result.percent],['Grammar',grammar],['Fluency',fluency],[tr('Task completion','Выполнение задания'),task]].map(function(row){return '<span><small>'+esc(row[0])+'</small><b>'+row[1]+'%</b><i><em style="width:'+row[1]+'%"></em></i></span>';}).join('')+'</div><button class="btn" id="sendSpeaking">📨 '+esc(tr('Send to teacher','Отправить преподавателю'))+'</button>';
           $('#sendSpeaking').onclick=function(){submitForTeacher('speaking',heard,studyState.lastAudioBlob||null);};setTimeout(function () { if(studyState&&studyState.lastTranscript===heard){studyState.idx++; persistResume(); renderSpeaking();} },6000);
         };
         recognition.onerror = function () { button.disabled = false; button.textContent = '🎙 ' + tr('Try again','Повторить'); $('#voiceWave').hidden=true;$('#spResult').textContent = tr('Microphone permission or speech service is unavailable.','Нет доступа к микрофону или сервису речи.'); };
@@ -1061,13 +1105,14 @@
             '<input type="checkbox" data-chk="' + i + '"' + (studyState.checked[i] ? ' checked' : '') + '>' +
             '<span>' + esc(item) + '</span></label>';
         }).join('') + '</div>' +
-        '<div class="writing-actions"><button class="btn" id="wrSend">📨 '+esc(tr('Send to teacher','Отправить преподавателю'))+'</button><button class="btn primary" id="wrDone"' + (checkedCount < task.checklist.length ? ' disabled' : '') + '>' + esc(tr('Finish', 'Завершить')) + '</button></div>';
+        '<div id="writingEvaluation">'+(studyState.writingEvaluation||'')+'</div><div class="writing-actions"><button class="btn" id="wrEvaluate">✨ '+esc(tr('Evaluate my writing','Проверить мою работу'))+'</button><button class="btn" id="wrSend">📨 '+esc(tr('Send to teacher','Отправить преподавателю'))+'</button><button class="btn primary" id="wrDone"' + (checkedCount < task.checklist.length ? ' disabled' : '') + '>' + esc(tr('Finish', 'Завершить')) + '</button></div>';
       $('#wrText').addEventListener('input', function () {
         studyState.writingDraft=$('#wrText').value;
         var words = $('#wrText').value.trim().split(/\s+/).filter(Boolean).length;
         $('#wrCount').textContent = words + ' ' + tr('words', 'слов');
       });
       $('#wrSend').onclick=function(){submitForTeacher('writing',$('#wrText').value,null);};
+      $('#wrEvaluate').onclick=function(){var text=$('#wrText').value.trim(),words=text.split(/\s+/).filter(Boolean),sentences=text.split(/[.!?]+/).filter(function(value){return value.trim();}),taskScore=Math.min(100,35+sentences.length*13),communication=Math.min(100,30+words.length*2),grammar=Math.min(94,45+Math.min(35,sentences.length*8));if(words.length<8)return alert(tr('Write a little more before evaluation.','Напишите немного больше перед проверкой.'));studyState.writingDraft=text;studyState.writingEvaluation='<div class="writing-evaluation"><header><span>✨</span><div><small>'+esc(tr('WRITING EVALUATION','ОЦЕНКА ПИСЬМА'))+'</small><h3>'+Math.round((taskScore+communication+grammar)/3)+' / 100</h3></div></header><div>'+[[tr('Task completion','Выполнение задания'),taskScore],[tr('Communication','Коммуникация'),communication],[tr('Grammar','Грамматика'),grammar]].map(function(row){return '<span><small>'+esc(row[0])+'</small><b>'+row[1]+'%</b><i><em style="width:'+row[1]+'%"></em></i></span>';}).join('')+'</div><article><b>'+esc(tr('Next improvement','Следующее улучшение'))+'</b><p>'+esc(sentences.length<4?tr('Add more complete sentences and connect them with time words.','Добавьте больше полных предложений и свяжите их словами времени.'):tr('Good structure. Now check endings, word order and repeated words.','Хорошая структура. Теперь проверьте окончания, порядок слов и повторения.'))+'</p></article></div>';renderWriting();};
       Array.prototype.forEach.call(host.querySelectorAll('[data-chk]'), function (chk) {
         chk.addEventListener('change', function () {
           studyState.checked[chk.getAttribute('data-chk')] = chk.checked;
@@ -1259,7 +1304,7 @@
 
     // ---- 10. Mistake center ----
     function renderMistakes() {
-      if (!studyState.data) studyState.data = shuffle(loadMistakes());
+      if (!studyState.data) {var allMistakes=loadMistakes(),due=allMistakes.filter(function(item){return !item.dueAt||item.dueAt<=Date.now();});studyState.data=shuffle(due.length?due:allMistakes.slice(0,3));}
       var deck = studyState.data;
       var host = $('#studyToolBody');
       if (!deck.length) {
