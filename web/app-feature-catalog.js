@@ -455,11 +455,17 @@
         head.querySelector('span').textContent = ctx.isBusiness() ? tr('Web catalog', 'Веб-каталог') : tr('Structured programs', 'Структурированные программы');
       }
       $('#courseList').innerHTML = state.courses.map((item) =>
-        '<div class="card row"' + (item.id ? ' data-course="' + esc(item.id) + '"' : '') + '>' +
-          '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'C').charAt(0))) + '</div>' +
-          '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.description || tr('Course from Duvela teachers', 'Курс от преподавателей Duvela')) + '</p></div>' +
-          '<div style="display:flex;align-items:center;gap:0;white-space:nowrap">' + (item.level ? '<span class="tag" style="margin-right:8px">' + esc(item.level) + '</span>' : '') + courseAction(item) + '</div>' +
-        '</div>'
+        '<article class="card catalog-card course-catalog-card"' + (item.id ? ' data-course="' + esc(item.id) + '"' : '') + ' tabindex="0">' +
+          '<div class="catalog-cover">' +
+            (item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<div class="catalog-cover-fallback"><span>DUVELA</span><b>' + esc((item.title || 'C').charAt(0)) + '</b></div>') +
+            '<div class="catalog-cover-shade"></div><span class="catalog-type">' + esc(tr('Course', 'Курс')) + '</span>' +
+            (item.level ? '<span class="catalog-level">' + esc(item.level) + '</span>' : '') +
+          '</div><div class="catalog-body">' +
+            '<span class="catalog-eyebrow">' + esc(tr('Structured learning', 'Структурированное обучение')) + '</span><h3>' + esc(item.title) + '</h3>' +
+            '<p class="catalog-description">' + esc(item.description || tr('A practical course from Duvela teachers with clear lessons and steady progress.', 'Практический курс от преподавателей Duvela с понятными уроками и заметным прогрессом.')) + '</p>' +
+            '<div class="catalog-facts"><span><b>▤</b>' + esc(item.schedule || tr('Flexible schedule', 'Гибкое расписание')) + '</span><span><b>◎</b>' + esc(item.level ? tr('Level ', 'Уровень ') + item.level : tr('All levels', 'Все уровни')) + '</span></div>' +
+            '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Course price', 'Стоимость курса')) + '</small><strong>' + esc(formatMoney(item)) + '</strong></div><div class="catalog-actions">' + courseAction(item) + '</div></div>' +
+          '</div></article>'
       ).join('') || '<div class="card empty">' + esc(tr('No courses available yet.', 'Курсов пока нет.')) + '</div>';
     }
 
@@ -472,11 +478,18 @@
       const today = new Date().toISOString().slice(0,10);
       const eventList = $('#eventList');
       eventList.innerHTML = '<div class="event-catalog-tabs"><button class="active" data-event-filter="upcoming">' + esc(tr('Upcoming', 'Предстоящие')) + '</button><button data-event-filter="past">' + esc(tr('Past', 'Прошедшие')) + '</button><button data-event-filter="draft">' + esc(tr('Drafts', 'Черновики')) + '</button><button data-event-filter="canceled">' + esc(tr('Canceled', 'Отменённые')) + '</button></div>' + state.events.map((item) =>
-        '<div class="card row event-row" data-event-period="' + (item.status === 'draft' ? 'draft' : item.status === 'canceled' ? 'canceled' : item.event_date && item.event_date < today ? 'past' : 'upcoming') + '"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + '>' +
-          '<div class="thumb">' + (item.image ? '<img src="' + esc(item.image) + '" alt="">' : esc((item.title || 'E').charAt(0))) + '</div>' +
-          '<div><h3>' + esc(item.title) + '</h3><p>' + esc(item.meta || item.description || tr('Upcoming event', 'Ближайшее событие')) + '</p></div>' +
-          '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + (item.is_online ? '<span class="tag">' + esc(tr('Online', 'Онлайн')) + '</span>' : '') + '<span class="tag amber">' + esc(formatMoney(item)) + '</span></div>' +
-        '</div>'
+        '<article class="card catalog-card event-catalog-card" data-event-period="' + (item.status === 'draft' ? 'draft' : item.status === 'canceled' ? 'canceled' : item.event_date && item.event_date < today ? 'past' : 'upcoming') + '"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + ' tabindex="0">' +
+          '<div class="catalog-cover">' +
+            (item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<div class="catalog-cover-fallback event"><span>DUVELA EVENT</span><b>' + esc((item.title || 'E').charAt(0)) + '</b></div>') +
+            '<div class="catalog-cover-shade"></div><span class="catalog-type ' + (item.is_online ? 'live' : '') + '">' + esc(item.is_online ? tr('Online', 'Онлайн') : tr('In person', 'Очно')) + '</span>' +
+            (item.language ? '<span class="catalog-level">' + esc(item.language) + '</span>' : '') +
+          '</div><div class="catalog-body">' +
+            '<span class="catalog-eyebrow">' + esc(tr('Duvela event', 'Событие Duvela')) + '</span><h3>' + esc(item.title) + '</h3>' +
+            '<p class="catalog-description">' + esc(item.description || tr('Meet, learn and practise together with the Duvela community.', 'Встречайтесь, учитесь и практикуйтесь вместе с сообществом Duvela.')) + '</p>' +
+            '<div class="catalog-facts"><span><b>□</b>' + esc(item.event_date ? formatDate(item.event_date) + (item.event_time ? ' · ' + item.event_time.slice(0,5) : '') : tr('Date coming soon', 'Дата скоро')) + '</span><span><b>⌖</b>' + esc(item.is_online ? tr('Join from anywhere', 'Подключение из любой точки') : [item.city, item.country].filter(Boolean).join(', ') || tr('Location coming soon', 'Место скоро')) + '</span>' +
+              (item.max_participants ? '<span><b>◎</b>' + esc(tr('Up to ', 'До ') + item.max_participants + tr(' participants', ' участников')) + '</span>' : '') + '</div>' +
+            '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Ticket', 'Билет')) + '</small><strong>' + esc(formatMoney(item)) + '</strong></div><button class="btn primary catalog-open" type="button">' + esc(tr('View event', 'Подробнее')) + '</button></div>' +
+          '</div></article>'
       ).join('');
       const applyEventFilter = (period) => {
         eventList.querySelectorAll('[data-event-period]').forEach((card) => { card.hidden = card.dataset.eventPeriod !== period; });
@@ -664,14 +677,12 @@
       if (!node) return;
       node.innerHTML = items.length
         ? items.map((item) =>
-            ctx.row(
-              {
-                title: item.teacher_name || tr('Teacher live', 'Эфир преподавателя'),
-                meta: liveRowMetaV2(item),
-                level: liveRowLevelV2(item, creator)
-              },
-              '<a class="btn ' + (item.status === 'live' ? 'primary' : '') + '" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(liveRowActionV2(item, creator)) + '</a>'
-            )
+            '<article class="card live-catalog-card ' + (item.status === 'live' ? 'is-live' : '') + '">' +
+              '<div class="live-catalog-visual"><div class="live-orbit"></div><span class="live-camera">●</span><span class="live-status">' + esc(liveRowLevelV2(item, creator)) + '</span></div>' +
+              '<div class="live-catalog-body"><div><span class="catalog-eyebrow">' + esc(item.language || tr('Live lesson', 'Live-урок')) + (item.level ? ' · ' + esc(item.level) : '') + '</span><h3>' + esc(item.title || tr('Live lesson', 'Live-урок')) + '</h3><p>' + esc(tr('with ', 'с преподавателем ') + (item.teacher_name || tr('Duvela teacher', 'Duvela'))) + '</p></div>' +
+                '<div class="live-catalog-meta"><span><b>◉</b>' + esc(item.status === 'live' ? tr('Streaming now', 'Сейчас в эфире') : liveTimingV2(item) || tr('Session details', 'Детали сессии')) + '</span><span><b>♙</b>' + esc(item.is_private ? tr('Private room', 'Приватная комната') : tr('Public room', 'Публичный эфир')) + '</span></div>' +
+                '<a class="btn ' + (item.status === 'live' ? 'primary' : '') + '" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(liveRowActionV2(item, creator)) + '</a>' +
+              '</div></article>'
           ).join('')
         : emptyLiveBlockV2(emptyCopy);
     }
