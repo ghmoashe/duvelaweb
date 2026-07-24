@@ -697,7 +697,7 @@
       var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
       var sessionLang=germanOnly?'de':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
       var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
-      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,skillDirect:!!(restored&&restored.skillDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
+      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,skillDirect:!!(restored&&restored.skillDirect),progressDirect:!!(restored&&restored.progressDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
       $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + studyState.level;
       $('#studyOverlay').setAttribute('data-practice-tool', id);
@@ -1011,12 +1011,53 @@
       };
     }
 
+    function renderProgressHub() {
+      var progress = loadProgress(), sessions = progress.sessions || [], mistakes = loadMistakes();
+      var progressModes = [
+        { tool:'exam', icon:'⏱', title:tr('Exam mode','Режим экзамена'), desc:tr('Timed mixed practice and full mock exam.','Смешанная практика на время и полный пробный экзамен.') },
+        { tool:'mistakes', icon:'!', title:tr('Mistake center','Центр ошибок'), desc:tr('Review weak topics and return to exact problem areas.','Повторяйте слабые темы и возвращайтесь в точные проблемные места.') },
+        { tool:'history', icon:'↺', title:tr('Practice history','История практики'), desc:tr('See completed tools, XP and recent sessions.','Смотрите завершённые режимы, XP и недавние занятия.') },
+        { tool:'calendar', icon:'▦', title:tr('Activity calendar','Календарь занятий'), desc:tr('Track streaks and recent activity by day.','Следите за серией и активностью по дням.') },
+        { tool:'achievements', icon:'🏆', title:tr('Achievements','Достижения'), desc:tr('View unlocked milestones and learning rewards.','Смотрите открытые достижения и учебные награды.') },
+        { tool:'ranking', icon:'🥇', title:tr('Leaderboard','Таблица лидеров'), desc:tr('Compare XP and ranking with other learners.','Сравнивайте XP и своё место с другими учениками.') },
+        { tool:'settings', icon:'⚙', title:tr('Practice settings','Настройки практики'), desc:tr('Control reminders, sounds and accessibility options.','Управляйте напоминаниями, звуками и настройками удобства.') }
+      ];
+      $('#studyToolBody').innerHTML =
+        '<section class="progress-hub">' +
+          '<div class="progress-hub-hero">' +
+            '<div class="progress-hub-copy">' +
+              '<small>' + esc(tr('PROGRESS ACTIVE', 'PROGRESS ACTIVE')) + '</small>' +
+              '<h2>' + esc(tr('Exam and progress hub','Хаб экзамена и прогресса')) + '</h2>' +
+              '<p>' + esc(tr('All exam, review and progress tools are collected in one clean hub for faster navigation and a clearer learner journey.','Все инструменты экзамена, повторения и прогресса собраны в одном понятном хабе для быстрой навигации и ясного пути ученика.')) + '</p>' +
+            '</div>' +
+            '<div class="progress-hub-stats">' +
+              '<span><b>' + Number(progress.xp || 0) + '</b><small>XP</small></span>' +
+              '<span><b>' + mistakes.length + '</b><small>' + esc(tr('mistakes','ошибок')) + '</small></span>' +
+              '<span><b>' + sessions.length + '</b><small>' + esc(tr('sessions','занятий')) + '</small></span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="progress-bank-note"><strong>' + esc(tr('Progress base','База прогресса')) + '</strong><p>' + esc(tr('Instead of opening each report separately, learners get one structured space for exam prep, review, stats and personal settings.','Вместо отдельных экранов ученик получает одну структурированную зону для подготовки к экзамену, повторения, статистики и личных настроек.')) + '</p></div>' +
+          '<div class="progress-topic-grid">' + progressModes.map(function (item) {
+            return '<article class="progress-topic-card">' +
+              '<div class="progress-topic-top"><i>' + item.icon + '</i><span>' + esc(item.tool === 'mistakes' ? String(mistakes.length) : item.tool === 'history' ? String(sessions.length) : item.tool === 'ranking' ? 'XP' : tr('Open','Открыть')) + '</span></div>' +
+              '<h3>' + esc(item.title) + '</h3>' +
+              '<p>' + esc(item.desc) + '</p>' +
+              '<button type="button" data-progress-tool="' + esc(item.tool) + '">' + esc(tr('Open section','Открыть раздел')) + ' <em>→</em></button>' +
+            '</article>';
+          }).join('') + '</div>' +
+        '</section>';
+      Array.prototype.forEach.call(document.querySelectorAll('[data-progress-tool]'), function (button) {
+        button.onclick = function () { openStudyTool(button.getAttribute('data-progress-tool'), { lang:studyState.lang, level:studyState.level, progressDirect:true }); };
+      });
+    }
+
     function renderSpecialQuiz(source, rerender) {
       if (!studyState.data) studyState.data = shuffle(source);
       quizStep(studyState.data, rerender, function (item) { return item.q; });
     }
 
     function renderPracticeHistory() {
+      if (!studyState.progressDirect) return renderProgressHub();
       var progress = loadProgress();
       var recentSessions = progress.sessions || [];
       var rows = TOOLS.filter(function (tool) { return Number(progress[tool.id]) > 0; }).sort(function (a,b) { return Number(progress[b.id]) - Number(progress[a.id]); });
@@ -1034,6 +1075,7 @@
     }
 
     function renderActivityCalendar() {
+      if (!studyState.progressDirect) return renderProgressHub();
       var progress = loadProgress(), sessions = progress.sessions || [], active = {};
       sessions.forEach(function (session) { if (session.completed_at) active[String(session.completed_at).slice(0,10)] = (active[String(session.completed_at).slice(0,10)] || 0) + 1; });
       var days = [], today = new Date(); for (var i=34;i>=0;i--) { var date = new Date(today); date.setDate(today.getDate()-i); var key = date.toISOString().slice(0,10); days.push('<div class="calendar-day ' + (active[key] ? 'active level-' + Math.min(3,active[key]) : '') + '" title="' + key + '"><b>' + date.getDate() + '</b><small>' + (active[key] || '') + '</small></div>'); }
@@ -1042,17 +1084,20 @@
     }
 
     function renderAchievements() {
+      if (!studyState.progressDirect) return renderProgressHub();
       var progress = loadProgress(), unlocked = new Set((progress.achievements || []).map(function (row) { return row.achievement_id; }));
       var definitions = [{id:'first-step',icon:'🌱',title:tr('First step','Первый шаг'),ok:Number(progress.xp||0)>0},{id:'streak-3',icon:'🔥',title:tr('Three-day streak','Серия 3 дня'),ok:unlocked.has('streak-3')},{id:'practice-10',icon:'⚡',title:tr('Ten practices','10 практик'),ok:unlocked.has('practice-10')},{id:'xp-500',icon:'🏅',title:'500 XP',ok:unlocked.has('xp-500')},{id:'polyglot',icon:'🌍',title:tr('Polyglot','Полиглот'),ok:Object.keys(progress).filter(function (key) { return ['de','en','es'].indexOf(key)>=0; }).length>1},{id:'perfect',icon:'💎',title:tr('Perfect session','Идеальное занятие'),ok:(progress.sessions||[]).some(function (s) { return s.total && s.score>=s.total; })}];
       $('#studyToolBody').innerHTML = '<div class="achievement-hero"><span>🏆</span><div><small>' + esc(tr('YOUR COLLECTION','ВАША КОЛЛЕКЦИЯ')) + '</small><h2>' + definitions.filter(function (item) { return item.ok; }).length + '/' + definitions.length + '</h2></div></div><div class="achievement-grid">' + definitions.map(function (item) { return '<article class="' + (item.ok ? 'unlocked' : 'locked') + '"><span>' + item.icon + '</span><b>' + esc(item.title) + '</b><small>' + (item.ok ? '✓ ' + esc(tr('Unlocked','Получено')) : '🔒 ' + esc(tr('Keep learning','Продолжайте учиться'))) + '</small></article>'; }).join('') + '</div>';
     }
 
     async function renderPracticeRanking() {
+      if (!studyState.progressDirect) return renderProgressHub();
       var host=$('#studyToolBody');host.innerHTML='<div class="practice-skeleton"><i></i><i></i><i></i><i></i></div>';
       try { var result=await supa.from('profiles').select('id,full_name,avatar_url,score,language_level').order('score',{ascending:false}).limit(20);var rows=result.data||[];host.innerHTML='<div class="ranking-podium">' + rows.slice(0,3).map(function(row,index){return '<article class="place-' + (index+1) + '"><span>' + ['🥇','🥈','🥉'][index] + '</span><b>' + esc(row.full_name||tr('Duvela learner','Ученик Duvela')) + '</b><strong>' + Number(row.score||0) + ' XP</strong></article>';}).join('') + '</div><div class="ranking-list">' + rows.slice(3).map(function(row,index){return '<article class="' + (String(row.id)===String(uid())?'me':'') + '"><b>#' + (index+4) + '</b><span>' + esc(row.full_name||tr('Duvela learner','Ученик Duvela')) + '</span><small>' + esc(row.language_level||'') + '</small><strong>' + Number(row.score||0) + ' XP</strong></article>';}).join('') + '</div>'; } catch(e){host.innerHTML='<div class="empty">'+esc(tr('Ranking is temporarily unavailable.','Рейтинг временно недоступен.'))+'</div>';}
     }
 
     function renderPracticeSettings() {
+      if (!studyState.progressDirect) return renderProgressHub();
       var prefs = loadPrefs();
       $('#studyToolBody').innerHTML = '<div class="practice-settings-list">' + [['sound','🔊',tr('Answer sounds','Звуки ответов')],['reducedMotion','◌',tr('Reduce motion','Уменьшить анимацию')],['largeText','A+',tr('Large text','Крупный текст')],['reminders','🔔',tr('Daily reminder','Ежедневное напоминание')]].map(function (item) { return '<label><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><input type="checkbox" data-setting="' + item[0] + '"' + (prefs[item[0]] ? ' checked' : '') + '></label>'; }).join('') + '<label><span>⏰</span><b>' + esc(tr('Reminder time','Время напоминания')) + '</b><input type="time" id="practiceReminderTime" value="' + esc(prefs.reminderTime || '18:00') + '"></label><button class="btn" id="practiceResetLocal">' + esc(tr('Clear local practice cache','Очистить локальный кэш практики')) + '</button></div>';
       Array.prototype.forEach.call(document.querySelectorAll('[data-setting]'),function (input) { input.onchange = async function () { var next = loadPrefs(), key = input.getAttribute('data-setting'); next[key] = input.checked; savePrefs(next); if (key === 'reminders' && input.checked && window.Notification) await Notification.requestPermission(); schedulePracticeReminder(); if (key === 'reminders' && uid()) supa.from('practice_reminders').upsert({ user_id:uid(),enabled:next.reminders,reminder_time:next.reminderTime,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,updated_at:new Date().toISOString() }); }; });
@@ -1509,6 +1554,7 @@
       Array.prototype.forEach.call(document.querySelectorAll('[data-result-tool]'),function(button){button.onclick=function(){var tool=button.getAttribute('data-result-tool');openStudyTool(tool==='grammar'?'grammar':tool);};});
     }
     function renderExam() {
+      if (!studyState.progressDirect) return renderProgressHub();
       if (!studyState.examType) {
         $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>Goethe · Cambridge · A1–C2</p></div></div><div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
         Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if(type==='mixed')return startFullMock(); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
@@ -1673,6 +1719,7 @@
 
     // ---- 10. Mistake center ----
     function renderMistakes() {
+      if (!studyState.progressDirect) return renderProgressHub();
       if (!studyState.data) {var allMistakes=loadMistakes(),due=allMistakes.filter(function(item){return !item.dueAt||item.dueAt<=Date.now();});studyState.data=shuffle(due.length?due:allMistakes.slice(0,3));}
       var deck = studyState.data;
       var host = $('#studyToolBody');
