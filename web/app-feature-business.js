@@ -92,7 +92,7 @@
       }
       try {
         const { data: practices } = await supa.from('teacher_practices')
-          .select('id,title,target,level,status,plays_count,rating_avg,rating_count')
+          .select('id,title,target,level,format,description,cover_image_url,status,plays_count,rating_avg,rating_count,created_at')
           .eq('creator_id', ctx.user.id).order('created_at', { ascending: false }).limit(30);
         state.myPractices = practices || [];
       } catch (error) {
@@ -154,6 +154,26 @@
         '<b>' + esc(title) + '</b>' +
         '<p>' + esc(copy) + '</p>' +
       '</div>';
+    }
+
+    function teacherPracticeCardsHtml() {
+      const submissions = state.practiceSubmissions || [];
+      if (!state.myPractices.length) return '<div class="empty">' + esc(tr('No practices yet.', 'No practices yet.')) + '</div>';
+      return '<div class="teacher-practice-grid">' + state.myPractices.map((practice) => {
+        const reviewCount = submissions.filter((item) => String(item.tool_id || item.practice_id || '') === String(practice.id) && item.status === 'submitted').length;
+        const isLive = practice.status === 'published';
+        const rating = Number(practice.rating_avg || 0).toFixed(1);
+        const plays = Number(practice.plays_count || 0);
+        const health = Math.min(100, Math.round((plays / Math.max(1, plays + reviewCount + 4)) * 100));
+        return '<article class="teacher-practice-card">' +
+          '<div class="teacher-practice-cover">' + (practice.cover_image_url ? '<img src="' + esc(practice.cover_image_url) + '" alt="">' : '<span>*</span>') + '<b>' + esc(practice.format || tr('Practice', 'Practice')) + '</b></div>' +
+          '<div class="teacher-practice-body"><div class="teacher-practice-top"><span class="tag ' + (isLive ? 'teal' : '') + '">' + esc(isLive ? tr('Live', 'Live') : (practice.status || tr('Draft', 'Draft'))) + '</span><small>' + esc(practice.created_at ? formatDate(practice.created_at) : tr('No date', 'No date')) + '</small></div>' +
+          '<h3>' + esc(practice.title) + '</h3><p>' + esc(practice.description || [practice.target, practice.level].filter(Boolean).join(' · ') || tr('Teacher practice', 'Teacher practice')) + '</p>' +
+          '<div class="teacher-practice-stats"><span><b>' + plays + '</b><small>' + esc(tr('plays', 'plays')) + '</small></span><span><b>★ ' + rating + '</b><small>' + esc((practice.rating_count || 0) + ' ' + tr('ratings', 'ratings')) + '</small></span><span><b>' + reviewCount + '</b><small>' + esc(tr('to review', 'to review')) + '</small></span></div>' +
+          '<div class="practice-progress teacher"><i style="width:' + health + '%"></i><span>' + health + '%</span></div>' +
+          '<div class="teacher-practice-actions"><button class="btn" type="button" data-create-practice>' + esc(tr('Edit / clone', 'Edit / clone')) + '</button><button class="btn primary" type="button">' + esc(reviewCount ? tr('Review work', 'Review work') : tr('Open stats', 'Open stats')) + '</button></div>' +
+          '</div></article>';
+      }).join('') + '</div>';
     }
 
     function businessDeskHtml(org) {
@@ -295,15 +315,14 @@
           '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto auto;gap:8px"><div><h3>' + esc(item.name) + '</h3><p>' + esc([item.language, item.level, item.starts_at ? formatDate(item.starts_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag">' + esc(item.format === 'offline' ? tr('In person', 'Оффлайн') : tr('Online', 'Онлайн')) + '</span><button class="btn" data-class-manage="' + esc(item.id) + '" style="min-height:30px">' + esc(tr('Manage', 'Управлять')) + '</button></div>'
         ).join('') : '<div class="empty">' + esc(tr('No classes yet.', 'Классов пока нет.')) + '</div>') +
         '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Practices', 'Практики')) + '</h2><div style="display:flex;gap:6px"><button class="btn" id="createChallengeBtn" type="button">' + esc(tr('+ Challenge', '+ Челлендж')) + '</button><button class="btn primary" id="createPracticeBtn" type="button">' + esc(tr('Create practice', 'Создать практику')) + '</button></div></div>' +
-        (state.myPractices.length ? state.myPractices.map((practice) =>
-          '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(practice.title) + '</h3><p>' + esc([practice.target, practice.level].filter(Boolean).join(' · ')) + ' · ' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + ' · ★ ' + (Number(practice.rating_avg || 0).toFixed(1)) + ' (' + (practice.rating_count || 0) + ')</p></div><span class="tag ' + (practice.status === 'published' ? 'teal' : '') + '">' + esc(practice.status === 'published' ? tr('Live', 'Активна') : (practice.status || tr('Draft', 'Черновик'))) + '</span></div>'
-        ).join('') : '<div class="empty">' + esc(tr('No practices yet.', 'Практик пока нет.')) + '</div>') +
+        teacherPracticeCardsHtml() +
         '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">'+esc(tr('Work awaiting review','Работы на проверку'))+'</h2><span>'+Number((state.practiceSubmissions||[]).filter((item)=>item.status==='submitted').length)+'</span></div>'+
         ((state.practiceSubmissions||[]).length?(state.practiceSubmissions||[]).map((item)=>'<article class="submission-review"><div><b>'+esc(item.submission_type==='speaking'?tr('Speaking response','Ответ Speaking'):tr('Writing response','Ответ Writing'))+'</b><small>'+new Date(item.created_at).toLocaleString()+' · '+esc(item.status)+'</small></div>'+(item.media_url?'<audio controls src="'+esc(item.media_url)+'"></audio>':'')+(item.content_text?'<p>'+esc(item.content_text)+'</p>':'')+'<div class="submission-review-form"><input type="number" min="0" max="100" value="'+(item.score==null?'':Number(item.score))+'" placeholder="0–100" data-submission-score="'+esc(item.id)+'"><input value="'+esc(item.feedback||'')+'" placeholder="'+esc(tr('Teacher feedback','Комментарий преподавателя'))+'" data-submission-feedback="'+esc(item.id)+'"><button class="btn" data-review-submission="'+esc(item.id)+'">'+esc(tr('Save review','Сохранить проверку'))+'</button></div></article>').join(''):'<div class="empty">'+esc(tr('No submitted work yet.','Отправленных работ пока нет.'))+'</div>')+
         membersHtml();
       $('#courseForm').addEventListener('submit', createCourse);
       $('#classForm').addEventListener('submit', createClass);
       $('#createPracticeBtn').addEventListener('click', ctx.openPracticeBuilder);
+      $$('[data-create-practice]').forEach((button) => button.addEventListener('click', ctx.openPracticeBuilder));
       if ($('#createChallengeBtn')) $('#createChallengeBtn').addEventListener('click', ctx.openChallengeCreate);
       $$('[data-review-submission]').forEach((button)=>button.addEventListener('click',async()=>{const id=button.dataset.reviewSubmission,score=$('[data-submission-score="'+id+'"]')?.value,feedback=$('[data-submission-feedback="'+id+'"]')?.value;button.disabled=true;const result=await supa.from('practice_submissions').update({score:score===''?null:Number(score),feedback:feedback||null,status:'reviewed',reviewed_at:new Date().toISOString()}).eq('id',id).eq('teacher_id',ctx.user.id);if(result.error){alert(result.error.message);button.disabled=false;}else{button.textContent='✓ '+tr('Saved','Сохранено');}}));
       $$('[data-member-role]').forEach((select) => select.addEventListener('change', (event) => changeMemberRole(select.dataset.memberRole, event.target.value)));
