@@ -14,6 +14,8 @@
   const LANG_KEY = config.storageKeys.lang;
   const supa = config.createSupabaseClient();
   const alert = (message) => uiApi.legacyAlert(message);
+  const confirmDialog = (message, options) => uiApi.confirm(message, options);
+  const promptDialog = (message, defaultValue, options) => uiApi.prompt(message, defaultValue, options);
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -294,7 +296,7 @@
   async function unenrollCourse(courseId) { return catalogFeature.unenrollCourse(courseId); }
   function createFeatureContext() {
     return {
-      $, $$, tr, esc, alert, supa, state,
+      $, $$, tr, esc, alert, confirm: confirmDialog, prompt: promptDialog, dialog: uiApi.dialog, supa, state,
       runtime,
       formatDate, formatMoney, avatarHtml, avatarInner, timeAgo,
       isRu,

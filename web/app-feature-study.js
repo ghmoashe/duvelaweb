@@ -666,8 +666,16 @@
       overlay.addEventListener('input', function () { if (studyState) studyState.dirty = true; });
       return overlay;
     }
-    function closeStudy() {
-      if (studyState && !studyState.finished && (studyState.dirty || Number(studyState.idx || 0) > 0) && !confirm(tr('Your progress is saved. Close this practice?','Прогресс сохранён. Закрыть практику?'))) return;
+    async function closeStudy() {
+      if (studyState && !studyState.finished && (studyState.dirty || Number(studyState.idx || 0) > 0)) {
+        var confirmed = ctx.confirm ? await ctx.confirm(tr('Your progress is saved. Close this practice?', '\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d. \u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043f\u0440\u0430\u043a\u0442\u0438\u043a\u0443?'), {
+          title: tr('Close practice?', '\u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043f\u0440\u0430\u043a\u0442\u0438\u043a\u0443?'),
+          confirmLabel: tr('Close', '\u0417\u0430\u043a\u0440\u044b\u0442\u044c'),
+          cancelLabel: tr('Keep practicing', '\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c'),
+          icon: '*'
+        }) : confirm(tr('Your progress is saved. Close this practice?', '\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d. \u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043f\u0440\u0430\u043a\u0442\u0438\u043a\u0443?'));
+        if (!confirmed) return;
+      }
       var overlay = $('#studyOverlay');
       if (overlay) overlay.classList.remove('open');
       if (studyState && studyState.examTimerId) clearInterval(studyState.examTimerId);
@@ -1010,7 +1018,7 @@
       $('#studyToolBody').innerHTML = '<div class="practice-settings-list">' + [['sound','🔊',tr('Answer sounds','Звуки ответов')],['reducedMotion','◌',tr('Reduce motion','Уменьшить анимацию')],['largeText','A+',tr('Large text','Крупный текст')],['reminders','🔔',tr('Daily reminder','Ежедневное напоминание')]].map(function (item) { return '<label><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><input type="checkbox" data-setting="' + item[0] + '"' + (prefs[item[0]] ? ' checked' : '') + '></label>'; }).join('') + '<label><span>⏰</span><b>' + esc(tr('Reminder time','Время напоминания')) + '</b><input type="time" id="practiceReminderTime" value="' + esc(prefs.reminderTime || '18:00') + '"></label><button class="btn" id="practiceResetLocal">' + esc(tr('Clear local practice cache','Очистить локальный кэш практики')) + '</button></div>';
       Array.prototype.forEach.call(document.querySelectorAll('[data-setting]'),function (input) { input.onchange = async function () { var next = loadPrefs(), key = input.getAttribute('data-setting'); next[key] = input.checked; savePrefs(next); if (key === 'reminders' && input.checked && window.Notification) await Notification.requestPermission(); schedulePracticeReminder(); if (key === 'reminders' && uid()) supa.from('practice_reminders').upsert({ user_id:uid(),enabled:next.reminders,reminder_time:next.reminderTime,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,updated_at:new Date().toISOString() }); }; });
       $('#practiceReminderTime').onchange = function () { var next=loadPrefs();next.reminderTime=this.value;savePrefs(next);schedulePracticeReminder();if(uid())supa.from('practice_reminders').upsert({user_id:uid(),enabled:next.reminders,reminder_time:next.reminderTime,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,updated_at:new Date().toISOString()}); };
-      $('#practiceResetLocal').onclick = function () { if (!confirm(tr('Clear only local cached progress? Cloud history remains safe.','Удалить только локальный кэш? Облачная история сохранится.'))) return; [PROGRESS_KEY,RESUME_KEY,MISTAKE_KEY,SAVED_WORDS_KEY].forEach(function (key) { localStorage.removeItem(key); }); location.reload(); };
+      $('#practiceResetLocal').onclick = async function () { var ok = ctx.confirm ? await ctx.confirm(tr('Clear only local cached progress? Cloud history remains safe.', '\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u043a\u044d\u0448? \u041e\u0431\u043b\u0430\u0447\u043d\u0430\u044f \u0438\u0441\u0442\u043e\u0440\u0438\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u0441\u044f.'), { title: tr('Clear local cache?', '\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u043a\u044d\u0448?'), confirmLabel: tr('Clear cache', '\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c'), cancelLabel: tr('Cancel', '\u041e\u0442\u043c\u0435\u043d\u0430'), tone: 'danger', icon: '!' }) : confirm(tr('Clear only local cached progress? Cloud history remains safe.', '\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u043a\u044d\u0448? \u041e\u0431\u043b\u0430\u0447\u043d\u0430\u044f \u0438\u0441\u0442\u043e\u0440\u0438\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u0441\u044f.')); if (!ok) return; [PROGRESS_KEY,RESUME_KEY,MISTAKE_KEY,SAVED_WORDS_KEY].forEach(function (key) { localStorage.removeItem(key); }); location.reload(); };
     }
 
     // ---- 4. Grammar quiz ----
