@@ -55,10 +55,19 @@
 
     function challengesHtml() {
       if (!state.challenges.length) return '';
-      return '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Challenges', 'Челленджи')) + '</h2></div>' + state.challenges.map((challenge) => {
+      return '<div class="section-head" style="margin:18px 0 10px"><h2 style="font-size:18px">' + esc(tr('Challenges', 'Челленджи')) + '</h2><span>' + esc(tr('Daily goals and shared progress', 'Ежедневные цели и общий прогресс')) + '</span></div><div class="challenge-card-grid">' + state.challenges.map((challenge) => {
         const joined = state.myChallengeIds.has(String(challenge.id));
-        return '<div class="card row" data-challenge="' + esc(challenge.id) + '" style="grid-template-columns:minmax(0,1fr) auto;cursor:pointer"><div><h3>' + esc(challenge.title) + '</h3><p>' + esc([challenge.target_level, challenge.exam_type, challenge.ends_at ? tr('until ', 'до ') + formatDate(challenge.ends_at) : ''].filter(Boolean).join(' · ')) + '</p></div><span class="tag ' + (joined ? 'teal' : '') + '">' + esc(joined ? tr('Joined', 'Участвую') : tr('Open', 'Открыть')) + '</span></div>';
-      }).join('');
+        const goals = [
+          challenge.daily_min_dialogs ? challenge.daily_min_dialogs + ' ' + tr('dialogs', 'диалогов') : '',
+          challenge.daily_min_words ? challenge.daily_min_words + ' ' + tr('words', 'слов') : '',
+          challenge.daily_min_listening_min ? challenge.daily_min_listening_min + ' ' + tr('listening min', 'мин. аудирования') : ''
+        ].filter(Boolean);
+        return '<article class="card challenge-catalog-card" data-challenge="' + esc(challenge.id) + '">' +
+          '<div class="challenge-catalog-cover">' + (challenge.cover_url ? '<img src="' + esc(challenge.cover_url) + '" alt="">' : '<span>♕</span>') + '<b>' + esc(joined ? tr('Joined', 'Участвую') : tr('Challenge', 'Челлендж')) + '</b></div>' +
+          '<div class="challenge-catalog-body"><span class="catalog-eyebrow">' + esc(challenge.exam_type || tr('Daily practice', 'Ежедневная практика')) + '</span><h3>' + esc(challenge.title) + '</h3><p>' + esc(challenge.ends_at ? tr('Complete the daily goals until ', 'Выполняйте ежедневные цели до ') + formatDate(challenge.ends_at) : tr('Complete daily goals and keep your streak.', 'Выполняйте ежедневные цели и сохраняйте серию.')) + '</p>' +
+          '<div class="challenge-catalog-tags"><span>' + esc(challenge.target_level || tr('Any level', 'Любой уровень')) + '</span>' + goals.map((goal) => '<span>' + esc(goal) + '</span>').join('') + '</div>' +
+          '<div class="challenge-catalog-foot"><strong>XP + 🏅</strong><button class="btn ' + (joined ? '' : 'primary') + '" type="button">' + esc(joined ? tr('Continue', 'Продолжить') : tr('View challenge', 'Подробнее')) + '</button></div></div></article>';
+      }).join('') + '</div>';
     }
 
     async function loadChallengeDetails(id) {
