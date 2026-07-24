@@ -2,6 +2,44 @@
   function createCatalogFeature(ctx) {
     const { $, tr, esc, alert, supa, state, formatDate, formatMoney } = ctx;
     let currentCourseId = null;
+    const savedCatalogKey = (kind) => 'duvela.saved.' + kind;
+    const savedCatalogIds = (kind) => new Set(JSON.parse(localStorage.getItem(savedCatalogKey(kind)) || '[]'));
+
+    function catalogToolbar(kind, levels, includeFormat) {
+      return '<div class="catalog-toolbar" data-catalog-toolbar="' + kind + '"><label>⌕<input type="search" data-catalog-search placeholder="' + esc(tr('Search by title…', 'Поиск по названию…')) + '"></label>' +
+        '<select data-catalog-level><option value="">' + esc(tr('All levels', 'Все уровни')) + '</option>' + levels.map((level) => '<option value="' + esc(level) + '">' + esc(level) + '</option>').join('') + '</select>' +
+        (includeFormat ? '<select data-catalog-format><option value="">' + esc(tr('Any format', 'Любой формат')) + '</option><option value="online">' + esc(tr('Online', 'Онлайн')) + '</option><option value="offline">' + esc(tr('In person', 'Очно')) + '</option></select>' : '') +
+        '<button type="button" data-catalog-saved>♡ ' + esc(tr('Saved', 'Избранное')) + '</button></div>';
+    }
+
+    function bindCatalogTools(kind, list) {
+      const toolbar = list.querySelector('[data-catalog-toolbar]');
+      if (!toolbar) return;
+      let savedOnly = false;
+      const apply = () => {
+        const query = (toolbar.querySelector('[data-catalog-search]').value || '').trim().toLowerCase();
+        const level = toolbar.querySelector('[data-catalog-level]').value;
+        const format = toolbar.querySelector('[data-catalog-format]')?.value || '';
+        const saved = savedCatalogIds(kind);
+        list.querySelectorAll('[data-catalog-card]').forEach((card) => {
+          const wrongPeriod = card.dataset.eventPeriod && list.dataset.eventPeriod && card.dataset.eventPeriod !== list.dataset.eventPeriod;
+          card.hidden = Boolean(wrongPeriod || (query && !card.dataset.catalogSearch.includes(query)) || (level && card.dataset.catalogLevel !== level) || (format && card.dataset.catalogFormat !== format) || (savedOnly && !saved.has(card.dataset.catalogId)));
+        });
+      };
+      toolbar.querySelector('[data-catalog-search]').oninput = apply;
+      toolbar.querySelectorAll('select').forEach((select) => { select.onchange = apply; });
+      toolbar.querySelector('[data-catalog-saved]').onclick = (event) => { savedOnly = !savedOnly; event.currentTarget.classList.toggle('active', savedOnly); apply(); };
+      list.querySelectorAll('[data-save-catalog]').forEach((button) => {
+        button.onclick = (event) => {
+          event.preventDefault(); event.stopPropagation();
+          const saved = savedCatalogIds(kind), id = button.dataset.saveCatalog;
+          if (saved.has(id)) saved.delete(id); else saved.add(id);
+          localStorage.setItem(savedCatalogKey(kind), JSON.stringify([...saved]));
+          button.classList.toggle('active', saved.has(id)); button.textContent = saved.has(id) ? '♥' : '♡';
+          apply();
+        };
+      });
+    }
 
     async function openEventDetail(id) {
       const item = state.events.find((entry) => entry.id === id);
@@ -454,19 +492,23 @@
         head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Courses & offers', 'Курсы и офферы') : tr('Courses', 'Курсы');
         head.querySelector('span').textContent = ctx.isBusiness() ? tr('Web catalog', 'Веб-каталог') : tr('Structured programs', 'Структурированные программы');
       }
-      $('#courseList').innerHTML = state.courses.map((item) =>
-        '<article class="card catalog-card course-catalog-card"' + (item.id ? ' data-course="' + esc(item.id) + '"' : '') + ' tabindex="0">' +
+      const courseList = $('#courseList');
+      const courseLevels = [...new Set(state.courses.map((item) => item.level).filter(Boolean))];
+      const courseSaved = savedCatalogIds('courses');
+      courseList.innerHTML = catalogToolbar('courses', courseLevels, false) + state.courses.map((item) =>
+        '<article class="card catalog-card course-catalog-card" data-catalog-card data-catalog-id="' + esc(item.id || '') + '" data-catalog-search="' + esc([item.title,item.description,item.level].filter(Boolean).join(' ').toLowerCase()) + '" data-catalog-level="' + esc(item.level || '') + '"' + (item.id ? ' data-course="' + esc(item.id) + '"' : '') + ' tabindex="0">' +
           '<div class="catalog-cover">' +
             (item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<div class="catalog-cover-fallback"><span>DUVELA</span><b>' + esc((item.title || 'C').charAt(0)) + '</b></div>') +
             '<div class="catalog-cover-shade"></div><span class="catalog-type">' + esc(tr('Course', 'Курс')) + '</span>' +
-            (item.level ? '<span class="catalog-level">' + esc(item.level) + '</span>' : '') +
+            (item.level ? '<span class="catalog-level">' + esc(item.level) + '</span>' : '') + (item.id ? '<button class="catalog-save ' + (courseSaved.has(String(item.id)) ? 'active' : '') + '" data-save-catalog="' + esc(item.id) + '" aria-label="' + esc(tr('Save course', 'Сохранить курс')) + '">' + (courseSaved.has(String(item.id)) ? '♥' : '♡') + '</button>' : '') +
           '</div><div class="catalog-body">' +
             '<span class="catalog-eyebrow">' + esc(tr('Structured learning', 'Структурированное обучение')) + '</span><h3>' + esc(item.title) + '</h3>' +
             '<p class="catalog-description">' + esc(item.description || tr('A practical course from Duvela teachers with clear lessons and steady progress.', 'Практический курс от преподавателей Duvela с понятными уроками и заметным прогрессом.')) + '</p>' +
             '<div class="catalog-facts"><span><b>▤</b>' + esc(item.schedule || tr('Flexible schedule', 'Гибкое расписание')) + '</span><span><b>◎</b>' + esc(item.level ? tr('Level ', 'Уровень ') + item.level : tr('All levels', 'Все уровни')) + '</span></div>' +
             '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Course price', 'Стоимость курса')) + '</small><strong>' + esc(formatMoney(item)) + '</strong></div><div class="catalog-actions">' + courseAction(item) + '</div></div>' +
           '</div></article>'
-      ).join('') || '<div class="card empty">' + esc(tr('No courses available yet.', 'Курсов пока нет.')) + '</div>';
+      ).join('') + (!state.courses.length ? '<div class="card empty">' + esc(tr('No courses available yet.', 'Курсов пока нет.')) + '</div>' : '');
+      bindCatalogTools('courses', courseList);
     }
 
     function renderEvents() {
@@ -477,12 +519,14 @@
       }
       const today = new Date().toISOString().slice(0,10);
       const eventList = $('#eventList');
-      eventList.innerHTML = '<div class="event-catalog-tabs"><button class="active" data-event-filter="upcoming">' + esc(tr('Upcoming', 'Предстоящие')) + '</button><button data-event-filter="past">' + esc(tr('Past', 'Прошедшие')) + '</button><button data-event-filter="draft">' + esc(tr('Drafts', 'Черновики')) + '</button><button data-event-filter="canceled">' + esc(tr('Canceled', 'Отменённые')) + '</button></div>' + state.events.map((item) =>
-        '<article class="card catalog-card event-catalog-card" data-event-period="' + (item.status === 'draft' ? 'draft' : item.status === 'canceled' ? 'canceled' : item.event_date && item.event_date < today ? 'past' : 'upcoming') + '"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + ' tabindex="0">' +
+      const eventLevels = [...new Set(state.events.map((item) => item.level).filter(Boolean))];
+      const eventSaved = savedCatalogIds('events');
+      eventList.innerHTML = catalogToolbar('events', eventLevels, true) + '<div class="event-catalog-tabs"><button class="active" data-event-filter="upcoming">' + esc(tr('Upcoming', 'Предстоящие')) + '</button><button data-event-filter="past">' + esc(tr('Past', 'Прошедшие')) + '</button><button data-event-filter="draft">' + esc(tr('Drafts', 'Черновики')) + '</button><button data-event-filter="canceled">' + esc(tr('Canceled', 'Отменённые')) + '</button></div>' + state.events.map((item) =>
+        '<article class="card catalog-card event-catalog-card" data-catalog-card data-catalog-id="' + esc(item.id || '') + '" data-catalog-search="' + esc([item.title,item.description,item.language,item.city].filter(Boolean).join(' ').toLowerCase()) + '" data-catalog-level="' + esc(item.level || '') + '" data-catalog-format="' + (item.is_online ? 'online' : 'offline') + '" data-event-period="' + (item.status === 'draft' ? 'draft' : item.status === 'canceled' ? 'canceled' : item.event_date && item.event_date < today ? 'past' : 'upcoming') + '"' + (item.id ? ' data-event="' + esc(item.id) + '"' : '') + ' tabindex="0">' +
           '<div class="catalog-cover">' +
             (item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<div class="catalog-cover-fallback event"><span>DUVELA EVENT</span><b>' + esc((item.title || 'E').charAt(0)) + '</b></div>') +
             '<div class="catalog-cover-shade"></div><span class="catalog-type ' + (item.is_online ? 'live' : '') + '">' + esc(item.is_online ? tr('Online', 'Онлайн') : tr('In person', 'Очно')) + '</span>' +
-            (item.language ? '<span class="catalog-level">' + esc(item.language) + '</span>' : '') +
+            (item.language ? '<span class="catalog-level">' + esc(item.language) + '</span>' : '') + (item.id ? '<button class="catalog-save ' + (eventSaved.has(String(item.id)) ? 'active' : '') + '" data-save-catalog="' + esc(item.id) + '" aria-label="' + esc(tr('Save event', 'Сохранить событие')) + '">' + (eventSaved.has(String(item.id)) ? '♥' : '♡') + '</button>' : '') +
           '</div><div class="catalog-body">' +
             '<span class="catalog-eyebrow">' + esc(tr('Duvela event', 'Событие Duvela')) + '</span><h3>' + esc(item.title) + '</h3>' +
             '<p class="catalog-description">' + esc(item.description || tr('Meet, learn and practise together with the Duvela community.', 'Встречайтесь, учитесь и практикуйтесь вместе с сообществом Duvela.')) + '</p>' +
@@ -492,11 +536,14 @@
           '</div></article>'
       ).join('');
       const applyEventFilter = (period) => {
+        eventList.dataset.eventPeriod = period;
         eventList.querySelectorAll('[data-event-period]').forEach((card) => { card.hidden = card.dataset.eventPeriod !== period; });
         eventList.querySelectorAll('[data-event-filter]').forEach((button) => button.classList.toggle('active', button.dataset.eventFilter === period));
+        eventList.querySelector('[data-catalog-search]')?.dispatchEvent(new Event('input'));
       };
       eventList.querySelectorAll('[data-event-filter]').forEach((button) => { button.onclick = () => applyEventFilter(button.dataset.eventFilter); });
       applyEventFilter('upcoming');
+      bindCatalogTools('events', eventList);
     }
 
     async function loadEnrollments() {
@@ -698,7 +745,7 @@
       const eventCard=item=>'<article class="lh-event" data-home-event data-home-kind="events" data-date-kind="'+dateKind(item)+'" data-language="'+esc(String(item.language||''))+'" data-level="'+esc(String(item.level||''))+'" data-format="'+(item.is_online?'online':'offline')+'" data-home-card="'+esc([item.title,item.city,item.language,item.level,item.description].filter(Boolean).join(' ').toLowerCase())+'">'+
         '<div class="lh-event-cover"'+(item.id?' data-event="'+esc(item.id)+'"':'')+'>'+(item.image?'<img src="'+esc(item.image)+'" alt="">':'<span>DUVELA</span>')+'<b>'+esc(item.is_online?tr('Online','Онлайн'):tr('Offline','Офлайн'))+'</b><button class="lh-save '+(favorites.has(item.id)?'active':'')+'" data-save-event="'+esc(item.id||item.title)+'" aria-label="Save">♡</button></div>'+
         '<div class="lh-event-body"><h3>'+esc(item.title||tr('Language meetup','Языковая встреча'))+'</h3><p>'+esc([item.language,item.level].filter(Boolean).join(' · ')||item.description||tr('Community practice','Практика сообщества'))+'</p><div class="lh-event-meta"><span>⌖ '+esc(item.city||tr('Duvela community','Сообщество Duvela'))+'</span><span>□ '+esc(item.event_date?formatDate(item.event_date):item.meta||tr('Upcoming','Скоро'))+'</span></div><div class="lh-event-foot"><span data-event-going="'+esc(item.id||'')+'">◉ 0 '+esc(tr('going','участников'))+'</span>'+(item.id?'<button data-home-rsvp="'+esc(item.id)+'">'+esc(tr('Join','Участвовать'))+'</button>':'')+'</div></div></article>';
-      const challengeCard=item=>{const goals=[['daily_min_dialogs',tr('dialogs','диалогов')],['daily_min_words',tr('words','слов')],['daily_min_writing',tr('writing tasks','письменных заданий')],['daily_min_listening_min',tr('listening min','мин. аудирования')],['daily_min_live_min',tr('LIVE min','мин. LIVE')]].filter(goal=>Number(item[goal[0]])>0);const joined=state.myChallengeIds&&state.myChallengeIds.has(String(item.id));return '<article class="card lh-challenge-card" data-home-kind="challenges" data-open-challenge="'+esc(item.id||'')+'" data-home-card="'+esc([item.title,item.target_level,item.exam_type].filter(Boolean).join(' ').toLowerCase())+'"><div class="lh-challenge-cover">'+(item.cover_url?'<img src="'+esc(item.cover_url)+'" alt="">':'<div class="lh-challenge-art"><span>DUVELA</span><b>♕</b></div>')+'<span class="lh-challenge-status">'+esc(joined?tr('Joined','Участвую'):tr('Challenge','Челлендж'))+'</span><span class="lh-challenge-level">'+esc(item.target_level||tr('Any level','Любой уровень'))+'</span></div><div class="lh-challenge-body"><span class="catalog-eyebrow">'+esc(item.exam_type||tr('Daily language practice','Ежедневная языковая практика'))+'</span><h3>'+esc(item.title||tr('Duvela challenge','Челлендж Duvela'))+'</h3><p>'+esc(tr('Build a daily streak, complete the goals and reach the finish with other learners.','Сохраняйте ежедневную серию, выполняйте цели и дойдите до финиша вместе с другими учениками.'))+'</p><div class="lh-challenge-dates"><span><b>□</b>'+esc(item.started_at?formatDate(item.started_at):tr('Start today','Начните сегодня'))+'</span><span><b>⚑</b>'+esc(item.ends_at?formatDate(item.ends_at):tr('Open finish','Без срока'))+'</span></div><div class="lh-challenge-goals">'+(goals.length?goals.slice(0,3).map(goal=>'<span>'+esc(item[goal[0]]+' '+goal[1])+'</span>').join(''):'<span>'+esc(tr('Daily activity','Ежедневная активность'))+'</span>')+'</div><div class="lh-challenge-foot"><span><small>'+esc(tr('Completion reward','Награда за финиш'))+'</small><strong>XP + 🏅</strong></span><button type="button">'+esc(joined?tr('Continue','Продолжить'):tr('View challenge','Подробнее'))+'</button></div></div></article>';};
+      const challengeCard=item=>{const goals=[['daily_min_dialogs',tr('dialogs','диалогов')],['daily_min_words',tr('words','слов')],['daily_min_writing',tr('writing tasks','письменных заданий')],['daily_min_listening_min',tr('listening min','мин. аудирования')],['daily_min_live_min',tr('LIVE min','мин. LIVE')]].filter(goal=>Number(item[goal[0]])>0);const joined=state.myChallengeIds&&state.myChallengeIds.has(String(item.id));return '<article class="card lh-challenge-card" data-home-kind="challenges" data-home-level="'+esc(item.target_level||'')+'" data-open-challenge="'+esc(item.id||'')+'" data-home-card="'+esc([item.title,item.target_level,item.exam_type].filter(Boolean).join(' ').toLowerCase())+'"><div class="lh-challenge-cover">'+(item.cover_url?'<img src="'+esc(item.cover_url)+'" alt="">':'<div class="lh-challenge-art"><span>DUVELA</span><b>♕</b></div>')+'<span class="lh-challenge-status">'+esc(joined?tr('Joined','Участвую'):tr('Challenge','Челлендж'))+'</span><span class="lh-challenge-level">'+esc(item.target_level||tr('Any level','Любой уровень'))+'</span></div><div class="lh-challenge-body"><span class="catalog-eyebrow">'+esc(item.exam_type||tr('Daily language practice','Ежедневная языковая практика'))+'</span><h3>'+esc(item.title||tr('Duvela challenge','Челлендж Duvela'))+'</h3><p>'+esc(tr('Build a daily streak, complete the goals and reach the finish with other learners.','Сохраняйте ежедневную серию, выполняйте цели и дойдите до финиша вместе с другими учениками.'))+'</p><div class="lh-challenge-dates"><span><b>□</b>'+esc(item.started_at?formatDate(item.started_at):tr('Start today','Начните сегодня'))+'</span><span><b>⚑</b>'+esc(item.ends_at?formatDate(item.ends_at):tr('Open finish','Без срока'))+'</span></div><div class="lh-challenge-goals">'+(goals.length?goals.slice(0,3).map(goal=>'<span>'+esc(item[goal[0]]+' '+goal[1])+'</span>').join(''):'<span>'+esc(tr('Daily activity','Ежедневная активность'))+'</span>')+'</div><div class="lh-challenge-foot"><span><small>'+esc(tr('Completion reward','Награда за финиш'))+'</small><strong>XP + 🏅</strong></span><button type="button">'+esc(joined?tr('Continue','Продолжить'):tr('View challenge','Подробнее'))+'</button></div></div></article>';};
       const mini=(item,kind)=>'<a class="lh-mini" href="#'+(kind==='challenges'?'home':kind)+'" '+(kind==='challenges'?'data-open-challenge="'+esc(item.id||'')+'"':'data-go="'+kind+'"')+' data-home-kind="'+kind+'" data-home-card="'+esc([item.title,item.description,item.teacher_name,item.level].filter(Boolean).join(' ').toLowerCase())+'"><span class="lh-mini-icon">'+(kind==='courses'?'▣':kind==='challenges'?'♕':'◉')+'</span><span><b>'+esc(item.title||item.teacher_name||tr('Duvela challenge','Челлендж Duvela'))+'</b><small>'+esc(item.level||item.description||item.target_level||tr('Open details','Открыть подробнее'))+'</small></span></a>';
       host.innerHTML='<div class="learner-home">'+
         '<div class="lh-search-row"><label class="lh-search">⌕<input id="learnerHomeSearch" placeholder="'+esc(tr('Search events, courses and LIVE…','Поиск событий, курсов и LIVE…'))+'"></label><button class="lh-filter" id="learnerFilterBtn">☷</button></div><div class="lh-filter-panel" id="learnerFilterPanel" hidden><select id="lhLanguage"><option value="">'+esc(tr('Any language','Любой язык'))+'</option><option>German</option><option>English</option><option>Spanish</option><option>Russian</option></select><select id="lhLevel"><option value="">'+esc(tr('Any level','Любой уровень'))+'</option>'+['A1','A2','B1','B2','C1','C2'].map(x=>'<option>'+x+'</option>').join('')+'</select><select id="lhFormat"><option value="">'+esc(tr('Any format','Любой формат'))+'</option><option value="online">Online</option><option value="offline">Offline</option></select></div>'+
@@ -711,7 +758,7 @@
         (course?'<section class="lh-course-progress"><div><small>'+esc(tr('Current course','Текущий курс'))+'</small><b>'+esc(course.title)+'</b></div><strong>'+skill+'%</strong><i><span style="width:'+skill+'%"></span></i><a href="#courses" data-go="courses">'+esc(tr('Continue','Продолжить'))+'</a></section>':'')+
         '<section class="lh-section"><div class="lh-heading"><h2 id="lhCategoryTitle">'+esc(tr('Recommended events','Рекомендованные события'))+'</h2></div><div class="lh-event-grid">'+(events.length?events.map(eventCard).join(''):'<div class="lh-empty" data-home-kind="events" data-home-card="">'+esc(tr('New events will appear here.','Новые события появятся здесь.'))+'</div>')+'</div><div class="lh-mini-grid">'+courses.map(x=>mini(x,'courses')).concat(live.map(x=>mini(x,'live'))).join('')+challenges.map(challengeCard).join('')+'</div></section><div class="lh-no-results" id="learnerHomeEmpty" hidden>'+esc(tr('Nothing matched your filters.','По фильтрам ничего не найдено.'))+'</div>'+
         '<nav class="lh-mobile-nav"><a class="active" href="#home" data-go="home">⌂<span>'+esc(tr('Home','Главная'))+'</span></a><a href="#videos" data-go="videos">▶<span>'+esc(tr('Media','Медиа'))+'</span></a><a href="#workspace" data-go="workspace">✦<span>'+esc(tr('Practice','Практика'))+'</span></a><a href="#messages" data-go="messages">▣<span>'+esc(tr('Inbox','Сообщения'))+'</span></a><a href="#profile" data-go="profile">♙<span>'+esc(tr('Profile','Профиль'))+'</span></a></nav></div>';
-      let dateFilter='all',kindFilter='events';const titles={events:tr('Recommended events','Рекомендованные события'),courses:tr('Recommended courses','Рекомендованные курсы'),live:tr('LIVE lessons','LIVE-уроки'),challenges:tr('Learning challenges','Учебные челленджи')};const apply=()=>{const q=(host.querySelector('#learnerHomeSearch').value||'').trim().toLowerCase(),lang=host.querySelector('#lhLanguage').value.toLowerCase(),level=host.querySelector('#lhLevel').value,format=host.querySelector('#lhFormat').value;let visible=0;host.querySelectorAll('[data-home-card]').forEach(card=>{let show=(!card.dataset.homeKind||card.dataset.homeKind===kindFilter)&&(!q||card.dataset.homeCard.includes(q));if(card.matches('[data-home-event]'))show=show&&(dateFilter==='all'||card.dataset.dateKind===dateFilter)&&(!lang||card.dataset.language.toLowerCase()===lang)&&(!level||card.dataset.level===level)&&(!format||card.dataset.format===format);card.hidden=!show;if(show&&card.dataset.homeKind)visible++;});host.querySelector('#lhCategoryTitle').textContent=titles[kindFilter];host.querySelector('.lh-filter-tabs').hidden=kindFilter!=='events';host.querySelector('#learnerHomeEmpty').hidden=Boolean(visible);};
+      let dateFilter='all',kindFilter='events';const titles={events:tr('Recommended events','Рекомендованные события'),courses:tr('Recommended courses','Рекомендованные курсы'),live:tr('LIVE lessons','LIVE-уроки'),challenges:tr('Learning challenges','Учебные челленджи')};const apply=()=>{const q=(host.querySelector('#learnerHomeSearch').value||'').trim().toLowerCase(),lang=host.querySelector('#lhLanguage').value.toLowerCase(),level=host.querySelector('#lhLevel').value,format=host.querySelector('#lhFormat').value;let visible=0;host.querySelectorAll('[data-home-card]').forEach(card=>{let show=(!card.dataset.homeKind||card.dataset.homeKind===kindFilter)&&(!q||card.dataset.homeCard.includes(q));if(card.matches('[data-home-event]'))show=show&&(dateFilter==='all'||card.dataset.dateKind===dateFilter)&&(!lang||card.dataset.language.toLowerCase()===lang)&&(!level||card.dataset.level===level)&&(!format||card.dataset.format===format);else if(card.dataset.homeLevel)show=show&&(!level||card.dataset.homeLevel===level);card.hidden=!show;if(show&&card.dataset.homeKind)visible++;});host.querySelector('#lhCategoryTitle').textContent=titles[kindFilter];host.querySelector('.lh-filter-tabs').hidden=kindFilter!=='events';host.querySelector('#learnerHomeEmpty').hidden=Boolean(visible);};
       host.querySelector('#learnerHomeSearch').oninput=apply;host.querySelectorAll('#learnerFilterPanel select').forEach(x=>x.onchange=apply);host.querySelector('#learnerFilterBtn').onclick=()=>{const panel=host.querySelector('#learnerFilterPanel');panel.hidden=!panel.hidden;};host.querySelectorAll('[data-home-filter]').forEach(btn=>btn.onclick=()=>{dateFilter=btn.dataset.homeFilter;host.querySelectorAll('[data-home-filter]').forEach(x=>x.classList.toggle('active',x===btn));apply();});
       host.querySelectorAll('[data-home-kind-filter]').forEach(btn=>btn.onclick=()=>{kindFilter=btn.dataset.homeKindFilter;host.querySelectorAll('[data-home-kind-filter]').forEach(x=>x.classList.toggle('active',x===btn));apply();});
       host.querySelectorAll('[data-open-challenge]').forEach(card=>card.onclick=e=>{e.preventDefault();ctx.openChallenge(card.dataset.openChallenge);});

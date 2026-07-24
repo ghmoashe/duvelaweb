@@ -44,12 +44,15 @@
     }
 
     function practicesHtml() {
-      if (!state.practices.length) return '<div class="empty">' + esc(tr('No practices yet. Check back soon.', 'Практик пока нет. Загляните позже.')) + '</div>';
-      return state.practices.map((practice) => {
+      if (!state.practices.length) return '<div class="empty rich-empty"><span>✦</span><b>' + esc(tr('No practices yet', 'Практик пока нет')) + '</b><p>' + esc(tr('New exercises from teachers will appear here.', 'Здесь появятся новые упражнения от преподавателей.')) + '</p></div>';
+      const saved = new Set(JSON.parse(localStorage.getItem('duvela.saved.practice') || '[]'));
+      const levels = [...new Set(state.practices.map((practice) => String(practice.level || '').toUpperCase()).filter(Boolean))];
+      return '<div class="practice-filterbar"><label>⌕<input data-practice-search placeholder="' + esc(tr('Search practices…', 'Поиск практик…')) + '"></label><select data-practice-level><option value="">' + esc(tr('All levels', 'Все уровни')) + '</option>' + levels.map((level) => '<option>' + esc(level) + '</option>').join('') + '</select><button type="button" data-practice-saved>♡ ' + esc(tr('Saved', 'Избранное')) + '</button></div><div class="practice-card-grid">' + state.practices.map((practice) => {
         const assignment = (state.practiceAssignments || []).find((item) => String(item.practice_id) === String(practice.id));
         const feedback = (state.practiceFeedback || []).find((item) => String(item.practice_id) === String(practice.id));
         return (
-        '<div class="card prac-card" data-practice="' + esc(practice.id) + '">' +
+        '<article class="card prac-card practice-catalog-card" data-practice="' + esc(practice.id) + '" data-practice-card data-practice-level="' + esc(String(practice.level || '').toUpperCase()) + '" data-practice-search="' + esc([practice.title,practice.description,practice.target,practice.level,practice.creator_name].filter(Boolean).join(' ').toLowerCase()) + '" data-practice-saved="' + (saved.has(String(practice.id)) ? '1' : '0') + '">' +
+          '<div class="practice-card-cover">' + (practice.cover_image_url ? '<img src="' + esc(practice.cover_image_url) + '" alt="">' : '<span>✦</span>') + '<b>' + esc(practice.format || tr('Practice', 'Практика')) + '</b><button data-local-save data-save-kind="practice" data-save-id="' + esc(practice.id) + '" class="' + (saved.has(String(practice.id)) ? 'active' : '') + '">' + (saved.has(String(practice.id)) ? '♥' : '♡') + '</button></div><div class="practice-card-body">' +
           (assignment ? '<span class="practice-assigned">📌 ' + esc(tr('Assigned','Задано')) + (assignment.due_at ? ' · ' + new Date(assignment.due_at).toLocaleDateString() : '') + '</span>' : '') +
           '<h3>' + esc(practice.title) + '</h3>' +
           (practice.description ? '<p>' + esc(practice.description) + '</p>' : '') +
@@ -58,8 +61,8 @@
             (practice.target ? '<span class="tag blue">' + esc(practice.target) + '</span>' : '') +
             '<span class="tag amber">★ ' + Number(practice.rating_avg || 0).toFixed(1) + ' (' + (practice.rating_count || 0) + ')</span>' +
             '<span style="color:var(--muted);font-weight:800;font-size:12px">' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + '</span>' +
-          '</div>' + (feedback ? '<div class="practice-teacher-feedback"><b>💬 ' + esc(tr('Teacher feedback','Комментарий преподавателя')) + (feedback.score != null ? ' · ' + Number(feedback.score) : '') + '</b><p>' + esc(feedback.feedback || tr('Reviewed','Проверено')) + '</p></div>' : '') + '</div>');
-      }).join('');
+          '</div><div class="practice-card-foot"><span>+' + Math.max(10, Math.round((practice.plays_count || 1) / 2)) + ' XP</span><button type="button">' + esc(tr('Start practice', 'Начать практику')) + '</button></div>' + (feedback ? '<div class="practice-teacher-feedback"><b>💬 ' + esc(tr('Teacher feedback','Комментарий преподавателя')) + (feedback.score != null ? ' · ' + Number(feedback.score) : '') + '</b><p>' + esc(feedback.feedback || tr('Reviewed','Проверено')) + '</p></div>' : '') + '</div></article>');
+      }).join('') + '</div>';
     }
 
     async function openPractice(id) {
@@ -218,6 +221,16 @@
     }
 
     function bindEvents() {
+      document.addEventListener('input', (event) => {
+        if (!event.target.matches('[data-practice-search],[data-practice-level]')) return;
+        applyPracticeFilters(event.target.closest('[data-panel="workspace"]'));
+      });
+      document.addEventListener('click', (event) => {
+        const savedFilter = event.target.closest('[data-practice-saved]');
+        if (!savedFilter) return;
+        savedFilter.classList.toggle('active');
+        applyPracticeFilters(savedFilter.closest('[data-panel="workspace"]'));
+      });
       $('#practiceClose').addEventListener('click', closePractice);
       $('#practiceOverlay').addEventListener('click', (event) => {
         if (event.target === $('#practiceOverlay')) closePractice();
@@ -251,6 +264,16 @@
           return;
         }
         if (event.target.closest('#pracFinish')) closePractice();
+      });
+    }
+
+    function applyPracticeFilters(host) {
+      if (!host) return;
+      const query = (host.querySelector('[data-practice-search]')?.value || '').trim().toLowerCase();
+      const level = host.querySelector('[data-practice-level]')?.value || '';
+      const savedOnly = host.querySelector('[data-practice-saved]')?.classList.contains('active');
+      host.querySelectorAll('[data-practice-card]').forEach((card) => {
+        card.hidden = Boolean((query && !card.dataset.practiceSearch.includes(query)) || (level && card.dataset.practiceLevel !== level) || (savedOnly && card.dataset.practiceSaved !== '1'));
       });
     }
 

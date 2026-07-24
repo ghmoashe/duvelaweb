@@ -91,6 +91,18 @@
         if (unenroll) { event.preventDefault(); ctx.unenrollCourse(unenroll.dataset.unenroll); return; }
         const conversation = event.target.closest('[data-conv]');
         if (conversation) { ctx.openConversation(conversation.dataset.conv); return; }
+        const localSave = event.target.closest('[data-local-save]');
+        if (localSave) {
+          event.preventDefault(); event.stopPropagation();
+          const kind = localSave.dataset.saveKind, id = String(localSave.dataset.saveId || '');
+          const key = 'duvela.saved.' + kind, saved = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+          if (saved.has(id)) saved.delete(id); else saved.add(id);
+          localStorage.setItem(key, JSON.stringify([...saved]));
+          localSave.classList.toggle('active', saved.has(id)); localSave.textContent = saved.has(id) ? '♥' : '♡';
+          const card = localSave.closest('[data-media-saved]'); if (card) card.dataset.mediaSaved = saved.has(id) ? '1' : '0';
+          const practiceCard = localSave.closest('[data-practice-saved]'); if (practiceCard) practiceCard.dataset.practiceSaved = saved.has(id) ? '1' : '0';
+          return;
+        }
         const person = event.target.closest('[data-person]');
         if (person) {
           if (ctx.isGroupChatMode()) ctx.toggleGroupPerson(person.dataset.person);
