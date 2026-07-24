@@ -1025,8 +1025,62 @@
     function renderGrammar() {
       if (!studyState.grammarTopic) {
         var level = (loadPrefs().levels || {})[studyState.lang] || 'A1';
-        $('#studyToolBody').innerHTML = '<div class="academy-head"><span>📘</span><div><small>GRAMMAR ACADEMY · ' + esc(level) + '</small><h2>' + esc(tr('Choose a topic','Выберите тему')) + '</h2></div></div><div class="academy-topics">' + [['mixed',tr('Mixed grammar','Смешанная грамматика'),'✦'],['verbs',tr('Verbs and tenses','Глаголы и времена'),'V'],['articles',tr('Articles','Артикли'),'DE'],['sentences',tr('Sentence building','Построение предложений'),'W?']].map(function (item) { return '<button data-grammar-topic="' + item[0] + '"><i>' + item[2] + '</i><b>' + esc(item[1]) + '</b><span>' + esc(level) + ' →</span></button>'; }).join('') + '</div>';
-        Array.prototype.forEach.call(document.querySelectorAll('[data-grammar-topic]'),function (button) { button.onclick = function () { studyState.grammarTopic = button.getAttribute('data-grammar-topic'); studyState.data = null; renderGrammar(); }; }); return;
+        var grammarTopics = [
+          { id:'mixed', title:tr('Mixed grammar','\u0421\u043c\u0435\u0448\u0430\u043d\u043d\u0430\u044f \u0433\u0440\u0430\u043c\u043c\u0430\u0442\u0438\u043a\u0430'), icon:'✦', desc:tr('A full grammar bank with mixed forms and everyday patterns.','\u041f\u043e\u043b\u043d\u044b\u0439 \u0431\u0430\u043d\u043a \u0433\u0440\u0430\u043c\u043c\u0430\u0442\u0438\u043a\u0438: \u0444\u043e\u0440\u043c\u044b, \u043f\u0430\u0442\u0442\u0435\u0440\u043d\u044b \u0438 \u0431\u0430\u0437\u043e\u0432\u044b\u0435 \u043f\u0440\u0430\u0432\u0438\u043b\u0430.'), cta:tr('Open academy','\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0430\u043a\u0430\u0434\u0435\u043c\u0438\u044e') },
+          { id:'articles', title:tr('Articles','\u0410\u0440\u0442\u0438\u043a\u043b\u0438'), icon:'DE', desc:tr('Train der, die, das with a focused drill.','\u0422\u0440\u0435\u043d\u0438\u0440\u0443\u0439\u0442\u0435 der, die, das \u0432 \u0443\u0437\u043a\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0435.'), cta:tr('Train articles','\u0422\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0430\u0440\u0442\u0438\u043a\u043b\u0438'), tool:'articles' },
+          { id:'verbs', title:tr('Verbs and tenses','\u0413\u043b\u0430\u0433\u043e\u043b\u044b \u0438 \u0432\u0440\u0435\u043c\u0435\u043d\u0430'), icon:'V', desc:tr('Use a focused Perfekt practice set for spoken German.','\u041e\u0442\u0434\u0435\u043b\u044c\u043d\u044b\u0439 \u0431\u0430\u043d\u043a Perfekt \u0434\u043b\u044f \u0436\u0438\u0432\u043e\u0439 \u043d\u0435\u043c\u0435\u0446\u043a\u043e\u0439 \u0440\u0435\u0447\u0438.'), cta:tr('Train tenses','\u0422\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432\u0440\u0435\u043c\u0435\u043d\u0430'), tool:'perfekt' },
+          { id:'sentences', title:tr('Sentence building','\u041f\u043e\u0441\u0442\u0440\u043e\u0435\u043d\u0438\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0439'), icon:'W?', desc:tr('Build word order and question logic step by step.','\u0421\u043e\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u043f\u043e\u0440\u044f\u0434\u043e\u043a \u0441\u043b\u043e\u0432 \u0438 \u043b\u043e\u0433\u0438\u043a\u0443 \u0432\u043e\u043f\u0440\u043e\u0441\u0430 \u0448\u0430\u0433 \u0437\u0430 \u0448\u0430\u0433\u043e\u043c.'), cta:tr('Build sentences','\u0421\u043e\u0431\u0438\u0440\u0430\u0442\u044c \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u044f'), tool:'sentences' }
+        ];
+        var totalBank = strictBank(GRAMMAR,studyState.lang,studyState.level).length;
+        $('#studyToolBody').innerHTML =
+          '<section class="grammar-hub">' +
+            '<div class="grammar-hub-hero">' +
+              '<div class="grammar-hub-copy">' +
+                '<small>' + esc(tr('GRAMMAR ACTIVE', '\u0413\u0420\u0410\u041c\u041c\u0410\u0422\u0418\u041a\u0410 ACTIVE')) + ' · ' + esc(level) + '</small>' +
+                '<h2>' + esc(tr('Grammar academy and practice bank','\u0410\u043a\u0430\u0434\u0435\u043c\u0438\u044f \u0438 \u0431\u0430\u043d\u043a \u0433\u0440\u0430\u043c\u043c\u0430\u0442\u0438\u043a\u0438')) + '</h2>' +
+                '<p>' + esc(tr('Choose a clear grammar path: full academy, article practice, tense drills or sentence building.', '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u0439 \u0433\u0440\u0430\u043c\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u043f\u0443\u0442\u044c: \u043f\u043e\u043b\u043d\u0430\u044f \u0430\u043a\u0430\u0434\u0435\u043c\u0438\u044f, \u0430\u0440\u0442\u0438\u043a\u043b\u0438, \u0432\u0440\u0435\u043c\u0435\u043d\u0430 \u0438\u043b\u0438 \u043a\u043e\u043d\u0441\u0442\u0440\u0443\u043a\u0442\u043e\u0440 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0439.')) + '</p>' +
+              '</div>' +
+              '<div class="grammar-hub-stats">' +
+                '<span><b>' + grammarTopics.length + '</b><small>' + esc(tr('grammar zones','\u0433\u0440\u0430\u043c\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0445 \u0437\u043e\u043d')) + '</small></span>' +
+                '<span><b>' + totalBank + '</b><small>' + esc(tr('tasks in bank','\u0437\u0430\u0434\u0430\u043d\u0438\u0439 \u0432 \u0431\u0430\u043d\u043a\u0435')) + '</small></span>' +
+                '<span><b>' + esc(level) + '</b><small>' + esc(tr('active level','\u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c')) + '</small></span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="grammar-bank-note">' +
+              '<strong>' + esc(tr('Grammar base','\u0413\u0440\u0430\u043c\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u0431\u0430\u0437\u0430')) + '</strong>' +
+              '<p>' + esc(tr('Everything is grouped into a clean web hub so learners can quickly see where to start and what each grammar block trains.', '\u0412\u0441\u0451 \u0441\u043e\u0431\u0440\u0430\u043d\u043e \u0432 \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u0439 web-hub, \u0447\u0442\u043e\u0431\u044b \u0443\u0447\u0435\u043d\u0438\u043a \u0441\u0440\u0430\u0437\u0443 \u0432\u0438\u0434\u0435\u043b, \u0441 \u0447\u0435\u0433\u043e \u043d\u0430\u0447\u0430\u0442\u044c \u0438 \u0447\u0442\u043e \u0438\u043c\u0435\u043d\u043d\u043e \u0442\u0440\u0435\u043d\u0438\u0440\u0443\u0435\u0442 \u043a\u0430\u0436\u0434\u044b\u0439 \u0431\u043b\u043e\u043a.')) + '</p>' +
+            '</div>' +
+            '<div class="grammar-topic-grid">' + grammarTopics.map(function (item) {
+              return '<article class="grammar-topic-card">' +
+                '<div class="grammar-topic-top"><i>' + item.icon + '</i><span>' + esc(level) + '</span></div>' +
+                '<h3>' + esc(item.title) + '</h3>' +
+                '<p>' + esc(item.desc) + '</p>' +
+                '<button type="button" data-grammar-entry="' + esc(item.id) + '"' + (item.tool ? ' data-grammar-tool="' + esc(item.tool) + '"' : '') + '>' + esc(item.cta) + ' <em>→</em></button>' +
+              '</article>';
+            }).join('') + '</div>' +
+            '<div class="grammar-bank-strip">' +
+              '<b>' + esc(tr('Included drills','\u0412 \u0431\u0430\u043d\u043a \u0432\u0445\u043e\u0434\u044f\u0442')) + '</b>' +
+              '<div>' +
+                '<span>DE · der / die / das</span>' +
+                '<span>V · Perfekt</span>' +
+                '<span>W? · ' + esc(tr('Questions','\u0412\u043e\u043f\u0440\u043e\u0441\u044b')) + '</span>' +
+                '<span>⇄ · ' + esc(tr('Word order','\u041f\u043e\u0440\u044f\u0434\u043e\u043a \u0441\u043b\u043e\u0432')) + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</section>';
+        Array.prototype.forEach.call(document.querySelectorAll('[data-grammar-entry]'), function (button) {
+          button.onclick = function () {
+            var directTool = button.getAttribute('data-grammar-tool');
+            if (directTool) {
+              openStudyTool(directTool);
+              return;
+            }
+            studyState.grammarTopic = button.getAttribute('data-grammar-entry');
+            studyState.data = null;
+            renderGrammar();
+          };
+        });
+        return;
       }
       if (!studyState.data) {
         var source=strictBank(GRAMMAR,studyState.lang,studyState.level);
