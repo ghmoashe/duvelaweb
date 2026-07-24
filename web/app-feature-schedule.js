@@ -22,23 +22,28 @@
       }
       try {
         const { data: slots } = await supa.from('teacher_slots')
-          .select('teacher_id').eq('is_booked', false).gte('slot_date', today);
+          .select('id,teacher_id,slot_date,slot_time,duration_min,price,currency,timezone,live_room_url,approval_required,status')
+          .eq('is_booked', false).gte('slot_date', today)
+          .order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
         const counts = {};
         (slots || []).forEach((slot) => { counts[slot.teacher_id] = (counts[slot.teacher_id] || 0) + 1; });
         const ids = Object.keys(counts);
         let teachers = [];
         if (ids.length) {
           const { data: profiles } = await supa.from('profiles').select('id,full_name,avatar_url,city,country').in('id', ids);
-          teachers = (profiles || []).map((profile) => ({ ...profile, slots: counts[profile.id] || 0 })).sort((a, b) => b.slots - a.slots);
+          teachers = (profiles || []).map((profile) => {
+            const teacherSlots = (slots || []).filter((slot) => String(slot.teacher_id) === String(profile.id));
+            return { ...profile, slots: counts[profile.id] || 0, next_slots: teacherSlots.slice(0, 4), first_slot: teacherSlots[0] || null };
+          }).sort((a, b) => b.slots - a.slots);
         }
         state.scheduleTeachers = teachers;
         const { data: mine } = await supa.from('teacher_slots')
-          .select('id,teacher_id,slot_date,slot_time,duration_min')
+          .select('id,teacher_id,slot_date,slot_time,duration_min,price,currency,timezone,live_room_url,approval_required,status,booking_status')
           .eq('booked_by_user_id', ctx.user.id).gte('slot_date', today).order('slot_date', { ascending: true });
         const teacherIds = Array.from(new Set((mine || []).map((slot) => slot.teacher_id)));
-        const { data: teacherProfiles } = teacherIds.length ? await supa.from('profiles').select('id,full_name').in('id', teacherIds) : { data: [] };
-        const teacherNames = new Map((teacherProfiles || []).map((profile) => [profile.id, profile.full_name]));
-        state.myBookings = (mine || []).map((slot) => ({ ...slot, teacher_name: teacherNames.get(slot.teacher_id) || tr('Teacher', 'Преподаватель') }));
+        const { data: teacherProfiles } = teacherIds.length ? await supa.from('profiles').select('id,full_name,avatar_url,city,country').in('id', teacherIds) : { data: [] };
+        const teacherMap = new Map((teacherProfiles || []).map((profile) => [profile.id, profile]));
+        state.myBookings = (mine || []).map((slot) => ({ ...slot, teacher_profile: teacherMap.get(slot.teacher_id) || null, teacher_name: (teacherMap.get(slot.teacher_id) || {}).full_name || tr('Teacher', '\u041f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044c') }));
       } catch (error) {
         console.warn('schedule load failed', error);
       }
@@ -51,6 +56,11 @@
       // Mobile-style cards (reuses the shared mg-*/pv-* design system).
       const CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>';
       const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+      const VIDEO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
+      const moneyText = (item) => Number(item.price) ? Number(item.price).toFixed(2) + ' ' + (item.currency || 'EUR') : tr('Free', '\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e');
+      const slotDateTime = (slot) => esc(formatDate(slot.slot_date)) + '<b>' + esc(String(slot.slot_time || '').slice(0, 5)) + '</b>';
+      const lessonFormat = (slot) => slot && slot.live_room_url ? tr('Online LIVE', '\u041e\u043d\u043b\u0430\u0439\u043d LIVE') : tr('Online lesson', '\u041e\u043d\u043b\u0430\u0439\u043d-\u0443\u0440\u043e\u043a');
       if (ctx.isBusiness()) {
         $('#scheduleTitle').textContent = tr('Your lesson slots', 'Ваши слоты уроков');
         $('#scheduleSub').textContent = tr('Open times for learners to book', 'Открытые слоты для записи учеников');
@@ -107,24 +117,56 @@
         $('#scheduleSettings').addEventListener('click', editScheduleSettings);
         $('#calendarConnections').addEventListener('click', showCalendarConnections);
       } else {
-        $('#scheduleTitle').textContent = tr('Book a lesson', 'Записаться на урок');
-        $('#scheduleSub').textContent = tr('Teachers with open slots', 'Преподаватели со свободными слотами');
-        main.innerHTML = '<div class="bd-section-head" style="margin-bottom:10px"><h3>' + esc(tr('Teachers', 'Преподаватели')) + '</h3></div>' +
-          (state.scheduleTeachers.length ? '<div class="mg-list">' + state.scheduleTeachers.map((teacher) =>
-            '<div class="mg-row" data-teacher="' + esc(teacher.id) + '" style="cursor:pointer">' +
-            '<span class="sch-avatar">' + avatarInner(teacher.full_name, teacher.avatar_url) + '</span>' +
-            '<span class="mg-row-copy"><b>' + esc(teacher.full_name || tr('Teacher', 'Преподаватель')) + '</b>' +
-            '<span>' + esc([teacher.city, teacher.country].filter(Boolean).join(', ') || 'Duvela') + '</span></span>' +
-            '<span class="mg-row-tag" style="color:var(--purple)">' + teacher.slots + ' ' + esc(tr('slots', 'слотов')) + '</span></div>'
-          ).join('') + '</div>' : '<div class="mg-empty"><span class="mg-empty-ic">' + CAL + '</span><b>' + esc(tr('No open slots right now', 'Свободных слотов сейчас нет')) + '</b><p>' + esc(tr('Check back later — teachers add new times often.', 'Загляните позже — преподаватели часто добавляют новое время.')) + '</p></div>');
-        side.innerHTML = '<div class="bd-section-head" style="margin-bottom:10px"><h3>' + esc(tr('My bookings', 'Мои записи')) + '</h3></div>' +
-          (state.myBookings.length ? '<div class="mg-list">' + state.myBookings.map((booking) =>
-            '<div class="mg-row"><span class="mg-row-ic teal">' + CLOCK + '</span>' +
-            '<span class="mg-row-copy"><b>' + esc(booking.teacher_name) + '</b>' +
-            '<span>' + esc(fmtSlot(booking)) + ' · ' + (booking.duration_min || 60) + ' ' + esc(tr('min', 'мин')) + '</span></span>' +
-            '<button class="sch-cancel" data-cancel-booking="' + esc(booking.id) + '">' + esc(tr('Cancel', 'Отменить')) + '</button></div>'
-          ).join('') + '</div>' : '<div class="mg-empty"><span class="mg-empty-ic">' + CLOCK + '</span><b>' + esc(tr('No bookings yet', 'Записей пока нет')) + '</b><p>' + esc(tr('Pick a teacher and choose a free time.', 'Выберите преподавателя и свободное время.')) + '</p></div>');
+        $('#scheduleTitle').textContent = tr('Book a lesson', '\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f \u043d\u0430 \u0443\u0440\u043e\u043a');
+        $('#scheduleSub').textContent = tr('Choose a teacher, compare open times and manage your bookings.', '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f, \u0441\u0440\u0430\u0432\u043d\u0438\u0442\u0435 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f \u0438 \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u0439\u0442\u0435 \u0437\u0430\u043f\u0438\u0441\u044f\u043c\u0438.');
+        const totalSlots = state.scheduleTeachers.reduce((sum, teacher) => sum + Number(teacher.slots || 0), 0);
+        const nextBooking = state.myBookings[0] || null;
+        main.innerHTML = '<div class="schedule-learner-hero"><div><span>' + esc(tr('Lesson schedule', '\u0420\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0443\u0440\u043e\u043a\u043e\u0432')) + '</span><h2>' + esc(totalSlots ? tr('Find a time that fits you', '\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u0443\u0434\u043e\u0431\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f') : tr('Open slots will appear here', '\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0435 \u0441\u043b\u043e\u0442\u044b \u043f\u043e\u044f\u0432\u044f\u0442\u0441\u044f \u0437\u0434\u0435\u0441\u044c')) + '</h2><p>' + esc(tr('Teacher cards show the next available lesson, duration, price, format and location details.', '\u041a\u0430\u0440\u0442\u043e\u0447\u043a\u0438 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u044e\u0442 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0439 \u0443\u0440\u043e\u043a, \u0434\u043b\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c, \u0446\u0435\u043d\u0443, \u0444\u043e\u0440\u043c\u0430\u0442 \u0438 \u043b\u043e\u043a\u0430\u0446\u0438\u044e.')) + '</p></div><div class="schedule-hero-stats"><span><b>' + state.scheduleTeachers.length + '</b><small>' + esc(tr('teachers', '\u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u0435\u0439')) + '</small></span><span><b>' + totalSlots + '</b><small>' + esc(tr('open slots', '\u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0445 \u0441\u043b\u043e\u0442\u043e\u0432')) + '</small></span><span><b>' + state.myBookings.length + '</b><small>' + esc(tr('bookings', '\u0437\u0430\u043f\u0438\u0441\u0435\u0439')) + '</small></span></div></div>' +
+          '<div class="schedule-toolbar"><label>⌕<input id="scheduleTeacherSearch" placeholder="' + esc(tr('Search teacher or city...', '\u041f\u043e\u0438\u0441\u043a \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f \u0438\u043b\u0438 \u0433\u043e\u0440\u043e\u0434\u0430...')) + '"></label><button type="button" data-schedule-filter="all" class="active">' + esc(tr('All', '\u0412\u0441\u0435')) + '</button><button type="button" data-schedule-filter="free">' + esc(tr('Free', '\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e')) + '</button><button type="button" data-schedule-filter="live">LIVE</button></div>' +
+          (state.scheduleTeachers.length ? '<div class="schedule-teacher-grid">' + state.scheduleTeachers.map((teacher) => {
+            const first = teacher.first_slot || {};
+            const location = [teacher.city, teacher.country].filter(Boolean).join(', ') || 'Duvela';
+            const search = [teacher.full_name, teacher.city, teacher.country, lessonFormat(first), moneyText(first)].filter(Boolean).join(' ').toLowerCase();
+            return '<article class="schedule-teacher-card" data-teacher-card data-teacher="' + esc(teacher.id) + '" data-schedule-search="' + esc(search) + '" data-schedule-price="' + (Number(first.price) ? 'paid' : 'free') + '" data-schedule-live="' + (first.live_room_url ? '1' : '0') + '">' +
+              '<div class="schedule-teacher-top"><span class="sch-avatar">' + avatarInner(teacher.full_name, teacher.avatar_url) + '</span><div><h3>' + esc(teacher.full_name || tr('Teacher', '\u041f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044c')) + '</h3><p>' + PIN + esc(location) + '</p></div><strong>' + teacher.slots + ' ' + esc(tr('slots', '\u0441\u043b\u043e\u0442\u043e\u0432')) + '</strong></div>' +
+              '<div class="schedule-next-slot"><small>' + esc(tr('Nearest lesson', '\u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0439 \u0443\u0440\u043e\u043a')) + '</small><div>' + slotDateTime(first) + '</div></div>' +
+              '<div class="schedule-facts"><span>' + CLOCK + esc((first.duration_min || 60) + ' ' + tr('min', '\u043c\u0438\u043d')) + '</span><span>' + VIDEO + esc(lessonFormat(first)) + '</span><span>' + esc(moneyText(first)) + '</span></div>' +
+              '<div class="schedule-mini-slots">' + (teacher.next_slots || []).map((slot) => '<span>' + esc(String(slot.slot_time || '').slice(0, 5)) + '</span>').join('') + '</div>' +
+              '<button class="btn primary" type="button">' + esc(tr('Choose time', '\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0432\u0440\u0435\u043c\u044f')) + '</button>' +
+            '</article>';
+          }).join('') + '</div>' : '<div class="mg-empty schedule-empty"><span class="mg-empty-ic">' + CAL + '</span><b>' + esc(tr('No open slots right now', '\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0445 \u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0435\u0442')) + '</b><p>' + esc(tr('Check back later. Teachers add new times often.', '\u0417\u0430\u0433\u043b\u044f\u043d\u0438\u0442\u0435 \u043f\u043e\u0437\u0436\u0435. \u041f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u0438 \u0447\u0430\u0441\u0442\u043e \u0434\u043e\u0431\u0430\u0432\u043b\u044f\u044e\u0442 \u043d\u043e\u0432\u043e\u0435 \u0432\u0440\u0435\u043c\u044f.')) + '</p></div>') + '<div class="practice-no-results schedule-no-results" hidden>' + esc(tr('No teachers match these filters.', '\u041f\u043e \u0444\u0438\u043b\u044c\u0442\u0440\u0430\u043c \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u0435\u0439 \u043d\u0435\u0442.')) + '</div>';
+        side.innerHTML = '<div class="schedule-bookings-head"><div><h3>' + esc(tr('My bookings', '\u041c\u043e\u0438 \u0437\u0430\u043f\u0438\u0441\u0438')) + '</h3><p>' + esc(nextBooking ? tr('Your next lesson is ready.', '\u0412\u0430\u0448 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u0439 \u0443\u0440\u043e\u043a \u0433\u043e\u0442\u043e\u0432.') : tr('Choose a teacher and a free time.', '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f \u0438 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f.')) + '</p></div>' + (nextBooking ? '<span>' + esc(formatDate(nextBooking.slot_date)) + '</span>' : '') + '</div>' +
+          (state.myBookings.length ? '<div class="schedule-booking-list">' + state.myBookings.map((booking) => {
+            const profile = booking.teacher_profile || {};
+            return '<article class="schedule-booking-card"><div class="schedule-booking-main"><span class="sch-avatar">' + avatarInner(booking.teacher_name, profile.avatar_url) + '</span><div><h3>' + esc(booking.teacher_name) + '</h3><p>' + esc([profile.city, profile.country].filter(Boolean).join(', ') || lessonFormat(booking)) + '</p></div><span class="practice-status-pill teal">' + esc(booking.approval_required && booking.status === 'pending' ? tr('Pending', '\u041e\u0436\u0438\u0434\u0430\u0435\u0442') : tr('Booked', '\u0417\u0430\u043f\u0438\u0441\u0430\u043d\u043e')) + '</span></div><div class="schedule-booking-time"><span>' + CAL + esc(formatDate(booking.slot_date)) + '</span><span>' + CLOCK + esc(String(booking.slot_time || '').slice(0, 5) + ' · ' + (booking.duration_min || 60) + ' ' + tr('min', '\u043c\u0438\u043d')) + '</span><span>' + esc(moneyText(booking)) + '</span></div>' + (booking.live_room_url ? '<a class="btn" href="' + esc(booking.live_room_url) + '" target="_blank" rel="noopener">LIVE</a>' : '') + '<button class="sch-cancel" data-cancel-booking="' + esc(booking.id) + '">' + esc(tr('Cancel booking', '\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c')) + '</button></article>';
+          }).join('') + '</div>' : '<div class="mg-empty schedule-empty"><span class="mg-empty-ic">' + CLOCK + '</span><b>' + esc(tr('No bookings yet', '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442')) + '</b><p>' + esc(tr('Pick a teacher and choose a free time.', '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f \u0438 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f.')) + '</p></div>');
+        bindScheduleFilters(main);
       }
+    }
+
+    function bindScheduleFilters(host) {
+      const apply = () => {
+        const query = (host.querySelector('#scheduleTeacherSearch')?.value || '').trim().toLowerCase();
+        const active = host.querySelector('[data-schedule-filter].active')?.dataset.scheduleFilter || 'all';
+        let visible = 0;
+        Array.from(host.querySelectorAll('[data-teacher-card]')).forEach((card) => {
+          let show = !query || card.dataset.scheduleSearch.includes(query);
+          if (active === 'free') show = show && card.dataset.schedulePrice === 'free';
+          if (active === 'live') show = show && card.dataset.scheduleLive === '1';
+          card.hidden = !show;
+          if (show) visible++;
+        });
+        const empty = host.querySelector('.schedule-no-results');
+        if (empty) empty.hidden = Boolean(visible);
+      };
+      const search = host.querySelector('#scheduleTeacherSearch');
+      if (search) search.addEventListener('input', apply);
+      host.querySelectorAll('[data-schedule-filter]').forEach((button) => {
+        button.addEventListener('click', () => {
+          host.querySelectorAll('[data-schedule-filter]').forEach((node) => node.classList.toggle('active', node === button));
+          apply();
+        });
+      });
     }
 
     async function openTeacherSlots(teacherId) {
@@ -142,27 +184,20 @@
       } catch (error) {
         /* ignore */
       }
-      main.innerHTML = '<div class="sch-head">' +
-          '<button class="sch-back" id="slotsBack" type="button">‹ ' + esc(tr('Back', 'Назад')) + '</button>' +
-          '<span class="sch-avatar">' + avatarInner(teacher && teacher.full_name, teacher && teacher.avatar_url) + '</span>' +
-          '<b>' + esc((teacher && teacher.full_name) || tr('Teacher', 'Преподаватель')) + '</b>' +
+      const freeSlots = slots.filter((slot) => !slot.is_booked);
+      const grouped = freeSlots.reduce((map, slot) => {
+        const list = map.get(slot.slot_date) || [];
+        list.push(slot);
+        map.set(slot.slot_date, list);
+        return map;
+      }, new Map());
+      main.innerHTML = '<div class="schedule-teacher-detail">' +
+          '<button class="sch-back" id="slotsBack" type="button">← ' + esc(tr('Back', '\u041d\u0430\u0437\u0430\u0434')) + '</button>' +
+          '<div class="schedule-teacher-detail-main"><span class="sch-avatar">' + avatarInner(teacher && teacher.full_name, teacher && teacher.avatar_url) + '</span><div><small>' + esc(tr('Teacher schedule', '\u0420\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f')) + '</small><h2>' + esc((teacher && teacher.full_name) || tr('Teacher', '\u041f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044c')) + '</h2><p>' + esc([teacher && teacher.city, teacher && teacher.country].filter(Boolean).join(', ') || 'Duvela') + '</p></div></div>' +
+          '<div class="schedule-hero-stats compact"><span><b>' + freeSlots.length + '</b><small>' + esc(tr('free slots', '\u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0445 \u0441\u043b\u043e\u0442\u043e\u0432')) + '</small></span><span><b>' + (freeSlots[0] ? (freeSlots[0].duration_min || 60) : 0) + '</b><small>' + esc(tr('minutes', '\u043c\u0438\u043d\u0443\u0442')) + '</small></span><span><b>' + esc(freeSlots[0] ? moneyText(freeSlots[0]) : '-') + '</b><small>' + esc(tr('price', '\u0446\u0435\u043d\u0430')) + '</small></span></div>' +
         '</div>' +
-        (slots.length
-          ? '<div class="sch-slots">' + slots.map((slot) => '<button class="slot-chip" data-book="' + esc(slot.id) + '">' + esc(fmtSlot(slot)) + ' · ' + (slot.duration_min || 60) + esc(tr('m', 'м')) + '</button>').join('') + '</div>'
-          : '<div class="mg-empty"><b>' + esc(tr('No free slots', 'Свободных слотов нет')) + '</b><p>' + esc(tr('This teacher has no open times right now.', 'У этого преподавателя сейчас нет открытого времени.')) + '</p></div>');
+        (freeSlots.length ? '<div class="schedule-day-groups">' + Array.from(grouped, ([date, daySlots]) => '<section class="schedule-day-card"><div class="schedule-day-head"><b>' + esc(formatDate(date)) + '</b><span>' + daySlots.length + ' ' + esc(tr('times', '\u0432\u0440\u0435\u043c\u0435\u043d\u0438')) + '</span></div><div class="schedule-slot-grid">' + daySlots.map((slot) => '<button class="schedule-slot-card" data-book="' + esc(slot.id) + '"><span class="schedule-slot-time">' + esc(String(slot.slot_time || '').slice(0, 5)) + '</span><span>' + CLOCK + esc((slot.duration_min || 60) + ' ' + tr('min', '\u043c\u0438\u043d')) + '</span><span>' + VIDEO + esc(lessonFormat(slot)) + '</span><span>' + esc(moneyText(slot)) + '</span>' + (slot.approval_required ? '<small>' + esc(tr('Teacher approval required', '\u041d\u0443\u0436\u043d\u043e \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f')) + '</small>' : '<small>' + esc(tr('Instant booking', '\u041c\u0433\u043d\u043e\u0432\u0435\u043d\u043d\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c')) + '</small>') + '</button>').join('') + '</div></section>').join('') + '</div>' : '<div class="mg-empty schedule-empty"><b>' + esc(tr('No free slots', '\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0445 \u0441\u043b\u043e\u0442\u043e\u0432 \u043d\u0435\u0442')) + '</b><p>' + esc(tr('This teacher has no open times right now.', '\u0423 \u044d\u0442\u043e\u0433\u043e \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f \u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0435\u0442 \u043e\u0442\u043a\u0440\u044b\u0442\u043e\u0433\u043e \u0432\u0440\u0435\u043c\u0435\u043d\u0438.')) + '</p></div>');
       $('#slotsBack').addEventListener('click', renderSchedule);
-      Array.from(main.querySelectorAll('[data-book]')).forEach((button, index) => {
-        const slot = slots[index];
-        if (!slot) return;
-        if (slot.is_booked) {
-          button.removeAttribute('data-book');
-          button.dataset.waitlist = slot.id;
-          button.textContent += ' · ' + tr('Join waitlist', 'В лист ожидания');
-        } else if (Number(slot.price)) {
-          button.textContent += ' · ' + Number(slot.price).toFixed(2) + ' ' + (slot.currency || 'EUR');
-        }
-      });
-      main.querySelectorAll('[data-waitlist]').forEach((button) => button.addEventListener('click', () => joinWaitlist(button.dataset.waitlist)));
     }
 
     async function bookSlot(slotId) {
