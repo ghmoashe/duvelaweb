@@ -838,6 +838,45 @@
 
     // ---- 1. Flashcards ----
     function renderFlashcards() {
+      if (studyState.tool === 'vocabulary') {
+        var savedWords = loadSavedWords(studyState.lang);
+        var dueNow = savedWords.filter(function (word) { return !word.dueAt || new Date(word.dueAt).getTime() <= Date.now(); }).length;
+        var vocabModes = [
+          { tool:'flashcards', icon:'🔤', title:tr('Flashcards','\u0424\u043b\u0435\u0448\u043a\u0430\u0440\u0442\u044b'), desc:tr('Flip words, save them and repeat the difficult ones.','\u041f\u0435\u0440\u0435\u0432\u043e\u0440\u0430\u0447\u0438\u0432\u0430\u0439\u0442\u0435 \u0441\u043b\u043e\u0432\u0430, \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0439\u0442\u0435 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u044f\u0439\u0442\u0435 \u0441\u043b\u043e\u0436\u043d\u044b\u0435.') },
+          { tool:'memory', icon:'🃏', title:tr('Memory match','\u041c\u0435\u043c\u043e\u0440\u0438'), desc:tr('Match word and translation in a quick visual drill.','\u0421\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435 \u0441\u043b\u043e\u0432\u043e \u0438 \u043f\u0435\u0440\u0435\u0432\u043e\u0434 \u0432 \u0431\u044b\u0441\u0442\u0440\u043e\u043c \u0432\u0438\u0437\u0443\u0430\u043b\u044c\u043d\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0435.') },
+          { tool:'wordusage', icon:'✍️', title:tr('Word usage','\u0423\u043f\u043e\u0442\u0440\u0435\u0431\u043b\u0435\u043d\u0438\u0435 \u0441\u043b\u043e\u0432'), desc:tr('Choose the word that fits the sentence naturally.','\u0412\u044b\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u0441\u043b\u043e\u0432\u043e, \u043a\u043e\u0442\u043e\u0440\u043e\u0435 \u0435\u0441\u0442\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e \u043f\u043e\u0434\u0445\u043e\u0434\u0438\u0442 \u043a \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u044e.') },
+          { tool:'categories', icon:'▦', title:tr('Word sorting','\u0421\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u043a\u0430 \u0441\u043b\u043e\u0432'), desc:tr('Group vocabulary by meaning and topic.','\u0421\u043e\u0440\u0442\u0438\u0440\u0443\u0439\u0442\u0435 \u0441\u043b\u043e\u0432\u0430 \u043f\u043e \u0442\u0435\u043c\u0430\u043c \u0438 \u0441\u043c\u044b\u0441\u043b\u0443.') },
+          { tool:'dictionary', icon:'🔖', title:tr('Saved dictionary','\u041b\u0438\u0447\u043d\u044b\u0439 \u0441\u043b\u043e\u0432\u0430\u0440\u044c'), desc:tr('Open your saved word bank and spaced repetition queue.','\u041e\u0442\u043a\u0440\u043e\u0439\u0442\u0435 \u0441\u0432\u043e\u0439 \u0431\u0430\u043d\u043a \u0441\u043b\u043e\u0432 \u0438 \u043e\u0447\u0435\u0440\u0435\u0434\u044c \u043d\u0430 \u043f\u043e\u0432\u0442\u043e\u0440\u0435\u043d\u0438\u0435.') }
+        ];
+        $('#studyToolBody').innerHTML =
+          '<section class="vocab-hub">' +
+            '<div class="vocab-hub-hero">' +
+              '<div class="vocab-hub-copy">' +
+                '<small>' + esc(tr('WORD BANK ACTIVE', '\u0421\u041b\u041e\u0412\u0410\u0420\u041d\u042b\u0419 \u0411\u0410\u041d\u041a ACTIVE')) + ' · ' + esc(studyState.level) + '</small>' +
+                '<h2>' + esc(tr('Vocabulary bank and training modes','\u0411\u0430\u043d\u043a \u0441\u043b\u043e\u0432 \u0438 \u0440\u0435\u0436\u0438\u043c\u044b \u0442\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438')) + '</h2>' +
+                '<p>' + esc(tr('Use one clear vocabulary hub for learning, matching, sentence usage and saved-word review.', '\u0417\u0434\u0435\u0441\u044c \u043e\u0434\u0438\u043d \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u0439 hub \u0434\u043b\u044f \u0438\u0437\u0443\u0447\u0435\u043d\u0438\u044f \u0441\u043b\u043e\u0432, \u043c\u0435\u043c\u043e\u0440\u0438, \u0443\u043f\u043e\u0442\u0440\u0435\u0431\u043b\u0435\u043d\u0438\u044f \u0432 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u044f\u0445 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d\u043d\u044b\u0445 \u0441\u043b\u043e\u0432.')) + '</p>' +
+              '</div>' +
+              '<div class="vocab-hub-stats">' +
+                '<span><b>' + vocabModes.length + '</b><small>' + esc(tr('word modes','\u0440\u0435\u0436\u0438\u043c\u043e\u0432 \u0441\u043b\u043e\u0432')) + '</small></span>' +
+                '<span><b>' + savedWords.length + '</b><small>' + esc(tr('saved words','\u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d\u043d\u044b\u0445 \u0441\u043b\u043e\u0432')) + '</small></span>' +
+                '<span><b>' + dueNow + '</b><small>' + esc(tr('ready to review','\u0433\u043e\u0442\u043e\u0432\u043e \u043a \u043f\u043e\u0432\u0442\u043e\u0440\u0443')) + '</small></span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="vocab-bank-note"><strong>' + esc(tr('Word base','\u0421\u043b\u043e\u0432\u0430\u0440\u043d\u0430\u044f \u0431\u0430\u0437\u0430')) + '</strong><p>' + esc(tr('The learner sees one clean entry point instead of scattered vocabulary tools. Each card opens a specific training mode.', '\u0423 \u0443\u0447\u0435\u043d\u0438\u043a\u0430 \u043e\u0434\u043d\u0430 \u0447\u0438\u0441\u0442\u0430\u044f \u0442\u043e\u0447\u043a\u0430 \u0432\u0445\u043e\u0434\u0430 \u0432\u043c\u0435\u0441\u0442\u043e \u0440\u0430\u0437\u0431\u0440\u043e\u0441\u0430\u043d\u043d\u044b\u0445 \u0440\u0435\u0436\u0438\u043c\u043e\u0432. \u041a\u0430\u0436\u0434\u0430\u044f \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0430 \u043e\u0442\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0441\u0432\u043e\u0439 \u0442\u0438\u043f \u0442\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438.')) + '</p></div>' +
+            '<div class="vocab-topic-grid">' + vocabModes.map(function (item) {
+              return '<article class="vocab-topic-card">' +
+                '<div class="vocab-topic-top"><i>' + item.icon + '</i><span>' + esc(studyState.level) + '</span></div>' +
+                '<h3>' + esc(item.title) + '</h3>' +
+                '<p>' + esc(item.desc) + '</p>' +
+                '<button type="button" data-vocab-tool="' + esc(item.tool) + '">' + esc(tr('Open mode','\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u0436\u0438\u043c')) + ' <em>→</em></button>' +
+              '</article>';
+            }).join('') + '</div>' +
+          '</section>';
+        Array.prototype.forEach.call(document.querySelectorAll('[data-vocab-tool]'), function (button) {
+          button.onclick = function () { openStudyTool(button.getAttribute('data-vocab-tool')); };
+        });
+        return;
+      }
       if (!studyState.data) studyState.data=shuffle(strictBank(VOCAB,studyState.lang,studyState.level));
       var deck = studyState.data;
       if(!deck.length)return noLevelContent();
