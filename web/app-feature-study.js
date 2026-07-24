@@ -697,7 +697,7 @@
       var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
       var sessionLang=germanOnly?'de':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
       var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
-      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
+      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,skillDirect:!!(restored&&restored.skillDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
       $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + studyState.level;
       $('#studyOverlay').setAttribute('data-practice-tool', id);
@@ -1216,7 +1216,44 @@
         '<article><b>'+esc(tr('Next improvement','Следующее улучшение'))+'</b><p>'+esc(result.nextStep || '')+'</p></article></div>';
     }
 
+    function renderSkillsHub() {
+      var skillModes = [
+        { tool:'listening', icon:'🎧', title:tr('Listening lab','Аудирование'), desc:tr('Listen, type and check what you hear.','Слушайте, записывайте и проверяйте услышанное.') },
+        { tool:'reading', icon:'📖', title:tr('Reading lab','Чтение'), desc:tr('Read a short text and answer focused questions.','Читайте короткий текст и отвечайте на точные вопросы.') },
+        { tool:'writing', icon:'📝', title:tr('Writing lab','Письмо'), desc:tr('Write, self-check and get AI feedback.','Пишите, проходите самопроверку и получайте AI-оценку.') },
+        { tool:'speaking', icon:'🎙', title:tr('Speaking practice','Разговорная практика'), desc:tr('Speak aloud and train pronunciation with evaluation.','Говорите вслух и тренируйте произношение с проверкой.') }
+      ];
+      $('#studyToolBody').innerHTML =
+        '<section class="skills-hub">' +
+          '<div class="skills-hub-hero">' +
+            '<div class="skills-hub-copy">' +
+              '<small>' + esc(tr('SKILLS ACTIVE', 'SKILLS ACTIVE')) + ' · ' + esc(studyState.level) + '</small>' +
+              '<h2>' + esc(tr('Language skills hub','Хаб языковых навыков')) + '</h2>' +
+              '<p>' + esc(tr('Open one clear hub for listening, reading, writing and speaking instead of separate disconnected screens.','Откройте один понятный хаб для listening, reading, writing и speaking вместо разрозненных экранов.')) + '</p>' +
+            '</div>' +
+            '<div class="skills-hub-stats">' +
+              '<span><b>' + skillModes.length + '</b><small>' + esc(tr('skill modes','режимов навыков')) + '</small></span>' +
+              '<span><b>' + esc(studyState.level) + '</b><small>' + esc(tr('active level','активный уровень')) + '</small></span>' +
+              '<span><b>' + esc(studyState.lang.toUpperCase()) + '</b><small>' + esc(tr('practice language','язык практики')) + '</small></span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="skills-bank-note"><strong>' + esc(tr('Skill base','База навыков')) + '</strong><p>' + esc(tr('Each card opens a specific skill flow with the same visual language and clearer navigation for learners.','Каждая карточка открывает отдельный навык в едином стиле и с более понятной навигацией для ученика.')) + '</p></div>' +
+          '<div class="skills-topic-grid">' + skillModes.map(function (item) {
+            return '<article class="skills-topic-card">' +
+              '<div class="skills-topic-top"><i>' + item.icon + '</i><span>' + esc(studyState.level) + '</span></div>' +
+              '<h3>' + esc(item.title) + '</h3>' +
+              '<p>' + esc(item.desc) + '</p>' +
+              '<button type="button" data-skill-tool="' + esc(item.tool) + '">' + esc(tr('Open skill','Открыть навык')) + ' <em>→</em></button>' +
+            '</article>';
+          }).join('') + '</div>' +
+        '</section>';
+      Array.prototype.forEach.call(document.querySelectorAll('[data-skill-tool]'), function (button) {
+        button.onclick = function () { openStudyTool(button.getAttribute('data-skill-tool'), { lang:studyState.lang, level:studyState.level, skillDirect:true }); };
+      });
+    }
+
     function renderSpeaking() {
+      if (!studyState.skillDirect) return renderSkillsHub();
       if(!studyState.speakingMode){
         $('#studyToolBody').innerHTML='<div class="speaking-mode-head"><span>🎙</span><div><small>'+esc(tr('AI SPEAKING PRACTICE','РАЗГОВОРНАЯ ПРАКТИКА'))+'</small><h2>'+esc(tr('Choose a real exam situation','Выберите ситуацию настоящего экзамена'))+'</h2></div></div><div class="speaking-modes">'+[['intro','1','3 min',tr('Introduce yourself or share an experience','Расскажите о себе или своём опыте')],['discuss','2','6 min',tr('Discuss a topic and support your opinion','Обсудите тему и обоснуйте мнение')],['plan','3','5 min',tr('Plan something together','Спланируйте что-нибудь вместе')]].map(function(item){return '<button data-speaking-mode="'+item[0]+'"><i>'+item[1]+'</i><span><b>'+esc(item[3])+'</b><small>'+item[2]+'</small></span><em>→</em></button>';}).join('')+'</div>';
         Array.prototype.forEach.call(document.querySelectorAll('[data-speaking-mode]'),function(button){button.onclick=function(){studyState.speakingMode=button.getAttribute('data-speaking-mode');studyState.data=null;renderSpeaking();};});return;
@@ -1259,6 +1296,7 @@
 
     // ---- 6. Listening lab (TTS) ----
     function renderListening() {
+      if (!studyState.skillDirect) return renderSkillsHub();
       if (!studyState.data) studyState.data=shuffle(strictBank(LISTEN,studyState.lang,studyState.level));
       var deck = studyState.data;
       if(!deck.length)return noLevelContent();
@@ -1307,6 +1345,7 @@
 
     // ---- 7. Reading lab ----
     function renderReading() {
+      if (!studyState.skillDirect) return renderSkillsHub();
       if (!studyState.data) {
         var passages=strictBank(READING,studyState.lang,studyState.level);
         if(!passages.length)return noLevelContent();
@@ -1348,6 +1387,7 @@
 
     // ---- 8. Writing lab (self-check) ----
     function renderWriting() {
+      if (!studyState.skillDirect) return renderSkillsHub();
       if (!studyState.data) {
         var picks=shuffle(strictBank(WRITING,studyState.lang,studyState.level));
         if(!picks.length)return noLevelContent();
