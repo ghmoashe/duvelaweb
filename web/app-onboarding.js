@@ -14,7 +14,35 @@
       organizer: ['Organizer', 'Run events', 'Set up your organizer profile to launch events and practice.'],
       organization: ['Organization', 'Build a learning team', 'Create your organization card and team workspace.']
     };
-    var icon = { learner: '✦', teacher: '✎', organizer: '◈', organization: '▦' };
+    var icon = { learner: '\uD83C\uDF92', teacher: '\u270F\uFE0F', organizer: '\uD83D\uDCC5', organization: '\uD83C\uDFE2' };
+    var roleBenefits = {
+      learner: ['Learn', 'Practice', 'Join live'],
+      teacher: ['Teach', 'Earn', 'Build profile'],
+      organizer: ['Host events', 'Build community', 'Manage attendees'],
+      organization: ['Team workspace', 'Courses/events', 'Members']
+    };
+    var roleSummary = {
+      learner: {
+        title: 'Learner Hub',
+        body: 'Best for people learning languages, skills or hobbies with courses, LIVE sessions and practice.',
+        best: ['Personal recommendations', 'Language levels', 'Progress tracking']
+      },
+      teacher: {
+        title: 'Teacher workspace',
+        body: 'Best for tutors, coaches and experts who teach languages or other categories.',
+        best: ['Teaching profile', 'Students and lessons', 'Social/contact fields']
+      },
+      organizer: {
+        title: 'Organizer profile',
+        body: 'Best for people who run events, clubs, workshops, speaking practice or community sessions.',
+        best: ['Event type', 'Audience and location', 'Capacity and schedule']
+      },
+      organization: {
+        title: 'Organization workspace',
+        body: 'Best for schools, academies, companies and teams that manage learning together.',
+        best: ['Business profile', 'Team setup', 'Members and contacts']
+      }
+    };
 
     var categoryIcons = { languages: '🌐', art: '🎨', education: '🧠', digital: '💻', career: '💼', life: '🏠', sportFitness: '🏃', personalDevelopment: '✨' };
     var subcategoryIcons = { Drawing:'✏️', Painting:'🖌️', Sculpture:'🗿', Animation:'🎞️', 'Graphic design':'🖥️', Crafts:'🧶', 'Art history':'🏛️', 'Interview preparation':'💬', 'AI interview':'🤖', Programming:'💻', 'Web development':'🌐', 'Mobile development':'📱', 'UI/UX':'🎨', Figma:'🎨', 'Video editing':'🎬', 'Content creation':'✍️', Math:'➗', Physics:'⚛️', Chemistry:'🧪', Biology:'🧬', Logic:'🧩', Cooking:'🍳', 'Personal finance':'💰', Mindfulness:'🧘', Communication:'💬', Productivity:'⚡', Confidence:'💪', Running:'🏃', Fitness:'💪', Yoga:'🧘', Cycling:'🚴', Chess:'♟️' };
@@ -30,7 +58,9 @@
       avatarPreview: '', coverPreview: '', coverPosition: 'center', coverPreset: 'duvela',
       email: '', phone: '', contactName: '', contactEmail: '', contactPhone: '', contactPosition: '',
       rate: '', availability: '', audience: '', eventType: '', verification: '',
-      instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', telegram: ''
+      instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', telegram: '',
+      organizerType: '', locationMode: '', frequency: '', capacity: '', eventLanguages: [],
+      organizationLanguages: [], organizationAudience: '', workspaceGoal: '', programFormat: ''
     };
     var form = $('#onboardingForm');
 
@@ -94,7 +124,7 @@
       var c = copy[role] || copy.learner;
       $('#onboardingRoleBadge').textContent = c[0];
       var who = (state.firstName || state.orgName || (ctx.getUser() && ctx.getUser().email ? ctx.getUser().email.split('@')[0] : 'there'));
-      $('#onboardingLead').textContent = step === 1 ? 'Choose how you want to use Duvela.'
+      $('#onboardingLead').textContent = step === 1 ? 'Choose your starting role. Duvela will tailor the setup and Hub for you.'
         : step === 2 ? ('Nice to meet you, ' + who + '. Let’s build your profile.')
         : step === 3 ? c[2] : 'Your Duvela profile is ready to go.';
       $('#onboardingSubmit').textContent = step < 4 ? 'Continue →' : (role === 'learner' ? 'Open my Duvela →' : 'Open my workspace →');
@@ -150,8 +180,10 @@
       if (role === 'teacher') {
         return '<div class="ob-extra-title">Professional profile</div><div class="ob-extra-grid">' +
           labelInput('specialization', 'Teaching headline', state.specialization, { placeholder: 'For example: Creative drawing for beginners' }) +
-          labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
           labelInput('experience', 'Years of experience', state.experience, { type: 'number', attr: 'min="0"' }) +
+          '</div>' +
+          '<div class="ob-extra-grid">' +
+          labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
           '</div>' +
           '<label class="wide">Teaching category<small style="font-weight:600;color:var(--muted)">Choose what you teach</small></label>' +
           categoryCardsHtml('category', state.category) +
@@ -181,36 +213,71 @@
       if (role === 'organizer') {
         return '<div class="ob-extra-title">Organizer profile</div><div class="ob-extra-grid">' +
           labelInput('specialization', 'Organizer headline', state.specialization, { placeholder: 'For example: Speaking clubs and culture meetups' }) +
-          labelInput('eventType', 'Event type', state.eventType, { placeholder: 'Meetups, workshops, LIVE, challenges' }) +
-          labelInput('format', 'Event format', state.format, { placeholder: 'Online, offline or hybrid' }) +
-          labelInput('audience', 'Audience', state.audience, { placeholder: 'Learners, teachers, teams, families...' }) +
+          labelInput('capacity', 'Capacity / group size', state.capacity, { type: 'number', attr: 'min="1"', placeholder: 'For example: 20' }) +
           labelInput('website', 'Website', state.website, { type: 'url' }) +
         '</div>' +
+        '<label class="wide">Organizer type<small style="font-weight:600;color:var(--muted)">Choose who organizes</small></label>' +
+        organizerTypeCardsHtml() +
+        '<label class="wide">Event type<small style="font-weight:600;color:var(--muted)">Choose your main event format</small></label>' +
+        eventTypeCardsHtml() +
         '<label class="wide">Organizer category<small style="font-weight:600;color:var(--muted)">Choose event direction</small></label>' +
         categoryCardsHtml('category', state.category) +
         '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
           '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
           '<div id="ob-subcats">' + subcatHtml() + '</div>' +
         '</div>' +
+        '<label class="wide">Event languages<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
+        langScroll('eventLanguages', state.eventLanguages) +
+        '<label class="wide">Location mode<small style="font-weight:600;color:var(--muted)">Where events happen</small></label>' +
+        locationModeCardsHtml() +
+        '<label class="wide">Audience<small style="font-weight:600;color:var(--muted)">Who the event is for</small></label>' +
+        audienceCardsHtml() +
+        '<label class="wide">Frequency<small style="font-weight:600;color:var(--muted)">How often you organize</small></label>' +
+        frequencyCardsHtml() +
+        '<div class="ob-extra-title">Contact / social media</div><div class="ob-extra-grid">' +
+        labelInput('instagram', 'Instagram', state.instagram, { placeholder: '@handle or link' }) +
+        labelInput('tiktok', 'TikTok', state.tiktok, { placeholder: '@handle or link' }) +
+        labelInput('telegram', 'Telegram', state.telegram, { placeholder: '@handle or link' }) +
+        labelInput('email', 'Contact email', state.email, { type: 'email', placeholder: 'hello@example.com' }) +
+        '</div>' +
+        labelInput('verification', 'Organizer verification', state.verification, { wide: true, placeholder: 'Past events, links, community proof, documents later' }) +
         '<label class="wide">Interests</label>' + chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; });
       }
       // organization
-      return '<label class="wide">Organization type<small style="font-weight:600;color:var(--muted)">Choose your workspace type</small></label>' +
+      return '<div class="ob-extra-title">Organization setup</div>' +
+        '<label class="wide">Organization type<small style="font-weight:600;color:var(--muted)">Choose your workspace type</small></label>' +
         orgTypeCardsHtml() +
         '<div class="ob-extra-grid">' +
-        labelInput('website', 'Website', state.website, { type: 'url' }) +
         labelInput('teamSize', 'Team size', state.teamSize, { type: 'number', attr: 'min="1"', placeholder: 'For example: 12' }) +
+        labelInput('workspaceGoal', 'Workspace goal', state.workspaceGoal, { placeholder: 'For example: train employees, run courses, manage tutors' }) +
         '</div>' +
-        labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description for learners and teachers' }) +
+        labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description for learners, teachers and partners' }) +
+        '<label class="wide">Learning / business category<small style="font-weight:600;color:var(--muted)">Choose the main direction</small></label>' +
+        categoryCardsHtml('category', state.category) +
+        '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
+          '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
+          '<div id="ob-subcats">' + subcatHtml() + '</div>' +
+        '</div>' +
+        '<label class="wide">Languages / markets<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
+        langScroll('organizationLanguages', state.organizationLanguages) +
+        '<label class="wide">Audience<small style="font-weight:600;color:var(--muted)">Who this workspace is for</small></label>' +
+        organizationAudienceCardsHtml() +
+        '<label class="wide">Program format<small style="font-weight:600;color:var(--muted)">How your organization works</small></label>' +
+        organizationFormatCardsHtml() +
         '<div class="ob-extra-title">Public contacts</div><div class="ob-extra-grid">' +
+        labelInput('website', 'Website', state.website, { type: 'url', placeholder: 'https://example.com' }) +
         labelInput('email', 'Public email', state.email, { type: 'email', placeholder: 'hello@example.com' }) +
         labelInput('phone', 'Public phone', state.phone, { type: 'tel', placeholder: '+49...' }) +
+        labelInput('telegram', 'Telegram', state.telegram, { placeholder: '@channel or link' }) +
+        labelInput('instagram', 'Instagram', state.instagram, { placeholder: '@handle or link' }) +
+        labelInput('linkedin', 'LinkedIn', state.linkedin, { placeholder: 'Company page link' }) +
         '</div><div class="ob-extra-title">Business contact</div><div class="ob-extra-grid">' +
         labelInput('contactName', 'Contact name', state.contactName, { placeholder: 'Responsible person' }) +
         labelInput('contactPosition', 'Contact position', state.contactPosition, { placeholder: 'Manager, Director...' }) +
         labelInput('contactEmail', 'Contact email', state.contactEmail, { type: 'email', placeholder: 'contact@example.com' }) +
         labelInput('contactPhone', 'Contact phone', state.contactPhone, { type: 'tel', placeholder: '+49...' }) +
-        '</div>';
+        '</div>' +
+        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' });
     }
 
     // Horizontal flag-scroll of languages (kind = learnLanguages | teachLanguages).
@@ -250,6 +317,76 @@
         { id: 'company', label: 'Company', icon: '🏢', hint: 'Team training' },
         { id: 'ngo', label: 'NGO', icon: '🤝', hint: 'Community education' },
         { id: 'community', label: 'Community', icon: '🌐', hint: 'Local groups' }
+      ]);
+    }
+
+    function organizerTypeCardsHtml() {
+      return optionCardsHtml('organizerType', state.organizerType, [
+        { id: 'individual', label: 'Individual', icon: '👤', hint: 'Solo organizer' },
+        { id: 'community', label: 'Community', icon: '🌐', hint: 'Local group' },
+        { id: 'academy', label: 'School/Academy', icon: '🎓', hint: 'Learning provider' },
+        { id: 'company', label: 'Company', icon: '🏢', hint: 'Team events' },
+        { id: 'nonprofit', label: 'Non-profit', icon: '🤝', hint: 'Open programs' }
+      ]);
+    }
+
+    function eventTypeCardsHtml() {
+      return optionCardsHtml('eventType', state.eventType, [
+        { id: 'meetup', label: 'Meetup', icon: '📍', hint: 'Community gathering' },
+        { id: 'workshop', label: 'Workshop', icon: '🛠️', hint: 'Hands-on practice' },
+        { id: 'speaking_club', label: 'Speaking club', icon: '💬', hint: 'Conversation' },
+        { id: 'live_session', label: 'Live session', icon: '🎥', hint: 'Online live' },
+        { id: 'challenge', label: 'Challenge', icon: '🏁', hint: 'Goal-based' },
+        { id: 'course_event', label: 'Course event', icon: '📚', hint: 'Class session' }
+      ]);
+    }
+
+    function locationModeCardsHtml() {
+      return optionCardsHtml('locationMode', state.locationMode, [
+        { id: 'online', label: 'Online', icon: '💻', hint: 'Remote events' },
+        { id: 'offline', label: 'Offline', icon: '📍', hint: 'In person' },
+        { id: 'hybrid', label: 'Hybrid', icon: '🔁', hint: 'Both modes' }
+      ]);
+    }
+
+    function organizationAudienceCardsHtml() {
+      return optionCardsHtml('organizationAudience', state.organizationAudience, [
+        { id: 'employees', label: 'Employees', icon: '\uD83D\uDC65', hint: 'Internal training' },
+        { id: 'students', label: 'Students', icon: '\uD83C\uDF93', hint: 'School or academy' },
+        { id: 'teachers', label: 'Teachers', icon: '\uD83E\uDDD1\u200D\uD83C\uDFEB', hint: 'Tutor team' },
+        { id: 'clients', label: 'Clients', icon: '\uD83E\uDD1D', hint: 'Customer education' },
+        { id: 'community', label: 'Community', icon: '\uD83C\uDF10', hint: 'Open programs' },
+        { id: 'families', label: 'Families', icon: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67', hint: 'Family learning' }
+      ]);
+    }
+
+    function organizationFormatCardsHtml() {
+      return optionCardsHtml('programFormat', state.programFormat, [
+        { id: 'online', label: 'Online', icon: '\uD83D\uDCBB', hint: 'Remote learning' },
+        { id: 'offline', label: 'Offline', icon: '\uD83D\uDCCD', hint: 'In person' },
+        { id: 'hybrid', label: 'Hybrid', icon: '\uD83D\uDD01', hint: 'Both modes' },
+        { id: 'courses', label: 'Courses', icon: '\uD83D\uDCDA', hint: 'Structured programs' },
+        { id: 'events', label: 'Events', icon: '\uD83D\uDCC5', hint: 'Workshops/LIVE' },
+        { id: 'custom', label: 'Custom', icon: '\u2699\uFE0F', hint: 'Flexible setup' }
+      ]);
+    }
+    function audienceCardsHtml() {
+      return optionCardsHtml('audience', state.audience, [
+        { id: 'learners', label: 'Learners', icon: '🎒', hint: 'Students' },
+        { id: 'teachers', label: 'Teachers', icon: '🧑‍🏫', hint: 'Educators' },
+        { id: 'kids', label: 'Kids', icon: '🧒', hint: 'Children' },
+        { id: 'adults', label: 'Adults', icon: '🧑', hint: 'Adult learners' },
+        { id: 'teams', label: 'Teams', icon: '👥', hint: 'Companies' },
+        { id: 'families', label: 'Families', icon: '👨‍👩‍👧', hint: 'Family groups' }
+      ]);
+    }
+
+    function frequencyCardsHtml() {
+      return optionCardsHtml('frequency', state.frequency, [
+        { id: 'one_time', label: 'One-time', icon: '①', hint: 'Single event' },
+        { id: 'weekly', label: 'Weekly', icon: '📅', hint: 'Every week' },
+        { id: 'monthly', label: 'Monthly', icon: '🗓️', hint: 'Every month' },
+        { id: 'custom', label: 'Custom', icon: '⚙️', hint: 'Flexible' }
       ]);
     }
 
@@ -300,8 +437,9 @@
       var categoryTitle = role === 'organization' ? 'Organization type' : (role === 'organizer' ? 'Event direction' : 'Category');
       var categoryValue = role === 'organization' ? (state.orgType || 'Not set') : (category ? category.label : 'Languages');
       var goalTitle = role === 'organization' ? 'Description' : (role === 'organizer' ? 'Event type' : 'Goal');
-      var goalValue = role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set');
+      var goalValue = role === 'organization' ? (state.workspaceGoal || state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set'));
       var socialItems = [state.instagram, state.tiktok, state.facebook, state.linkedin, state.youtube, state.telegram].filter(Boolean);
+      var organizerContact = [state.website, state.email, state.instagram, state.tiktok, state.telegram].filter(Boolean);
       var coverStyle = state.coverPreview ? '' : ' style="background:' + esc(gradientCss(coverPresetById(state.coverPreset))) + '"';
       var cover = state.coverPreview ? '<img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '">' : '';
       var avatar = state.avatarPreview ? '<img src="' + esc(state.avatarPreview) + '" alt="">' : '<span>' + esc((name || 'D').charAt(0).toUpperCase()) + '</span>';
@@ -317,10 +455,34 @@
         (role === 'learner' ? '<div class="ob-preview-section"><b>Selected languages and levels</b><div>' + selectedLanguageSummary(state.learnLanguages) + '</div></div>' : '') +
         (role === 'teacher' && state.teachLanguages.length ? '<div class="ob-preview-section"><b>Languages you teach</b><div>' + selectedItemsSummary(state.teachLanguages) + '</div></div>' : '') +
         (role === 'teacher' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
-        (role === 'organizer' ? '<div class="ob-preview-section"><b>Format and audience</b><div>' + selectedItemsSummary([state.format, state.audience].filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organizer' ? '<div class="ob-preview-section"><b>Organizer setup</b><div>' + selectedItemsSummary([state.organizerType, state.locationMode, state.audience, state.frequency, state.capacity ? ('Capacity ' + state.capacity) : ''].filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organizer' && state.eventLanguages.length ? '<div class="ob-preview-section"><b>Event languages</b><div>' + selectedItemsSummary(state.eventLanguages) + '</div></div>' : '') +
+        (role === 'organizer' && organizerContact.length ? '<div class="ob-preview-section"><b>Contact / social</b><div>' + selectedItemsSummary(organizerContact) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.workspaceGoal, state.organizationAudience, state.programFormat].filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' && state.organizationLanguages.length ? '<div class="ob-preview-section"><b>Languages / markets</b><div>' + selectedItemsSummary(state.organizationLanguages) + '</div></div>' : '') +
+        (role === 'organization' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Business contacts</b><div>' + selectedItemsSummary([state.website, state.email, state.phone, state.contactName, state.contactEmail].filter(Boolean)) + '</div></div>' : '') +
         '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(state.subcategories) + '</div></div>' +
         '<div class="ob-preview-section"><b>Interests</b><div>' + selectedItemsSummary(interestLabels()) + '</div></div>' +
+      '</div>';
+    }
+
+    function stepOneHtml() {
+      var summary = roleSummary[role] || roleSummary.learner;
+      var next = role === 'organization'
+        ? ['Business details', 'Team setup', 'Preview and save']
+        : role === 'organizer'
+          ? ['Profile details', 'Event setup', 'Preview and save']
+          : role === 'teacher'
+            ? ['Profile details', 'Teaching setup', 'Preview and save']
+            : ['Profile details', 'Learning setup', 'Preview and save'];
+      return '<div class="ob-role-info wide">' +
+        '<section class="ob-role-summary"><div class="ob-role-summary-icon">' + esc(icon[role]) + '</div><h3>' + esc(summary.title) + '</h3><p>' + esc(summary.body) + '</p><ul>' +
+          summary.best.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
+        '</ul><small>You can still switch before continuing.</small></section>' +
+        '<section class="ob-next-steps"><h3>What happens next</h3><ol>' +
+          next.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
+        '</ol><p class="ob-account-note">One account can later access multiple spaces.</p></section>' +
       '</div>';
     }
 
@@ -332,11 +494,12 @@
       var rolesBox = $('#onboardingRoles');
       rolesBox.style.display = step === 1 ? 'grid' : 'none';
       rolesBox.innerHTML = roles.map(function (r) {
-        return '<button type="button" class="' + (r === role ? 'active' : '') + '" data-ob-role="' + r + '"><span>' + icon[r] + '</span>' + copy[r][0] + '<small>' + copy[r][1] + '</small></button>';
+        var benefits = (roleBenefits[r] || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('');
+        return '<button type="button" class="' + (r === role ? 'active' : '') + '" data-ob-role="' + r + '"><span class="role-icon">' + esc(icon[r]) + '</span><b>' + esc(copy[r][0]) + '</b><small>' + esc(copy[r][1]) + '</small><em class="role-selected">Selected</em><ul class="ob-role-benefits">' + benefits + '</ul></button>';
       }).join('');
 
       var html = '';
-      if (step === 1) html = '<div class="onboarding-welcome wide"><b>One account, your own Duvela space.</b><p>You can change your role and profile details later in settings.</p></div>';
+      if (step === 1) html = stepOneHtml();
       // Wrap in .wide so the structural divs span the full grid width and lay
       // out as normal block flow (the form itself is a 2-column grid).
       if (step === 2) html = '<div class="wide ob-section">' + stepTwoHtml() + '</div>';
@@ -386,6 +549,7 @@
           if (state.category !== 'languages') {
             state.learnLanguages = [];
             state.teachLanguages = [];
+            state.organizationLanguages = [];
             state.languageLevels = {};
           }
           render();
@@ -436,11 +600,15 @@
       var arr = kind === 'learnLanguages' ? state.learnLanguages
         : kind === 'interests' ? state.interests
         : kind === 'subcategories' ? state.subcategories
-        : kind === 'teachLanguages' ? state.teachLanguages : null;
+        : kind === 'teachLanguages' ? state.teachLanguages
+        : kind === 'organizationLanguages' ? state.organizationLanguages
+        : kind === 'eventLanguages' ? state.eventLanguages : null;
       if (!arr) return;
       var idx = arr.indexOf(value);
       if (idx === -1) {
         if (kind === 'learnLanguages' && arr.length >= 3) return;
+        if (kind === 'eventLanguages' && arr.length >= 3) return;
+        if (kind === 'organizationLanguages' && arr.length >= 3) return;
         if (kind === 'subcategories' && arr.length >= 3) return;
         arr.push(value);
         if (kind === 'learnLanguages') state.languageLevels[value] = state.languageLevels[value] || state.level;
@@ -483,7 +651,7 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'capacity', 'organizerType', 'locationMode', 'frequency', 'organizationAudience', 'workspaceGoal', 'programFormat', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
@@ -524,11 +692,17 @@
       }
       if (step === 3 && role === 'organizer') {
         if (!state.specialization.trim()) return { message: 'Write your organizer headline.', target: 'specialization' };
-        if (!state.eventType.trim()) return { message: 'Enter your event type.', target: 'eventType' };
+        if (!state.organizerType) return { message: 'Choose your organizer type.', target: 'organizerType' };
+        if (!state.eventType) return { message: 'Choose your event type.', target: 'eventType' };
+        if (!state.locationMode) return { message: 'Choose your location mode.', target: 'locationMode' };
+        if (!state.audience) return { message: 'Choose your audience.', target: 'audience' };
       }
       if (step === 3 && role === 'organization') {
         if (!state.orgType) return { message: 'Choose your organization type.', target: 'orgType' };
         if (!state.specialization.trim()) return { message: 'Write what your organization does.', target: 'specialization' };
+        if (!state.workspaceGoal.trim()) return { message: 'Write your workspace goal.', target: 'workspaceGoal' };
+        if (!state.organizationAudience) return { message: 'Choose your audience.', target: 'organizationAudience' };
+        if (!state.programFormat) return { message: 'Choose your program format.', target: 'programFormat' };
       }
       return null;
     }
@@ -585,18 +759,45 @@
         }];
       }
       if (role === 'organizer') {
-        patch.specialization = [state.specialization, state.eventType, state.format, state.audience].map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+        patch.specialization = [state.specialization, state.organizerType, state.eventType, state.locationMode, state.audience, state.frequency, state.capacity ? ('Capacity: ' + state.capacity) : '', state.verification].map(function (x) { return String(x || '').trim(); }).filter(Boolean);
         patch.profile_interests = state.interests.slice();
+        patch.instagram = state.instagram.trim() || null;
+        patch.tiktok = state.tiktok.trim() || null;
+        patch.telegram = state.telegram.trim() || null;
+        patch.website = state.website.trim() || null;
+        patch.phone = state.phone.trim() || null;
         patch.learning_targets = [{
           category: state.category || 'languages',
           subcategories: state.subcategories.slice(),
-          event_type: state.eventType.trim() || null,
-          format: state.format.trim() || null,
-          audience: state.audience.trim() || null
+          languages: state.eventLanguages.slice(),
+          organizer_type: state.organizerType || null,
+          event_type: state.eventType || null,
+          location_mode: state.locationMode || null,
+          audience: state.audience || null,
+          frequency: state.frequency || null,
+          capacity: state.capacity ? Number(state.capacity) : null,
+          contact_email: state.email.trim() || null,
+          verification: state.verification.trim() || null
         }];
       }
       if (role === 'organization') {
-        patch.specialization = [state.specialization, state.orgType, state.teamSize ? ('Team size: ' + state.teamSize) : ''].map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+        patch.specialization = [state.specialization, state.orgType, state.workspaceGoal, state.organizationAudience, state.programFormat, state.teamSize ? ('Team size: ' + state.teamSize) : '', state.verification].map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+        patch.profile_interests = state.interests.slice();
+        patch.instagram = state.instagram.trim() || null;
+        patch.linkedin = state.linkedin.trim() || null;
+        patch.telegram = state.telegram.trim() || null;
+        patch.phone = state.phone.trim() || null;
+        patch.learning_targets = [{
+          category: state.category || 'languages',
+          subcategories: state.subcategories.slice(),
+          languages: state.organizationLanguages.slice(),
+          organization_type: state.orgType || null,
+          workspace_goal: state.workspaceGoal.trim() || null,
+          audience: state.organizationAudience || null,
+          format: state.programFormat || null,
+          team_size: state.teamSize ? Number(state.teamSize) : null,
+          verification: state.verification.trim() || null
+        }];
       }
       return patch;
     }
@@ -633,7 +834,7 @@
         contact_phone: state.contactPhone.trim() || null,
         contact_position: state.contactPosition.trim() || null,
         country: state.country.trim() || null,
-        description: state.specialization.trim() || state.bio.trim() || null,
+        description: [state.specialization, state.workspaceGoal, state.organizationAudience, state.programFormat].map(function (x) { return String(x || '').trim(); }).filter(Boolean).join(' · ') || state.bio.trim() || null,
         name: name,
         owner_id: userId,
         public_email: state.email.trim() || userEmail || null,
@@ -753,3 +954,4 @@
   }
   window.DuvelaAppOnboarding = { create: create };
 })();
+
