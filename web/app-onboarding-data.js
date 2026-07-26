@@ -84,10 +84,13 @@
   };
 
   var LANGUAGES = [
-    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Chinese',
-    'Japanese', 'Korean', 'Russian', 'Arabic', 'Dutch', 'Turkish', 'Polish',
-    'Ukrainian', 'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Greek', 'Czech',
-    'Hungarian', 'Romanian', 'Hindi', 'Hebrew', 'Thai', 'Vietnamese', 'Indonesian', 'Persian'
+    // European first…
+    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Dutch',
+    'Russian', 'Ukrainian', 'Polish', 'Swedish', 'Norwegian', 'Danish', 'Finnish',
+    'Greek', 'Czech', 'Hungarian', 'Romanian', 'Turkish',
+    // …then Asian / Middle-Eastern
+    'Chinese', 'Japanese', 'Korean', 'Hindi', 'Thai', 'Vietnamese', 'Indonesian',
+    'Arabic', 'Hebrew', 'Persian'
   ];
 
   var api = {
