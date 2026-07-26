@@ -169,12 +169,12 @@
     function subcatHtml() {
       var subs = (D.SUBCATEGORIES || {})[state.category];
       if (!subs) return '';
-      return chipList('subcategories', subs, state.subcategories, function (item) { return (subcategoryIcons[item] || '✦') + ' ' + item; });
+      return '<div class="ob-selection-head"><span>Focus areas</span><b id="ob-subcat-count">' + state.subcategories.length + '/3 selected</b></div>' + chipList('subcategories', subs, state.subcategories, function (item) { return (subcategoryIcons[item] || '✦') + ' ' + item; }) + '<button type="button" class="ob-clear-selection" data-clear-selection="subcategories">Clear selection</button>';
     }
 
     function languageLevelsHtml() {
       if (!state.learnLanguages.length) return '';
-      return '<div class="ob-lang-levels-grid">' + state.learnLanguages.map(function (lang) {
+      return '<div class="ob-summary-title">Selected languages and levels</div><div class="ob-lang-levels-grid">' + state.learnLanguages.map(function (lang) {
         var lvl = state.languageLevels[lang] || state.level;
         return '<label class="ob-lang-level">' + esc(lang) +
           '<select data-lang-level="' + esc(lang) + '">' + (D.LEVELS || ['A1']).map(function (l) {
@@ -216,6 +216,7 @@
       form.querySelectorAll('[data-chip]').forEach(function (btn) {
         btn.onclick = function () { toggleChip(btn.dataset.chip, btn.dataset.value); };
       });
+      form.querySelectorAll('[data-clear-selection]').forEach(function (btn) { btn.onclick = function () { state.subcategories = []; render(); }; });
       // avatar
       var avatar = $('#ob-avatarFile');
       if (avatar) avatar.onchange = function () { state.avatarFile = avatar.files && avatar.files[0]; };
@@ -252,6 +253,7 @@
       var idx = arr.indexOf(value);
       if (idx === -1) {
         if (kind === 'learnLanguages' && arr.length >= 3) return;
+        if (kind === 'subcategories' && arr.length >= 3) return;
         arr.push(value);
         if (kind === 'learnLanguages') state.languageLevels[value] = state.languageLevels[value] || state.level;
       } else {
