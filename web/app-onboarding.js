@@ -60,7 +60,8 @@
       rate: '', availability: '', audience: '', eventType: '', verification: '',
       instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', telegram: '',
       organizerType: '', locationMode: '', frequency: '', capacity: '', eventLanguages: [],
-      organizationLanguages: [], organizationAudience: '', workspaceGoal: '', programFormat: ''
+      organizationLanguages: [], organizationAudience: [], workspaceGoal: '', programFormat: [],
+      departments: '', branches: '', inviteEmails: ''
     };
     var form = $('#onboardingForm');
 
@@ -250,19 +251,21 @@
         '<div class="ob-extra-grid">' +
         labelInput('teamSize', 'Team size', state.teamSize, { type: 'number', attr: 'min="1"', placeholder: 'For example: 12' }) +
         labelInput('workspaceGoal', 'Workspace goal', state.workspaceGoal, { placeholder: 'For example: train employees, run courses, manage tutors' }) +
+        labelInput('departments', 'Departments', state.departments, { placeholder: 'For example: HR, Sales, Teachers, Admin' }) +
+        labelInput('branches', 'Branches / locations', state.branches, { placeholder: 'For example: Berlin, Hamburg, Online' }) +
         '</div>' +
         labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description for learners, teachers and partners' }) +
         '<label class="wide">Learning / business category<small style="font-weight:600;color:var(--muted)">Choose the main direction</small></label>' +
         categoryCardsHtml('category', state.category) +
         '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
-          '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
+          '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
           '<div id="ob-subcats">' + subcatHtml() + '</div>' +
         '</div>' +
-        '<label class="wide">Languages / markets<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
+        '<label class="wide">Languages / markets<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
         langScroll('organizationLanguages', state.organizationLanguages) +
-        '<label class="wide">Audience<small style="font-weight:600;color:var(--muted)">Who this workspace is for</small></label>' +
+        '<label class="wide">Audience<small style="font-weight:600;color:var(--muted)">Choose all that apply</small></label>' +
         organizationAudienceCardsHtml() +
-        '<label class="wide">Program format<small style="font-weight:600;color:var(--muted)">How your organization works</small></label>' +
+        '<label class="wide">Program format<small style="font-weight:600;color:var(--muted)">Choose all that apply</small></label>' +
         organizationFormatCardsHtml() +
         '<div class="ob-extra-title">Public contacts</div><div class="ob-extra-grid">' +
         labelInput('website', 'Website', state.website, { type: 'url', placeholder: 'https://example.com' }) +
@@ -277,7 +280,8 @@
         labelInput('contactEmail', 'Contact email', state.contactEmail, { type: 'email', placeholder: 'contact@example.com' }) +
         labelInput('contactPhone', 'Contact phone', state.contactPhone, { type: 'tel', placeholder: '+49...' }) +
         '</div>' +
-        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' });
+        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' }) +
+        labelInput('inviteEmails', 'Invite team members', state.inviteEmails, { wide: true, placeholder: 'Emails separated by comma. For example: admin@example.com, teacher@example.com' });
     }
 
     // Horizontal flag-scroll of languages (kind = learnLanguages | teachLanguages).
@@ -305,7 +309,7 @@
 
     function optionCardsHtml(kind, selected, items) {
       return '<div class="ob-option-grid wide" data-option-group="' + kind + '">' + items.map(function (it) {
-        var on = selected === it.id;
+        var on = Array.isArray(selected) ? selected.indexOf(it.id) !== -1 : selected === it.id;
         return '<button type="button" class="ob-option-card' + (on ? ' active' : '') + '" data-option-kind="' + esc(kind) + '" data-option-value="' + esc(it.id) + '"><span>' + esc(it.icon || '') + '</span><b>' + esc(it.label) + '</b><small>' + esc(it.hint || '') + '</small></button>';
       }).join('') + '</div>';
     }
@@ -397,7 +401,8 @@
     function subcatHtml() {
       var subs = (D.SUBCATEGORIES || {})[state.category];
       if (!subs) return '';
-      return '<div class="ob-selection-head"><span>Focus areas</span><b id="ob-subcat-count">' + state.subcategories.length + '/3 selected</b></div>' + chipList('subcategories', subs, state.subcategories, function (item) { return (subcategoryIcons[item] || '✦') + ' ' + item; }) + '<button type="button" class="ob-clear-selection" data-clear-selection="subcategories">Clear selection</button>';
+      var counter = role === 'organization' ? (state.subcategories.length + ' selected') : (state.subcategories.length + '/3 selected');
+      return '<div class="ob-selection-head"><span>Focus areas</span><b id="ob-subcat-count">' + counter + '</b></div>' + chipList('subcategories', subs, state.subcategories, function (item) { return (subcategoryIcons[item] || '✦') + ' ' + item; }) + '<button type="button" class="ob-clear-selection" data-clear-selection="subcategories">Clear selection</button>';
     }
 
     function languageLevelsHtml() {
@@ -440,6 +445,7 @@
       var goalValue = role === 'organization' ? (state.workspaceGoal || state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set'));
       var socialItems = [state.instagram, state.tiktok, state.facebook, state.linkedin, state.youtube, state.telegram].filter(Boolean);
       var organizerContact = [state.website, state.email, state.instagram, state.tiktok, state.telegram].filter(Boolean);
+      var verificationStatus = role === 'organization' ? (state.verification.trim() ? 'Pending verification' : 'Not verified yet') : '';
       var coverStyle = state.coverPreview ? '' : ' style="background:' + esc(gradientCss(coverPresetById(state.coverPreset))) + '"';
       var cover = state.coverPreview ? '<img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '">' : '';
       var avatar = state.avatarPreview ? '<img src="' + esc(state.avatarPreview) + '" alt="">' : '<span>' + esc((name || 'D').charAt(0).toUpperCase()) + '</span>';
@@ -458,7 +464,10 @@
         (role === 'organizer' ? '<div class="ob-preview-section"><b>Organizer setup</b><div>' + selectedItemsSummary([state.organizerType, state.locationMode, state.audience, state.frequency, state.capacity ? ('Capacity ' + state.capacity) : ''].filter(Boolean)) + '</div></div>' : '') +
         (role === 'organizer' && state.eventLanguages.length ? '<div class="ob-preview-section"><b>Event languages</b><div>' + selectedItemsSummary(state.eventLanguages) + '</div></div>' : '') +
         (role === 'organizer' && organizerContact.length ? '<div class="ob-preview-section"><b>Contact / social</b><div>' + selectedItemsSummary(organizerContact) + '</div></div>' : '') +
-        (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.workspaceGoal, state.organizationAudience, state.programFormat].filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.workspaceGoal].concat(state.organizationAudience, state.programFormat).filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Departments / branches</b><div>' + selectedItemsSummary([state.departments, state.branches].filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Verification status</b><div>' + selectedItemsSummary([verificationStatus]) + '</div></div>' : '') +
+        (role === 'organization' && state.inviteEmails.trim() ? '<div class="ob-preview-section"><b>Team invites</b><div>' + selectedItemsSummary(state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' && state.organizationLanguages.length ? '<div class="ob-preview-section"><b>Languages / markets</b><div>' + selectedItemsSummary(state.organizationLanguages) + '</div></div>' : '') +
         (role === 'organization' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Business contacts</b><div>' + selectedItemsSummary([state.website, state.email, state.phone, state.contactName, state.contactEmail].filter(Boolean)) + '</div></div>' : '') +
@@ -557,7 +566,17 @@
       });
       form.querySelectorAll('[data-option-kind]').forEach(function (btn) {
         btn.onclick = function () {
-          state[btn.dataset.optionKind] = btn.dataset.optionValue;
+          var kind = btn.dataset.optionKind;
+          var value = btn.dataset.optionValue;
+          if (kind === 'organizationAudience' || kind === 'programFormat') {
+            var arr = state[kind] || [];
+            var idx = arr.indexOf(value);
+            if (idx === -1) arr.push(value);
+            else arr.splice(idx, 1);
+            state[kind] = arr;
+          } else {
+            state[kind] = value;
+          }
           render();
         };
       });
@@ -608,8 +627,7 @@
       if (idx === -1) {
         if (kind === 'learnLanguages' && arr.length >= 3) return;
         if (kind === 'eventLanguages' && arr.length >= 3) return;
-        if (kind === 'organizationLanguages' && arr.length >= 3) return;
-        if (kind === 'subcategories' && arr.length >= 3) return;
+        if (kind === 'subcategories' && role !== 'organization' && arr.length >= 3) return;
         arr.push(value);
         if (kind === 'learnLanguages') state.languageLevels[value] = state.languageLevels[value] || state.level;
       } else {
@@ -651,7 +669,7 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'capacity', 'organizerType', 'locationMode', 'frequency', 'organizationAudience', 'workspaceGoal', 'programFormat', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'capacity', 'organizerType', 'locationMode', 'frequency', 'workspaceGoal', 'departments', 'branches', 'inviteEmails', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
@@ -701,8 +719,8 @@
         if (!state.orgType) return { message: 'Choose your organization type.', target: 'orgType' };
         if (!state.specialization.trim()) return { message: 'Write what your organization does.', target: 'specialization' };
         if (!state.workspaceGoal.trim()) return { message: 'Write your workspace goal.', target: 'workspaceGoal' };
-        if (!state.organizationAudience) return { message: 'Choose your audience.', target: 'organizationAudience' };
-        if (!state.programFormat) return { message: 'Choose your program format.', target: 'programFormat' };
+        if (!state.organizationAudience.length) return { message: 'Choose your audience.', target: 'organizationAudience' };
+        if (!state.programFormat.length) return { message: 'Choose your program format.', target: 'programFormat' };
       }
       return null;
     }
@@ -781,7 +799,7 @@
         }];
       }
       if (role === 'organization') {
-        patch.specialization = [state.specialization, state.orgType, state.workspaceGoal, state.organizationAudience, state.programFormat, state.teamSize ? ('Team size: ' + state.teamSize) : '', state.verification].map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+        patch.specialization = [state.specialization, state.orgType, state.workspaceGoal].concat(state.organizationAudience, state.programFormat, [state.departments ? ('Departments: ' + state.departments) : '', state.branches ? ('Branches: ' + state.branches) : '', state.teamSize ? ('Team size: ' + state.teamSize) : '', state.verification]).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
         patch.profile_interests = state.interests.slice();
         patch.instagram = state.instagram.trim() || null;
         patch.linkedin = state.linkedin.trim() || null;
@@ -793,9 +811,13 @@
           languages: state.organizationLanguages.slice(),
           organization_type: state.orgType || null,
           workspace_goal: state.workspaceGoal.trim() || null,
-          audience: state.organizationAudience || null,
-          format: state.programFormat || null,
+          audience: state.organizationAudience.slice(),
+          format: state.programFormat.slice(),
+          departments: state.departments.trim() || null,
+          branches: state.branches.trim() || null,
+          invite_emails: state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
           team_size: state.teamSize ? Number(state.teamSize) : null,
+          verification_status: state.verification.trim() ? 'pending' : 'not_verified',
           verification: state.verification.trim() || null
         }];
       }
@@ -834,7 +856,7 @@
         contact_phone: state.contactPhone.trim() || null,
         contact_position: state.contactPosition.trim() || null,
         country: state.country.trim() || null,
-        description: [state.specialization, state.workspaceGoal, state.organizationAudience, state.programFormat].map(function (x) { return String(x || '').trim(); }).filter(Boolean).join(' · ') || state.bio.trim() || null,
+        description: [state.specialization, state.workspaceGoal].concat(state.organizationAudience, state.programFormat, [state.departments, state.branches]).map(function (x) { return String(x || '').trim(); }).filter(Boolean).join(' · ') || state.bio.trim() || null,
         name: name,
         owner_id: userId,
         public_email: state.email.trim() || userEmail || null,
