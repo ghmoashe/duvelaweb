@@ -83,13 +83,16 @@
     Thai: 'th', Vietnamese: 'vn', Indonesian: 'id', Persian: 'ir'
   };
 
+  var LANGUAGES = [
+    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Chinese',
+    'Japanese', 'Korean', 'Russian', 'Arabic', 'Dutch', 'Turkish', 'Polish',
+    'Ukrainian', 'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Greek', 'Czech',
+    'Hungarian', 'Romanian', 'Hindi', 'Hebrew', 'Thai', 'Vietnamese', 'Indonesian', 'Persian'
+  ];
+
   var api = {
-    LANGUAGES: [
-      'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Chinese',
-      'Japanese', 'Korean', 'Russian', 'Arabic', 'Dutch', 'Turkish', 'Polish',
-      'Ukrainian', 'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Greek', 'Czech',
-      'Hungarian', 'Romanian', 'Hindi', 'Hebrew', 'Thai', 'Vietnamese', 'Indonesian', 'Persian'
-    ],
+    LANGUAGES: LANGUAGES,
+    getLanguageSuggestions: function (query, limit) { return ranked(LANGUAGES, query, limit || 8); },
     flagFor: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? c.toUpperCase() : '🌐'; },
     flagImg: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? 'https://flagcdn.com/w40/' + c + '.png' : ''; },
     flagCode: function (lang) { return LANGUAGE_CODES[lang] || ''; },

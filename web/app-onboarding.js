@@ -110,7 +110,8 @@
           langScroll('learnLanguages', state.learnLanguages) +
           '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' +
           '<label class="wide">Interests<small style="font-weight:600;color:var(--muted)">Select at least 3 interests to personalise your Hub</small></label>' +
-          chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; });
+          chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; }) +
+          '<div id="ob-autocomplete" class="ob-autocomplete" hidden></div>';
       }
       if (role === 'teacher') {
         return '<div class="ob-extra-title">Professional profile</div><div class="ob-extra-grid">' +
@@ -224,8 +225,8 @@
       form.querySelectorAll('[data-lang-level]').forEach(function (sel) {
         sel.onchange = function () { state.languageLevels[sel.dataset.langLevel] = sel.value; };
       });
-      // autocomplete country/city
-      ['country', 'city'].forEach(function (id) {
+      // autocomplete country / city (step 2) and native language (step 3)
+      ['country', 'city', 'nativeLanguage'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) {
           el.oninput = function () { state[id] = el.value; showAutocomplete(id, el); };
@@ -260,7 +261,9 @@
     function showAutocomplete(kind, input) {
       var box = $('#ob-autocomplete');
       if (!box || !D.getCountrySuggestions) return;
-      var list = kind === 'country' ? D.getCountrySuggestions(input.value, 6) : D.getCitySuggestions(input.value, state.country, 6);
+      var list = kind === 'country' ? D.getCountrySuggestions(input.value, 6)
+        : kind === 'nativeLanguage' ? (D.getLanguageSuggestions ? D.getLanguageSuggestions(input.value, 6) : [])
+        : D.getCitySuggestions(input.value, state.country, 6);
       if (!list.length) { hideAutocomplete(); return; }
       var rect = input.getBoundingClientRect(), formRect = form.getBoundingClientRect();
       box.style.top = (rect.bottom - formRect.top + form.scrollTop + 2) + 'px';
