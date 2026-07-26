@@ -24,7 +24,7 @@
       nativeLanguage: '', goal: '', level: 'A1', category: '', subcategories: [],
       learnLanguages: [], languageLevels: {}, interests: [],
       specialization: '', experience: '', teachLanguages: [], qualifications: '',
-      format: '', website: '', orgType: '', teamSize: '', avatarFile: null, avatarName: ''
+      format: '', website: '', orgType: '', teamSize: '', dob: '', avatarFile: null, coverFile: null, avatarName: ''
     };
     var form = $('#onboardingForm');
 
@@ -73,8 +73,9 @@
     }
 
     function stepTwoHtml() {
-      var html = '<label class="wide">Profile photo or logo<input id="ob-avatarFile" name="avatarFile" type="file" accept="image/*">' +
+      var html = '<div class="ob-extra-grid wide"><label>Profile photo or logo<input id="ob-avatarFile" name="avatarFile" type="file" accept="image/*">' +
         '<small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB</small></label>';
+      html += '<label>Cover photo<input id="ob-coverFile" name="coverFile" type="file" accept="image/*"><small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB</small></label></div>';
       html += '<div class="ob-extra-title">Personal details</div><div class="ob-extra-grid">';
       if (role === 'organization') {
         html += labelInput('orgName', 'Organization name', state.orgName, { attr: 'required', placeholder: 'Your organization' });
@@ -82,6 +83,7 @@
         html += labelInput('firstName', 'First name', state.firstName, { attr: 'required', placeholder: 'Your first name' });
         html += labelInput('lastName', 'Last name', state.lastName, { placeholder: 'Your last name' });
       }
+      if (role !== 'organization') html += labelInput('dob', 'Date of birth', state.dob, { type: 'date' });
       html += labelInput('country', 'Country', state.country, { placeholder: 'For example: Germany', attr: 'data-autocomplete="country"' });
       html += labelInput('city', 'City', state.city, { placeholder: 'For example: Berlin', attr: 'data-autocomplete="city"' });
       if (role !== 'organization') {
@@ -213,6 +215,8 @@
       // avatar
       var avatar = $('#ob-avatarFile');
       if (avatar) avatar.onchange = function () { state.avatarFile = avatar.files && avatar.files[0]; };
+      var cover = $('#ob-coverFile');
+      if (cover) cover.onchange = function () { state.coverFile = cover.files && cover.files[0]; };
       // gender/category/level selects + native
       ['gender', 'level', 'category'].forEach(function (id) {
         var el = $('#ob-' + id);
@@ -284,7 +288,7 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
@@ -325,6 +329,7 @@
         bio: state.bio.trim() || null,
         city: state.city.trim() || null,
         country: state.country.trim() || null,
+        dob: state.dob || null,
         gender: state.gender || null,
         is_teacher: role === 'teacher',
         is_organizer: role === 'organizer' || role === 'organization',
@@ -393,6 +398,9 @@
       try {
         if (state.avatarFile && state.avatarFile.size && ctx.uploadToBucket) {
           patch.avatar_url = await ctx.uploadToBucket('posts', state.avatarFile);
+        }
+        if (state.coverFile && state.coverFile.size && ctx.uploadToBucket) {
+          patch.cover_url = await ctx.uploadToBucket('posts', state.coverFile);
         }
         var res = await supa.from('profiles').update(patch).eq('id', u.id);
         if (res.error) throw res.error;
