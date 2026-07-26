@@ -106,7 +106,7 @@
             '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — pick what fits</small></label>' +
             '<div id="ob-subcats">' + subcatHtml() + '</div>' +
           '</div>' +
-          '<label class="wide">Languages you want to learn<small style="font-weight:600;color:var(--muted)">Choose up to 3</small></label>' +
+          '<label class="wide">Languages you want to learn<small id="ob-lang-hint" style="font-weight:600;color:var(--muted)">' + langHint() + '</small></label>' +
           chipList('learnLanguages', D.LANGUAGES || [], state.learnLanguages) +
           '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' +
           '<label class="wide">Interests<small style="font-weight:600;color:var(--muted)">Select at least 3 interests to personalise your Hub</small></label>' +
@@ -138,6 +138,10 @@
         labelInput('website', 'Website', state.website, { type: 'url' }) +
         '</div>' +
         labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description' });
+    }
+
+    function langHint() {
+      return (!state.category || state.category === 'languages') ? 'Choose up to 3' : 'Optional — choose up to 3';
     }
 
     function subcatHtml() {
@@ -198,7 +202,7 @@
         var el = $('#ob-' + id);
         if (el) el.onchange = function () {
           state[id] = el.value;
-          if (id === 'category') { var w = $('#ob-subcats-wrap'); if (w) { w.hidden = !(D.SUBCATEGORIES || {})[state.category]; var sc = $('#ob-subcats'); if (sc) sc.innerHTML = subcatHtml(); bindStep(); } }
+          if (id === 'category') { var w = $('#ob-subcats-wrap'); if (w) { w.hidden = !(D.SUBCATEGORIES || {})[state.category]; var sc = $('#ob-subcats'); if (sc) sc.innerHTML = subcatHtml(); bindStep(); } var lh = $('#ob-lang-hint'); if (lh) lh.textContent = langHint(); }
         };
       });
       // per-language level selects
@@ -286,7 +290,10 @@
         }
       }
       if (step === 3 && role === 'learner') {
-        if (!state.learnLanguages.length) return 'Choose at least one language to learn.';
+        // A target language is only required for the Languages category; for
+        // art / sport / digital etc. it's optional.
+        var languagesCategory = !state.category || state.category === 'languages';
+        if (languagesCategory && !state.learnLanguages.length) return 'Choose at least one language to learn.';
         if (state.interests.length < 3) return 'Select at least 3 interests.';
       }
       return '';
