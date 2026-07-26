@@ -16,6 +16,8 @@
     };
     var icon = { learner: '✦', teacher: '✎', organizer: '◈', organization: '▦' };
 
+    var categoryIcons = { languages: '🌐', art: '🎨', education: '🧠', digital: '💻', career: '💼', life: '🏠', sportFitness: '🏃', personalDevelopment: '✨' };
+    var subcategoryIcons = { Drawing:'✏️', Painting:'🖌️', Sculpture:'🗿', Animation:'🎞️', 'Graphic design':'🖥️', Crafts:'🧶', 'Art history':'🏛️', 'Interview preparation':'💬', 'AI interview':'🤖', Programming:'💻', 'Web development':'🌐', 'Mobile development':'📱', 'UI/UX':'🎨', Figma:'🎨', 'Video editing':'🎬', 'Content creation':'✍️', Math:'➗', Physics:'⚛️', Chemistry:'🧪', Biology:'🧬', Logic:'🧩', Cooking:'🍳', 'Personal finance':'💰', Mindfulness:'🧘', Communication:'💬', Productivity:'⚡', Confidence:'💪', Running:'🏃', Fitness:'💪', Yoga:'🧘', Cycling:'🚴', Chess:'♟️' };
     var role = ctx.session.role || 'learner';
     var step = 1;
     // Structured state (not just FormData) so chips/levels survive re-renders.
@@ -48,6 +50,7 @@
         options.map(function (o) {
           var val = typeof o === 'string' ? o : o.id;
           var text = typeof o === 'string' ? o : o.label;
+          if (o && o.id && categoryIcons[o.id]) text = categoryIcons[o.id] + ' ' + text;
           return '<option value="' + esc(val) + '"' + (String(val) === String(value) ? ' selected' : '') + '>' + esc(text) + '</option>';
         }).join('') + '</select></label>';
     }
@@ -90,7 +93,7 @@
         html += selectInput('gender', 'Gender', state.gender, [{ id: '', label: 'Prefer not to say' }].concat(D.GENDERS || []));
       }
       html += '</div>';
-      html += labelInput('bio', 'Short introduction', state.bio, { wide: true, hint: 'A few words about you' });
+      html += labelInput('bio', 'Short introduction', state.bio, { wide: true, hint: 'A few words about you', placeholder: 'For example: I enjoy learning languages and meeting people from different cultures.' });
       return html + '<div id="ob-autocomplete" class="ob-autocomplete" hidden></div>';
     }
 
@@ -108,9 +111,10 @@
             '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — pick what fits</small></label>' +
             '<div id="ob-subcats">' + subcatHtml() + '</div>' +
           '</div>' +
-          '<label class="wide">Languages you want to learn<small id="ob-lang-hint" style="font-weight:600;color:var(--muted)">' + langHint() + '</small></label>' +
-          langScroll('learnLanguages', state.learnLanguages) +
-          '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' +
+          ((state.category || 'languages') === 'languages' ?
+            '<label class="wide">Languages you want to learn<small id="ob-lang-hint" style="font-weight:600;color:var(--muted)">Choose up to 3</small></label>' +
+            langScroll('learnLanguages', state.learnLanguages) +
+            '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' : '') +
           '<label class="wide">Interests<small style="font-weight:600;color:var(--muted)">Select at least 3 interests to personalise your Hub</small></label>' +
           chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; }) +
           '<div id="ob-autocomplete" class="ob-autocomplete" hidden></div>';
@@ -165,7 +169,7 @@
     function subcatHtml() {
       var subs = (D.SUBCATEGORIES || {})[state.category];
       if (!subs) return '';
-      return chipList('subcategories', subs, state.subcategories);
+      return chipList('subcategories', subs, state.subcategories, function (item) { return (subcategoryIcons[item] || '✦') + ' ' + item; });
     }
 
     function languageLevelsHtml() {
@@ -222,7 +226,7 @@
         var el = $('#ob-' + id);
         if (el) el.onchange = function () {
           state[id] = el.value;
-          if (id === 'category') { var w = $('#ob-subcats-wrap'); if (w) { w.hidden = !(D.SUBCATEGORIES || {})[state.category]; var sc = $('#ob-subcats'); if (sc) sc.innerHTML = subcatHtml(); bindStep(); } var lh = $('#ob-lang-hint'); if (lh) lh.textContent = langHint(); }
+          if (id === 'category') { render(); }
         };
       });
       // per-language level selects
