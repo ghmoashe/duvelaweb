@@ -127,7 +127,6 @@
       if (role === 'learner') {
         return '<div class="ob-extra-grid">' +
           labelInput('goal', 'Your learning goal', state.goal, { placeholder: 'For example: improve speaking for work' }) +
-          selectInput('level', 'Current level', state.level, D.LEVELS || ['A1']) +
           '</div>' +
           '<div class="ob-extra-title">Your learning profile</div><div class="ob-extra-grid">' +
           labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
@@ -436,6 +435,7 @@
         // A target language is only required for the Languages category; for
         // art / sport / digital etc. it's optional.
         var languagesCategory = !state.category || state.category === 'languages';
+        if (!state.nativeLanguage.trim()) return 'Enter your native language.';
         if (languagesCategory && !state.learnLanguages.length) return 'Choose at least one language to learn.';
         if (state.interests.length < 3) return 'Select at least 3 interests.';
       }
