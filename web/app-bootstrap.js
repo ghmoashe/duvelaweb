@@ -1,6 +1,6 @@
 (function () {
   function createAppBootstrap(ctx) {
-    const { $, $$, tr, supa, runtime, session } = ctx;
+    const { $, $$, tr, supa, runtime, session, onboarding } = ctx;
 
     function closeOverlays() {
       ctx.closeVideo();
@@ -247,6 +247,7 @@
         ctx.loadChallenges()
       ]);
       ctx.renderAll();
+      if (onboarding) onboarding.openIfNeeded();
       ctx.syncRoleOptions();
       $('#loading').style.display = 'none';
       $('#app').style.display = 'grid';
