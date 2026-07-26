@@ -1645,6 +1645,15 @@
   .ob-lang-levels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
   .ob-lang-level{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--soft)}
   @media(max-width:700px){.ob-lang-levels-grid{grid-template-columns:1fr 1fr}}
+  .ob-lang-scroll{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 12px;margin-top:8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .ob-lang-scroll::-webkit-scrollbar{height:6px}
+  .ob-lang-scroll::-webkit-scrollbar-thumb{background:#d9cffb;border-radius:99px}
+  .ob-lang-scroll::-webkit-scrollbar-track{background:transparent}
+  .ob-lang-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:80px;padding:12px 12px;border:1px solid #e1d9ef;border-radius:16px;background:#fff;color:var(--soft);font:inherit;font-size:12px;font-weight:800;cursor:pointer;scroll-snap-align:start;transition:.15s}
+  .ob-lang-chip .ob-flag-img{width:34px;height:26px;object-fit:cover;border-radius:5px;box-shadow:0 1px 3px rgba(22,10,54,.18)}
+  .ob-lang-chip .ob-flag-code{display:inline-flex;align-items:center;justify-content:center;width:34px;height:26px;border-radius:5px;background:#f0ecfa;font-size:12px;font-weight:900;color:var(--purple)}
+  .ob-lang-chip:hover{border-color:#c9bdf3}
+  .ob-lang-chip.active{border-color:var(--purple);background:var(--purple-soft);color:var(--purple);box-shadow:0 6px 16px rgba(109,63,224,.14)}
   .onboarding-overlay{position:fixed;inset:0;z-index:300;display:none;place-items:center;padding:22px;background:radial-gradient(circle at 18% 12%,rgba(196,151,255,.25),transparent 34%),rgba(24,13,45,.62);backdrop-filter:blur(16px)}.onboarding-overlay.open{display:grid}.onboarding-card{width:min(920px,100%);max-height:min(760px,94vh);overflow:auto;border:1px solid rgba(255,255,255,.65);border-radius:30px;padding:clamp(22px,4vw,46px);background:linear-gradient(145deg,#fff,#fbf8ff);box-shadow:0 28px 100px rgba(22,10,54,.32)}.onboarding-top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:24px}.onboarding-kicker{color:var(--purple);font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.onboarding-card h2{margin:5px 0 8px;font-size:clamp(27px,4vw,42px);letter-spacing:-.04em}.onboarding-card .lead{margin:0;color:var(--soft);font-size:15px;line-height:1.55;max-width:650px}.onboarding-steps{display:flex;gap:8px;margin:0 0 25px}.onboarding-step{height:7px;flex:1;border-radius:99px;background:#e7defb}.onboarding-step.active,.onboarding-step.done{background:linear-gradient(90deg,#6732dd,#c02ee7)}.onboarding-role{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}.onboarding-role button{border:1px solid #e7def7;background:#fff;color:var(--ink);border-radius:18px;padding:15px 10px;text-align:left;cursor:pointer;font-weight:800;transition:.2s}.onboarding-role button span{display:block;font-size:22px;margin-bottom:8px}.onboarding-role button small{display:block;color:var(--soft);font-weight:600;margin-top:4px;line-height:1.3}.onboarding-role button.active{border-color:var(--purple);background:var(--purple-soft);box-shadow:0 8px 22px rgba(109,63,224,.13)}.onboarding-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.onboarding-form .wide{grid-column:1/-1}.onboarding-form label{display:grid;gap:7px;font-size:12px;font-weight:850;color:var(--soft)}.onboarding-form input,.onboarding-form select,.onboarding-form textarea{width:100%;box-sizing:border-box;border:1px solid #e1d9ef;border-radius:13px;background:#fff;padding:12px 13px;color:var(--ink);font:inherit;outline:none}.onboarding-form input:focus,.onboarding-form select:focus,.onboarding-form textarea:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(109,63,224,.1)}.onboarding-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px}.onboarding-note{color:var(--soft);font-size:12px}.onboarding-error{color:#c33;font-size:13px;font-weight:700;margin-top:12px}@media(max-width:700px){.onboarding-role{grid-template-columns:repeat(2,1fr)}.onboarding-form{grid-template-columns:1fr}.onboarding-form .wide{grid-column:auto}.onboarding-top{display:block}.onboarding-actions{align-items:stretch;flex-direction:column-reverse}.onboarding-actions button{width:100%;justify-content:center}}
 </style>
 </head>
@@ -2070,8 +2079,8 @@
 <script src="./web/app-feature-practice.js"></script>
 <script src="./web/app-feature-study.js"></script>
 <script src="./web/app-feature-games.js"></script>
-<script src="./web/app-onboarding-data.js?v=20260724"></script>
-<script src="./web/app-onboarding.js?v=20260724b"></script>
+<script src="./web/app-onboarding-data.js?v=20260724c"></script>
+<script src="./web/app-onboarding.js?v=20260724d"></script>
 <script src="./web/app-onboarding-location.js?v=20260724"></script>
 <script src="./web/app-page.js?v=20260721-3"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>

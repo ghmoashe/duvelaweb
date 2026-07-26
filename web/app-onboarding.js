@@ -107,7 +107,7 @@
             '<div id="ob-subcats">' + subcatHtml() + '</div>' +
           '</div>' +
           '<label class="wide">Languages you want to learn<small id="ob-lang-hint" style="font-weight:600;color:var(--muted)">' + langHint() + '</small></label>' +
-          chipList('learnLanguages', D.LANGUAGES || [], state.learnLanguages) +
+          langScroll('learnLanguages', state.learnLanguages) +
           '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' +
           '<label class="wide">Interests<small style="font-weight:600;color:var(--muted)">Select at least 3 interests to personalise your Hub</small></label>' +
           chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; });
@@ -117,7 +117,7 @@
           labelInput('specialization', 'Teaching speciality', state.specialization, { placeholder: 'For example: German B1–C1' }) +
           labelInput('experience', 'Years of experience', state.experience, { type: 'number', attr: 'min="0"' }) +
           '</div>' +
-          '<label class="wide">Languages you teach' + '</label>' + chipList('teachLanguages', D.LANGUAGES || [], state.teachLanguages) +
+          '<label class="wide">Languages you teach' + '</label>' + langScroll('teachLanguages', state.teachLanguages) +
           labelInput('qualifications', 'Qualifications', state.qualifications, { wide: true, hint: 'Comma separated (degrees, certificates)' }) +
           '<div class="ob-extra-grid">' +
           labelInput('format', 'Lesson format', state.format, { placeholder: 'Online, offline or both' }) +
@@ -138,6 +138,21 @@
         labelInput('website', 'Website', state.website, { type: 'url' }) +
         '</div>' +
         labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description' });
+    }
+
+    // Horizontal flag-scroll of languages (kind = learnLanguages | teachLanguages).
+    function langScroll(kind, selected) {
+      return '<div class="ob-lang-scroll" data-chip-group="' + kind + '">' + (D.LANGUAGES || []).map(function (l) {
+        var on = selected.indexOf(l) !== -1;
+        var img = D.flagImg ? D.flagImg(l) : '';
+        // Image flag renders everywhere; fall back to the country code (which is
+        // what emoji flags degrade to on Windows anyway) if the image fails.
+        var flag = img
+          ? '<img class="ob-flag-img" src="' + img + '" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ob-flag-code\',textContent:\'' + esc((D.flagCode ? D.flagCode(l) : '').toUpperCase()) + '\'}))">'
+          : '<span class="ob-flag-code">' + esc((D.flagCode ? D.flagCode(l) : '').toUpperCase()) + '</span>';
+        return '<button type="button" class="ob-lang-chip' + (on ? ' active' : '') + '" data-chip="' + kind + '" data-value="' + esc(l) + '">' +
+          flag + '<span>' + esc(l) + '</span></button>';
+      }).join('') + '</div>';
     }
 
     function langHint() {

@@ -73,8 +73,23 @@
     return null;
   }
 
+  // ISO country codes for flag images (emoji flags don't render on Windows).
+  var LANGUAGE_CODES = {
+    German: 'de', English: 'gb', Spanish: 'es', French: 'fr', Italian: 'it',
+    Portuguese: 'pt', Dutch: 'nl', Russian: 'ru', Ukrainian: 'ua', Turkish: 'tr',
+    Arabic: 'sa', Chinese: 'cn', Japanese: 'jp'
+  };
+  var LANGUAGE_FLAGS = {
+    German: '🇩🇪', English: '🇬🇧', Spanish: '🇪🇸', French: '🇫🇷', Italian: '🇮🇹',
+    Portuguese: '🇵🇹', Dutch: '🇳🇱', Russian: '🇷🇺', Ukrainian: '🇺🇦', Turkish: '🇹🇷',
+    Arabic: '🇸🇦', Chinese: '🇨🇳', Japanese: '🇯🇵'
+  };
+
   var api = {
     LANGUAGES: ['German', 'English', 'Spanish', 'French', 'Italian', 'Portuguese', 'Dutch', 'Russian', 'Ukrainian', 'Turkish', 'Arabic', 'Chinese', 'Japanese'],
+    flagFor: function (lang) { return LANGUAGE_FLAGS[lang] || '🌐'; },
+    flagImg: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? 'https://flagcdn.com/w40/' + c + '.png' : ''; },
+    flagCode: function (lang) { return LANGUAGE_CODES[lang] || ''; },
     LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
     GENDERS: [{ id: 'male', label: 'Male' }, { id: 'female', label: 'Female' }, { id: 'other', label: 'Other' }],
     CATEGORIES: [
