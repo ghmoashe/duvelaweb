@@ -26,7 +26,8 @@
       nativeLanguage: '', goal: '', level: 'A1', category: '', subcategories: [],
       learnLanguages: [], languageLevels: {}, interests: [],
       specialization: '', experience: '', teachLanguages: [], qualifications: '',
-      format: '', website: '', orgType: '', teamSize: '', dob: '', avatarFile: null, coverFile: null, avatarName: ''
+      format: '', website: '', orgType: '', teamSize: '', dob: '', avatarFile: null, coverFile: null, avatarName: '',
+      avatarPreview: '', coverPreview: '', coverPosition: 'center'
     };
     var form = $('#onboardingForm');
 
@@ -76,9 +77,11 @@
     }
 
     function stepTwoHtml() {
-      var html = '<div class="ob-extra-grid wide"><label>Profile photo or logo<input id="ob-avatarFile" name="avatarFile" type="file" accept="image/*">' +
+      var avatarPreview = state.avatarPreview ? '<div class="ob-avatar-preview"><img src="' + esc(state.avatarPreview) + '" alt=""></div>' : '<div class="ob-avatar-preview ob-empty-preview">Photo</div>';
+      var coverPreview = state.coverPreview ? '<div class="ob-cover-preview"><img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '"></div>' : '<div class="ob-cover-preview ob-empty-preview">Cover preview</div>';
+      var html = '<div class="ob-upload-grid wide"><label>Profile photo or logo' + avatarPreview + '<input id="ob-avatarFile" name="avatarFile" type="file" accept="image/*">' +
         '<small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB</small></label>';
-      html += '<label>Cover photo<input id="ob-coverFile" name="coverFile" type="file" accept="image/*"><small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB</small></label></div>';
+      html += '<label>Cover photo' + coverPreview + '<input id="ob-coverFile" name="coverFile" type="file" accept="image/*"><small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB. Cropped to profile cover ratio.</small><select id="ob-coverPosition" name="coverPosition"><option value="top"' + (state.coverPosition === 'top' ? ' selected' : '') + '>Crop top</option><option value="center"' + (state.coverPosition === 'center' ? ' selected' : '') + '>Crop center</option><option value="bottom"' + (state.coverPosition === 'bottom' ? ' selected' : '') + '>Crop bottom</option></select></label></div>';
       html += '<div class="ob-extra-title">Personal details</div><div class="ob-extra-grid">';
       if (role === 'organization') {
         html += labelInput('orgName', 'Organization name', state.orgName, { attr: 'required', placeholder: 'Your organization' });
@@ -105,8 +108,9 @@
           '</div>' +
           '<div class="ob-extra-title">Your learning profile</div><div class="ob-extra-grid">' +
           labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
-          selectInput('category', 'Learning category', state.category, [{ id: '', label: 'Choose a category' }].concat(D.CATEGORIES || [])) +
           '</div>' +
+          '<label class="wide">Learning category<small style="font-weight:600;color:var(--muted)">Choose one direction</small></label>' +
+          categoryCardsHtml('category', state.category) +
           '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
             '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — pick what fits</small></label>' +
             '<div id="ob-subcats">' + subcatHtml() + '</div>' +
@@ -162,6 +166,14 @@
       }).join('') + '</div>';
     }
 
+    function categoryCardsHtml(kind, selected) {
+      return '<div class="ob-category-grid wide" data-category-group="' + kind + '">' + (D.CATEGORIES || []).map(function (it) {
+        var on = selected === it.id || (!selected && it.id === 'languages');
+        var iconText = categoryIcons[it.id] || '*';
+        return '<button type="button" class="ob-category-card' + (on ? ' active' : '') + '" data-category-card="' + esc(it.id) + '"><span>' + esc(iconText) + '</span><b>' + esc(it.label) + '</b></button>';
+      }).join('') + '</div>';
+    }
+
     function langHint() {
       return (!state.category || state.category === 'languages') ? 'Choose up to 3' : 'Optional — choose up to 3';
     }
@@ -183,6 +195,45 @@
       }).join('') + '</div>';
     }
 
+    function selectedLanguageSummary() {
+      if (!state.learnLanguages.length) return '<span class="muted">No language selected</span>';
+      return state.learnLanguages.map(function (lang) {
+        return '<span class="ob-preview-pill">' + esc(lang) + ' · ' + esc(state.languageLevels[lang] || state.level || 'A1') + '</span>';
+      }).join('');
+    }
+
+    function selectedItemsSummary(items) {
+      if (!items || !items.length) return '<span class="muted">Nothing selected</span>';
+      return items.map(function (x) { return '<span class="ob-preview-pill">' + esc(x) + '</span>'; }).join('');
+    }
+
+    function interestLabels() {
+      return state.interests.map(function (id) {
+        var found = (D.INTERESTS || []).filter(function (it) { return it.id === id; })[0];
+        return found ? found.label : id;
+      });
+    }
+
+    function profilePreviewHtml() {
+      var name = role === 'organization' ? state.orgName : [state.firstName, state.lastName].filter(Boolean).join(' ');
+      var category = (D.CATEGORIES || []).filter(function (c) { return c.id === (state.category || 'languages'); })[0];
+      var cover = state.coverPreview ? '<img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '">' : '';
+      var avatar = state.avatarPreview ? '<img src="' + esc(state.avatarPreview) + '" alt="">' : '<span>' + esc((name || 'D').charAt(0).toUpperCase()) + '</span>';
+      return '<div class="wide ob-profile-preview">' +
+        '<div class="ob-preview-cover">' + cover + '</div>' +
+        '<div class="ob-preview-head"><div class="ob-preview-avatar">' + avatar + '</div><div><h3>' + esc(name || 'Your profile') + '</h3><p>' + esc([state.city, state.country].filter(Boolean).join(', ') || 'Location not set') + '</p></div></div>' +
+        '<div class="ob-preview-grid">' +
+          '<div><b>Role</b><p>' + esc((copy[role] || copy.learner)[0]) + '</p></div>' +
+          '<div><b>Category</b><p>' + esc(category ? category.label : 'Languages') + '</p></div>' +
+          '<div><b>Goal</b><p>' + esc(state.goal || state.specialization || 'Not set') + '</p></div>' +
+          '<div><b>Native language</b><p>' + esc(state.nativeLanguage || 'Not set') + '</p></div>' +
+        '</div>' +
+        (role === 'learner' ? '<div class="ob-preview-section"><b>Selected languages and levels</b><div>' + selectedLanguageSummary() + '</div></div>' : '') +
+        '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(state.subcategories) + '</div></div>' +
+        '<div class="ob-preview-section"><b>Interests</b><div>' + selectedItemsSummary(interestLabels()) + '</div></div>' +
+      '</div>';
+    }
+
     function render() {
       title();
       document.querySelectorAll('.onboarding-step').forEach(function (x, i) {
@@ -201,6 +252,7 @@
       if (step === 2) html = '<div class="wide ob-section">' + stepTwoHtml() + '</div>';
       if (step === 3) html = '<div class="wide ob-section">' + stepThreeHtml() + '</div>';
       if (step === 4) html = '<div class="onboarding-welcome wide" style="text-align:center;padding:22px"><div style="font-size:48px">✨</div><h3 style="font-size:24px;margin:10px 0">Profile ready!</h3><p>Your Duvela space is personalised for ' + esc((copy[role] || copy.learner)[0]) + '. You can edit everything later in Profile.</p></div>';
+      if (step === 4) html = profilePreviewHtml();
       form.innerHTML = html;
 
       rolesBox.querySelectorAll('[data-ob-role]').forEach(function (b) {
@@ -217,17 +269,36 @@
         btn.onclick = function () { toggleChip(btn.dataset.chip, btn.dataset.value); };
       });
       form.querySelectorAll('[data-clear-selection]').forEach(function (btn) { btn.onclick = function () { state.subcategories = []; render(); }; });
+      form.querySelectorAll('[data-category-card]').forEach(function (btn) {
+        btn.onclick = function () {
+          state.category = btn.dataset.categoryCard;
+          state.subcategories = [];
+          if (state.category !== 'languages') {
+            state.learnLanguages = [];
+            state.languageLevels = {};
+          }
+          render();
+        };
+      });
       // avatar
       var avatar = $('#ob-avatarFile');
-      if (avatar) avatar.onchange = function () { state.avatarFile = avatar.files && avatar.files[0]; };
+      if (avatar) avatar.onchange = function () {
+        state.avatarFile = avatar.files && avatar.files[0];
+        state.avatarPreview = state.avatarFile ? URL.createObjectURL(state.avatarFile) : '';
+        render();
+      };
       var cover = $('#ob-coverFile');
-      if (cover) cover.onchange = function () { state.coverFile = cover.files && cover.files[0]; };
+      if (cover) cover.onchange = function () {
+        state.coverFile = cover.files && cover.files[0];
+        state.coverPreview = state.coverFile ? URL.createObjectURL(state.coverFile) : '';
+        render();
+      };
       // gender/category/level selects + native
-      ['gender', 'level', 'category'].forEach(function (id) {
+      ['gender', 'level', 'category', 'coverPosition'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) el.onchange = function () {
           state[id] = el.value;
-          if (id === 'category') { render(); }
+          if (id === 'category' || id === 'coverPosition') { render(); }
         };
       });
       // per-language level selects
@@ -265,6 +336,7 @@
       if (group) group.querySelectorAll('[data-chip]').forEach(function (b) {
         b.classList.toggle('active', arr.indexOf(b.dataset.value) !== -1);
       });
+      if (kind === 'subcategories') { var count = $('#ob-subcat-count'); if (count) count.textContent = state.subcategories.length + '/3 selected'; }
       if (kind === 'learnLanguages') { var box = $('#ob-lang-levels'); if (box) { box.innerHTML = languageLevelsHtml(); form.querySelectorAll('[data-lang-level]').forEach(function (sel) { sel.onchange = function () { state.languageLevels[sel.dataset.langLevel] = sel.value; }; }); } }
     }
 
