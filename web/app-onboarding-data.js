@@ -75,19 +75,22 @@
 
   // ISO country codes for flag images (emoji flags don't render on Windows).
   var LANGUAGE_CODES = {
-    German: 'de', English: 'gb', Spanish: 'es', French: 'fr', Italian: 'it',
-    Portuguese: 'pt', Dutch: 'nl', Russian: 'ru', Ukrainian: 'ua', Turkish: 'tr',
-    Arabic: 'sa', Chinese: 'cn', Japanese: 'jp'
-  };
-  var LANGUAGE_FLAGS = {
-    German: '🇩🇪', English: '🇬🇧', Spanish: '🇪🇸', French: '🇫🇷', Italian: '🇮🇹',
-    Portuguese: '🇵🇹', Dutch: '🇳🇱', Russian: '🇷🇺', Ukrainian: '🇺🇦', Turkish: '🇹🇷',
-    Arabic: '🇸🇦', Chinese: '🇨🇳', Japanese: '🇯🇵'
+    English: 'gb', Spanish: 'es', French: 'fr', German: 'de', Italian: 'it',
+    Portuguese: 'pt', Chinese: 'cn', Japanese: 'jp', Korean: 'kr', Russian: 'ru',
+    Arabic: 'sa', Dutch: 'nl', Turkish: 'tr', Polish: 'pl', Ukrainian: 'ua',
+    Swedish: 'se', Norwegian: 'no', Danish: 'dk', Finnish: 'fi', Greek: 'gr',
+    Czech: 'cz', Hungarian: 'hu', Romanian: 'ro', Hindi: 'in', Hebrew: 'il',
+    Thai: 'th', Vietnamese: 'vn', Indonesian: 'id', Persian: 'ir'
   };
 
   var api = {
-    LANGUAGES: ['German', 'English', 'Spanish', 'French', 'Italian', 'Portuguese', 'Dutch', 'Russian', 'Ukrainian', 'Turkish', 'Arabic', 'Chinese', 'Japanese'],
-    flagFor: function (lang) { return LANGUAGE_FLAGS[lang] || '🌐'; },
+    LANGUAGES: [
+      'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Chinese',
+      'Japanese', 'Korean', 'Russian', 'Arabic', 'Dutch', 'Turkish', 'Polish',
+      'Ukrainian', 'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Greek', 'Czech',
+      'Hungarian', 'Romanian', 'Hindi', 'Hebrew', 'Thai', 'Vietnamese', 'Indonesian', 'Persian'
+    ],
+    flagFor: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? c.toUpperCase() : '🌐'; },
     flagImg: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? 'https://flagcdn.com/w40/' + c + '.png' : ''; },
     flagCode: function (lang) { return LANGUAGE_CODES[lang] || ''; },
     LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
