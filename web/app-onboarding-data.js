@@ -126,6 +126,16 @@
       if (!match) return false;
       var n = normalize(city);
       return match.cities.some(function (c) { return normalize(c) === n; });
+    },
+    // Which known country a city belongs to (null if the city isn't in the
+    // dataset). Used to flag only clear mismatches (e.g. Paris + Germany) while
+    // still allowing valid cities that aren't in our curated list.
+    cityCountry: function (city) {
+      var n = normalize(city);
+      for (var i = 0; i < countryDirectory.length; i++) {
+        if (countryDirectory[i].cities.some(function (c) { return normalize(c) === n; })) return countryDirectory[i].country;
+      }
+      return null;
     }
   };
 

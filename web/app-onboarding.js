@@ -275,7 +275,15 @@
       if (step === 2) {
         if (role === 'organization' ? !state.orgName.trim() : !state.firstName.trim()) return role === 'organization' ? 'Enter your organization name.' : 'Enter your first name.';
         if (state.country.trim() && D.isKnownCountry && !D.isKnownCountry(state.country)) return 'Choose a country from the list.';
-        if (state.city.trim() && state.country.trim() && D.doesCityBelongToCountry && !D.doesCityBelongToCountry(state.city, state.country)) return 'This city is not in the selected country.';
+        // Only block a clear mismatch (city known to belong to a different
+        // country). Cities not in our curated list — incl. geolocation results
+        // and smaller towns — are allowed through.
+        if (state.city.trim() && state.country.trim() && D.cityCountry) {
+          var owner = D.cityCountry(state.city);
+          if (owner && D.isKnownCountry(state.country) && owner.toLowerCase() !== state.country.trim().toLowerCase()) {
+            return 'This city belongs to ' + owner + ', not ' + state.country.trim() + '.';
+          }
+        }
       }
       if (step === 3 && role === 'learner') {
         if (!state.learnLanguages.length) return 'Choose at least one language to learn.';

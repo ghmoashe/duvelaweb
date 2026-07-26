@@ -6,7 +6,7 @@
       if(!navigator.geolocation){button.textContent='⌖ Not supported';return;}
       button.disabled=true;button.textContent='⌖ Finding location…';
       navigator.geolocation.getCurrentPosition(async function(pos){
-        try{const res=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&zoom=10',{headers:{Accept:'application/json'}});const json=await res.json();const a=json.address||{};input.value=a.city||a.town||a.village||a.municipality||'';button.textContent=input.value?'✓ Location found':'⌖ My location';}
+        try{const res=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&zoom=10',{headers:{Accept:'application/json'}});const json=await res.json();const a=json.address||{};input.value=a.city||a.town||a.village||a.municipality||'';const countryInput=document.querySelector('#ob-country');if(countryInput&&a.country){countryInput.value=a.country;countryInput.dispatchEvent(new Event('input',{bubbles:true}));}input.dispatchEvent(new Event('input',{bubbles:true}));button.textContent=input.value?'✓ Location found':'⌖ My location';}
         catch(e){button.textContent='⌖ My location';const err=document.querySelector('#onboardingError');if(err)err.textContent='Could not find the city. Please enter it manually.';}
         button.disabled=false;
       },function(){button.disabled=false;button.textContent='⌖ My location';const err=document.querySelector('#onboardingError');if(err)err.textContent='Location permission was not granted. You can enter the city manually.';},{timeout:10000});
