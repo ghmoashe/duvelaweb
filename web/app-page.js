@@ -487,7 +487,7 @@
     practiceFeature,
     gamesFeature,
     messagingFeature,
-    onboarding: onboardingApi ? onboardingApi.create({ $, supa, session: sessionState, getUser: () => user, getProfile: () => profile, setProfile: (value) => { profile = value; }, renderAll }) : null,
+    onboarding: onboardingApi ? onboardingApi.create({ $, supa, session: sessionState, getUser: () => user, getProfile: () => profile, setProfile: (value) => { profile = value; }, uploadToBucket, renderAll }) : null,
     addBuilderItem,
     addClassStudent,
     addLesson,
