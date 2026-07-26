@@ -29,7 +29,8 @@
       format: '', website: '', orgType: '', teamSize: '', dob: '', avatarFile: null, coverFile: null, avatarName: '',
       avatarPreview: '', coverPreview: '', coverPosition: 'center', coverPreset: 'duvela',
       email: '', phone: '', contactName: '', contactEmail: '', contactPhone: '', contactPosition: '',
-      rate: '', availability: '', audience: '', eventType: '', verification: ''
+      rate: '', availability: '', audience: '', eventType: '', verification: '',
+      instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', telegram: ''
     };
     var form = $('#onboardingForm');
 
@@ -149,6 +150,7 @@
       if (role === 'teacher') {
         return '<div class="ob-extra-title">Professional profile</div><div class="ob-extra-grid">' +
           labelInput('specialization', 'Teaching headline', state.specialization, { placeholder: 'For example: Creative drawing for beginners' }) +
+          labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
           labelInput('experience', 'Years of experience', state.experience, { type: 'number', attr: 'min="0"' }) +
           '</div>' +
           '<label class="wide">Teaching category<small style="font-weight:600;color:var(--muted)">Choose what you teach</small></label>' +
@@ -166,6 +168,14 @@
           labelInput('website', 'Website', state.website, { type: 'url' }) +
           '</div>' +
           labelInput('verification', 'Credentials / verification', state.verification, { wide: true, placeholder: 'Certificates, degree, portfolio links, verification notes' }) +
+          '<div class="ob-extra-title">Social media</div><div class="ob-extra-grid">' +
+          labelInput('instagram', 'Instagram', state.instagram, { placeholder: '@handle or link' }) +
+          labelInput('tiktok', 'TikTok', state.tiktok, { placeholder: '@handle or link' }) +
+          labelInput('facebook', 'Facebook', state.facebook, { placeholder: 'Profile/page link' }) +
+          labelInput('linkedin', 'LinkedIn', state.linkedin, { placeholder: 'Profile link' }) +
+          labelInput('youtube', 'YouTube', state.youtube, { placeholder: 'Channel link' }) +
+          labelInput('telegram', 'Telegram', state.telegram, { placeholder: '@handle or link' }) +
+          '</div>' +
           '<label class="wide">Interests</label>' + chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; });
       }
       if (role === 'organizer') {
@@ -291,6 +301,7 @@
       var categoryValue = role === 'organization' ? (state.orgType || 'Not set') : (category ? category.label : 'Languages');
       var goalTitle = role === 'organization' ? 'Description' : (role === 'organizer' ? 'Event type' : 'Goal');
       var goalValue = role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set');
+      var socialItems = [state.instagram, state.tiktok, state.facebook, state.linkedin, state.youtube, state.telegram].filter(Boolean);
       var coverStyle = state.coverPreview ? '' : ' style="background:' + esc(gradientCss(coverPresetById(state.coverPreset))) + '"';
       var cover = state.coverPreview ? '<img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '">' : '';
       var avatar = state.avatarPreview ? '<img src="' + esc(state.avatarPreview) + '" alt="">' : '<span>' + esc((name || 'D').charAt(0).toUpperCase()) + '</span>';
@@ -305,6 +316,7 @@
         '</div>' +
         (role === 'learner' ? '<div class="ob-preview-section"><b>Selected languages and levels</b><div>' + selectedLanguageSummary(state.learnLanguages) + '</div></div>' : '') +
         (role === 'teacher' && state.teachLanguages.length ? '<div class="ob-preview-section"><b>Languages you teach</b><div>' + selectedItemsSummary(state.teachLanguages) + '</div></div>' : '') +
+        (role === 'teacher' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
         (role === 'organizer' ? '<div class="ob-preview-section"><b>Format and audience</b><div>' + selectedItemsSummary([state.format, state.audience].filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Business contacts</b><div>' + selectedItemsSummary([state.website, state.email, state.phone, state.contactName, state.contactEmail].filter(Boolean)) + '</div></div>' : '') +
         '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(state.subcategories) + '</div></div>' +
@@ -471,7 +483,7 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
@@ -506,6 +518,7 @@
       }
       if (step === 3 && role === 'teacher') {
         var teacherLanguagesCategory = !state.category || state.category === 'languages';
+        if (!state.nativeLanguage.trim()) return { message: 'Enter your native language.', target: 'nativeLanguage' };
         if (teacherLanguagesCategory && !state.teachLanguages.length) return { message: 'Choose at least one language you teach.', target: 'teachLanguages' };
         if (!teacherLanguagesCategory && !state.subcategories.length && !state.specialization.trim()) return { message: 'Choose a focus area or write your teaching headline.', target: 'subcategories' };
       }
@@ -552,11 +565,18 @@
         }));
       }
       if (role === 'teacher') {
+        patch.language = state.nativeLanguage.trim() || null;
         patch.specialization = state.subcategories.length ? state.subcategories.slice() : (state.specialization.trim() ? [state.specialization.trim()] : []);
         patch.teaching_experience = state.experience || null;
         patch.teaches_languages = state.teachLanguages.slice();
         patch.qualifications = [state.qualifications, state.verification, state.rate ? ('Rate: ' + state.rate) : '', state.availability ? ('Availability: ' + state.availability) : '', state.format ? ('Format: ' + state.format) : ''].join(',').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
         patch.profile_interests = state.interests.slice();
+        patch.instagram = state.instagram.trim() || null;
+        patch.tiktok = state.tiktok.trim() || null;
+        patch.facebook = state.facebook.trim() || null;
+        patch.linkedin = state.linkedin.trim() || null;
+        patch.youtube = state.youtube.trim() || null;
+        patch.telegram = state.telegram.trim() || null;
         patch.learning_languages = state.teachLanguages.slice();
         patch.learning_targets = [{
           category: state.category || 'languages',
