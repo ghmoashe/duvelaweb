@@ -50,6 +50,19 @@
     var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML;
   }
   function cssUrl(u) { return "url('" + String(u).replace(/'/g, "%27") + "')"; }
+  function coverPresetGradient(value) {
+    var presets = {
+      duvela: ['#7C3AED', '#A855F7', '#22C1DC'],
+      ocean: ['#0EA5E9', '#2563EB', '#312E81'],
+      sunset: ['#F97316', '#EC4899', '#7C3AED'],
+      premium: ['#111827', '#4338CA', '#7C3AED'],
+      fresh: ['#14B8A6', '#22C55E', '#84CC16']
+    };
+    var raw = String(value || '').trim();
+    if (raw.indexOf('preset:') !== 0) return '';
+    var colors = presets[raw.slice(7)] || presets.duvela;
+    return 'linear-gradient(135deg,' + colors.join(',') + ')';
+  }
   function show(sectionId) { document.getElementById(sectionId).classList.add('show'); }
 
   supa.from('profiles')
@@ -69,7 +82,11 @@
     var name = p.full_name || 'Duvela user';
     document.title = name + ' — Duvela';
     document.getElementById('name').textContent = name;
-    if (p.cover_url) document.getElementById('cover').style.backgroundImage = cssUrl(p.cover_url);
+    if (p.cover_url) {
+      var preset = coverPresetGradient(p.cover_url);
+      if (preset) document.getElementById('cover').style.background = preset;
+      else document.getElementById('cover').style.backgroundImage = cssUrl(p.cover_url);
+    }
     var av = document.getElementById('avatar');
     if (p.avatar_url) {
       var img = document.createElement('img');

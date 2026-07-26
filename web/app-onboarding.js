@@ -27,7 +27,8 @@
       learnLanguages: [], languageLevels: {}, interests: [],
       specialization: '', experience: '', teachLanguages: [], qualifications: '',
       format: '', website: '', orgType: '', teamSize: '', dob: '', avatarFile: null, coverFile: null, avatarName: '',
-      avatarPreview: '', coverPreview: '', coverPosition: 'center'
+      avatarPreview: '', coverPreview: '', coverPosition: 'center', coverPreset: 'duvela',
+      email: '', phone: '', contactName: '', contactEmail: '', contactPhone: '', contactPosition: ''
     };
     var form = $('#onboardingForm');
 
@@ -65,6 +66,28 @@
       }).join('') + '</div>';
     }
 
+    function coverPresetById(id) {
+      var presets = D.PROFILE_COVER_PRESETS || [];
+      return presets.filter(function (p) { return p.id === id; })[0] || presets[0] || { id: 'duvela', label: 'DUVELA', colors: ['#7C3AED', '#A855F7', '#22C1DC'] };
+    }
+
+    function coverPresetValue() {
+      return 'preset:' + (state.coverPreset || 'duvela');
+    }
+
+    function gradientCss(preset) {
+      var colors = (preset && preset.colors) || ['#7C3AED', '#A855F7', '#22C1DC'];
+      return 'linear-gradient(135deg,' + colors.join(',') + ')';
+    }
+
+    function coverPresetHtml() {
+      var presets = D.PROFILE_COVER_PRESETS || [];
+      return '<div class="ob-cover-presets">' + presets.map(function (preset) {
+        var active = (state.coverPreset || 'duvela') === preset.id && !state.coverFile;
+        return '<button type="button" class="ob-cover-preset' + (active ? ' active' : '') + '" data-cover-preset="' + esc(preset.id) + '"><i style="background:' + esc(gradientCss(preset)) + '"></i><span>' + esc(preset.label) + '</span></button>';
+      }).join('') + '</div>';
+    }
+
     function title() {
       var c = copy[role] || copy.learner;
       $('#onboardingRoleBadge').textContent = c[0];
@@ -78,10 +101,10 @@
 
     function stepTwoHtml() {
       var avatarPreview = state.avatarPreview ? '<div class="ob-avatar-preview"><img src="' + esc(state.avatarPreview) + '" alt=""></div>' : '<div class="ob-avatar-preview ob-empty-preview">Photo</div>';
-      var coverPreview = state.coverPreview ? '<div class="ob-cover-preview"><img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '"></div>' : '<div class="ob-cover-preview ob-empty-preview">Cover preview</div>';
+      var coverPreview = state.coverPreview ? '<div class="ob-cover-preview"><img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '"></div>' : '<div class="ob-cover-preview" style="background:' + esc(gradientCss(coverPresetById(state.coverPreset))) + '"><span>Cover color</span></div>';
       var html = '<div class="ob-upload-grid wide"><label>Profile photo or logo' + avatarPreview + '<input id="ob-avatarFile" name="avatarFile" type="file" accept="image/*">' +
         '<small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB</small></label>';
-      html += '<label>Cover photo' + coverPreview + '<input id="ob-coverFile" name="coverFile" type="file" accept="image/*"><small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB. Cropped to profile cover ratio.</small><select id="ob-coverPosition" name="coverPosition"><option value="top"' + (state.coverPosition === 'top' ? ' selected' : '') + '>Crop top</option><option value="center"' + (state.coverPosition === 'center' ? ' selected' : '') + '>Crop center</option><option value="bottom"' + (state.coverPosition === 'bottom' ? ' selected' : '') + '>Crop bottom</option></select></label></div>';
+      html += '<label>Cover photo' + coverPreview + '<input id="ob-coverFile" name="coverFile" type="file" accept="image/*"><small style="font-weight:600;color:var(--muted)">JPG or PNG, up to 5 MB. Cropped to profile cover ratio.</small><select id="ob-coverPosition" name="coverPosition"><option value="top"' + (state.coverPosition === 'top' ? ' selected' : '') + '>Crop top</option><option value="center"' + (state.coverPosition === 'center' ? ' selected' : '') + '>Crop center</option><option value="bottom"' + (state.coverPosition === 'bottom' ? ' selected' : '') + '>Crop bottom</option></select>' + coverPresetHtml() + '</label></div>';
       html += '<div class="ob-extra-title">Personal details</div><div class="ob-extra-grid">';
       if (role === 'organization') {
         html += labelInput('orgName', 'Organization name', state.orgName, { attr: 'required', placeholder: 'Your organization' });
@@ -145,10 +168,19 @@
       }
       // organization
       return '<div class="ob-extra-grid">' +
-        selectInput('category', 'Focus category', state.category, [{ id: '', label: 'Choose a category' }].concat(D.CATEGORIES || [])) +
+        selectInput('orgType', 'Organization type', state.orgType, [{ id: '', label: 'Choose a type' }, { id: 'school', label: 'School' }, { id: 'academy', label: 'Academy' }, { id: 'company', label: 'Company' }, { id: 'ngo', label: 'NGO' }, { id: 'community', label: 'Community' }]) +
         labelInput('website', 'Website', state.website, { type: 'url' }) +
         '</div>' +
-        labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description' });
+        labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description' }) +
+        '<div class="ob-extra-title">Public contacts</div><div class="ob-extra-grid">' +
+        labelInput('email', 'Public email', state.email, { type: 'email', placeholder: 'hello@example.com' }) +
+        labelInput('phone', 'Public phone', state.phone, { type: 'tel', placeholder: '+49...' }) +
+        '</div><div class="ob-extra-title">Business contact</div><div class="ob-extra-grid">' +
+        labelInput('contactName', 'Contact name', state.contactName, { placeholder: 'Responsible person' }) +
+        labelInput('contactPosition', 'Contact position', state.contactPosition, { placeholder: 'Manager, Director...' }) +
+        labelInput('contactEmail', 'Contact email', state.contactEmail, { type: 'email', placeholder: 'contact@example.com' }) +
+        labelInput('contactPhone', 'Contact phone', state.contactPhone, { type: 'tel', placeholder: '+49...' }) +
+        '</div>';
     }
 
     // Horizontal flag-scroll of languages (kind = learnLanguages | teachLanguages).
@@ -217,10 +249,11 @@
     function profilePreviewHtml() {
       var name = role === 'organization' ? state.orgName : [state.firstName, state.lastName].filter(Boolean).join(' ');
       var category = (D.CATEGORIES || []).filter(function (c) { return c.id === (state.category || 'languages'); })[0];
+      var coverStyle = state.coverPreview ? '' : ' style="background:' + esc(gradientCss(coverPresetById(state.coverPreset))) + '"';
       var cover = state.coverPreview ? '<img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '">' : '';
       var avatar = state.avatarPreview ? '<img src="' + esc(state.avatarPreview) + '" alt="">' : '<span>' + esc((name || 'D').charAt(0).toUpperCase()) + '</span>';
       return '<div class="wide ob-profile-preview">' +
-        '<div class="ob-preview-cover">' + cover + '</div>' +
+        '<div class="ob-preview-cover"' + coverStyle + '>' + cover + '</div>' +
         '<div class="ob-preview-head"><div class="ob-preview-avatar">' + avatar + '</div><div><h3>' + esc(name || 'Your profile') + '</h3><p>' + esc([state.city, state.country].filter(Boolean).join(', ') || 'Location not set') + '</p></div></div>' +
         '<div class="ob-preview-grid">' +
           '<div><b>Role</b><p>' + esc((copy[role] || copy.learner)[0]) + '</p></div>' +
@@ -269,6 +302,14 @@
         btn.onclick = function () { toggleChip(btn.dataset.chip, btn.dataset.value); };
       });
       form.querySelectorAll('[data-clear-selection]').forEach(function (btn) { btn.onclick = function () { state.subcategories = []; render(); }; });
+      form.querySelectorAll('[data-cover-preset]').forEach(function (btn) {
+        btn.onclick = function () {
+          state.coverPreset = btn.dataset.coverPreset;
+          state.coverFile = null;
+          state.coverPreview = '';
+          render();
+        };
+      });
       form.querySelectorAll('[data-category-card]').forEach(function (btn) {
         btn.onclick = function () {
           state.category = btn.dataset.categoryCard;
@@ -294,7 +335,7 @@
         render();
       };
       // gender/category/level selects + native
-      ['gender', 'level', 'category', 'coverPosition'].forEach(function (id) {
+      ['gender', 'level', 'category', 'coverPosition', 'orgType'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) el.onchange = function () {
           state[id] = el.value;
@@ -366,13 +407,15 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
       var gender = $('#ob-gender'); if (gender) state.gender = gender.value;
       var level = $('#ob-level'); if (level) state.level = level.value;
       var cat = $('#ob-category'); if (cat) state.category = cat.value;
+      var orgType = $('#ob-orgType'); if (orgType) state.orgType = orgType.value;
+      var coverPosition = $('#ob-coverPosition'); if (coverPosition) state.coverPosition = coverPosition.value;
     }
 
     function validate() {
@@ -463,6 +506,67 @@
       } catch (e) { /* table may not exist in some environments — non-fatal */ }
     }
 
+    function buildOrgSlug(name) {
+      var base = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+      return (base || 'organization') + '-' + Math.random().toString(36).slice(2, 6);
+    }
+
+    async function saveBusinessOrganization(userId, userEmail) {
+      if (role !== 'organization') return;
+      var name = state.orgName.trim();
+      if (!name) return;
+      var payload = {
+        city: state.city.trim() || null,
+        contact_email: state.contactEmail.trim() || null,
+        contact_name: state.contactName.trim() || null,
+        contact_phone: state.contactPhone.trim() || null,
+        contact_position: state.contactPosition.trim() || null,
+        country: state.country.trim() || null,
+        description: state.specialization.trim() || state.bio.trim() || null,
+        name: name,
+        owner_id: userId,
+        public_email: state.email.trim() || userEmail || null,
+        public_phone: state.phone.trim() || null,
+        type: state.orgType || null,
+        website_url: state.website.trim() || null
+      };
+      var existing = await supa.from('organizations')
+        .select('id')
+        .eq('owner_id', userId)
+        .limit(1)
+        .maybeSingle();
+      if (existing.error) throw existing.error;
+      var orgId = existing.data && existing.data.id;
+      if (orgId) {
+        var update = await supa.from('organizations').update(payload).eq('id', orgId);
+        if (update.error) throw update.error;
+      } else {
+        var insert = await supa.from('organizations')
+          .insert(Object.assign({}, payload, { slug: buildOrgSlug(name) }))
+          .select('id')
+          .single();
+        if (insert.error) throw insert.error;
+        orgId = insert.data && insert.data.id;
+      }
+      if (!orgId) return;
+      var membership = await supa.from('organization_memberships')
+        .select('id')
+        .eq('organization_id', orgId)
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle();
+      if (membership.error) throw membership.error;
+      if (!membership.data) {
+        var memberInsert = await supa.from('organization_memberships').insert({
+          organization_id: orgId,
+          user_id: userId,
+          role: 'owner',
+          status: 'active'
+        });
+        if (memberInsert.error) throw memberInsert.error;
+      }
+    }
+
     async function submit(e) {
       e.preventDefault();
       collect();
@@ -479,10 +583,13 @@
         }
         if (state.coverFile && state.coverFile.size && ctx.uploadToBucket) {
           patch.cover_url = await ctx.uploadToBucket('posts', state.coverFile);
+        } else {
+          patch.cover_url = coverPresetValue();
         }
         var res = await supa.from('profiles').update(patch).eq('id', u.id);
         if (res.error) throw res.error;
         await saveLearnerLanguages(u.id);
+        await saveBusinessOrganization(u.id, u.email || '');
         ctx.setProfile(Object.assign({}, ctx.getProfile(), patch));
         localStorage.setItem('duvela.onboarding.' + u.id, '1');
         $('#onboardingOverlay').classList.remove('open');

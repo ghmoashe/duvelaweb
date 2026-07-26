@@ -99,6 +99,13 @@
     flagFor: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? c.toUpperCase() : '🌐'; },
     flagImg: function (lang) { var c = LANGUAGE_CODES[lang]; return c ? 'https://flagcdn.com/w40/' + c + '.png' : ''; },
     flagCode: function (lang) { return LANGUAGE_CODES[lang] || ''; },
+    PROFILE_COVER_PRESETS: [
+      { id: 'duvela', label: 'DUVELA', colors: ['#7C3AED', '#A855F7', '#22C1DC'] },
+      { id: 'ocean', label: 'Ocean', colors: ['#0EA5E9', '#2563EB', '#312E81'] },
+      { id: 'sunset', label: 'Sunset', colors: ['#F97316', '#EC4899', '#7C3AED'] },
+      { id: 'premium', label: 'Premium', colors: ['#111827', '#4338CA', '#7C3AED'] },
+      { id: 'fresh', label: 'Fresh', colors: ['#14B8A6', '#22C55E', '#84CC16'] }
+    ],
     LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
     GENDERS: [{ id: 'male', label: 'Male' }, { id: 'female', label: 'Female' }, { id: 'other', label: 'Other' }],
     CATEGORIES: [
