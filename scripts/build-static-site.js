@@ -15,10 +15,10 @@ const files = [
   'logo.webp',
   'logo2.png',
   '_headers',
-  'package.json'
+  'package.json',
+  '.openai/hosting.json'
 ];
 const dirs = [
-  '.openai',
   'web',
   'locales',
   'legal'

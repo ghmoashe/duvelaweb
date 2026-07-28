@@ -25,6 +25,9 @@
 
     async function loadConversations() {
       try {
+        // Register this web user's E2EE identity up front so canEncrypt() can
+        // reliably tell "web user" (has identity) from "mobile-only" (none).
+        if (e2ee && ctx.user && ctx.user.id) { e2ee.identity(supa, ctx.user.id).catch(() => {}); }
         const { data: mine, error: mineError } = await supa.from('chat_participants')
           .select('conversation_id,last_read_at,is_pinned,is_archived,is_blocked').eq('user_id', ctx.user.id);
         if (mineError) throw mineError;
@@ -197,7 +200,8 @@
       const name = window.prompt(tr('Enter the chat name:', 'Введите название чата:') + '\n' + names.map((item) => item.name).join(', '));
       const target = names.find((item) => item.name.toLowerCase() === String(name || '').trim().toLowerCase());
       if (!target) return;
-      const body = await e2ee.encryptText(supa, ctx.user.id, target.id, message.body);
+      const canEnc = await e2ee.canEncrypt(supa, target.id);
+      const body = canEnc ? await e2ee.encryptText(supa, ctx.user.id, target.id, message.body) : message.body;
       const result = await supa.from('chat_messages').insert({ conversation_id: target.id, sender_id: ctx.user.id, body, forwarded_from_id: message.id });
       if (result.error) alert(result.error.message);
       else void supa.functions.invoke('notify-chat-message', { body: { conversationId: target.id } }).catch(() => {});
@@ -222,12 +226,22 @@
       if (!file || !state.activeConversationId) return;
       if (file.size > 20 * 1024 * 1024) return alert(tr('Maximum file size is 20 MB.', 'Максимальный размер файла — 20 МБ.'));
       try {
-        const encrypted = await e2ee.encryptBytes(supa, ctx.user.id, state.activeConversationId, await file.arrayBuffer());
+        const canEnc = await e2ee.canEncrypt(supa, state.activeConversationId);
         const path = state.activeConversationId + '/' + crypto.randomUUID() + '.bin';
-        const uploaded = await supa.storage.from('chat-encrypted').upload(path, new Blob([encrypted.cipher]), { contentType: 'application/octet-stream' });
-        if (uploaded.error) throw uploaded.error;
-        const body = await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, '📎 ' + file.name);
-        const result = await supa.from('chat_messages').insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body, attachment_path: path, attachment_name: file.name, attachment_type: file.type, attachment_iv: encrypted.iv });
+        let attachmentIv = null;
+        if (canEnc) {
+          const encrypted = await e2ee.encryptBytes(supa, ctx.user.id, state.activeConversationId, await file.arrayBuffer());
+          const uploaded = await supa.storage.from('chat-encrypted').upload(path, new Blob([encrypted.cipher]), { contentType: 'application/octet-stream' });
+          if (uploaded.error) throw uploaded.error;
+          attachmentIv = encrypted.iv;
+        } else {
+          // Cross-platform chat: store the file unencrypted so mobile could read it too.
+          const uploaded = await supa.storage.from('chat-encrypted').upload(path, file, { contentType: file.type || 'application/octet-stream' });
+          if (uploaded.error) throw uploaded.error;
+        }
+        const caption = '📎 ' + file.name;
+        const body = canEnc ? await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, caption) : caption;
+        const result = await supa.from('chat_messages').insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body, attachment_path: path, attachment_name: file.name, attachment_type: file.type, attachment_iv: attachmentIv });
         if (result.error) throw result.error;
         void supa.functions.invoke('notify-chat-message', { body: { conversationId: state.activeConversationId } }).catch(() => {});
       } catch (error) { alert(error.message || tr('Could not send the file.', 'Не удалось отправить файл.')); }
@@ -237,8 +251,11 @@
       try {
         const downloaded = await supa.storage.from('chat-encrypted').download(message.attachment_path);
         if (downloaded.error) throw downloaded.error;
-        const plain = await e2ee.decryptBytes(supa, ctx.user.id, message.conversation_id, await downloaded.data.arrayBuffer(), message.attachment_iv);
-        const url = URL.createObjectURL(new Blob([plain], { type: message.attachment_type || 'application/octet-stream' }));
+        // No iv => the file was stored unencrypted (cross-platform chat).
+        const bytes = message.attachment_iv
+          ? await e2ee.decryptBytes(supa, ctx.user.id, message.conversation_id, await downloaded.data.arrayBuffer(), message.attachment_iv)
+          : await downloaded.data.arrayBuffer();
+        const url = URL.createObjectURL(new Blob([bytes], { type: message.attachment_type || 'application/octet-stream' }));
         const link = document.createElement('a'); link.href = url; link.download = message.attachment_name || 'attachment'; link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } catch (error) { alert(error.message || tr('Could not decrypt the file.', 'Не удалось расшифровать файл.')); }
@@ -422,7 +439,8 @@
         // supabase-js resolves with { data, error } instead of throwing, so the
         // error MUST be checked explicitly — otherwise a rejected insert looks
         // like a successful send that silently vanishes.
-        const encryptedBody = await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, text);
+        const canEnc = await e2ee.canEncrypt(supa, state.activeConversationId);
+        const encryptedBody = canEnc ? await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, text) : text;
         const result = await supa.from('chat_messages')
           .insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body: encryptedBody, reply_to_id: replyTo && replyTo.id })
           .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv')

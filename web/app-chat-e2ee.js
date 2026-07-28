@@ -83,5 +83,23 @@
     return crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(iv) }, key, cipher);
   }
 
-  window.DuvelaChatE2EE = { identity, conversationKey, encryptText, decryptText, encryptBytes, decryptBytes };
+  // Interop gate: a conversation is only encrypted when EVERY participant has a
+  // web E2EE identity (i.e. everyone uses the web app). If any participant is
+  // mobile-only (no identity), the web sends plaintext so the mobile apps —
+  // which store/read chat bodies in the clear — can read it. Pure web↔web chats
+  // stay end-to-end encrypted.
+  async function canEncrypt(supa, conversationId) {
+    try {
+      const membersResult = await supa.from('chat_participants').select('user_id').eq('conversation_id', conversationId);
+      const memberIds = (membersResult.data || []).map((row) => row.user_id);
+      if (!memberIds.length) return false;
+      const identities = await supa.from('chat_e2ee_identities').select('user_id').in('user_id', memberIds);
+      const known = new Set((identities.data || []).map((row) => row.user_id));
+      return memberIds.every((id) => known.has(id));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  window.DuvelaChatE2EE = { identity, conversationKey, encryptText, decryptText, encryptBytes, decryptBytes, canEncrypt };
 })();

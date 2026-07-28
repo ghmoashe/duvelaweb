@@ -42,6 +42,20 @@
 
     async function safe(p) { try { const r = await p; return (r && r.error) ? null : r; } catch (e) { return null; } }
 
+    function coverPresetStyle(value) {
+      const presets = {
+        duvela: ['#7C3AED', '#A855F7', '#22C1DC'],
+        ocean: ['#0EA5E9', '#2563EB', '#312E81'],
+        sunset: ['#F97316', '#EC4899', '#7C3AED'],
+        premium: ['#111827', '#4338CA', '#7C3AED'],
+        fresh: ['#14B8A6', '#22C55E', '#84CC16']
+      };
+      const raw = String(value || '').trim();
+      if (raw.indexOf('preset:') !== 0) return '';
+      const colors = presets[raw.slice(7)] || presets.duvela;
+      return 'background:linear-gradient(135deg,' + colors.join(',') + ');';
+    }
+
     async function loadStats(uid) {
       const ev = await safe(supa.from('events').select('id', { count: 'exact', head: true }).eq('organizer_id', uid));
       const rev = await safe(supa.from('teacher_reviews').select('rating').eq('teacher_id', uid));
@@ -148,9 +162,10 @@
         ['linkedin', p.linkedin], ['youtube', p.youtube], ['telegram', p.telegram], ['website', p.website]
       ].filter(function (s) { return String(s[1] || '').trim(); });
 
-      const cover = p.cover_url
+      const presetCover = coverPresetStyle(p.cover_url);
+      const cover = presetCover || (p.cover_url
         ? 'background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25)),url(' + esc(p.cover_url) + ');background-size:cover;background-position:center;'
-        : 'background:linear-gradient(135deg,#12B886,#37D89E);';
+        : 'background:linear-gradient(135deg,#12B886,#37D89E);');
       let html = '<div class="pv-cover" style="' + cover + '">' +
         (p.is_verified ? '<span class="pv-certified">' + esc(tr('Certified Teacher', 'Сертифицированный учитель')) + '</span>' : '') +
         '<button type="button" class="pv-cover-cam" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Изменить обложку')) + '">' + IC.cam + '</button>' +

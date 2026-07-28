@@ -1,0 +1,1 @@
+(function(){function remove(){const input=document.querySelector('[name="ageConfirmed"]');if(input){const label=input.closest('label');if(label)label.remove();}}new MutationObserver(remove).observe(document.documentElement,{subtree:true,childList:true});})();

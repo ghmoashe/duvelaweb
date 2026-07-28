@@ -9,6 +9,7 @@
   const staticUiApi = window.DuvelaAppStaticUi;
   const publicDataApi = window.DuvelaAppPublicData;
   const profileWritesApi = window.DuvelaWebProfileWrites;
+  const onboardingApi = window.DuvelaAppOnboarding;
   const localeCatalog = window.DUVELA_WEB_I18N;
   const ROLE_KEY = config.storageKeys.role;
   const LANG_KEY = config.storageKeys.lang;
@@ -486,6 +487,7 @@
     practiceFeature,
     gamesFeature,
     messagingFeature,
+    onboarding: onboardingApi ? onboardingApi.create({ $, supa, session: sessionState, getUser: () => user, getProfile: () => profile, setProfile: (value) => { profile = value; }, uploadToBucket, renderAll }) : null,
     addBuilderItem,
     addClassStudent,
     addLesson,
