@@ -12,14 +12,14 @@
       learner: ['Learner', 'Learn at your own pace', 'Goal, language and level — Duvela picks the right start.'],
       teacher: ['Teacher', 'Create lessons and guide students', 'Tell us your speciality so your workspace is ready.'],
       organizer: ['Organizer', 'Run events', 'Set up your organizer profile to launch events and practice.'],
-      organization: ['Organization', 'Build a learning team', 'Create your organization card and team workspace.']
+      organization: ['Organization', 'Manage learning programs', 'Create your organization profile, directions and programs.']
     };
     var icon = { learner: '\uD83C\uDF92', teacher: '\u270F\uFE0F', organizer: '\uD83D\uDCC5', organization: '\uD83C\uDFE2' };
     var roleBenefits = {
       learner: ['Learn', 'Practice', 'Join live'],
       teacher: ['Teach', 'Earn', 'Build profile'],
       organizer: ['Host events', 'Build community', 'Manage attendees'],
-      organization: ['Team workspace', 'Courses/events', 'Members']
+      organization: ['Organization profile', 'Courses/events', 'Contacts']
     };
     var roleSummary = {
       learner: {
@@ -38,9 +38,9 @@
         best: ['Event type', 'Audience and location', 'Capacity and schedule']
       },
       organization: {
-        title: 'Organization workspace',
-        body: 'Best for schools, academies, companies and teams that manage learning together.',
-        best: ['Business profile', 'Team setup', 'Members and contacts']
+        title: 'Organization profile',
+        body: 'Best for schools, academies, companies and communities that offer learning programs.',
+        best: ['Business profile', 'Learning directions', 'Contacts']
       }
     };
 
@@ -279,8 +279,7 @@
         labelInput('contactEmail', 'Contact email', state.contactEmail, { type: 'email', placeholder: 'contact@example.com' }) +
         labelInput('contactPhone', 'Contact phone', state.contactPhone, { type: 'tel', placeholder: '+49...' }) +
         '</div>' +
-        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' }) +
-        labelInput('inviteEmails', 'Invite team members', state.inviteEmails, { wide: true, placeholder: 'Emails separated by comma. For example: admin@example.com, teacher@example.com' });
+        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' });
     }
 
     // Horizontal flag-scroll of languages (kind = learnLanguages | teachLanguages).
@@ -482,7 +481,6 @@
         (role === 'organizer' && organizerContact.length ? '<div class="ob-preview-section"><b>Contact / social</b><div>' + selectedItemsSummary(organizerContact) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.specialization].concat(state.organizationAudience, state.programFormat).filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Verification status</b><div>' + selectedItemsSummary([verificationStatus]) + '</div></div>' : '') +
-        (role === 'organization' && state.inviteEmails.trim() ? '<div class="ob-preview-section"><b>Team invites</b><div>' + selectedItemsSummary(state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' && state.organizationLanguages.length ? '<div class="ob-preview-section"><b>Languages / markets</b><div>' + selectedItemsSummary(state.organizationLanguages) + '</div></div>' : '') +
         (role === 'organization' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Business contacts</b><div>' + selectedItemsSummary([state.website, state.email, state.phone, state.contactName, state.contactEmail].filter(Boolean)) + '</div></div>' : '') +
@@ -494,7 +492,7 @@
     function stepOneHtml() {
       var summary = roleSummary[role] || roleSummary.learner;
       var next = role === 'organization'
-        ? ['Business details', 'Team setup', 'Preview and save']
+        ? ['Business details', 'Learning directions', 'Preview and save']
         : role === 'organizer'
           ? ['Profile details', 'Event setup', 'Preview and save']
           : role === 'teacher'
