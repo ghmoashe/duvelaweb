@@ -260,9 +260,8 @@
           '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
           '<div id="ob-subcats">' + subcatHtml() + '</div>' +
         '</div>' +
-        ((state.category || 'languages') === 'languages' ?
-          '<label class="wide">Languages / markets<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
-          langScroll('organizationLanguages', state.organizationLanguages) : '') +
+        '<label class="wide">Languages / markets<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
+        langScroll('organizationLanguages', state.organizationLanguages) +
         '<label class="wide">Audience<small style="font-weight:600;color:var(--muted)">Choose all that apply</small></label>' +
         organizationAudienceCardsHtml() +
         '<label class="wide">Program format<small style="font-weight:600;color:var(--muted)">Choose all that apply</small></label>' +
@@ -443,16 +442,13 @@
 
     function organizationSelectedSummaryHtml() {
       var items = [];
-      var includesLanguages = (state.category || 'languages') === 'languages';
       items.push('Category: ' + categoryLabel(state.category || 'languages'));
       state.subcategories.forEach(function (x) { items.push('Focus: ' + x); });
-      if (includesLanguages) {
-        state.organizationLanguages.forEach(function (x) { items.push('Market: ' + x); });
-      }
+      state.organizationLanguages.forEach(function (x) { items.push('Market: ' + x); });
       state.organizationAudience.forEach(function (x) { items.push('Audience: ' + x); });
       state.programFormat.forEach(function (x) { items.push('Format: ' + x); });
       return '<section class="ob-selected-panel"><div class="ob-selection-head"><span>Selected directions</span><b>' + Math.max(0, items.length - 1) + ' selected</b></div><div>' +
-        (items.length > 1 ? selectedItemsSummary(items) : '<span class="muted">Choose focus areas' + (includesLanguages ? ', languages / markets' : '') + ', audience and format — selected items will appear here.</span>') +
+        (items.length > 1 ? selectedItemsSummary(items) : '<span class="muted">Choose focus areas, languages / markets, audience and format — selected items will appear here.</span>') +
       '</div></section>';
     }
 
@@ -577,7 +573,7 @@
           if (state.category !== 'languages') {
             state.learnLanguages = [];
             state.teachLanguages = [];
-            state.organizationLanguages = [];
+            if (role !== 'organization') state.organizationLanguages = [];
             state.languageLevels = {};
           }
           render();
