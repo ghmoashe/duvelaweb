@@ -60,8 +60,8 @@
       rate: '', availability: '', audience: '', eventType: '', verification: '',
       instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', telegram: '',
       organizerType: '', locationMode: '', frequency: '', capacity: '', eventLanguages: [],
-      organizationLanguages: [], organizationAudience: [], workspaceGoal: '', programFormat: [],
-      departments: '', branches: '', inviteEmails: ''
+      organizationLanguages: [], organizationAudience: [], programFormat: [],
+      branches: '', inviteEmails: ''
     };
     var form = $('#onboardingForm');
 
@@ -249,12 +249,10 @@
         '<label class="wide">Organization type<small style="font-weight:600;color:var(--muted)">Choose your workspace type</small></label>' +
         orgTypeCardsHtml() +
         '<div class="ob-extra-grid">' +
-        labelInput('teamSize', 'Team size', state.teamSize, { type: 'number', attr: 'min="1"', placeholder: 'For example: 12' }) +
-        labelInput('workspaceGoal', 'Workspace goal', state.workspaceGoal, { placeholder: 'For example: train employees, run courses, manage tutors' }) +
-        labelInput('departments', 'Departments', state.departments, { placeholder: 'For example: HR, Sales, Teachers, Admin' }) +
         labelInput('branches', 'Branches / locations', state.branches, { placeholder: 'For example: Berlin, Hamburg, Online' }) +
         '</div>' +
         labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description for learners, teachers and partners' }) +
+        '<div id="ob-org-selected" class="wide">' + organizationSelectedSummaryHtml() + '</div>' +
         '<label class="wide">Learning / business category<small style="font-weight:600;color:var(--muted)">Choose the main direction</small></label>' +
         categoryCardsHtml('category', state.category) +
         '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
@@ -436,13 +434,30 @@
       });
     }
 
+    function categoryLabel(id) {
+      var found = (D.CATEGORIES || []).filter(function (it) { return it.id === id; })[0];
+      return found ? found.label : (id || 'Languages');
+    }
+
+    function organizationSelectedSummaryHtml() {
+      var items = [];
+      items.push('Category: ' + categoryLabel(state.category || 'languages'));
+      state.subcategories.forEach(function (x) { items.push('Focus: ' + x); });
+      state.organizationLanguages.forEach(function (x) { items.push('Market: ' + x); });
+      state.organizationAudience.forEach(function (x) { items.push('Audience: ' + x); });
+      state.programFormat.forEach(function (x) { items.push('Format: ' + x); });
+      return '<section class="ob-selected-panel"><div class="ob-selection-head"><span>Selected directions</span><b>' + Math.max(0, items.length - 1) + ' selected</b></div><div>' +
+        (items.length > 1 ? selectedItemsSummary(items) : '<span class="muted">Choose focus areas, languages / markets, audience and format — selected items will appear here.</span>') +
+      '</div></section>';
+    }
+
     function profilePreviewHtml() {
       var name = role === 'organization' ? state.orgName : [state.firstName, state.lastName].filter(Boolean).join(' ');
       var category = (D.CATEGORIES || []).filter(function (c) { return c.id === (state.category || 'languages'); })[0];
       var categoryTitle = role === 'organization' ? 'Organization type' : (role === 'organizer' ? 'Event direction' : 'Category');
       var categoryValue = role === 'organization' ? (state.orgType || 'Not set') : (category ? category.label : 'Languages');
       var goalTitle = role === 'organization' ? 'Description' : (role === 'organizer' ? 'Event type' : 'Goal');
-      var goalValue = role === 'organization' ? (state.workspaceGoal || state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set'));
+      var goalValue = role === 'organization' ? (state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set'));
       var socialItems = [state.instagram, state.tiktok, state.facebook, state.linkedin, state.youtube, state.telegram].filter(Boolean);
       var organizerContact = [state.website, state.email, state.instagram, state.tiktok, state.telegram].filter(Boolean);
       var verificationStatus = role === 'organization' ? (state.verification.trim() ? 'Pending verification' : 'Not verified yet') : '';
@@ -456,7 +471,7 @@
           '<div><b>Role</b><p>' + esc((copy[role] || copy.learner)[0]) + '</p></div>' +
           '<div><b>' + esc(categoryTitle) + '</b><p>' + esc(categoryValue) + '</p></div>' +
           '<div><b>' + esc(goalTitle) + '</b><p>' + esc(goalValue) + '</p></div>' +
-          '<div><b>' + esc(role === 'organization' ? 'Team size' : 'Native language') + '</b><p>' + esc(role === 'organization' ? (state.teamSize || 'Not set') : (state.nativeLanguage || 'Not set')) + '</p></div>' +
+          '<div><b>' + esc(role === 'organization' ? 'Branches' : 'Native language') + '</b><p>' + esc(role === 'organization' ? (state.branches || 'Not set') : (state.nativeLanguage || 'Not set')) + '</p></div>' +
         '</div>' +
         (role === 'learner' ? '<div class="ob-preview-section"><b>Selected languages and levels</b><div>' + selectedLanguageSummary(state.learnLanguages) + '</div></div>' : '') +
         (role === 'teacher' && state.teachLanguages.length ? '<div class="ob-preview-section"><b>Languages you teach</b><div>' + selectedItemsSummary(state.teachLanguages) + '</div></div>' : '') +
@@ -464,8 +479,8 @@
         (role === 'organizer' ? '<div class="ob-preview-section"><b>Organizer setup</b><div>' + selectedItemsSummary([state.organizerType, state.locationMode, state.audience, state.frequency, state.capacity ? ('Capacity ' + state.capacity) : ''].filter(Boolean)) + '</div></div>' : '') +
         (role === 'organizer' && state.eventLanguages.length ? '<div class="ob-preview-section"><b>Event languages</b><div>' + selectedItemsSummary(state.eventLanguages) + '</div></div>' : '') +
         (role === 'organizer' && organizerContact.length ? '<div class="ob-preview-section"><b>Contact / social</b><div>' + selectedItemsSummary(organizerContact) + '</div></div>' : '') +
-        (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.workspaceGoal].concat(state.organizationAudience, state.programFormat).filter(Boolean)) + '</div></div>' : '') +
-        (role === 'organization' ? '<div class="ob-preview-section"><b>Departments / branches</b><div>' + selectedItemsSummary([state.departments, state.branches].filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.specialization].concat(state.organizationAudience, state.programFormat).filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Branches</b><div>' + selectedItemsSummary([state.branches].filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Verification status</b><div>' + selectedItemsSummary([verificationStatus]) + '</div></div>' : '') +
         (role === 'organization' && state.inviteEmails.trim() ? '<div class="ob-preview-section"><b>Team invites</b><div>' + selectedItemsSummary(state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' && state.organizationLanguages.length ? '<div class="ob-preview-section"><b>Languages / markets</b><div>' + selectedItemsSummary(state.organizationLanguages) + '</div></div>' : '') +
@@ -639,7 +654,14 @@
       if (group) group.querySelectorAll('[data-chip]').forEach(function (b) {
         b.classList.toggle('active', arr.indexOf(b.dataset.value) !== -1);
       });
-      if (kind === 'subcategories') { var count = $('#ob-subcat-count'); if (count) count.textContent = state.subcategories.length + '/3 selected'; }
+      if (kind === 'subcategories') {
+        var count = $('#ob-subcat-count');
+        if (count) count.textContent = role === 'organization' ? (state.subcategories.length + ' selected') : (state.subcategories.length + '/3 selected');
+      }
+      if (role === 'organization' && (kind === 'subcategories' || kind === 'organizationLanguages')) {
+        var selectedBox = $('#ob-org-selected');
+        if (selectedBox) selectedBox.innerHTML = organizationSelectedSummaryHtml();
+      }
       if (kind === 'learnLanguages') { var box = $('#ob-lang-levels'); if (box) { box.innerHTML = languageLevelsHtml(); form.querySelectorAll('[data-lang-level]').forEach(function (sel) { sel.onchange = function () { state.languageLevels[sel.dataset.langLevel] = sel.value; }; }); } }
     }
 
@@ -669,7 +691,7 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'capacity', 'organizerType', 'locationMode', 'frequency', 'workspaceGoal', 'departments', 'branches', 'inviteEmails', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'capacity', 'organizerType', 'locationMode', 'frequency', 'branches', 'inviteEmails', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
@@ -718,7 +740,6 @@
       if (step === 3 && role === 'organization') {
         if (!state.orgType) return { message: 'Choose your organization type.', target: 'orgType' };
         if (!state.specialization.trim()) return { message: 'Write what your organization does.', target: 'specialization' };
-        if (!state.workspaceGoal.trim()) return { message: 'Write your workspace goal.', target: 'workspaceGoal' };
         if (!state.organizationAudience.length) return { message: 'Choose your audience.', target: 'organizationAudience' };
         if (!state.programFormat.length) return { message: 'Choose your program format.', target: 'programFormat' };
       }
@@ -799,7 +820,7 @@
         }];
       }
       if (role === 'organization') {
-        patch.specialization = [state.specialization, state.orgType, state.workspaceGoal].concat(state.organizationAudience, state.programFormat, [state.departments ? ('Departments: ' + state.departments) : '', state.branches ? ('Branches: ' + state.branches) : '', state.teamSize ? ('Team size: ' + state.teamSize) : '', state.verification]).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+        patch.specialization = [state.specialization, state.orgType].concat(state.organizationAudience, state.programFormat, [state.branches ? ('Branches: ' + state.branches) : '', state.verification]).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
         patch.profile_interests = state.interests.slice();
         patch.instagram = state.instagram.trim() || null;
         patch.linkedin = state.linkedin.trim() || null;
@@ -810,13 +831,10 @@
           subcategories: state.subcategories.slice(),
           languages: state.organizationLanguages.slice(),
           organization_type: state.orgType || null,
-          workspace_goal: state.workspaceGoal.trim() || null,
           audience: state.organizationAudience.slice(),
           format: state.programFormat.slice(),
-          departments: state.departments.trim() || null,
           branches: state.branches.trim() || null,
           invite_emails: state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
-          team_size: state.teamSize ? Number(state.teamSize) : null,
           verification_status: state.verification.trim() ? 'pending' : 'not_verified',
           verification: state.verification.trim() || null
         }];
@@ -856,20 +874,14 @@
         contact_phone: state.contactPhone.trim() || null,
         contact_position: state.contactPosition.trim() || null,
         country: state.country.trim() || null,
-        description: [state.specialization, state.workspaceGoal].concat(state.organizationAudience, state.programFormat, [state.departments, state.branches]).map(function (x) { return String(x || '').trim(); }).filter(Boolean).join(' · ') || state.bio.trim() || null,
+        description: [state.specialization].concat(state.organizationAudience, state.programFormat, [state.branches]).map(function (x) { return String(x || '').trim(); }).filter(Boolean).join(' · ') || state.bio.trim() || null,
         name: name,
         owner_id: userId,
         public_email: state.email.trim() || userEmail || null,
         public_phone: state.phone.trim() || null,
         type: state.orgType || null,
-        website_url: state.website.trim() || null,
-        team_size: state.teamSize ? Number(state.teamSize) : null
+        website_url: state.website.trim() || null
       };
-      function withoutOptionalOrgColumns(obj) {
-        var copy = Object.assign({}, obj);
-        delete copy.team_size;
-        return copy;
-      }
       var existing = await supa.from('organizations')
         .select('id')
         .eq('owner_id', userId)
@@ -879,21 +891,12 @@
       var orgId = existing.data && existing.data.id;
       if (orgId) {
         var update = await supa.from('organizations').update(payload).eq('id', orgId);
-        if (update.error && /team_size|schema cache|column/i.test(update.error.message || '')) {
-          update = await supa.from('organizations').update(withoutOptionalOrgColumns(payload)).eq('id', orgId);
-        }
         if (update.error) throw update.error;
       } else {
         var insert = await supa.from('organizations')
           .insert(Object.assign({}, payload, { slug: buildOrgSlug(name) }))
           .select('id')
           .single();
-        if (insert.error && /team_size|schema cache|column/i.test(insert.error.message || '')) {
-          insert = await supa.from('organizations')
-            .insert(Object.assign({}, withoutOptionalOrgColumns(payload), { slug: buildOrgSlug(name) }))
-            .select('id')
-            .single();
-        }
         if (insert.error) throw insert.error;
         orgId = insert.data && insert.data.id;
       }
