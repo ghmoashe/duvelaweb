@@ -152,7 +152,11 @@
         html += selectInput('gender', 'Gender', state.gender, [{ id: '', label: 'Prefer not to say' }].concat(D.GENDERS || []));
       }
       html += '</div>';
-      html += labelInput('bio', 'Short introduction', state.bio, { wide: true, hint: 'A few words about you', placeholder: 'For example: I enjoy learning languages and meeting people from different cultures.' });
+      if (role === 'organization') {
+        html += labelInput('bio', 'Organization description', state.bio, { wide: true, hint: 'A few words about your organization', placeholder: 'For example: We run language courses, workshops and community learning programs.' });
+      } else {
+        html += labelInput('bio', 'Short introduction', state.bio, { wide: true, hint: 'A few words about you', placeholder: 'For example: I enjoy learning languages and meeting people from different cultures.' });
+      }
       return html + '<div id="ob-autocomplete" class="ob-autocomplete" hidden></div>';
     }
 
