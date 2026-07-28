@@ -12,14 +12,14 @@
       learner: ['Learner', 'Learn at your own pace', 'Goal, language and level — Duvela picks the right start.'],
       teacher: ['Teacher', 'Create lessons and guide students', 'Tell us your speciality so your workspace is ready.'],
       organizer: ['Organizer', 'Run events', 'Set up your organizer profile to launch events and practice.'],
-      organization: ['Organization', 'Build a learning team', 'Create your organization card and team workspace.']
+      organization: ['Organization', 'Manage learning programs', 'Create your organization profile, directions and programs.']
     };
     var icon = { learner: '\uD83C\uDF92', teacher: '\u270F\uFE0F', organizer: '\uD83D\uDCC5', organization: '\uD83C\uDFE2' };
     var roleBenefits = {
       learner: ['Learn', 'Practice', 'Join live'],
       teacher: ['Teach', 'Earn', 'Build profile'],
       organizer: ['Host events', 'Build community', 'Manage attendees'],
-      organization: ['Team workspace', 'Courses/events', 'Members']
+      organization: ['Organization profile', 'Courses/events', 'Contacts']
     };
     var roleSummary = {
       learner: {
@@ -38,9 +38,9 @@
         best: ['Event type', 'Audience and location', 'Capacity and schedule']
       },
       organization: {
-        title: 'Organization workspace',
-        body: 'Best for schools, academies, companies and teams that manage learning together.',
-        best: ['Business profile', 'Team setup', 'Members and contacts']
+        title: 'Organization profile',
+        body: 'Best for schools, academies, companies and communities that offer learning programs.',
+        best: ['Business profile', 'Learning directions', 'Contacts']
       }
     };
 
@@ -54,14 +54,14 @@
       nativeLanguage: '', goal: '', level: 'A1', category: '', subcategories: [],
       learnLanguages: [], languageLevels: {}, interests: [],
       specialization: '', experience: '', teachLanguages: [], qualifications: '',
-      format: '', website: '', orgType: '', teamSize: '', dob: '', avatarFile: null, coverFile: null, avatarName: '',
+      format: '', website: '', orgType: '', dob: '', avatarFile: null, coverFile: null, avatarName: '',
       avatarPreview: '', coverPreview: '', coverPosition: 'center', coverPreset: 'duvela',
       email: '', phone: '', contactName: '', contactEmail: '', contactPhone: '', contactPosition: '',
       rate: '', availability: '', audience: '', eventType: '', verification: '',
       instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', telegram: '',
       organizerType: '', locationMode: '', frequency: '', capacity: '', eventLanguages: [],
-      organizationLanguages: [], organizationAudience: [], programFormat: [],
-      inviteEmails: ''
+      organizationCategories: ['languages'], organizationSubcategories: { languages: [] },
+      organizationLanguages: [], organizationAudience: [], programFormat: []
     };
     var form = $('#onboardingForm');
 
@@ -249,15 +249,16 @@
         '<label class="wide">Interests</label>' + chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; });
       }
       // organization
+      var activeOrganizationCategory = organizationActiveCategory();
       return '<div class="ob-extra-title">Organization setup</div>' +
         '<label class="wide">Organization type<small style="font-weight:600;color:var(--muted)">Choose your workspace type</small></label>' +
         orgTypeCardsHtml() +
         labelInput('specialization', 'What does your organization do?', state.specialization, { wide: true, placeholder: 'Short description for learners, teachers and partners' }) +
         '<div id="ob-org-selected" class="wide">' + organizationSelectedSummaryHtml() + '</div>' +
-        '<label class="wide">Learning / business category<small style="font-weight:600;color:var(--muted)">Choose the main direction</small></label>' +
-        categoryCardsHtml('category', state.category) +
-        '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
-          '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
+        '<label class="wide">Learning / business categories<small style="font-weight:600;color:var(--muted)">Choose one or more directions. Selected categories stay saved.</small></label>' +
+        categoryCardsHtml('category', state.organizationCategories, activeOrganizationCategory) +
+        '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[activeOrganizationCategory] ? '' : ' hidden') + '>' +
+          '<label class="wide">Focus areas for ' + esc(categoryLabel(activeOrganizationCategory)) + '<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
           '<div id="ob-subcats">' + subcatHtml() + '</div>' +
         '</div>' +
         '<label class="wide">Languages / markets<small style="font-weight:600;color:var(--muted)">Optional — choose as many as needed</small></label>' +
@@ -279,8 +280,7 @@
         labelInput('contactEmail', 'Contact email', state.contactEmail, { type: 'email', placeholder: 'contact@example.com' }) +
         labelInput('contactPhone', 'Contact phone', state.contactPhone, { type: 'tel', placeholder: '+49...' }) +
         '</div>' +
-        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' }) +
-        labelInput('inviteEmails', 'Invite team members', state.inviteEmails, { wide: true, placeholder: 'Emails separated by comma. For example: admin@example.com, teacher@example.com' });
+        labelInput('verification', 'Business verification', state.verification, { wide: true, placeholder: 'Registration number, website, public profile, documents later' });
     }
 
     // Horizontal flag-scroll of languages (kind = learnLanguages | teachLanguages).
@@ -298,11 +298,12 @@
       }).join('') + '</div>';
     }
 
-    function categoryCardsHtml(kind, selected) {
+    function categoryCardsHtml(kind, selected, current) {
       return '<div class="ob-category-grid wide" data-category-group="' + kind + '">' + (D.CATEGORIES || []).map(function (it) {
-        var on = selected === it.id || (!selected && it.id === 'languages');
+        var on = Array.isArray(selected) ? selected.indexOf(it.id) !== -1 : (selected === it.id || (!selected && it.id === 'languages'));
+        var editing = Array.isArray(selected) && current === it.id;
         var iconText = categoryIcons[it.id] || '*';
-        return '<button type="button" class="ob-category-card' + (on ? ' active' : '') + '" data-category-card="' + esc(it.id) + '"><span>' + esc(iconText) + '</span><b>' + esc(it.label) + '</b></button>';
+        return '<button type="button" class="ob-category-card' + (on ? ' active' : '') + (editing ? ' editing' : '') + '" data-category-card="' + esc(it.id) + '"><span>' + esc(iconText) + '</span><b>' + esc(it.label) + '</b>' + (editing ? '<small>Editing focus areas</small>' : '') + '</button>';
       }).join('') + '</div>';
     }
 
@@ -398,7 +399,8 @@
     }
 
     function subcatHtml() {
-      var subs = (D.SUBCATEGORIES || {})[state.category];
+      var category = role === 'organization' ? organizationActiveCategory() : state.category;
+      var subs = (D.SUBCATEGORIES || {})[category];
       if (!subs) return '';
       var counter = role === 'organization' ? (state.subcategories.length + ' selected') : (state.subcategories.length + '/3 selected');
       return '<div class="ob-selection-head"><span>Focus areas</span><b id="ob-subcat-count">' + counter + '</b></div>' + chipList('subcategories', subs, state.subcategories, function (item) { return (subcategoryIcons[item] || '✦') + ' ' + item; }) + '<button type="button" class="ob-clear-selection" data-clear-selection="subcategories">Clear selection</button>';
@@ -440,16 +442,48 @@
       return found ? found.label : (id || 'Languages');
     }
 
-    function organizationSelectedSummaryHtml() {
+    function organizationActiveCategory() {
+      var selected = state.organizationCategories.length ? state.organizationCategories : ['languages'];
+      return selected.indexOf(state.category) !== -1 ? state.category : selected[0];
+    }
+
+    function saveActiveOrganizationFocusAreas() {
+      var category = organizationActiveCategory();
+      state.organizationSubcategories[category] = state.subcategories.slice();
+    }
+
+    function organizationFocusItems() {
+      saveActiveOrganizationFocusAreas();
       var items = [];
-      items.push('Category: ' + categoryLabel(state.category || 'languages'));
-      state.subcategories.forEach(function (x) { items.push('Focus: ' + x); });
+      state.organizationCategories.forEach(function (category) {
+        (state.organizationSubcategories[category] || []).forEach(function (focus) {
+          items.push(categoryLabel(category) + ': ' + focus);
+        });
+      });
+      return items;
+    }
+
+    function organizationCategoryPillsHtml() {
+      var canRemove = state.organizationCategories.length > 1;
+      return state.organizationCategories.map(function (category) {
+        return '<button type="button" class="ob-preview-pill ob-removable-pill" data-remove-organization-category="' + esc(category) + '"' + (canRemove ? '' : ' disabled aria-disabled="true"') + '>' +
+          esc(categoryLabel(category)) + (canRemove ? '<span aria-hidden="true">×</span>' : '') +
+        '</button>';
+      }).join('');
+    }
+
+    function organizationSelectedSummaryHtml() {
+      var focusItems = organizationFocusItems();
+      var items = [];
+      focusItems.forEach(function (x) { items.push('Focus: ' + x); });
       state.organizationLanguages.forEach(function (x) { items.push('Market: ' + x); });
       state.organizationAudience.forEach(function (x) { items.push('Audience: ' + x); });
       state.programFormat.forEach(function (x) { items.push('Format: ' + x); });
-      return '<section class="ob-selected-panel"><div class="ob-selection-head"><span>Selected directions</span><b>' + Math.max(0, items.length - 1) + ' selected</b></div><div>' +
-        (items.length > 1 ? selectedItemsSummary(items) : '<span class="muted">Choose focus areas, languages / markets, audience and format — selected items will appear here.</span>') +
-      '</div></section>';
+      var total = state.organizationCategories.length + items.length;
+      return '<section class="ob-selected-panel"><div class="ob-selection-head"><span>Selected directions</span><b>' + total + ' selected</b></div>' +
+        '<div class="ob-selected-categories">' + organizationCategoryPillsHtml() + '</div>' +
+        '<div>' + (items.length ? selectedItemsSummary(items) : '<span class="muted">Add focus areas, languages / markets, audience and format. Click a category below to edit its focus areas.</span>') + '</div>' +
+      '</section>';
     }
 
     function profilePreviewHtml() {
@@ -461,6 +495,8 @@
       var goalValue = role === 'organization' ? (state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set'));
       var socialItems = [state.instagram, state.tiktok, state.facebook, state.linkedin, state.youtube, state.telegram].filter(Boolean);
       var organizerContact = [state.website, state.email, state.instagram, state.tiktok, state.telegram].filter(Boolean);
+      var organizationDirections = role === 'organization' ? state.organizationCategories.map(categoryLabel) : [];
+      var organizationFocus = role === 'organization' ? organizationFocusItems() : [];
       var verificationStatus = role === 'organization' ? (state.verification.trim() ? 'Pending verification' : 'Not verified yet') : '';
       var coverStyle = state.coverPreview ? '' : ' style="background:' + esc(gradientCss(coverPresetById(state.coverPreset))) + '"';
       var cover = state.coverPreview ? '<img src="' + esc(state.coverPreview) + '" alt="" style="object-position:center ' + esc(state.coverPosition) + '">' : '';
@@ -481,20 +517,20 @@
         (role === 'organizer' && state.eventLanguages.length ? '<div class="ob-preview-section"><b>Event languages</b><div>' + selectedItemsSummary(state.eventLanguages) + '</div></div>' : '') +
         (role === 'organizer' && organizerContact.length ? '<div class="ob-preview-section"><b>Contact / social</b><div>' + selectedItemsSummary(organizerContact) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Organization setup</b><div>' + selectedItemsSummary([state.specialization].concat(state.organizationAudience, state.programFormat).filter(Boolean)) + '</div></div>' : '') +
+        (role === 'organization' ? '<div class="ob-preview-section"><b>Learning directions</b><div>' + selectedItemsSummary(organizationDirections) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Verification status</b><div>' + selectedItemsSummary([verificationStatus]) + '</div></div>' : '') +
-        (role === 'organization' && state.inviteEmails.trim() ? '<div class="ob-preview-section"><b>Team invites</b><div>' + selectedItemsSummary(state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean)) + '</div></div>' : '') +
         (role === 'organization' && state.organizationLanguages.length ? '<div class="ob-preview-section"><b>Languages / markets</b><div>' + selectedItemsSummary(state.organizationLanguages) + '</div></div>' : '') +
         (role === 'organization' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Business contacts</b><div>' + selectedItemsSummary([state.website, state.email, state.phone, state.contactName, state.contactEmail].filter(Boolean)) + '</div></div>' : '') +
-        '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(state.subcategories) + '</div></div>' +
-        '<div class="ob-preview-section"><b>Interests</b><div>' + selectedItemsSummary(interestLabels()) + '</div></div>' +
+        '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(role === 'organization' ? organizationFocus : state.subcategories) + '</div></div>' +
+        (role !== 'organization' ? '<div class="ob-preview-section"><b>Interests</b><div>' + selectedItemsSummary(interestLabels()) + '</div></div>' : '') +
       '</div>';
     }
 
     function stepOneHtml() {
       var summary = roleSummary[role] || roleSummary.learner;
       var next = role === 'organization'
-        ? ['Business details', 'Team setup', 'Preview and save']
+        ? ['Business details', 'Learning directions', 'Preview and save']
         : role === 'organizer'
           ? ['Profile details', 'Event setup', 'Preview and save']
           : role === 'teacher'
@@ -552,12 +588,37 @@
       host.insertAdjacentHTML('afterend', '<div class="ob-field-error wide">' + esc(message) + '</div>');
     }
 
+    function removeOrganizationCategory(category) {
+      if (state.organizationCategories.length <= 1) return;
+      saveActiveOrganizationFocusAreas();
+      state.organizationCategories = state.organizationCategories.filter(function (item) { return item !== category; });
+      delete state.organizationSubcategories[category];
+      if (state.category === category || state.organizationCategories.indexOf(state.category) === -1) {
+        state.category = state.organizationCategories[0];
+        state.subcategories = (state.organizationSubcategories[state.category] || []).slice();
+      }
+      render();
+    }
+
+    function bindOrganizationSummary() {
+      form.querySelectorAll('[data-remove-organization-category]').forEach(function (btn) {
+        btn.onclick = function () { removeOrganizationCategory(btn.dataset.removeOrganizationCategory); };
+      });
+    }
+
     function bindStep() {
       // chips
       form.querySelectorAll('[data-chip]').forEach(function (btn) {
         btn.onclick = function () { toggleChip(btn.dataset.chip, btn.dataset.value); };
       });
-      form.querySelectorAll('[data-clear-selection]').forEach(function (btn) { btn.onclick = function () { state.subcategories = []; render(); }; });
+      form.querySelectorAll('[data-clear-selection]').forEach(function (btn) {
+        btn.onclick = function () {
+          state.subcategories = [];
+          if (role === 'organization') saveActiveOrganizationFocusAreas();
+          render();
+        };
+      });
+      bindOrganizationSummary();
       form.querySelectorAll('[data-cover-preset]').forEach(function (btn) {
         btn.onclick = function () {
           state.coverPreset = btn.dataset.coverPreset;
@@ -568,6 +629,17 @@
       });
       form.querySelectorAll('[data-category-card]').forEach(function (btn) {
         btn.onclick = function () {
+          if (role === 'organization') {
+            saveActiveOrganizationFocusAreas();
+            var organizationCategory = btn.dataset.categoryCard;
+            if (state.organizationCategories.indexOf(organizationCategory) === -1) {
+              state.organizationCategories.push(organizationCategory);
+            }
+            state.category = organizationCategory;
+            state.subcategories = (state.organizationSubcategories[organizationCategory] || []).slice();
+            render();
+            return;
+          }
           state.category = btn.dataset.categoryCard;
           state.subcategories = [];
           if (state.category !== 'languages') {
@@ -655,12 +727,16 @@
         b.classList.toggle('active', arr.indexOf(b.dataset.value) !== -1);
       });
       if (kind === 'subcategories') {
+        if (role === 'organization') saveActiveOrganizationFocusAreas();
         var count = $('#ob-subcat-count');
         if (count) count.textContent = role === 'organization' ? (state.subcategories.length + ' selected') : (state.subcategories.length + '/3 selected');
       }
       if (role === 'organization' && (kind === 'subcategories' || kind === 'organizationLanguages')) {
         var selectedBox = $('#ob-org-selected');
-        if (selectedBox) selectedBox.innerHTML = organizationSelectedSummaryHtml();
+        if (selectedBox) {
+          selectedBox.innerHTML = organizationSelectedSummaryHtml();
+          bindOrganizationSummary();
+        }
       }
       if (kind === 'learnLanguages') { var box = $('#ob-lang-levels'); if (box) { box.innerHTML = languageLevelsHtml(); form.querySelectorAll('[data-lang-level]').forEach(function (sel) { sel.onchange = function () { state.languageLevels[sel.dataset.langLevel] = sel.value; }; }); } }
     }
@@ -691,7 +767,7 @@
 
     function collect() {
       if (!form) return;
-      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'teamSize', 'capacity', 'organizerType', 'locationMode', 'frequency', 'inviteEmails', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
+      ['firstName', 'lastName', 'orgName', 'bio', 'city', 'country', 'dob', 'goal', 'nativeLanguage', 'specialization', 'experience', 'qualifications', 'format', 'website', 'email', 'phone', 'contactName', 'contactEmail', 'contactPhone', 'contactPosition', 'rate', 'availability', 'audience', 'eventType', 'verification', 'capacity', 'organizerType', 'locationMode', 'frequency', 'instagram', 'tiktok', 'facebook', 'linkedin', 'youtube', 'telegram'].forEach(function (id) {
         var el = $('#ob-' + id);
         if (el) state[id] = el.value;
       });
@@ -740,6 +816,7 @@
       if (step === 3 && role === 'organization') {
         if (!state.orgType) return { message: 'Choose your organization type.', target: 'orgType' };
         if (!state.specialization.trim()) return { message: 'Write what your organization does.', target: 'specialization' };
+        if (!state.organizationCategories.length) return { message: 'Choose at least one learning or business category.', target: 'category' };
         if (!state.organizationAudience.length) return { message: 'Choose your audience.', target: 'organizationAudience' };
         if (!state.programFormat.length) return { message: 'Choose your program format.', target: 'programFormat' };
       }
@@ -826,17 +903,20 @@
         patch.linkedin = state.linkedin.trim() || null;
         patch.telegram = state.telegram.trim() || null;
         patch.phone = state.phone.trim() || null;
-        patch.learning_targets = [{
-          category: state.category || 'languages',
-          subcategories: state.subcategories.slice(),
-          languages: state.organizationLanguages.slice(),
-          organization_type: state.orgType || null,
-          audience: state.organizationAudience.slice(),
-          format: state.programFormat.slice(),
-          invite_emails: state.inviteEmails.split(',').map(function (x) { return x.trim(); }).filter(Boolean),
-          verification_status: state.verification.trim() ? 'pending' : 'not_verified',
-          verification: state.verification.trim() || null
-        }];
+        patch.learning_languages = state.organizationLanguages.slice();
+        saveActiveOrganizationFocusAreas();
+        patch.learning_targets = state.organizationCategories.map(function (category) {
+          return {
+            category: category,
+            subcategories: (state.organizationSubcategories[category] || []).slice(),
+            languages: state.organizationLanguages.slice(),
+            organization_type: state.orgType || null,
+            audience: state.organizationAudience.slice(),
+            format: state.programFormat.slice(),
+            verification_status: state.verification.trim() ? 'pending' : 'not_verified',
+            verification: state.verification.trim() || null
+          };
+        });
       }
       return patch;
     }
