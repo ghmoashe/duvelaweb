@@ -7,6 +7,7 @@
     const { tr, esc, supa } = ctx;
     const locale = ctx.isRu ? 'ru-RU' : 'en-US';
     let lastUserId = null;
+    let lastData = null;
     let inflight = null;
 
     function num(value) {
@@ -14,6 +15,10 @@
     }
     function dc(value) {
       return num(value) + ' DC';
+    }
+    function money(value, currency) {
+      const amount = Math.max(0, Number(value) || 0);
+      return new Intl.NumberFormat(locale, { style: 'currency', currency: currency || 'EUR', maximumFractionDigits: 0 }).format(amount);
     }
 
     async function safe(promise, fallback) {
@@ -55,18 +60,33 @@
       monthStart.setHours(0, 0, 0, 0);
       const weekStart = dayKeys()[0] + 'T00:00:00.000Z';
 
-      const [eventsRes, reviewsRes, postsRes, followersRes, earningsRes, giftsRes] = await Promise.all([
-        safe(supa.from('events').select('id,created_at', { count: 'exact' }).eq('organizer_id', uid), { data: [], count: 0 }),
+      const [eventsRes, reviewsRes, postsRes, followersRes, earningsRes, giftsRes, coursesRes] = await Promise.all([
+        safe(supa.from('events').select('id,title,created_at,is_paid,price_amount,organizer_id', { count: 'exact' }).eq('organizer_id', uid), { data: [], count: 0 }),
         safe(supa.from('teacher_reviews').select('rating,created_at').eq('teacher_id', uid), { data: [] }),
         safe(supa.from('posts').select('id,created_at').eq('user_id', uid), { data: [] }),
         safe(supa.from('user_follows').select('id', { count: 'exact', head: true }).eq('following_id', uid), { count: 0 }),
         safe(supa.from('live_teacher_earnings').select('amount,source,label,session_id,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(200), { data: [] }),
-        safe(supa.from('live_gifts').select('gift_name,cost,sender_name,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(200), { data: [] })
+        safe(supa.from('live_gifts').select('gift_name,cost,sender_name,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(200), { data: [] }),
+        safe(supa.from('courses').select('id,title,price,currency,status,created_at').eq('created_by', uid).neq('status', 'archived').limit(500), { data: [] })
       ]);
+      const membershipsRes = await safe(supa.from('organization_memberships').select('organization_id').eq('user_id', uid).eq('status', 'active'), { data: [] });
+      const orgIds = Array.from(new Set(((membershipsRes && membershipsRes.data) || []).map((row) => row.organization_id).filter(Boolean)));
+      let orgCourses = [];
+      if (orgIds.length) {
+        const orgCoursesRes = await safe(supa.from('courses').select('id,title,price,currency,status,created_at,organization_id').in('organization_id', orgIds).neq('status', 'archived').limit(500), { data: [] });
+        orgCourses = (orgCoursesRes && orgCoursesRes.data) || [];
+      }
 
       const eventRows = (eventsRes && eventsRes.data) || [];
       const eventIds = eventRows.map((row) => row.id).filter(Boolean);
       const eventsCount = (eventsRes && typeof eventsRes.count === 'number') ? eventsRes.count : eventIds.length;
+      const courseMap = new Map();
+      ((coursesRes && coursesRes.data) || []).concat(orgCourses).forEach((course) => {
+        if (course && course.id) courseMap.set(course.id, course);
+      });
+      const courseRows = Array.from(courseMap.values());
+      const paidCourses = courseRows.filter((course) => Number(course.price || 0) > 0);
+      const paidEvents = eventRows.filter((event) => event.is_paid && Number(event.price_amount || 0) > 0);
       const postRows = (postsRes && postsRes.data) || [];
       const postIds = postRows.map((row) => row.id).filter(Boolean);
 
@@ -92,6 +112,45 @@
         countBy('post_views'),
         clientsFrom()
       ]);
+
+      const [enrollmentsRes, rsvpsRes] = await Promise.all([
+        paidCourses.length
+          ? safe(supa.from('course_enrollments').select('id,course_id,status,full_name,email,created_at').in('course_id', paidCourses.map((course) => course.id)).in('status', ['confirmed', 'pending']), { data: [] })
+          : { data: [] },
+        paidEvents.length
+          ? safe(supa.from('event_rsvps').select('event_id,user_id,status').in('event_id', paidEvents.map((event) => event.id)).eq('status', 'going'), { data: [] })
+          : { data: [] }
+      ]);
+      const courseById = new Map(paidCourses.map((course) => [course.id, course]));
+      const eventById = new Map(paidEvents.map((event) => [event.id, event]));
+      let coursePendingCount = 0;
+      let courseSalesCount = 0;
+      let courseSalesTotal = 0;
+      const pendingEnrollments = [];
+      const courseSales = [];
+      ((enrollmentsRes && enrollmentsRes.data) || []).forEach((enrollment) => {
+        const course = courseById.get(enrollment.course_id);
+        if (!course) return;
+        if (enrollment.status === 'pending') {
+          coursePendingCount += 1;
+          pendingEnrollments.push({ id: enrollment.id, course_id: enrollment.course_id, course_title: course.title, full_name: enrollment.full_name, email: enrollment.email, created_at: enrollment.created_at });
+        } else if (enrollment.status === 'confirmed') {
+          courseSalesCount += 1;
+          courseSalesTotal += Number(course.price || 0);
+          courseSales.push({ id: enrollment.id, title: course.title, amount: Number(course.price || 0), currency: course.currency || 'EUR', created_at: enrollment.created_at });
+        }
+      });
+      let eventSalesCount = 0;
+      let eventSalesTotal = 0;
+      const eventSales = [];
+      ((rsvpsRes && rsvpsRes.data) || []).forEach((rsvp) => {
+        const event = eventById.get(rsvp.event_id);
+        if (!event || rsvp.user_id === uid) return;
+        eventSalesCount += 1;
+        eventSalesTotal += Number(event.price_amount || 0);
+        eventSales.push({ event_id: rsvp.event_id, title: event.title || 'Event', amount: Number(event.price_amount || 0), currency: 'EUR' });
+      });
+      const salesCurrency = (paidCourses.find((course) => course.currency) || {}).currency || 'EUR';
 
       // Earnings summary (mirrors buildEarningsSummary on mobile).
       const earnings = ((earningsRes && earningsRes.data) || []).map((row) => ({
@@ -147,7 +206,7 @@
         commentsCount,
         viewsCount,
         followersCount: (followersRes && followersRes.count) || 0,
-        coursesCount: (ctx.state.courses || []).length,
+        coursesCount: Math.max(courseRows.length, (ctx.state.courses || []).length),
         assignmentsCount: 0,
         giftsTotal,
         total,
@@ -157,7 +216,17 @@
         recent,
         topGifts,
         topViewers,
-        activity
+        activity,
+        coursePendingCount,
+        courseSalesCount,
+        courseSalesTotal,
+        eventSalesCount,
+        eventSalesTotal,
+        courseEventSalesTotal: courseSalesTotal + eventSalesTotal,
+        salesCurrency,
+        pendingEnrollments,
+        courseSales,
+        eventSales
       };
     }
 
@@ -181,6 +250,110 @@
         '<span>' + esc(label) + '</span></a>';
     }
 
+    function bindBusinessActions(host) {
+      host.querySelectorAll('[data-business-details]').forEach((button) => {
+        button.onclick = function () { openBusinessModal('details'); };
+      });
+      host.querySelectorAll('[data-business-withdraw]').forEach((button) => {
+        button.onclick = function () { openBusinessModal('withdraw'); };
+      });
+      host.querySelectorAll('[data-business-pending]').forEach((button) => {
+        button.onclick = function () { openBusinessModal('pending'); };
+      });
+    }
+
+    function modalRows(rows, emptyText) {
+      if (!rows || !rows.length) return '<div class="bd-modal-empty">' + esc(emptyText) + '</div>';
+      return rows.map((row) => '<div class="bd-modal-row"><div><b>' + esc(row.title || row.course_title || row.label || 'Item') + '</b><span>' + esc(row.meta || row.full_name || row.email || row.created_at || '') + '</span></div><strong>' + esc(row.value || '') + '</strong></div>').join('');
+    }
+
+    function openBusinessModal(tab) {
+      const data = lastData || {};
+      const canWithdraw = Number(data.total || 0) > 0;
+      const currency = data.salesCurrency || 'EUR';
+      const courseRows = (data.courseSales || []).map((item) => ({ title: item.title, meta: item.created_at ? ctx.timeAgo(item.created_at) : '', value: money(item.amount, item.currency || currency) }));
+      const eventRows = (data.eventSales || []).map((item) => ({ title: item.title, meta: tr('Event sale', 'Продажа события'), value: money(item.amount, item.currency || currency) }));
+      const liveRows = (data.recent || []).map((item) => ({ title: item.label || (item.source === 'gift' ? tr('Gift received', 'Получен подарок') : tr('LIVE earning', 'Доход LIVE')), meta: ctx.timeAgo(item.created_at), value: '+' + dc(item.amount) }));
+      const pendingRows = data.pendingEnrollments || [];
+      const sourcesTotal = [
+        { title: tr('LIVE balance', 'LIVE баланс'), value: dc(data.total || 0) },
+        { title: tr('Course sales', 'Продажи курсов'), value: money(data.courseSalesTotal || 0, currency) },
+        { title: tr('Event sales', 'Продажи событий'), value: money(data.eventSalesTotal || 0, currency) },
+        { title: tr('Gifts', 'Подарки'), value: dc(data.giftsTotal || 0) },
+        { title: tr('Paid LIVE', 'Платный LIVE'), value: dc(data.paidMinutesTotal || 0) }
+      ];
+      const overlay = document.createElement('div');
+      overlay.className = 'bd-modal-overlay';
+      overlay.innerHTML = '<div class="bd-modal">' +
+        '<button class="bd-modal-close" type="button" aria-label="Close">×</button>' +
+        '<div class="bd-modal-head"><span>' + esc(tr('Business', 'Бизнес')) + '</span><h2>' + esc(tab === 'withdraw' ? tr('Withdraw balance', 'Вывести баланс') : tab === 'pending' ? tr('Pending enrollments', 'Заявки на курсы') : tr('Business details', 'Детали бизнеса')) + '</h2><p>' + esc(tr('LIVE, course, event and gift income in one place.', 'LIVE, курсы, события и подарки в одном месте.')) + '</p></div>' +
+        '<div class="bd-modal-tabs"><button class="' + (tab === 'details' ? 'active' : '') + '" data-bd-tab="details">' + esc(tr('Details', 'Детали')) + '</button><button class="' + (tab === 'pending' ? 'active' : '') + '" data-bd-tab="pending">' + esc(tr('Pending', 'Заявки')) + '</button><button class="' + (tab === 'withdraw' ? 'active' : '') + '" data-bd-tab="withdraw">' + esc(tr('Withdraw', 'Вывод')) + '</button></div>' +
+        '<div class="bd-modal-body" data-bd-body></div>' +
+      '</div>';
+      document.body.appendChild(overlay);
+      const body = overlay.querySelector('[data-bd-body]');
+      function paint(nextTab) {
+        overlay.querySelectorAll('[data-bd-tab]').forEach((b) => b.classList.toggle('active', b.dataset.bdTab === nextTab));
+        if (nextTab === 'details') {
+          body.innerHTML = '<div class="bd-source-grid">' + sourcesTotal.map((item) => '<div><span>' + esc(item.title) + '</span><b>' + esc(item.value) + '</b></div>').join('') + '</div>' +
+            '<h3>' + esc(tr('Course sales', 'Продажи курсов')) + '</h3>' + modalRows(courseRows, tr('No course sales yet.', 'Продаж курсов пока нет.')) +
+            '<h3>' + esc(tr('Event sales', 'Продажи событий')) + '</h3>' + modalRows(eventRows, tr('No event sales yet.', 'Продаж событий пока нет.')) +
+            '<h3>' + esc(tr('Recent LIVE income', 'Недавний LIVE доход')) + '</h3>' + modalRows(liveRows, tr('No LIVE income yet.', 'LIVE дохода пока нет.'));
+        } else if (nextTab === 'pending') {
+          body.innerHTML = pendingRows.length ? pendingRows.map((item) => '<div class="bd-modal-row"><div><b>' + esc(item.course_title || tr('Course', 'Курс')) + '</b><span>' + esc([item.full_name, item.email].filter(Boolean).join(' · ') || tr('Learner', 'Ученик')) + '</span></div><div class="bd-row-actions"><button type="button" data-enroll-approve="' + esc(item.id) + '">' + esc(tr('Approve', 'Подтвердить')) + '</button><button type="button" data-enroll-reject="' + esc(item.id) + '">' + esc(tr('Reject', 'Отклонить')) + '</button></div></div>').join('') : '<div class="bd-modal-empty">' + esc(tr('No pending enrollments.', 'Нет заявок на подтверждение.')) + '</div>';
+          body.querySelectorAll('[data-enroll-approve]').forEach((btn) => btn.onclick = () => updateEnrollment(btn.dataset.enrollApprove, 'confirmed', overlay));
+          body.querySelectorAll('[data-enroll-reject]').forEach((btn) => btn.onclick = () => updateEnrollment(btn.dataset.enrollReject, 'cancelled', overlay));
+        } else {
+          body.innerHTML = '<form class="bd-withdraw-form"><div class="bd-source-grid"><div><span>' + esc(tr('Available', 'Доступно')) + '</span><b>' + esc(dc(data.total || 0)) + '</b></div><div><span>' + esc(tr('Minimum', 'Минимум')) + '</span><b>100 DC</b></div></div>' +
+            '<label>' + esc(tr('Amount', 'Сумма')) + '<input name="amount" type="number" min="100" max="' + Math.max(0, Number(data.total || 0)) + '" value="' + Math.max(0, Number(data.total || 0)) + '"' + (!canWithdraw ? ' disabled' : '') + '></label>' +
+            '<label>' + esc(tr('Payout method', 'Способ вывода')) + '<select name="method"' + (!canWithdraw ? ' disabled' : '') + '><option value="bank">Bank transfer</option><option value="paypal">PayPal</option><option value="wise">Wise</option></select></label>' +
+            '<label>' + esc(tr('Payout details', 'Реквизиты')) + '<textarea name="details" placeholder="IBAN, PayPal email, Wise email..."' + (!canWithdraw ? ' disabled' : '') + '></textarea></label>' +
+            '<button class="bd-submit" type="submit"' + (!canWithdraw ? ' disabled' : '') + '>' + esc(canWithdraw ? tr('Request withdrawal', 'Создать заявку на вывод') : tr('No balance to withdraw', 'Нет баланса для вывода')) + '</button><p data-withdraw-note></p></form>';
+          const form = body.querySelector('form');
+          form.onsubmit = (event) => submitWithdraw(event, overlay);
+        }
+      }
+      overlay.querySelector('.bd-modal-close').onclick = () => overlay.remove();
+      overlay.onclick = (event) => { if (event.target === overlay) overlay.remove(); };
+      overlay.querySelectorAll('[data-bd-tab]').forEach((button) => button.onclick = () => paint(button.dataset.bdTab));
+      paint(tab);
+    }
+
+    async function updateEnrollment(id, status, overlay) {
+      if (!id) return;
+      const result = await supa.from('course_enrollments').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+      if (result.error) return ctx.alert(result.error.message || tr('Could not update enrollment.', 'Не удалось обновить заявку.'));
+      overlay.remove();
+      lastUserId = null;
+      render();
+    }
+
+    async function submitWithdraw(event, overlay) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const note = form.querySelector('[data-withdraw-note]');
+      const amount = Math.floor(Number(form.amount.value) || 0);
+      if (amount < 100) {
+        note.textContent = tr('Minimum withdrawal is 100 DC.', 'Минимальная сумма вывода 100 DC.');
+        return;
+      }
+      const payload = {
+        user_id: ctx.user.id,
+        amount,
+        currency: 'DC',
+        method: form.method.value,
+        payout_details: form.details.value.trim() || null,
+        status: 'pending'
+      };
+      const result = await supa.from('business_withdrawal_requests').insert(payload);
+      if (result.error) {
+        note.textContent = result.error.message || tr('Could not create withdrawal request. Apply the SQL setup first.', 'Не удалось создать заявку. Сначала примените SQL setup.');
+        return;
+      }
+      note.textContent = tr('Withdrawal request created.', 'Заявка на вывод создана.');
+      setTimeout(() => overlay.remove(), 700);
+    }
+
     function render() {
       const host = document.getElementById('busDashboard');
       if (!host) return;
@@ -194,13 +367,18 @@
       // Skeleton first paint, then hydrate with data. Keeps counts from a stale user.
       if (lastUserId !== uid) {
         host.innerHTML = shell(name, profile, liveUrl, null);
+        bindBusinessActions(host);
       }
       lastUserId = uid;
 
       inflight = fetchData(uid).then((data) => {
+        lastData = data;
         host.innerHTML = shell(name, profile, liveUrl, data);
+        bindBusinessActions(host);
       }).catch(() => {
+        lastData = {};
         host.innerHTML = shell(name, profile, liveUrl, {});
+        bindBusinessActions(host);
       });
       return inflight;
     }
@@ -209,6 +387,8 @@
       const ready = Boolean(data);
       const rating = data && typeof data.rating === 'number' ? data.rating.toFixed(1) : null;
       const v = (value) => ready ? value : '—';
+      const canWithdraw = Boolean(data && data.total > 0);
+      const salesCurrency = (data && data.salesCurrency) || 'EUR';
 
       const ic = {
         live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg>',
@@ -267,17 +447,23 @@
             '<span class="bd-business-badge">' + esc(tr('Teacher Live', 'Учитель Live')) + '</span>' +
           '</div>' +
           '<div class="bd-business-figures">' +
-            '<div><b>' + v(dc(data && data.monthTotal)) + '</b><span>' + esc(tr('Income (This Month)', 'Доход (за месяц)')) + '</span></div>' +
-            '<div><b>' + v(dc(data && data.total)) + '</b><span>' + esc(tr('Available Balance', 'Доступный баланс')) + '</span></div>' +
+            '<div><b>' + v(dc(data && data.total)) + '</b><span>' + esc(tr('LIVE balance', 'LIVE баланс')) + '</span></div>' +
+            '<div><b>' + v(money(data && data.courseEventSalesTotal, salesCurrency)) + '</b><span>' + esc(tr('Course/Event sales', 'Продажи курсов/событий')) + '</span></div>' +
           '</div>' +
           '<div class="bd-business-pills">' +
+            pill(tr('Course sales', 'Продажи курсов'), v(money(data && data.courseSalesTotal, salesCurrency))) +
+            pill(tr('Event sales', 'Продажи событий'), v(money(data && data.eventSalesTotal, salesCurrency))) +
             pill(tr('Paid LIVE', 'Платный LIVE'), v(dc(data && data.paidMinutesTotal))) +
             pill(tr('Gifts', 'Подарки'), v(dc(data && data.giftsTotal))) +
-            pill(tr('Sessions', 'Сессии'), v(num(data && data.sessionsCount))) +
+            pill(tr('LIVE this month', 'LIVE за месяц'), v(dc(data && data.monthTotal))) +
           '</div>' +
+          '<button class="bd-business-status" type="button"' + (data && data.coursePendingCount > 0 ? ' data-business-pending' : ' data-business-details') + '>' +
+            '<span>' + (data && data.coursePendingCount > 0 ? '⏱' : canWithdraw ? '✓' : 'ⓘ') + '</span>' +
+            '<b>' + esc(data && data.coursePendingCount > 0 ? (num(data.coursePendingCount) + ' ' + tr('pending enrollments', 'заявок ждут подтверждения')) : canWithdraw ? tr('Balance is ready to withdraw', 'Баланс доступен для вывода') : tr('No balance to withdraw yet', 'Пока нет средств для вывода')) + '</b>' +
+          '</button>' +
           '<div class="bd-business-actions">' +
-            '<a class="bd-btn-outline" href="#events" data-go="events">' + esc(tr('Details', 'Подробнее')) + '</a>' +
-            '<a class="bd-btn-solid" href="#profile" data-go="profile">' + esc(tr('Withdraw', 'Вывести')) + '</a>' +
+            '<button class="bd-btn-outline" type="button" data-business-details>' + esc(tr('Details', 'Подробнее')) + '</button>' +
+            '<button class="bd-btn-solid' + (!canWithdraw ? ' disabled' : '') + '" type="button" data-business-withdraw>' + esc(tr('Withdraw', 'Вывести')) + '</button>' +
           '</div>' +
         '</div>' +
         '</div>';
@@ -311,8 +497,8 @@
               (topViewer ? '<small>' + dc(topViewer.total) + '</small>' : '') + '</div>' +
           '</div>' +
           '<div class="bd-business-actions">' +
-            '<a class="bd-btn-outline dark" href="#events" data-go="events">' + esc(tr('Details', 'Подробнее')) + '</a>' +
-            '<a class="bd-btn-solid dark" href="#profile" data-go="profile">' + esc(tr('Withdraw', 'Вывести')) + '</a>' +
+            '<button class="bd-btn-outline dark" type="button" data-business-details>' + esc(tr('Details', 'Подробнее')) + '</button>' +
+            '<button class="bd-btn-solid dark" type="button" data-business-withdraw>' + esc(tr('Withdraw', 'Вывести')) + '</button>' +
           '</div>' +
         '</div>');
 

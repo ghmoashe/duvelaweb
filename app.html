@@ -485,14 +485,17 @@
   .bd-business-figures > div { display: grid; gap: 3px; }
   .bd-business-figures b { font-size: 26px; font-weight: 800; line-height: 1.1; }
   .bd-business-figures span { font-size: 12px; color: rgba(255,255,255,.82); font-weight: 700; }
-  .bd-business-pills { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .bd-business-pills { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
   .bd-pill { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2); border-radius: 12px; padding: 10px; display: grid; gap: 2px; }
   .bd-pill b { font-size: 15px; font-weight: 800; }
   .bd-pill span { font-size: 10px; color: rgba(255,255,255,.82); font-weight: 800; }
+  .bd-business-status { width:100%; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.16); font:inherit; font-size: 12px; font-weight: 850; color: rgba(255,255,255,.9); text-align:left; cursor:pointer; }
+  .bd-business-status span { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; background: rgba(255,255,255,.16); flex: none; }
   .bd-business-actions { display: flex; gap: 12px; }
-  .bd-btn-outline, .bd-btn-solid { flex: 1; text-align: center; text-decoration: none; border-radius: 14px; padding: 12px; font-weight: 800; font-size: 14px; }
-  .bd-btn-outline { border: 1.5px solid rgba(255,255,255,.9); color: #fff; }
+  .bd-btn-outline, .bd-btn-solid { flex: 1; text-align: center; text-decoration: none; border-radius: 14px; padding: 12px; font:inherit; font-weight: 800; font-size: 14px; border:0; cursor:pointer; }
+  .bd-btn-outline { border: 1.5px solid rgba(255,255,255,.9); color: #fff; background: transparent; }
   .bd-btn-solid { background: #fff; color: var(--purple); }
+  .bd-btn-solid.disabled { pointer-events: none; opacity: .58; }
   .bd-btn-outline.dark { border-color: var(--purple); color: var(--purple); }
   .bd-btn-solid.dark { background: var(--purple); color: #fff; }
 
@@ -544,8 +547,19 @@
   .bd-bars { height: 92px; display: flex; align-items: flex-end; gap: 6px; }
   .bd-bar { flex: 1; min-width: 8px; border-radius: 7px 7px 0 0; background: linear-gradient(180deg, #A855F7, #5B2DC9); }
   .bd-bar.empty { background: #E7E0F4; }
+  .bd-modal-overlay{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:20px;background:rgba(22,10,54,.56);backdrop-filter:blur(12px)}
+  .bd-modal{width:min(880px,100%);max-height:min(820px,92vh);overflow:auto;border-radius:26px;background:#fff;box-shadow:0 28px 90px rgba(22,10,54,.34);padding:24px;position:relative}
+  .bd-modal-close{position:absolute;right:18px;top:16px;width:38px;height:38px;border:0;border-radius:999px;background:#f3effb;color:var(--purple);font-size:24px;cursor:pointer}
+  .bd-modal-head span{color:var(--purple);font-size:11px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}.bd-modal-head h2{margin:4px 0;font-size:28px}.bd-modal-head p{margin:0;color:var(--soft)}
+  .bd-modal-tabs{display:flex;gap:8px;margin:18px 0}.bd-modal-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;font:inherit;font-weight:850;cursor:pointer}.bd-modal-tabs button.active{border-color:var(--purple);background:var(--purple-soft);color:var(--purple)}
+  .bd-source-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}.bd-source-grid div{border:1px solid var(--line);border-radius:16px;background:#fbf9ff;padding:13px}.bd-source-grid span{display:block;color:var(--soft);font-size:11px;font-weight:850}.bd-source-grid b{font-size:18px}
+  .bd-modal-body h3{margin:18px 0 9px}.bd-modal-row{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:8px;background:#fff}.bd-modal-row span{display:block;color:var(--soft);font-size:12px;margin-top:3px}.bd-modal-row strong{color:var(--purple)}.bd-modal-empty{border:1px dashed var(--line);border-radius:16px;padding:18px;color:var(--soft);font-weight:800;text-align:center}
+  .bd-row-actions{display:flex;gap:8px}.bd-row-actions button{border:1px solid var(--line);border-radius:12px;background:#fff;padding:9px 12px;font:inherit;font-weight:850;cursor:pointer}.bd-row-actions button:first-child{border-color:var(--purple);background:var(--purple);color:#fff}
+  .bd-withdraw-form{display:grid;gap:12px}.bd-withdraw-form label{display:grid;gap:7px;color:var(--soft);font-size:12px;font-weight:850}.bd-withdraw-form input,.bd-withdraw-form select,.bd-withdraw-form textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 13px;font:inherit;color:var(--ink)}.bd-withdraw-form textarea{min-height:90px}.bd-submit{border:0;border-radius:14px;background:var(--purple);color:#fff;padding:13px;font:inherit;font-weight:900;cursor:pointer}.bd-submit:disabled{opacity:.55;cursor:not-allowed}.bd-withdraw-form p{margin:0;color:var(--purple);font-weight:850}
 
-  @media (max-width: 560px) { .bd-business-pills { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .bd-business-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .bd-source-grid{grid-template-columns:1fr 1fr}.bd-modal{padding:18px;border-radius:22px}.bd-modal-row{align-items:flex-start;flex-direction:column}.bd-row-actions{width:100%}.bd-row-actions button{flex:1} }
+  @media (max-width: 560px) { .bd-business-pills { grid-template-columns: 1fr; }.bd-source-grid{grid-template-columns:1fr} }
 
   /* ── Management page ────────────────────────────────────────────────── */
   .nav-business-only { display: none; }
