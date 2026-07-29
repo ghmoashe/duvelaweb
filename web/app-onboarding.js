@@ -196,7 +196,7 @@
             '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
             '<div id="ob-subcats">' + subcatHtml() + '</div>' +
           '</div>' +
-          ((state.category || 'languages') === 'languages' ? '<label class="wide">Languages you teach<small style="font-weight:600;color:var(--muted)">Choose up to 3</small></label>' + langScroll('teachLanguages', state.teachLanguages) : '') +
+          ((state.category || 'languages') === 'languages' ? '<label class="wide">Languages you teach<small style="font-weight:600;color:var(--muted)">Choose up to 3</small></label>' + langScroll('teachLanguages', state.teachLanguages) + languageLimitCounter('teachLanguages', state.teachLanguages) : '') +
           labelInput('qualifications', 'Qualifications', state.qualifications, { wide: true, hint: 'Comma separated (degrees, certificates)' }) +
           '<div class="ob-extra-grid">' +
           labelInput('format', 'Lesson format', state.format, { placeholder: '1:1, group, online, offline or both' }) +
@@ -296,6 +296,10 @@
         return '<button type="button" class="ob-lang-chip' + (on ? ' active' : '') + '" data-chip="' + kind + '" data-value="' + esc(l) + '">' +
           flag + '<span>' + esc(l) + '</span></button>';
       }).join('') + '</div>';
+    }
+
+    function languageLimitCounter(kind, selected) {
+      return '<div class="ob-selection-head ob-lang-counter" data-lang-counter="' + esc(kind) + '"><span></span><b>' + selected.length + '/3 selected</b></div>';
     }
 
     function categoryCardsHtml(kind, selected, current) {
@@ -546,7 +550,15 @@
       '</div>';
     }
 
+    function enforceSelectionLimits() {
+      state.learnLanguages = state.learnLanguages.slice(0, 3);
+      state.teachLanguages = state.teachLanguages.slice(0, 3);
+      state.eventLanguages = state.eventLanguages.slice(0, 3);
+      if (role !== 'organization') state.subcategories = state.subcategories.slice(0, 3);
+    }
+
     function render() {
+      enforceSelectionLimits();
       title();
       document.querySelectorAll('.onboarding-step').forEach(function (x, i) {
         x.className = 'onboarding-step ' + (i + 1 <= step ? 'active' : '');
@@ -713,6 +725,10 @@
       var idx = arr.indexOf(value);
       if (idx === -1) {
         if (kind === 'learnLanguages' && arr.length >= 3) return;
+        if (kind === 'teachLanguages' && arr.length >= 3) {
+          showError('Choose up to 3 languages you teach.', 'teachLanguages');
+          return;
+        }
         if (kind === 'eventLanguages' && arr.length >= 3) return;
         if (kind === 'subcategories' && role !== 'organization' && arr.length >= 3) return;
         arr.push(value);
@@ -726,6 +742,8 @@
       if (group) group.querySelectorAll('[data-chip]').forEach(function (b) {
         b.classList.toggle('active', arr.indexOf(b.dataset.value) !== -1);
       });
+      var langCounter = form.querySelector('[data-lang-counter="' + kind + '"] b');
+      if (langCounter) langCounter.textContent = arr.length + '/3 selected';
       if (kind === 'subcategories') {
         if (role === 'organization') saveActiveOrganizationFocusAreas();
         var count = $('#ob-subcat-count');
