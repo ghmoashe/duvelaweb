@@ -943,6 +943,37 @@
     font-weight: 520;
     line-height: 1.45;
   }
+  .notes-page { display: grid; gap: 18px; }
+  .note-form { border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(145deg,#fff,#fbf8ff); padding: 18px; box-shadow: var(--shadow); display: grid; gap: 14px; }
+  .note-form-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .note-form-head h2 { margin: 0 0 4px; font-size: 22px; }
+  .note-form-head p { margin: 0; color: var(--soft); font-weight: 700; }
+  .note-form-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .note-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .note-card { border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 15px; box-shadow: 0 10px 24px rgba(32,22,64,.05); display: grid; gap: 10px; }
+  .note-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .note-card-top small { color: var(--muted); font-size: 11px; font-weight: 800; }
+  .note-card h3 { margin: 0; font-size: 17px; }
+  .note-card.pinned { border-color: #cdbbff; background: linear-gradient(145deg,#fff,#f7f2ff); }
+  .note-meta { display: flex; gap: 7px; flex-wrap: wrap; }
+  .note-meta span { border: 1px solid var(--line); border-radius: 999px; padding: 4px 7px; color: var(--soft); font-size: 10px; font-weight: 850; background: #fff; }
+  .note-card p { margin: 0; color: var(--soft); line-height: 1.45; white-space: pre-wrap; }
+  .note-actions { display: flex; gap: 8px; }
+  .note-actions button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 10px; font: inherit; font-size: 12px; font-weight: 850; color: var(--soft); cursor: pointer; }
+  .note-actions button:first-child { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+  .note-empty { padding: 26px; }
+  .note-toolbar { display: grid; gap: 10px; margin: 0 0 12px; }
+  .note-toolbar input { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 12px 13px; font: inherit; }
+  .note-toolbar div { display: flex; gap: 7px; flex-wrap: wrap; }
+  .note-toolbar button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 11px; font: inherit; font-size: 12px; font-weight: 850; color: var(--soft); cursor: pointer; }
+  .note-toolbar button.active { border-color: var(--purple); background: var(--purple-soft); color: var(--purple); }
+  .note-pin-check { display: inline-flex; align-items: center; gap: 8px; color: var(--soft); font-weight: 850; }
+  .note-pin-check input { width: 17px; height: 17px; accent-color: var(--purple); }
+  .note-side-card { border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 14px; display: grid; gap: 10px; box-shadow: var(--shadow); }
+  .note-mini-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 14px; }
+  .note-mini-stats div { border: 1px solid var(--line); border-radius: 16px; background: #fff; padding: 14px; }
+  .note-mini-stats b { display: block; font-size: 26px; color: var(--purple); }
+  .note-mini-stats span { color: var(--soft); font-size: 12px; font-weight: 800; }
   .tabs {
     display: flex;
     gap: 6px;
@@ -1412,7 +1443,8 @@
     .nav button span:last-child { display: none; }
     .side-foot { display: none; }
     .main { padding: 18px 16px 28px; }
-    .grid-3, .grid-2, .form-grid, .hub-quick-grid, .business-action-grid, .business-pipeline { grid-template-columns: 1fr; }
+    .grid-3, .grid-2, .form-grid, .hub-quick-grid, .business-action-grid, .business-pipeline, .note-grid { grid-template-columns: 1fr; }
+    .note-form-head { flex-direction: column; }
     .hub-hero-top, .business-desk-top { flex-direction: column; }
   }
   @media (max-width: 620px) {

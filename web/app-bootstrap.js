@@ -59,7 +59,7 @@
         if (button.dataset.view === 'management' && ctx.isBusiness()) ctx.renderManagement();
         if (button.dataset.view === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
         if (button.dataset.view === 'workspace') {
-          if (ctx.isBusiness()) ctx.loadBusinessWorkspace().then(ctx.renderWorkspace);
+          if (ctx.isBusiness()) ctx.renderWorkspace();
           else ctx.loadPractices().then(ctx.renderWorkspace);
         }
       }));
@@ -81,7 +81,7 @@
           if (go.dataset.go === 'management' && ctx.isBusiness()) ctx.renderManagement();
           if (go.dataset.go === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
           if (go.dataset.go === 'workspace') {
-            if (ctx.isBusiness()) ctx.loadBusinessWorkspace().then(ctx.renderWorkspace);
+            if (ctx.isBusiness()) ctx.renderWorkspace();
             else ctx.loadPractices().then(ctx.renderWorkspace);
           }
         }
