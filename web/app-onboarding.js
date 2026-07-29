@@ -761,10 +761,20 @@
 
     function showAutocomplete(kind, input) {
       var box = $('#ob-autocomplete');
-      if (!box || !D.getCountrySuggestions) return;
-      var list = kind === 'country' ? D.getCountrySuggestions(input.value, 6)
-        : kind === 'nativeLanguage' ? (D.getLanguageSuggestions ? D.getLanguageSuggestions(input.value, 6) : [])
-        : D.getCitySuggestions(input.value, state.country, 6);
+      if (!box) return;
+      var query = String(input.value || '').trim().toLowerCase();
+      var list = [];
+      if (kind === 'nativeLanguage') {
+        list = D.getLanguageSuggestions
+          ? D.getLanguageSuggestions(input.value, 6)
+          : (D.LANGUAGES || []).filter(function (lang) {
+              return !query || String(lang).toLowerCase().indexOf(query) !== -1;
+            }).slice(0, 6);
+      } else if (kind === 'country' && D.getCountrySuggestions) {
+        list = D.getCountrySuggestions(input.value, 6);
+      } else if (kind === 'city' && D.getCitySuggestions) {
+        list = D.getCitySuggestions(input.value, state.country, 6);
+      }
       if (!list.length) { hideAutocomplete(); return; }
       var rect = input.getBoundingClientRect(), formRect = form.getBoundingClientRect();
       box.style.top = (rect.bottom - formRect.top + form.scrollTop + 2) + 'px';
