@@ -17,11 +17,8 @@
   var client = null;
   var localAudioTrack = null;
   var localVideoTrack = null;
-  var deepARInstance = null;
   var hostCameraStream = null;
-  var deepARCanvasStream = null;
   var hostPreviewPromise = null;
-  var selectedLiveEffect = 'off';
   var cameraFacingMode = 'user';
   var selectedCameraId = '';
   var selectedMicrophoneId = '';
@@ -29,14 +26,6 @@
   var whiteboardColor = '#6D3FE0';
   var whiteboardWidth = 5;
   var isHostPublishing = false;
-  var EFFECT_PATHS = {
-    makeup: './web/effects/MakeupLook.deepar',
-    hearts: './web/effects/PixelHearts.deepar',
-    background: './web/effects/background_blur.deepar',
-    aviators: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/aviators',
-    koala: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/koala',
-    lion: 'https://cdn.jsdelivr.net/npm/deepar@5.6.22/effects/lion'
-  };
   var currentSession = null;
   var materialChannel = null;
   var reactionChannel = null;
@@ -1398,38 +1387,6 @@
     return { width: 1280, height: 720, frameRate: 30 };
   }
 
-  function updateEffectButtons() {
-    Array.from(document.querySelectorAll('[data-live-effect]')).forEach(function (button) {
-      button.classList.toggle('active', button.getAttribute('data-live-effect') === selectedLiveEffect);
-    });
-  }
-
-  async function applyLiveEffect(effectId) {
-    selectedLiveEffect = (EFFECT_PATHS[effectId] || effectId === 'off') ? effectId : 'off';
-    updateEffectButtons();
-    if (!deepARInstance) return;
-    el('previewStatus').textContent = tr('Loading effect...', 'Загрузка эффекта...');
-    try {
-      // 'background' is the packaged background_blur.deepar — it carries its own
-      // person segmentation, unlike the raw backgroundBlur() API which blurred the
-      // whole frame when the segmentation model was unavailable.
-      if (selectedLiveEffect === 'off') {
-        await deepARInstance.clearEffect();
-        el('deeparCanvas')?.classList.remove('active');
-        el('hostCameraPreview')?.classList.add('active');
-      } else {
-        await deepARInstance.switchEffect(EFFECT_PATHS[selectedLiveEffect]);
-        el('deeparCanvas')?.classList.add('active');
-        el('hostCameraPreview')?.classList.remove('active');
-      }
-      el('previewStatus').textContent = isHostPublishing
-        ? tr('Effect is visible to LIVE viewers.', 'Эффект виден зрителям LIVE.')
-        : tr('Practice mode: the effect is private until you press Go LIVE.', 'Режим практики: эффект видите только вы до нажатия «В эфир».');
-    } catch (error) {
-      el('previewStatus').textContent = error?.message || tr('Could not load this effect.', 'Не удалось загрузить эффект.');
-    }
-  }
-
   async function openHostCamera(facingMode) {
     var profile = selectedVideoProfile();
     var nextStream = await navigator.mediaDevices.getUserMedia({
@@ -1446,8 +1403,7 @@
     var preview = el('hostCameraPreview');
     preview.srcObject = nextStream;
     await preview.play();
-    if (deepARInstance) await deepARInstance.setVideoElement(preview, true);
-    if (localVideoTrack && !deepARInstance && typeof localVideoTrack.replaceTrack === 'function') {
+    if (localVideoTrack && typeof localVideoTrack.replaceTrack === 'function') {
       await localVideoTrack.replaceTrack(nextStream.getVideoTracks()[0], true);
     }
     oldStream?.getTracks().forEach(function (track) { track.stop(); });
@@ -1461,32 +1417,8 @@
       document.body.classList.add('host-preview');
       el('previewStatus').textContent = tr('Requesting camera access...', 'Запрашиваем доступ к камере...');
       await openHostCamera(cameraFacingMode);
-      var canvas = el('deeparCanvas');
-      var fallbackVideo = el('hostCameraPreview');
-      var licenseKey = window.DUVELA_DEEPAR_WEB_LICENSE_KEY || config.deepARWebLicenseKey || '';
-      if (window.deepar && licenseKey) {
-        try {
-          deepARInstance = await window.deepar.initialize({
-            licenseKey: licenseKey,
-            canvas: canvas,
-            additionalOptions: {
-              cameraConfig: { disableDefaultCamera: true }
-            }
-          });
-          await deepARInstance.setVideoElement(fallbackVideo, true);
-          canvas.classList.add('active');
-          fallbackVideo.classList.remove('active');
-          await applyLiveEffect(selectedLiveEffect);
-        } catch (error) {
-          deepARInstance = null;
-          canvas.classList.remove('active');
-          fallbackVideo.classList.add('active');
-          el('previewStatus').textContent = tr('Camera is ready. DeepAR could not start, so the clean camera will be used.', 'Камера готова. DeepAR не запустился, поэтому будет использована обычная камера.');
-        }
-      } else {
-        fallbackVideo.classList.add('active');
-        el('previewStatus').textContent = tr('Camera is ready. Add the DeepAR Web license to enable effects.', 'Камера готова. Добавьте лицензию DeepAR Web, чтобы включить эффекты.');
-      }
+      el('hostCameraPreview').classList.add('active');
+      el('previewStatus').textContent = tr('Camera is ready.', 'Камера готова.');
       showOverlay(false);
       el('flipCamera').style.display = 'inline-flex';
       el('toggleFullscreen').style.display = 'inline-flex';
@@ -1508,14 +1440,7 @@
       AGC: true,
       ANS: Boolean(el('noiseSuppression')?.checked)
     });
-    var sourceTrack;
-    if (deepARInstance && selectedLiveEffect !== 'off') {
-      deepARInstance.setFps(profile.frameRate);
-      deepARCanvasStream = el('deeparCanvas').captureStream(profile.frameRate);
-      sourceTrack = deepARCanvasStream.getVideoTracks()[0];
-    } else {
-      sourceTrack = hostCameraStream?.getVideoTracks()[0]?.clone();
-    }
+    var sourceTrack = hostCameraStream?.getVideoTracks()[0]?.clone();
     if (!sourceTrack) throw new Error(tr('Camera video track is unavailable.', 'Видеодорожка камеры недоступна.'));
     localVideoTrack = window.AgoraRTC.createCustomVideoTrack({
       mediaStreamTrack: sourceTrack,
@@ -1550,7 +1475,7 @@
       screenShareTrack.stop(); screenShareTrack = null;
       document.getElementById('hostScreenPreview')?.remove();
       window.dispatchEvent(new CustomEvent('duvela:screen-share', { detail:{ active:false } }));
-      var restore = (deepARInstance && selectedLiveEffect !== 'off') ? el('deeparCanvas').captureStream(30).getVideoTracks()[0] : hostCameraStream?.getVideoTracks()[0]?.clone();
+      var restore = hostCameraStream?.getVideoTracks()[0]?.clone();
       if (localVideoTrack && restore) await localVideoTrack.replaceTrack(restore, true);
       setScenePreset('camera', true); return false;
     }
@@ -2118,7 +2043,6 @@
       localVideoTrack.close();
       localVideoTrack = null;
     }
-    deepARCanvasStream = null;
     isHostPublishing = false;
     if (isHostMode && el('stageChipSecondary')) el('stageChipSecondary').textContent = tr('Not broadcasting', 'Не транслируется');
     if (client) {
@@ -2174,7 +2098,7 @@
     el('mainAction').textContent = tr('Start LIVE', 'Начать эфир');
     setStatus(tr('LIVE ended', 'Эфир завершён'), '');
     setStage('', '');
-    el('previewStatus').textContent = tr('Practice mode: camera and effects remain private.', 'Режим практики: камера и эффекты снова видны только вам.');
+    el('previewStatus').textContent = tr('Practice mode: the camera remains private.', 'Режим практики: камера снова видна только вам.');
     currentSession = currentSession ? Object.assign({}, currentSession, { status: 'ended', ended_at: new Date().toISOString() }) : null;
     updateShareLink(currentSession);
     renderWorkspace(currentSession);
@@ -2270,11 +2194,6 @@
     el('flipCamera').addEventListener('click', function () { void flipHostCamera(); });
     el('toggleFullscreen').addEventListener('click', toggleStageFullscreen);
     el('exitFullscreen').addEventListener('click', toggleStageFullscreen);
-    Array.from(document.querySelectorAll('[data-live-effect]')).forEach(function (button) {
-      button.addEventListener('click', function () {
-        void applyLiveEffect(button.getAttribute('data-live-effect') || 'off');
-      });
-    });
     el('videoQuality').addEventListener('change', function () {
       if (!isHostPublishing && hostCameraStream) void openHostCamera(cameraFacingMode);
     });
@@ -2320,7 +2239,7 @@
       el('sideTitle').textContent = tr('Teacher controls', 'Управление преподавателя');
       el('sideCopy').textContent = tr('Run the live room from the browser, keep session details clear, and hand off learners with the right entry link.', 'Управляйте комнатой эфира из браузера, держите данные сессии в порядке и направляйте учеников по нужной ссылке.');
       el('setupSection').style.display = 'grid';
-      el('effectsSection').style.display = 'grid';
+      el('cameraSection').style.display = 'grid';
       el('guestRequestsSection').style.display = 'grid';
       el('hostSetup').style.display = 'grid';
       el('scheduleSetup').style.display = 'grid';

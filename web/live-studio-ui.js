@@ -39,7 +39,7 @@
   side.insertBefore(tabs, side.querySelector('.studio-section'));
 
   const map = {
-    setup: ['setupSection','timelineSection'], design: ['effectsSection'], materials: ['linksTitle'],
+    setup: ['setupSection','timelineSection'], design: ['cameraSection'], materials: ['linksTitle'],
     people: ['guestRequestsSection'], health: ['diagnosticsSection','checklistTitle','detailsTitle']
   };
   const sections = Array.from(side.querySelectorAll('.studio-section'));
@@ -127,9 +127,9 @@
   production.querySelector('#previewSceneBtn').onclick=()=>{api.previewScene(production.querySelector('#previewScene').value);previewing=true;previewBanner.hidden=false;};
   production.querySelector('#commitSceneBtn').onclick=()=>{api.setScene(production.querySelector('#previewScene').value);previewing=false;previewBanner.hidden=true;};
   production.querySelector('#studioMicVolume').oninput=(event)=>api.setMicrophoneVolume(event.target.value);
-  const camera=()=>document.getElementById('hostCameraPreview')||document.getElementById('deeparCanvas');
+  const camera=()=>document.getElementById('hostCameraPreview');
   production.querySelector('#cameraPipSize').oninput=(event)=>{const node=camera();if(!node)return;node.classList.add('camera-pip-edit');node.style.setProperty('width',event.target.value+'%','important');node.style.setProperty('height',Math.round(event.target.value*.62)+'%','important');};
-  let drag=null;document.querySelector('.stage')?.addEventListener('pointerdown',(event)=>{const node=event.target.closest('#hostCameraPreview,#deeparCanvas');if(!node||!document.body.classList.contains('scene-presentation'))return;event.preventDefault();node.classList.add('camera-pip-edit');const rect=node.getBoundingClientRect(),stageRect=node.closest('.stage').getBoundingClientRect();drag={node,dx:event.clientX-rect.left,dy:event.clientY-rect.top,stageRect};node.setPointerCapture?.(event.pointerId);});
+  let drag=null;document.querySelector('.stage')?.addEventListener('pointerdown',(event)=>{const node=event.target.closest('#hostCameraPreview');if(!node||!document.body.classList.contains('scene-presentation'))return;event.preventDefault();node.classList.add('camera-pip-edit');const rect=node.getBoundingClientRect(),stageRect=node.closest('.stage').getBoundingClientRect();drag={node,dx:event.clientX-rect.left,dy:event.clientY-rect.top,stageRect};node.setPointerCapture?.(event.pointerId);});
   window.addEventListener('pointermove',(event)=>{if(!drag)return;const x=Math.max(0,Math.min(drag.stageRect.width-drag.node.offsetWidth,event.clientX-drag.stageRect.left-drag.dx));const y=Math.max(0,Math.min(drag.stageRect.height-drag.node.offsetHeight,event.clientY-drag.stageRect.top-drag.dy));drag.node.style.setProperty('left',x+'px','important');drag.node.style.setProperty('top',y+'px','important');drag.node.style.setProperty('right','auto','important');drag.node.style.setProperty('bottom','auto','important');});window.addEventListener('pointerup',()=>drag=null);
 
   const brandTools=document.createElement('section');brandTools.className='studio-section';brandTools.dataset.studioGroup='design';brandTools.innerHTML='<div class="studio-tool-card"><h3>'+t('On-screen design','Оформление эфира')+'</h3><input id="lowerTitle" placeholder="'+t('Teacher or speaker name','Имя преподавателя или спикера')+'"><input id="lowerSubtitle" placeholder="'+t('Lesson topic or role','Тема урока или роль')+'"><div class="studio-inline"><button class="btn primary" id="showLower">'+t('Show lower third','Показать титр')+'</button><button class="btn" id="hideLower">'+t('Hide','Скрыть')+'</button></div><label class="btn">🖼 '+t('Upload logo','Загрузить логотип')+'<input id="brandLogoFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><div class="studio-inline"><button class="btn" id="waitingScreen">'+t('Waiting screen','Экран ожидания')+'</button><button class="btn" id="pauseScreen">'+t('Pause screen','Пауза')+'</button><button class="btn" id="resumeScreen">'+t('Return to LIVE','Вернуться в эфир')+'</button></div><button class="btn" id="captionToggle">CC '+t('Start automatic captions','Включить автосубтитры')+'</button></div>';
