@@ -475,6 +475,25 @@
     if (error) throw error;
     return supa.storage.from(bucket).getPublicUrl(path).data.publicUrl;
   }
+  async function uploadAvatar(file) {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const name = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    const targets = [
+      { bucket: 'avatars', path: user.id + '/' + name },
+      { bucket: 'posts', path: user.id + '/avatars/' + name }
+    ];
+    let lastError = null;
+    for (const target of targets) {
+      const { error } = await supa.storage.from(target.bucket).upload(target.path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || undefined
+      });
+      if (!error) return supa.storage.from(target.bucket).getPublicUrl(target.path).data.publicUrl;
+      lastError = error;
+    }
+    throw lastError || new Error('Could not upload avatar.');
+  }
   function getEventColumns() { return publicDataFeature.getEventColumns(); }
   function mapEventRow(item) { return publicDataFeature.mapEventRow(item); }
   function loadPublicData() { return publicDataFeature.loadPublicData(); }
@@ -559,6 +578,7 @@
     toggleLike,
     toggleRsvp,
     unenrollCourse,
+    uploadAvatar,
     uploadPost
   });
   appBootstrap.start();
