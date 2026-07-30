@@ -81,6 +81,16 @@
 @media(max-width:820px){.practice-home-hero{grid-template-columns:1fr}.practice-hero-stats{min-width:0;width:100%}}
 @media(max-width:560px){.practice-hero-stats{grid-template-columns:1fr}.practice-home-hero h2{font-size:25px}.subject-practice-note{align-items:flex-start;flex-direction:column}}
 
+.practice-top-actions{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(420px,1.25fr);gap:14px;align-items:stretch;margin-top:-2px}
+.practice-top-actions .practice-quick-settings{justify-content:flex-start;align-content:center;padding:12px;border:1px solid #e8def7;border-radius:22px;background:linear-gradient(135deg,#fff,#f8f4ff);box-shadow:0 12px 28px rgba(69,42,109,.07)}
+.practice-top-actions .practice-quick-settings button{min-height:44px;padding:10px 14px;border-color:#e3d8f5;background:#fff;color:#5f536e;font-size:12px;font-weight:950;box-shadow:0 7px 16px rgba(53,33,90,.05)}
+.practice-top-actions .practice-quick-settings button[aria-pressed="true"]{border-color:#7b4bea;background:linear-gradient(135deg,#f1eaff,#fff);color:#6534d2}
+.practice-rank-strip-top{gap:14px}
+.learner-practice-panel .practice-rank-strip-top span,.practice-rank-strip-top span{min-height:70px;display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 18px;border:1px solid #e7ddf7;border-radius:22px;background:linear-gradient(135deg,#fff,#f6f0ff 68%,#eefaf7);color:#5f536e;font-size:15px;font-weight:950;box-shadow:0 12px 28px rgba(69,42,109,.08)}
+.practice-rank-strip-top b{font-size:22px;color:#6534d2}
+@media(max-width:1120px){.practice-top-actions{grid-template-columns:1fr}.practice-top-actions .practice-quick-settings{justify-content:flex-start}.practice-rank-strip-top{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.practice-rank-strip-top{grid-template-columns:1fr}.practice-top-actions .practice-quick-settings{display:grid;grid-template-columns:1fr}.practice-top-actions .practice-quick-settings button{width:100%}}
+
 /* Learner profile: one coherent hero, quieter forms and a useful progress rail. */
 .learner-profile-edit>.grid-2{
   align-items:start;
