@@ -122,7 +122,7 @@
       courses: tr('Courses', 'Курсы'),
       events: tr('Events', 'События'),
       messages: tr('Messages', 'Сообщения'),
-      workspace: tr('Workspace', 'Рабочая зона'),
+      workspace: tr('Notes', 'Заметки'),
       schedule: tr('Schedule', 'Расписание'),
       profile: tr('Profile', 'Профиль')
     }
@@ -147,7 +147,7 @@
       courses: [tr('Courses', 'Курсы'), tr('Structure offers, cohorts and paid learning programs.', 'Собирайте офферы, потоки и платные программы обучения.')],
       events: [tr('Events', 'События'), tr('Plan workshops, meetups and online sessions.', 'Планируйте воркшопы, митапы и онлайн-сессии.')],
       messages: [tr('Messages', 'Сообщения'), tr('Learner conversations and recent platform updates.', 'Диалоги с учениками и обновления платформы.')],
-      workspace: [tr('Workspace', 'Рабочая зона'), tr('Creator tools for publishing and planning.', 'Инструменты публикации и планирования.')],
+      workspace: [tr('Notes', 'Заметки'), tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
