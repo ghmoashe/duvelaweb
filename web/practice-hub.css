@@ -286,6 +286,10 @@
   content:"✨";
   background:linear-gradient(135deg,#36b99b,#4a79d9)
 }
+.learner-profile-edit #profileForm .profile-contacts-section .profile-section-title::before{
+  content:"@";
+  background:linear-gradient(135deg,#111827,#7c3aed)
+}
 .learner-profile-edit #profileForm .profile-section-title h3{
   color:#211a2d;
   font-size:20px;
@@ -358,6 +362,31 @@
   background:
     radial-gradient(circle at 100% 0,rgba(54,185,155,.1),transparent 38%),
     #fff
+}
+.learner-profile-edit #profileForm .profile-contacts-section{
+  background:
+    radial-gradient(circle at 0 0,rgba(17,24,39,.06),transparent 34%),
+    radial-gradient(circle at 100% 0,rgba(124,58,237,.08),transparent 36%),
+    #fff
+}
+.learner-profile-edit #profileForm .profile-contacts-section .form-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))
+}
+.learner-profile-edit #profileForm .profile-contacts-section .field input{
+  padding-left:18px;
+  background:#fff
+}
+.learner-profile-edit #profileForm .profile-contacts-section .field:nth-child(1) input:focus{
+  border-color:#2aabee;
+  box-shadow:0 0 0 4px rgba(42,171,238,.12)
+}
+.learner-profile-edit #profileForm .profile-contacts-section .field:nth-child(2) input:focus{
+  border-color:#d946ef;
+  box-shadow:0 0 0 4px rgba(217,70,239,.12)
+}
+.learner-profile-edit #profileForm .profile-contacts-section .field:nth-child(3) input:focus{
+  border-color:#111827;
+  box-shadow:0 0 0 4px rgba(17,24,39,.1)
 }
 .learner-profile-edit #profileForm .profile-public-section .field textarea{
   border-radius:18px;
@@ -649,6 +678,9 @@
   }
   .learner-profile-edit #progressCard .leaderboard-head .role-select{
     width:100%
+  }
+  .learner-profile-edit #profileForm .profile-contacts-section .form-grid{
+    grid-template-columns:1fr
   }
   .learner-profile-edit #progressCard .rank-summary{
     align-items:flex-start;

@@ -212,6 +212,7 @@
       setInput('#pfBio', ctx.profile?.bio);
       setInput('#pfTelegram', ctx.profile?.telegram);
       setInput('#pfInstagram', ctx.profile?.instagram);
+      setInput('#pfTiktok', ctx.profile?.tiktok);
       setInput('#pfWebsite', ctx.profile?.website);
       if (appLanguageSelect) appLanguageSelect.value = ctx.getAppLang();
       avatarHtml('#topAvatar', displayName, ctx.profile?.avatar_url);
@@ -266,6 +267,7 @@
         bio: $('#pfBio').value.trim() || null,
         telegram: $('#pfTelegram').value.trim() || null,
         instagram: $('#pfInstagram').value.trim() || null,
+        tiktok: $('#pfTiktok').value.trim() || null,
         updated_at: new Date().toISOString()
       };
       if ($('#pfWebsite')) patch.website = $('#pfWebsite').value.trim() || null;
