@@ -657,20 +657,53 @@
           {tool:'dictionary',title:tr('Save key terms','Сохранить важные термины'),meta:tr('Personal notebook','Личный словарь'),reason:tr('Build your own practice base','Соберите свою базу практики')}
         ];
       }
+      function levelIndex(level){return Math.max(0,['A1','A2','B1','B2','C1','C2'].indexOf(String(level||'A1').toUpperCase()));}
+      function sourceCard(id,webTool,icon,premium,title,meta,desc,action,db){
+        return {id:id,webTool:webTool||id,icon:icon,premium:!!premium,db:!!db,title:title,meta:meta,desc:desc,action:action};
+      }
+      var mobileTarget=activeTarget==='en'?'english':activeTarget==='es'?'spanish':'german';
+      var targetName=activeTarget==='en'?'English':activeTarget==='es'?'Spanish':'German';
+      var grammarCard=activeTarget==='en'
+        ? sourceCard('grammar','grammar','edit',false,'English Grammar Academy','9-level grammar path','Practise the full A1-C2 English grammar system: tenses, voice, modals, clauses, pronouns, and more.','Continue')
+        : activeTarget==='es'
+          ? sourceCard('grammar','grammar','edit',false,'Spanish Grammar','Spanish grammar','Choose the correct Spanish verb form, article, preposition, or sentence structure.','Continue')
+          : sourceCard('grammar','grammar','edit',false,'Grammatik aktiv','A1-B1 grammar academy','A1-B1 German grammar roadmap with native-language explanations and focused exercises.','Continue');
+      var examCard=activeTarget==='en'
+        ? sourceCard('exam','exam','flask',true,'English Exam Mode','IELTS / speaking / writing','Practice English exam-style questions with a timer, choices, and scoring.','Continue')
+        : activeTarget==='es'
+          ? sourceCard('exam','exam','flask',true,'Spanish Exam Mode','DELE-style practice','Practice Spanish exam-style grammar and communication questions with scoring.','Continue')
+          : sourceCard('exam','exam','flask',true,'Exam Mode','Goethe / telc / DTZ / TestDaF','Exam-style practice for Goethe, telc, or TestDaF with a timer, questions, and scoring.','Open exam mode');
+      var essentialsCard=activeTarget==='en'
+        ? sourceCard('englishEssentials','essentials','tools',true,'English Trainer','English core skills','Train tenses, articles, word order, conditionals, vocabulary and more.','Start')
+        : activeTarget==='de'
+          ? sourceCard('germanEssentials','essentials','tools',true,'Deutsch Trainer','German core skills','Train grammar, pronunciation, sentence building, and real conversation patterns.','Start')
+          : null;
+      var wordUsageCard=sourceCard('wordUsage','wordusage','cards',false,'Word usage cards','Examples and explanations in your native language','Enter a word and get short cards with meaning, examples, and sentence placement in '+targetName+'.','Open');
+      var languageTail=activeTarget==='de'
+        ? [
+            sourceCard('articles','articles','file',false,'Guess Article','Article practice','Practice der, die, and das with German words from your level.','Continue'),
+            sourceCard('memory','flashcards','stack',false,'Memory Cards','Vocabulary training','Learn and remember words with interactive cards.','Continue')
+          ]
+        : [
+            sourceCard('memory','flashcards','stack',false,'Memory Cards','Vocabulary training','Match '+targetName+' words with hints in your native language.','Continue')
+          ];
+      if(activeTarget==='de'&&levelIndex(activeLevel)>=1){
+        languageTail.push(sourceCard('wQuestion','wquestion','file',false,'W-questions','Question practice','Build German questions with wer, was, wann, wo, wohin and warum.','Continue'));
+        languageTail.push(sourceCard('perfekt','perfekt','book',false,'German Perfekt','Spoken past tense','Practice haben/sein and participle forms for everyday German.','Continue'));
+      }
       const bankItems=[
-        {id:'adaptive',icon:'path',premium:true,title:'Adaptive learning path',meta:'Personal daily plan',desc:'A personal sequence based on your level, progress, and recurring mistakes.',action:'Open path'},
-        {id:'ai',icon:'sparkles',premium:true,title:'DUVELA AI',meta:'Conversation practice',desc:'Practice conversation, pronunciation, and grammar in one place.',action:'Start AI practice'},
-        {id:'liveTeacher',icon:'video',premium:true,title:'Practice LIVE with Teacher',meta:'Teacher session',desc:'Enter a live practice room with a teacher for speaking, questions, and real-time feedback.',action:'Join LIVE'},
-        {id:'exam',icon:'flask',premium:true,title:'Exam Mode',meta:'Goethe / telc / DTZ / TestDaF',desc:'Exam-style practice for Goethe, telc, or TestDaF with a timer, questions, and scoring.',action:'Open exam mode'},
-        {id:'essentials',icon:'tools',premium:true,title:'Deutsch Trainer',meta:'German core skills',desc:'Train grammar, pronunciation, sentence building, and real conversation patterns.',action:'Start'},
-        {id:'duel',icon:'bolt',premium:true,title:'Duel',meta:'Real-time match',desc:'Battle a learner at your level - whoever scores more on the clock wins.',action:'Find a rival'},
-        {id:'teacherPractice',icon:'bulb',db:true,title:'Teacher practice',meta:'From teachers & schools',desc:'Practices created by teachers. Higher rated ones rank first.',action:'Open'},
-        {id:'grammar',icon:'edit',title:'Grammatik aktiv',meta:'A1-B1 grammar academy',desc:'A1-B1 German grammar roadmap with native-language explanations and focused exercises.',action:'Continue'},
-        {id:'wordusage',icon:'cards',title:'Word usage cards',meta:'Examples and explanations in your native language',desc:'Enter a word and get short cards with meaning, examples, and sentence placement in German.',action:'Open'},
-        {id:'articles',icon:'file',title:'Guess Article',meta:'Article practice',desc:'Practice der, die, and das with German words from your level.',action:'Continue'},
-        {id:'flashcards',icon:'stack',title:'Memory Cards',meta:'Vocabulary training',desc:'Learn and remember words with interactive cards.',action:'Continue'},
-        {id:'mistakes',icon:'alert',title:'Mistake Center',meta:'Mistakes are saved on this device and synced when your account is available.',desc:'One place for mistakes from grammar, exams, listening and writing.',action:'Review'}
-      ];
+        sourceCard('adaptive','adaptive','path',true,'Adaptive learning path','Personal daily plan','A personal sequence based on your level, progress, and recurring mistakes.','Open path'),
+        sourceCard('duvela','ai','sparkles',true,'DUVELA AI','Conversation practice','Practice conversation, pronunciation, and grammar in one place.','Start AI practice'),
+        sourceCard('liveTeacher','liveTeacher','video',true,'Practice LIVE with Teacher','Teacher session','Enter a live practice room with a teacher for speaking, questions, and real-time feedback.','Join LIVE'),
+        examCard,
+        ...(essentialsCard?[essentialsCard]:[]),
+        sourceCard('duel','duel','bolt',true,'Duel','Real-time match','Battle a learner at your level - whoever scores more on the clock wins.','Find a rival'),
+        sourceCard('teacherPractices','teacherPractices','bulb',false,'Teacher practice','From teachers & schools','Practices created by teachers. Higher rated ones rank first.','Open',true),
+        grammarCard,
+        wordUsageCard
+      ].concat(languageTail,[
+        sourceCard('mistakes','mistakes','alert',false,'Mistake Center','Mistakes are saved on this device and synced when your account is available.','One place for mistakes from grammar, exams, listening and writing.','Review')
+      ]);
       function bankIcon(name){
         var common='viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
         var icons={
@@ -681,6 +714,8 @@
           tools:'<svg '+common+'><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.8 2.8-2-2 2.8-2.8z"/><path d="M4 4l4 4"/><path d="M3 7l3-3"/></svg>',
           bolt:'<svg '+common+'><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>',
           bulb:'<svg '+common+'><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a6 6 0 1 1 8 0c-1 1-1.4 2-1.5 3h-5c-.1-1-.5-2-1.5-3z"/></svg>',
+          headphones:'<svg '+common+'><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg>',
+          book:'<svg '+common+'><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5z"/><path d="M4 19a3 3 0 0 1 3-3h13"/></svg>',
           edit:'<svg '+common+'><path d="M4 20h16"/><path d="M5 15l9.5-9.5 4 4L9 19H5v-4z"/><path d="M13.5 6.5l4 4"/></svg>',
           cards:'<svg '+common+'><rect x="6" y="5" width="12" height="14" rx="2"/><path d="M9 3h8a3 3 0 0 1 3 3v10"/></svg>',
           file:'<svg '+common+'><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>',
@@ -690,12 +725,41 @@
         return icons[name] || icons.path;
       }
       function exerciseCard(item){
-        return '<button class="study-tile mph-exercise-card ' + (item.premium?'premium-exercise':'regular-exercise') + (item.db?' db-exercise':'') + '" data-study="' + esc(item.id) + '" data-study-category="' + esc(item.premium?'premium':(item.db?'db':'bank')) + '"' + (item.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
+        return '<button class="study-tile mph-exercise-card ' + (item.premium?'premium-exercise':'regular-exercise') + (item.db?' db-exercise':'') + '" data-study="' + esc(item.webTool) + '" data-mobile-card="' + esc(item.id) + '" data-mobile-target="' + esc(mobileTarget) + '" data-study-category="' + esc(item.premium?'premium':(item.db?'db':'bank')) + '"' + (item.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
           '<div class="mph-exercise-top"><span class="mph-exercise-icon">' + bankIcon(item.icon) + '</span>' + (item.premium ? '<span class="mph-premium-badge">&#9826; Premium</span>' : '') + '</div>' +
           '<div class="mph-exercise-copy"><h3>' + esc(item.title) + '</h3><strong>' + esc(item.meta) + '</strong><p>' + esc(item.desc) + '</p></div>' +
           '<span class="mph-exercise-action">' + esc(item.action) + '</span></button>';
       }
+      var score=Math.max(230,Number(done||0)),silverTarget=250,goalPercent=Math.max(4,Math.min(100,Math.round(score/6000*100)));
+      var examDate=examGoal.date||'2026-10-10',examDateObj=new Date(examDate+'T12:00:00'),examDays=examGoal.date?daysLeft:Math.max(0,Math.ceil((examDateObj-Date.now())/86400000));
+      var examName=String(examGoal.exam||'telc-b1').toUpperCase().replace('-',' ');
+      var examDateText=examDateObj.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      function miniLanguage(target){
+        var level=targetData.levels[target]||prefs.levels[target]||activeLevel||'A1';
+        return '<button type="button" class="'+(target===activeTarget?'active':'')+'" data-practice-target="'+esc(target)+'"><span>'+bankIcon('cards')+'</span><b>'+esc(targetData.labels[target]||targetLabel(target))+'</b><small>'+esc(String(level).toUpperCase())+'</small></button>';
+      }
+      var languageTargets=targetData.targets.filter(isLanguageTarget);
+      if(languageTargets.indexOf('de')<0)languageTargets.unshift('de');
+      if(languageTargets.length<2&&languageTargets.indexOf('en')<0)languageTargets.push('en');
+      if(languageTargets.length<3&&languageTargets.indexOf('es')<0)languageTargets.push('es');
+      languageTargets=languageTargets.slice(0,3);
+      function readinessRow(key,label){
+        var value=Number(readiness[key]||0);
+        return '<button type="button" data-readiness-tool="'+key+'"><span><b>'+esc(label)+'</b><strong>'+value+'%</strong></span><i><em style="width:'+value+'%"></em></i></button>';
+      }
+      var quickStart=[
+        {id:'listening',icon:'headphones',title:'Listening Lab'},
+        {id:'reading',icon:'book',title:'Reading Lab'},
+        {id:'writing',icon:'edit',title:'Writing Lab'}
+      ];
+      function quickCard(item){
+        return '<button class="study-tile practice-quick-card" data-study="'+esc(item.id)+'"><span>'+bankIcon(item.icon)+'</span><b>'+esc(item.title)+'</b></button>';
+      }
       return '<section class="mobile-practice-hub practice-library-mobile target-'+esc(activeTarget)+'">' +
+        '<div class="practice-language-tabs">'+languageTargets.map(miniLanguage).join('')+'</div>' +
+        '<section class="practice-goal-progress"><div class="practice-goal-head"><span>'+bankIcon('path')+'</span><div><small>GOAL PROGRESS</small><h2>For work B2</h2></div><strong>'+goalPercent+'%</strong></div><div class="practice-goal-track"><i style="width:'+goalPercent+'%"></i></div><div class="practice-goal-stats"><span><small>CURRENT</small><b>'+esc(String(activeLevel).toUpperCase())+'</b></span><span><small>GOAL</small><b>B2</b></span><span class="wide"><small>SCORE</small><b>'+score+'</b><em>Bronze</em><i><u style="width:'+Math.min(100,Math.round(score/silverTarget*100))+'%"></u></i><small>RANKING</small><strong>'+score+'/'+silverTarget+' to Silver</strong></span></div><p><span>'+bankIcon('bolt')+'</span>Next: finish practice paths to reach B2</p></section>' +
+        '<section class="practice-exam-journey"><div class="practice-exam-title"><div><small>EXAM JOURNEY</small><h2>'+esc(examName)+'</h2></div><strong>'+readiness.overall+'%</strong></div><p>Set your exam date and get a personal plan for every day.</p><div class="practice-exam-date"><span>'+bankIcon('file')+'</span><div><small>EXAM DATE</small><b>'+esc(examDateText)+'</b></div><em>'+examDays+' days</em></div><div class="practice-goal-track exam"><i style="width:'+readiness.overall+'%"></i></div><div class="practice-exam-actions"><button type="button" data-exam-plan="1">'+bankIcon('file')+' Change date</button><button class="study-tile" type="button" data-study="exam">Exam bank <span>-></span></button></div><div class="practice-skill-readiness">'+readinessRow('reading','Reading')+readinessRow('listening','Listening')+readinessRow('grammar','Grammar')+readinessRow('writing','Writing')+readinessRow('speaking','Speaking')+'</div></section>' +
+        '<div class="practice-quick-head"><div><small>QUICK START</small><h2>Core skills</h2></div><span>3</span></div><div class="practice-quick-start">'+quickStart.map(quickCard).join('')+'</div>' +
         '<div class="practice-library-head"><div><small>PRACTICE LIBRARY</small><h2>All exercises</h2></div><span>'+bankItems.length+'</span></div>' +
         '<div class="practice-exercise-bank">' + bankItems.map(exerciseCard).join('') + '</div></section>';
       const premiumOrder=['adaptive','ai','liveTeacher','exam','essentials','duel'];
@@ -728,7 +792,7 @@
         tile.addEventListener('click', function () {
           if (tile.getAttribute('data-premium-locked')) return showPremiumAccess();
           var tool=tile.getAttribute('data-study');
-          if(tool==='teacherPractice'){
+          if(tool==='teacherPractice'||tool==='teacherPractices'){
             var catalog=document.querySelector('.practice-db-catalog');
             if(catalog){
               catalog.hidden=false;
