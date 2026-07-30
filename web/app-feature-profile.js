@@ -206,6 +206,7 @@
       setInput('#pfLanguage', ctx.profile?.language);
       setInput('#pfLevel', ctx.profile?.language_level);
       setInput('#pfAvatar', ctx.profile?.avatar_url);
+      if ($('#pfNativeLanguageLabel')) $('#pfNativeLanguageLabel').textContent = tr('Native language', 'Родной язык');
       if ($('#avatarRemoveBtn')) $('#avatarRemoveBtn').textContent = tr('Remove avatar', 'Удалить аватар');
       if ($('#avatarUploadHint')) $('#avatarUploadHint').textContent = tr('Choose JPG, PNG or WebP up to 5 MB. On mobile you can pick from photos or camera.', 'Выберите JPG, PNG или WebP до 5 MB. На телефоне можно выбрать фото или камеру.');
       setInput('#pfBio', ctx.profile?.bio);
