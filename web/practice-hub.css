@@ -311,12 +311,107 @@
   border-radius:12px;
   font-weight:800
 }
+.learner-profile-edit #profileForm .account-actions-section{
+  background:linear-gradient(180deg,#fff,#fbf9ff)
+}
+.learner-profile-edit #profileForm .learner-account-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 150px;
+  gap:10px;
+  align-items:stretch;
+  padding-top:0
+}
+.learner-profile-edit #profileForm .learner-account-actions .btn{
+  position:relative;
+  min-height:56px;
+  justify-content:center;
+  gap:9px;
+  padding:12px 16px;
+  border-radius:15px;
+  box-shadow:0 10px 24px rgba(51,31,88,.06);
+  transition:transform .16s,border-color .16s,box-shadow .16s,background .16s
+}
+.learner-profile-edit #profileForm .learner-account-actions .btn::before{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:900
+}
+.learner-profile-edit #profileForm .learner-account-actions .btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 14px 30px rgba(51,31,88,.1)
+}
+.learner-profile-edit #profileForm .learner-account-actions button[type="submit"]::before{
+  content:"✓";
+  background:rgba(255,255,255,.18);
+  color:#fff
+}
+.learner-profile-edit #profileForm .learner-account-actions #publicProfileLink::before{
+  content:"↗";
+  background:#f1ebff;
+  color:#6d3fe0
+}
+.learner-profile-edit #profileForm .learner-account-actions #signOut::before{
+  content:"⎋";
+  background:#fff0ef;
+  color:#df3b32
+}
+.learner-profile-edit #profileForm .learner-account-actions #profileSaved{
+  grid-column:1/-1;
+  justify-self:start;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#eafaf4;
+  color:#168a69!important;
+  font-size:12px;
+  font-weight:900!important
+}
 .learner-profile-edit #profileForm .danger-zone{
   margin:0;
   padding:18px 20px;
   border-radius:20px;
   background:#fffafa;
   box-shadow:none
+}
+.learner-profile-edit #profileForm .learner-danger-zone{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:16px;
+  border-color:rgba(217,45,32,.16);
+  background:linear-gradient(135deg,#fff,#fff7f6)
+}
+.learner-profile-edit #profileForm .learner-danger-zone .danger-zone-copy{
+  position:relative;
+  min-width:0;
+  padding-left:46px
+}
+.learner-profile-edit #profileForm .learner-danger-zone .danger-zone-copy::before{
+  content:"!";
+  position:absolute;
+  left:0;
+  top:1px;
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#fff0ef;
+  color:#df3b32;
+  font-weight:950
+}
+.learner-profile-edit #profileForm .learner-danger-zone .profile-actions{
+  padding-top:0;
+  justify-content:flex-end
+}
+.learner-profile-edit #profileForm .learner-danger-zone .btn.danger{
+  min-height:44px;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 10px 24px rgba(217,45,32,.06)
 }
 .learner-profile-edit #progressCard.learner-progress-card{
   position:sticky;
@@ -355,6 +450,20 @@
   .learner-profile-edit #profileForm .profile-avatar-tools{
     align-self:stretch;
     justify-self:stretch;
+    width:100%
+  }
+  .learner-profile-edit #profileForm .learner-account-actions{
+    grid-template-columns:1fr
+  }
+  .learner-profile-edit #profileForm .learner-account-actions #profileSaved{
+    justify-self:stretch;
+    text-align:center
+  }
+  .learner-profile-edit #profileForm .learner-danger-zone{
+    grid-template-columns:1fr
+  }
+  .learner-profile-edit #profileForm .learner-danger-zone .profile-actions,
+  .learner-profile-edit #profileForm .learner-danger-zone .btn.danger{
     width:100%
   }
   .learner-profile-edit #profileForm .learner-profile-summary{
