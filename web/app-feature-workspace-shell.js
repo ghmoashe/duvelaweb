@@ -13,8 +13,8 @@
       $('#workspaceTitle').textContent = creator ? tr('Notes', 'Заметки') : tr('Practice', 'Практика');
       $('#workspaceSub').textContent = creator
         ? tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')
-        : tr('Take practices from teachers.', 'Проходите практики от преподавателей.');
-      $('#workspacePrimaryTitle').textContent = creator ? tr('Your notes', 'Ваши заметки') : tr('Teacher practices', 'Практики от преподавателей');
+        : tr('Your daily practice, Academy directions and teacher tasks in one place.', 'Ежедневная практика, направления Academy и задания преподавателей в одном месте.');
+      $('#workspacePrimaryTitle').textContent = creator ? tr('Your notes', 'Ваши заметки') : tr('Practice hub', 'Центр практики');
       if (creator) {
         document.querySelector('[data-panel="workspace"]')?.classList.remove('learner-practice-panel');
         renderCreatorNotes();
@@ -24,7 +24,7 @@
       var studyHtml = ctx.studyToolsHtml ? ctx.studyToolsHtml() : '';
       $('#workspaceActions').innerHTML =
         studyHtml +
-        '<div class="section-head" style="margin:18px 0 8px"><h2 style="font-size:15px">' + esc(tr('Teacher practices', 'Teacher practices')) + '</h2><span>' + esc(tr('Published by creators', 'Published by creators')) + '</span></div>' +
+        '<div class="section-head practice-teacher-head" style="margin:18px 0 8px"><h2 style="font-size:19px">' + esc(tr('Teacher practices', 'Практики от преподавателей')) + '</h2><span>' + esc(tr('Only for your selected direction and level', 'Только для вашего направления и уровня')) + '</span></div>' +
         ctx.practicesHtml() +
         ctx.challengesHtml();
       if (ctx.bindStudyTiles) ctx.bindStudyTiles();
