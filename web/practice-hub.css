@@ -731,8 +731,18 @@
 .student-rank-hero h2{max-width:720px;margin:0;color:#fff;font-size:34px;font-weight:950;letter-spacing:-.04em}
 .student-rank-hero p{max-width:680px;margin:10px 0 0;color:rgba(255,255,255,.82);font-size:14px;font-weight:750;line-height:1.55}
 .student-rank-control{display:grid;gap:8px;padding:16px;border:1px solid rgba(255,255,255,.22);border-radius:20px;background:rgba(255,255,255,.14);backdrop-filter:blur(12px)}
-.student-rank-control label{color:rgba(255,255,255,.8);font-size:12px;font-weight:950}
+.student-rank-control label{display:grid;gap:6px;color:rgba(255,255,255,.8);font-size:12px;font-weight:950}
 .student-rank-control .role-select{min-height:48px;border-color:rgba(255,255,255,.34);background:#fff;color:#20172d;border-radius:15px;font-weight:950}
+.student-rank-control input.role-select{font:inherit;font-weight:850}
+.rank-control-grid{grid-template-columns:1fr 1fr}
+.rank-control-grid label:first-child{grid-column:1/-1}
+.student-rank-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px;border:1px solid #e8e2f2;border-radius:22px;background:rgba(255,255,255,.76);box-shadow:0 14px 34px rgba(67,42,103,.07)}
+.student-rank-tabs button{display:flex;align-items:center;gap:10px;min-height:58px;padding:12px 14px;border:1px solid #ece6f5;border-radius:17px;background:#fff;color:#5f556d;font:inherit;font-weight:900;cursor:pointer;text-align:left;transition:transform .16s,box-shadow .16s,border-color .16s,background .16s,color .16s}
+.student-rank-tabs button span{display:grid;width:34px;height:34px;place-items:center;border-radius:12px;background:#f4efff;font-size:18px}
+.student-rank-tabs button b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.student-rank-tabs button:hover{transform:translateY(-2px);border-color:#d9caf8;box-shadow:0 10px 22px rgba(67,42,103,.08)}
+.student-rank-tabs button.active{border-color:transparent;background:linear-gradient(135deg,#6d3fe0,#a642df);color:#fff;box-shadow:0 14px 28px rgba(109,63,224,.22)}
+.student-rank-tabs button.active span{background:rgba(255,255,255,.18)}
 .student-rank-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:20px;align-items:start}
 .student-rank-card{border:1px solid #e8e2f2;border-radius:24px;background:#fff;box-shadow:0 18px 48px rgba(57,35,94,.08)}
 .student-rank-main{padding:22px}
@@ -771,5 +781,5 @@
 .student-rank-note p{margin:0;color:rgba(255,255,255,.72);font-size:12px;font-weight:700;line-height:1.5}
 .student-rank-note span{display:block;margin-top:12px;color:#cfc3ff;font-size:11px;font-weight:900}
 .student-rank-loading,.student-rank-empty{padding:24px;border:1px dashed #ded4ef;border-radius:18px;background:#fbf9ff;color:#796f86;font-weight:850;text-align:center}
-@media(max-width:1080px){.student-rank-grid,.student-rank-hero{grid-template-columns:1fr}.student-rank-side{position:static}}
-@media(max-width:720px){.student-rank-hero{padding:22px 18px;border-radius:24px}.student-rank-hero h2{font-size:26px}.student-podium{grid-template-columns:1fr}.student-podium-card,.student-podium-card.place-1{min-height:0}.student-rank-row{grid-template-columns:28px 40px minmax(0,1fr) auto;gap:9px}.student-rank-profile{grid-column:3/-1;justify-self:start}}
+@media(max-width:1080px){.student-rank-grid,.student-rank-hero{grid-template-columns:1fr}.student-rank-side{position:static}.student-rank-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.student-rank-hero{padding:22px 18px;border-radius:24px}.student-rank-hero h2{font-size:26px}.rank-control-grid{grid-template-columns:1fr}.rank-control-grid label:first-child{grid-column:auto}.student-rank-tabs{grid-template-columns:1fr}.student-podium{grid-template-columns:1fr}.student-podium-card,.student-podium-card.place-1{min-height:0}.student-rank-row{grid-template-columns:28px 40px minmax(0,1fr) auto;gap:9px}.student-rank-profile{grid-column:3/-1;justify-self:start}}

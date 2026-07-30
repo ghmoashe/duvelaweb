@@ -112,7 +112,7 @@
       messages: tr('Messages', 'Сообщения'),
       workspace: tr('Practice', 'Практика'),
       schedule: tr('Schedule', 'Расписание'),
-      leaderboard: tr('Student ranking', 'Рейтинг учеников'),
+      leaderboard: tr('Rankings', 'Рейтинги'),
       profile: tr('Profile', 'Профиль')
     },
     bus: {
@@ -125,7 +125,7 @@
       messages: tr('Messages', 'Сообщения'),
       workspace: tr('Notes', 'Заметки'),
       schedule: tr('Schedule', 'Расписание'),
-      leaderboard: tr('Student ranking', 'Рейтинг учеников'),
+      leaderboard: tr('Rankings', 'Рейтинги'),
       profile: tr('Profile', 'Профиль')
     }
   };
@@ -139,7 +139,7 @@
       messages: [tr('Messages', 'Сообщения'), tr('Recent conversations and lesson updates.', 'Последние диалоги и обновления уроков.')],
       workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
-      leaderboard: [tr('Student ranking', 'Рейтинг учеников'), tr('Strict leaderboard by language or subject.', 'Строгий рейтинг по языку или предмету.')],
+      leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {
@@ -152,7 +152,7 @@
       messages: [tr('Messages', 'Сообщения'), tr('Learner conversations and recent platform updates.', 'Диалоги с учениками и обновления платформы.')],
       workspace: [tr('Notes', 'Заметки'), tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
-      leaderboard: [tr('Student ranking', 'Рейтинг учеников'), tr('See learners ranked by your teaching or organization direction.', 'Смотрите учеников по вашему направлению преподавания или организации.')],
+      leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
   };
