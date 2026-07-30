@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Duvela — Profile</title>
 <meta name="description" content="Teacher, organizer and organization profiles on Duvela Academy.">
+<meta name="theme-color" content="#f7f5fc">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="Duvela — Profile">
 <meta property="og:description" content="Learn with real teachers on Duvela Academy.">
@@ -20,64 +21,152 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #F6F5FA; --card: #FFFFFF; --ink: #17151F; --ink-soft: #6B6478;
-    --purple: #6D3FE0; --purple-deep: #5A2FCB; --teal: #0F9F7A; --red: #EF4444;
-    --lav-line: #E9E5F1; --lav-soft: #F1ECFF;
-    --grad: linear-gradient(120deg, #5A2FCB 0%, #A855F7 55%, #C026D3 100%);
+    --bg: #F7F5FC;
+    --card: #FFFFFF;
+    --ink: #191525;
+    --ink-soft: #716A7E;
+    --purple: #6C3CE7;
+    --purple-deep: #5425C9;
+    --teal: #0A9B79;
+    --red: #EF4444;
+    --lav-line: #E9E4F2;
+    --lav-soft: #F2EDFF;
+    --panel: #FBFAFE;
+    --grad: linear-gradient(118deg, #7136EF 0%, #A848EE 48%, #24B6D2 100%);
+    --shadow: 0 30px 80px rgba(52, 35, 87, .12);
   }
-  body { font-family: 'Inter', -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: 'Inter', -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(circle at 12% 4%, rgba(133, 83, 235, .09), transparent 28rem),
+      radial-gradient(circle at 92% 22%, rgba(34, 182, 210, .08), transparent 26rem),
+      var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
   h1, h2, h3 { letter-spacing: -.01em; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
-  .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 0 16px; }
-  .topbar img { width: 32px; height: 32px; border-radius: 9px; }
-  .topbar a { color: var(--ink); text-decoration: none; font-weight: 700; font-size: 16px; }
-  .card { background: var(--card); border: 1px solid var(--lav-line); border-radius: 18px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 12px 32px rgba(32,22,64,.05); }
-  .cover { height: 140px; background: var(--grad); background-size: cover; background-position: center; }
-  .head { padding: 0 20px 20px; }
-  .avatar { width: 88px; height: 88px; border-radius: 50%; border: 4px solid #fff; background: var(--lav-soft); margin-top: -44px; object-fit: cover; display: block; font-size: 30px; font-weight: 700; color: var(--purple); text-align: center; line-height: 80px; box-shadow: 0 8px 20px rgba(32,22,64,.1); }
-  h1 { font-size: 21px; font-weight: 700; margin-top: 10px; }
-  .meta { color: var(--ink-soft); font-size: 13px; font-weight: 500; margin-top: 2px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
-  .chip { font-size: 11.5px; font-weight: 650; padding: 5px 11px; border-radius: 999px; background: var(--lav-soft); color: var(--purple-deep); border: 1px solid var(--lav-line); }
-  .chip.teal { background: #E7F8F2; color: #0E8A69; border-color: #CDEFE3; }
-  .bio { margin-top: 12px; font-size: 14px; line-height: 1.6; color: #3E3752; white-space: pre-wrap; font-weight: 400; }
-  .live-banner { display: none; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 20px 0; padding: 12px 14px; border-radius: 14px; background: #FEF2F2; border: 1px solid #FECACA; }
+  a:focus-visible { outline: 3px solid rgba(108, 60, 231, .28); outline-offset: 3px; }
+  .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 22px 0 72px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 2px 22px; }
+  .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 17px; letter-spacing: -.02em; }
+  .brand img { width: 34px; height: 34px; border-radius: 10px; object-fit: contain; }
+  .profile-label { color: var(--ink-soft); font-size: 12px; font-weight: 700; letter-spacing: .02em; padding: 8px 12px; border: 1px solid var(--lav-line); background: rgba(255,255,255,.6); border-radius: 999px; }
+  .card { background: var(--card); border: 1px solid rgba(224, 217, 237, .88); border-radius: 28px; overflow: hidden; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .cover { position: relative; height: 250px; background: var(--grad); background-size: cover; background-position: center; overflow: hidden; }
+  .cover::before, .cover::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); }
+  .cover::before { width: 350px; height: 350px; right: -70px; top: -160px; }
+  .cover::after { width: 220px; height: 220px; right: 80px; top: -105px; }
+  .cover-glow { position: absolute; width: 420px; height: 180px; left: -80px; bottom: -120px; background: rgba(255,255,255,.16); filter: blur(45px); border-radius: 50%; }
+  .profile-body { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 44px; padding: 0 38px 38px; }
+  .head { min-width: 0; }
+  .avatar {
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    background: var(--lav-soft);
+    margin-top: -58px;
+    object-fit: cover;
+    display: block;
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--purple);
+    text-align: center;
+    line-height: 106px;
+    box-shadow: 0 14px 34px rgba(39, 27, 66, .16);
+    position: relative;
+    z-index: 1;
+  }
+  h1 { font-size: clamp(27px, 3vw, 36px); line-height: 1.08; font-weight: 800; margin-top: 18px; letter-spacing: -.035em; }
+  .meta { color: var(--ink-soft); font-size: 14px; font-weight: 500; margin-top: 7px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .chip { font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; background: var(--lav-soft); color: var(--purple-deep); border: 1px solid #E2D8FA; }
+  .chip.teal { background: #E9F8F3; color: #087D62; border-color: #CDEDE2; }
+  .bio { margin-top: 24px; font-size: 15px; line-height: 1.72; color: #433B51; white-space: pre-wrap; font-weight: 400; max-width: 680px; }
+  .action-panel { align-self: end; background: var(--panel); border: 1px solid var(--lav-line); border-radius: 20px; padding: 22px; margin-top: 24px; }
+  .action-kicker { color: var(--purple-deep); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+  .action-title { font-size: 18px; line-height: 1.35; font-weight: 750; margin-top: 8px; }
+  .action-copy { color: var(--ink-soft); font-size: 12.5px; line-height: 1.55; margin-top: 7px; }
+  .live-banner { display: none; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 11px 12px; border-radius: 13px; background: #FEF2F2; border: 1px solid #FECACA; }
   .live-banner.show { display: flex; }
   .live-left { display: flex; align-items: center; gap: 9px; font-weight: 650; color: #B91C1C; font-size: 13.5px; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: pulse 1.2s infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-  .live-watch { background: var(--red); color: #fff; font-weight: 650; font-size: 12.5px; padding: 9px 16px; border-radius: 10px; text-decoration: none; white-space: nowrap; }
-  .ctas { display: flex; gap: 10px; padding: 16px 20px 0; }
-  .btn { flex: 1; text-align: center; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 650; text-decoration: none; transition: transform .15s ease, background .15s ease; }
-  .btn-primary { background: var(--purple); color: #fff; }
-  .btn-primary:hover { background: #5F32D1; }
-  .btn-ghost { background: var(--lav-soft); color: var(--purple-deep); border: 1px solid var(--lav-line); }
-  .btn-ghost:hover { background: #E9E1FF; }
-  section { margin-top: 20px; display: none; }
+  .live-watch { background: var(--red); color: #fff; font-weight: 700; font-size: 12px; padding: 8px 12px; border-radius: 9px; text-decoration: none; white-space: nowrap; }
+  .ctas { display: grid; gap: 9px; margin-top: 18px; }
+  .btn { text-align: center; padding: 13px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 750; text-decoration: none; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(135deg, var(--purple), #8454ED); color: #fff; box-shadow: 0 10px 24px rgba(108, 60, 231, .22); }
+  .btn-primary:hover { background: linear-gradient(135deg, #5D2FD6, #7744E5); box-shadow: 0 13px 28px rgba(108, 60, 231, .28); }
+  .btn-ghost { background: #fff; color: var(--purple-deep); border: 1px solid #DDD4ED; }
+  .btn-ghost:hover { background: var(--lav-soft); }
+  section { margin-top: 34px; display: none; }
   section.show { display: block; }
-  h2 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
-  .tile { background: var(--card); border: 1px solid var(--lav-line); border-radius: 14px; overflow: hidden; transition: box-shadow .15s ease; }
-  .tile .thumb { height: 108px; background: var(--lav-soft) center/cover no-repeat; }
-  .tile .pad { padding: 12px 14px; }
-  .tile h3 { font-size: 14px; font-weight: 650; }
-  .tile .sub { color: var(--ink-soft); font-size: 12px; font-weight: 500; margin-top: 3px; }
-  .tile .price { color: var(--teal); font-size: 12.5px; font-weight: 700; margin-top: 6px; }
-  .shorts { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-  .short { aspect-ratio: 9/13; border-radius: 12px; background: var(--lav-soft) center/cover no-repeat; border: 1px solid var(--lav-line); }
+  h2 { font-size: 21px; font-weight: 800; margin-bottom: 14px; letter-spacing: -.025em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .tile { background: var(--card); border: 1px solid var(--lav-line); border-radius: 18px; overflow: hidden; box-shadow: 0 12px 35px rgba(50,35,78,.05); transition: transform .18s ease, box-shadow .18s ease; }
+  .tile:hover { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(50,35,78,.09); }
+  .tile .thumb { height: 150px; background: linear-gradient(135deg, #EDE5FF, #DDF7F8) center/cover no-repeat; }
+  .tile .pad { padding: 16px 17px 17px; }
+  .tile h3 { font-size: 15px; font-weight: 750; }
+  .tile .sub { color: var(--ink-soft); font-size: 12px; font-weight: 500; margin-top: 5px; }
+  .tile .price { color: var(--teal); font-size: 12.5px; font-weight: 750; margin-top: 9px; }
+  .shorts { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+  .short { aspect-ratio: 9/13; border-radius: 18px; background: var(--lav-soft) center/cover no-repeat; border: 1px solid var(--lav-line); box-shadow: 0 12px 30px rgba(50,35,78,.06); }
   .team { display: flex; flex-wrap: wrap; gap: 9px; }
-  .member { display: flex; align-items: center; gap: 9px; background: var(--card); border: 1px solid var(--lav-line); border-radius: 999px; padding: 6px 14px 6px 6px; text-decoration: none; color: var(--ink); transition: background .15s ease; }
-  .member:hover { background: var(--panel-soft, #FBFAFD); }
-  .member img, .member .mini { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--lav-soft); color: var(--purple); font-weight: 700; font-size: 13px; text-align: center; line-height: 32px; }
+  .member { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--lav-line); border-radius: 999px; padding: 7px 15px 7px 7px; text-decoration: none; color: var(--ink); transition: background .15s ease, transform .15s ease; }
+  .member:hover { background: var(--panel); transform: translateY(-1px); }
+  .member img, .member .mini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--lav-soft); color: var(--purple); font-weight: 700; font-size: 13px; text-align: center; line-height: 36px; }
   .member b { font-size: 13px; font-weight: 650; }
   .member span { display: block; font-size: 10.5px; color: var(--ink-soft); font-weight: 500; }
-  .state { text-align: center; padding: 56px 20px; color: var(--ink-soft); font-weight: 600; font-size: 13.5px; }
-  .event-row { display: flex; gap: 14px; background: var(--card); border: 1px solid var(--lav-line); border-radius: 14px; padding: 13px; margin-bottom: 9px; align-items: center; }
-  .event-date { min-width: 56px; text-align: center; background: var(--lav-soft); border-radius: 10px; padding: 8px 6px; }
+  .state { text-align: center; padding: 100px 20px; color: var(--ink-soft); font-weight: 650; font-size: 13.5px; }
+  .state::before { content: ""; display: block; width: 38px; height: 38px; margin: 0 auto 16px; border: 3px solid #E5DDF4; border-top-color: var(--purple); border-radius: 50%; animation: spin .8s linear infinite; }
+  #notfound::before { animation: none; border-color: #E5DDF4; background: var(--lav-soft); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .org-card { padding: 22px 24px; box-shadow: 0 12px 35px rgba(50,35,78,.05); }
+  .event-row { display: flex; gap: 16px; background: var(--card); border: 1px solid var(--lav-line); border-radius: 17px; padding: 15px; margin-bottom: 10px; align-items: center; box-shadow: 0 10px 28px rgba(50,35,78,.04); }
+  .event-date { min-width: 60px; text-align: center; background: var(--lav-soft); border-radius: 12px; padding: 9px 7px; }
   .event-date b { display: block; font-size: 18px; font-weight: 700; color: var(--purple-deep); }
   .event-date span { font-size: 10.5px; font-weight: 650; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .02em; }
-  .event-info h3 { font-size: 14px; font-weight: 650; }
-  .event-info .sub { color: var(--ink-soft); font-size: 12px; font-weight: 500; margin-top: 2px; }
+  .event-info h3 { font-size: 14px; font-weight: 750; }
+  .event-info .sub { color: var(--ink-soft); font-size: 12px; font-weight: 500; margin-top: 4px; }
+  @media (max-width: 780px) {
+    .wrap { width: min(100% - 24px, 680px); padding-top: 12px; }
+    .topbar { padding-bottom: 14px; }
+    .profile-label { display: none; }
+    .card { border-radius: 22px; }
+    .cover { height: 180px; }
+    .profile-body { grid-template-columns: 1fr; gap: 4px; padding: 0 22px 24px; }
+    .avatar { width: 96px; height: 96px; line-height: 86px; margin-top: -48px; border-width: 4px; font-size: 29px; }
+    h1 { margin-top: 15px; }
+    .bio { margin-top: 20px; }
+    .action-panel { margin-top: 22px; padding: 18px; }
+    .ctas { grid-template-columns: 1fr 1fr; }
+    section { margin-top: 28px; }
+  }
+  @media (max-width: 520px) {
+    .wrap { width: 100%; padding: 8px 10px 40px; }
+    .topbar { padding: 5px 6px 12px; }
+    .brand { font-size: 16px; }
+    .brand img { width: 31px; height: 31px; }
+    .cover { height: 148px; }
+    .profile-body { padding: 0 17px 18px; }
+    .avatar { width: 86px; height: 86px; line-height: 76px; margin-top: -43px; font-size: 26px; }
+    h1 { font-size: 26px; }
+    .chips { margin-top: 14px; }
+    .bio { font-size: 14px; }
+    .action-panel { border-radius: 16px; padding: 16px; }
+    .ctas { grid-template-columns: 1fr; }
+    h2 { font-size: 19px; padding-left: 4px; }
+    .grid { grid-template-columns: 1fr; }
+    .shorts { grid-template-columns: repeat(2, 1fr); }
+    .event-row { gap: 12px; padding: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
 </style>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -85,36 +174,46 @@
 <body>
 <div class="wrap">
   <div class="topbar">
-    <img src="./logo2.png" alt="Duvela"><a href="./index.html">Duvela</a>
+    <a class="brand" href="./index.html" aria-label="Duvela home">
+      <img src="./logo2.png" alt=""><span>Duvela</span>
+    </a>
+    <span class="profile-label" id="profileLabel">Public profile</span>
   </div>
 
-  <div id="loading" class="state">Loading profile…</div>
+  <div id="loading" class="state" role="status">Loading profile…</div>
   <div id="notfound" class="state" style="display:none">Profile not found.</div>
 
   <div id="content" style="display:none">
     <div class="card">
-      <div class="cover" id="cover"></div>
-      <div class="head">
-        <div id="avatar" class="avatar"></div>
-        <h1 id="name"></h1>
-        <div class="meta" id="meta"></div>
-        <div class="chips" id="chips"></div>
-        <p class="bio" id="bio" style="display:none"></p>
-      </div>
-      <div class="live-banner" id="liveBanner">
-        <div class="live-left"><span class="live-dot"></span><span id="liveText">LIVE now</span></div>
-        <a class="live-watch" id="liveWatch" href="#">Watch</a>
-      </div>
-      <div class="ctas" style="padding-bottom:20px">
-        <a class="btn btn-primary" id="openApp" href="#">Open in Duvela</a>
-        <a class="btn btn-ghost" href="./index.html#apps" id="getApp">Get the app</a>
+      <div class="cover" id="cover"><span class="cover-glow" aria-hidden="true"></span></div>
+      <div class="profile-body">
+        <div class="head">
+          <div id="avatar" class="avatar"></div>
+          <h1 id="name"></h1>
+          <div class="meta" id="meta"></div>
+          <div class="chips" id="chips"></div>
+          <p class="bio" id="bio" style="display:none"></p>
+        </div>
+        <aside class="action-panel">
+          <div class="action-kicker" id="actionKicker">Duvela community</div>
+          <div class="action-title" id="actionTitle">Continue the conversation in Duvela</div>
+          <p class="action-copy" id="actionCopy">Open this profile in the app or discover the Duvela community.</p>
+          <div class="live-banner" id="liveBanner">
+            <div class="live-left"><span class="live-dot"></span><span id="liveText">LIVE now</span></div>
+            <a class="live-watch" id="liveWatch" href="#">Watch</a>
+          </div>
+          <div class="ctas">
+            <a class="btn btn-primary" id="openApp" href="#">Open in Duvela</a>
+            <a class="btn btn-ghost" href="./index.html#apps" id="getApp">Get the app</a>
+          </div>
+        </aside>
       </div>
     </div>
 
     <section id="orgSection">
       <h2 id="orgTitle">Organization</h2>
-      <div class="card" style="padding:18px 20px">
-        <h3 id="orgName" style="font-size:17px;font-weight:900"></h3>
+      <div class="card org-card">
+        <h3 id="orgName" style="font-size:18px;font-weight:800"></h3>
         <div class="meta" id="orgMeta"></div>
         <p class="bio" id="orgDesc" style="display:none"></p>
       </div>

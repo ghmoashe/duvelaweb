@@ -5,6 +5,10 @@
   var isRu = (navigator.language || '').toLowerCase().indexOf('ru') === 0;
   var T = isRu ? {
     loading: 'Загружаем профиль…', notFound: 'Профиль не найден.',
+    publicProfile: 'Публичный профиль',
+    community: 'Сообщество Duvela',
+    actionTitle: 'Продолжите общение в Duvela',
+    actionCopy: 'Откройте этот профиль в приложении или присоединитесь к сообществу Duvela.',
     teacher: 'Учитель', organizer: 'Организатор', organization: 'Организация',
     liveNow: 'Сейчас в эфире', watch: 'Смотреть',
     openApp: 'Открыть в Duvela', getApp: 'Скачать приложение',
@@ -13,6 +17,10 @@
     online: 'Онлайн', inPerson: 'Офлайн'
   } : {
     loading: 'Loading profile…', notFound: 'Profile not found.',
+    publicProfile: 'Public profile',
+    community: 'Duvela community',
+    actionTitle: 'Continue the conversation in Duvela',
+    actionCopy: 'Open this profile in the app or discover the Duvela community.',
     teacher: 'Teacher', organizer: 'Organizer', organization: 'Organization',
     liveNow: 'LIVE now', watch: 'Watch',
     openApp: 'Open in Duvela', getApp: 'Get the app',
@@ -21,8 +29,13 @@
     online: 'Online', inPerson: 'In person'
   };
 
+  document.documentElement.lang = isRu ? 'ru' : 'en';
   document.getElementById('loading').textContent = T.loading;
   document.getElementById('notfound').textContent = T.notFound;
+  document.getElementById('profileLabel').textContent = T.publicProfile;
+  document.getElementById('actionKicker').textContent = T.community;
+  document.getElementById('actionTitle').textContent = T.actionTitle;
+  document.getElementById('actionCopy').textContent = T.actionCopy;
   document.getElementById('openApp').textContent = T.openApp;
   document.getElementById('getApp').textContent = T.getApp;
   document.getElementById('coursesTitle').textContent = T.courses;
@@ -81,6 +94,13 @@
   function renderHeader(p) {
     var name = p.full_name || 'Duvela user';
     document.title = name + ' — Duvela';
+    var metaDescription = p.bio || [p.city, p.country].filter(Boolean).join(', ') || T.publicProfile;
+    var descriptionTag = document.querySelector('meta[name="description"]');
+    var ogTitleTag = document.querySelector('meta[property="og:title"]');
+    var ogDescriptionTag = document.querySelector('meta[property="og:description"]');
+    if (descriptionTag) descriptionTag.setAttribute('content', metaDescription);
+    if (ogTitleTag) ogTitleTag.setAttribute('content', name + ' — Duvela');
+    if (ogDescriptionTag) ogDescriptionTag.setAttribute('content', metaDescription);
     document.getElementById('name').textContent = name;
     if (p.cover_url) {
       var preset = coverPresetGradient(p.cover_url);
@@ -91,6 +111,13 @@
     if (p.avatar_url) {
       var img = document.createElement('img');
       img.src = p.avatar_url; img.alt = name; img.className = 'avatar';
+      img.addEventListener('error', function () {
+        var fallback = document.createElement('div');
+        fallback.id = 'avatar';
+        fallback.className = 'avatar';
+        fallback.textContent = initials(name);
+        img.replaceWith(fallback);
+      }, { once: true });
       av.replaceWith(img);
     } else {
       av.textContent = initials(name);
@@ -98,7 +125,9 @@
     var metaParts = [];
     if (p.city) metaParts.push(p.city);
     if (p.country) metaParts.push(p.country);
-    document.getElementById('meta').textContent = metaParts.join(', ');
+    var meta = document.getElementById('meta');
+    meta.textContent = metaParts.join(', ');
+    if (!metaParts.length) meta.style.display = 'none';
     var chips = document.getElementById('chips');
     if (p.is_teacher) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.teacher + '</span>');
     if (p.is_organizer) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.organizer + '</span>');
