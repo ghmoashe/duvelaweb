@@ -112,6 +112,7 @@
       messages: tr('Messages', 'Сообщения'),
       workspace: tr('Practice', 'Практика'),
       schedule: tr('Schedule', 'Расписание'),
+      leaderboard: tr('Student ranking', 'Рейтинг учеников'),
       profile: tr('Profile', 'Профиль')
     },
     bus: {
@@ -124,6 +125,7 @@
       messages: tr('Messages', 'Сообщения'),
       workspace: tr('Notes', 'Заметки'),
       schedule: tr('Schedule', 'Расписание'),
+      leaderboard: tr('Student ranking', 'Рейтинг учеников'),
       profile: tr('Profile', 'Профиль')
     }
   };
@@ -137,6 +139,7 @@
       messages: [tr('Messages', 'Сообщения'), tr('Recent conversations and lesson updates.', 'Последние диалоги и обновления уроков.')],
       workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
+      leaderboard: [tr('Student ranking', 'Рейтинг учеников'), tr('Strict leaderboard by language or subject.', 'Строгий рейтинг по языку или предмету.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {
@@ -149,6 +152,7 @@
       messages: [tr('Messages', 'Сообщения'), tr('Learner conversations and recent platform updates.', 'Диалоги с учениками и обновления платформы.')],
       workspace: [tr('Notes', 'Заметки'), tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
+      leaderboard: [tr('Student ranking', 'Рейтинг учеников'), tr('See learners ranked by your teaching or organization direction.', 'Смотрите учеников по вашему направлению преподавания или организации.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
   };
@@ -357,6 +361,7 @@
   const mediaFeature = window.DuvelaAppMedia.create(featureContext);
   const practiceBuilderFeature = window.DuvelaAppPracticeBuilder.create(featureContext);
   const profileFeature = window.DuvelaAppProfile.create(featureContext);
+  const leaderboardFeature = window.DuvelaAppLeaderboard.create(featureContext);
   const workspaceShellFeature = window.DuvelaAppWorkspaceShell.create(featureContext);
   const busDashboardFeature = window.DuvelaBusinessDashboard.create(featureContext);
   featureContext.busDashboard = busDashboardFeature;
@@ -396,6 +401,7 @@
   async function deleteAccount() { return profileFeature.deleteAccount(); }
   async function deletePortfolioItem(id) { return profileFeature.deletePortfolioItem(id); }
   async function renderProgressCard() { return profileFeature.renderProgressCard(); }
+  function renderLeaderboardPage() { return leaderboardFeature.renderLeaderboardPage(); }
 
   function renderMessages() { return messagingFeature.renderMessages(); }
   async function loadConversations() { return messagingFeature.loadConversations(); }
@@ -463,6 +469,7 @@
     renderMessages();
     renderWorkspace();
     renderSchedule();
+    renderLeaderboardPage();
     renderNotifBadge();
   }
   async function safeQuery(label, query, map) { return publicDataFeature.safeQuery(label, query, map); }
@@ -561,6 +568,7 @@
     renderManagement,
     renderLive,
     renderProfile,
+    renderLeaderboardPage,
     renderSchedule,
     renderVideos,
     renderWorkspace,
