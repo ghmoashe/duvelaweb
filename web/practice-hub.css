@@ -61,3 +61,300 @@
 .target-chess .exam-journey,.target-chess .weak-map,.target-chess .practice-daily{display:none}
 @media(min-width:980px){.practice-target-switcher{grid-template-columns:repeat(3,minmax(210px,1fr));max-width:980px}}
 @media(max-width:640px){.practice-target-switcher{grid-template-columns:1fr}.practice-target-switcher button{min-height:68px}}
+
+/* Learner profile: one coherent hero, quieter forms and a useful progress rail. */
+.learner-profile-edit>.grid-2{
+  align-items:start;
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);
+  gap:20px
+}
+.learner-profile-edit #profileForm{
+  display:grid;
+  gap:14px;
+  padding:0;
+  overflow:visible;
+  border:0;
+  background:transparent;
+  box-shadow:none
+}
+.learner-profile-edit #profileForm .profile-intro{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(240px,300px);
+  grid-template-rows:auto auto;
+  gap:18px 28px;
+  align-items:end;
+  min-height:260px;
+  padding:84px 30px 30px;
+  overflow:hidden;
+  border:0;
+  border-radius:26px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 87% 5%,rgba(75,211,194,.7),transparent 31%),
+    radial-gradient(circle at 10% 110%,rgba(204,77,241,.45),transparent 38%),
+    linear-gradient(128deg,#2b0d66 0%,#6734d8 54%,#277fa1 118%);
+  box-shadow:0 24px 58px rgba(52,27,102,.22)
+}
+.learner-profile-edit #profileForm .profile-intro::before{
+  content:"";
+  position:absolute;
+  width:360px;
+  height:360px;
+  right:-105px;
+  top:-240px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:50%;
+  background:transparent
+}
+.learner-profile-edit #profileForm .profile-intro::after{
+  content:"";
+  position:absolute;
+  width:210px;
+  height:210px;
+  right:55px;
+  top:-145px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:50%
+}
+.learner-profile-edit #profileForm .profile-head{
+  position:relative;
+  z-index:1;
+  align-items:center;
+  align-self:end;
+  min-width:0
+}
+.learner-profile-edit #profileForm .profile-head .avatar{
+  width:94px;
+  height:94px;
+  flex:0 0 94px;
+  border:5px solid rgba(255,255,255,.95);
+  background:#6d3fe0;
+  box-shadow:0 14px 34px rgba(24,8,56,.32);
+  color:#fff;
+  font-size:30px
+}
+.learner-profile-edit #profileForm .profile-head h2,
+.learner-profile-edit #profileForm .profile-intro #profileName{
+  margin:0 0 5px;
+  overflow:hidden;
+  color:#fff;
+  font-size:27px;
+  font-weight:850;
+  line-height:1.1;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.learner-profile-edit #profileForm .profile-head p,
+.learner-profile-edit #profileForm .profile-intro #profileMeta{
+  margin:0;
+  color:rgba(255,255,255,.72);
+  font-size:12.5px;
+  font-weight:700
+}
+.learner-profile-edit #profileForm .profile-avatar-tools{
+  position:relative;
+  z-index:1;
+  align-self:end;
+  gap:7px;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:17px;
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(10px)
+}
+.learner-profile-edit #profileForm .profile-avatar-tools .btn{
+  width:100%;
+  min-height:42px;
+  justify-content:center;
+  border-color:rgba(255,255,255,.85);
+  background:#fff;
+  color:#4f25b4;
+  font-weight:850
+}
+.learner-profile-edit #profileForm .profile-avatar-tools #avatarUploadHint{
+  color:rgba(255,255,255,.68)!important;
+  font-size:10.5px!important
+}
+.learner-profile-edit #profileForm .profile-kicker{
+  position:absolute;
+  z-index:2;
+  right:24px;
+  top:22px;
+  padding:8px 13px;
+  border-color:rgba(255,255,255,.38);
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  letter-spacing:.08em;
+  backdrop-filter:blur(8px)
+}
+.learner-profile-edit #profileForm .learner-profile-summary{
+  position:relative;
+  z-index:1;
+  grid-column:1;
+  align-self:start
+}
+.learner-profile-edit #profileForm .learner-profile-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px
+}
+.learner-profile-edit #profileForm .learner-profile-badges span{
+  padding:7px 11px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:999px;
+  background:rgba(255,255,255,.12)!important;
+  color:#fff!important;
+  font-size:11px;
+  font-weight:850;
+  backdrop-filter:blur(8px)
+}
+.learner-profile-edit #profileForm .learner-profile-welcome{
+  margin:10px 0 0;
+  max-width:560px;
+  color:rgba(255,255,255,.74);
+  font-size:12.5px;
+  font-weight:700;
+  line-height:1.45
+}
+.learner-profile-edit #profileForm .profile-section{
+  display:grid;
+  gap:16px;
+  margin:0;
+  padding:24px;
+  border:1px solid #e9e3f1;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 14px 38px rgba(53,34,85,.055)
+}
+.learner-profile-edit #profileForm .profile-section+.profile-section{
+  padding-top:24px
+}
+.learner-profile-edit #profileForm .profile-section-title{
+  padding-bottom:14px;
+  border-bottom:1px solid #f0ecf5
+}
+.learner-profile-edit #profileForm .profile-section-title h3{
+  color:#211a2d;
+  font-size:18px;
+  font-weight:850
+}
+.learner-profile-edit #profileForm .profile-section-title p{
+  max-width:620px;
+  color:#7b7287;
+  font-size:12px;
+  line-height:1.5
+}
+.learner-profile-edit #profileForm .field{
+  gap:7px
+}
+.learner-profile-edit #profileForm .field label{
+  color:#62586f;
+  font-size:11.5px;
+  font-weight:800
+}
+.learner-profile-edit #profileForm .field input,
+.learner-profile-edit #profileForm .field textarea{
+  min-height:48px;
+  padding:12px 14px;
+  border:1px solid #e2dbe9;
+  border-radius:13px;
+  background:#faf9fc;
+  color:#292131;
+  font-size:13.5px;
+  transition:border-color .16s,box-shadow .16s,background .16s
+}
+.learner-profile-edit #profileForm .field textarea{
+  min-height:120px;
+  line-height:1.55
+}
+.learner-profile-edit #profileForm .field input:focus,
+.learner-profile-edit #profileForm .field textarea:focus{
+  outline:0;
+  border-color:#7945e5;
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(121,69,229,.1)
+}
+.learner-profile-edit #profileForm .field input[readonly]{
+  color:#766c82;
+  background:#f5f2f8
+}
+.learner-profile-edit #profileForm .profile-actions{
+  gap:9px
+}
+.learner-profile-edit #profileForm .profile-actions .btn{
+  min-height:42px;
+  border-radius:12px;
+  font-weight:800
+}
+.learner-profile-edit #profileForm .danger-zone{
+  margin:0;
+  padding:18px 20px;
+  border-radius:20px;
+  background:#fffafa;
+  box-shadow:none
+}
+.learner-profile-edit #progressCard.learner-progress-card{
+  position:sticky;
+  top:18px;
+  padding:22px!important;
+  overflow:hidden;
+  border:1px solid #e9e3f1;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 18px 48px rgba(53,34,85,.08)
+}
+.learner-profile-edit #progressCard.learner-progress-card::before{
+  content:"";
+  display:block;
+  height:5px;
+  margin:-22px -22px 18px;
+  background:linear-gradient(90deg,#6334dc,#b63ddd,#36b99b)
+}
+.learner-profile-edit .learner-stat-grid{
+  gap:8px
+}
+.learner-profile-edit .learner-stat-grid>div{
+  min-height:82px;
+  border-radius:16px
+}
+@media(max-width:1180px){
+  .learner-profile-edit>.grid-2{grid-template-columns:1fr}
+  .learner-profile-edit #progressCard.learner-progress-card{position:static}
+}
+@media(max-width:720px){
+  .learner-profile-edit #profileForm .profile-intro{
+    grid-template-columns:1fr;
+    min-height:0;
+    padding:74px 20px 22px
+  }
+  .learner-profile-edit #profileForm .profile-avatar-tools{
+    align-self:stretch
+  }
+  .learner-profile-edit #profileForm .learner-profile-summary{
+    grid-column:1
+  }
+  .learner-profile-edit #profileForm .profile-section{
+    padding:19px 17px
+  }
+}
+@media(max-width:500px){
+  .learner-profile-edit #profileForm .profile-head{
+    align-items:flex-start
+  }
+  .learner-profile-edit #profileForm .profile-head .avatar{
+    width:78px;
+    height:78px;
+    flex-basis:78px;
+    font-size:25px
+  }
+  .learner-profile-edit #profileForm .profile-head h2,
+  .learner-profile-edit #profileForm .profile-intro #profileName{
+    max-width:calc(100vw - 150px);
+    font-size:22px
+  }
+  .learner-profile-edit #profileForm .profile-kicker{
+    right:16px;
+    top:16px
+  }
+}
