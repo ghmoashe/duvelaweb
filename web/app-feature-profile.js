@@ -1,6 +1,11 @@
 (function () {
   function createProfileFeature(ctx) {
     const { $, tr, esc, alert, supa, state, avatarHtml, avatarInner, timeAgo, roleLabels } = ctx;
+    const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+    const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const AVATAR_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
+    let avatarPreviewUrl = '';
+    let removeAvatarOnSave = false;
     const localeNames = {
       en: 'English',
       de: 'Deutsch',
@@ -59,6 +64,72 @@
     function setInput(id, value) {
       const node = $(id);
       if (node) node.value = value == null ? '' : value;
+    }
+
+    function setAvatarStatus(text, tone) {
+      const node = $('#avatarUploadStatus');
+      if (!node) return;
+      node.textContent = text || '';
+      node.dataset.tone = tone || '';
+    }
+
+    function clearAvatarPreviewUrl() {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+      avatarPreviewUrl = '';
+    }
+
+    function getAvatarFileError(file) {
+      if (!file) return '';
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      if (file.size > AVATAR_MAX_BYTES) return tr('Avatar image must be 5 MB or smaller.', 'Фото аватара должно быть не больше 5 MB.');
+      if (file.type && !AVATAR_TYPES.includes(file.type)) return tr('Use JPG, PNG or WebP for the avatar.', 'Для аватара используйте JPG, PNG или WebP.');
+      if (!file.type && !AVATAR_EXTS.includes(ext)) return tr('Use JPG, PNG or WebP for the avatar.', 'Для аватара используйте JPG, PNG или WebP.');
+      return '';
+    }
+
+    function bindAvatarControls(displayName) {
+      const input = $('#pfAvatarFile');
+      const remove = $('#avatarRemoveBtn');
+      if (input && !input.dataset.profileAvatarBound) {
+        input.dataset.profileAvatarBound = 'true';
+        input.addEventListener('change', () => {
+          const file = input.files && input.files[0];
+          clearAvatarPreviewUrl();
+          removeAvatarOnSave = false;
+          if (!file) {
+            setAvatarStatus('', '');
+            return;
+          }
+          const error = getAvatarFileError(file);
+          if (error) {
+            input.value = '';
+            setAvatarStatus(error, 'error');
+            alert(error);
+            return;
+          }
+          avatarPreviewUrl = URL.createObjectURL(file);
+          const currentName = $('#pfName')?.value.trim() || displayName;
+          avatarHtml('#profileAvatar', currentName, avatarPreviewUrl);
+          avatarHtml('#topAvatar', currentName, avatarPreviewUrl);
+          if (remove) remove.hidden = false;
+          setAvatarStatus(tr('Photo selected. Save the profile to apply it.', 'Фото выбрано. Нажмите «Сохранить», чтобы применить.'), 'ready');
+        });
+      }
+      if (remove && !remove.dataset.profileAvatarBound) {
+        remove.dataset.profileAvatarBound = 'true';
+        remove.addEventListener('click', () => {
+          clearAvatarPreviewUrl();
+          if (input) input.value = '';
+          setInput('#pfAvatar', '');
+          removeAvatarOnSave = true;
+          const currentName = $('#pfName')?.value.trim() || displayName;
+          avatarHtml('#profileAvatar', currentName, '');
+          avatarHtml('#topAvatar', currentName, '');
+          remove.hidden = true;
+          setAvatarStatus(tr('Avatar will be removed after saving.', 'Аватар будет удалён после сохранения.'), 'ready');
+        });
+      }
+      if (remove) remove.hidden = !(ctx.profile?.avatar_url || avatarPreviewUrl);
     }
 
     function ensureAppLanguageField() {
@@ -135,13 +206,16 @@
       setInput('#pfLanguage', ctx.profile?.language);
       setInput('#pfLevel', ctx.profile?.language_level);
       setInput('#pfAvatar', ctx.profile?.avatar_url);
+      if ($('#avatarRemoveBtn')) $('#avatarRemoveBtn').textContent = tr('Remove avatar', 'Удалить аватар');
+      if ($('#avatarUploadHint')) $('#avatarUploadHint').textContent = tr('Choose JPG, PNG or WebP up to 5 MB. On mobile you can pick from photos or camera.', 'Выберите JPG, PNG или WebP до 5 MB. На телефоне можно выбрать фото или камеру.');
       setInput('#pfBio', ctx.profile?.bio);
       setInput('#pfTelegram', ctx.profile?.telegram);
       setInput('#pfInstagram', ctx.profile?.instagram);
       setInput('#pfWebsite', ctx.profile?.website);
       if (appLanguageSelect) appLanguageSelect.value = ctx.getAppLang();
-      avatarHtml('#topAvatar', displayName, ctx.profile?.avatar_url || ctx.user.user_metadata?.avatar_url);
-      avatarHtml('#profileAvatar', displayName, ctx.profile?.avatar_url || ctx.user.user_metadata?.avatar_url);
+      avatarHtml('#topAvatar', displayName, ctx.profile?.avatar_url);
+      avatarHtml('#profileAvatar', displayName, ctx.profile?.avatar_url);
+      bindAvatarControls(displayName);
       renderLearnerProfileHero(displayName, meta);
       if (ctx.profile?.id) {
         $('#publicProfileLink').href = './profile.html?id=' + encodeURIComponent(ctx.profile.id);
@@ -197,9 +271,14 @@
       const button = $('#profileForm button[type="submit"]');
       button.disabled = true;
       try {
+        const avatarError = getAvatarFileError(avatarFile);
+        if (avatarError) throw new Error(avatarError);
         if (avatarFile) {
-          patch.avatar_url = await ctx.uploadToBucket('posts', avatarFile);
+          setAvatarStatus(tr('Uploading avatar...', 'Загружаем аватар...'), 'ready');
+          patch.avatar_url = await (ctx.uploadAvatar ? ctx.uploadAvatar(avatarFile) : ctx.uploadToBucket('posts', avatarFile));
           setInput('#pfAvatar', patch.avatar_url);
+        } else if (removeAvatarOnSave) {
+          patch.avatar_url = null;
         }
         const { error } = await supa.from('profiles').update(patch).eq('id', ctx.user.id);
         if (error) throw error;
@@ -207,8 +286,12 @@
         $('#profileSaved').style.display = 'inline';
         setTimeout(() => { $('#profileSaved').style.display = 'none'; }, 2500);
         if ($('#pfAvatarFile')) $('#pfAvatarFile').value = '';
+        clearAvatarPreviewUrl();
+        removeAvatarOnSave = false;
+        setAvatarStatus(tr('Avatar saved.', 'Аватар сохранён.'), 'saved');
         renderProfile();
       } catch (error) {
+        setAvatarStatus(error.message || tr('Could not save the profile.', 'Не удалось сохранить профиль.'), 'error');
         alert(error.message || tr('Could not save the profile.', 'Не удалось сохранить профиль.'));
       } finally {
         button.disabled = false;

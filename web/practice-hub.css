@@ -172,9 +172,29 @@
   color:#4f25b4;
   font-weight:850
 }
+.learner-profile-edit #profileForm .profile-avatar-tools .btn.ghost{
+  min-height:36px;
+  border-color:rgba(255,255,255,.3);
+  background:rgba(255,255,255,.12);
+  color:#fff
+}
 .learner-profile-edit #profileForm .profile-avatar-tools #avatarUploadHint{
   color:rgba(255,255,255,.68)!important;
   font-size:10.5px!important
+}
+.learner-profile-edit #profileForm .profile-avatar-tools .avatar-upload-status{
+  display:block;
+  min-height:17px;
+  color:rgba(255,255,255,.82);
+  font-size:11px;
+  font-weight:800;
+  line-height:1.35
+}
+.learner-profile-edit #profileForm .profile-avatar-tools .avatar-upload-status[data-tone="error"]{
+  color:#ffe0e0
+}
+.learner-profile-edit #profileForm .profile-avatar-tools .avatar-upload-status[data-tone="saved"]{
+  color:#d7fff0
 }
 .learner-profile-edit #profileForm .profile-kicker{
   position:absolute;

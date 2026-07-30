@@ -1828,8 +1828,10 @@
             </div>
             <div class="profile-avatar-tools">
               <label class="btn" for="pfAvatarFile" id="avatarUploadLabel">Изменить аватар</label>
-              <input id="pfAvatarFile" type="file" accept="image/*" capture="user" style="display:none">
+              <input id="pfAvatarFile" type="file" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <button class="btn ghost" type="button" id="avatarRemoveBtn">Удалить аватар</button>
               <span id="avatarUploadHint" style="color:var(--soft);font-size:12px;line-height:1.4">Браузер запросит доступ к фото или камере устройства.</span>
+              <span id="avatarUploadStatus" class="avatar-upload-status" aria-live="polite"></span>
             </div>
             <div class="profile-kicker" id="profileKicker">Profile</div>
           </div>
