@@ -434,8 +434,7 @@
           return '<div class="prog-row"><div class="prog-label"><span>' + esc(label) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
         }).join('') +
         ctx.walletHtml() +
-        leaderboardShellHtml() +
-        '<div id="rankBox" style="margin-top:6px"><div class="empty">' + esc(tr('Loading…', 'Загрузка…')) + '</div></div>';
+        leaderboardShellHtml();
       card.insertAdjacentHTML('afterbegin',
         '<div class="learner-stat-grid">' +
           '<div><b>' + Number(ctx.profile?.score || 0).toLocaleString() + '</b><span>XP</span></div>' +
@@ -444,45 +443,183 @@
         '</div>');
       const filter = $('#rankFilter');
       if (filter) filter.addEventListener('change', () => {
-        state.leaderLang = filter.value;
+        state.leaderScope = filter.value;
         renderLeaderboard();
       });
       renderLeaderboard();
     }
 
+    function listFrom(value) {
+      if (Array.isArray(value)) return value.map((item) => String(item || '').trim()).filter(Boolean);
+      if (value == null) return [];
+      return String(value).split(',').map((item) => item.trim()).filter(Boolean);
+    }
+
+    function addUnique(list, value) {
+      const text = String(value || '').trim();
+      if (!text) return;
+      if (!list.some((item) => item.toLowerCase() === text.toLowerCase())) list.push(text);
+    }
+
+    function activeRoleKind() {
+      if (['teacher', 'organizer', 'organization'].includes(ctx.role)) return ctx.role;
+      if (ctx.profile?.is_teacher) return 'teacher';
+      if (ctx.profile?.is_organizer) return 'organizer';
+      return 'learner';
+    }
+
+    function leaderboardConfig() {
+      const kind = activeRoleKind();
+      if (kind === 'teacher') {
+        return {
+          kind,
+          field: 'teaches_languages',
+          fallback: 'learning_languages',
+          title: tr('Teacher leaderboard', 'Рейтинг учителей'),
+          subtitle: tr('Only teachers who teach this direction are shown.', 'Показываются только учителя, которые преподают это направление.'),
+          empty: tr('No teachers found for this direction.', 'По этому направлению учителей пока нет.'),
+          scopeLabel: tr('Teaches', 'Преподаёт')
+        };
+      }
+      if (kind === 'organization') {
+        return {
+          kind,
+          field: 'learning_languages',
+          fallback: 'teaches_languages',
+          title: tr('Organization leaderboard', 'Рейтинг организаций'),
+          subtitle: tr('Only organizations in this direction are shown.', 'Показываются только организации по этому направлению.'),
+          empty: tr('No organizations found for this direction.', 'По этому направлению организаций пока нет.'),
+          scopeLabel: tr('Direction', 'Направление')
+        };
+      }
+      if (kind === 'organizer') {
+        return {
+          kind,
+          field: 'learning_languages',
+          fallback: 'teaches_languages',
+          title: tr('Organizer leaderboard', 'Рейтинг организаторов'),
+          subtitle: tr('Only organizers in this event direction are shown.', 'Показываются только организаторы по этому направлению.'),
+          empty: tr('No organizers found for this direction.', 'По этому направлению организаторов пока нет.'),
+          scopeLabel: tr('Direction', 'Направление')
+        };
+      }
+      return {
+        kind: 'learner',
+        field: 'learning_languages',
+        fallback: 'teaches_languages',
+        title: tr('Learner leaderboard', 'Рейтинг учеников'),
+        subtitle: tr('Only learners studying this language or subject are shown.', 'Показываются только ученики, которые изучают этот язык или предмет.'),
+        empty: tr('No learners found for this direction.', 'По этому направлению учеников пока нет.'),
+        scopeLabel: tr('Studies', 'Изучает')
+      };
+    }
+
+    function addTargetScopes(list, targets) {
+      if (!Array.isArray(targets)) {
+        listFrom(targets).forEach((target) => addUnique(list, target));
+        return;
+      }
+      targets.forEach((target) => {
+        if (!target || typeof target !== 'object') return;
+        addUnique(list, target.language);
+        listFrom(target.languages).forEach((item) => addUnique(list, item));
+        listFrom(target.subcategories).forEach((item) => addUnique(list, item));
+        addUnique(list, target.category);
+      });
+    }
+
+    function profileScopes(profile, config) {
+      const scopes = [];
+      listFrom(profile?.[config.field]).forEach((item) => addUnique(scopes, item));
+      listFrom(profile?.[config.fallback]).forEach((item) => addUnique(scopes, item));
+      addTargetScopes(scopes, profile?.learning_targets);
+      listFrom(profile?.specialization).forEach((item) => addUnique(scopes, item));
+      return scopes;
+    }
+
+    function activeLeaderboardScope(config) {
+      const scopes = profileScopes(ctx.profile || {}, config);
+      if (!scopes.length) scopes.push(tr('General', 'Общее'));
+      if (!state.leaderScope || !scopes.some((item) => item.toLowerCase() === String(state.leaderScope).toLowerCase())) {
+        state.leaderScope = scopes[0];
+      }
+      return { scopes, selected: state.leaderScope };
+    }
+
+    function targetLooksOrganization(row) {
+      if (row?.last_web_role === 'organization') return true;
+      const targets = Array.isArray(row?.learning_targets) ? row.learning_targets : [];
+      return targets.some((target) => target && typeof target === 'object' && (target.organization_type || Array.isArray(target.audience)));
+    }
+
+    function matchesLeaderboardRole(row, config) {
+      if (config.kind === 'teacher') return Boolean(row?.is_teacher);
+      if (config.kind === 'organization') return Boolean(row?.is_organizer) && targetLooksOrganization(row);
+      if (config.kind === 'organizer') return Boolean(row?.is_organizer) && !targetLooksOrganization(row);
+      return !row?.is_teacher && !row?.is_organizer;
+    }
+
+    function matchesScope(row, config, scope) {
+      const wanted = String(scope || '').trim().toLowerCase();
+      if (!wanted || wanted === tr('General', 'Общее').toLowerCase()) return true;
+      return profileScopes(row || {}, config).some((item) => item.toLowerCase() === wanted);
+    }
+
+    function applyRoleQuery(query, config) {
+      if (config.kind === 'teacher') return query.eq('is_teacher', true);
+      if (config.kind === 'organizer' || config.kind === 'organization') return query.eq('is_organizer', true);
+      return query.or('is_teacher.is.null,is_teacher.eq.false').or('is_organizer.is.null,is_organizer.eq.false');
+    }
+
     function leaderboardShellHtml() {
-      const languages = Array.isArray(ctx.profile?.learning_languages) ? ctx.profile.learning_languages.filter(Boolean) : [];
-      const options = ['<option value="">' + esc(tr('All languages', 'Все языки')) + '</option>']
-        .concat(languages.map((language) => '<option value="' + esc(language) + '"' + (state.leaderLang === language ? ' selected' : '') + '>' + esc(language) + '</option>')).join('');
-      return '<div class="section-head" style="margin-top:16px"><h3 style="font-size:15px;margin:0">' + esc(tr('Leaderboard', 'Таблица лидеров')) + '</h3>' +
-        (languages.length ? '<select id="rankFilter" class="role-select" style="width:auto;padding:6px 10px;font-weight:800">' + options + '</select>' : '') + '</div>';
+      const config = leaderboardConfig();
+      const scopeState = activeLeaderboardScope(config);
+      const optionsNew = scopeState.scopes.map((scope) =>
+        '<option value="' + esc(scope) + '"' + (scopeState.selected.toLowerCase() === scope.toLowerCase() ? ' selected' : '') + '>' + esc(scope) + '</option>'
+      ).join('');
+      return '<section class="leaderboard-panel">' +
+        '<div class="leaderboard-head"><div><h3>' + esc(config.title) + '</h3><p>' + esc(config.subtitle) + '</p></div>' +
+        '<select id="rankFilter" class="role-select" aria-label="' + esc(config.scopeLabel) + '">' + optionsNew + '</select></div>' +
+        '<div id="rankBox" class="rank-list"><div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div></div>' +
+      '</section>';
     }
 
     async function renderLeaderboard() {
       const box = $('#rankBox');
       if (!box) return;
-      const language = state.leaderLang;
+      const config = leaderboardConfig();
+      const scopeState = activeLeaderboardScope(config);
+      const selectedScope = scopeState.selected;
       try {
-        let query = supa.from('profiles').select('id,full_name,avatar_url,score').order('score', { ascending: false }).limit(20);
-        if (language) query = query.contains('learning_languages', [language]);
-        const { data } = await query;
-        const rows = data || [];
-        let rank = null;
-        try {
-          let rankQuery = supa.from('profiles').select('*', { count: 'exact', head: true }).gt('score', ctx.profile?.score ?? 0);
-          if (language) rankQuery = rankQuery.contains('learning_languages', [language]);
-          const { count } = await rankQuery;
-          rank = (count || 0) + 1;
-        } catch (error) {
-          /* rank optional */
-        }
+        let scopedQuery = supa.from('profiles')
+          .select('id,full_name,avatar_url,score,is_teacher,is_organizer,last_web_role,learning_languages,teaches_languages,learning_targets,specialization')
+          .order('score', { ascending: false })
+          .limit(300);
+        scopedQuery = applyRoleQuery(scopedQuery, config);
+        const { data } = await scopedQuery;
+        const scopedRows = (data || [])
+          .filter((row) => matchesLeaderboardRole(row, config))
+          .filter((row) => matchesScope(row, config, selectedScope))
+          .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+        const rows = scopedRows.slice(0, 20);
+        const myIndex = scopedRows.findIndex((row) => row.id === ctx.user.id);
+        const rank = myIndex >= 0 ? myIndex + 1 : null;
+        const userLabel = tr('Duvela user', 'Пользователь Duvela');
         box.innerHTML =
-          (rank ? '<p style="font-weight:900;color:var(--purple);margin:0 0 8px">' + esc(tr('Your rank: #', 'Ваш ранг: #')) + rank + '</p>' : '') +
+          '<div class="rank-summary"><span>' + esc(config.scopeLabel) + ': ' + esc(selectedScope) + '</span>' +
+            '<strong>' + esc(rank ? tr('Your rank: #', 'Ваш ранг: #') + rank : tr('You are not in this list yet', 'Вас пока нет в этом списке')) + '</strong></div>' +
           (rows.length ? rows.map((row, index) =>
-            '<div class="rank-row' + (row.id === ctx.user.id ? ' me' : '') + '"><div class="rank-num">' + (index + 1) + '</div><div class="avatar" style="width:30px;height:30px;font-size:12px">' + avatarInner(row.full_name, row.avatar_url) + '</div><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(row.full_name || tr('Duvela user', 'Пользователь Duvela')) + '</div><div style="font-weight:900;color:var(--purple)">' + Number(row.score || 0).toLocaleString() + '</div></div>'
-          ).join('') : '<div class="empty">' + esc(tr('No ranking data.', 'Нет данных рейтинга.')) + '</div>');
+            '<div class="rank-row' + (row.id === ctx.user.id ? ' me' : '') + '">' +
+              '<div class="rank-num">' + (index + 1) + '</div>' +
+              '<div class="avatar">' + avatarInner(row.full_name, row.avatar_url) + '</div>' +
+              '<div class="rank-person"><b>' + esc(row.full_name || userLabel) + '</b><span>' + esc(config.scopeLabel) + ': ' + esc(selectedScope) + '</span></div>' +
+              '<div class="rank-score"><b>' + Number(row.score || 0).toLocaleString() + '</b><span>XP</span></div>' +
+            '</div>'
+          ).join('') : '<div class="empty">' + esc(config.empty) + '</div>');
+        return;
       } catch (error) {
         box.innerHTML = '<div class="empty">' + esc(tr('Leaderboard unavailable.', 'Рейтинг недоступен.')) + '</div>';
+        return;
       }
     }
 
