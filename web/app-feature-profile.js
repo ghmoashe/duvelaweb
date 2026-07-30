@@ -266,9 +266,9 @@
         bio: $('#pfBio').value.trim() || null,
         telegram: $('#pfTelegram').value.trim() || null,
         instagram: $('#pfInstagram').value.trim() || null,
-        website: $('#pfWebsite').value.trim() || null,
         updated_at: new Date().toISOString()
       };
+      if ($('#pfWebsite')) patch.website = $('#pfWebsite').value.trim() || null;
       const button = $('#profileForm button[type="submit"]');
       button.disabled = true;
       try {
