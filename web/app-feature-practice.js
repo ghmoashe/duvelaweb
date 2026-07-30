@@ -3,24 +3,58 @@
     const { $, $$, tr, esc, state, supa } = ctx;
     let practiceState = null;
 
+    const TARGET_ALIASES = {
+      de:'de', deutsch:'de', german:'de', en:'en', english:'en', englisch:'en', es:'es', spanish:'es', spanisch:'es', espanol:'es', español:'es',
+      french:'fr', français:'fr', francais:'fr', fr:'fr', italian:'it', it:'it', portuguese:'pt', pt:'pt', russian:'ru', ru:'ru',
+      arabic:'ar', ar:'ar', persian:'fa', farsi:'fa', fa:'fa', turkish:'tr', tr:'tr', dutch:'nl', nl:'nl', polish:'pl', pl:'pl',
+      ukrainian:'uk', uk:'uk', swedish:'sv', sv:'sv', norwegian:'no', no:'no', danish:'da', da:'da', finnish:'fi', fi:'fi',
+      greek:'el', el:'el', czech:'cs', cs:'cs', hungarian:'hu', hu:'hu', romanian:'ro', ro:'ro', chinese:'zh', zh:'zh',
+      japanese:'ja', ja:'ja', korean:'ko', ko:'ko', hindi:'hi', hi:'hi', thai:'th', th:'th', vietnamese:'vi', vi:'vi',
+      indonesian:'id', id:'id', math:'math', mathematics:'math', математика:'math', математик:'math', chess:'chess'
+    };
+    function targetSlug(value) {
+      return String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g,'and').replace(/[^a-z0-9а-яё]+/gi,'-').replace(/^-+|-+$/g,'');
+    }
+    function normalizeTarget(value) {
+      const raw = targetSlug(value);
+      if (!raw) return '';
+      const compact = raw.replace(/-/g, '');
+      return TARGET_ALIASES[raw] || TARGET_ALIASES[compact] || TARGET_ALIASES[raw.split('-')[0]] || raw;
+    }
+    function addLearnerTarget(targets, levels, raw, level) {
+      const target = normalizeTarget(raw);
+      if (!target || targets.indexOf(target) >= 0) return;
+      targets.push(target);
+      if (level) {
+        const match = String(level).toUpperCase().match(/A1|A2|B1|B2|C1|C2/);
+        levels[target] = match ? match[0] : 'A1';
+      }
+    }
     function learnerCriteria() {
       let prefs = {};
       try { prefs = JSON.parse(localStorage.getItem('duvela.study.preferences') || '{}'); } catch (error) {}
-      const aliases = { de: 'de', german: 'de', deutsch: 'de', en: 'en', english: 'en', englisch: 'en', es: 'es', spanish: 'es', spanisch: 'es' };
-      const raw = String(prefs.practiceTarget || prefs.practiceLang || 'de').toLowerCase();
-      const target = aliases[raw] || aliases[raw.split(/[-_]/)[0]] || 'de';
-      const level = String((prefs.levels || {})[target] || (ctx.profile && ctx.profile.language_level) || 'A1').toUpperCase().match(/A1|A2|B1|B2|C1|C2/);
-      return { target, level: level ? level[0] : 'A1' };
-    }
-
-    function normalizeTarget(value) {
-      const aliases = { de: 'de', german: 'de', deutsch: 'de', en: 'en', english: 'en', englisch: 'en', es: 'es', spanish: 'es', spanisch: 'es' };
-      const raw = String(value || '').trim().toLowerCase();
-      return aliases[raw] || aliases[raw.split(/[-_]/)[0]] || raw;
+      const profile = ctx.profile || {};
+      const targets = [], levels = Object.assign({}, prefs.levels || {});
+      const learningTargets = Array.isArray(profile.learning_targets) ? profile.learning_targets : [];
+      learningTargets.forEach((item) => {
+        if (!item || typeof item !== 'object') return;
+        const itemLevel = item.level || profile.language_level || 'A1';
+        if (item.levels && typeof item.levels === 'object') Object.keys(item.levels).forEach((language) => addLearnerTarget(targets, levels, language, item.levels[language] || itemLevel));
+        if (Array.isArray(item.languages)) item.languages.forEach((language) => addLearnerTarget(targets, levels, language, (item.levels && item.levels[language]) || itemLevel));
+        if (item.language) addLearnerTarget(targets, levels, item.language, item.level || itemLevel);
+        if (Array.isArray(item.subcategories)) item.subcategories.forEach((subject) => addLearnerTarget(targets, levels, subject, item.level || itemLevel));
+      });
+      if (Array.isArray(profile.learning_languages)) profile.learning_languages.forEach((language) => addLearnerTarget(targets, levels, language, profile.language_level || 'A1'));
+      if (!targets.length && prefs.practiceTarget) addLearnerTarget(targets, levels, prefs.practiceTarget, levels[prefs.practiceTarget] || profile.language_level || 'A1');
+      const selected = normalizeTarget(prefs.practiceTarget || prefs.practiceLang);
+      const target = targets.indexOf(selected) >= 0 ? selected : targets[0];
+      const level = String((levels || {})[target] || profile.language_level || 'A1').toUpperCase().match(/A1|A2|B1|B2|C1|C2/);
+      return { target: target || '', level: level ? level[0] : 'A1' };
     }
 
     function matchesLearner(practice) {
       const criteria = learnerCriteria();
+      if (!criteria.target) return false;
       return normalizeTarget(practice.target) === criteria.target && String(practice.level || '').toUpperCase() === criteria.level;
     }
 
@@ -94,6 +128,9 @@
 
     function practicesHtml() {
       const criteria = learnerCriteria();
+      if (!criteria.target) {
+        return '<div class="empty rich-empty practice-empty"><span>🎯</span><b>' + esc(tr('Choose a learning direction first', 'Сначала выберите направление обучения')) + '</b><p>' + esc(tr('Teacher practices are shown only for the exact direction saved in your learner profile.', 'Практики преподавателей показываются только для направления, сохранённого в профиле ученика.')) + '</p><a class="btn" href="#profile" data-go="profile">' + esc(tr('Open profile', 'Открыть профиль')) + '</a></div>';
+      }
       if (!state.practices.length) {
         return '<div class="empty rich-empty practice-empty"><span>✦</span><b>' + esc(tr('No practices for your level yet', 'Пока нет практик для вашего уровня')) + '</b><p>' + esc(tr('Current target:', 'Сейчас выбрано:')) + ' ' + esc(criteria.target.toUpperCase() + ' · ' + criteria.level) + '. ' + esc(tr('New teacher exercises will appear here automatically.', 'Новые упражнения от преподавателей появятся здесь автоматически.')) + '</p><a class="btn" href="#profile" data-go="profile">' + esc(tr('Change level or language', 'Изменить уровень или язык')) + '</a></div>';
       }
