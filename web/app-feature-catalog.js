@@ -75,6 +75,34 @@
       }
       const attending = myStatus === 'going';
       const isOwner = !!(item.organizer_id && ctx.user && item.organizer_id === ctx.user.id);
+      // Zoom Classroom for online events (mirrors the course Zoom card).
+      let eventZoomClass = null;
+      let eventZoomNext = null;
+      if (item.is_online) {
+        try {
+          const { data: cls } = await supa.from('classes').select('id,name').eq('event_id', id).maybeSingle();
+          eventZoomClass = cls || null;
+          if (eventZoomClass) {
+            const floor = new Date(Date.now() - 6 * 3600 * 1000).toISOString();
+            const { data: sess } = await supa.from('class_sessions')
+              .select('id,title,starts_at,ends_at,status,duration_min,join_opens_at')
+              .eq('class_id', eventZoomClass.id).neq('status', 'cancelled')
+              .gte('starts_at', floor).order('starts_at', { ascending: true }).limit(1);
+            eventZoomNext = (sess && sess[0]) || null;
+          }
+        } catch (error) { /* optional Zoom event data */ }
+      }
+      function eventZoomCardHtml() {
+        if (!eventZoomClass) return '';
+        const now = Date.now();
+        const next = eventZoomNext;
+        const opensAt = next ? Date.parse(next.join_opens_at || next.starts_at) - (next.join_opens_at ? 0 : 1800000) : 0;
+        const canJoin = !!(next && (isOwner || now >= opensAt) && next.status !== 'cancelled' && next.status !== 'ended');
+        const nextLabel = next ? new Date(next.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }) : tr('No upcoming lessons', 'Ближайших уроков нет');
+        return '<section class="cd-zoom-classroom" style="margin-top:14px"><div class="cd-zoom-icon">▦</div><div class="cd-zoom-main"><small>ZOOM CLASSROOM</small><h3>' + esc(eventZoomClass.name || item.title) + '</h3><p>' + esc(nextLabel) + (next ? ' · ' + (next.duration_min || 60) + ' ' + esc(tr('min', 'мин')) : '') + '</p>' +
+          (next && !canJoin && !isOwner ? '<div class="cd-zoom-warning">' + esc(tr('The entry button opens 30 minutes before the lesson.', 'Кнопка входа откроется за 30 минут до урока.')) + '</div>' : '') +
+          '</div>' + (next ? '<a class="btn primary' + (canJoin ? '' : ' disabled') + '" ' + (canJoin ? 'href="./classroom.html?s=' + esc(next.id) + '"' : 'aria-disabled="true"') + '>' + esc(isOwner ? tr('Open classroom', 'Открыть класс') : tr('Enter lesson', 'Войти в урок')) + '</a>' : '') + '</section>';
+      }
       const capacity = Number(item.max_participants) || 0;
       const capacityText = capacity ? going + ' / ' + capacity : String(going);
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -91,11 +119,31 @@
         '<p style="font-weight:700;color:var(--soft);line-height:1.5">' + esc(item.description || tr('No description yet.', 'Описания пока нет.')) + '</p>' +
         (isOwner
           ? '<div class="event-owner-tools"><div class="event-owner-head"><span class="tag teal">' + esc(tr('You are the organizer', 'Вы организатор')) + '</span><span>' + esc(item.status === 'canceled' ? tr('Canceled', 'Отменено') : item.status === 'draft' ? tr('Draft', 'Черновик') : item.event_date && item.event_date < new Date().toISOString().slice(0,10) ? tr('Completed', 'Завершено') : tr('Published', 'Опубликовано')) + '</span></div><div class="event-owner-stats"><span><b>' + views + '</b>' + esc(tr('Views', 'Просмотры')) + '</span><span><b>' + going + '</b>' + esc(tr('Registrations', 'Регистрации')) + '</span><span><b>' + (capacity ? Math.round(going / capacity * 100) : 0) + '%</b>' + esc(tr('Capacity', 'Заполнение')) + '</span></div>' +
-              '<div class="event-owner-actions"><button class="btn primary" data-event-live>' + esc(tr('Start LIVE', 'Начать эфир')) + '</button><button class="btn" data-event-edit>' + esc(tr('Edit', 'Редактировать')) + '</button><button class="btn" data-event-copy>' + esc(tr('Copy link', 'Копировать ссылку')) + '</button><button class="btn" data-event-calendar>' + esc(tr('Add to calendar', 'В календарь')) + '</button><button class="btn" data-event-message>' + esc(tr('Message participants', 'Написать участникам')) + '</button><button class="btn" data-event-cancel>' + esc(tr('Cancel event', 'Отменить событие')) + '</button><button class="btn danger" data-event-delete>' + esc(tr('Delete', 'Удалить')) + '</button></div>' +
+              '<div class="event-owner-actions">' + (item.is_online ? '<button class="btn primary" data-event-zoom>' + esc(eventZoomClass ? tr('Zoom lessons', 'Zoom-уроки') : tr('Enable Zoom lessons', 'Включить Zoom-уроки')) + '</button>' : '') + '<button class="btn primary" data-event-live>' + esc(tr('Start LIVE', 'Начать эфир')) + '</button><button class="btn" data-event-edit>' + esc(tr('Edit', 'Редактировать')) + '</button><button class="btn" data-event-copy>' + esc(tr('Copy link', 'Копировать ссылку')) + '</button><button class="btn" data-event-calendar>' + esc(tr('Add to calendar', 'В календарь')) + '</button><button class="btn" data-event-message>' + esc(tr('Message participants', 'Написать участникам')) + '</button><button class="btn" data-event-cancel>' + esc(tr('Cancel event', 'Отменить событие')) + '</button><button class="btn danger" data-event-delete>' + esc(tr('Delete', 'Удалить')) + '</button></div>' +
+              eventZoomCardHtml() +
               '<div class="event-edit-form" data-event-edit-form hidden><div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Title', 'Название')) + '</label><input data-ee-title value="' + esc(item.title || '') + '"></div><div class="pv-field"><label>' + esc(tr('Capacity', 'Количество мест')) + '</label><input data-ee-capacity type="number" min="0" value="' + esc(item.max_participants || '') + '"></div></div><div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Date', 'Дата')) + '</label><input data-ee-date type="date" value="' + esc(item.event_date || '') + '"></div><div class="pv-field"><label>' + esc(tr('Time', 'Время')) + '</label><input data-ee-time type="time" value="' + esc((item.event_time || '').slice(0,5)) + '"></div></div><button class="btn primary" data-event-save>' + esc(tr('Save changes', 'Сохранить')) + '</button></div>' +
               '<div class="event-participants"><h3>' + esc(tr('Participants', 'Участники')) + ' (' + going + ')</h3>' + (participants.length ? participants.map((person) => '<div><span class="sch-avatar">' + esc(person.name.charAt(0).toUpperCase()) + '</span><b>' + esc(person.name) + '</b></div>').join('') : '<p>' + esc(tr('No registrations yet.', 'Регистраций пока нет.')) + '</p>') + '</div></div>'
-          : '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'Отменить участие') : tr('RSVP — I will attend', 'Пойду')) + '</button></div>');
+          : '<div style="margin-top:16px"><button class="btn ' + (attending ? '' : 'primary') + '" data-rsvp="' + esc(id) + '">' + esc(attending ? tr('Cancel RSVP', 'Отменить участие') : tr('RSVP — I will attend', 'Пойду')) + '</button></div>' + (attending ? eventZoomCardHtml() : ''));
       if (isOwner) bindEventOwnerActions(item);
+      const zoomBtn = body.querySelector('[data-event-zoom]');
+      if (zoomBtn) zoomBtn.onclick = () => enableEventZoom(item, eventZoomClass);
+    }
+
+    async function enableEventZoom(item, existingClass) {
+      try {
+        let classId = existingClass && existingClass.id;
+        if (!classId) {
+          const { data, error } = await supa.rpc('create_event_zoom_class', { target_event: item.id });
+          if (error) throw error;
+          classId = data;
+        }
+        if (!classId) throw new Error(tr('Could not enable Zoom lessons.', 'Не удалось включить Zoom-уроки.'));
+        $('#eventOverlay').classList.remove('open');
+        if (ctx.clearClassSessionSelection) ctx.clearClassSessionSelection();
+        if (ctx.openClassManage) ctx.openClassManage(classId);
+      } catch (error) {
+        alert((error && error.message) || tr('Could not enable Zoom lessons.', 'Не удалось включить Zoom-уроки.'));
+      }
     }
 
     function eventShareUrl(item) {

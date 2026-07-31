@@ -742,31 +742,37 @@
     function paintStudyGroupModal() {
       var body = el('ccBody');
       if (!body) return;
-      var hasOrganization = !!(state && state.myOrg && state.myOrg.id);
       body.innerHTML =
         '<div class="cc-provider-card"><span class="mg-row-ic teal">' + IC.book + '</span><div><b>' + esc(tr('Study group', 'Учебная группа')) + '</b><p>' + esc(tr('Add learners to this group, track attendance and run Zoom Classroom lessons.', 'Добавляйте учеников, отмечайте посещаемость и проводите уроки Zoom Classroom.')) + '</p></div></div>' +
-        (!hasOrganization ? '<div class="pv-notice">' + esc(tr('Create your Duvela organization first.', 'Сначала создайте организацию Duvela.')) + '</div>' : '') +
         '<div class="pv-field"><label>' + esc(tr('Group name', 'Название группы')) + ' *</label><input id="groupNameInput" placeholder="' + esc(tr('e.g. German A2 Evening', 'например: Немецкий A2 — вечер')) + '"></div>' +
         '<div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Language', 'Язык')) + '</label><input id="groupLanguageInput" placeholder="German"></div>' +
         '<div class="pv-field"><label>' + esc(tr('Level', 'Уровень')) + '</label><select id="groupLevelInput">' + ['A1','A2','B1','B2','C1','C2'].map(function (level) { return '<option>' + level + '</option>'; }).join('') + '</select></div></div>' +
         '<div class="pv-field-grid"><div class="pv-field"><label>' + esc(tr('Format', 'Формат')) + '</label><select id="groupFormatInput"><option value="online">' + esc(tr('Online', 'Онлайн')) + '</option><option value="offline">' + esc(tr('In person', 'Офлайн')) + '</option></select></div>' +
         '<div class="pv-field"><label>' + esc(tr('Start date', 'Дата начала')) + '</label><input id="groupStartInput" type="date"></div></div>' +
         (groupNotice ? '<div class="pv-notice">' + esc(groupNotice) + '</div>' : '') +
-        '<div class="pv-edit-actions"><button type="button" class="pv-btn-outline" id="groupCancel">' + esc(tr('Cancel', 'Отмена')) + '</button><button type="button" class="pv-btn-solid" id="groupSubmit"' + (!hasOrganization || groupSaving ? ' disabled' : '') + '>' + esc(groupSaving ? tr('Creating…', 'Создание…') : tr('Create group', 'Создать группу')) + '</button></div>';
+        '<div class="pv-edit-actions"><button type="button" class="pv-btn-outline" id="groupCancel">' + esc(tr('Cancel', 'Отмена')) + '</button><button type="button" class="pv-btn-solid" id="groupSubmit"' + (groupSaving ? ' disabled' : '') + '>' + esc(groupSaving ? tr('Creating…', 'Создание…') : tr('Create group', 'Создать группу')) + '</button></div>';
       var cancel = el('groupCancel'); if (cancel) cancel.onclick = closeModal;
       var submit = el('groupSubmit'); if (submit) submit.onclick = function () { void submitStudyGroup(); };
     }
 
     async function submitStudyGroup() {
       var name = (el('groupNameInput') && el('groupNameInput').value.trim()) || '';
-      if (!name || !state.myOrg) {
+      if (!name) {
         groupNotice = tr('Enter a group name.', 'Введите название группы.');
         paintStudyGroupModal(); return;
       }
       groupSaving = true; groupNotice = ''; paintStudyGroupModal();
+      // Solo teachers have no organization — auto-provision one (same as the
+      // course + Zoom flow) so the group stays visible in the org-scoped lists.
+      var org = await ensureOrg();
+      if (!org) {
+        groupSaving = false;
+        groupNotice = tr('Could not prepare your workspace. Try again.', 'Не удалось подготовить рабочее пространство. Попробуйте ещё раз.');
+        paintStudyGroupModal(); return;
+      }
       var start = (el('groupStartInput') && el('groupStartInput').value) || '';
       var result = await supa.from('classes').insert({
-        organization_id: state.myOrg.id,
+        organization_id: org.id,
         teacher_id: ctx.user.id,
         name: name,
         language: (el('groupLanguageInput') && el('groupLanguageInput').value.trim()) || null,
