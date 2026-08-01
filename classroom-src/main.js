@@ -366,9 +366,16 @@ function bindZoomEvents() {
     if ($('chatPanel').hidden) $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
   });
   client.on('active-share-change', async (payload) => {
+    const myId = client.getCurrentUserInfo()?.userId;
     if (payload.state === 'Active') {
       activeShareUserId = payload.userId;
-      try { await media.startShareView($('shareCanvas'), payload.userId); } catch {}
+      // Only render the incoming share when someone ELSE shares — my own share
+      // is already rendered locally by startShareScreen.
+      if (payload.userId !== myId) {
+        $('shareVideo').hidden = true;
+        $('shareCanvas').hidden = false;
+        try { await media.startShareView($('shareCanvas'), payload.userId); } catch {}
+      }
     } else {
       activeShareUserId = null;
     }
@@ -472,6 +479,17 @@ async function toggleCam() {
   await renderUsers();
 }
 
+// Zoom renders the local screen-share preview into the element we pass, so it
+// must have layout (not display:none) first. Some browsers also require a
+// <video> element instead of a <canvas> — the SDK tells us which via
+// isStartShareScreenWithVideoElement().
+function shareRenderElement() {
+  const withVideo = typeof media.isStartShareScreenWithVideoElement === 'function' && media.isStartShareScreenWithVideoElement();
+  $('shareVideo').hidden = !withVideo;
+  $('shareCanvas').hidden = withVideo;
+  return withVideo ? $('shareVideo') : $('shareCanvas');
+}
+
 async function toggleShare() {
   if (!media) return;
   try {
@@ -479,8 +497,15 @@ async function toggleShare() {
       await media.stopShareScreen();
       sharing = false;
     } else {
-      await media.startShareScreen($('shareCanvas'));
-      sharing = true;
+      $('shareStage').hidden = false;
+      const element = shareRenderElement();
+      try {
+        await media.startShareScreen(element);
+        sharing = true;
+      } catch (error) {
+        $('shareStage').hidden = true;
+        throw error;
+      }
     }
     $('shareBtn').classList.toggle('off', !sharing);
     await renderUsers();
@@ -488,7 +513,8 @@ async function toggleShare() {
     // Dismissing the browser's "choose what to share" picker throws
     // NotAllowedError/AbortError — that's a user cancel, not a failure, so stay quiet.
     if (error?.name === 'NotAllowedError' || error?.name === 'AbortError') return;
-    alert(error?.message || 'Не удалось начать демонстрацию экрана.');
+    console.error('startShareScreen failed:', error);
+    alert(`${error?.message || 'Не удалось начать демонстрацию экрана'}${error?.name ? ` [${error.name}]` : ''}`);
   }
 }
 
