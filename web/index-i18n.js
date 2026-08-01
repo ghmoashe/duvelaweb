@@ -18,6 +18,42 @@
     const langBtnCode = document.getElementById('langBtnCode');
 
     let dict = Object.assign({}, I18N.en, I18N_EXTRA.en);
+    const WEB_APP_COPY = {
+      en: {
+        getApp: 'Open Web App',
+        btnDownload: 'Start learning free',
+        btnHow: 'Start teaching',
+        heroClarity: 'Works in your browser. No download required.',
+        heroMeta: '<b>Web app available now</b><br>Learners and teachers use the same account.',
+        appsKicker: 'Two workspaces, one web app',
+        appsTitle: 'Choose your <span class="grad-text">workspace</span>',
+        appsSub: 'Duvela runs in a modern browser. Learners and teachers use one account and can return to the homepage at any time.',
+        ctaTitle: 'Start learning with real teachers today',
+        ctaSub: 'Create a free account and open your learner workspace directly in the browser.',
+        ctaGet: 'Create free account',
+        ctaExplore: 'Open Web App',
+        footDownload: 'Web App',
+        phoneGreeting: 'Welcome to Duvela',
+        phoneStreak: 'Daily practice'
+      },
+      ru: {
+        getApp: 'Открыть веб-приложение',
+        btnDownload: 'Начать бесплатно',
+        btnHow: 'Начать преподавать',
+        heroClarity: 'Работает в браузере. Скачивание не требуется.',
+        heroMeta: '<b>Веб-приложение уже доступно</b><br>Ученики и преподаватели используют один аккаунт.',
+        appsKicker: 'Два пространства, одно веб-приложение',
+        appsTitle: 'Выберите своё <span class="grad-text">пространство</span>',
+        appsSub: 'Duvela работает в современном браузере. Ученики и преподаватели используют один аккаунт.',
+        ctaTitle: 'Начните учиться с настоящими преподавателями',
+        ctaSub: 'Создайте бесплатный аккаунт и откройте пространство ученика прямо в браузере.',
+        ctaGet: 'Создать аккаунт',
+        ctaExplore: 'Открыть веб-приложение',
+        footDownload: 'Веб-приложение',
+        phoneGreeting: 'Добро пожаловать в Duvela',
+        phoneStreak: 'Ежедневная практика'
+      }
+    };
 
     const I18N_MAP = [
       ['.nav-links li:nth-child(1) a', 'navVideo'],
@@ -36,13 +72,6 @@
       ['.hero-actions .btn-primary', 'btnDownload'],
       ['.hero-actions .btn-ghost', 'btnHow'],
       ['.hero-clarity', 'heroClarity'],
-      ['.hero-trust .hero-trust-item:nth-child(1) span', 'stat2'],
-      ['.hero-trust .hero-trust-item:nth-child(2) span', 'stat3'],
-      ['.hero-trust .hero-trust-item:nth-child(3) span', 'stat4'],
-      ['.hero-preview-kicker', 'liveNow'],
-      ['.hero-preview-sub', 'liveJoinLesson'],
-      ['.hero-preview-topic', 'liveTopicGerman'],
-      ['.hero-preview-link', 'join'],
       ['.video-title', 'videoTitle'],
       ['.video-sub', 'videoSub'],
       ['.stats-card .stat:nth-child(1) span', 'stat1'],
@@ -197,6 +226,7 @@
 
     function applyWebLanguage(code) {
       dict = Object.assign({}, I18N.en, I18N_EXTRA.en, I18N[code] || {}, I18N_EXTRA[code] || {});
+      Object.assign(dict, WEB_APP_COPY[code] || WEB_APP_COPY.en);
       document.documentElement.lang = code;
       document.documentElement.dir = RTL_LANGS.has(code) ? 'rtl' : 'ltr';
       document.title = dict.metaTitle;
@@ -237,17 +267,16 @@
         el.innerHTML = '<span class="chip-icon">' + icon + '</span> ' + text;
       });
 
-      const heroBadge = document.querySelector('.hero-badge');
-      if (heroBadge) heroBadge.innerHTML = '<span class="dot"></span> ' + dict.heroBadge;
       const videoChip = document.querySelector('.video-chip');
       if (videoChip) videoChip.innerHTML = '<span class="dot"></span> ' + dict.videoChip;
       const heroMeta = document.querySelector('.hero-meta p');
-      if (heroMeta) heroMeta.innerHTML = '<span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span><br>' + dict.heroMeta;
+      if (heroMeta) heroMeta.innerHTML = dict.heroMeta;
 
       document.getElementById('loginEmail').placeholder = dict.phEmail;
       document.getElementById('loginPassword').placeholder = dict.phPassword;
 
       if (ctx.onDictChange) ctx.onDictChange(dict, code);
+      window.dispatchEvent(new CustomEvent('duvela-language-change', { detail: { locale: code } }));
     }
 
     function renderLanguageMenu() {

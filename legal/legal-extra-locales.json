@@ -87,9 +87,9 @@
               ]
             },
             {
-              "title": "5. Uso de Google Analytics",
+              "title": "5. Uso de Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics é carregado somente após consentimento e armazena dados de uso anônimos para melhorar a plataforma.",
+                "Vercel Web Analytics é carregado somente após consentimento e armazena dados de uso anônimos para melhorar a plataforma.",
                 "Base jurídica: Art. 6(1)(a) RGPD"
               ]
             },
@@ -108,7 +108,7 @@
               "list": [
                 "Telegram (login)",
                 "Supabase (hospedagem)",
-                "Google (análises, apenas com consentimento)"
+                "Vercel (análises, apenas com consentimento)"
               ],
               "afterList": [
                 "Os dados não são compartilhados para fins publicitários."
@@ -469,9 +469,9 @@
               ]
             },
             {
-              "title": "5. Gebruik van Google Analytics",
+              "title": "5. Gebruik van Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics wordt alleen na toestemming geladen en slaat geanonimiseerde gebruiksgegevens op om het platform te verbeteren.",
+                "Vercel Web Analytics wordt alleen na toestemming geladen en slaat geanonimiseerde gebruiksgegevens op om het platform te verbeteren.",
                 "Rechtsgrondslag: Art. 6(1)(a) AVG"
               ]
             },
@@ -490,7 +490,7 @@
               "list": [
                 "Telegram (inloggen)",
                 "Supabase (hosting)",
-                "Google (analytics, alleen met toestemming)"
+                "Vercel (analytics, alleen met toestemming)"
               ],
               "afterList": [
                 "Gegevens worden niet gedeeld voor reclamedoeleinden."
@@ -851,9 +851,9 @@
               ]
             },
             {
-              "title": "5. Användning av Google Analytics",
+              "title": "5. Användning av Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics laddas endast efter samtycke och lagrar anonymiserad användningsdata för att förbättra plattformen.",
+                "Vercel Web Analytics laddas endast efter samtycke och lagrar anonymiserad användningsdata för att förbättra plattformen.",
                 "Rättslig grund: Art. 6(1)(a) GDPR"
               ]
             },
@@ -872,7 +872,7 @@
               "list": [
                 "Telegram (logga in)",
                 "Supabase (värd)",
-                "Google (analys, endast med samtycke)"
+                "Vercel (analys, endast med samtycke)"
               ],
               "afterList": [
                 "Data delas inte i reklamsyfte."
@@ -1233,9 +1233,9 @@
               ]
             },
             {
-              "title": "5. Bruk av Google Analytics",
+              "title": "5. Bruk av Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics lastes kun etter samtykke og lagrer anonymiserte bruksdata for å forbedre plattformen.",
+                "Vercel Web Analytics lastes kun etter samtykke og lagrer anonymiserte bruksdata for å forbedre plattformen.",
                 "Rettslig grunnlag: Art. 6(1)(a) GDPR"
               ]
             },
@@ -1254,7 +1254,7 @@
               "list": [
                 "Telegram (pålogging)",
                 "Supabase (hosting)",
-                "Google (analyse, kun med samtykke)"
+                "Vercel (analyse, kun med samtykke)"
               ],
               "afterList": [
                 "Data deles ikke for reklameformål."
@@ -1615,9 +1615,9 @@
               ]
             },
             {
-              "title": "5. Použití Google Analytics",
+              "title": "5. Použití Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics se načítá pouze po souhlasu a ukládá anonymizované údaje o používání za účelem vylepšení platformy.",
+                "Vercel Web Analytics se načítá pouze po souhlasu a ukládá anonymizované údaje o používání za účelem vylepšení platformy.",
                 "Právní základ: Čl. 6 odst. 1 písm. a) GDPR"
               ]
             },
@@ -1636,7 +1636,7 @@
               "list": [
                 "Telegram (přihlášení)",
                 "Supabase (hosting)",
-                "Google (analytika, pouze se souhlasem)"
+                "Vercel (analytika, pouze se souhlasem)"
               ],
               "afterList": [
                 "Data nejsou sdílena pro reklamní účely."
@@ -1997,9 +1997,9 @@
               ]
             },
             {
-              "title": "5. Google Analytics қолдану",
+              "title": "5. Vercel Web Analytics қолдану",
               "paragraphs": [
-                "Google Analytics келісімнен кейін ғана жүктеледі және платформаны жақсарту үшін анонимді пайдалану деректерін сақтайды.",
+                "Vercel Web Analytics келісімнен кейін ғана жүктеледі және платформаны жақсарту үшін анонимді пайдалану деректерін сақтайды.",
                 "Құқықтық негіз: бап. 6(1)(a) GDPR"
               ]
             },
@@ -2018,7 +2018,7 @@
               "list": [
                 "Telegram (кіру)",
                 "Supabase (хостинг)",
-                "Google (аналитика, тек келісімімен)"
+                "Vercel (аналитика, тек келісімімен)"
               ],
               "afterList": [
                 "Деректер жарнамалық мақсатта бөлісілмейді."
@@ -2379,9 +2379,9 @@
               ]
             },
             {
-              "title": "5. Google Analytics istifadə",
+              "title": "5. Vercel Web Analytics istifadə",
               "paragraphs": [
-                "Google Analytics yalnız razılıq alındıqdan sonra yüklənir və platformanı təkmilləşdirmək üçün anonim istifadə məlumatlarını saxlayır.",
+                "Vercel Web Analytics yalnız razılıq alındıqdan sonra yüklənir və platformanı təkmilləşdirmək üçün anonim istifadə məlumatlarını saxlayır.",
                 "Hüquqi əsas: Art. 6(1)(a) GDPR"
               ]
             },
@@ -2400,7 +2400,7 @@
               "list": [
                 "Telegram (giriş)",
                 "Supabase (hosting)",
-                "Google (analitika, yalnız razılıq ilə)"
+                "Vercel (analitika, yalnız razılıq ilə)"
               ],
               "afterList": [
                 "Məlumatlar reklam məqsədləri üçün paylaşılmır."
@@ -2761,9 +2761,9 @@
               ]
             },
             {
-              "title": "5. Google Analytics dan foydalanish",
+              "title": "5. Vercel Web Analytics dan foydalanish",
               "paragraphs": [
-                "Google Analytics faqat rozilikdan so'ng yuklanadi va platformani yaxshilash uchun anonim foydalanish ma'lumotlarini saqlaydi.",
+                "Vercel Web Analytics faqat rozilikdan so'ng yuklanadi va platformani yaxshilash uchun anonim foydalanish ma'lumotlarini saqlaydi.",
                 "Huquqiy asos: m. 6(1)(a) GDPR"
               ]
             },
@@ -2782,7 +2782,7 @@
               "list": [
                 "Telegram (kirish)",
                 "Supabase (xosting)",
-                "Google (analitika, faqat rozilik bilan)"
+                "Vercel (analitika, faqat rozilik bilan)"
               ],
               "afterList": [
                 "Ma'lumotlar reklama maqsadida ulashilmaydi."
@@ -3143,9 +3143,9 @@
               ]
             },
             {
-              "title": "5. Истифодаи Google Analytics",
+              "title": "5. Истифодаи Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics танҳо пас аз ризоият бор карда мешавад ва барои беҳтар кардани платформа маълумотҳои истифодаи беном нигоҳ дошта мешавад.",
+                "Vercel Web Analytics танҳо пас аз ризоият бор карда мешавад ва барои беҳтар кардани платформа маълумотҳои истифодаи беном нигоҳ дошта мешавад.",
                 "Асосҳои ҳуқуқӣ: м. 6(1)(а) GDPR"
               ]
             },
@@ -3164,7 +3164,7 @@
               "list": [
                 "Telegram (ворид)",
                 "Supabase (хостинг)",
-                "Google (таҳлил, танҳо бо розигӣ)"
+                "Vercel (таҳлил, танҳо бо розигӣ)"
               ],
               "afterList": [
                 "Маълумот барои таблиғ мубодила намешавад."
@@ -3525,9 +3525,9 @@
               ]
             },
             {
-              "title": "5.Google Analytics的使用",
+              "title": "5.Vercel Web Analytics的使用",
               "paragraphs": [
-                "Google Analytics 仅在同意后加载，并存储匿名使用数据以改进平台。",
+                "Vercel Web Analytics 仅在同意后加载，并存储匿名使用数据以改进平台。",
                 "法律依据：艺术。 GDPR 第 6(1)(a) 条"
               ]
             },
@@ -3907,9 +3907,9 @@
               ]
             },
             {
-              "title": "5. Google Analytics の使用",
+              "title": "5. Vercel Web Analytics の使用",
               "paragraphs": [
-                "Google Analytics は同意後にのみロードされ、プラットフォームを改善するために匿名化された使用状況データを保存します。",
+                "Vercel Web Analytics は同意後にのみロードされ、プラットフォームを改善するために匿名化された使用状況データを保存します。",
                 "法的根拠: 第 2 条。 6(1)(a) GDPR"
               ]
             },
@@ -3928,7 +3928,7 @@
               "list": [
                 "Telegram (ログイン)",
                 "スーパーベース (ホスティング)",
-                "Google (分析、同意がある場合のみ)"
+                "Vercel (分析、同意がある場合のみ)"
               ],
               "afterList": [
                 "データは広告目的で共有されることはありません。"
@@ -4289,9 +4289,9 @@
               ]
             },
             {
-              "title": "5. Google Analytics 사용",
+              "title": "5. Vercel Web Analytics 사용",
               "paragraphs": [
-                "Google Analytics는 동의 후에만 로드되며 플랫폼 개선을 위해 익명화된 사용 데이터를 저장합니다.",
+                "Vercel Web Analytics는 동의 후에만 로드되며 플랫폼 개선을 위해 익명화된 사용 데이터를 저장합니다.",
                 "법적 근거: 예술. 6(1)(a) GDPR"
               ]
             },
@@ -4671,9 +4671,9 @@
               ]
             },
             {
-              "title": "5. Sử dụng Google Analytics",
+              "title": "5. Sử dụng Vercel Web Analytics",
               "paragraphs": [
-                "Google Analytics chỉ được tải sau khi có sự đồng ý và lưu trữ dữ liệu sử dụng ẩn danh để cải thiện nền tảng.",
+                "Vercel Web Analytics chỉ được tải sau khi có sự đồng ý và lưu trữ dữ liệu sử dụng ẩn danh để cải thiện nền tảng.",
                 "Cơ sở pháp lý: Điều 2. 6(1)(a) GDPR"
               ]
             },
@@ -4692,7 +4692,7 @@
               "list": [
                 "Telegram (đăng nhập)",
                 "Supabase (lưu trữ)",
-                "Google (phân tích, chỉ khi có sự đồng ý)"
+                "Vercel (phân tích, chỉ khi có sự đồng ý)"
               ],
               "afterList": [
                 "Dữ liệu không được chia sẻ cho mục đích quảng cáo."

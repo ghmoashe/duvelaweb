@@ -1061,6 +1061,21 @@
 
     function back() { collect(); if (step > 1) { step--; render(); } }
 
+    async function signOut() {
+      var button = $('#onboardingSignOut');
+      if (!button || button.disabled) return;
+      button.disabled = true;
+      showError('', '');
+      try {
+        var result = await supa.auth.signOut();
+        if (result && result.error) throw result.error;
+        window.location.href = './index.html';
+      } catch (error) {
+        button.disabled = false;
+        showError((error && error.message) || 'Could not sign out. Please try again.', '');
+      }
+    }
+
     function openIfNeeded() {
       var u = ctx.getUser();
       if (!u || localStorage.getItem('duvela.onboarding.' + u.id)) return;
@@ -1082,6 +1097,7 @@
 
     form.addEventListener('submit', submit);
     $('#onboardingBack').addEventListener('click', back);
+    $('#onboardingSignOut').addEventListener('click', signOut);
     return { openIfNeeded: openIfNeeded };
   }
   window.DuvelaAppOnboarding = { create: create };

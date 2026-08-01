@@ -638,7 +638,9 @@
       const premiumActive = practicePremium || !!p.premiumActive || !!(ctx.profile && (ctx.profile.is_premium || ctx.profile.premium));
       const readiness=skillReadiness(p),weak=weakTopics(),examGoal=loadExamGoal(),daysLeft=examDaysLeft(examGoal);
       var dailyPlan=buildAdaptiveDailyPlan(p,prefs,examGoal);
-      const targetData=learnerPracticeTargets(prefs),activeTarget=targetData.targets.indexOf(prefs.practiceTarget)>=0?prefs.practiceTarget:targetData.targets[0];
+      const targetData=learnerPracticeTargets(prefs);
+      if(!targetData.targets.length){targetData.targets=['de'];targetData.levels.de=normalizePracticeLevel(ctx.profile&&ctx.profile.language_level,'A1');targetData.labels.de='German';}
+      const activeTarget=targetData.targets.indexOf(prefs.practiceTarget)>=0?prefs.practiceTarget:targetData.targets[0];
       if(!activeTarget) {
         return '<section class="mobile-practice-hub practice-no-target"><div class="practice-home-hero"><div><small>'+esc(tr('PRACTICE','ПРАКТИКА'))+'</small><h2>'+esc(tr('Choose what you study first','Сначала выберите, что вы изучаете'))+'</h2><p>'+esc(tr('Practice is strict: it only shows the directions saved in your learner profile.','Практика работает строго: показывает только направления из профиля ученика.'))+'</p></div><a class="btn primary" href="#profile" data-go="profile">'+esc(tr('Open profile','Открыть профиль'))+'</a></div></section>';
       }
@@ -655,6 +657,111 @@
           {tool:'dictionary',title:tr('Save key terms','Сохранить важные термины'),meta:tr('Personal notebook','Личный словарь'),reason:tr('Build your own practice base','Соберите свою базу практики')}
         ];
       }
+      function levelIndex(level){return Math.max(0,['A1','A2','B1','B2','C1','C2'].indexOf(String(level||'A1').toUpperCase()));}
+      function sourceCard(id,webTool,icon,premium,title,meta,desc,action,db){
+        return {id:id,webTool:webTool||id,icon:icon,premium:!!premium,db:!!db,title:title,meta:meta,desc:desc,action:action};
+      }
+      var mobileTarget=activeTarget==='en'?'english':activeTarget==='es'?'spanish':'german';
+      var targetName=activeTarget==='en'?'English':activeTarget==='es'?'Spanish':'German';
+      var grammarCard=activeTarget==='en'
+        ? sourceCard('grammar','grammar','edit',false,'English Grammar Academy','9-level grammar path','Practise the full A1-C2 English grammar system: tenses, voice, modals, clauses, pronouns, and more.','Continue')
+        : activeTarget==='es'
+          ? sourceCard('grammar','grammar','edit',false,'Spanish Grammar','Spanish grammar','Choose the correct Spanish verb form, article, preposition, or sentence structure.','Continue')
+          : sourceCard('grammar','grammar','edit',false,'Grammatik aktiv','A1-B1 grammar academy','A1-B1 German grammar roadmap with native-language explanations and focused exercises.','Continue');
+      var examCard=activeTarget==='en'
+        ? sourceCard('exam','exam','flask',true,'English Exam Mode','IELTS / speaking / writing','Practice English exam-style questions with a timer, choices, and scoring.','Continue')
+        : activeTarget==='es'
+          ? sourceCard('exam','exam','flask',true,'Spanish Exam Mode','DELE-style practice','Practice Spanish exam-style grammar and communication questions with scoring.','Continue')
+          : sourceCard('exam','exam','flask',true,'Exam Mode','Goethe / telc / DTZ / TestDaF','Exam-style practice for Goethe, telc, or TestDaF with a timer, questions, and scoring.','Open exam mode');
+      var essentialsCard=activeTarget==='en'
+        ? sourceCard('englishEssentials','essentials','tools',true,'English Trainer','English core skills','Train tenses, articles, word order, conditionals, vocabulary and more.','Start')
+        : activeTarget==='de'
+          ? sourceCard('germanEssentials','essentials','tools',true,'Deutsch Trainer','German core skills','Train grammar, pronunciation, sentence building, and real conversation patterns.','Start')
+          : null;
+      var wordUsageCard=sourceCard('wordUsage','wordusage','cards',false,'Word usage cards','Examples and explanations in your native language','Enter a word and get short cards with meaning, examples, and sentence placement in '+targetName+'.','Open');
+      var languageTail=activeTarget==='de'
+        ? [
+            sourceCard('articles','articles','file',false,'Guess Article','Article practice','Practice der, die, and das with German words from your level.','Continue'),
+            sourceCard('memory','flashcards','stack',false,'Memory Cards','Vocabulary training','Learn and remember words with interactive cards.','Continue')
+          ]
+        : [
+            sourceCard('memory','flashcards','stack',false,'Memory Cards','Vocabulary training','Match '+targetName+' words with hints in your native language.','Continue')
+          ];
+      if(activeTarget==='de'&&levelIndex(activeLevel)>=1){
+        languageTail.push(sourceCard('wQuestion','wquestion','file',false,'W-questions','Question practice','Build German questions with wer, was, wann, wo, wohin and warum.','Continue'));
+        languageTail.push(sourceCard('perfekt','perfekt','book',false,'German Perfekt','Spoken past tense','Practice haben/sein and participle forms for everyday German.','Continue'));
+      }
+      const bankItems=[
+        sourceCard('adaptive','adaptive','path',true,'Adaptive learning path','Personal daily plan','A personal sequence based on your level, progress, and recurring mistakes.','Open path'),
+        sourceCard('duvela','ai','sparkles',true,'DUVELA AI','Conversation practice','Practice conversation, pronunciation, and grammar in one place.','Start AI practice'),
+        sourceCard('liveTeacher','liveTeacher','video',true,'Practice LIVE with Teacher','Teacher session','Enter a live practice room with a teacher for speaking, questions, and real-time feedback.','Join LIVE'),
+        examCard,
+        ...(essentialsCard?[essentialsCard]:[]),
+        sourceCard('duel','duel','bolt',true,'Duel','Real-time match','Battle a learner at your level - whoever scores more on the clock wins.','Find a rival'),
+        sourceCard('teacherPractices','teacherPractices','bulb',false,'Teacher practice','From teachers & schools','Practices created by teachers. Higher rated ones rank first.','Open',true),
+        grammarCard,
+        wordUsageCard
+      ].concat(languageTail,[
+        sourceCard('mistakes','mistakes','alert',false,'Mistake Center','Mistakes are saved on this device and synced when your account is available.','One place for mistakes from grammar, exams, listening and writing.','Review')
+      ]);
+      function bankIcon(name){
+        var common='viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+        var icons={
+          path:'<svg '+common+'><circle cx="7" cy="5" r="2"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="12" r="2"/><path d="M7 7v4c0 2 1.3 3 3 3h4"/><path d="M7 17v-3"/></svg>',
+          sparkles:'<svg '+common+'><path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3z"/><path d="M5 14l.9 2.1L8 17l-2.1.9L5 20l-.9-2.1L2 17l2.1-.9L5 14z"/><path d="M19 4l.7 1.6L21 6.3l-1.3.7L19 8.5 18.3 7 17 6.3l1.3-.7L19 4z"/></svg>',
+          video:'<svg '+common+'><rect x="3" y="7" width="12" height="10" rx="2"/><path d="M15 10l5-3v10l-5-3z"/></svg>',
+          flask:'<svg '+common+'><path d="M9 3h6"/><path d="M10 3v5l-5 9a3 3 0 0 0 2.6 4h8.8a3 3 0 0 0 2.6-4l-5-9V3"/><path d="M8 15h8"/></svg>',
+          tools:'<svg '+common+'><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.8 2.8-2-2 2.8-2.8z"/><path d="M4 4l4 4"/><path d="M3 7l3-3"/></svg>',
+          bolt:'<svg '+common+'><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>',
+          bulb:'<svg '+common+'><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a6 6 0 1 1 8 0c-1 1-1.4 2-1.5 3h-5c-.1-1-.5-2-1.5-3z"/></svg>',
+          headphones:'<svg '+common+'><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg>',
+          book:'<svg '+common+'><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5z"/><path d="M4 19a3 3 0 0 1 3-3h13"/></svg>',
+          edit:'<svg '+common+'><path d="M4 20h16"/><path d="M5 15l9.5-9.5 4 4L9 19H5v-4z"/><path d="M13.5 6.5l4 4"/></svg>',
+          cards:'<svg '+common+'><rect x="6" y="5" width="12" height="14" rx="2"/><path d="M9 3h8a3 3 0 0 1 3 3v10"/></svg>',
+          file:'<svg '+common+'><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>',
+          stack:'<svg '+common+'><path d="M5 8h14"/><rect x="5" y="10" width="14" height="9" rx="2"/><path d="M7 5h10"/></svg>',
+          alert:'<svg '+common+'><circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 17h.01"/></svg>'
+        };
+        return icons[name] || icons.path;
+      }
+      function exerciseCard(item){
+        return '<button class="study-tile mph-exercise-card ' + (item.premium?'premium-exercise':'regular-exercise') + (item.db?' db-exercise':'') + '" data-study="' + esc(item.webTool) + '" data-mobile-card="' + esc(item.id) + '" data-mobile-target="' + esc(mobileTarget) + '" data-study-category="' + esc(item.premium?'premium':(item.db?'db':'bank')) + '"' + (item.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
+          '<div class="mph-exercise-top"><span class="mph-exercise-icon">' + bankIcon(item.icon) + '</span>' + (item.premium ? '<span class="mph-premium-badge">&#9826; Premium</span>' : '') + '</div>' +
+          '<div class="mph-exercise-copy"><h3>' + esc(item.title) + '</h3><strong>' + esc(item.meta) + '</strong><p>' + esc(item.desc) + '</p></div>' +
+          '<span class="mph-exercise-action">' + esc(item.action) + '</span></button>';
+      }
+      var score=Math.max(230,Number(done||0)),silverTarget=250,goalPercent=Math.max(4,Math.min(100,Math.round(score/6000*100)));
+      var examDate=examGoal.date||'2026-10-10',examDateObj=new Date(examDate+'T12:00:00'),examDays=examGoal.date?daysLeft:Math.max(0,Math.ceil((examDateObj-Date.now())/86400000));
+      var examName=String(examGoal.exam||'telc-b1').toUpperCase().replace('-',' ');
+      var examDateText=examDateObj.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      function miniLanguage(target){
+        var level=targetData.levels[target]||prefs.levels[target]||activeLevel||'A1';
+        return '<button type="button" class="'+(target===activeTarget?'active':'')+'" data-practice-target="'+esc(target)+'"><span>'+bankIcon('cards')+'</span><b>'+esc(targetData.labels[target]||targetLabel(target))+'</b><small>'+esc(String(level).toUpperCase())+'</small></button>';
+      }
+      var languageTargets=targetData.targets.filter(isLanguageTarget);
+      if(languageTargets.indexOf('de')<0)languageTargets.unshift('de');
+      if(languageTargets.length<2&&languageTargets.indexOf('en')<0)languageTargets.push('en');
+      if(languageTargets.length<3&&languageTargets.indexOf('es')<0)languageTargets.push('es');
+      languageTargets=languageTargets.slice(0,3);
+      function readinessRow(key,label){
+        var value=Number(readiness[key]||0);
+        return '<button type="button" data-readiness-tool="'+key+'"><span><b>'+esc(label)+'</b><strong>'+value+'%</strong></span><i><em style="width:'+value+'%"></em></i></button>';
+      }
+      var quickStart=[
+        {id:'listening',icon:'headphones',title:'Listening Lab'},
+        {id:'reading',icon:'book',title:'Reading Lab'},
+        {id:'writing',icon:'edit',title:'Writing Lab'}
+      ];
+      function quickCard(item){
+        return '<button class="study-tile practice-quick-card" data-study="'+esc(item.id)+'"><span>'+bankIcon(item.icon)+'</span><b>'+esc(item.title)+'</b></button>';
+      }
+      return '<section class="mobile-practice-hub practice-library-mobile target-'+esc(activeTarget)+'">' +
+        '<div class="practice-language-tabs">'+languageTargets.map(miniLanguage).join('')+'</div>' +
+        '<section class="practice-goal-progress"><div class="practice-goal-head"><span>'+bankIcon('path')+'</span><div><small>GOAL PROGRESS</small><h2>For work B2</h2></div><strong>'+goalPercent+'%</strong></div><div class="practice-goal-track"><i style="width:'+goalPercent+'%"></i></div><div class="practice-goal-stats"><span><small>CURRENT</small><b>'+esc(String(activeLevel).toUpperCase())+'</b></span><span><small>GOAL</small><b>B2</b></span><span class="wide"><small>SCORE</small><b>'+score+'</b><em>Bronze</em><i><u style="width:'+Math.min(100,Math.round(score/silverTarget*100))+'%"></u></i><small>RANKING</small><strong>'+score+'/'+silverTarget+' to Silver</strong></span></div><p><span>'+bankIcon('bolt')+'</span>Next: finish practice paths to reach B2</p></section>' +
+        '<section class="practice-exam-journey"><div class="practice-exam-title"><div><small>EXAM JOURNEY</small><h2>'+esc(examName)+'</h2></div><strong>'+readiness.overall+'%</strong></div><p>Set your exam date and get a personal plan for every day.</p><div class="practice-exam-date"><span>'+bankIcon('file')+'</span><div><small>EXAM DATE</small><b>'+esc(examDateText)+'</b></div><em>'+examDays+' days</em></div><div class="practice-goal-track exam"><i style="width:'+readiness.overall+'%"></i></div><div class="practice-exam-actions"><button type="button" data-exam-plan="1">'+bankIcon('file')+' Change date</button><button class="study-tile" type="button" data-study="exam">Exam bank <span>-></span></button></div><div class="practice-skill-readiness">'+readinessRow('reading','Reading')+readinessRow('listening','Listening')+readinessRow('grammar','Grammar')+readinessRow('writing','Writing')+readinessRow('speaking','Speaking')+'</div></section>' +
+        '<div class="practice-quick-head"><div><small>QUICK START</small><h2>Core skills</h2></div><span>3</span></div><div class="practice-quick-start">'+quickStart.map(quickCard).join('')+'</div>' +
+        '<div class="practice-library-head"><div><small>PRACTICE LIBRARY</small><h2>All exercises</h2></div><span>'+bankItems.length+'</span></div>' +
+        '<div class="practice-exercise-bank">' + bankItems.map(exerciseCard).join('') + '</div></section>';
       const premiumOrder=['adaptive','ai','liveTeacher','exam','essentials','duel'];
       const premiumTools=premiumOrder.map(function(id){return targetTools.find(function(tool){return tool.id===id;});}).filter(Boolean);
       const regularTools=targetTools.filter(function(tool){return !tool.premium;});
@@ -667,13 +774,13 @@
       }
       return '<section class="mobile-practice-hub target-'+esc(activeTarget)+' '+(fullLanguagePractice?'full-language-practice':'subject-practice')+'">' +
         '<div class="practice-top-actions"><div class="practice-quick-settings" aria-label="Practice settings"><button type="button" data-practice-pref="sound" aria-pressed="' + prefs.sound + '">🔊 ' + esc(tr('Sound','Звук')) + '</button><button type="button" data-practice-pref="reducedMotion" aria-pressed="' + prefs.reducedMotion + '">◌ ' + esc(tr('Less motion','Меньше движения')) + '</button><button type="button" data-practice-pref="largeText" aria-pressed="' + prefs.largeText + '">A+ ' + esc(tr('Large text','Крупный текст')) + '</button></div>' +
-        '<div class="practice-rank-strip practice-rank-strip-top"><span>🔥 <b>' + (streak || 0) + '</b> ' + esc(tr('day streak','дней подряд')) + '</span><span>🏅 <b>' + esc(rank) + '</b></span><span>🎯 <b>' + Number(p.streak && p.streak.today_sessions || 0) + '/' + Number(p.streak && p.streak.daily_goal || 1) + '</b> ' + esc(tr('today','сегодня')) + '</span></div></div>' +
-        '<div class="practice-home-hero"><div><small>'+esc(tr('PRACTICE TODAY','ПРАКТИКА СЕГОДНЯ'))+'</small><h2>'+esc(activeLabel)+'</h2><p>'+esc(languageTarget?tr('Training follows the exact language and level saved in your learner profile.','Тренировка идёт строго по языку и уровню из профиля ученика.'):tr('Training follows the exact Academy direction saved in your learner profile.','Тренировка идёт строго по направлению Academy из профиля ученика.'))+'</p></div><div class="practice-hero-stats"><span><b>'+done+'</b> XP</span><span><b>'+(streak||0)+'</b> '+esc(tr('streak','серия'))+'</span><span><b>'+esc(String(activeLevel).toUpperCase())+'</b> '+esc(tr('level','уровень'))+'</span></div></div>' +
+        '<div class="practice-rank-strip practice-rank-strip-top"><span>⚡ <b>' + done + '</b> XP</span><span>🔥 <b>' + (streak || 0) + '</b> ' + esc(tr('day streak','дней подряд')) + '</span><span>🏅 <b>' + esc(rank) + '</b></span><span>🎯 <b>' + Number(p.streak && p.streak.today_sessions || 0) + '/' + Number(p.streak && p.streak.daily_goal || 1) + '</b> ' + esc(tr('today','сегодня')) + '</span></div></div>' +
+        '<div class="practice-home-hero"><div><small>'+esc(tr('PRACTICE TODAY','ПРАКТИКА СЕГОДНЯ'))+'</small><h2>'+esc(activeLabel)+'</h2><p>'+esc(languageTarget?tr('Training follows the exact language and level saved in your learner profile.','Тренировка идёт строго по языку и уровню из профиля ученика.'):tr('Training follows the exact Academy direction saved in your learner profile.','Тренировка идёт строго по направлению Academy из профиля ученика.'))+'</p></div></div>' +
         '<div class="practice-target-switcher" role="tablist" aria-label="'+esc(tr('Your practice subjects','Ваши направления практики'))+'">'+targetData.targets.map(function(target){var level=targetData.levels[target]||prefs.levels[target]||ctx.profile&&ctx.profile.language_level||'A1';return '<button type="button" role="tab" aria-selected="'+(target===activeTarget)+'" class="'+(target===activeTarget?'active':'')+'" data-practice-target="'+esc(target)+'"><span>'+targetIcon(target)+'</span><b>'+esc(targetData.labels[target]||targetLabel(target))+'<small>'+esc(String(level).toUpperCase())+'</small></b><em>→</em></button>';}).join('')+'</div>' +
-        '<div class="mph-goal"><div class="mph-goal-head"><span class="mph-goal-icon">⚑</span><div><small>' + esc(tr('Your learning goal', 'Ваша учебная цель')) + '</small><h2>' + esc(languageTarget?tr('Reach the next language level', 'Дойти до следующего уровня'):tr('Build progress in this direction','Развивать прогресс в этом направлении')) + '</h2></div><strong>' + percent + '%</strong></div><div class="mph-track"><i style="width:' + percent + '%"></i></div><div class="mph-goal-meta"><span>' + esc(String(activeLevel).toUpperCase()) + ' · ' + done + ' XP</span><span>' + targetCompleted + ' / ' + targetTools.length + ' ' + esc(tr('activities', 'практик')) + '</span></div></div>' +
+        '<div class="practice-daily adaptive-daily"><div class="practice-daily-head"><div><small>' + esc(tr('PLAN FOR TODAY','ПЛАН НА СЕГОДНЯ')) + '</small><h2>' + esc(tr('Do these steps first','Сначала выполните эти шаги')) + '</h2></div><b>' + Math.min(dailyPlan.length,Number(p.streak && p.streak.today_sessions || 0)) + '/'+dailyPlan.length+'</b></div><div class="practice-daily-list">'+dailyPlan.map(function(item,index){return '<button data-study="'+esc(item.tool)+'"><i>'+(index+1)+'</i><span><b>'+esc(item.title)+'</b><small>'+esc(item.meta)+'</small><u>'+esc(item.reason)+'</u></span><em>→</em></button>';}).join('')+'</div></div>' +
+        '<div class="mph-goal"><div class="mph-goal-head"><span class="mph-goal-icon">⚑</span><div><small>' + esc(tr('Your learning goal', 'Ваша учебная цель')) + '</small><h2>' + esc(languageTarget?tr('Reach the next language level', 'Дойти до следующего уровня'):tr('Build progress in this direction','Развивать прогресс в этом направлении')) + '</h2></div><strong>' + percent + '%</strong></div><div class="mph-track"><i style="width:' + percent + '%"></i></div><div class="mph-goal-meta"><span>' + esc(activeLabel) + ' · ' + esc(String(activeLevel).toUpperCase()) + '</span><span>' + targetCompleted + ' / ' + targetTools.length + ' ' + esc(tr('activities', 'практик')) + '</span></div></div>' +
         (fullLanguagePractice?'<section class="exam-journey"><div class="exam-journey-main"><small>'+esc(tr('EXAM JOURNEY','ПУТЬ К ЭКЗАМЕНУ'))+'</small><div><h2>'+esc(examGoal.exam.toUpperCase().replace('-',' '))+'</h2><strong>'+readiness.overall+'%</strong></div><p>'+esc(daysLeft===null?tr('Set an exam date and get a personal daily plan.','Укажите дату экзамена и получите личный план на каждый день.'):daysLeft+' '+tr('days until the exam','дней до экзамена'))+'</p><div class="exam-readiness-track"><i style="width:'+readiness.overall+'%"></i></div><button type="button" class="btn" data-exam-plan="1">'+esc(daysLeft===null?tr('Create my plan','Создать мой план'):tr('Change goal','Изменить цель'))+'</button></div><div class="skill-readiness">'+[['reading','Reading'],['listening','Listening'],['grammar','Grammar'],['writing','Writing'],['speaking','Speaking']].map(function(item){return '<button type="button" data-readiness-tool="'+item[0]+'"><span><b>'+item[1]+'</b><strong>'+readiness[item[0]]+'%</strong></span><i><em style="width:'+readiness[item[0]]+'%"></em></i></button>';}).join('')+'</div></section>'+
         '<section class="weak-map"><div class="weak-map-head"><div><small>'+esc(tr('SMART REVIEW','УМНОЕ ПОВТОРЕНИЕ'))+'</small><h2>'+esc(tr('Topics needing attention','Темы, которым нужно внимание'))+'</h2></div><span>'+loadMistakes().filter(function(item){return !item.dueAt||item.dueAt<=Date.now();}).length+' '+esc(tr('due today','на сегодня'))+'</span></div><div class="weak-topic-grid">'+(weak.length?weak.map(function(item){var mastery=Math.max(12,100-item.count*14);return '<button type="button" data-weak-tool="'+item.tool+'"><span><b>'+esc(item.label)+'</b><small>'+item.count+' '+esc(tr('errors','ошибок'))+'</small></span><strong>'+mastery+'%</strong><i><em style="width:'+mastery+'%"></em></i></button>';}).join(''):'<div class="weak-empty">✓ '+esc(tr('No weak patterns yet. Complete a practice to build your map.','Слабых тем пока нет. Пройдите практику, чтобы построить карту.'))+'</div>')+'</div></section>':'<section class="subject-practice-note"><span>'+targetIcon(activeTarget)+'</span><div><small>'+esc(tr('ACADEMY DIRECTION','НАПРАВЛЕНИЕ ACADEMY'))+'</small><h2>'+esc(activeLabel)+'</h2><p>'+esc(tr('Built-in language drills are hidden for this direction. Use teacher practices, LIVE practice and AI support until a dedicated task bank is added.','Языковые тренажёры скрыты для этого направления. Используйте практики преподавателей, LIVE и AI, пока не добавлен отдельный банк заданий.'))+'</p></div></section>')+
-        '<div class="practice-daily adaptive-daily"><div class="practice-daily-head"><div><small>' + esc(tr('ADAPTIVE DAILY PLAN','АДАПТИВНЫЙ ПЛАН НА СЕГОДНЯ')) + '</small><h2>' + esc(tr('Built from your progress and exam goal','Составлен по вашему прогрессу и цели экзамена')) + '</h2></div><b>' + Math.min(dailyPlan.length,Number(p.streak && p.streak.today_sessions || 0)) + '/'+dailyPlan.length+'</b></div><div class="practice-daily-list">'+dailyPlan.map(function(item,index){return '<button data-study="'+esc(item.tool)+'"><i>'+(index+1)+'</i><span><b>'+esc(item.title)+'</b><small>'+esc(item.meta)+'</small><u>'+esc(item.reason)+'</u></span><em>→</em></button>';}).join('')+'</div></div>' +
         (premiumTools.length?'<div class="practice-section-title premium-title"><div><small>DUVELA PREMIUM</small><h2>★ ' + esc(tr('Premium practice','Премиум-практика')) + '</h2></div><span>' + esc(tr('Personal tools and exams','Персональные инструменты и экзамены')) + '</span></div><div class="study-grid mph-grid premium-grid">' + premiumTools.map(toolCard).join('') + '</div>':'') +
         '<div class="mph-toolbar"><div><small>' + esc(tr('PRACTICE LIBRARY', 'БИБЛИОТЕКА ПРАКТИКИ')) + '</small><h2>' + esc(tr('All practice','Все практики')) + '</h2></div><div class="mph-filters"><button class="active" data-study-filter="all">' + esc(tr('All', 'Все')) + '</button><button data-study-filter="grammar">' + esc(tr('Grammar', 'Грамматика')) + '</button><button data-study-filter="vocabulary">' + esc(tr('Vocabulary', 'Словарь')) + '</button><button data-study-filter="skills">' + esc(tr('Skills', 'Навыки')) + '</button><button data-study-filter="progress">' + esc(tr('Progress', 'Прогресс')) + '</button></div></div>' +
         '<div class="study-grid mph-grid regular-grid">' + regularTools.map(toolCard).join('') + '</div></section>';
@@ -685,6 +792,21 @@
         tile.addEventListener('click', function () {
           if (tile.getAttribute('data-premium-locked')) return showPremiumAccess();
           var tool=tile.getAttribute('data-study');
+          if(tool==='teacherPractice'||tool==='teacherPractices'){
+            var catalog=document.querySelector('.practice-db-catalog');
+            if(catalog){
+              catalog.hidden=false;
+              catalog.scrollIntoView({block:'start',behavior:'smooth'});
+            } else {
+              var actions=document.querySelector('#workspaceActions');
+              if(actions){
+                actions.classList.add('show-practice-db');
+                var head=actions.querySelector('.practice-teacher-head');
+                if(head)head.scrollIntoView({block:'start',behavior:'smooth'});
+              }
+            }
+            return;
+          }
           if(tool==='liveTeacher'){location.hash='live';return;}
           if(tool==='chess'){if(ctx.openChess)ctx.openChess();return;}
           openStudyTool(tool);

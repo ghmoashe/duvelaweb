@@ -30,6 +30,7 @@
     let currentRole = loginRole;
     let signupRole = normalizeSignupRole(localStorage.getItem(storageKey) || loginRole);
     let authMode = 'signin';
+    let previouslyFocused = null;
 
     function dict() {
       return getDict ? (getDict() || {}) : {};
@@ -110,17 +111,43 @@
     }
 
     function openLogin() {
+      previouslyFocused = document.activeElement;
       overlay.classList.add('open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      window.requestAnimationFrame(() => loginEmailInput.focus());
     }
 
     function closeLogin() {
+      if (!overlay.classList.contains('open')) return;
       overlay.classList.remove('open');
       overlay.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
       clearNote();
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+        previouslyFocused.focus();
+      }
     }
+
+    overlay.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(
+        overlay.querySelectorAll(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.offsetParent !== null);
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
 
     function syncCopy() {
       signupRoleSelect.value = signupRole;

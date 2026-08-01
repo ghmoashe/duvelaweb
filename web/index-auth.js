@@ -109,10 +109,6 @@
     }
 
     function configureWebAppLinks() {
-      document.querySelectorAll('.app-hub .store-btn').forEach((link) => { link.href = appUrl('learner', '#home'); });
-      document.querySelectorAll('.app-biz .store-btn').forEach((link) => { link.href = appUrl('teacher', '#workspace'); });
-      document.querySelectorAll('.tch-btn-big').forEach((link) => { link.href = appUrl('teacher', '#workspace'); });
-
       const footBiz = document.querySelector('.foot-inner > div:nth-child(3) a:nth-of-type(1)');
       if (footBiz) footBiz.href = appUrl('teacher', '#home');
       const footLive = document.querySelector('.foot-inner > div:nth-child(3) a:nth-of-type(2)');
@@ -319,7 +315,6 @@
       supa.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
           setNavUser(session.user);
-          goToDetectedWebApp(session.user);
         }
       });
     }

@@ -25,6 +25,18 @@
     }
   }
 
+  function applyAnalyticsConsent(consent) {
+    if (!consent?.ga || document.getElementById('duvela-vercel-insights')) return;
+    global.va = global.va || function queueVercelInsight() {
+      (global.vaq = global.vaq || []).push(arguments);
+    };
+    const script = document.createElement('script');
+    script.id = 'duvela-vercel-insights';
+    script.defer = true;
+    script.src = '/_vercel/insights/script.js';
+    document.head.appendChild(script);
+  }
+
   function saveConsent(next) {
     localStorage.setItem(
       STORAGE_KEY,
@@ -32,6 +44,7 @@
     );
     banner.hidden = true;
     overlay.hidden = true;
+    applyAnalyticsConsent(next);
     global.dispatchEvent(new CustomEvent('duvela-consent-change', { detail: next }));
   }
 
@@ -172,7 +185,9 @@
     if (!catalog()) throw new Error('DUVELA_LEGAL catalog is required before consent.js.');
     if (!banner) build();
     updateLanguage(initialLocale);
-    banner.hidden = Boolean(readConsent());
+    const stored = readConsent();
+    banner.hidden = Boolean(stored);
+    applyAnalyticsConsent(stored);
   }
 
   global.DUVELA_CONSENT = {

@@ -1,4 +1,3 @@
-import ZoomVideo from '@zoom/videosdk';
 import './style.css';
 
 await new Promise((resolve, reject) => {
@@ -16,7 +15,8 @@ const query = new URLSearchParams(location.search);
 const sessionId = query.get('s') || '';
 const config = window.DuvelaWebConfig;
 const supa = config?.createSupabaseClient?.();
-const client = ZoomVideo.createClient();
+let client = null;
+let zoomClientPromise = null;
 let media = null;
 let me = null;
 let classSession = null;
@@ -34,6 +34,19 @@ let roomRole = 'participant';
 let reviewRating = 0;
 let endingForAll = false;
 const raisedUsers = new Set();
+
+async function loadZoomClient() {
+  if (client) return client;
+  zoomClientPromise ||= import('@zoom/videosdk')
+    .then(({ default: ZoomVideo }) => ZoomVideo.createClient());
+  try {
+    client = await zoomClientPromise;
+    return client;
+  } catch (error) {
+    zoomClientPromise = null;
+    throw error;
+  }
+}
 
 function initials(name = 'Duvela') {
   return name.trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
@@ -255,6 +268,7 @@ async function join() {
       return;
     }
     roomRole = auth.role || 'participant';
+    await loadZoomClient();
     await client.init('en-US', 'Global', { patchJsMedia: true, stayAwake: true });
     bindZoomEvents();
     await client.join(auth.topic, auth.token, me.name, auth.password || '');
@@ -315,30 +329,51 @@ async function toggleShare() {
   }
 }
 
+// Materials live in the PRIVATE `class-materials` bucket, keyed by
+// `<sessionId>/<userId>/...` so the storage RLS (which parses the session id
+// from the object path) admits enrolled learners. Rows carry storage_path +
+// file_type (NOT file_url/mime_type — those columns do not exist); files are
+// opened through short-lived signed URLs. This mirrors the mobile apps'
+// shared/supabase/class-materials.ts so materials interoperate across surfaces.
+const MATERIAL_BUCKET = 'class-materials';
+const MATERIAL_SIGNED_TTL = 60 * 60;
+
 async function loadMaterials() {
   if (!supa || !sessionId) return;
   const { data, error } = await supa.from('class_session_materials')
-    .select('id,title,file_url,mime_type,allow_download,sort_order')
+    .select('id,title,storage_path,file_type,allow_download,sort_order')
     .eq('session_id', sessionId).order('sort_order').order('created_at');
   if (error) {
     $('materialsList').innerHTML = '<p>Материалы пока недоступны.</p>';
     return;
   }
   const rows = data || [];
-  $('materialsList').innerHTML = rows.length ? rows.map((item) => `<div class="material-row"><span>${item.mime_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.mime_type || 'Материал')}</small></div>${item.allow_download || roomRole === 'host' ? `<a href="${esc(item.file_url)}" target="_blank" rel="noopener"><button>Открыть</button></a>` : '<small>Только просмотр</small>'}</div>`).join('') : '<p>Материалов к этому уроку пока нет.</p>';
+  const resolved = await Promise.all(rows.map(async (item) => {
+    let url = '';
+    if (item.storage_path) {
+      const signed = await supa.storage.from(MATERIAL_BUCKET).createSignedUrl(item.storage_path, MATERIAL_SIGNED_TTL);
+      url = (signed.data && signed.data.signedUrl) || '';
+    }
+    return { item, url };
+  }));
+  $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || 'Материал')}</small></div>${(item.allow_download || roomRole === 'host') && url ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button>Открыть</button></a>` : '<small>Только просмотр</small>'}</div>`).join('') : '<p>Материалов к этому уроку пока нет.</p>';
 }
 
 async function uploadMaterial(file) {
   if (roomRole !== 'host' || !file) return;
-  const path = `classroom/${sessionId}/${crypto.randomUUID ? crypto.randomUUID() : Date.now()}-${file.name.replace(/[^\w.\-]+/g, '_')}`;
-  const uploaded = await supa.storage.from('posts').upload(path, file, { contentType: file.type, upsert: false });
+  const ext = ((file.name.split('.').pop() || (file.type.split('/')[1] || 'bin')).replace(/[^a-z0-9]/gi, '') || 'bin').toLowerCase();
+  const unique = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const path = `${sessionId}/${me.id}/${unique}.${ext}`;
+  const uploaded = await supa.storage.from(MATERIAL_BUCKET).upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: false });
   if (uploaded.error) throw uploaded.error;
-  const publicUrl = supa.storage.from('posts').getPublicUrl(path).data.publicUrl;
   const saved = await supa.from('class_session_materials').insert({
     session_id: sessionId, added_by: me.id, title: file.name,
-    file_url: publicUrl, mime_type: file.type, allow_download: true
+    storage_path: path, file_type: file.type || 'application/octet-stream', allow_download: true
   });
-  if (saved.error) throw saved.error;
+  if (saved.error) {
+    await supa.storage.from(MATERIAL_BUCKET).remove([path]);
+    throw saved.error;
+  }
   await loadMaterials();
   await sendClassCommand({ type: 'materials-changed' });
 }
