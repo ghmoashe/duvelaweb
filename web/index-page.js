@@ -3,6 +3,15 @@
   const indexAuthApi = window.DuvelaIndexAuth;
   const indexAuthUiApi = window.DuvelaIndexAuthUi;
 
+  function renderLucideIcons() {
+    if (window.lucide?.createIcons) {
+      window.lucide.createIcons({ attrs: { 'aria-hidden': 'true' } });
+    }
+  }
+
+  renderLucideIcons();
+  document.addEventListener('DOMContentLoaded', renderLucideIcons, { once: true });
+
   const revealItems = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {

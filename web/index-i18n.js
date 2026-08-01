@@ -34,7 +34,19 @@
         ctaExplore: 'Open Web App',
         footDownload: 'Web App',
         phoneGreeting: 'Welcome to Duvela',
-        phoneStreak: 'Daily practice'
+        phoneStreak: 'Daily practice',
+        levelTestCheck: 'Set your CEFR level',
+        f2p: 'Join public LIVE sessions, ask questions in real time, practice speaking and send supported Duvela Coin gifts.',
+        f3t: 'CEFR Level Setup',
+        f3p: 'Choose or update your CEFR level from A1 to C2. Duvela uses it to organize relevant learning content.',
+        f6p: 'Daily goals, XP, achievements and leaderboards track progress. Duvela Coins support eligible in-app gifts and rewards.',
+        f7p: 'The practice hub includes 15+ tools for grammar, listening, writing, reading and review. Premium AI Coach adds guided dialogue and corrections.',
+        f10p: 'Track eligible LIVE, course, event and gift income in the Business workspace.',
+        earningFacts: '<div><dt>Balance</dt><dd>DC</dd></div><div><dt>Minimum request</dt><dd>100 DC</dd></div><div><dt>Methods</dt><dd>Bank, PayPal, Wise</dd></div><div><dt>Fees and conversion</dt><dd>Not yet published</dd></div>',
+        s1p: 'Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.',
+        hub2: '<b>✓</b> CEFR level setup from A1 to C2',
+        hub4: '<b>✓</b> XP, streaks and supported Duvela Coins',
+        biz2: '<b>✓</b> Track eligible LIVE and gift income'
       },
       ru: {
         getApp: 'Открыть веб-приложение',
@@ -51,7 +63,19 @@
         ctaExplore: 'Открыть веб-приложение',
         footDownload: 'Веб-приложение',
         phoneGreeting: 'Добро пожаловать в Duvela',
-        phoneStreak: 'Ежедневная практика'
+        phoneStreak: 'Ежедневная практика',
+        levelTestCheck: 'Укажите свой уровень CEFR',
+        f2p: 'Подключайтесь к публичным LIVE-эфирам, задавайте вопросы, практикуйте речь и отправляйте доступные подарки за монеты Duvela.',
+        f3t: 'Настройка уровня CEFR',
+        f3p: 'Выберите или обновите уровень CEFR от A1 до C2. Duvela использует его для организации подходящего учебного контента.',
+        f6p: 'Ежедневные цели, XP, достижения и рейтинг показывают прогресс. Монеты Duvela используются для доступных подарков и наград.',
+        f7p: 'В разделе практики доступно более 15 тренажёров: грамматика, аудирование, письмо, чтение и повторение. Premium AI Coach добавляет диалоги и исправления.',
+        f10p: 'Отслеживайте доступный доход от LIVE, курсов, событий и подарков в Business-пространстве.',
+        earningFacts: '<div><dt>Баланс</dt><dd>DC</dd></div><div><dt>Минимальная заявка</dt><dd>100 DC</dd></div><div><dt>Способы</dt><dd>Банк, PayPal, Wise</dd></div><div><dt>Комиссия и конвертация</dt><dd>Ещё не опубликованы</dd></div>',
+        s1p: 'Выберите текущий уровень CEFR от A1 до C2 и обновляйте его по мере изменения учебных целей.',
+        hub2: '<b>✓</b> Настройка уровня CEFR от A1 до C2',
+        hub4: '<b>✓</b> XP, серии и доступные монеты Duvela',
+        biz2: '<b>✓</b> Учёт доступного LIVE-дохода и подарков'
       }
     };
 
@@ -244,6 +268,9 @@
           else el.textContent = dict[key];
         });
       }
+
+      const earningFacts = document.getElementById('earningFacts');
+      if (earningFacts && dict.earningFacts) earningFacts.innerHTML = dict.earningFacts;
 
       for (const kind of ['privacy', 'impressum', 'terms']) {
         const link = document.getElementById(
