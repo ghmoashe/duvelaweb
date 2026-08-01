@@ -61,12 +61,15 @@ function checkResourceHints() {
   const live = read('live.html');
   const profile = read('profile.html');
 
-  requireIncludes('index.html', index, 'rel="preconnect" href="https://cdn.jsdelivr.net"');
+  requireIncludes('index.html', index, 'src="./web/vendor/supabase-js-v2.js"');
   requireIncludes('index.html', index, 'rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co"');
   requireIncludes('index.html', index, 'preload="none"');
-  requireIncludes('app.html', app, 'rel="preconnect" href="https://cdn.jsdelivr.net"');
+  requireIncludes('app.html', app, 'src="./web/vendor/supabase-js-v2.js"');
+  requireIncludes('app.html', app, 'src="./web/vendor/hls-v1.js"');
+  requireIncludes('app.html', app, 'src="./web/vendor/xlsx-0.18.5.full.min.js"');
+  requireIncludes('app.html', app, 'src="./web/vendor/chess-0.10.3.min.js"');
   requireIncludes('live.html', live, 'rel="preconnect" href="https://download.agora.io"');
-  requireIncludes('profile.html', profile, 'rel="preconnect" href="https://cdn.jsdelivr.net"');
+  requireIncludes('profile.html', profile, 'src="./web/vendor/supabase-js-v2.js"');
 }
 
 function checkHeaders() {
