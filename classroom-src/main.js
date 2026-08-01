@@ -297,6 +297,9 @@ async function join() {
   setStatus('Подключаемся к уроку…');
   try {
     previewStream?.getTracks().forEach((track) => track.stop());
+    previewStream = null;
+    $('previewVideo').srcObject = null;
+    $('previewEmpty').hidden = false;
     const auth = await token();
     if (auth.waiting) {
       setStatus('Запрос отправлен. Ждём, когда преподаватель впустит вас…');

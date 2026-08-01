@@ -6,6 +6,10 @@
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 
+/classroom.html
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+
 /web/*
   Cache-Control: public, max-age=300, must-revalidate
 

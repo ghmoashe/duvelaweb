@@ -78,11 +78,20 @@ copyDirRecursive(path.join(root, '.classroom-build', 'assets'), path.join(outDir
 
 const serverDir = path.join(outDir, 'server');
 fs.mkdirSync(serverDir, { recursive: true });
-fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders(response) {
+fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders(response, pathname) {
   const headers = new Headers(response.headers);
   headers.set('x-content-type-options', 'nosniff');
   headers.set('referrer-policy', 'strict-origin-when-cross-origin');
   headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=()');
+  // The Zoom Video SDK classroom needs SharedArrayBuffer (multi-thread WASM and
+  // canvas self-view) on Chromium, which requires cross-origin isolation. Scope
+  // it to the classroom document only so other pages (Agora live, etc.) keep
+  // loading cross-origin resources normally. \`credentialless\` lets the SDK keep
+  // pulling its media libs from source.zoom.us without those assets needing CORP.
+  if (pathname === '/classroom.html') {
+    headers.set('cross-origin-opener-policy', 'same-origin');
+    headers.set('cross-origin-embedder-policy', 'credentialless');
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -105,8 +114,8 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
     const response = await env.ASSETS.fetch(assetRequest(request, pathname));
-    if (response.status !== 404) return withSecurityHeaders(response);
-    return withSecurityHeaders(await env.ASSETS.fetch(assetRequest(request, '/index.html')));
+    if (response.status !== 404) return withSecurityHeaders(response, pathname);
+    return withSecurityHeaders(await env.ASSETS.fetch(assetRequest(request, '/index.html')), '/index.html');
   }
 };
 `, 'utf8');
