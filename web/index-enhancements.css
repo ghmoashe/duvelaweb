@@ -155,6 +155,72 @@ footer a:focus-visible {
   border-color: rgba(255, 255, 255, .4);
 }
 
+.mobile-downloads {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  margin-top: 28px;
+  border-top: 1px solid var(--lav-line);
+  padding: 28px 4px 0;
+}
+
+.mobile-downloads-copy {
+  max-width: 600px;
+}
+
+.mobile-downloads-copy > span {
+  color: var(--purple);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.mobile-downloads-copy h3 {
+  margin-top: 6px;
+  font-size: 21px;
+}
+
+.mobile-downloads-copy p {
+  margin-top: 8px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.store-note-pulse {
+  animation: store-note-pulse .7s ease;
+}
+
+@keyframes store-note-pulse {
+  50% {
+    color: var(--purple);
+  }
+}
+
+.mobile-store-row {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mobile-store-row .store-btn {
+  min-width: 170px;
+  border: 1px solid #2d2837;
+  font-family: inherit;
+  text-align: left;
+}
+
+.mobile-store-row .store-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mobile-store-row .store-btn:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 3px;
+}
+
 .teacher-empty {
   grid-column: 1 / -1;
   padding: 34px;
@@ -315,6 +381,11 @@ html:not(.js) .h-anim {
   .price-card {
     min-height: 0;
   }
+
+  .mobile-downloads {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 620px) {
@@ -334,6 +405,11 @@ html:not(.js) .h-anim {
 
   .teacher-empty {
     padding: 26px 20px;
+  }
+
+  .mobile-store-row,
+  .mobile-store-row .store-btn {
+    width: 100%;
   }
 }
 

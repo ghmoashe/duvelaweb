@@ -46,7 +46,10 @@
         s1p: 'Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.',
         hub2: '<b>✓</b> CEFR level setup from A1 to C2',
         hub4: '<b>✓</b> XP, streaks and supported Duvela Coins',
-        biz2: '<b>✓</b> Track eligible LIVE and gift income'
+        biz2: '<b>✓</b> Track eligible LIVE and gift income',
+        mobileAppsKicker: 'Mobile apps',
+        mobileAppsTitle: 'Download Duvela on your phone',
+        storeNote: 'Store links will be enabled after the iOS and Android releases are published.'
       },
       ru: {
         getApp: 'Открыть веб-приложение',
@@ -75,7 +78,10 @@
         s1p: 'Выберите текущий уровень CEFR от A1 до C2 и обновляйте его по мере изменения учебных целей.',
         hub2: '<b>✓</b> Настройка уровня CEFR от A1 до C2',
         hub4: '<b>✓</b> XP, серии и доступные монеты Duvela',
-        biz2: '<b>✓</b> Учёт доступного LIVE-дохода и подарков'
+        biz2: '<b>✓</b> Учёт доступного LIVE-дохода и подарков',
+        mobileAppsKicker: 'Мобильные приложения',
+        mobileAppsTitle: 'Скачайте Duvela на телефон',
+        storeNote: 'Ссылки будут активированы после публикации приложений для iOS и Android.'
       }
     };
 
@@ -271,6 +277,13 @@
 
       const earningFacts = document.getElementById('earningFacts');
       if (earningFacts && dict.earningFacts) earningFacts.innerHTML = dict.earningFacts;
+
+      const mobileAppsKicker = document.querySelector('.mobile-downloads-copy > span');
+      const mobileAppsTitle = document.querySelector('.mobile-downloads-copy h3');
+      const mobileStoreNote = document.getElementById('mobileStoreNote');
+      if (mobileAppsKicker) mobileAppsKicker.textContent = dict.mobileAppsKicker;
+      if (mobileAppsTitle) mobileAppsTitle.textContent = dict.mobileAppsTitle;
+      if (mobileStoreNote) mobileStoreNote.textContent = dict.storeNote;
 
       for (const kind of ['privacy', 'impressum', 'terms']) {
         const link = document.getElementById(
