@@ -64,6 +64,7 @@ async function preview() {
   previewStream = null;
   if (!camOn) {
     $('previewVideo').srcObject = null;
+    $('previewEmpty').textContent = 'Камера выключена';
     $('previewEmpty').hidden = false;
     return;
   }
@@ -299,6 +300,7 @@ async function join() {
     previewStream?.getTracks().forEach((track) => track.stop());
     previewStream = null;
     $('previewVideo').srcObject = null;
+    $('previewEmpty').textContent = 'Подключаемся…';
     $('previewEmpty').hidden = false;
     const auth = await token();
     if (auth.waiting) {

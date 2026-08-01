@@ -91,6 +91,10 @@ fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders
   if (pathname === '/classroom.html') {
     headers.set('cross-origin-opener-policy', 'same-origin');
     headers.set('cross-origin-embedder-policy', 'credentialless');
+    // Zoom's media SDK registers a (deprecated) unload handler for cleanup;
+    // browsers now gate that behind Permissions-Policy and log a violation when
+    // it's disallowed. Allow it just for the classroom so the console stays clean.
+    headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=(), unload=*');
   }
   return new Response(response.body, {
     status: response.status,
