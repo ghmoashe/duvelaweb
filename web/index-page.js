@@ -137,4 +137,14 @@
       }
     });
   });
+
+  document.querySelectorAll('[data-store-soon]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const note = document.getElementById('mobileStoreNote');
+      if (!note) return;
+      note.classList.remove('store-note-pulse');
+      window.requestAnimationFrame(() => note.classList.add('store-note-pulse'));
+      note.focus?.();
+    });
+  });
 })();
