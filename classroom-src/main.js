@@ -36,6 +36,21 @@ let endingForAll = false;
 const raisedUsers = new Set();
 const attachedVideoUsers = new Set();
 const TILE_VIDEO_QUALITY = 2;
+let pinnedUserId = null;
+let activeSpeakerId = null;
+let activeShareUserId = null;
+let selectedCameraId = null;
+let selectedMicId = null;
+let selectedSpeakerId = null;
+const netLevels = new Map();
+
+function videoStartOptions() { return selectedCameraId ? { cameraId: selectedCameraId } : {}; }
+function audioStartOptions() {
+  const options = {};
+  if (selectedMicId) options.microphoneId = selectedMicId;
+  if (selectedSpeakerId) options.speakerId = selectedSpeakerId;
+  return options;
+}
 
 async function loadZoomClient() {
   if (client) return client;
@@ -69,15 +84,38 @@ async function preview() {
     return;
   }
   try {
-    previewStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    const constraints = { video: selectedCameraId ? { deviceId: { exact: selectedCameraId } } : true, audio: false };
+    previewStream = await navigator.mediaDevices.getUserMedia(constraints);
     $('previewVideo').srcObject = previewStream;
     await $('previewVideo').play().catch(() => {});
     $('previewEmpty').hidden = true;
+    void populateDevices();
   } catch {
     camOn = false;
     $('previewCam').classList.remove('active');
     $('previewEmpty').hidden = false;
   }
+}
+
+// Device labels are only exposed by the browser once camera/mic permission has
+// been granted, so this runs after preview()/diagnostics. Selected ids are
+// passed to Zoom's startVideo/startAudio at join time.
+async function populateDevices() {
+  if (!navigator.mediaDevices?.enumerateDevices) return;
+  let devices = [];
+  try { devices = await navigator.mediaDevices.enumerateDevices(); } catch { return; }
+  const fill = (id, kind, label, current) => {
+    const select = $(id);
+    if (!select) return current;
+    const list = devices.filter((device) => device.kind === kind && device.deviceId);
+    if (!list.length) { select.innerHTML = `<option value="">${label}</option>`; return current; }
+    select.innerHTML = list.map((device, index) => `<option value="${esc(device.deviceId)}">${esc(device.label || `${label} ${index + 1}`)}</option>`).join('');
+    if (current && list.some((device) => device.deviceId === current)) select.value = current;
+    return select.value || null;
+  };
+  selectedCameraId = fill('cameraSelect', 'videoinput', 'Камера', selectedCameraId);
+  selectedMicId = fill('micSelect', 'audioinput', 'Микрофон', selectedMicId);
+  selectedSpeakerId = fill('speakerSelect', 'audiooutput', 'Динамик', selectedSpeakerId);
 }
 
 async function loadIdentity() {
@@ -134,18 +172,65 @@ async function renderWaitingRoom() {
 }
 
 function tile(user) {
-  let node = document.querySelector(`[data-user="${user.userId}"]`);
+  const ownId = client.getCurrentUserInfo()?.userId;
+  let node = document.querySelector(`.tile[data-user="${user.userId}"]`);
   if (!node) {
     node = document.createElement('article');
     node.className = 'tile';
     node.dataset.user = user.userId;
-    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${initials(user.displayName)}</div><div class="tile-label"></div>`;
+    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${initials(user.displayName)}</div><div class="net" hidden><i></i><i></i><i></i></div><div class="pin-mark" hidden>📌</div><div class="tile-label"></div>`;
     $('gallery').append(node);
   }
-  node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${user.userId === client.getCurrentUserInfo()?.userId ? ' (Вы)' : ''}`;
+  node.toggleAttribute('data-self', user.userId === ownId);
+  node.classList.toggle('pinned', String(user.userId) === String(pinnedUserId));
+  node.querySelector('.pin-mark').hidden = String(user.userId) !== String(pinnedUserId);
+  node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${user.userId === ownId ? ' (Вы)' : ''}`;
   node.querySelector('.avatar').hidden = !!user.bVideoOn;
   node.querySelector('.video-slot').hidden = !user.bVideoOn;
   return node;
+}
+
+// Move each user's tile into the container the current layout calls for and
+// toggle the containers. Moving the <article> node keeps its attached Zoom video
+// element intact, so no re-attach/flicker. Modes: share > spotlight > grid.
+function spotlightTarget(users) {
+  if (pinnedUserId && users.some((u) => String(u.userId) === String(pinnedUserId))) return String(pinnedUserId);
+  if (users.length > 2 && activeSpeakerId && users.some((u) => String(u.userId) === String(activeSpeakerId))) return String(activeSpeakerId);
+  return null;
+}
+
+function placeTiles(users) {
+  const sharing_ = sharing || activeShareUserId != null;
+  const target = sharing_ ? null : spotlightTarget(users);
+  const mode = sharing_ ? 'share' : (target ? 'spotlight' : 'grid');
+  const gallery = $('gallery'), spotlight = $('spotlight'), filmstrip = $('filmstrip'), shareStage = $('shareStage');
+  gallery.hidden = mode !== 'grid';
+  spotlight.hidden = mode !== 'spotlight';
+  shareStage.hidden = mode !== 'share';
+  filmstrip.hidden = mode === 'grid';
+  for (const user of users) {
+    const node = document.querySelector(`.tile[data-user="${user.userId}"]`);
+    if (!node) continue;
+    let container = gallery;
+    if (mode === 'spotlight') container = String(user.userId) === target ? spotlight : filmstrip;
+    else if (mode === 'share') container = filmstrip;
+    if (node.parentElement !== container) container.append(node);
+  }
+  if (!filmstrip.children.length) filmstrip.hidden = true;
+  $('emptyState').hidden = !(mode === 'grid' && users.length <= 1);
+}
+
+function updateNet(userId) {
+  const node = document.querySelector(`.tile[data-user="${userId}"] .net`);
+  if (!node) return;
+  const level = netLevels.get(String(userId));
+  if (level == null) { node.hidden = true; return; }
+  node.hidden = false;
+  node.querySelectorAll('i').forEach((bar, index) => {
+    bar.classList.toggle('on', index < level);
+    bar.classList.toggle('bad', level <= 1);
+    bar.style.height = `${5 + index * 4}px`;
+  });
 }
 
 function removeVideoElements(elements) {
@@ -193,12 +278,13 @@ async function renderUsers() {
   if (!joined) return;
   const users = client.getAllUser();
   const ids = new Set(users.map((user) => String(user.userId)));
-  for (const node of document.querySelectorAll('[data-user]')) {
+  for (const node of document.querySelectorAll('.tile[data-user]')) {
     if (!ids.has(node.dataset.user)) {
       await detachTileVideo(node.dataset.user, node.querySelector('.video-slot'));
       node.remove();
     }
   }
+  if (pinnedUserId && !ids.has(String(pinnedUserId))) pinnedUserId = null;
   for (const user of users) {
     const node = tile(user);
     if (user.bVideoOn) {
@@ -210,7 +296,9 @@ async function renderUsers() {
     } else {
       await detachTileVideo(user.userId, node.querySelector('.video-slot'));
     }
+    updateNet(user.userId);
   }
+  placeTiles(users);
   $('peopleCount').textContent = users.length;
   const ownId = client.getCurrentUserInfo()?.userId;
   $('peopleList').innerHTML = users.map((user) => `<div class="person"><span class="mini">${esc(initials(user.displayName))}</span><b>${esc(user.displayName)} ${raisedUsers.has(user.userId) ? '<i class="raised-mark">✋</i>' : ''}</b><span>${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}</span>${roomRole === 'host' && user.userId !== ownId ? `<span class="person-actions"><button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : ''}</div>`).join('');
@@ -258,7 +346,18 @@ function bindZoomEvents() {
   ['user-added', 'user-removed', 'user-updated', 'peer-video-state-change'].forEach((event) => client.on(event, renderUsers));
   client.on('active-speaker', (list) => {
     document.querySelectorAll('.tile').forEach((node) => node.classList.remove('speaking'));
-    (list || []).forEach((speaker) => document.querySelector(`[data-user="${speaker.userId}"]`)?.classList.add('speaking'));
+    (list || []).forEach((speaker) => document.querySelector(`.tile[data-user="${speaker.userId}"]`)?.classList.add('speaking'));
+    const top = (list || [])[0];
+    const next = top ? String(top.userId) : activeSpeakerId;
+    if (next !== activeSpeakerId) {
+      activeSpeakerId = next;
+      if (joined) void renderUsers();
+    }
+  });
+  client.on('network-quality-change', (payload) => {
+    if (!payload || payload.level == null) return;
+    netLevels.set(String(payload.userId), Math.max(0, Math.min(3, Math.round((payload.level / 5) * 3))));
+    updateNet(payload.userId);
   });
   client.on('chat-on-message', (payload) => {
     const mine = payload.sender?.userId === client.getCurrentUserInfo()?.userId;
@@ -268,11 +367,12 @@ function bindZoomEvents() {
   });
   client.on('active-share-change', async (payload) => {
     if (payload.state === 'Active') {
-      $('shareStage').hidden = false;
+      activeShareUserId = payload.userId;
       try { await media.startShareView($('shareCanvas'), payload.userId); } catch {}
     } else {
-      $('shareStage').hidden = true;
+      activeShareUserId = null;
     }
+    await renderUsers();
   });
   client.on('command-channel-message', handleClassCommand);
   client.on('connection-change', (payload) => {
@@ -337,9 +437,9 @@ async function join() {
     }
     await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'join' });
     attendanceTimer = setInterval(() => { void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'heartbeat' }); }, 30000);
-    if (micOn) await media.startAudio();
+    if (micOn) await media.startAudio(audioStartOptions());
     if (camOn) {
-      await media.startVideo();
+      await media.startVideo(videoStartOptions());
     }
     $('prejoin').hidden = true;
     $('room').hidden = false;
@@ -367,7 +467,7 @@ async function toggleMic() {
 async function toggleCam() {
   if (!media) return;
   camOn = !camOn;
-  if (camOn) await media.startVideo(); else await media.stopVideo();
+  if (camOn) await media.startVideo(videoStartOptions()); else await media.stopVideo();
   $('camBtn').classList.toggle('off', !camOn);
   await renderUsers();
 }
@@ -379,6 +479,7 @@ async function toggleShare() {
     else await media.startShareScreen($('shareCanvas'));
     sharing = !sharing;
     $('shareBtn').classList.toggle('off', !sharing);
+    await renderUsers();
   } catch (error) {
     alert(error?.message || 'Браузер не разрешил демонстрацию экрана.');
   }
@@ -459,6 +560,16 @@ function leave() {
 
 $('previewMic').onclick = () => { micOn = !micOn; $('previewMic').classList.toggle('active', micOn); };
 $('previewCam').onclick = () => { camOn = !camOn; $('previewCam').classList.toggle('active', camOn); preview(); };
+$('cameraSelect').onchange = () => { selectedCameraId = $('cameraSelect').value || null; void preview(); };
+$('micSelect').onchange = () => { selectedMicId = $('micSelect').value || null; };
+$('speakerSelect').onchange = () => { selectedSpeakerId = $('speakerSelect').value || null; };
+// Click a video tile to pin it big (click again to unpin and return to grid/auto).
+document.querySelector('.stage').onclick = (event) => {
+  const node = event.target.closest('.tile[data-user]');
+  if (!node) return;
+  pinnedUserId = String(pinnedUserId) === String(node.dataset.user) ? null : node.dataset.user;
+  void renderUsers();
+};
 $('joinBtn').onclick = join;
 $('micBtn').onclick = toggleMic;
 $('camBtn').onclick = toggleCam;
@@ -549,4 +660,4 @@ addEventListener('beforeunload', () => {
   if (joined && !endingForAll) void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' });
 });
 
-loadIdentity().then(async () => { await runDiagnostics(); await preview(); }).catch((error) => setStatus(error.message, true));
+loadIdentity().then(async () => { await runDiagnostics(); await preview(); await populateDevices(); }).catch((error) => setStatus(error.message, true));
