@@ -488,9 +488,11 @@ async function toggleShare() {
 // Materials live in the PRIVATE `class-materials` bucket, keyed by
 // `<sessionId>/<userId>/...` so the storage RLS (which parses the session id
 // from the object path) admits enrolled learners. Rows carry storage_path +
-// file_type (NOT file_url/mime_type — those columns do not exist); files are
-// opened through short-lived signed URLs. This mirrors the mobile apps'
-// shared/supabase/class-materials.ts so materials interoperate across surfaces.
+// file_type; files are opened through short-lived signed URLs. The table also
+// has a legacy NOT NULL `file_url` column we don't use — it defaults to '' at
+// the DB level so these inserts (which omit it) succeed. `mime_type` does not
+// exist. This mirrors the mobile apps' shared/supabase/class-materials.ts so
+// materials interoperate across surfaces.
 const MATERIAL_BUCKET = 'class-materials';
 const MATERIAL_SIGNED_TTL = 60 * 60;
 
