@@ -34,6 +34,8 @@ let roomRole = 'participant';
 let reviewRating = 0;
 let endingForAll = false;
 const raisedUsers = new Set();
+const attachedVideoUsers = new Set();
+const TILE_VIDEO_QUALITY = 2;
 
 async function loadZoomClient() {
   if (client) return client;
@@ -68,6 +70,7 @@ async function preview() {
   try {
     previewStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     $('previewVideo').srcObject = previewStream;
+    await $('previewVideo').play().catch(() => {});
     $('previewEmpty').hidden = true;
   } catch {
     camOn = false;
@@ -135,29 +138,76 @@ function tile(user) {
     node = document.createElement('article');
     node.className = 'tile';
     node.dataset.user = user.userId;
-    node.innerHTML = `<canvas></canvas><div class="avatar">${initials(user.displayName)}</div><div class="tile-label"></div>`;
+    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${initials(user.displayName)}</div><div class="tile-label"></div>`;
     $('gallery').append(node);
   }
   node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${user.userId === client.getCurrentUserInfo()?.userId ? ' (Вы)' : ''}`;
   node.querySelector('.avatar').hidden = !!user.bVideoOn;
-  node.querySelector('canvas').hidden = !user.bVideoOn;
+  node.querySelector('.video-slot').hidden = !user.bVideoOn;
   return node;
+}
+
+function removeVideoElements(elements) {
+  const list = Array.isArray(elements) ? elements : [elements];
+  list.forEach((element) => element?.remove?.());
+}
+
+async function detachTileVideo(userId, slot) {
+  const numericUserId = Number(userId);
+  if (!Number.isFinite(numericUserId)) return;
+  if (media?.detachVideo && attachedVideoUsers.has(numericUserId)) {
+    try {
+      removeVideoElements(await media.detachVideo(numericUserId));
+    } catch {}
+  }
+  attachedVideoUsers.delete(numericUserId);
+  const target = slot || document.querySelector(`[data-user="${numericUserId}"] .video-slot`);
+  if (target) {
+    target.replaceChildren();
+    delete target.dataset.attachedUser;
+  }
+}
+
+async function attachTileVideo(user, node) {
+  const slot = node.querySelector('.video-slot');
+  if (!slot || !media?.attachVideo) return false;
+  const userId = Number(user.userId);
+  if (slot.dataset.attachedUser === String(user.userId) && slot.childElementCount) return true;
+  if (slot.dataset.attachedUser) await detachTileVideo(slot.dataset.attachedUser, slot);
+  try {
+    const player = await media.attachVideo(userId, TILE_VIDEO_QUALITY);
+    if (!(player instanceof Node)) throw new Error('Zoom did not return a video element.');
+    player.classList?.add('zoom-video-player');
+    slot.replaceChildren(player);
+    slot.dataset.attachedUser = String(user.userId);
+    attachedVideoUsers.add(userId);
+    return true;
+  } catch {
+    await detachTileVideo(userId, slot);
+    return false;
+  }
 }
 
 async function renderUsers() {
   if (!joined) return;
   const users = client.getAllUser();
   const ids = new Set(users.map((user) => String(user.userId)));
-  document.querySelectorAll('[data-user]').forEach((node) => {
-    if (!ids.has(node.dataset.user)) node.remove();
-  });
+  for (const node of document.querySelectorAll('[data-user]')) {
+    if (!ids.has(node.dataset.user)) {
+      await detachTileVideo(node.dataset.user, node.querySelector('.video-slot'));
+      node.remove();
+    }
+  }
   for (const user of users) {
     const node = tile(user);
     if (user.bVideoOn) {
-      const canvas = node.querySelector('canvas');
-      try {
-        await media.renderVideo(canvas, user.userId, Math.max(320, node.clientWidth), Math.max(180, node.clientHeight), 0, 0, 2);
-      } catch {}
+      const attached = await attachTileVideo(user, node);
+      if (!attached) {
+        node.querySelector('.avatar').hidden = false;
+        node.querySelector('.video-slot').hidden = true;
+      }
+    } else {
+      await detachTileVideo(user.userId, node.querySelector('.video-slot'));
     }
   }
   $('peopleCount').textContent = users.length;
@@ -386,6 +436,7 @@ async function performLeave(endForAll = false) {
   if (roomRole === 'host' && endForAll) {
     try { await supa.from('class_sessions').update({ status: 'ended' }).eq('id', sessionId).eq('created_by', me.id); } catch {}
   }
+  await Promise.all(Array.from(document.querySelectorAll('[data-user]')).map((node) => detachTileVideo(node.dataset.user, node.querySelector('.video-slot'))));
   try { if (joined) await client.leave(endForAll); } catch {}
   joined = false;
   if (roomRole === 'host') {
