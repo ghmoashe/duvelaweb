@@ -475,13 +475,20 @@ async function toggleCam() {
 async function toggleShare() {
   if (!media) return;
   try {
-    if (sharing) await media.stopShareScreen();
-    else await media.startShareScreen($('shareCanvas'));
-    sharing = !sharing;
+    if (sharing) {
+      await media.stopShareScreen();
+      sharing = false;
+    } else {
+      await media.startShareScreen($('shareCanvas'));
+      sharing = true;
+    }
     $('shareBtn').classList.toggle('off', !sharing);
     await renderUsers();
   } catch (error) {
-    alert(error?.message || 'Браузер не разрешил демонстрацию экрана.');
+    // Dismissing the browser's "choose what to share" picker throws
+    // NotAllowedError/AbortError — that's a user cancel, not a failure, so stay quiet.
+    if (error?.name === 'NotAllowedError' || error?.name === 'AbortError') return;
+    alert(error?.message || 'Не удалось начать демонстрацию экрана.');
   }
 }
 

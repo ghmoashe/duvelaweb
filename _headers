@@ -9,7 +9,7 @@
 /classroom.html
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
-  Permissions-Policy: camera=(self), microphone=(self), geolocation=(), unload=*
+  Permissions-Policy: camera=(self), microphone=(self), display-capture=(self), geolocation=(), unload=*
 
 /web/*
   Cache-Control: public, max-age=300, must-revalidate
