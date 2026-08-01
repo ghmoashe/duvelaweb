@@ -70,6 +70,39 @@ footer a:focus-visible {
   align-items: flex-start;
 }
 
+.feat-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
+
+.earning-facts {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 11px;
+}
+
+.earning-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--lav-line);
+  padding-top: 6px;
+}
+
+.earning-facts dt {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.earning-facts dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 750;
+  text-align: right;
+}
+
 .preview-note {
   position: absolute;
   right: 10px;

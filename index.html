@@ -24,9 +24,11 @@
 <meta name="twitter:image" content="https://www.vela.cafe/og.png">
 <link rel="icon" href="./logo.webp" type="image/webp">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co" crossorigin>
 <link rel="preload" href="./logo2.png" as="image">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://unpkg.com/lucide@1.25.0/dist/umd/lucide.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1275,7 +1277,7 @@
               <span style="font-size:15px">🎯</span>
               <div style="flex:1">
                 <div style="font-size:11.5px;font-weight:900">Level Test</div>
-                <div style="font-size:9px;opacity:.85;font-weight:700">Check your level in 3 minutes</div>
+                <div style="font-size:9px;opacity:.85;font-weight:700">Set your CEFR level</div>
               </div>
               <span style="font-weight:900">›</span>
             </div>
@@ -1378,67 +1380,73 @@
 
     <div class="feat-grid">
       <div class="feat reveal">
-        <div class="feat-icon fi-purple">🎬</div>
+        <div class="feat-icon fi-purple"><i data-lucide="clapperboard"></i></div>
         <h3>Media &amp; Videos by Level</h3>
         <p>Every video is tagged A1-A2 to C1-C2. Your feed automatically ranks content closest to your level first.</p>
         <span class="feat-tag">Smart Feed</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-red">📡</div>
+        <div class="feat-icon fi-red"><i data-lucide="radio"></i></div>
         <h3>Live Lessons</h3>
-        <p>Join teachers streaming live — ask questions in real time, practice speaking, and send gifts to your favorites.</p>
+        <p>Join public LIVE sessions, ask questions in real time, practice speaking and send supported Duvela Coin gifts.</p>
         <span class="feat-tag">Real-time</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-teal">🎯</div>
-        <h3>Level Test</h3>
-        <p>A 3-minute CEFR placement test finds your exact level — then the whole app adapts around it instantly.</p>
+        <div class="feat-icon fi-teal"><i data-lucide="gauge"></i></div>
+        <h3>CEFR Level Setup</h3>
+        <p>Choose or update your CEFR level from A1 to C2. Duvela uses it to organize relevant learning content.</p>
         <span class="feat-tag">A1 → C2</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-pink">📅</div>
+        <div class="feat-icon fi-pink"><i data-lucide="calendar-days"></i></div>
         <h3>Events &amp; Meetups</h3>
         <p>Language exchanges, speaking clubs and workshops near you — online and offline, hosted by real organizers.</p>
         <span class="feat-tag">Community</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-gold">📚</div>
+        <div class="feat-icon fi-gold"><i data-lucide="book-open"></i></div>
         <h3>Courses from Teachers</h3>
         <p>Structured courses with schedules, levels and pricing — created by verified teachers on the platform.</p>
         <span class="feat-tag">Structured</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-blue">🔥</div>
+        <div class="feat-icon fi-blue"><i data-lucide="flame"></i></div>
         <h3>Streaks, XP &amp; Coins</h3>
-        <p>Daily goals, achievements, leaderboards and Duvela Coins keep your motivation alive every single day.</p>
+        <p>Daily goals, XP, achievements and leaderboards track progress. Duvela Coins support eligible in-app gifts and rewards.</p>
         <span class="feat-tag">Gamified</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-indigo">🤖</div>
+        <div class="feat-icon fi-indigo"><i data-lucide="bot"></i></div>
         <h3>AI Practice</h3>
-        <p>Talk to AI tutors and drill 15+ modes — grammar, listening, writing, reading, flashcards and a mistake center that learns your weak spots.</p>
+        <p>The practice hub includes 15+ tools for grammar, listening, writing, reading and review. Premium AI Coach adds guided dialogue and corrections.</p>
         <span class="feat-tag">AI Tutors</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-green">🎨</div>
+        <div class="feat-icon fi-green"><i data-lucide="palette"></i></div>
         <h3>Arts &amp; School Subjects</h3>
         <p>Drawing, music, math, history and more — find expert teachers for any subject, not just languages. All in the same app.</p>
         <span class="feat-tag">Any Subject</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-orange">🏢</div>
+        <div class="feat-icon fi-orange"><i data-lucide="building-2"></i></div>
         <h3>Organizations &amp; Organizers</h3>
         <p>Schools and organizers run their whole team from one place — manage teachers, host events and grow a brand on Duvela.</p>
         <span class="feat-tag">For Teams</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-gold">💰</div>
+        <div class="feat-icon fi-gold"><i data-lucide="wallet"></i></div>
         <h3>Earn as a Teacher</h3>
-        <p>Go LIVE and earn per minute, receive gifts, sell courses and cash out — with full analytics on views, likes and followers.</p>
+        <p>Track eligible LIVE, course, event and gift income in the Business workspace.</p>
+        <dl class="earning-facts" id="earningFacts">
+          <div><dt>Balance</dt><dd>DC</dd></div>
+          <div><dt>Minimum request</dt><dd>100 DC</dd></div>
+          <div><dt>Methods</dt><dd>Bank, PayPal, Wise</dd></div>
+          <div><dt>Fees and conversion</dt><dd>Not yet published</dd></div>
+        </dl>
         <span class="feat-tag">Monetize</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-blue">💬</div>
+        <div class="feat-icon fi-blue"><i data-lucide="messages-square"></i></div>
         <h3>Messages &amp; Chat</h3>
         <p>Built-in messaging connects learners, teachers and organizers — ask questions, book lessons and stay in touch in real time.</p>
         <span class="feat-tag">Connected</span>
@@ -1459,7 +1467,7 @@
       <div class="step reveal">
         <div class="step-num">1</div>
         <h3>Take the Level Test</h3>
-        <p>12 quick questions, 3 minutes. We pinpoint your CEFR level from A1 to C2 — no guessing.</p>
+        <p>Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
@@ -1530,7 +1538,7 @@
         <p>Your personal language feed — videos at your level, live lessons, practice, streaks and events.</p>
         <ul class="app-feats">
           <li>Level-matched video feed</li>
-          <li>3-minute CEFR level test</li>
+          <li>CEFR level setup from A1 to C2</li>
           <li>Live lessons &amp; speaking events</li>
           <li>XP, streaks &amp; Duvela Coins</li>
         </ul>
@@ -1548,7 +1556,7 @@
         <p>Publish videos, schedule live streams, create courses and events — and watch your audience grow.</p>
         <ul class="app-feats">
           <li>Upload Media &amp; YouTube videos</li>
-          <li>Go LIVE and earn per minute</li>
+          <li>Track eligible LIVE and gift income</li>
           <li>Create courses &amp; events</li>
           <li>Analytics: views, likes, followers</li>
         </ul>
