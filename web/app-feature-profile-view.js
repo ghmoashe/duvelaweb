@@ -75,7 +75,7 @@
     }
 
     async function loadReviews(uid) {
-      const r = await safe(supa.from('teacher_reviews').select('id,rating,comment,created_at,student_id').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(20));
+      const r = await safe(supa.from('teacher_reviews').select('id,rating,comment,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(20));
       reviews = (r && r.data) || [];
     }
 
