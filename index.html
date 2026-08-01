@@ -3,16 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.classList.add('js');</script>
 <title>Duvela — Learn with Real Teachers</title>
 <meta name="description" content="Duvela Academy — languages, arts, school subjects & more. Watch level-matched videos, join live lessons and events with real teachers.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#6D3FE0">
+<link rel="canonical" href="https://www.vela.cafe/">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Duvela">
+<meta property="og:url" content="https://www.vela.cafe/">
 <meta property="og:title" content="Duvela — Learn with Real Teachers">
 <meta property="og:description" content="Languages, arts, school subjects & more — level-matched videos, live lessons and events, all in one academy.">
-<meta property="og:image" content="./logo2.png">
+<meta property="og:image" content="https://www.vela.cafe/og.png">
+<meta property="og:image:width" content="1731">
+<meta property="og:image:height" content="909">
+<meta property="og:image:alt" content="Duvela — Learn with real teachers">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Duvela — Learn with Real Teachers">
 <meta name="twitter:description" content="Languages, arts, school subjects & more — level-matched videos, live lessons and events, all in one academy.">
-<meta name="twitter:image" content="./logo2.png">
+<meta name="twitter:image" content="https://www.vela.cafe/og.png">
 <link rel="icon" href="./logo.webp" type="image/webp">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co" crossorigin>
@@ -1004,16 +1013,45 @@
   }
   .forgot-link:hover { text-decoration: underline; }
 </style>
-<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
-<script defer src="/_vercel/insights/script.js"></script>
+<link rel="stylesheet" href="./web/index-enhancements.css?v=20260801-1">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.vela.cafe/#organization",
+      "name": "Duvela",
+      "url": "https://www.vela.cafe/",
+      "logo": "https://www.vela.cafe/logo2.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.vela.cafe/#website",
+      "name": "Duvela",
+      "url": "https://www.vela.cafe/",
+      "publisher": {"@id": "https://www.vela.cafe/#organization"}
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Duvela Web App",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any modern web browser",
+      "url": "https://www.vela.cafe/app.html",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+    }
+  ]
+}
+</script>
 </head>
 <body>
+<a class="skip-link" href="#mainContent">Skip to main content</a>
 <div class="scroll-bar" id="scrollBar"></div>
 
 <!-- ── NAVBAR ─────────────────────────────────────── -->
 <nav class="nav">
   <div class="nav-inner">
-    <a class="logo" href="#">
+    <a class="logo" href="./">
       <img src="./logo2.png" alt="Duvela" class="logo-img">
     </a>
     <ul class="nav-links">
@@ -1022,6 +1060,7 @@
       <li><a href="#how">How it works</a></li>
       <li><a href="#levels">Levels</a></li>
       <li><a href="#apps">Apps</a></li>
+      <li><a href="#pricing">Pricing</a></li>
     </ul>
     <div class="nav-right">
       <div class="lang-drop" id="langDrop">
@@ -1032,14 +1071,16 @@
         </button>
         <ul class="lang-menu" id="langMenu" role="listbox"></ul>
       </div>
-      <a class="nav-signin" id="openLogin">Sign In</a>
-      <button class="nav-signin-mob" id="openLoginMob" aria-label="Sign In">
+      <button class="nav-signin" id="openLogin" type="button">Sign In</button>
+      <button class="nav-signin-mob" id="openLoginMob" type="button" aria-label="Sign In">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </button>
-      <a class="nav-cta" href="#apps">Get the App ↓</a>
+      <a class="nav-cta" href="./app.html">Open Web App</a>
     </div>
   </div>
 </nav>
+
+<main id="mainContent">
 
 <!-- ── VIDEO ──────────────────────────────────────────
      Когда официальное видео будет готово, замени содержимое
@@ -1061,7 +1102,7 @@
 
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="hero-badge h-anim h-d1"><span class="dot"></span> LIVE lessons happening now</span>
+      <span class="hero-badge is-idle h-anim h-d1" id="heroLiveBadge"><span class="dot"></span> New live lessons are being scheduled</span>
       <h1 class="h-anim h-d2">Languages, arts &amp; more — with <span class="grad-text">real teachers</span></h1>
       <p class="hero-sub h-anim h-d3">
         Watch short videos at your level, join live lessons, explore school subjects,
@@ -1080,31 +1121,24 @@
         </a>
       </div>
       <div class="hero-actions h-anim h-d5">
-        <a class="btn-primary" href="#apps">📱 Download Free</a>
-        <a class="btn-ghost" href="#how">▶ How it works</a>
+        <a class="btn-primary" href="?login=1" data-auth-open="signup" data-signup-role="learner">Start learning free</a>
+        <a class="btn-ghost" href="?login=1" data-auth-open="signup" data-signup-role="teacher">Start teaching</a>
       </div>
-      <p class="hero-clarity h-anim h-d6">Use Sign In for browser access. App Store and Google Play links are below.</p>
+      <p class="hero-clarity h-anim h-d6">Works in your browser. No download required.</p>
       <div class="hero-trust h-anim h-d6">
-        <div class="hero-trust-item"><b>850+</b><span>Verified Teachers</span></div>
-        <div class="hero-trust-item"><b>50+</b><span>Subjects</span></div>
-        <div class="hero-trust-item"><b>40k+</b><span>Level-Tagged Videos</span></div>
+        <div class="hero-trust-item" id="trustTeachers"><b>Open</b><span>Public teacher profiles</span></div>
+        <div class="hero-trust-item" id="trustCourses"><b>Open</b><span>Courses and subjects</span></div>
+        <div class="hero-trust-item" id="trustLive"><b>Open</b><span>Live and scheduled lessons</span></div>
       </div>
       <div class="hero-meta h-anim h-d7">
-        <div class="avatars">
-          <span style="background:#7C3AED">A</span>
-          <span style="background:#DC3FB5">M</span>
-          <span style="background:#17B58B">S</span>
-          <span style="background:#F59E0B">K</span>
-        </div>
-        <p><span class="stars">★★★★★</span><br><b>12,000+</b> learners &amp; teachers</p>
+        <span class="hero-meta-mark" aria-hidden="true">W</span>
+        <p><b>Web app available now</b><br>Learners and teachers use the same account.</p>
       </div>
     </div>
 
     <!-- phone mockup: Videos feed like the app -->
-    <div class="phone-area">
-      <div class="float-chip fc-1"><span class="chip-icon">🎯</span> Level matched: <b style="color:var(--purple)">B1</b></div>
-      <div class="float-chip fc-2"><span class="chip-icon">❤️</span> +2.4k likes today</div>
-      <div class="float-chip fc-3"><span class="chip-icon">🏆</span> A1 → B2 in 6 months</div>
+    <div class="phone-area" aria-label="Duvela web app interface preview with sample content">
+      <span class="preview-note">Interface preview · sample data</span>
 
       <div class="phone">
         <div class="phone-notch"></div>
@@ -1114,21 +1148,21 @@
           <div class="p-page light">
             <div class="lp-header">
               <div>
-                <div class="lp-hi">Hi, Anna 👋</div>
+                <div class="lp-hi">Welcome to Duvela</div>
                 <div class="lp-sub">What do we learn today?</div>
               </div>
               <div class="lp-bell">🔔</div>
             </div>
             <div class="lp-chiprow">
-              <span class="lp-chip">🔥 12-day streak</span>
-              <span class="lp-chip">🪙 240</span>
+              <span class="lp-chip">Daily practice</span>
+              <span class="lp-chip">Progress</span>
               <span class="lp-chip" style="color:#683FDC">B1</span>
             </div>
             <div class="lp-card">
               <div class="lp-label">CONTINUE LEARNING</div>
               <div class="lp-card-title" style="margin-top:5px">German · Unit 4: Past Tense</div>
               <div class="lp-bar"><div class="lp-fill" style="width:64%"></div></div>
-              <div class="lp-card-meta">64% complete · 12 min left</div>
+              <div class="lp-card-meta">Continue where you stopped</div>
             </div>
             <div class="lp-card" style="display:flex;align-items:center;gap:9px">
               <div style="width:34px;height:34px;border-radius:11px;background:#FFF3E0;display:grid;place-items:center;font-size:15px">🎨</div>
@@ -1140,9 +1174,9 @@
             </div>
             <div class="lp-label" style="margin-top:2px">TOP TEACHERS</div>
             <div class="tch-row">
-              <div class="tch"><i style="background:#7C3AED">M</i><b>Maria</b><span>German</span></div>
-              <div class="tch"><i style="background:#F97316">E</i><b>Elena</b><span>Art</span></div>
-              <div class="tch"><i style="background:#17B58B">S</i><b>Sofia</b><span>Spanish</span></div>
+              <div class="tch"><i style="background:#7C3AED">T</i><b>Teacher</b><span>German</span></div>
+              <div class="tch"><i style="background:#F97316">T</i><b>Teacher</b><span>Art</span></div>
+              <div class="tch"><i style="background:#17B58B">T</i><b>Teacher</b><span>Spanish</span></div>
             </div>
           </div>
 
@@ -1158,7 +1192,7 @@
               <div class="p-body">
                 <div class="p-title-row"><span class="p-title">German Stories — Weg 2</span><span class="p-level">A2-B1</span></div>
                 <div class="p-meta">German · Berlin, Germany</div>
-                <div class="p-eng"><span class="liked">♥ 1.2k</span><span>💬 86</span><span>👁 4.8k</span></div>
+                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
               </div>
             </div>
             <div class="p-card">
@@ -1166,15 +1200,15 @@
               <div class="p-body">
                 <div class="p-title-row"><span class="p-title">English Speaking Club</span><span class="p-level">B1-B2</span></div>
                 <div class="p-meta">English · London, UK</div>
-                <div class="p-eng"><span>♥ 980</span><span>💬 44</span><span>👁 3.1k</span></div>
+                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
               </div>
             </div>
             <div class="p-card">
               <div class="p-thumb t3"><div class="p-play">▶</div></div>
               <div class="p-body">
                 <div class="p-title-row"><span class="p-title">Sketching Basics</span><span class="p-level" style="background:#F97316">Art</span></div>
-                <div class="p-meta">Drawing · Elena · Moscow</div>
-                <div class="p-eng"><span class="liked">♥ 2.3k</span><span>💬 120</span><span>👁 9.6k</span></div>
+                <div class="p-meta">Drawing · Online</div>
+                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
               </div>
             </div>
             <div class="p-card">
@@ -1182,7 +1216,7 @@
               <div class="p-body">
                 <div class="p-title-row"><span class="p-title">Math Made Easy — Ch.3</span><span class="p-level" style="background:#17B58B">Math</span></div>
                 <div class="p-meta">School · Khan-style · Online</div>
-                <div class="p-eng"><span>♥ 640</span><span>💬 31</span><span>👁 2.2k</span></div>
+                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
               </div>
             </div>
           </div>
@@ -1204,18 +1238,18 @@
             </div>
             <div style="color:rgba(255,255,255,.5);font-size:9px;font-weight:900;letter-spacing:1px;margin-top:2px">LIVE NOW</div>
             <div class="lv-row">
-              <div class="lv-av">M<span class="lv-dot"></span></div>
-              <div><div class="lv-name">Maria Hoffmann</div><div class="lv-topic">German small talk · B1</div><span class="lv-chip"><i></i>LIVE</span></div>
+              <div class="lv-av">T<span class="lv-dot"></span></div>
+              <div><div class="lv-name">Duvela teacher</div><div class="lv-topic">German small talk · B1</div><span class="lv-chip"><i></i>LIVE</span></div>
               <span class="lv-join">Join</span>
             </div>
             <div class="lv-row">
               <div class="lv-av" style="background:#DC3FB5">J<span class="lv-dot"></span></div>
-              <div><div class="lv-name">James Carter</div><div class="lv-topic">IELTS speaking · B2-C1</div><span class="lv-chip"><i></i>LIVE</span></div>
+              <div><div class="lv-name">Duvela teacher</div><div class="lv-topic">IELTS speaking · B2-C1</div><span class="lv-chip"><i></i>LIVE</span></div>
               <span class="lv-join">Join</span>
             </div>
             <div class="lv-row">
               <div class="lv-av" style="background:#17B58B">S<span class="lv-dot"></span></div>
-              <div><div class="lv-name">Sofia Reyes</div><div class="lv-topic">Spanish for travel · A2</div><span class="lv-chip"><i></i>LIVE</span></div>
+              <div><div class="lv-name">Duvela teacher</div><div class="lv-topic">Spanish for travel · A2</div><span class="lv-chip"><i></i>LIVE</span></div>
               <span class="lv-join">Join</span>
             </div>
           </div>
@@ -1252,17 +1286,17 @@
             <div class="lp-hi">Inbox</div>
             <div class="ib-row">
               <div class="ib-av" style="background:#7C3AED">M</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">Maria Hoffmann</div><div class="ib-msg">Great progress today! See you at…</div></div>
+              <div style="flex:1;min-width:0"><div class="ib-name">Duvela teacher</div><div class="ib-msg">Great progress today! See you at…</div></div>
               <div class="ib-right"><div class="ib-time">2m</div><span class="ib-badge">2</span></div>
             </div>
             <div class="ib-row">
               <div class="ib-av" style="background:#DC3FB5">J</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">James Carter</div><div class="ib-msg">Your essay is checked ✅</div></div>
+              <div style="flex:1;min-width:0"><div class="ib-name">Duvela teacher</div><div class="ib-msg">Your essay is checked</div></div>
               <div class="ib-right"><div class="ib-time">1h</div><span class="ib-badge">1</span></div>
             </div>
             <div class="ib-row">
               <div class="ib-av" style="background:#17B58B">S</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">Sofia Reyes</div><div class="ib-msg">¡Hola! Ready for the next lesson?</div></div>
+              <div style="flex:1;min-width:0"><div class="ib-name">Duvela teacher</div><div class="ib-msg">Ready for the next lesson?</div></div>
               <div class="ib-right"><div class="ib-time">3h</div></div>
             </div>
             <div class="ib-row">
@@ -1275,12 +1309,12 @@
           <!-- 6 · PROFILE -->
           <div class="p-page light">
             <div class="pf-av">A</div>
-            <div class="pf-name">Anna Weber</div>
-            <div class="pf-loc">📍 Berlin, Germany · 🇩🇪 Learning German</div>
+            <div class="pf-name">Learner profile</div>
+            <div class="pf-loc">Learning German</div>
             <div class="pf-stats">
-              <div class="pf-stat"><b>1,240</b><span>XP</span></div>
-              <div class="pf-stat"><b>🔥 12</b><span>STREAK</span></div>
-              <div class="pf-stat"><b>240</b><span>COINS</span></div>
+              <div class="pf-stat"><b>XP</b><span>PROGRESS</span></div>
+              <div class="pf-stat"><b>DAY</b><span>STREAK</span></div>
+              <div class="pf-stat"><b>LEVEL</b><span>CEFR</span></div>
             </div>
             <div class="lp-card" style="display:flex;align-items:center;gap:9px">
               <div style="width:34px;height:34px;border-radius:11px;background:#EDE6FF;display:grid;place-items:center;font-size:14px">🏅</div>
@@ -1308,17 +1342,17 @@
     </div>
   </div>
 
-  <div class="wrap hero-preview-wrap h-anim h-d7">
+  <div class="wrap hero-preview-wrap h-anim h-d7" id="heroLivePreview" hidden>
     <div class="hero-preview">
-      <span class="hero-preview-kicker">LIVE NOW</span>
+      <span class="hero-preview-kicker">LIVE</span>
       <div class="hero-preview-row">
-        <div class="hero-preview-avatar">M</div>
+        <div class="hero-preview-avatar" aria-hidden="true">D</div>
         <div class="hero-preview-body">
-          <div class="hero-preview-name">Maria Hoffmann</div>
+          <div class="hero-preview-name">Duvela Live</div>
           <div class="hero-preview-sub">Join a live lesson with a teacher</div>
-          <div class="hero-preview-topic">German small talk · B1</div>
+          <div class="hero-preview-topic">Lesson details</div>
         </div>
-        <a class="hero-preview-link" href="?login=1" data-auth-open="signin">Join</a>
+        <a class="hero-preview-link" href="./app.html?role=learner#live">Join</a>
       </div>
     </div>
   </div>
@@ -1328,7 +1362,7 @@
 <section class="video-sec" id="video">
   <div class="wrap">
     <div class="video-frame">
-      <video src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" controls playsinline preload="none" poster="./logo2.png"
+      <video src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" controls playsinline preload="none" poster="./video-poster.jpg"
              style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;"></video>
     </div>
   </div>
@@ -1447,50 +1481,14 @@
 <section id="teachers">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="sec-kicker">Featured Teachers</span>
-      <h2 class="sec-title">Learn from the <span class="grad-text">best teachers</span></h2>
-      <p class="sec-sub">Verified teachers from around the world — languages, arts, school subjects and more. Live lessons, courses and events.</p>
+      <span class="sec-kicker">Public profiles</span>
+      <h2 class="sec-title">Meet teachers who are <span class="grad-text">on Duvela</span></h2>
+      <p class="sec-sub">This section uses public teacher profiles from Duvela. No sample ratings, follower counts or invented testimonials.</p>
     </div>
-    <div class="tch-grid-big">
-      <div class="tch-card-big reveal">
-        <div class="tch-av-big" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">M</div>
-        <div class="tch-flag-big">🇩🇪</div>
-        <div class="tch-name-big">Maria Hoffmann</div>
-        <span class="tch-lang-big">German</span>
-        <div class="tch-stars-big">★★★★★ <span>4.9</span></div>
-        <div class="tch-stats-big"><span>1,240 students</span><span>86 videos</span></div>
-        <p class="tch-bio-big">Native teacher with 8 years of experience. Specialises in conversational German and exam prep.</p>
-        <a class="tch-btn-big" href="#apps">Follow on Duvela</a>
-      </div>
-      <div class="tch-card-big reveal">
-        <div class="tch-av-big" style="background:linear-gradient(135deg,#0EA5E9,#2563EB)">J</div>
-        <div class="tch-flag-big">🇬🇧</div>
-        <div class="tch-name-big">James Carter</div>
-        <span class="tch-lang-big">English</span>
-        <div class="tch-stars-big">★★★★★ <span>4.8</span></div>
-        <div class="tch-stats-big"><span>2,100 students</span><span>124 videos</span></div>
-        <p class="tch-bio-big">IELTS & TOEFL specialist from London. Helps learners reach B2–C1 with structured programs.</p>
-        <a class="tch-btn-big" href="#apps">Follow on Duvela</a>
-      </div>
-      <div class="tch-card-big reveal">
-        <div class="tch-av-big" style="background:linear-gradient(135deg,#F97316,#EC4899)">S</div>
-        <div class="tch-flag-big">🇪🇸</div>
-        <div class="tch-name-big">Sofia Reyes</div>
-        <span class="tch-lang-big">Spanish</span>
-        <div class="tch-stars-big">★★★★★ <span>4.9</span></div>
-        <div class="tch-stats-big"><span>980 students</span><span>62 videos</span></div>
-        <p class="tch-bio-big">Spanish coach from Madrid focused on speaking confidence and real-life conversation skills.</p>
-        <a class="tch-btn-big" href="#apps">Follow on Duvela</a>
-      </div>
-      <div class="tch-card-big reveal">
-        <div class="tch-av-big" style="background:linear-gradient(135deg,#F97316,#EC4899)">E</div>
-        <div class="tch-flag-big">🎨</div>
-        <div class="tch-name-big">Elena Romanova</div>
-        <span class="tch-lang-big">Drawing &amp; Art</span>
-        <div class="tch-stars-big">★★★★★ <span>4.9</span></div>
-        <div class="tch-stats-big"><span>870 students</span><span>54 videos</span></div>
-        <p class="tch-bio-big">Art teacher specialising in sketching, watercolour and composition — beginner-friendly live sessions every week.</p>
-        <a class="tch-btn-big" href="#apps">Follow on Duvela</a>
+    <div class="tch-grid-big" id="teacherGrid" aria-live="polite">
+      <div class="teacher-empty reveal">
+        <h3>Loading public teacher profiles</h3>
+        <p>Duvela only shows profile information that teachers publish publicly.</p>
       </div>
     </div>
   </div>
@@ -1518,9 +1516,9 @@
 <section id="apps">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="sec-kicker">Two apps, one academy</span>
-      <h2 class="sec-title">Pick your <span class="grad-text">side</span></h2>
-      <p class="sec-sub">Learning something new? Get the Hub. Teaching or running a school? Manage everything from the Business app.</p>
+      <span class="sec-kicker">Two workspaces, one web app</span>
+      <h2 class="sec-title">Choose your <span class="grad-text">workspace</span></h2>
+      <p class="sec-sub">Duvela runs in a modern browser. Learners and teachers use one account and can return to the homepage at any time.</p>
     </div>
 
     <div class="apps-grid">
@@ -1537,8 +1535,8 @@
           <li>XP, streaks &amp; Duvela Coins</li>
         </ul>
         <div class="store-row">
-          <a class="store-btn" href="#"><span class="s-icon"></span><span><small>Download on the</small><b>App Store</b></span></a>
-          <a class="store-btn" href="#"><span class="s-icon">▶</span><span><small>Get it on</small><b>Google Play</b></span></a>
+          <a class="web-app-btn" href="./app.html?role=learner#home">Open learner workspace</a>
+          <a class="web-app-btn" href="?login=1" data-auth-open="signup" data-signup-role="learner">Create learner account</a>
         </div>
       </div>
 
@@ -1555,46 +1553,81 @@
           <li>Analytics: views, likes, followers</li>
         </ul>
         <div class="store-row">
-          <a class="store-btn" href="#"><span class="s-icon"></span><span><small>Download on the</small><b>App Store</b></span></a>
-          <a class="store-btn" href="#"><span class="s-icon">▶</span><span><small>Get it on</small><b>Google Play</b></span></a>
+          <a class="web-app-btn" href="./app.html?role=teacher#workspace">Open teacher workspace</a>
+          <a class="web-app-btn" href="?login=1" data-auth-open="signup" data-signup-role="teacher">Create teacher account</a>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── TESTIMONIALS ───────────────────────────────── -->
-<section id="testimonials">
+<section class="pricing-section" id="pricing">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="sec-kicker">Student Stories</span>
-      <h2 class="sec-title">12,000+ learners <span class="grad-text">love Duvela</span></h2>
+      <span class="sec-kicker">Pricing</span>
+      <h2 class="sec-title">Start free. Pay only for <span class="grad-text">teacher-led offers</span></h2>
+      <p class="sec-sub">Duvela does not invent a single platform price for independent teachers. Each paid lesson, course or event shows its own price before checkout.</p>
     </div>
-    <div class="rev-grid">
-      <div class="rev-card reveal">
-        <div class="rev-stars">★★★★★</div>
-        <p class="rev-text">"I went from A1 to B1 German in 5 months. Maria's live lessons kept me motivated every single week."</p>
-        <div class="rev-author">
-          <span class="rev-av" style="background:#7C3AED">A</span>
-          <div><b>Anna Weber</b><span>Learning German · 🇩🇪 Berlin</span></div>
-        </div>
-      </div>
-      <div class="rev-card reveal">
-        <div class="rev-stars">★★★★★</div>
-        <p class="rev-text">"The level test nailed my English at B2 instantly. The feed gives me exactly the right videos — never too easy, never too hard."</p>
-        <div class="rev-author">
-          <span class="rev-av" style="background:#0EA5E9">M</span>
-          <div><b>Marcus Liu</b><span>Learning English · 🇨🇳 Shanghai</span></div>
-        </div>
-      </div>
-      <div class="rev-card reveal">
-        <div class="rev-stars">★★★★★</div>
-        <p class="rev-text">"Sofia's Spanish club is the highlight of my week. Real conversations with real people — I'm finally not afraid to speak."</p>
-        <div class="rev-author">
-          <span class="rev-av" style="background:#EC4899">S</span>
-          <div><b>Sarah Mitchell</b><span>Learning Spanish · 🇺🇸 New York</span></div>
-        </div>
-      </div>
+    <div class="pricing-grid">
+      <article class="price-card reveal">
+        <span class="price-kicker">Learner</span>
+        <h3>Free start</h3>
+        <div class="price-value">€0</div>
+        <p class="price-note">Create an account and explore the learning workspace.</p>
+        <ul class="price-list">
+          <li>Web app access</li>
+          <li>Public learning content</li>
+          <li>Profile and level setup</li>
+        </ul>
+        <a class="btn-primary" href="?login=1" data-auth-open="signup" data-signup-role="learner">Create free account</a>
+      </article>
+      <article class="price-card featured reveal">
+        <span class="price-kicker">Teacher-led</span>
+        <h3>Lessons and courses</h3>
+        <div class="price-value">Set by teacher</div>
+        <p class="price-note">Paid offers vary by teacher, course, event and delivery format.</p>
+        <ul class="price-list">
+          <li>Price shown before purchase</li>
+          <li>Free offers may also be available</li>
+          <li>No unsupported savings claims</li>
+        </ul>
+        <a class="btn-primary" href="./app.html?role=learner#courses">Browse in web app</a>
+      </article>
+      <article class="price-card reveal">
+        <span class="price-kicker">Teacher</span>
+        <h3>Free to start</h3>
+        <div class="price-value">€0</div>
+        <p class="price-note">Create a teaching workspace and prepare your public offer.</p>
+        <ul class="price-list">
+          <li>Teaching profile</li>
+          <li>Course and event tools</li>
+          <li>LIVE workspace</li>
+        </ul>
+        <a class="btn-primary" href="?login=1" data-auth-open="signup" data-signup-role="teacher">Start teaching</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="trust">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-kicker">Transparent by design</span>
+      <h2 class="sec-title">Product facts instead of <span class="grad-text">marketing fiction</span></h2>
+    </div>
+    <div class="trust-grid">
+      <article class="trust-item reveal">
+        <h3>Public data only</h3>
+        <p>Teacher and LIVE sections use public Duvela records. When data is unavailable, the page says so.</p>
+      </article>
+      <article class="trust-item reveal">
+        <h3>No invented reviews</h3>
+        <p>Sample names, ratings, follower totals and unverified progress claims have been removed.</p>
+      </article>
+      <article class="trust-item reveal">
+        <h3>Clear pricing</h3>
+        <p>Account creation is free. Independent teacher offers display their own price before purchase.</p>
+      </article>
     </div>
   </div>
 </section>
@@ -1608,28 +1641,28 @@
     </div>
     <div class="faq-list reveal">
       <div class="faq-item">
-        <button class="faq-q">Is Duvela free? <span class="faq-arr">+</span></button>
-        <div class="faq-a">Yes — Duvela is free to download and use. Watch level-matched videos, take the level test and join community events at no cost. Premium features like live lessons and courses may have separate pricing set by each teacher.</div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-1">Is Duvela free? <span class="faq-arr" aria-hidden="true">+</span></button>
+        <div class="faq-a" id="faq-answer-1">Creating an account and opening the web app is free. Individual teachers may charge separately for lessons, courses or events; the price is shown with the offer.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q">What languages are available? <span class="faq-arr">+</span></button>
-        <div class="faq-a">Duvela supports 20+ languages including English, German, Spanish, French, Japanese, Chinese, Arabic, Portuguese, Italian, Korean and more. New languages are added regularly as teachers join the platform.</div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-2">What can I learn? <span class="faq-arr" aria-hidden="true">+</span></button>
+        <div class="faq-a" id="faq-answer-2">Available languages, subjects and creative disciplines depend on the courses and public profiles currently published by teachers.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q">How does the level test work? <span class="faq-arr">+</span></button>
-        <div class="faq-a">Our 3-minute CEFR placement test asks 12 adaptive questions. Your result instantly personalises the whole app — video feed, practice exercises and teacher recommendations all adapt to your level from A1 to C2.</div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-3">How does the level test work? <span class="faq-arr" aria-hidden="true">+</span></button>
+        <div class="faq-a" id="faq-answer-3">The learner workspace includes CEFR level setup from A1 to C2. That level can be used to organize relevant learning content and recommendations.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q">Can I become a teacher on Duvela? <span class="faq-arr">+</span></button>
-        <div class="faq-a">Yes! Download Duvela Business, create your profile and start uploading videos or scheduling live streams. Teachers earn per minute of live broadcast, receive gifts from students and can sell structured courses directly on the platform.</div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-4">Can I become a teacher on Duvela? <span class="faq-arr" aria-hidden="true">+</span></button>
+        <div class="faq-a" id="faq-answer-4">Yes. Create a teacher account in the web app, complete the teaching profile and use the workspace to prepare courses, events and live sessions.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q">What devices does Duvela work on? <span class="faq-arr">+</span></button>
-        <div class="faq-a">Duvela is available on iOS and Android. The Hub app is for learners and the Business app is for teachers and organizers. Both are free on the App Store and Google Play.</div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-5">What devices does Duvela work on? <span class="faq-arr" aria-hidden="true">+</span></button>
+        <div class="faq-a" id="faq-answer-5">Duvela works as a web application in modern desktop and mobile browsers. No App Store or Google Play download is required.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q">How do teachers earn money? <span class="faq-arr">+</span></button>
-        <div class="faq-a">Teachers earn through live streams (per-minute earnings + student gifts), paid courses and events. Full analytics show your views, likes, followers and revenue — everything you need to grow your audience on Duvela.</div>
+        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-6">How are paid offers priced? <span class="faq-arr" aria-hidden="true">+</span></button>
+        <div class="faq-a" id="faq-answer-6">Independent teachers and organizers set the price of their own eligible lessons, courses or events. Learners see the offer price before purchase.</div>
       </div>
     </div>
   </div>
@@ -1640,21 +1673,23 @@
   <div class="wrap">
     <div class="cta-banner reveal">
       <h2>Start learning with real teachers today</h2>
-      <p>Free to download. Take the level test and get your personalized feed in 3 minutes.</p>
+      <p>Create a free account and open your learner workspace directly in the browser.</p>
       <div class="btn-row">
-        <a class="btn-white" href="#apps">📱 Get Duvela Free</a>
-        <a class="btn-outline-w" href="#features">Explore Features</a>
+        <a class="btn-white" href="?login=1" data-auth-open="signup" data-signup-role="learner">Create free account</a>
+        <a class="btn-outline-w" href="./app.html">Open Web App</a>
       </div>
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ── FOOTER ─────────────────────────────────────── -->
 <footer>
   <div class="wrap">
     <div class="foot-inner">
       <div class="foot-brand">
-        <a class="logo" href="#">
+        <a class="logo" href="./">
           <span class="logo-foot-wrap">
             <img src="./logo2.png" alt="Duvela" class="logo-img-foot" loading="lazy" decoding="async">
           </span>
@@ -1666,19 +1701,19 @@
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
         <a href="#levels">Levels</a>
-        <a href="#apps">Download</a>
+        <a href="./app.html">Web App</a>
       </div>
       <div class="foot-col">
         <h4>For Teachers</h4>
-        <a href="#apps">Duvela Business</a>
-        <a href="#">Go LIVE</a>
-        <a href="#">Create Courses</a>
-        <a href="#">Analytics</a>
+        <a href="./app.html?role=teacher#workspace">Duvela Business</a>
+        <a href="./app.html?role=teacher#live">Go LIVE</a>
+        <a href="./app.html?role=teacher#courses">Create Courses</a>
+        <a href="./app.html?role=teacher#workspace">Analytics</a>
       </div>
       <div class="foot-col">
         <h4>Company</h4>
-        <a href="#" id="footAbout">About</a>
-        <a href="#" id="footContact">Contact</a>
+        <a href="#features" id="footAbout">About</a>
+        <a href="mailto:support@vela.cafe" id="footContact">Contact</a>
         <a href="./legal.html?doc=privacy" id="footPrivacy">Privacy Policy</a>
         <a href="./legal.html?doc=impressum" id="footImpressum">Imprint</a>
         <a href="./legal.html?doc=terms" id="footTerms">Terms of Service</a>
@@ -1688,18 +1723,7 @@
     <div class="foot-bottom">
       <span>© 2026 Duvela Academy. All rights reserved.</span>
       <div class="socials">
-        <a href="#" title="Instagram" aria-label="Instagram">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-        </a>
-        <a href="#" title="TikTok" aria-label="TikTok">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.54V6.77a4.85 4.85 0 01-1.02-.08z"/></svg>
-        </a>
-        <a href="#" title="YouTube" aria-label="YouTube">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20.06 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
-        </a>
-        <a href="#" title="Telegram" aria-label="Telegram">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-        </a>
+        <a class="web-footer-link" href="./app.html">Open Web App</a>
       </div>
     </div>
   </div>
@@ -1710,7 +1734,7 @@
   <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="login-head">
       <div class="login-title" id="loginTitle">Sign in to Duvela</div>
-      <button class="login-close" id="closeLogin" aria-label="Close">✕</button>
+      <button class="login-close" id="closeLogin" type="button" aria-label="Close">✕</button>
     </div>
     <button class="google-btn" type="button" id="googleSignIn">
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3z"/></svg>
@@ -1760,7 +1784,8 @@
 <script src="./web/duvela-web-profile-writes.js"></script>
 <script src="./web/index-i18n.js"></script>
 <script src="./web/index-auth-ui.js"></script>
-<script src="./web/index-auth.js?v=20260721-2"></script>
+<script src="./web/index-auth.js?v=20260801-1"></script>
+<script src="./web/index-public-data.js?v=20260801-1"></script>
 <script src="./web/index-page.js"></script>
 </body>
 </html>

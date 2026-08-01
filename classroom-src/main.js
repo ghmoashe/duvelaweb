@@ -1,4 +1,3 @@
-import ZoomVideo from '@zoom/videosdk';
 import './style.css';
 
 await new Promise((resolve, reject) => {
@@ -16,7 +15,8 @@ const query = new URLSearchParams(location.search);
 const sessionId = query.get('s') || '';
 const config = window.DuvelaWebConfig;
 const supa = config?.createSupabaseClient?.();
-const client = ZoomVideo.createClient();
+let client = null;
+let zoomClientPromise = null;
 let media = null;
 let me = null;
 let classSession = null;
@@ -34,6 +34,19 @@ let roomRole = 'participant';
 let reviewRating = 0;
 let endingForAll = false;
 const raisedUsers = new Set();
+
+async function loadZoomClient() {
+  if (client) return client;
+  zoomClientPromise ||= import('@zoom/videosdk')
+    .then(({ default: ZoomVideo }) => ZoomVideo.createClient());
+  try {
+    client = await zoomClientPromise;
+    return client;
+  } catch (error) {
+    zoomClientPromise = null;
+    throw error;
+  }
+}
 
 function initials(name = 'Duvela') {
   return name.trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
@@ -255,6 +268,7 @@ async function join() {
       return;
     }
     roomRole = auth.role || 'participant';
+    await loadZoomClient();
     await client.init('en-US', 'Global', { patchJsMedia: true, stayAwake: true });
     bindZoomEvents();
     await client.join(auth.topic, auth.token, me.name, auth.password || '');

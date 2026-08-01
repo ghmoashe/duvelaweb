@@ -14,6 +14,10 @@ const files = [
   'sw.js',
   'logo.webp',
   'logo2.png',
+  'og.png',
+  'video-poster.jpg',
+  'robots.txt',
+  'sitemap.xml',
   '_headers',
   'package.json',
   '.openai/hosting.json'

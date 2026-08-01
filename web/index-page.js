@@ -3,15 +3,20 @@
   const indexAuthApi = window.DuvelaIndexAuth;
   const indexAuthUiApi = window.DuvelaIndexAuthUi;
 
-  const io = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in');
-        io.unobserve(entry.target);
+  const revealItems = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
       }
-    }
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    }, { threshold: 0.12 });
+    revealItems.forEach((el) => io.observe(el));
+  } else {
+    revealItems.forEach((el) => el.classList.add('in'));
+  }
 
   document.querySelectorAll('.feat-grid .feat, .steps .step').forEach((el, index) => {
     el.style.transitionDelay = ((index % 3) * 90) + 'ms';
@@ -26,31 +31,50 @@
   let pTimer = null;
 
   function showPage(index) {
+    if (!pPages[index] || !pNav) return;
     pIdx = index;
     pPages.forEach((page, pageIndex) => page.classList.toggle('active', pageIndex === index));
-    pNavItems.forEach((item, itemIndex) => item.classList.toggle('on', itemIndex === navFor[index]));
+    pNavItems.forEach((item, itemIndex) => {
+      const active = itemIndex === navFor[index];
+      item.classList.toggle('on', active);
+      item.setAttribute('aria-current', active ? 'page' : 'false');
+    });
     pNav.classList.toggle('lightnav', pPages[index].classList.contains('light'));
   }
 
   function startRotate() {
     clearInterval(pTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || pPages.length < 2) return;
     pTimer = setInterval(() => showPage((pIdx + 1) % pPages.length), 4000);
   }
 
   pNavItems.forEach((item, index) => {
-    item.addEventListener('click', () => {
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
+    const activate = () => {
       const target = navFor.indexOf(index);
       if (target >= 0) {
         showPage(target);
         startRotate();
       }
+    };
+    item.addEventListener('click', activate);
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        activate();
+      }
     });
   });
 
-  phoneEl.addEventListener('mouseenter', () => clearInterval(pTimer));
-  phoneEl.addEventListener('mouseleave', startRotate);
+  if (phoneEl) {
+    phoneEl.addEventListener('mouseenter', () => clearInterval(pTimer));
+    phoneEl.addEventListener('mouseleave', startRotate);
+    phoneEl.addEventListener('focusin', () => clearInterval(pTimer));
+    phoneEl.addEventListener('focusout', startRotate);
+  }
 
-  showPage(1);
+  showPage(pPages[1] ? 1 : 0);
   startRotate();
 
   let authFeature = null;
@@ -73,8 +97,9 @@
 
   const scrollBar = document.getElementById('scrollBar');
   window.addEventListener('scroll', () => {
-    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
-    scrollBar.style.width = pct + '%';
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = scrollable > 0 ? Math.min(100, window.scrollY / scrollable * 100) : 0;
+    if (scrollBar) scrollBar.style.width = pct + '%';
   }, { passive: true });
 
   const togglePass = document.getElementById('togglePass');
@@ -93,8 +118,14 @@
     button.addEventListener('click', () => {
       const item = button.closest('.faq-item');
       const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item').forEach((faq) => faq.classList.remove('open'));
-      if (!isOpen) item.classList.add('open');
+      document.querySelectorAll('.faq-item').forEach((faq) => {
+        faq.classList.remove('open');
+        faq.querySelector('.faq-q')?.setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        button.setAttribute('aria-expanded', 'true');
+      }
     });
   });
 })();
