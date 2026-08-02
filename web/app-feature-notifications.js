@@ -30,7 +30,7 @@
         return;
       }
       list.innerHTML = state.notifications.map((item) =>
-        '<div class="notif-item' + (item.read ? '' : ' unread') + '"><div class="ndot"></div><div><b style="font-weight:' +
+        '<div class="notif-item' + (item.read ? '' : ' is-unread') + '"><div class="ndot"></div><div><b style="font-weight:' +
         (item.read ? '500' : '800') + '">' +
         esc(item.title || tr('Notification', 'Уведомление')) + '</b>' +
         (item.body ? '<p>' + esc(item.body) + '</p>' : '') +

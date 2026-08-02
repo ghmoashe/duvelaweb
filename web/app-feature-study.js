@@ -719,7 +719,11 @@
         languageTail.push(sourceCard('wQuestion','wquestion','file',false,'W-questions','Question practice','Build German questions with wer, was, wann, wo, wohin and warum.','Continue'));
         languageTail.push(sourceCard('perfekt','perfekt','book',false,'German Perfekt','Spoken past tense','Practice haben/sein and participle forms for everyday German.','Continue'));
       }
+      var telcCard=activeTarget==='de'
+        ? sourceCard('telcA1','telcA1','flask',false,'telc Deutsch A1 – Prüfung','Echte Prüfung · 4 Teile','Kompletter A1-Modelltest: Hören, Lesen, Schreiben, Sprechen — mit Timer, KI-Bewertung und Auswertung mit Lösungen.','Prüfung starten')
+        : null;
       const bankItems=[
+        ...(telcCard?[telcCard]:[]),
         sourceCard('adaptive','adaptive','path',true,'Adaptive learning path','Personal daily plan','A personal sequence based on your level, progress, and recurring mistakes.','Open path'),
         sourceCard('duvela','ai','sparkles',true,'DUVELA AI','Conversation practice','Practice conversation, pronunciation, and grammar in one place.','Start AI practice'),
         sourceCard('liveTeacher','liveTeacher','video',true,'Practice LIVE with Teacher','Teacher session','Enter a live practice room with a teacher for speaking, questions, and real-time feedback.','Join LIVE'),
@@ -952,6 +956,7 @@
     }
 
     function openStudyTool(id, restored) {
+      if (id === 'telcA1') { location.href = './telc-exam.html'; return; }
       var tool = TOOLS.find(function (t) { return t.id === id; });
       if (!tool) return;
       ensureOverlay();
