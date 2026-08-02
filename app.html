@@ -752,8 +752,8 @@
   .pv-info-ic.amber { background: var(--amber-soft); color: var(--amber); }
   .pv-info-label { display: block; font-size: 11px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .04em; }
   .pv-info b { font-size: 17px; font-weight: 800; }
-  .pv-tabs { display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: linear-gradient(90deg, #5B2DC9, #A855F7, #C026D3); }
-  .pv-tab { flex: 1; border: 0; cursor: pointer; background: transparent; color: rgba(255,255,255,.85); font-weight: 800; font-size: 15px; padding: 11px; border-radius: 999px; }
+  .pv-tabs { display: flex; align-items: center; justify-content: flex-start; gap: 4px; padding: 5px; border-radius: 999px; background: linear-gradient(90deg, #5B2DC9, #A855F7, #C026D3); }
+  .pv-tab { flex: 0 0 auto; min-width: 190px; border: 0; cursor: pointer; background: transparent; color: rgba(255,255,255,.85); font-weight: 800; font-size: 15px; padding: 11px 24px; border-radius: 999px; }
   .pv-tab.active { background: #fff; color: var(--purple); }
   .pv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
   .pv-card h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
@@ -824,7 +824,7 @@
   .lh-course-progress { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:var(--shadow); }.lh-course-progress div { display:grid;gap:3px; }.lh-course-progress small { color:var(--soft); }.lh-course-progress strong { color:var(--purple); }.lh-course-progress>i { grid-column:1/-1;height:7px;border-radius:999px;background:var(--purple-soft);overflow:hidden; }.lh-course-progress>i span { display:block;height:100%;background:linear-gradient(90deg,#6d3fe0,#c026d3); }.lh-course-progress a { grid-column:1/-1;text-align:center; }
   .lh-mobile-nav { display:none; }
   /* Media layout CSS moved to web/app-media-layout.css. */
-  @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } .pv-tab { flex: 1 1 0; min-width: 0; padding-inline: 10px; } }
   .pv-dot-list { display: grid; gap: 8px; }
   .pv-dot-row { display: flex; align-items: center; gap: 9px; color: var(--soft); font-weight: 600; }
   .pv-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--purple); flex: none; }
@@ -1852,6 +1852,7 @@
             <div class="field"><label data-t="country">Country</label><input id="pfCountry" maxlength="80"></div>
             <div class="field"><label id="pfNativeLanguageLabel">Native language</label><input id="pfLanguage" maxlength="60"></div>
             <div class="field"><label data-t="level">Language level</label><select id="pfLevel" class="role-select"><option value="">Select level</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
+            <div class="field" id="pfGoalField"><label id="pfGoalLabel">Student Goal</label><select id="pfGoal" class="role-select"><option value="">Select goal</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
             <input id="pfAvatar" type="hidden">
           </div>
           </div>
@@ -2036,6 +2037,7 @@
 </style>
 <script src="./locales/web-locales.js"></script>
 <script src="./web/duvela-web-config.js"></script>
+<script src="./web/app-student-goal.js"></script>
 <script src="./web/duvela-web-roles.js?v=20260721-2"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js"></script>

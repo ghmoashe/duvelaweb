@@ -1,6 +1,14 @@
 (function () {
   function createProfileFeature(ctx) {
     const { $, tr, esc, alert, supa, state, avatarHtml, avatarInner, timeAgo, roleLabels } = ctx;
+    const studentGoal = window.DuvelaStudentGoal || {
+      normalize: (value, fallback) => String(value || fallback || 'A1').toUpperCase(),
+      fromProfile: (profile, fallback) => (profile && profile.goal_level) || fallback || '',
+      legacyPatch: (value) => {
+        const level = String(value || 'A1').toUpperCase();
+        return { goal_level: level, learning_goal: level };
+      }
+    };
     const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
     const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     const AVATAR_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
@@ -205,8 +213,11 @@
       setInput('#pfCountry', ctx.profile?.country);
       setInput('#pfLanguage', ctx.profile?.language);
       setInput('#pfLevel', ctx.profile?.language_level);
+      setInput('#pfGoal', studentGoal.fromProfile(ctx.profile, ''));
       setInput('#pfAvatar', ctx.profile?.avatar_url);
       if ($('#pfNativeLanguageLabel')) $('#pfNativeLanguageLabel').textContent = tr('Native language', 'Родной язык');
+      if ($('#pfGoalLabel')) $('#pfGoalLabel').textContent = tr('Student Goal', 'Цель ученика');
+      if ($('#pfGoalField')) $('#pfGoalField').style.display = ctx.isBusiness() ? 'none' : '';
       if ($('#avatarRemoveBtn')) $('#avatarRemoveBtn').textContent = tr('Remove avatar', 'Удалить аватар');
       if ($('#avatarUploadHint')) $('#avatarUploadHint').textContent = tr('Choose JPG, PNG or WebP up to 5 MB. On mobile you can pick from photos or camera.', 'Выберите JPG, PNG или WebP до 5 MB. На телефоне можно выбрать фото или камеру.');
       setInput('#pfBio', ctx.profile?.bio);
@@ -241,10 +252,12 @@
         ? ctx.profile.learning_languages
         : [ctx.profile?.language].filter(Boolean);
       const level = ctx.profile?.language_level || 'A1';
+      const goal = studentGoal.fromProfile(ctx.profile, '');
       summary.innerHTML =
         '<div class="learner-profile-badges">' +
           '<span>🎓 ' + esc(tr('Learner', 'Ученик')) + '</span>' +
           '<span>✨ ' + esc(tr('Level', 'Уровень')) + ' ' + esc(level) + '</span>' +
+          (goal ? '<span>⚑ ' + esc(tr('Goal', 'Цель')) + ' ' + esc(goal) + '</span>' : '') +
           languages.slice(0, 4).map((language) => '<span>🌐 ' + esc(language) + '</span>').join('') +
         '</div>' +
         '<p class="learner-profile-welcome">' + esc(tr('Your learning profile, goals and progress in one place.', 'Ваш учебный профиль, цели и прогресс в одном месте.')) + '</p>';
@@ -257,12 +270,14 @@
     async function saveProfile(event) {
       event.preventDefault();
       const avatarFile = $('#pfAvatarFile')?.files?.[0] || null;
+      const goalPatch = ctx.isBusiness() ? {} : studentGoal.legacyPatch($('#pfGoal')?.value || ctx.profile?.goal_level || 'A1');
       const patch = {
         full_name: $('#pfName').value.trim() || null,
         city: $('#pfCity').value.trim() || null,
         country: $('#pfCountry').value.trim() || null,
         language: $('#pfLanguage').value.trim() || null,
         language_level: $('#pfLevel').value.trim() || null,
+        ...goalPatch,
         avatar_url: $('#pfAvatar').value.trim() || null,
         bio: $('#pfBio').value.trim() || null,
         telegram: $('#pfTelegram').value.trim() || null,
@@ -285,6 +300,23 @@
         }
         const { error } = await supa.from('profiles').update(patch).eq('id', ctx.user.id);
         if (error) throw error;
+        if (!ctx.isBusiness()) {
+          try {
+            await supa.from('learner_language_profiles')
+              .update({ is_active: false, updated_at: patch.updated_at })
+              .eq('user_id', ctx.user.id);
+            await supa.from('learner_language_profiles').upsert({
+              user_id: ctx.user.id,
+              language: patch.language || 'Language',
+              current_level: patch.language_level || 'A1',
+              goal_level: patch.goal_level,
+              is_active: true,
+              updated_at: patch.updated_at
+            }, { onConflict: 'user_id,language' });
+          } catch (syncError) {
+            // Older projects may not have the cross-platform learner profile table yet.
+          }
+        }
         ctx.setProfile({ ...(ctx.profile || {}), ...patch });
         $('#profileSaved').style.display = 'inline';
         setTimeout(() => { $('#profileSaved').style.display = 'none'; }, 2500);
@@ -442,6 +474,7 @@
           '<div><b>' + Number(ctx.profile?.score || 0).toLocaleString() + '</b><span>XP</span></div>' +
           '<div><b>' + Number(ctx.profile?.vela_coin_balance || 0).toLocaleString() + '</b><span>' + esc(tr('Coins', 'Монеты')) + '</span></div>' +
           '<div><b>' + esc(ctx.profile?.language_level || 'A1') + '</b><span>' + esc(tr('Level', 'Уровень')) + '</span></div>' +
+          '<div><b>' + esc(studentGoal.fromProfile(ctx.profile, 'A1')) + '</b><span>' + esc(tr('Goal', 'Цель')) + '</span></div>' +
         '</div>');
       const filter = $('#rankFilter');
       if (filter) filter.addEventListener('change', () => {

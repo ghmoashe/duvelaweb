@@ -1,6 +1,9 @@
 (function () {
   function createCatalogFeature(ctx) {
     const { $, tr, esc, alert, supa, state, formatDate, formatMoney } = ctx;
+    const studentGoal = window.DuvelaStudentGoal || {
+      fromProfile: function (profile, fallback) { return (profile && profile.goal_level) || fallback || ''; }
+    };
     let currentCourseId = null;
     const savedCatalogKey = (kind) => 'duvela.saved.' + kind;
     const savedCatalogIds = (kind) => new Set(JSON.parse(localStorage.getItem(savedCatalogKey(kind)) || '[]'));
@@ -488,7 +491,8 @@
         const xp = ctx.profile?.score ?? 0;
         const coins = ctx.profile?.vela_coin_balance ?? 0;
         const speaking = ctx.profile?.speaking_progress ?? 0;
-        ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', ctx.profile?.goal_level ? (tr('Goal: ', 'Цель: ') + ctx.profile.goal_level) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
+        const goalLevel = studentGoal.fromProfile(ctx.profile, '');
+        ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', goalLevel ? (tr('Goal: ', 'Цель: ') + goalLevel) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
         ctx.setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
         ctx.setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
         const myCourse = state.myCourses[0];
@@ -729,7 +733,7 @@
 
     function learnerHubHeroV2(myCourse, liveItems) {
       const level = ctx.profile?.language_level || 'Level';
-      const goal = ctx.profile?.goal_level || tr('Choose a goal in profile', 'Goal');
+      const goal = studentGoal.fromProfile(ctx.profile, tr('Choose a goal in profile', 'Goal'));
       const title = myCourse ? tr('Continue your course', 'Continue your course') : tr('Build today around one clear action', 'Build today around one clear action');
       const copy = myCourse
         ? (myCourse.status === 'confirmed'
@@ -787,7 +791,7 @@
       const favorites=new Set(JSON.parse(localStorage.getItem('duvela.learner.eventFavorites')||'[]'));
       const video=state.videos[0]||{},events=(state.events||[]).slice(0,8),courses=(state.courses||[]).slice(0,4),live=(liveItems||[]).slice(0,4),challenges=(state.challenges||[]).slice(0,4);
       const booking=(state.myBookings||[])[0],course=state.myCourses[0];
-      const xp=Number(ctx.profile?.score)||0,goal=Number(ctx.profile?.weekly_minutes_goal)||50,skill=Math.round(((Number(ctx.profile?.grammar_progress)||0)+(Number(ctx.profile?.speaking_progress)||0)+(Number(ctx.profile?.vocabulary_progress)||0))/3);
+      const xp=Number(ctx.profile?.score)||0,studentGoalLevel=studentGoal.fromProfile(ctx.profile,tr('Set goal','Укажите цель')),skill=Math.round(((Number(ctx.profile?.grammar_progress)||0)+(Number(ctx.profile?.speaking_progress)||0)+(Number(ctx.profile?.vocabulary_progress)||0))/3);
       const videoProgress=Math.max(0,Math.min(100,Number(localStorage.getItem('duvela.video.progress.'+(video.id||'first')))||0));
       const dateKind=item=>{if(!item.event_date)return'upcoming';const date=new Date(item.event_date+'T12:00:00'),today=new Date(),same=date.toDateString()===today.toDateString(),weekend=[0,6].includes(date.getDay());return same?'today':weekend?'weekend':'upcoming';};
       const eventCard=item=>'<article class="lh-event" data-home-event data-home-kind="events" data-date-kind="'+dateKind(item)+'" data-language="'+esc(String(item.language||''))+'" data-level="'+esc(String(item.level||''))+'" data-format="'+(item.is_online?'online':'offline')+'" data-home-card="'+esc([item.title,item.city,item.language,item.level,item.description].filter(Boolean).join(' ').toLowerCase())+'">'+
@@ -798,11 +802,11 @@
       host.innerHTML='<div class="learner-home">'+
         '<div class="lh-search-row"><label class="lh-search">⌕<input id="learnerHomeSearch" placeholder="'+esc(tr('Search events, courses and LIVE…','Поиск событий, курсов и LIVE…'))+'"></label><button class="lh-filter" id="learnerFilterBtn">☷</button></div><div class="lh-filter-panel" id="learnerFilterPanel" hidden><select id="lhLanguage"><option value="">'+esc(tr('Any language','Любой язык'))+'</option><option>German</option><option>English</option><option>Spanish</option><option>Russian</option></select><select id="lhLevel"><option value="">'+esc(tr('Any level','Любой уровень'))+'</option>'+['A1','A2','B1','B2','C1','C2'].map(x=>'<option>'+x+'</option>').join('')+'</select><select id="lhFormat"><option value="">'+esc(tr('Any format','Любой формат'))+'</option><option value="online">Online</option><option value="offline">Offline</option></select></div>'+
         '<nav class="lh-primary-tabs"><button class="active" data-home-kind-filter="events">▦ '+esc(tr('Events','События'))+'</button><button data-home-kind-filter="courses">▣ '+esc(tr('Courses','Курсы'))+'</button><button data-home-kind-filter="live">◉ LIVE</button><button data-home-kind-filter="challenges">♕ '+esc(tr('Challenges','Челленджи'))+'</button></nav><div class="lh-filter-tabs">'+[['all',tr('All','Все')],['upcoming',tr('Upcoming','Предстоящие')],['today',tr('Today','Сегодня')],['weekend',tr('Weekend','Выходные')]].map((x,i)=>'<button data-home-filter="'+x[0]+'" class="'+(i?'':'active')+'">'+esc(x[1])+'</button>').join('')+'</div>'+
-        '<div class="lh-stats"><div><b>'+xp.toLocaleString()+'</b><span>XP</span></div><div><b>'+skill+'%</b><span>'+esc(tr('Skills','Навыки'))+'</span></div><div><b>'+goal+'</b><span>'+esc(tr('Daily goal','Цель дня'))+'</span></div></div>'+
+        '<div class="lh-stats"><div><b>'+xp.toLocaleString()+'</b><span>XP</span></div><div><b>'+skill+'%</b><span>'+esc(tr('Skills','Навыки'))+'</span></div><div><b>'+esc(studentGoalLevel)+'</b><span>'+esc(tr('Student Goal','Цель ученика'))+'</span></div></div>'+
         (booking?'<section class="lh-next"><span>□</span><div><small>'+esc(tr('Next booked lesson','Ближайший урок'))+'</small><b>'+esc(booking.teacher_name)+'</b><p>'+esc(formatDate(booking.slot_date)+' · '+String(booking.slot_time||'').slice(0,5))+'</p></div><a href="#schedule" data-go="schedule">'+esc(tr('Open','Открыть'))+'</a></section>':'')+
         (live.length?'<section class="lh-live-strip"><div><small>● LIVE</small><b>'+esc(live[0].teacher_name||tr('Teacher is live','Преподаватель в эфире'))+'</b></div><a href="'+esc(ctx.liveUrl(live[0]))+'">'+esc(tr('Watch','Смотреть'))+'</a></section>':'')+
         '<section class="lh-section"><div class="lh-heading"><h2>▶ '+esc(tr('Continue watching','Продолжить просмотр'))+'</h2><a href="#videos" data-go="videos">'+esc(tr('All media','Все медиа'))+'</a></div><article class="lh-continue"'+(video.id?' data-video="'+esc(video.id)+'"':'')+' data-home-card="'+esc([video.title,video.meta].filter(Boolean).join(' ').toLowerCase())+'"><div class="lh-video-thumb">'+(video.image?'<img src="'+esc(video.image)+'" alt="">':'')+'<span>▶</span><i style="width:'+videoProgress+'%"></i></div><div><h3>'+esc(video.title||tr('Choose your first video','Выберите первое видео'))+'</h3><p>'+esc(video.meta||tr('Lessons from Duvela teachers','Уроки преподавателей Duvela'))+'</p><small>'+videoProgress+'% '+esc(tr('watched','просмотрено'))+'</small></div></article></section>'+
-        '<div class="lh-levels"><b>✦ '+esc(tr('Your level','Ваш уровень'))+': '+esc(ctx.profile?.language_level||'A1')+'</b><span>'+esc(tr('Recommended for your language and level','Рекомендации по языку и уровню'))+'</span></div>'+
+        '<div class="lh-levels"><b>✦ '+esc(tr('Your level','Ваш уровень'))+': '+esc(ctx.profile?.language_level||'A1')+' → '+esc(studentGoalLevel)+'</b><span>'+esc(tr('Recommended for your language and Student Goal','Рекомендации по языку и цели ученика'))+'</span></div>'+
         (course?'<section class="lh-course-progress"><div><small>'+esc(tr('Current course','Текущий курс'))+'</small><b>'+esc(course.title)+'</b></div><strong>'+skill+'%</strong><i><span style="width:'+skill+'%"></span></i><a href="#courses" data-go="courses">'+esc(tr('Continue','Продолжить'))+'</a></section>':'')+
         '<section class="lh-section"><div class="lh-heading"><h2 id="lhCategoryTitle">'+esc(tr('Recommended events','Рекомендованные события'))+'</h2></div><div class="lh-event-grid">'+(events.length?events.map(eventCard).join(''):'<div class="lh-empty" data-home-kind="events" data-home-card="">'+esc(tr('New events will appear here.','Новые события появятся здесь.'))+'</div>')+'</div><div class="lh-mini-grid">'+courses.map(x=>mini(x,'courses')).concat(live.map(x=>mini(x,'live'))).join('')+challenges.map(challengeCard).join('')+'</div></section><div class="lh-no-results" id="learnerHomeEmpty" hidden>'+esc(tr('Nothing matched your filters.','По фильтрам ничего не найдено.'))+'</div>'+
         '<nav class="lh-mobile-nav"><a class="active" href="#home" data-go="home">⌂<span>'+esc(tr('Home','Главная'))+'</span></a><a href="#videos" data-go="videos">▶<span>'+esc(tr('Media','Медиа'))+'</span></a><a href="#workspace" data-go="workspace">✦<span>'+esc(tr('Practice','Практика'))+'</span></a><a href="#messages" data-go="messages">▣<span>'+esc(tr('Inbox','Сообщения'))+'</span></a><a href="#profile" data-go="profile">♙<span>'+esc(tr('Profile','Профиль'))+'</span></a></nav></div>';
@@ -883,7 +887,8 @@
         const speaking = ctx.profile?.speaking_progress ?? 0;
         const myCourse = state.myCourses[0];
         const liveForLearner = liveItems.filter((item) => !item.is_private);
-        ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', ctx.profile?.goal_level ? (tr('Goal: ', 'Цель: ') + ctx.profile.goal_level) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
+        const goalLevel = studentGoal.fromProfile(ctx.profile, '');
+        ctx.setMetric(0, tr('Current level', 'Текущий уровень'), ctx.profile?.language_level || '—', goalLevel ? (tr('Goal: ', 'Цель: ') + goalLevel) : tr('Feed tuned for your progress.', 'Лента настроена под ваш прогресс.'));
         ctx.setMetric(1, tr('Total XP', 'Всего XP'), xp.toLocaleString(), tr('Earned from practice and lessons.', 'Заработано на практике и уроках.'));
         ctx.setMetric(2, tr('Duvela Coins', 'Монеты Duvela'), coins.toLocaleString(), tr('Spend on rewards and unlocks.', 'Тратьте на награды и разблокировки.'));
         $('#homeList').innerHTML = learnerHubHeroV2(myCourse, liveForLearner) + [

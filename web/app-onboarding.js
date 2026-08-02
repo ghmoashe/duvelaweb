@@ -43,6 +43,11 @@
         best: ['Business profile', 'Learning directions', 'Contacts']
       }
     };
+    var studentGoal = window.DuvelaStudentGoal || {
+      LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1'],
+      normalize: function (value, fallback) { return String(value || fallback || 'A1').toUpperCase(); },
+      legacyPatch: function (value) { var level = String(value || 'A1').toUpperCase(); return { goal_level: level, learning_goal: level }; }
+    };
 
     var categoryIcons = { languages: '🌐', art: '🎨', education: '🧠', digital: '💻', career: '💼', life: '🏠', sportFitness: '🏃', personalDevelopment: '✨' };
     var subcategoryIcons = { Drawing:'✏️', Painting:'🖌️', Sculpture:'🗿', Animation:'🎞️', 'Graphic design':'🖥️', Crafts:'🧶', 'Art history':'🏛️', 'Interview preparation':'💬', 'AI interview':'🤖', Programming:'💻', 'Web development':'🌐', 'Mobile development':'📱', 'UI/UX':'🎨', Figma:'🎨', 'Video editing':'🎬', 'Content creation':'✍️', Math:'➗', Physics:'⚛️', Chemistry:'🧪', Biology:'🧬', Logic:'🧩', Cooking:'🍳', 'Personal finance':'💰', Mindfulness:'🧘', Communication:'💬', Productivity:'⚡', Confidence:'💪', Running:'🏃', Fitness:'💪', Yoga:'🧘', Cycling:'🚴', Chess:'♟️' };
@@ -163,7 +168,7 @@
     function stepThreeHtml() {
       if (role === 'learner') {
         return '<div class="ob-extra-grid">' +
-          labelInput('goal', 'Your learning goal', state.goal, { placeholder: 'For example: improve speaking for work' }) +
+          selectInput('level', 'Student goal', studentGoal.normalize(state.level, 'A1'), studentGoal.LEVELS) +
           '</div>' +
           '<div class="ob-extra-title">Your learning profile</div><div class="ob-extra-grid">' +
           labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
@@ -496,7 +501,7 @@
       var categoryTitle = role === 'organization' ? 'Organization type' : (role === 'organizer' ? 'Event direction' : 'Category');
       var categoryValue = role === 'organization' ? (state.orgType || 'Not set') : (category ? category.label : 'Languages');
       var goalTitle = role === 'organization' ? 'Description' : (role === 'organizer' ? 'Event type' : 'Goal');
-      var goalValue = role === 'organization' ? (state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.goal || state.specialization || 'Not set'));
+      var goalValue = role === 'organization' ? (state.specialization || 'Not set') : (role === 'organizer' ? (state.eventType || state.specialization || 'Not set') : (state.level || state.goal || state.specialization || 'Not set'));
       var socialItems = [state.instagram, state.tiktok, state.facebook, state.linkedin, state.youtube, state.telegram].filter(Boolean);
       var organizerContact = [state.website, state.email, state.instagram, state.tiktok, state.telegram].filter(Boolean);
       var organizationDirections = role === 'organization' ? state.organizationCategories.map(categoryLabel) : [];
@@ -870,7 +875,7 @@
         var primaryLevel = (state.languageLevels[state.learnLanguages[0]] || state.level || 'A1');
         patch.language = state.nativeLanguage.trim() || null;
         patch.language_level = primaryLevel;
-        patch.learning_goal = state.goal.trim() || null;
+        Object.assign(patch, studentGoal.legacyPatch(state.level));
         patch.learning_languages = state.learnLanguages.slice();
         patch.profile_interests = state.interests.slice();
         patch.learning_targets = [{
@@ -955,7 +960,7 @@
         return {
           user_id: userId, language: lang,
           current_level: (state.languageLevels[lang] || state.level || 'A1'),
-          goal_level: (state.level || 'A1'),
+          goal_level: studentGoal.normalize(state.level, 'A1'),
           is_active: i === 0, updated_at: new Date().toISOString()
         };
       });
