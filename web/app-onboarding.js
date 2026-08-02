@@ -44,7 +44,7 @@
       }
     };
     var studentGoal = window.DuvelaStudentGoal || {
-      LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1'],
+      LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
       normalize: function (value, fallback) { return String(value || fallback || 'A1').toUpperCase(); },
       legacyPatch: function (value) { var level = String(value || 'A1').toUpperCase(); return { goal_level: level, learning_goal: level }; }
     };
@@ -57,7 +57,7 @@
     var state = {
       firstName: '', lastName: '', orgName: '', bio: '', city: '', country: '', gender: '',
       nativeLanguage: '', goal: '', level: 'A1', category: '', subcategories: [],
-      learnLanguages: [], languageLevels: {}, interests: [],
+      learnLanguages: [], languageLevels: {}, goalLevels: {}, languageGoals: {}, interests: [],
       specialization: '', experience: '', teachLanguages: [], qualifications: '',
       format: '', website: '', orgType: '', dob: '', avatarFile: null, coverFile: null, avatarName: '',
       avatarPreview: '', coverPreview: '', coverPosition: 'center', coverPreset: 'duvela',
@@ -167,10 +167,7 @@
 
     function stepThreeHtml() {
       if (role === 'learner') {
-        return '<div class="ob-extra-grid">' +
-          selectInput('level', 'Student goal', studentGoal.normalize(state.level, 'A1'), studentGoal.LEVELS) +
-          '</div>' +
-          '<div class="ob-extra-title">Your learning profile</div><div class="ob-extra-grid">' +
+        return '<div class="ob-extra-title">Your learning profile</div><div class="ob-extra-grid">' +
           labelInput('nativeLanguage', 'Native language', state.nativeLanguage, { placeholder: 'For example: Russian' }) +
           '</div>' +
           '<label class="wide">Learning category<small style="font-weight:600;color:var(--muted)">Choose one direction</small></label>' +
@@ -182,7 +179,7 @@
           ((state.category || 'languages') === 'languages' ?
             '<label class="wide">Languages you want to learn<small id="ob-lang-hint" style="font-weight:600;color:var(--muted)">Choose up to 3</small></label>' +
             langScroll('learnLanguages', state.learnLanguages) +
-            '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' : '') +
+            '<div id="ob-lang-levels">' + languageLevelsHtml() + '</div>' : generalGoalHtml()) +
           '<label class="wide">Interests<small style="font-weight:600;color:var(--muted)">Select at least 3 interests to personalise your Hub</small></label>' +
           chipList('interests', D.INTERESTS || [], state.interests, function (it) { return it.icon + ' ' + it.label; }) +
           '<div id="ob-autocomplete" class="ob-autocomplete" hidden></div>';
@@ -417,23 +414,47 @@
 
     function languageLevelsHtml() {
       if (!state.learnLanguages.length) return '';
-      return '<div class="ob-summary-title">Selected languages and levels</div><div class="ob-lang-levels-grid">' + state.learnLanguages.map(function (lang) {
-        var lvl = state.languageLevels[lang] || state.level;
-        return '<label class="ob-lang-level">' + esc(lang) +
-          '<select data-lang-level="' + esc(lang) + '">' + (D.LEVELS || ['A1']).map(function (l) {
-            return '<option' + (l === lvl ? ' selected' : '') + '>' + l + '</option>';
-          }).join('') + '</select></label>';
+      return '<div class="ob-summary-title">Selected languages, levels and goals</div><div class="ob-lang-goals-grid">' + state.learnLanguages.map(function (lang) {
+        var currentLevel = state.languageLevels[lang] || state.level || 'A1';
+        var targetLevel = state.goalLevels[lang] || currentLevel;
+        var goal = state.languageGoals[lang] || '';
+        return '<section class="ob-lang-goal-card"><div><b>' + esc(lang) + '</b><small>' + esc(currentLevel) + ' -> ' + esc(targetLevel) + '</small></div>' +
+          '<label class="ob-lang-level">Current level<select data-lang-level="' + esc(lang) + '">' + (D.LEVELS || ['A1']).map(function (l) {
+            return '<option' + (l === currentLevel ? ' selected' : '') + '>' + l + '</option>';
+          }).join('') + '</select></label>' +
+          '<label class="ob-lang-level">Target level<select data-lang-goal-level="' + esc(lang) + '">' + studentGoal.LEVELS.map(function (l) {
+            return '<option' + (l === targetLevel ? ' selected' : '') + '>' + l + '</option>';
+          }).join('') + '</select></label>' +
+          '<label class="ob-lang-level wide">My goal<input data-lang-goal="' + esc(lang) + '" value="' + esc(goal) + '" placeholder="' + esc('For example: speak ' + lang + ' fluently') + '"></label></section>';
       }).join('') + '</div>';
+    }
+
+    function generalGoalKey() {
+      return 'category:' + (state.category || 'languages');
+    }
+
+    function generalGoalHtml() {
+      var key = generalGoalKey();
+      var targetLevel = state.goalLevels[key] || state.level || 'A1';
+      var goal = state.languageGoals[key] || state.goal || '';
+      return '<div id="ob-general-goal"><div class="ob-summary-title">Your goal</div><section class="ob-lang-goal-card">' +
+        '<div><b>' + esc(categoryLabel(state.category)) + '</b><small>' + esc(targetLevel) + '</small></div>' +
+        '<label class="ob-lang-level wide">My goal<input id="ob-goal" data-lang-goal="' + esc(key) + '" value="' + esc(goal) + '" placeholder="' + esc('For example: improve my ' + categoryLabel(state.category).toLowerCase() + ' skills') + '"></label>' +
+        '<label class="ob-lang-level">Target level<select data-lang-goal-level="' + esc(key) + '">' + studentGoal.LEVELS.map(function (l) {
+          return '<option' + (l === targetLevel ? ' selected' : '') + '>' + l + '</option>';
+        }).join('') + '</select></label></section></div>';
     }
 
     function selectedLanguageSummary(list) {
       var langs = list || state.learnLanguages;
       if (!langs.length) return '<span class="muted">No language selected</span>';
       return langs.map(function (lang) {
-        return '<span class="ob-preview-pill">' + esc(lang) + ' · ' + esc(state.languageLevels[lang] || state.level || 'A1') + '</span>';
+        var currentLevel = state.languageLevels[lang] || state.level || 'A1';
+        var targetLevel = state.goalLevels[lang] || currentLevel;
+        var goal = state.languageGoals[lang] ? (' - ' + state.languageGoals[lang]) : '';
+        return '<span class="ob-preview-pill">' + esc(lang) + ' ' + esc(currentLevel) + ' -> ' + esc(targetLevel) + esc(goal) + '</span>';
       }).join('');
     }
-
     function selectedItemsSummary(items) {
       if (!items || !items.length) return '<span class="muted">Nothing selected</span>';
       return items.map(function (x) { return '<span class="ob-preview-pill">' + esc(x) + '</span>'; }).join('');
@@ -560,6 +581,32 @@
       state.teachLanguages = state.teachLanguages.slice(0, 3);
       state.eventLanguages = state.eventLanguages.slice(0, 3);
       if (role !== 'organization') state.subcategories = state.subcategories.slice(0, 3);
+      var allowed = {};
+      state.learnLanguages.forEach(function (language) { allowed[language] = true; });
+      Object.keys(state.languageLevels || {}).forEach(function (language) { if (!allowed[language]) delete state.languageLevels[language]; });
+      Object.keys(state.goalLevels || {}).forEach(function (target) { if (target.indexOf('category:') !== 0 && !allowed[target]) delete state.goalLevels[target]; });
+      Object.keys(state.languageGoals || {}).forEach(function (target) { if (target.indexOf('category:') !== 0 && !allowed[target]) delete state.languageGoals[target]; });
+    }
+
+    function bindLanguageGoalFields() {
+      form.querySelectorAll('[data-lang-level]').forEach(function (sel) {
+        sel.onchange = function () {
+          state.languageLevels[sel.dataset.langLevel] = sel.value;
+          if (!state.goalLevels[sel.dataset.langLevel]) state.goalLevels[sel.dataset.langLevel] = sel.value;
+        };
+      });
+      form.querySelectorAll('[data-lang-goal-level]').forEach(function (sel) {
+        sel.onchange = function () {
+          state.goalLevels[sel.dataset.langGoalLevel] = sel.value;
+          if (sel.dataset.langGoalLevel === generalGoalKey()) state.level = sel.value;
+        };
+      });
+      form.querySelectorAll('[data-lang-goal]').forEach(function (input) {
+        input.oninput = function () {
+          state.languageGoals[input.dataset.langGoal] = input.value;
+          if (input.dataset.langGoal === generalGoalKey()) state.goal = input.value;
+        };
+      });
     }
 
     function render() {
@@ -664,6 +711,8 @@
             state.teachLanguages = [];
             if (role !== 'organization') state.organizationLanguages = [];
             state.languageLevels = {};
+            state.goalLevels = {};
+            state.languageGoals = {};
           }
           render();
         };
@@ -705,10 +754,8 @@
           if (id === 'category' || id === 'coverPosition') { render(); }
         };
       });
-      // per-language level selects
-      form.querySelectorAll('[data-lang-level]').forEach(function (sel) {
-        sel.onchange = function () { state.languageLevels[sel.dataset.langLevel] = sel.value; };
-      });
+      // per-language level and goal controls
+      bindLanguageGoalFields();
       // autocomplete country / city (step 2) and native language (step 3)
       ['country', 'city', 'nativeLanguage'].forEach(function (id) {
         var el = $('#ob-' + id);
@@ -737,10 +784,17 @@
         if (kind === 'eventLanguages' && arr.length >= 3) return;
         if (kind === 'subcategories' && role !== 'organization' && arr.length >= 3) return;
         arr.push(value);
-        if (kind === 'learnLanguages') state.languageLevels[value] = state.languageLevels[value] || state.level;
+        if (kind === 'learnLanguages') {
+          state.languageLevels[value] = state.languageLevels[value] || state.level;
+          state.goalLevels[value] = state.goalLevels[value] || state.languageLevels[value] || state.level;
+        }
       } else {
         arr.splice(idx, 1);
-        if (kind === 'learnLanguages') delete state.languageLevels[value];
+        if (kind === 'learnLanguages') {
+          delete state.languageLevels[value];
+          delete state.goalLevels[value];
+          delete state.languageGoals[value];
+        }
       }
       // Re-render just the affected group + language levels without losing focus.
       var group = form.querySelector('[data-chip-group="' + kind + '"]');
@@ -761,7 +815,7 @@
           bindOrganizationSummary();
         }
       }
-      if (kind === 'learnLanguages') { var box = $('#ob-lang-levels'); if (box) { box.innerHTML = languageLevelsHtml(); form.querySelectorAll('[data-lang-level]').forEach(function (sel) { sel.onchange = function () { state.languageLevels[sel.dataset.langLevel] = sel.value; }; }); } }
+      if (kind === 'learnLanguages') { var box = $('#ob-lang-levels'); if (box) { box.innerHTML = languageLevelsHtml(); bindLanguageGoalFields(); } }
     }
 
     function showAutocomplete(kind, input) {
@@ -856,6 +910,25 @@
       return null;
     }
 
+    function cleanGoalText(value) {
+      return String(value || '').replace(/\b(A1|A2|B1|B2|C1|C2)\b/gi, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function buildLearningGoalSummary(languages, goals, goalLevels, fallbackGoal) {
+      var list = (languages || []).map(function (language) {
+        var targetLevel = studentGoal.normalize(goalLevels[language], state.languageLevels[language] || state.level || 'A1');
+        var goal = cleanGoalText(goals[language] || fallbackGoal);
+        return [language, goal, targetLevel].filter(Boolean).join(' ');
+      });
+      if (!list.length) {
+        var key = generalGoalKey();
+        var categoryGoal = cleanGoalText(goals[key] || fallbackGoal);
+        var categoryLevel = studentGoal.normalize(goalLevels[key], state.level || 'A1');
+        list.push([categoryLabel(state.category), categoryGoal, categoryLevel].filter(Boolean).join(' '));
+      }
+      return list.filter(Boolean).join(' | ');
+    }
+
     function buildPatch() {
       var fullName = role === 'organization' ? state.orgName.trim()
         : [state.firstName, state.lastName].map(function (x) { return x.trim(); }).filter(Boolean).join(' ');
@@ -872,19 +945,46 @@
         updated_at: new Date().toISOString()
       };
       if (role === 'learner') {
-        var primaryLevel = (state.languageLevels[state.learnLanguages[0]] || state.level || 'A1');
+        var learningCategory = state.category || 'languages';
+        var generalKey = generalGoalKey();
+        var primaryLanguage = state.learnLanguages[0];
+        var primaryLevel = (state.languageLevels[primaryLanguage] || state.level || 'A1');
+        var primaryGoalLevel = studentGoal.normalize(state.goalLevels[primaryLanguage] || state.goalLevels[generalKey], primaryLevel);
+        var selectedGoalLevels = {};
+        var selectedLanguageGoals = {};
+        state.learnLanguages.forEach(function (language) {
+          selectedGoalLevels[language] = studentGoal.normalize(state.goalLevels[language], state.languageLevels[language] || state.level || 'A1');
+          if (state.languageGoals[language]) selectedLanguageGoals[language] = cleanGoalText(state.languageGoals[language]);
+        });
+        if (!state.learnLanguages.length) {
+          selectedGoalLevels[generalKey] = primaryGoalLevel;
+          if (state.languageGoals[generalKey] || state.goal) selectedLanguageGoals[generalKey] = cleanGoalText(state.languageGoals[generalKey] || state.goal);
+        }
+        var learningGoal = buildLearningGoalSummary(state.learnLanguages, selectedLanguageGoals, selectedGoalLevels, state.goal);
         patch.language = state.nativeLanguage.trim() || null;
         patch.language_level = primaryLevel;
-        Object.assign(patch, studentGoal.legacyPatch(state.level));
+        patch.goal_level = primaryGoalLevel;
+        patch.learning_goal = learningGoal || primaryGoalLevel;
         patch.learning_languages = state.learnLanguages.slice();
         patch.profile_interests = state.interests.slice();
         patch.learning_targets = [{
-          category: state.category || 'languages',
+          category: learningCategory,
           languages: state.learnLanguages.slice(),
           levels: state.languageLevels,
+          goal: learningGoal || null,
+          goalLevel: primaryGoalLevel,
+          goals: selectedLanguageGoals,
+          goalLevels: selectedGoalLevels,
           subcategories: state.subcategories.slice()
         }].concat(state.learnLanguages.map(function (lang) {
-          return { category: state.category || 'languages', language: lang, level: state.languageLevels[lang] || primaryLevel, subcategories: state.subcategories.slice() };
+          return {
+            category: learningCategory,
+            language: lang,
+            level: state.languageLevels[lang] || primaryLevel,
+            goal: selectedLanguageGoals[lang] || learningGoal || null,
+            goalLevel: selectedGoalLevels[lang] || primaryGoalLevel,
+            subcategories: state.subcategories.slice()
+          };
         }));
       }
       if (role === 'teacher') {
@@ -957,10 +1057,11 @@
     async function saveLearnerLanguages(userId) {
       if (role !== 'learner' || !state.learnLanguages.length) return;
       var rows = state.learnLanguages.map(function (lang, i) {
+        var currentLevel = state.languageLevels[lang] || state.level || 'A1';
         return {
           user_id: userId, language: lang,
-          current_level: (state.languageLevels[lang] || state.level || 'A1'),
-          goal_level: studentGoal.normalize(state.level, 'A1'),
+          current_level: currentLevel,
+          goal_level: studentGoal.normalize(state.goalLevels[lang], currentLevel),
           is_active: i === 0, updated_at: new Date().toISOString()
         };
       });

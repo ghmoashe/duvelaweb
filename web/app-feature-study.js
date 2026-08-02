@@ -225,7 +225,7 @@
     const MISTAKE_KEY = 'duvela.study.mistakes';
     const SAVED_WORDS_KEY = 'duvela.study.savedWords';
     const STUDENT_GOAL = window.DuvelaStudentGoal || {
-      LEVELS: ['A1','A2','B1','B2','C1'],
+      LEVELS: ['A1','A2','B1','B2','C1','C2'],
       normalize: function(value,fallback){ var raw=String(value||'').trim().toUpperCase(); return this.LEVELS.indexOf(raw)>=0?raw:(fallback||''); },
       fromProfile: function(profile,fallback){ return this.normalize(profile&&profile.goal_level,fallback); },
       legacyPatch: function(value){ var level=this.normalize(value,'A1'); return { goal_level:level, learning_goal:level }; }
@@ -298,6 +298,25 @@
     }
     function studentGoalLevel(fallback) {
       return STUDENT_GOAL.fromProfile(ctx.profile, fallback || '');
+    }
+    function studentGoalLevelForTarget(target, fallback) {
+      var normalizedTarget = normalizePracticeTarget(target);
+      var prefs = loadPrefs();
+      if (prefs.goalLevels && prefs.goalLevels[normalizedTarget]) return STUDENT_GOAL.normalize(prefs.goalLevels[normalizedTarget], fallback || '');
+      var profile = ctx.profile || {};
+      var learningTargets = Array.isArray(profile.learning_targets) ? profile.learning_targets : [];
+      for (var i = 0; i < learningTargets.length; i++) {
+        var item = learningTargets[i];
+        if (!item || typeof item !== 'object') continue;
+        if (item.goalLevels && typeof item.goalLevels === 'object') {
+          var keys = Object.keys(item.goalLevels);
+          for (var j = 0; j < keys.length; j++) {
+            if (normalizePracticeTarget(keys[j]) === normalizedTarget) return STUDENT_GOAL.normalize(item.goalLevels[keys[j]], fallback || '');
+          }
+        }
+        if (item.language && normalizePracticeTarget(item.language) === normalizedTarget && item.goalLevel) return STUDENT_GOAL.normalize(item.goalLevel, fallback || '');
+      }
+      return studentGoalLevel(fallback);
     }
     function examDaysLeft(goal) { if(!goal.date)return null;return Math.max(0,Math.ceil((new Date(goal.date+'T12:00:00')-Date.now())/86400000)); }
     function skillReadiness(progress) {
@@ -408,7 +427,7 @@
         if ((results[7].data || []).length) { var prefs=loadPrefs();prefs.levels=prefs.levels||{};(results[7].data||[]).forEach(function(row){prefs.levels[row.language]=row.level;if(row.active)prefs.practiceLang=row.language;});savePrefs(prefs); }
         if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime(),cloudLevel=normalizePracticeLevel(cloud.level,'A1');if(cloud.language===currentLang()&&cloudLevel===currentPracticeLevel(cloud.language)&&(!local||cloudAt>Number(local.at||0)))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,level:cloudLevel,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloud.state&&cloud.state.startedAt||Date.now(),at:cloudAt})); }
         if(results[9]&&results[9].data){var exam=results[9].data;localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify({exam:exam.exam_type,date:exam.exam_date,daysPerWeek:exam.days_per_week,minutes:exam.minutes_per_day}));}
-        if(results[10]&&(results[10].data||[]).length){var languagePrefs=loadPrefs();languagePrefs.levels=languagePrefs.levels||{};(results[10].data||[]).forEach(function(row){var target=normalizePracticeTarget(row.language);if(!target)return;languagePrefs.levels[target]=String(row.current_level||'A1').toUpperCase();if(row.is_active){languagePrefs.practiceTarget=target;languagePrefs.practiceLang=target;if(ctx.profile&&row.goal_level)ctx.profile.goal_level=STUDENT_GOAL.normalize(row.goal_level,ctx.profile.goal_level||'A1');}});savePrefs(languagePrefs);}
+        if(results[10]&&(results[10].data||[]).length){var languagePrefs=loadPrefs();languagePrefs.levels=languagePrefs.levels||{};languagePrefs.goalLevels=languagePrefs.goalLevels||{};(results[10].data||[]).forEach(function(row){var target=normalizePracticeTarget(row.language);if(!target)return;languagePrefs.levels[target]=String(row.current_level||'A1').toUpperCase();if(row.goal_level)languagePrefs.goalLevels[target]=STUDENT_GOAL.normalize(row.goal_level,languagePrefs.levels[target]||'A1');if(row.is_active){languagePrefs.practiceTarget=target;languagePrefs.practiceLang=target;if(ctx.profile&&row.goal_level)ctx.profile.goal_level=STUDENT_GOAL.normalize(row.goal_level,ctx.profile.goal_level||'A1');}});savePrefs(languagePrefs);}
         if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,reviewStep:Number(row.review_step||0),dueAt:new Date(row.due_at||Date.now()).getTime(),at:new Date(row.updated_at).getTime() }; }));
         if ((results[2].data || []).length) localStorage.setItem(SAVED_WORDS_KEY,JSON.stringify(results[2].data.map(function (row) { return { lang:row.language,w:row.word,t:row.translation,box:row.box,dueAt:row.due_at }; })));
         if(ctx.renderWorkspace)ctx.renderWorkspace();
@@ -739,7 +758,7 @@
           '<div class="mph-exercise-copy"><h3>' + esc(item.title) + '</h3><strong>' + esc(item.meta) + '</strong><p>' + esc(item.desc) + '</p></div>' +
           '<span class="mph-exercise-action">' + esc(item.action) + '</span></button>';
       }
-      var goalLevel=studentGoalLevel('');
+      var goalLevel=studentGoalLevelForTarget(activeTarget,'');
       var goalDisplay=goalLevel||tr('Set goal','Укажите цель');
       var score=Math.max(230,Number(done||0)),silverTarget=250,goalPercent=Math.max(4,Math.min(100,Math.round(score/6000*100)));
       var examDate=examGoal.date||'',examDateObj=examDate?new Date(examDate+'T12:00:00'):null,examDays=examDate?daysLeft:null;
@@ -1799,7 +1818,8 @@
     function renderExam() {
       if (!studyState.progressDirect) return renderProgressHub();
       if (!studyState.examType) {
-        $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>Goethe · Cambridge · A1–C2</p></div></div><div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
+        $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>Goethe · Cambridge · A1–C2</p></div></div><button id="telcA1Launch" style="width:100%;text-align:left;margin:0 0 12px;padding:14px 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#7138ed,#a536ef);color:#fff;cursor:pointer"><span style="font-size:11px;letter-spacing:.5px;opacity:.85;font-weight:800">ECHTE PRÜFUNG · A1</span><br><b style="font-size:16px">telc Deutsch A1 – Modelltest</b><br><small style="opacity:.85">Hören · Lesen · Schreiben · Sprechen →</small></button><div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
+        var telcLaunch=document.getElementById('telcA1Launch');if(telcLaunch)telcLaunch.onclick=function(){location.href='./telc-exam.html';};
         Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if(type==='mixed')return startFullMock(); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
       }
       if (!studyState.data) {

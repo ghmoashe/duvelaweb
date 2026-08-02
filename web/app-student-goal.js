@@ -1,5 +1,5 @@
 (function () {
-  var LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+  var LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
   function normalize(value, fallback) {
     var raw = String(value || '').trim().toUpperCase();

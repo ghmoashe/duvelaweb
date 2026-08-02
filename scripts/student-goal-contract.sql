@@ -1,5 +1,5 @@
 -- Student Goal contract for Duvela web and mobile Academy Hub.
--- Apply this on existing Supabase projects before relying on A1-C1 goal sync.
+-- Apply this on existing Supabase projects before relying on A1-C2 goal sync.
 
 alter table public.profiles
   add column if not exists goal_level text,
@@ -8,17 +8,17 @@ alter table public.profiles
 update public.profiles
 set goal_level = upper(trim(learning_goal))
 where goal_level is null
-  and upper(trim(learning_goal)) in ('A1', 'A2', 'B1', 'B2', 'C1');
+  and upper(trim(learning_goal)) in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2');
 
 update public.profiles
 set goal_level = upper(trim(goal_level))
 where goal_level is not null
-  and upper(trim(goal_level)) in ('A1', 'A2', 'B1', 'B2', 'C1');
+  and upper(trim(goal_level)) in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2');
 
 update public.profiles
 set goal_level = null
 where goal_level is not null
-  and goal_level not in ('A1', 'A2', 'B1', 'B2', 'C1');
+  and goal_level not in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2');
 
 update public.profiles
 set learning_goal = goal_level
@@ -32,7 +32,7 @@ alter table public.profiles
   add constraint profiles_goal_level_check
   check (
     goal_level is null
-    or goal_level in ('A1', 'A2', 'B1', 'B2', 'C1')
+    or goal_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')
   );
 
 create table if not exists public.learner_language_profiles (
@@ -48,7 +48,7 @@ create table if not exists public.learner_language_profiles (
   constraint learner_language_profiles_current_level_check
     check (current_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
   constraint learner_language_profiles_goal_level_check
-    check (goal_level in ('A1', 'A2', 'B1', 'B2', 'C1'))
+    check (goal_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2'))
 );
 
 alter table public.learner_language_profiles
@@ -80,12 +80,12 @@ where current_level is null
 update public.learner_language_profiles
 set goal_level = upper(trim(goal_level))
 where goal_level is not null
-  and upper(trim(goal_level)) in ('A1', 'A2', 'B1', 'B2', 'C1');
+  and upper(trim(goal_level)) in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2');
 
 update public.learner_language_profiles
 set goal_level = 'A1'
 where goal_level is null
-   or goal_level not in ('A1', 'A2', 'B1', 'B2', 'C1');
+   or goal_level not in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2');
 
 alter table public.learner_language_profiles
   alter column user_id set not null,
@@ -115,7 +115,7 @@ alter table public.learner_language_profiles
 
 alter table public.learner_language_profiles
   add constraint learner_language_profiles_goal_level_check
-  check (goal_level in ('A1', 'A2', 'B1', 'B2', 'C1'));
+  check (goal_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2'));
 
 delete from public.learner_language_profiles
 where ctid in (

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>telc Deutsch A1 – Prüfung | Duvela</title>
+<link rel="icon" href="./logo.webp" type="image/webp">
+<script src="./web/vendor/supabase-js-v2.js"></script>
+<style>
+  :root{font-family:Inter,system-ui,sans-serif;color:#f5f2fb;background:#0e0b16}
+  *{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit;color:inherit}
+  .wrap{max-width:720px;margin:0 auto;min-height:100vh;padding:20px 16px 60px;display:flex;flex-direction:column;gap:16px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800}.brand img{width:30px;height:30px;border-radius:8px}
+  .timer{font-weight:900;color:#7ee0bb;font-variant-numeric:tabular-nums;background:#14261e;border:1px solid #23503f;border-radius:10px;padding:6px 12px}
+  .card{background:#171321;border:1px solid #322a44;border-radius:20px;padding:20px}
+  h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:0 0 6px}
+  .muted{color:#a99fbb}.small{font-size:13px}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .steps span{font-size:11px;font-weight:800;padding:5px 9px;border-radius:999px;background:#221b30;color:#8f84a3;border:1px solid #322a44}
+  .steps span.done{background:#153329;color:#7ee0bb;border-color:#276f58}
+  .steps span.now{background:#33204f;color:#fff;border-color:#8844ff}
+  .prog{height:6px;border-radius:999px;background:#241d31;overflow:hidden;margin:14px 0 4px}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,#7138ed,#a536ef);width:0;transition:width .3s}
+  .q{font-size:17px;font-weight:800;margin:8px 0 12px;line-height:1.4}
+  .passage{background:#0f0c17;border:1px solid #2c2440;border-radius:14px;padding:14px;margin:8px 0 14px;white-space:pre-wrap;line-height:1.5}
+  .passage .label{display:inline-block;font-size:11px;font-weight:900;color:#b79cff;letter-spacing:.5px;margin-bottom:6px}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{text-align:left;border:1px solid #3a3350;border-radius:13px;background:#211b2c;padding:13px 15px;cursor:pointer;transition:.15s}
+  .opt:hover{border-color:#7a56d6}.opt.sel{border-color:#8844ff;background:#33204f}
+  .opt.correct{border-color:#2ea87f;background:#14311f}.opt.wrong{border-color:#c6414a;background:#341920}
+  .tf{display:flex;gap:10px}.tf button{flex:1}
+  .btn{border:0;border-radius:13px;padding:13px 18px;font-weight:800;cursor:pointer;background:#241d31;color:#eee;border:1px solid #3a3350}
+  .btn.primary{background:linear-gradient(135deg,#7138ed,#a536ef);border:0;color:#fff;width:100%}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center}
+  .field{margin:10px 0}.field label{display:block;font-size:13px;color:#a99fbb;margin-bottom:5px}
+  input,textarea,select{width:100%;background:#0f0c17;border:1px solid #3a3350;border-radius:11px;padding:11px 13px}
+  textarea{min-height:130px;resize:vertical}
+  .pill{display:inline-block;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;background:#221b30;border:1px solid #322a44;margin:3px}
+  .leit li{margin:5px 0}
+  .listen-btn{width:100%;margin-bottom:12px}
+  .plays{font-size:12px;color:#a99fbb;text-align:center;margin-top:-6px;margin-bottom:10px}
+  .result-score{font-size:46px;font-weight:900;text-align:center}
+  .result-band{text-align:center;font-weight:900;font-size:18px;margin-top:2px}
+  .pass{color:#7ee0bb}.fail{color:#ff9ba0}
+  .bar{display:flex;align-items:center;gap:10px;margin:9px 0}
+  .bar b{width:96px;font-size:13px}.bar .track{flex:1;height:10px;border-radius:999px;background:#241d31;overflow:hidden}
+  .bar .track i{display:block;height:100%;background:#7138ed}
+  .ai-feedback{background:#0f0c17;border:1px solid #2c2440;border-radius:14px;padding:14px;margin-top:12px;line-height:1.5}
+  .ai-feedback b{color:#b79cff}
+  .center{text-align:center}
+  .review{border-left:3px solid #3a3350;background:#0f0c17;border-radius:10px;padding:10px 12px;margin:9px 0}
+  .review.ok{border-left-color:#2ea87f}.review.bad{border-left-color:#c6414a}
+  .review-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .review.ok .review-head span{color:#7ee0bb}.review.bad .review-head span{color:#ff9ba0}
+  .review-q{font-weight:700;margin-bottom:5px;line-height:1.35}
+  .spinner{width:26px;height:26px;border-radius:50%;border:3px solid #3a3350;border-top-color:#a536ef;animation:spin .8s linear infinite;margin:14px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><img src="./logo.webp" alt="">telc Deutsch A1</div>
+      <div class="timer" id="timer" hidden>20:00</div>
+    </div>
+    <div id="app"></div>
+  </div>
+  <script type="module" src="./web/telc-exam.js"></script>
+</body>
+</html>

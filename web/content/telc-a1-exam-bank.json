@@ -1,0 +1,259 @@
+{
+  "exam": "telc-deutsch-a1",
+  "level": "A1",
+  "note": "Originalinhalte im telc-A1-Format (kein offizielles Prüfungsmaterial). Zum Üben für Start Deutsch 1 / telc Deutsch A1.",
+  "passMark": 60,
+  "weights": { "hoeren": 25, "lesen": 25, "schreiben": 25, "sprechen": 25 },
+  "tests": [
+    {
+      "id": "mt1",
+      "title": "Modelltest 1",
+      "sections": [
+        {
+          "id": "hoeren", "title": "Hören", "durationMin": 20, "maxPoints": 15,
+          "instructions": "Sie hören kurze Texte. Sie hören jeden Text zweimal.",
+          "parts": [
+            {
+              "id": "h1", "title": "Teil 1", "type": "audio-choice",
+              "instructions": "Was ist richtig? Kreuzen Sie an: a, b oder c.",
+              "items": [
+                { "id": "m1-h1-1", "transcript": "Entschuldigung, wie spät ist es? – Es ist zehn nach acht.", "question": "Wie spät ist es?", "options": ["8:10 Uhr", "8:20 Uhr", "10:08 Uhr"], "answer": 0, "explain": "„zehn nach acht\" = 8:10 Uhr." },
+                { "id": "m1-h1-2", "transcript": "Was möchtest du trinken? – Einen Kaffee, bitte, und ein Wasser.", "question": "Was möchte die Frau trinken?", "options": ["Tee und Wasser", "Kaffee und Wasser", "Kaffee und Saft"], "answer": 1, "explain": "Sie sagt: Kaffee und Wasser." },
+                { "id": "m1-h1-3", "transcript": "Guten Tag. Ich hätte gern ein Kilo Äpfel und drei Bananen. – Gern, das macht zwei Euro fünfzig.", "question": "Was kauft der Mann?", "options": ["Äpfel und Bananen", "Äpfel und Orangen", "Bananen und Birnen"], "answer": 0, "explain": "Äpfel und Bananen." },
+                { "id": "m1-h1-4", "transcript": "Der Zug nach Berlin fährt um vierzehn Uhr von Gleis drei.", "question": "Von welchem Gleis fährt der Zug?", "options": ["Gleis 3", "Gleis 13", "Gleis 4"], "answer": 0, "explain": "„Gleis drei\" = Gleis 3." },
+                { "id": "m1-h1-5", "transcript": "Wo ist die Apotheke, bitte? – Gehen Sie geradeaus und dann die erste Straße links.", "question": "Wohin muss die Person gehen?", "options": ["geradeaus, dann rechts", "geradeaus, dann links", "nur geradeaus"], "answer": 1, "explain": "geradeaus und dann links." }
+              ]
+            },
+            {
+              "id": "h2", "title": "Teil 2", "type": "audio-truefalse",
+              "instructions": "Sie hören fünf Durchsagen. Richtig oder falsch?",
+              "items": [
+                { "id": "m1-h2-1", "transcript": "Liebe Kundinnen und Kunden, unser Supermarkt schließt heute um zwanzig Uhr.", "statement": "Der Supermarkt schließt um 20 Uhr.", "answer": true, "explain": "„um zwanzig Uhr\" = 20 Uhr." },
+                { "id": "m1-h2-2", "transcript": "Achtung am Gleis fünf: Der Zug nach München hat zehn Minuten Verspätung.", "statement": "Der Zug nach München ist pünktlich.", "answer": false, "explain": "Er hat 10 Minuten Verspätung." },
+                { "id": "m1-h2-3", "transcript": "Guten Morgen. Der Deutschkurs beginnt heute um neun Uhr im Raum zwölf.", "statement": "Der Kurs ist im Raum 12.", "answer": true, "explain": "„im Raum zwölf\"." },
+                { "id": "m1-h2-4", "transcript": "Willkommen im Schwimmbad. Am Montag ist das Schwimmbad geschlossen.", "statement": "Am Montag kann man schwimmen.", "answer": false, "explain": "Montag geschlossen." },
+                { "id": "m1-h2-5", "transcript": "Nächste Station: Hauptbahnhof. Bitte steigen Sie hier aus.", "statement": "Die nächste Station ist der Hauptbahnhof.", "answer": true, "explain": "„Nächste Station: Hauptbahnhof\"." }
+              ]
+            },
+            {
+              "id": "h3", "title": "Teil 3", "type": "audio-choice",
+              "instructions": "Was ist richtig? Kreuzen Sie an: a, b oder c.",
+              "items": [
+                { "id": "m1-h3-1", "transcript": "Hallo Anna, wollen wir am Samstag ins Kino gehen? – Am Samstag kann ich nicht. Aber am Sonntag habe ich Zeit.", "question": "Wann hat Anna Zeit?", "options": ["am Samstag", "am Sonntag", "am Freitag"], "answer": 1, "explain": "„am Sonntag habe ich Zeit\"." },
+                { "id": "m1-h3-2", "transcript": "Wie kommst du zur Arbeit? – Ich fahre mit dem Bus. Das Auto ist zu teuer.", "question": "Wie fährt der Mann zur Arbeit?", "options": ["mit dem Auto", "mit dem Fahrrad", "mit dem Bus"], "answer": 2, "explain": "„Ich fahre mit dem Bus\"." },
+                { "id": "m1-h3-3", "transcript": "Was machst du gern in der Freizeit? – Ich koche gern und ich lese viele Bücher.", "question": "Was macht die Frau gern?", "options": ["kochen und lesen", "singen und tanzen", "kochen und schwimmen"], "answer": 0, "explain": "kochen und lesen." },
+                { "id": "m1-h3-4", "transcript": "Wie viele Personen sind Sie? – Wir sind zu viert: meine Frau, zwei Kinder und ich.", "question": "Wie viele Personen sind es?", "options": ["drei Personen", "vier Personen", "fünf Personen"], "answer": 1, "explain": "„zu viert\" = 4." },
+                { "id": "m1-h3-5", "transcript": "Wo wohnst du jetzt? – Ich wohne in Hamburg, aber ich komme aus Spanien.", "question": "Woher kommt der Mann?", "options": ["aus Hamburg", "aus Spanien", "aus Italien"], "answer": 1, "explain": "„ich komme aus Spanien\"." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen", "title": "Lesen", "durationMin": 25, "maxPoints": 15,
+          "instructions": "Lesen Sie die Texte und lösen Sie die Aufgaben.",
+          "parts": [
+            {
+              "id": "l1", "title": "Teil 1", "type": "read-truefalse",
+              "instructions": "Lesen Sie die zwei Texte. Richtig oder falsch?",
+              "texts": [
+                { "id": "m1-l1-a", "label": "E-Mail", "body": "Hallo Sabine,\nich komme am Freitag nach Köln. Mein Zug kommt um 18 Uhr am Hauptbahnhof an. Kannst du mich abholen? Danach können wir zusammen essen.\nLiebe Grüße\nMarkus" },
+                { "id": "m1-l1-b", "label": "Notiz", "body": "Liebe Oma,\nich bin beim Sport. Das Essen ist im Kühlschrank. Ich bin um sieben Uhr wieder zu Hause.\nTom" }
+              ],
+              "items": [
+                { "id": "m1-l1-1", "textRef": "m1-l1-a", "statement": "Markus kommt am Freitag.", "answer": true, "explain": "„ich komme am Freitag\"." },
+                { "id": "m1-l1-2", "textRef": "m1-l1-a", "statement": "Der Zug kommt um 8 Uhr an.", "answer": false, "explain": "Um 18 Uhr, nicht 8 Uhr." },
+                { "id": "m1-l1-3", "textRef": "m1-l1-a", "statement": "Markus möchte mit Sabine essen.", "answer": true, "explain": "„zusammen essen\"." },
+                { "id": "m1-l1-4", "textRef": "m1-l1-b", "statement": "Tom ist zu Hause.", "answer": false, "explain": "Er ist beim Sport." },
+                { "id": "m1-l1-5", "textRef": "m1-l1-b", "statement": "Das Essen ist im Kühlschrank.", "answer": true, "explain": "Steht direkt im Text." }
+              ]
+            },
+            {
+              "id": "l2", "title": "Teil 2", "type": "read-match",
+              "instructions": "Welche Anzeige passt? Wählen Sie a oder b.",
+              "ads": [
+                { "id": "a", "label": "a", "body": "Sprachschule Aktiv – Deutschkurse für Anfänger. Abends 18–20 Uhr. Nur 90 Euro pro Monat!" },
+                { "id": "b", "label": "b", "body": "Fahrschule Schnell – Führerschein in 4 Wochen. Auch am Wochenende. Jetzt anmelden!" }
+              ],
+              "items": [
+                { "id": "m1-l2-1", "situation": "Sie arbeiten den ganzen Tag und möchten am Abend Deutsch lernen.", "options": ["a", "b"], "answer": 0, "explain": "Sprachschule, abends – Anzeige a." },
+                { "id": "m1-l2-2", "situation": "Ihr Freund möchte Auto fahren lernen.", "options": ["a", "b"], "answer": 1, "explain": "Fahrschule – Anzeige b." },
+                { "id": "m1-l2-3", "situation": "Sie haben nur am Wochenende Zeit für den Führerschein.", "options": ["a", "b"], "answer": 1, "explain": "„Auch am Wochenende\" – Anzeige b." },
+                { "id": "m1-l2-4", "situation": "Sie möchten einen günstigen Deutschkurs für 90 Euro.", "options": ["a", "b"], "answer": 0, "explain": "90 Euro pro Monat – Anzeige a." },
+                { "id": "m1-l2-5", "situation": "Sie sind Anfänger und möchten Deutsch lernen.", "options": ["a", "b"], "answer": 0, "explain": "„für Anfänger\" – Anzeige a." }
+              ]
+            },
+            {
+              "id": "l3", "title": "Teil 3", "type": "read-truefalse",
+              "instructions": "Lesen Sie die Schilder und Notizen. Richtig oder falsch?",
+              "items": [
+                { "id": "m1-l3-1", "sign": "Öffnungszeiten Bäckerei: Mo–Sa 6:00–18:00 Uhr. Sonntag geschlossen.", "statement": "Am Sonntag ist die Bäckerei offen.", "answer": false, "explain": "Sonntag geschlossen." },
+                { "id": "m1-l3-2", "sign": "Notiz an der Tür: Bin gleich zurück. In 10 Minuten wieder da.", "statement": "Die Person kommt bald zurück.", "answer": true, "explain": "„in 10 Minuten\"." },
+                { "id": "m1-l3-3", "sign": "Parken nur für Kunden. Maximal 2 Stunden.", "statement": "Man darf hier drei Stunden parken.", "answer": false, "explain": "Maximal 2 Stunden." },
+                { "id": "m1-l3-4", "sign": "Arztpraxis Dr. Weber: Termine nur nach Vereinbarung. Tel. 030 123456.", "statement": "Man braucht einen Termin.", "answer": true, "explain": "„nur nach Vereinbarung\"." },
+                { "id": "m1-l3-5", "sign": "Achtung: Aufzug außer Betrieb. Bitte benutzen Sie die Treppe.", "statement": "Der Aufzug funktioniert.", "answer": false, "explain": "„außer Betrieb\" = kaputt." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben", "title": "Schreiben", "durationMin": 20, "maxPoints": 15, "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1", "title": "Teil 1 – Formular", "type": "form-fill",
+              "instructions": "Ihre Freundin Elena Petrova möchte einen Deutschkurs machen. Sie kommt aus Russland und wohnt in der Bahnhofstraße 12 in Leipzig. Sie ist Studentin und 24 Jahre alt. Füllen Sie das Anmeldeformular aus.",
+              "fields": [
+                { "id": "m1-f-name", "label": "Familienname", "expected": "Petrova" },
+                { "id": "m1-f-vorname", "label": "Vorname", "expected": "Elena" },
+                { "id": "m1-f-strasse", "label": "Straße / Hausnummer", "expected": "Bahnhofstraße 12" },
+                { "id": "m1-f-stadt", "label": "Wohnort", "expected": "Leipzig" },
+                { "id": "m1-f-land", "label": "Herkunftsland", "expected": "Russland" }
+              ]
+            },
+            {
+              "id": "s2", "title": "Teil 2 – Mitteilung", "type": "free-write",
+              "instructions": "Sie sind krank und können heute nicht zum Deutschkurs kommen. Schreiben Sie eine kurze Nachricht an Ihre Lehrerin. Schreiben Sie zu allen drei Punkten.",
+              "minWords": 20,
+              "leitpunkte": ["Warum schreiben Sie? (Sie sind krank)", "Was können Sie nicht machen? (nicht zum Kurs kommen)", "Fragen Sie nach den Hausaufgaben."],
+              "rubric": { "level": "A1", "maxPoints": 10, "criteria": ["Alle drei Leitpunkte bearbeitet", "Anrede und Gruß", "Einfache Sätze im Präsens", "Mindestens 20 Wörter"] }
+            }
+          ]
+        },
+        {
+          "id": "sprechen", "title": "Sprechen", "durationMin": 15, "maxPoints": 15, "aiGraded": true,
+          "instructions": "In der echten Prüfung sprechen Sie in einer Gruppe. Hier nehmen Sie Ihre Antworten auf, die KI gibt Feedback.",
+          "parts": [
+            { "id": "sp1", "title": "Teil 1 – Sich vorstellen", "type": "speak-intro", "instructions": "Stellen Sie sich vor (mindestens 4 Sätze).", "prompts": ["Name", "Alter", "Land / Wohnort", "Sprachen", "Beruf", "Hobby"], "rubric": { "level": "A1", "maxPoints": 5, "criteria": ["Mehrere persönliche Angaben", "Einfache, korrekte Sätze", "Verständlich"] } },
+            { "id": "sp2", "title": "Teil 2 – Informationen erfragen", "type": "speak-cards", "instructions": "Thema „Einkaufen\". Bilden Sie eine Frage mit dem Wort und antworten Sie.", "cards": [{ "id": "sp2-1", "keyword": "Supermarkt", "example": "Wo ist der Supermarkt?" }, { "id": "sp2-2", "keyword": "Brot", "example": "Was kostet das Brot?" }, { "id": "sp2-3", "keyword": "Öffnungszeiten", "example": "Wann hat der Laden geöffnet?" }], "rubric": { "level": "A1", "maxPoints": 5, "criteria": ["Passende Fragen mit dem Stichwort", "Passende Antwort", "Wortschatz zum Thema"] } },
+            { "id": "sp3", "title": "Teil 3 – Bitten formulieren", "type": "speak-cards", "instructions": "Formulieren Sie eine höfliche Bitte und reagieren Sie darauf.", "cards": [{ "id": "sp3-1", "keyword": "Fenster", "example": "Können Sie bitte das Fenster öffnen?" }, { "id": "sp3-2", "keyword": "Stift", "example": "Kannst du mir bitte einen Stift geben?" }, { "id": "sp3-3", "keyword": "Licht", "example": "Machen Sie bitte das Licht an?" }], "rubric": { "level": "A1", "maxPoints": 5, "criteria": ["Höfliche Bitte (können / bitte)", "Reagiert passend", "Verständlich"] } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mt2",
+      "title": "Modelltest 2",
+      "sections": [
+        {
+          "id": "hoeren", "title": "Hören", "durationMin": 20, "maxPoints": 15,
+          "instructions": "Sie hören kurze Texte. Sie hören jeden Text zweimal.",
+          "parts": [
+            {
+              "id": "h1", "title": "Teil 1", "type": "audio-choice",
+              "instructions": "Was ist richtig? Kreuzen Sie an: a, b oder c.",
+              "items": [
+                { "id": "m2-h1-1", "transcript": "Wann kommt der Bus? – Der nächste Bus kommt um Viertel vor drei.", "question": "Wann kommt der Bus?", "options": ["2:45 Uhr", "3:15 Uhr", "3:45 Uhr"], "answer": 0, "explain": "„Viertel vor drei\" = 2:45." },
+                { "id": "m2-h1-2", "transcript": "Was isst du zum Frühstück? – Ein Brötchen mit Käse und einen Orangensaft.", "question": "Was isst der Mann?", "options": ["Brot mit Wurst", "Brötchen mit Käse", "Kuchen"], "answer": 1, "explain": "Brötchen mit Käse." },
+                { "id": "m2-h1-3", "transcript": "Wie viel kostet das T-Shirt? – Es kostet neunzehn Euro.", "question": "Was kostet das T-Shirt?", "options": ["9 Euro", "19 Euro", "90 Euro"], "answer": 1, "explain": "„neunzehn\" = 19." },
+                { "id": "m2-h1-4", "transcript": "Welche Farbe hat dein neues Auto? – Mein Auto ist blau.", "question": "Welche Farbe hat das Auto?", "options": ["rot", "grün", "blau"], "answer": 2, "explain": "„blau\"." },
+                { "id": "m2-h1-5", "transcript": "Wo treffen wir uns? – Vor dem Kino, um acht Uhr.", "question": "Wo treffen sich die Personen?", "options": ["vor dem Kino", "im Café", "am Bahnhof"], "answer": 0, "explain": "„Vor dem Kino\"." }
+              ]
+            },
+            {
+              "id": "h2", "title": "Teil 2", "type": "audio-truefalse",
+              "instructions": "Sie hören fünf Durchsagen. Richtig oder falsch?",
+              "items": [
+                { "id": "m2-h2-1", "transcript": "Liebe Fahrgäste, der Zug nach Hamburg fährt heute von Gleis sieben.", "statement": "Der Zug fährt von Gleis sieben.", "answer": true, "explain": "Direkt gesagt." },
+                { "id": "m2-h2-2", "transcript": "Die Bibliothek ist heute wegen einer Feier geschlossen.", "statement": "Die Bibliothek ist heute offen.", "answer": false, "explain": "Sie ist geschlossen." },
+                { "id": "m2-h2-3", "transcript": "Der Arzt Herr Doktor Klein ist heute nicht da. Bitte kommen Sie morgen.", "statement": "Der Arzt ist heute nicht da.", "answer": true, "explain": "„heute nicht da\"." },
+                { "id": "m2-h2-4", "transcript": "Achtung, es regnet stark. Nehmen Sie einen Regenschirm mit.", "statement": "Das Wetter ist schön.", "answer": false, "explain": "Es regnet stark." },
+                { "id": "m2-h2-5", "transcript": "Der Deutschkurs am Freitag beginnt eine Stunde später, um zehn Uhr.", "statement": "Der Kurs beginnt am Freitag um 10 Uhr.", "answer": true, "explain": "„um zehn Uhr\"." }
+              ]
+            },
+            {
+              "id": "h3", "title": "Teil 3", "type": "audio-choice",
+              "instructions": "Was ist richtig? Kreuzen Sie an: a, b oder c.",
+              "items": [
+                { "id": "m2-h3-1", "transcript": "Was machst du am Wochenende? – Ich besuche meine Eltern in Berlin.", "question": "Was macht die Frau am Wochenende?", "options": ["arbeiten", "Eltern besuchen", "Sport machen"], "answer": 1, "explain": "„meine Eltern besuchen\"." },
+                { "id": "m2-h3-2", "transcript": "Trinkst du Kaffee oder Tee? – Weder noch, ich trinke lieber Wasser.", "question": "Was trinkt der Mann?", "options": ["Kaffee", "Tee", "Wasser"], "answer": 2, "explain": "„lieber Wasser\"." },
+                { "id": "m2-h3-3", "transcript": "Wo arbeitest du? – Ich arbeite in einem Krankenhaus. Ich bin Krankenpfleger.", "question": "Was ist der Beruf des Mannes?", "options": ["Arzt", "Krankenpfleger", "Lehrer"], "answer": 1, "explain": "„Ich bin Krankenpfleger\"." },
+                { "id": "m2-h3-4", "transcript": "Hast du Geschwister? – Ja, ich habe eine Schwester und einen Bruder.", "question": "Wie viele Geschwister hat die Person?", "options": ["ein Geschwister", "zwei Geschwister", "drei Geschwister"], "answer": 1, "explain": "Schwester + Bruder = 2." },
+                { "id": "m2-h3-5", "transcript": "Wann hast du Geburtstag? – Am dritten Mai.", "question": "Wann hat die Person Geburtstag?", "options": ["am 3. März", "am 3. Mai", "am 13. Mai"], "answer": 1, "explain": "„am dritten Mai\"." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen", "title": "Lesen", "durationMin": 25, "maxPoints": 15,
+          "instructions": "Lesen Sie die Texte und lösen Sie die Aufgaben.",
+          "parts": [
+            {
+              "id": "l1", "title": "Teil 1", "type": "read-truefalse",
+              "instructions": "Lesen Sie die zwei Texte. Richtig oder falsch?",
+              "texts": [
+                { "id": "m2-l1-a", "label": "SMS", "body": "Hi Julia,\nich bin schon im Restaurant. Ich sitze am Fenster. Komm schnell, ich habe Hunger!\nBis gleich, Nina" },
+                { "id": "m2-l1-b", "label": "E-Mail", "body": "Sehr geehrte Frau Klein,\nIhr Paket ist heute angekommen. Sie können es bis Samstag in der Post abholen. Bitte bringen Sie Ihren Ausweis mit.\nMit freundlichen Grüßen\nDeutsche Post" }
+              ],
+              "items": [
+                { "id": "m2-l1-1", "textRef": "m2-l1-a", "statement": "Nina ist im Restaurant.", "answer": true, "explain": "„ich bin schon im Restaurant\"." },
+                { "id": "m2-l1-2", "textRef": "m2-l1-a", "statement": "Nina hat keinen Hunger.", "answer": false, "explain": "„ich habe Hunger\"." },
+                { "id": "m2-l1-3", "textRef": "m2-l1-b", "statement": "Das Paket ist noch nicht da.", "answer": false, "explain": "Es ist heute angekommen." },
+                { "id": "m2-l1-4", "textRef": "m2-l1-b", "statement": "Frau Klein braucht ihren Ausweis.", "answer": true, "explain": "„bringen Sie Ihren Ausweis mit\"." },
+                { "id": "m2-l1-5", "textRef": "m2-l1-b", "statement": "Man kann das Paket bis Samstag abholen.", "answer": true, "explain": "„bis Samstag\"." }
+              ]
+            },
+            {
+              "id": "l2", "title": "Teil 2", "type": "read-match",
+              "instructions": "Welche Anzeige passt? Wählen Sie a oder b.",
+              "ads": [
+                { "id": "a", "label": "a", "body": "Restaurant Bella Italia – Pizza und Pasta. Täglich von 12 bis 23 Uhr geöffnet. Lieferung nach Hause!" },
+                { "id": "b", "label": "b", "body": "Fitnessstudio FitPlus – Trainieren Sie 24 Stunden am Tag. Erster Monat gratis!" }
+              ],
+              "items": [
+                { "id": "m2-l2-1", "situation": "Sie haben Hunger und möchten Pizza essen.", "options": ["a", "b"], "answer": 0, "explain": "Restaurant – Anzeige a." },
+                { "id": "m2-l2-2", "situation": "Sie möchten Sport machen, auch nachts.", "options": ["a", "b"], "answer": 1, "explain": "24 Stunden – Anzeige b." },
+                { "id": "m2-l2-3", "situation": "Sie möchten das Essen nach Hause bestellen.", "options": ["a", "b"], "answer": 0, "explain": "„Lieferung nach Hause\" – Anzeige a." },
+                { "id": "m2-l2-4", "situation": "Sie möchten einen Monat kostenlos trainieren.", "options": ["a", "b"], "answer": 1, "explain": "„Erster Monat gratis\" – Anzeige b." },
+                { "id": "m2-l2-5", "situation": "Sie möchten am Abend um 22 Uhr essen gehen.", "options": ["a", "b"], "answer": 0, "explain": "Geöffnet bis 23 Uhr – Anzeige a." }
+              ]
+            },
+            {
+              "id": "l3", "title": "Teil 3", "type": "read-truefalse",
+              "instructions": "Lesen Sie die Schilder und Notizen. Richtig oder falsch?",
+              "items": [
+                { "id": "m2-l3-1", "sign": "Sonderangebot: Heute alle Brötchen nur 30 Cent!", "statement": "Heute sind die Brötchen billiger.", "answer": true, "explain": "„Sonderangebot\", nur 30 Cent." },
+                { "id": "m2-l3-2", "sign": "Bitte die Schuhe ausziehen!", "statement": "Man darf die Schuhe anlassen.", "answer": false, "explain": "„Schuhe ausziehen\"." },
+                { "id": "m2-l3-3", "sign": "Kasse 3 ist geschlossen. Bitte gehen Sie zu Kasse 1 oder 2.", "statement": "Man kann an Kasse 3 bezahlen.", "answer": false, "explain": "Kasse 3 ist geschlossen." },
+                { "id": "m2-l3-4", "sign": "Ruhe bitte! Prüfung im Raum 5.", "statement": "Im Raum 5 ist eine Prüfung.", "answer": true, "explain": "„Prüfung im Raum 5\"." },
+                { "id": "m2-l3-5", "sign": "Hunde müssen an der Leine bleiben.", "statement": "Hunde dürfen frei laufen.", "answer": false, "explain": "„an der Leine\"." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben", "title": "Schreiben", "durationMin": 20, "maxPoints": 15, "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1", "title": "Teil 1 – Formular", "type": "form-fill",
+              "instructions": "Ihr Freund Ahmed Yilmaz möchte sich in der Bibliothek anmelden. Er kommt aus der Türkei und wohnt in der Gartenstraße 8 in Bremen. Er ist 30 Jahre alt und arbeitet als Koch. Füllen Sie das Formular aus.",
+              "fields": [
+                { "id": "m2-f-name", "label": "Familienname", "expected": "Yilmaz" },
+                { "id": "m2-f-vorname", "label": "Vorname", "expected": "Ahmed" },
+                { "id": "m2-f-strasse", "label": "Straße / Hausnummer", "expected": "Gartenstraße 8" },
+                { "id": "m2-f-stadt", "label": "Wohnort", "expected": "Bremen" },
+                { "id": "m2-f-beruf", "label": "Beruf", "expected": "Koch" }
+              ]
+            },
+            {
+              "id": "s2", "title": "Teil 2 – Mitteilung", "type": "free-write",
+              "instructions": "Sie möchten am Samstag Ihren Freund besuchen. Schreiben Sie eine kurze Nachricht. Schreiben Sie zu allen drei Punkten.",
+              "minWords": 20,
+              "leitpunkte": ["Warum schreiben Sie? (Sie möchten ihn besuchen)", "Wann möchten Sie kommen? (am Samstag)", "Fragen Sie: Hat er Zeit?"],
+              "rubric": { "level": "A1", "maxPoints": 10, "criteria": ["Alle drei Leitpunkte bearbeitet", "Anrede und Gruß", "Einfache Sätze im Präsens", "Mindestens 20 Wörter"] }
+            }
+          ]
+        },
+        {
+          "id": "sprechen", "title": "Sprechen", "durationMin": 15, "maxPoints": 15, "aiGraded": true,
+          "instructions": "Nehmen Sie Ihre Antworten auf. Die KI gibt Feedback.",
+          "parts": [
+            { "id": "sp1", "title": "Teil 1 – Sich vorstellen", "type": "speak-intro", "instructions": "Stellen Sie sich vor (mindestens 4 Sätze).", "prompts": ["Name", "Alter", "Land / Wohnort", "Familie", "Beruf", "Hobby"], "rubric": { "level": "A1", "maxPoints": 5, "criteria": ["Mehrere persönliche Angaben", "Einfache, korrekte Sätze", "Verständlich"] } },
+            { "id": "sp2", "title": "Teil 2 – Informationen erfragen", "type": "speak-cards", "instructions": "Thema „Reisen\". Bilden Sie eine Frage mit dem Wort und antworten Sie.", "cards": [{ "id": "sp2-1", "keyword": "Zug", "example": "Wann fährt der Zug?" }, { "id": "sp2-2", "keyword": "Fahrkarte", "example": "Was kostet die Fahrkarte?" }, { "id": "sp2-3", "keyword": "Hotel", "example": "Wo ist das Hotel?" }], "rubric": { "level": "A1", "maxPoints": 5, "criteria": ["Passende Fragen mit dem Stichwort", "Passende Antwort", "Wortschatz zum Thema"] } },
+            { "id": "sp3", "title": "Teil 3 – Bitten formulieren", "type": "speak-cards", "instructions": "Formulieren Sie eine höfliche Bitte und reagieren Sie darauf.", "cards": [{ "id": "sp3-1", "keyword": "Tür", "example": "Können Sie bitte die Tür schließen?" }, { "id": "sp3-2", "keyword": "Wasser", "example": "Kann ich bitte ein Glas Wasser haben?" }, { "id": "sp3-3", "keyword": "Handy", "example": "Kannst du mir bitte dein Handy geben?" }], "rubric": { "level": "A1", "maxPoints": 5, "criteria": ["Höfliche Bitte (können / bitte)", "Reagiert passend", "Verständlich"] } }
+          ]
+        }
+      ]
+    }
+  ]
+}

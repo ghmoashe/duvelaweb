@@ -2,6 +2,7 @@
   function createProfileFeature(ctx) {
     const { $, tr, esc, alert, supa, state, avatarHtml, avatarInner, timeAgo, roleLabels } = ctx;
     const studentGoal = window.DuvelaStudentGoal || {
+      LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
       normalize: (value, fallback) => String(value || fallback || 'A1').toUpperCase(),
       fromProfile: (profile, fallback) => (profile && profile.goal_level) || fallback || '',
       legacyPatch: (value) => {
@@ -237,6 +238,34 @@
       renderProgressCard();
     }
 
+    function learnerGoalItems() {
+      const profile = ctx.profile || {};
+      const targets = Array.isArray(profile.learning_targets) ? profile.learning_targets : [];
+      const aggregate = targets.find((item) => item && typeof item === 'object' && (item.goalLevels || item.goals || item.levels || Array.isArray(item.languages))) || {};
+      const languages = Array.isArray(aggregate.languages) && aggregate.languages.length
+        ? aggregate.languages
+        : Array.isArray(profile.learning_languages) ? profile.learning_languages : [];
+      const levels = aggregate.levels && typeof aggregate.levels === 'object' ? aggregate.levels : {};
+      const goalLevels = aggregate.goalLevels && typeof aggregate.goalLevels === 'object' ? aggregate.goalLevels : {};
+      const goals = aggregate.goals && typeof aggregate.goals === 'object' ? aggregate.goals : {};
+      const items = languages.map((language) => {
+        const individual = targets.find((item) => item && typeof item === 'object' && String(item.language || '') === String(language)) || {};
+        const currentLevel = levels[language] || individual.level || profile.language_level || 'A1';
+        const targetLevel = goalLevels[language] || individual.goalLevel || profile.goal_level || currentLevel;
+        const goal = goals[language] || individual.goal || '';
+        return { language, currentLevel, targetLevel, goal };
+      });
+      if (!items.length && profile.language) {
+        items.push({
+          language: profile.language,
+          currentLevel: profile.language_level || 'A1',
+          targetLevel: profile.goal_level || profile.language_level || 'A1',
+          goal: profile.learning_goal || ''
+        });
+      }
+      return items;
+    }
+
     function renderLearnerProfileHero(displayName, meta) {
       if (ctx.isBusiness()) return;
       const intro = document.querySelector('#profileForm .profile-intro');
@@ -248,17 +277,15 @@
         summary.className = 'learner-profile-summary';
         intro.appendChild(summary);
       }
-      const languages = Array.isArray(ctx.profile?.learning_languages) && ctx.profile.learning_languages.length
-        ? ctx.profile.learning_languages
-        : [ctx.profile?.language].filter(Boolean);
-      const level = ctx.profile?.language_level || 'A1';
-      const goal = studentGoal.fromProfile(ctx.profile, '');
+      const goalItems = learnerGoalItems();
+      const level = goalItems[0]?.currentLevel || ctx.profile?.language_level || 'A1';
+      const goal = goalItems[0]?.targetLevel || studentGoal.fromProfile(ctx.profile, '');
       summary.innerHTML =
         '<div class="learner-profile-badges">' +
           '<span>🎓 ' + esc(tr('Learner', 'Ученик')) + '</span>' +
           '<span>✨ ' + esc(tr('Level', 'Уровень')) + ' ' + esc(level) + '</span>' +
           (goal ? '<span>⚑ ' + esc(tr('Goal', 'Цель')) + ' ' + esc(goal) + '</span>' : '') +
-          languages.slice(0, 4).map((language) => '<span>🌐 ' + esc(language) + '</span>').join('') +
+          goalItems.slice(0, 4).map((item) => '<span>🌐 ' + esc(item.language) + ' ' + esc(item.currentLevel) + ' -> ' + esc(item.targetLevel) + (item.goal ? ' - ' + esc(item.goal) : '') + '</span>').join('') +
         '</div>' +
         '<p class="learner-profile-welcome">' + esc(tr('Your learning profile, goals and progress in one place.', 'Ваш учебный профиль, цели и прогресс в одном месте.')) + '</p>';
       const name = $('#profileName');
