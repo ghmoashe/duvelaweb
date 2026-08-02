@@ -757,7 +757,7 @@
         return icons[name] || icons.path;
       }
       function exerciseCard(item){
-        return '<button class="study-tile mph-exercise-card ' + (item.premium?'premium-exercise':'regular-exercise') + (item.db?' db-exercise':'') + '" data-study="' + esc(item.webTool) + '" data-mobile-card="' + esc(item.id) + '" data-mobile-target="' + esc(mobileTarget) + '" data-study-category="' + esc(item.premium?'premium':(item.db?'db':'bank')) + '"' + (item.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
+        return '<button class="study-tile mph-exercise-card ' + (item.premium?'premium-exercise':'regular-exercise') + (item.db?' db-exercise':'') + '" data-study="' + esc(item.webTool) + '" data-mobile-card="' + esc(item.id) + '" data-mobile-target="' + esc(mobileTarget) + '" data-study-category="' + esc(item.premium?'premium':(item.db?'db':'bank')) + '">' +
           '<div class="mph-exercise-top"><span class="mph-exercise-icon">' + bankIcon(item.icon) + '</span>' + (item.premium ? '<span class="mph-premium-badge">&#9826; Premium</span>' : '') + '</div>' +
           '<div class="mph-exercise-copy"><h3>' + esc(item.title) + '</h3><strong>' + esc(item.meta) + '</strong><p>' + esc(item.desc) + '</p></div>' +
           '<span class="mph-exercise-action">' + esc(item.action) + '</span></button>';
@@ -803,8 +803,8 @@
       function toolCard(tool) {
         var sessions = Number(p[tool.id]) || 0;
         var title=tool.id==='essentials'?(activeTarget==='de'?tr('Deutsch Trainer','Тренажёр немецкого'):targetLabel(activeTarget)+' '+tr('Trainer','тренажёр')):tool.title;
-        return '<button class="study-tile mph-card ' + esc(tool.accent || 'purple') + (tool.premium ? ' premium-card' : '') + '" data-study="' + esc(tool.id) + '" data-study-category="' + esc(tool.category || '') + '"' + (tool.premium && !premiumActive ? ' data-premium-locked="1"' : '') + '>' +
-          '<div class="mph-card-top"><span class="mph-icon">' + tool.icon + '</span>' + (tool.premium ? '<span class="mph-premium">' + (premiumActive ? '★ PREMIUM' : '🔒 PREMIUM') + '</span>' : sessions ? '<span class="mph-done">✓ ' + sessions + '</span>' : '<span class="mph-new">' + esc(tr('Start', 'Начать')) + '</span>') + '</div>' +
+        return '<button class="study-tile mph-card ' + esc(tool.accent || 'purple') + (tool.premium ? ' premium-card' : '') + '" data-study="' + esc(tool.id) + '" data-study-category="' + esc(tool.category || '') + '">' +
+          '<div class="mph-card-top"><span class="mph-icon">' + tool.icon + '</span>' + (tool.premium ? '<span class="mph-premium">★ PREMIUM</span>' : sessions ? '<span class="mph-done">✓ ' + sessions + '</span>' : '<span class="mph-new">' + esc(tr('Start', 'Начать')) + '</span>') + '</div>' +
           '<div class="mph-card-copy"><h3>' + esc(title) + '</h3><p>' + esc(tool.desc) + '</p></div><span class="mph-open">' + esc(tool.id==='liveTeacher'?tr('Join LIVE','Войти в LIVE'):tool.id==='duel'?tr('Find a rival','Найти соперника'):tr('Open practice', 'Открыть практику')) + ' →</span></button>';
       }
       return '<section class="mobile-practice-hub target-'+esc(activeTarget)+' '+(fullLanguagePractice?'full-language-practice':'subject-practice')+'">' +
@@ -825,7 +825,6 @@
       var tiles = document.querySelectorAll('.study-tile');
       Array.prototype.forEach.call(tiles, function (tile) {
         tile.addEventListener('click', function () {
-          if (tile.getAttribute('data-premium-locked')) return showPremiumAccess();
           var tool=tile.getAttribute('data-study');
           if(tool==='teacherPractice'||tool==='teacherPractices'){
             var catalog=document.querySelector('.practice-db-catalog');
