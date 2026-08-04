@@ -20,6 +20,11 @@
         <button id="previewMic" class="toggle active">🎙 Микрофон</button>
         <button id="previewCam" class="toggle active">🎥 Камера</button>
       </div>
+      <div class="device-selects">
+        <label>🎥<select id="cameraSelect" aria-label="Камера"></select></label>
+        <label>🎙<select id="micSelect" aria-label="Микрофон"></select></label>
+        <label>🔈<select id="speakerSelect" aria-label="Динамик"></select></label>
+      </div>
       <div class="diagnostics">
         <span id="diagBrowser">○ Браузер</span><span id="diagNetwork">○ Интернет</span>
         <span id="diagCamera">○ Камера</span><span id="diagMic">○ Микрофон</span>
@@ -31,11 +36,11 @@
   <main id="room" class="room" hidden>
     <header><div class="brand"><img src="/logo.webp" alt="">Duvela Classroom</div><div><b id="roomTitle">Урок</b><span id="roomTime">00:00</span></div><button id="leaveTop" class="danger">Выйти</button></header>
     <div class="workspace">
-      <section class="stage"><div id="gallery" class="gallery"></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas><video id="shareVideo" style="width:100%;height:100%;object-fit:contain" playsinline muted hidden></video><div id="shareToolbar" class="share-toolbar" hidden><span id="shareStatus">Демонстрация экрана</span><button id="shareFitBtn" type="button">Во весь экран</button><button id="stopShareBtn" type="button" hidden>Остановить</button></div></div></section>
+      <section class="stage"><div id="stageMain" class="stage-main"><div id="gallery" class="gallery"></div><div id="spotlight" class="spotlight" hidden></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas><video id="shareVideo" style="width:100%;height:100%;object-fit:contain" playsinline muted hidden></video><div id="shareToolbar" class="share-toolbar" hidden><span id="shareStatus">Демонстрация экрана</span><button id="shareReturnBtn" type="button">Камеры</button><button id="shareFitBtn" type="button">Во весь экран</button><button id="stopShareBtn" type="button" hidden>Остановить</button></div></div><button id="restoreShareBtn" class="restore-share" type="button" hidden>Вернуться к экрану</button><div id="materialOverlay" class="material-overlay" hidden><div><header><b id="materialTitle">Материал</b><button id="closeMaterialBtn" type="button">Закрыть</button></header><div id="materialPreview" class="material-preview"></div></div></div><div id="emptyState" class="empty-state" hidden>👋 Ожидаем других участников…</div></div><div id="filmstrip" class="filmstrip" hidden></div></section>
       <aside id="sidePanel" class="side-panel">
         <nav><button data-panel="people" class="active">Участники <i id="peopleCount">0</i><i id="handBadge" class="hand-badge" hidden>✋ 0</i></button><button data-panel="chat">Чат <i id="chatBadge">0</i></button><button data-panel="materials">Материалы</button></nav>
-        <section id="peoplePanel"><div id="waitingWrap" hidden><h3>Ожидают входа</h3><div id="waitingList"></div></div><div id="peopleList"></div></section>
-        <section id="chatPanel" hidden><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…"><button>➤</button></form></section>
+        <section id="peoplePanel"><div id="waitingWrap" hidden><h3>Ожидают входа</h3><div id="waitingList"></div></div><div id="hostControls" class="host-controls" hidden><button data-host-control="mute-all">🔇 Всех</button><button data-host-control="stop-video-all">🚫 Камеры</button><button data-host-control="lower-all-hands">✋ Сбросить</button></div><div id="peopleList"></div></section>
+        <section id="chatPanel" hidden><div id="chatQuick" class="chat-quick" hidden><button data-quick-chat="Пожалуйста, включите микрофон.">Микрофон</button><button data-quick-chat="Напишите ответ в чат.">Ответ в чат</button><button data-quick-chat="Откройте материал урока.">Материал</button></div><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…"><button>➤</button></form></section>
         <section id="materialsPanel" hidden><div class="panel-head"><h3>Материалы урока</h3><button id="addMaterialBtn" hidden>+ Добавить</button></div><div id="materialsList"></div><input id="materialFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden></section>
       </aside>
     </div>

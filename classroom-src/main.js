@@ -36,8 +36,26 @@ let endingForAll = false;
 const raisedUsers = new Set();
 const attachedVideoUsers = new Set();
 const TILE_VIDEO_QUALITY = 2;
-const raisedUserNames = new Map();
+let pinnedUserId = null;
+let activeSpeakerId = null;
 let activeShareUserId = null;
+let selectedCameraId = null;
+let selectedMicId = null;
+let selectedSpeakerId = null;
+const netLevels = new Map();
+const raisedUserNames = new Map();
+const raisedAt = new Map();
+const currentMaterials = new Map();
+let activeMaterialUrl = '';
+let focusedShareHidden = false;
+
+function videoStartOptions() { return selectedCameraId ? { cameraId: selectedCameraId } : {}; }
+function audioStartOptions() {
+  const options = {};
+  if (selectedMicId) options.microphoneId = selectedMicId;
+  if (selectedSpeakerId) options.speakerId = selectedSpeakerId;
+  return options;
+}
 
 async function loadZoomClient() {
   if (client) return client;
@@ -70,9 +88,11 @@ function setRaisedUser(userId, value, name = '') {
   if (value) {
     raisedUsers.add(key);
     if (name) raisedUserNames.set(key, name);
+    if (!raisedAt.has(key)) raisedAt.set(key, Date.now());
   } else {
     raisedUsers.delete(key);
     raisedUserNames.delete(key);
+    raisedAt.delete(key);
   }
   return true;
 }
@@ -97,19 +117,43 @@ async function preview() {
   previewStream = null;
   if (!camOn) {
     $('previewVideo').srcObject = null;
+    $('previewEmpty').textContent = 'Камера выключена';
     $('previewEmpty').hidden = false;
     return;
   }
   try {
-    previewStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    const constraints = { video: selectedCameraId ? { deviceId: { exact: selectedCameraId } } : true, audio: false };
+    previewStream = await navigator.mediaDevices.getUserMedia(constraints);
     $('previewVideo').srcObject = previewStream;
     await $('previewVideo').play().catch(() => {});
     $('previewEmpty').hidden = true;
+    void populateDevices();
   } catch {
     camOn = false;
     $('previewCam').classList.remove('active');
     $('previewEmpty').hidden = false;
   }
+}
+
+// Device labels are only exposed by the browser once camera/mic permission has
+// been granted, so this runs after preview()/diagnostics. Selected ids are
+// passed to Zoom's startVideo/startAudio at join time.
+async function populateDevices() {
+  if (!navigator.mediaDevices?.enumerateDevices) return;
+  let devices = [];
+  try { devices = await navigator.mediaDevices.enumerateDevices(); } catch { return; }
+  const fill = (id, kind, label, current) => {
+    const select = $(id);
+    if (!select) return current;
+    const list = devices.filter((device) => device.kind === kind && device.deviceId);
+    if (!list.length) { select.innerHTML = `<option value="">${label}</option>`; return current; }
+    select.innerHTML = list.map((device, index) => `<option value="${esc(device.deviceId)}">${esc(device.label || `${label} ${index + 1}`)}</option>`).join('');
+    if (current && list.some((device) => device.deviceId === current)) select.value = current;
+    return select.value || null;
+  };
+  selectedCameraId = fill('cameraSelect', 'videoinput', 'Камера', selectedCameraId);
+  selectedMicId = fill('micSelect', 'audioinput', 'Микрофон', selectedMicId);
+  selectedSpeakerId = fill('speakerSelect', 'audiooutput', 'Динамик', selectedSpeakerId);
 }
 
 async function loadIdentity() {
@@ -168,20 +212,68 @@ async function renderWaitingRoom() {
 function tile(user) {
   const ownId = ownZoomUser()?.userId;
   const hasRaisedHand = raisedUsers.has(userKey(user.userId));
-  let node = document.querySelector(`[data-user="${user.userId}"]`);
+  let node = document.querySelector(`.tile[data-user="${user.userId}"]`);
   if (!node) {
     node = document.createElement('article');
     node.className = 'tile';
     node.dataset.user = user.userId;
-    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${initials(user.displayName)}</div><div class="hand-mark" hidden>✋</div><div class="tile-label"></div>`;
+    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${initials(user.displayName)}</div><div class="net" hidden><i></i><i></i><i></i></div><div class="pin-mark" hidden>📌</div><div class="hand-mark" hidden>✋</div><div class="tile-label"></div>`;
     $('gallery').append(node);
   }
+  node.toggleAttribute('data-self', userKey(user.userId) === userKey(ownId));
   node.classList.toggle('raised', hasRaisedHand);
+  node.classList.toggle('pinned', String(user.userId) === String(pinnedUserId));
+  node.querySelector('.pin-mark').hidden = String(user.userId) !== String(pinnedUserId);
   node.querySelector('.hand-mark').hidden = !hasRaisedHand;
   node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${userKey(user.userId) === userKey(ownId) ? ' (Вы)' : ''}`;
   node.querySelector('.avatar').hidden = !!user.bVideoOn;
   node.querySelector('.video-slot').hidden = !user.bVideoOn;
   return node;
+}
+
+// Move each user's tile into the container the current layout calls for and
+// toggle the containers. Moving the <article> node keeps its attached Zoom video
+// element intact, so no re-attach/flicker. Modes: share > spotlight > grid.
+function spotlightTarget(users) {
+  if (pinnedUserId && users.some((u) => String(u.userId) === String(pinnedUserId))) return String(pinnedUserId);
+  if (users.length > 2 && activeSpeakerId && users.some((u) => String(u.userId) === String(activeSpeakerId))) return String(activeSpeakerId);
+  return null;
+}
+
+function placeTiles(users) {
+  const shareAvailable = sharing || activeShareUserId != null;
+  const sharing_ = shareAvailable && !focusedShareHidden;
+  const target = sharing_ ? null : spotlightTarget(users);
+  const mode = sharing_ ? 'share' : (target ? 'spotlight' : 'grid');
+  const gallery = $('gallery'), spotlight = $('spotlight'), filmstrip = $('filmstrip'), shareStage = $('shareStage');
+  gallery.hidden = mode !== 'grid';
+  spotlight.hidden = mode !== 'spotlight';
+  shareStage.hidden = mode !== 'share';
+  filmstrip.hidden = mode === 'grid';
+  for (const user of users) {
+    const node = document.querySelector(`.tile[data-user="${user.userId}"]`);
+    if (!node) continue;
+    let container = gallery;
+    if (mode === 'spotlight') container = String(user.userId) === target ? spotlight : filmstrip;
+    else if (mode === 'share') container = filmstrip;
+    if (node.parentElement !== container) container.append(node);
+  }
+  if (!filmstrip.children.length) filmstrip.hidden = true;
+  $('restoreShareBtn').hidden = !(shareAvailable && focusedShareHidden);
+  $('emptyState').hidden = !(mode === 'grid' && users.length <= 1);
+}
+
+function updateNet(userId) {
+  const node = document.querySelector(`.tile[data-user="${userId}"] .net`);
+  if (!node) return;
+  const level = netLevels.get(String(userId));
+  if (level == null) { node.hidden = true; return; }
+  node.hidden = false;
+  node.querySelectorAll('i').forEach((bar, index) => {
+    bar.classList.toggle('on', index < level);
+    bar.classList.toggle('bad', level <= 1);
+    bar.style.height = `${5 + index * 4}px`;
+  });
 }
 
 function removeVideoElements(elements) {
@@ -229,13 +321,14 @@ async function renderUsers() {
   if (!joined) return;
   const users = client.getAllUser();
   const ids = new Set(users.map((user) => String(user.userId)));
-  for (const node of document.querySelectorAll('[data-user]')) {
+  for (const node of document.querySelectorAll('.tile[data-user]')) {
     if (!ids.has(node.dataset.user)) {
       await detachTileVideo(node.dataset.user, node.querySelector('.video-slot'));
       setRaisedUser(node.dataset.user, false);
       node.remove();
     }
   }
+  if (pinnedUserId && !ids.has(String(pinnedUserId))) pinnedUserId = null;
   for (const user of users) {
     const node = tile(user);
     if (user.bVideoOn) {
@@ -247,23 +340,36 @@ async function renderUsers() {
     } else {
       await detachTileVideo(user.userId, node.querySelector('.video-slot'));
     }
+    updateNet(user.userId);
   }
+  placeTiles(users);
   $('peopleCount').textContent = users.length;
   const ownId = userKey(ownZoomUser()?.userId);
   const raisedCount = users.filter((user) => raisedUsers.has(userKey(user.userId))).length;
   const handBadge = $('handBadge');
   handBadge.hidden = !raisedCount;
   handBadge.textContent = `✋ ${raisedCount}`;
+  const queueKeys = users
+    .filter((user) => raisedUsers.has(userKey(user.userId)))
+    .sort((a, b) => (raisedAt.get(userKey(a.userId)) || 0) - (raisedAt.get(userKey(b.userId)) || 0))
+    .map((user) => userKey(user.userId));
+  const queueIndex = new Map(queueKeys.map((key, index) => [key, index + 1]));
   const sortedUsers = users.slice().sort((a, b) => {
-    const handDiff = Number(raisedUsers.has(userKey(b.userId))) - Number(raisedUsers.has(userKey(a.userId)));
+    const aQueue = queueIndex.get(userKey(a.userId)) || 0;
+    const bQueue = queueIndex.get(userKey(b.userId)) || 0;
+    if (aQueue && bQueue) return aQueue - bQueue;
+    const handDiff = Number(!!bQueue) - Number(!!aQueue);
     if (handDiff) return handDiff;
     return String(a.displayName || '').localeCompare(String(b.displayName || ''), 'ru');
   });
   $('peopleList').innerHTML = sortedUsers.map((user) => {
     const key = userKey(user.userId);
     const hasRaisedHand = raisedUsers.has(key);
-    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="clear-hand" data-zoom-user="${user.userId}">Ответил</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : '';
-    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${esc(user.displayName)} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span>${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}</span>${hostActions}</div>`;
+    const queueLabel = queueIndex.get(key) ? `<i class="queue-mark">${queueIndex.get(key)}</i>` : '';
+    const netLevel = netLevels.get(key);
+    const netLabel = netLevel == null ? '' : netLevel <= 1 ? ' · слабая сеть' : ' · сеть ок';
+    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">Дать слово</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">Ответил</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : '';
+    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${queueLabel}${esc(user.displayName)} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span title="${esc(netLabel.trim())}">${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}${netLevel != null && netLevel <= 1 ? ' ⚠️' : ''}</span>${hostActions}</div>`;
   }).join('');
 }
 
@@ -285,8 +391,28 @@ function showReaction(emoji) {
   setTimeout(() => node.remove(), 2300);
 }
 
+function playNoticeSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const context = new AudioContext();
+    const gain = context.createGain();
+    const oscillator = context.createOscillator();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.18);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.2);
+  } catch {}
+}
+
 function showHandNotice(name) {
   if (roomRole !== 'host') return;
+  playNoticeSound();
   document.querySelector('.hand-toast')?.remove();
   const node = document.createElement('button');
   node.type = 'button';
@@ -295,6 +421,22 @@ function showHandNotice(name) {
   node.onclick = () => { showPanel('people'); node.remove(); };
   document.body.append(node);
   setTimeout(() => node.remove(), 7000);
+}
+
+async function acceptSpeakingTurn() {
+  if (!media) return;
+  const ok = micOn || confirm('Преподаватель дал вам слово. Включить микрофон?');
+  if (!ok) return;
+  try {
+    await media.unmuteAudio();
+    micOn = true;
+    $('micBtn').classList.toggle('off', false);
+    setOwnHandRaised(false);
+    await sendClassCommand({ type: 'hand', raised: false });
+    await renderUsers();
+  } catch (error) {
+    alert(error?.message || 'Не удалось включить микрофон.');
+  }
 }
 
 async function sendClassCommand(payload, userId) {
@@ -333,7 +475,9 @@ function handleClassCommand(message) {
   if (payload.type === 'host-action' && senderId !== ownId) {
     if (payload.action === 'mute') void media?.muteAudio();
     if (payload.action === 'stop-video') void media?.stopVideo();
+    if (payload.action === 'speak') void acceptSpeakingTurn();
   }
+  if (payload.type === 'material-show' && payload.url) showMaterial(payload.title || 'Материал', payload.fileType || '', payload.url);
   if (payload.type === 'materials-changed') void loadMaterials();
 }
 
@@ -345,19 +489,35 @@ function bindZoomEvents() {
   ['user-removed', 'user-updated', 'peer-video-state-change'].forEach((event) => client.on(event, renderUsers));
   client.on('active-speaker', (list) => {
     document.querySelectorAll('.tile').forEach((node) => node.classList.remove('speaking'));
-    (list || []).forEach((speaker) => document.querySelector(`[data-user="${speaker.userId}"]`)?.classList.add('speaking'));
+    (list || []).forEach((speaker) => document.querySelector(`.tile[data-user="${speaker.userId}"]`)?.classList.add('speaking'));
+    const top = (list || [])[0];
+    const next = top ? String(top.userId) : activeSpeakerId;
+    if (next !== activeSpeakerId) {
+      activeSpeakerId = next;
+      if (joined) void renderUsers();
+    }
+  });
+  client.on('network-quality-change', (payload) => {
+    if (!payload || payload.level == null) return;
+    netLevels.set(String(payload.userId), Math.max(0, Math.min(3, Math.round((payload.level / 5) * 3))));
+    updateNet(payload.userId);
   });
   client.on('chat-on-message', (payload) => {
     const mine = payload.sender?.userId === client.getCurrentUserInfo()?.userId;
     $('messages').insertAdjacentHTML('beforeend', `<div class="message"><small>${esc(mine ? 'Вы' : payload.sender?.name || 'Участник')}</small>${esc(payload.message)}</div>`);
     $('messages').scrollTop = $('messages').scrollHeight;
-    if ($('chatPanel').hidden) $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
+    if ($('chatPanel').hidden) {
+      $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
+      if (!mine) playNoticeSound();
+    }
   });
   client.on('active-share-change', async (payload) => {
     const myId = ownZoomUser()?.userId;
     if (payload.state === 'Active') {
       activeShareUserId = payload.userId;
-      $('shareStage').hidden = false;
+      focusedShareHidden = false;
+      // Only render the incoming share when someone ELSE shares — my own share
+      // is already rendered locally by startShareScreen.
       if (userKey(payload.userId) !== userKey(myId)) {
         $('shareVideo').hidden = true;
         $('shareCanvas').hidden = false;
@@ -366,9 +526,9 @@ function bindZoomEvents() {
     } else {
       activeShareUserId = null;
       try { await media.stopShareView?.(); } catch {}
-      $('shareStage').hidden = true;
     }
     updateShareUi();
+    await renderUsers();
   });
   client.on('command-channel-message', handleClassCommand);
   client.on('connection-change', (payload) => {
@@ -395,6 +555,10 @@ async function join() {
   setStatus('Подключаемся к уроку…');
   try {
     previewStream?.getTracks().forEach((track) => track.stop());
+    previewStream = null;
+    $('previewVideo').srcObject = null;
+    $('previewEmpty').textContent = 'Подключаемся…';
+    $('previewEmpty').hidden = false;
     const auth = await token();
     if (auth.waiting) {
       setStatus('Запрос отправлен. Ждём, когда преподаватель впустит вас…');
@@ -427,12 +591,14 @@ async function join() {
       await renderWaitingRoom();
       waitingTimer = setInterval(renderWaitingRoom, 3000);
       $('addMaterialBtn').hidden = false;
+      $('hostControls').hidden = false;
+      $('chatQuick').hidden = false;
     }
     await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'join' });
     attendanceTimer = setInterval(() => { void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'heartbeat' }); }, 30000);
-    if (micOn) await media.startAudio();
+    if (micOn) await media.startAudio(audioStartOptions());
     if (camOn) {
-      await media.startVideo();
+      await media.startVideo(videoStartOptions());
     }
     $('prejoin').hidden = true;
     $('room').hidden = false;
@@ -460,11 +626,15 @@ async function toggleMic() {
 async function toggleCam() {
   if (!media) return;
   camOn = !camOn;
-  if (camOn) await media.startVideo(); else await media.stopVideo();
+  if (camOn) await media.startVideo(videoStartOptions()); else await media.stopVideo();
   $('camBtn').classList.toggle('off', !camOn);
   await renderUsers();
 }
 
+// Zoom renders the local screen-share preview into the element we pass, so it
+// must have layout (not display:none) first. Some browsers also require a
+// <video> element instead of a <canvas> — the SDK tells us which via
+// isStartShareScreenWithVideoElement().
 function shareRenderElement() {
   const withVideo = typeof media.isStartShareScreenWithVideoElement === 'function' && media.isStartShareScreenWithVideoElement();
   $('shareVideo').hidden = !withVideo;
@@ -481,6 +651,7 @@ function updateShareUi() {
   $('shareBtn').classList.toggle('off', sharing);
   $('shareBtn').querySelector('span').textContent = sharing ? 'Остановить' : 'Экран';
   $('shareFitBtn').textContent = document.fullscreenElement === $('shareStage') ? 'Свернуть' : 'Во весь экран';
+  $('restoreShareBtn').hidden = !(shareActive && focusedShareHidden);
 }
 
 async function toggleShare() {
@@ -492,6 +663,7 @@ async function toggleShare() {
       if (userKey(activeShareUserId) === userKey(ownZoomUser()?.userId)) activeShareUserId = null;
     } else {
       $('shareStage').hidden = false;
+      focusedShareHidden = false;
       const element = shareRenderElement();
       try {
         await media.startShareScreen(element);
@@ -503,20 +675,44 @@ async function toggleShare() {
       }
     }
     updateShareUi();
+    await renderUsers();
   } catch (error) {
+    // Dismissing the browser's "choose what to share" picker throws
+    // NotAllowedError/AbortError — that's a user cancel, not a failure, so stay quiet.
     if (error?.name === 'NotAllowedError' || error?.name === 'AbortError') return;
-    alert(error?.message || 'Браузер не разрешил демонстрацию экрана.');
+    console.error('startShareScreen failed:', error);
+    alert(`${error?.message || 'Не удалось начать демонстрацию экрана'}${error?.name ? ` [${error.name}]` : ''}`);
   }
 }
 
 // Materials live in the PRIVATE `class-materials` bucket, keyed by
 // `<sessionId>/<userId>/...` so the storage RLS (which parses the session id
 // from the object path) admits enrolled learners. Rows carry storage_path +
-// file_type (NOT file_url/mime_type — those columns do not exist); files are
-// opened through short-lived signed URLs. This mirrors the mobile apps'
-// shared/supabase/class-materials.ts so materials interoperate across surfaces.
+// file_type; files are opened through short-lived signed URLs. The table also
+// has a legacy NOT NULL `file_url` column we don't use — it defaults to '' at
+// the DB level so these inserts (which omit it) succeed. `mime_type` does not
+// exist. This mirrors the mobile apps' shared/supabase/class-materials.ts so
+// materials interoperate across surfaces.
 const MATERIAL_BUCKET = 'class-materials';
 const MATERIAL_SIGNED_TTL = 60 * 60;
+
+function showMaterial(title, fileType, url) {
+  if (!url) return;
+  activeMaterialUrl = url;
+  $('materialTitle').textContent = title || 'Материал';
+  const isImage = /^image\//.test(fileType || '') || /\.(png|jpe?g|webp)(\?|$)/i.test(url);
+  const preview = isImage
+    ? `<img src="${esc(url)}" alt="${esc(title || 'Материал')}">`
+    : `<iframe src="${esc(url)}" title="${esc(title || 'Материал')}"></iframe>`;
+  $('materialPreview').innerHTML = preview;
+  $('materialOverlay').hidden = false;
+}
+
+function closeMaterial() {
+  activeMaterialUrl = '';
+  $('materialOverlay').hidden = true;
+  $('materialPreview').replaceChildren();
+}
 
 async function loadMaterials() {
   if (!supa || !sessionId) return;
@@ -536,7 +732,13 @@ async function loadMaterials() {
     }
     return { item, url };
   }));
-  $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || 'Материал')}</small></div>${(item.allow_download || roomRole === 'host') && url ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button>Открыть</button></a>` : '<small>Только просмотр</small>'}</div>`).join('') : '<p>Материалов к этому уроку пока нет.</p>';
+  currentMaterials.clear();
+  resolved.forEach(({ item, url }) => currentMaterials.set(String(item.id), { item, url }));
+  $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => {
+    const canOpenExternal = (item.allow_download || roomRole === 'host') && url;
+    const actions = url ? `<div class="material-actions"><button data-material-action="preview" data-material-id="${esc(item.id)}">Смотреть</button>${canOpenExternal ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button type="button">Открыть</button></a>` : ''}${roomRole === 'host' ? `<button data-material-action="show" data-material-id="${esc(item.id)}">Показать всем</button>` : ''}</div>` : '<small>Только просмотр</small>';
+    return `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || 'Материал')}</small></div>${actions}</div>`;
+  }).join('') : '<p>Материалов к этому уроку пока нет.</p>';
 }
 
 async function uploadMaterial(file) {
@@ -584,11 +786,31 @@ function leave() {
 
 $('previewMic').onclick = () => { micOn = !micOn; $('previewMic').classList.toggle('active', micOn); };
 $('previewCam').onclick = () => { camOn = !camOn; $('previewCam').classList.toggle('active', camOn); preview(); };
+$('cameraSelect').onchange = () => { selectedCameraId = $('cameraSelect').value || null; void preview(); };
+$('micSelect').onchange = () => { selectedMicId = $('micSelect').value || null; };
+$('speakerSelect').onchange = () => { selectedSpeakerId = $('speakerSelect').value || null; };
+// Click a video tile to pin it big (click again to unpin and return to grid/auto).
+document.querySelector('.stage').onclick = (event) => {
+  const node = event.target.closest('.tile[data-user]');
+  if (!node) return;
+  pinnedUserId = String(pinnedUserId) === String(node.dataset.user) ? null : node.dataset.user;
+  void renderUsers();
+};
 $('joinBtn').onclick = join;
 $('micBtn').onclick = toggleMic;
 $('camBtn').onclick = toggleCam;
 $('shareBtn').onclick = toggleShare;
 $('stopShareBtn').onclick = () => { if (sharing) void toggleShare(); };
+$('shareReturnBtn').onclick = () => {
+  focusedShareHidden = true;
+  void renderUsers();
+  updateShareUi();
+};
+$('restoreShareBtn').onclick = () => {
+  focusedShareHidden = false;
+  void renderUsers();
+  updateShareUi();
+};
 $('shareFitBtn').onclick = async () => {
   try {
     if (document.fullscreenElement === $('shareStage')) await document.exitFullscreen();
@@ -631,10 +853,56 @@ $('peopleList').onclick = async (event) => {
     await renderUsers();
     return;
   }
+  if (action === 'speak') {
+    pinnedUserId = String(userId);
+    setRaisedUser(userId, false);
+    await sendClassCommand({ type: 'host-action', action: 'speak' }, userId);
+    await sendClassCommand({ type: 'hand-clear', targetUserId: userId }, userId);
+    await renderUsers();
+    return;
+  }
   if (action === 'mute') await media.muteAudio(userId);
   if (action === 'stop-video') await sendClassCommand({ type: 'host-action', action: 'stop-video' }, userId);
 };
+$('hostControls').onclick = async (event) => {
+  const button = event.target.closest('[data-host-control]');
+  if (!button || roomRole !== 'host') return;
+  const ownId = userKey(ownZoomUser()?.userId);
+  const users = client.getAllUser().filter((user) => userKey(user.userId) !== ownId);
+  if (button.dataset.hostControl === 'mute-all') {
+    await Promise.all(users.map((user) => Promise.resolve(media.muteAudio(Number(user.userId))).catch(() => {})));
+  }
+  if (button.dataset.hostControl === 'stop-video-all') {
+    await Promise.all(users.map((user) => Promise.resolve(sendClassCommand({ type: 'host-action', action: 'stop-video' }, Number(user.userId))).catch(() => {})));
+  }
+  if (button.dataset.hostControl === 'lower-all-hands') {
+    users.forEach((user) => setRaisedUser(user.userId, false));
+    await Promise.all(users.map((user) => Promise.resolve(sendClassCommand({ type: 'hand-clear', targetUserId: user.userId }, Number(user.userId))).catch(() => {})));
+  }
+  await renderUsers();
+};
+$('chatQuick').onclick = async (event) => {
+  const button = event.target.closest('[data-quick-chat]');
+  if (!button || !joined) return;
+  await client.getChatClient().sendToAll(button.dataset.quickChat);
+};
 $('addMaterialBtn').onclick = () => $('materialFile').click();
+$('closeMaterialBtn').onclick = closeMaterial;
+$('materialsList').onclick = async (event) => {
+  const button = event.target.closest('[data-material-action]');
+  if (!button) return;
+  const record = currentMaterials.get(String(button.dataset.materialId));
+  if (!record?.url) return;
+  showMaterial(record.item.title, record.item.file_type, record.url);
+  if (button.dataset.materialAction === 'show' && roomRole === 'host') {
+    await sendClassCommand({
+      type: 'material-show',
+      title: record.item.title,
+      fileType: record.item.file_type,
+      url: record.url
+    });
+  }
+};
 $('materialFile').onchange = async () => {
   const file = $('materialFile').files?.[0];
   if (!file) return;
@@ -689,4 +957,4 @@ addEventListener('beforeunload', () => {
   if (joined && !endingForAll) void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' });
 });
 
-loadIdentity().then(async () => { await runDiagnostics(); await preview(); }).catch((error) => setStatus(error.message, true));
+loadIdentity().then(async () => { await runDiagnostics(); await preview(); await populateDevices(); }).catch((error) => setStatus(error.message, true));
