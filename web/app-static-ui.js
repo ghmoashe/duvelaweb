@@ -40,7 +40,13 @@
       });
 
       const langSelect = $('#langSelect');
-      if (langSelect) langSelect.value = isRu ? 'ru' : 'en';
+      if (langSelect) {
+        langSelect.innerHTML = (supportedLocales || []).map((locale) => {
+          const flag = locale.flag ? locale.flag + ' ' : '';
+          return '<option value="' + locale.code + '">' + flag + locale.name + '</option>';
+        }).join('');
+        langSelect.value = appLang || (isRu ? 'ru' : 'en');
+      }
 
       $('#chatSearch').placeholder = tr('Search people by name or city...', 'Поиск людей по имени или городу...');
       if ($('#groupToggleLabel')) $('#groupToggleLabel').textContent = tr('Group chat', 'Групповой чат');

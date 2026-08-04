@@ -752,8 +752,8 @@
   .pv-info-ic.amber { background: var(--amber-soft); color: var(--amber); }
   .pv-info-label { display: block; font-size: 11px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .04em; }
   .pv-info b { font-size: 17px; font-weight: 800; }
-  .pv-tabs { display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: linear-gradient(90deg, #5B2DC9, #A855F7, #C026D3); }
-  .pv-tab { flex: 1; border: 0; cursor: pointer; background: transparent; color: rgba(255,255,255,.85); font-weight: 800; font-size: 15px; padding: 11px; border-radius: 999px; }
+  .pv-tabs { display: flex; align-items: center; justify-content: flex-start; gap: 4px; padding: 5px; border-radius: 999px; background: linear-gradient(90deg, #5B2DC9, #A855F7, #C026D3); }
+  .pv-tab { flex: 0 0 auto; min-width: 190px; border: 0; cursor: pointer; background: transparent; color: rgba(255,255,255,.85); font-weight: 800; font-size: 15px; padding: 11px 24px; border-radius: 999px; }
   .pv-tab.active { background: #fff; color: var(--purple); }
   .pv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
   .pv-card h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
@@ -824,7 +824,7 @@
   .lh-course-progress { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:var(--shadow); }.lh-course-progress div { display:grid;gap:3px; }.lh-course-progress small { color:var(--soft); }.lh-course-progress strong { color:var(--purple); }.lh-course-progress>i { grid-column:1/-1;height:7px;border-radius:999px;background:var(--purple-soft);overflow:hidden; }.lh-course-progress>i span { display:block;height:100%;background:linear-gradient(90deg,#6d3fe0,#c026d3); }.lh-course-progress a { grid-column:1/-1;text-align:center; }
   .lh-mobile-nav { display:none; }
   /* Media layout CSS moved to web/app-media-layout.css. */
-  @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .pv-actions { grid-template-columns: repeat(2, 1fr); } .pv-info-grid { grid-template-columns: 1fr; } .pv-tab { flex: 1 1 0; min-width: 0; padding-inline: 10px; } }
   .pv-dot-list { display: grid; gap: 8px; }
   .pv-dot-row { display: flex; align-items: center; gap: 9px; color: var(--soft); font-weight: 600; }
   .pv-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--purple); flex: none; }
@@ -1573,7 +1573,7 @@
   .bell-dot { position: absolute; top: 5px; right: 6px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px; background: var(--red); color: #fff; font-size: 9.5px; font-weight: 700; display: grid; place-items: center; }
   .notif-item { display: grid; grid-template-columns: 8px minmax(0,1fr); gap: 10px; padding: 11px 8px; border-top: 1px solid var(--line); align-items: start; }
   .notif-item .ndot { width: 7px; height: 7px; border-radius: 50%; background: transparent; margin-top: 6px; }
-  .notif-item.unread .ndot { background: var(--purple); }
+  .notif-item.is-unread .ndot { background: var(--purple); }
   .notif-item b { font-size: 13.5px; font-weight: 650; }
   .notif-item p { margin: 3px 0 0; color: var(--soft); font-size: 12.5px; font-weight: 500; }
   .notif-item time { color: var(--muted); font-size: 11px; font-weight: 600; }
@@ -1619,9 +1619,7 @@
   .ob-autocomplete{position:absolute;z-index:40;background:#fff;border:1px solid #e1d9ef;border-radius:12px;box-shadow:0 14px 40px rgba(22,10,54,.18);overflow:hidden;max-height:210px;overflow-y:auto}
   .ob-autocomplete button{display:block;width:100%;text-align:left;border:0;background:#fff;padding:10px 13px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}
   .ob-autocomplete button:hover{background:var(--purple-soft);color:var(--purple)}
-  .ob-lang-levels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-  .ob-lang-level{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--soft)}
-  @media(max-width:700px){.ob-lang-levels-grid{grid-template-columns:1fr 1fr}}
+  .ob-lang-goals-grid{display:grid;gap:10px;margin-top:10px}.ob-lang-goal-card{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid #e1d9ef;padding:12px}.ob-lang-goal-card>div,.ob-lang-level.wide{grid-column:1/-1}.ob-lang-level{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--soft)}
   .ob-lang-scroll{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 12px;margin-top:8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
   .ob-lang-scroll::-webkit-scrollbar{height:6px}
   .ob-lang-scroll::-webkit-scrollbar-thumb{background:#d9cffb;border-radius:99px}
@@ -1852,6 +1850,7 @@
             <div class="field"><label data-t="country">Country</label><input id="pfCountry" maxlength="80"></div>
             <div class="field"><label id="pfNativeLanguageLabel">Native language</label><input id="pfLanguage" maxlength="60"></div>
             <div class="field"><label data-t="level">Language level</label><select id="pfLevel" class="role-select"><option value="">Select level</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
+            <div class="field" id="pfGoalField"><label id="pfGoalLabel">Student Goal</label><select id="pfGoal" class="role-select"><option value="">Select goal</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
             <input id="pfAvatar" type="hidden">
           </div>
           </div>
@@ -2036,6 +2035,8 @@
 </style>
 <script src="./locales/web-locales.js"></script>
 <script src="./web/duvela-web-config.js"></script>
+<script src="./web/app-i18n.js?v=20260804-i18n1"></script>
+<script src="./web/app-student-goal.js"></script>
 <script src="./web/duvela-web-roles.js?v=20260721-2"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js"></script>
