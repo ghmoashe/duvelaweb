@@ -44,6 +44,10 @@ let selectedMicId = null;
 let selectedSpeakerId = null;
 const netLevels = new Map();
 const raisedUserNames = new Map();
+const raisedAt = new Map();
+const currentMaterials = new Map();
+let activeMaterialUrl = '';
+let focusedShareHidden = false;
 
 function videoStartOptions() { return selectedCameraId ? { cameraId: selectedCameraId } : {}; }
 function audioStartOptions() {
@@ -84,9 +88,11 @@ function setRaisedUser(userId, value, name = '') {
   if (value) {
     raisedUsers.add(key);
     if (name) raisedUserNames.set(key, name);
+    if (!raisedAt.has(key)) raisedAt.set(key, Date.now());
   } else {
     raisedUsers.delete(key);
     raisedUserNames.delete(key);
+    raisedAt.delete(key);
   }
   return true;
 }
@@ -235,7 +241,8 @@ function spotlightTarget(users) {
 }
 
 function placeTiles(users) {
-  const sharing_ = sharing || activeShareUserId != null;
+  const shareAvailable = sharing || activeShareUserId != null;
+  const sharing_ = shareAvailable && !focusedShareHidden;
   const target = sharing_ ? null : spotlightTarget(users);
   const mode = sharing_ ? 'share' : (target ? 'spotlight' : 'grid');
   const gallery = $('gallery'), spotlight = $('spotlight'), filmstrip = $('filmstrip'), shareStage = $('shareStage');
@@ -252,6 +259,7 @@ function placeTiles(users) {
     if (node.parentElement !== container) container.append(node);
   }
   if (!filmstrip.children.length) filmstrip.hidden = true;
+  $('restoreShareBtn').hidden = !(shareAvailable && focusedShareHidden);
   $('emptyState').hidden = !(mode === 'grid' && users.length <= 1);
 }
 
@@ -341,16 +349,27 @@ async function renderUsers() {
   const handBadge = $('handBadge');
   handBadge.hidden = !raisedCount;
   handBadge.textContent = `✋ ${raisedCount}`;
+  const queueKeys = users
+    .filter((user) => raisedUsers.has(userKey(user.userId)))
+    .sort((a, b) => (raisedAt.get(userKey(a.userId)) || 0) - (raisedAt.get(userKey(b.userId)) || 0))
+    .map((user) => userKey(user.userId));
+  const queueIndex = new Map(queueKeys.map((key, index) => [key, index + 1]));
   const sortedUsers = users.slice().sort((a, b) => {
-    const handDiff = Number(raisedUsers.has(userKey(b.userId))) - Number(raisedUsers.has(userKey(a.userId)));
+    const aQueue = queueIndex.get(userKey(a.userId)) || 0;
+    const bQueue = queueIndex.get(userKey(b.userId)) || 0;
+    if (aQueue && bQueue) return aQueue - bQueue;
+    const handDiff = Number(!!bQueue) - Number(!!aQueue);
     if (handDiff) return handDiff;
     return String(a.displayName || '').localeCompare(String(b.displayName || ''), 'ru');
   });
   $('peopleList').innerHTML = sortedUsers.map((user) => {
     const key = userKey(user.userId);
     const hasRaisedHand = raisedUsers.has(key);
-    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="clear-hand" data-zoom-user="${user.userId}">Ответил</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : '';
-    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${esc(user.displayName)} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span>${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}</span>${hostActions}</div>`;
+    const queueLabel = queueIndex.get(key) ? `<i class="queue-mark">${queueIndex.get(key)}</i>` : '';
+    const netLevel = netLevels.get(key);
+    const netLabel = netLevel == null ? '' : netLevel <= 1 ? ' · слабая сеть' : ' · сеть ок';
+    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">Дать слово</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">Ответил</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : '';
+    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${queueLabel}${esc(user.displayName)} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span title="${esc(netLabel.trim())}">${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}${netLevel != null && netLevel <= 1 ? ' ⚠️' : ''}</span>${hostActions}</div>`;
   }).join('');
 }
 
@@ -372,8 +391,28 @@ function showReaction(emoji) {
   setTimeout(() => node.remove(), 2300);
 }
 
+function playNoticeSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const context = new AudioContext();
+    const gain = context.createGain();
+    const oscillator = context.createOscillator();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.18);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.2);
+  } catch {}
+}
+
 function showHandNotice(name) {
   if (roomRole !== 'host') return;
+  playNoticeSound();
   document.querySelector('.hand-toast')?.remove();
   const node = document.createElement('button');
   node.type = 'button';
@@ -382,6 +421,22 @@ function showHandNotice(name) {
   node.onclick = () => { showPanel('people'); node.remove(); };
   document.body.append(node);
   setTimeout(() => node.remove(), 7000);
+}
+
+async function acceptSpeakingTurn() {
+  if (!media) return;
+  const ok = micOn || confirm('Преподаватель дал вам слово. Включить микрофон?');
+  if (!ok) return;
+  try {
+    await media.unmuteAudio();
+    micOn = true;
+    $('micBtn').classList.toggle('off', false);
+    setOwnHandRaised(false);
+    await sendClassCommand({ type: 'hand', raised: false });
+    await renderUsers();
+  } catch (error) {
+    alert(error?.message || 'Не удалось включить микрофон.');
+  }
 }
 
 async function sendClassCommand(payload, userId) {
@@ -420,7 +475,9 @@ function handleClassCommand(message) {
   if (payload.type === 'host-action' && senderId !== ownId) {
     if (payload.action === 'mute') void media?.muteAudio();
     if (payload.action === 'stop-video') void media?.stopVideo();
+    if (payload.action === 'speak') void acceptSpeakingTurn();
   }
+  if (payload.type === 'material-show' && payload.url) showMaterial(payload.title || 'Материал', payload.fileType || '', payload.url);
   if (payload.type === 'materials-changed') void loadMaterials();
 }
 
@@ -449,12 +506,16 @@ function bindZoomEvents() {
     const mine = payload.sender?.userId === client.getCurrentUserInfo()?.userId;
     $('messages').insertAdjacentHTML('beforeend', `<div class="message"><small>${esc(mine ? 'Вы' : payload.sender?.name || 'Участник')}</small>${esc(payload.message)}</div>`);
     $('messages').scrollTop = $('messages').scrollHeight;
-    if ($('chatPanel').hidden) $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
+    if ($('chatPanel').hidden) {
+      $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
+      if (!mine) playNoticeSound();
+    }
   });
   client.on('active-share-change', async (payload) => {
     const myId = ownZoomUser()?.userId;
     if (payload.state === 'Active') {
       activeShareUserId = payload.userId;
+      focusedShareHidden = false;
       // Only render the incoming share when someone ELSE shares — my own share
       // is already rendered locally by startShareScreen.
       if (userKey(payload.userId) !== userKey(myId)) {
@@ -530,6 +591,8 @@ async function join() {
       await renderWaitingRoom();
       waitingTimer = setInterval(renderWaitingRoom, 3000);
       $('addMaterialBtn').hidden = false;
+      $('hostControls').hidden = false;
+      $('chatQuick').hidden = false;
     }
     await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'join' });
     attendanceTimer = setInterval(() => { void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'heartbeat' }); }, 30000);
@@ -588,6 +651,7 @@ function updateShareUi() {
   $('shareBtn').classList.toggle('off', sharing);
   $('shareBtn').querySelector('span').textContent = sharing ? 'Остановить' : 'Экран';
   $('shareFitBtn').textContent = document.fullscreenElement === $('shareStage') ? 'Свернуть' : 'Во весь экран';
+  $('restoreShareBtn').hidden = !(shareActive && focusedShareHidden);
 }
 
 async function toggleShare() {
@@ -599,6 +663,7 @@ async function toggleShare() {
       if (userKey(activeShareUserId) === userKey(ownZoomUser()?.userId)) activeShareUserId = null;
     } else {
       $('shareStage').hidden = false;
+      focusedShareHidden = false;
       const element = shareRenderElement();
       try {
         await media.startShareScreen(element);
@@ -631,6 +696,24 @@ async function toggleShare() {
 const MATERIAL_BUCKET = 'class-materials';
 const MATERIAL_SIGNED_TTL = 60 * 60;
 
+function showMaterial(title, fileType, url) {
+  if (!url) return;
+  activeMaterialUrl = url;
+  $('materialTitle').textContent = title || 'Материал';
+  const isImage = /^image\//.test(fileType || '') || /\.(png|jpe?g|webp)(\?|$)/i.test(url);
+  const preview = isImage
+    ? `<img src="${esc(url)}" alt="${esc(title || 'Материал')}">`
+    : `<iframe src="${esc(url)}" title="${esc(title || 'Материал')}"></iframe>`;
+  $('materialPreview').innerHTML = preview;
+  $('materialOverlay').hidden = false;
+}
+
+function closeMaterial() {
+  activeMaterialUrl = '';
+  $('materialOverlay').hidden = true;
+  $('materialPreview').replaceChildren();
+}
+
 async function loadMaterials() {
   if (!supa || !sessionId) return;
   const { data, error } = await supa.from('class_session_materials')
@@ -649,7 +732,13 @@ async function loadMaterials() {
     }
     return { item, url };
   }));
-  $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || 'Материал')}</small></div>${(item.allow_download || roomRole === 'host') && url ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button>Открыть</button></a>` : '<small>Только просмотр</small>'}</div>`).join('') : '<p>Материалов к этому уроку пока нет.</p>';
+  currentMaterials.clear();
+  resolved.forEach(({ item, url }) => currentMaterials.set(String(item.id), { item, url }));
+  $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => {
+    const canOpenExternal = (item.allow_download || roomRole === 'host') && url;
+    const actions = url ? `<div class="material-actions"><button data-material-action="preview" data-material-id="${esc(item.id)}">Смотреть</button>${canOpenExternal ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button type="button">Открыть</button></a>` : ''}${roomRole === 'host' ? `<button data-material-action="show" data-material-id="${esc(item.id)}">Показать всем</button>` : ''}</div>` : '<small>Только просмотр</small>';
+    return `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || 'Материал')}</small></div>${actions}</div>`;
+  }).join('') : '<p>Материалов к этому уроку пока нет.</p>';
 }
 
 async function uploadMaterial(file) {
@@ -712,6 +801,16 @@ $('micBtn').onclick = toggleMic;
 $('camBtn').onclick = toggleCam;
 $('shareBtn').onclick = toggleShare;
 $('stopShareBtn').onclick = () => { if (sharing) void toggleShare(); };
+$('shareReturnBtn').onclick = () => {
+  focusedShareHidden = true;
+  void renderUsers();
+  updateShareUi();
+};
+$('restoreShareBtn').onclick = () => {
+  focusedShareHidden = false;
+  void renderUsers();
+  updateShareUi();
+};
 $('shareFitBtn').onclick = async () => {
   try {
     if (document.fullscreenElement === $('shareStage')) await document.exitFullscreen();
@@ -754,10 +853,56 @@ $('peopleList').onclick = async (event) => {
     await renderUsers();
     return;
   }
+  if (action === 'speak') {
+    pinnedUserId = String(userId);
+    setRaisedUser(userId, false);
+    await sendClassCommand({ type: 'host-action', action: 'speak' }, userId);
+    await sendClassCommand({ type: 'hand-clear', targetUserId: userId }, userId);
+    await renderUsers();
+    return;
+  }
   if (action === 'mute') await media.muteAudio(userId);
   if (action === 'stop-video') await sendClassCommand({ type: 'host-action', action: 'stop-video' }, userId);
 };
+$('hostControls').onclick = async (event) => {
+  const button = event.target.closest('[data-host-control]');
+  if (!button || roomRole !== 'host') return;
+  const ownId = userKey(ownZoomUser()?.userId);
+  const users = client.getAllUser().filter((user) => userKey(user.userId) !== ownId);
+  if (button.dataset.hostControl === 'mute-all') {
+    await Promise.all(users.map((user) => Promise.resolve(media.muteAudio(Number(user.userId))).catch(() => {})));
+  }
+  if (button.dataset.hostControl === 'stop-video-all') {
+    await Promise.all(users.map((user) => Promise.resolve(sendClassCommand({ type: 'host-action', action: 'stop-video' }, Number(user.userId))).catch(() => {})));
+  }
+  if (button.dataset.hostControl === 'lower-all-hands') {
+    users.forEach((user) => setRaisedUser(user.userId, false));
+    await Promise.all(users.map((user) => Promise.resolve(sendClassCommand({ type: 'hand-clear', targetUserId: user.userId }, Number(user.userId))).catch(() => {})));
+  }
+  await renderUsers();
+};
+$('chatQuick').onclick = async (event) => {
+  const button = event.target.closest('[data-quick-chat]');
+  if (!button || !joined) return;
+  await client.getChatClient().sendToAll(button.dataset.quickChat);
+};
 $('addMaterialBtn').onclick = () => $('materialFile').click();
+$('closeMaterialBtn').onclick = closeMaterial;
+$('materialsList').onclick = async (event) => {
+  const button = event.target.closest('[data-material-action]');
+  if (!button) return;
+  const record = currentMaterials.get(String(button.dataset.materialId));
+  if (!record?.url) return;
+  showMaterial(record.item.title, record.item.file_type, record.url);
+  if (button.dataset.materialAction === 'show' && roomRole === 'host') {
+    await sendClassCommand({
+      type: 'material-show',
+      title: record.item.title,
+      fileType: record.item.file_type,
+      url: record.url
+    });
+  }
+};
 $('materialFile').onchange = async () => {
   const file = $('materialFile').files?.[0];
   if (!file) return;
