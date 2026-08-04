@@ -1,5 +1,24 @@
 import './style.css';
 
+function loadScriptOnce(src, isReady) {
+  return new Promise((resolve, reject) => {
+    if (isReady()) return resolve();
+    const existing = Array.from(document.scripts).find((script) => script.src.endsWith(src));
+    if (existing) {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+}
+
+await loadScriptOnce('/locales/web-locales.js', () => Boolean(window.DUVELA_WEB_I18N));
+await loadScriptOnce('/web/app-i18n.js?v=20260804-i18n1', () => Boolean(window.DuvelaAppI18n));
 await new Promise((resolve, reject) => {
   if (window.DuvelaWebConfig) return resolve();
   const script = document.createElement('script');
@@ -14,6 +33,9 @@ const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':
 const query = new URLSearchParams(location.search);
 const sessionId = query.get('s') || '';
 const config = window.DuvelaWebConfig;
+const i18n = window.DuvelaAppI18n?.create({ localeCatalog: window.DUVELA_WEB_I18N, storageKeys: config?.storageKeys });
+const tr = i18n?.tr || ((en, ru) => (String(localStorage.getItem('duvela.webLang') || navigator.language || '').toLowerCase().startsWith('ru') ? ru : en));
+i18n?.applyDocument?.();
 const supa = config?.createSupabaseClient?.();
 let client = null;
 let zoomClientPromise = null;
@@ -104,7 +126,7 @@ function setOwnHandRaised(value) {
   const button = $('handBtn');
   button.classList.toggle('off', raised);
   button.setAttribute('aria-pressed', String(raised));
-  button.querySelector('span').textContent = raised ? 'Опустить руку' : 'Поднять руку';
+  button.querySelector('span').textContent = raised ? tr('Lower hand', 'Опустить руку') : tr('Raise hand', 'Поднять руку');
 }
 
 function setStatus(text, error = false) {
@@ -117,7 +139,7 @@ async function preview() {
   previewStream = null;
   if (!camOn) {
     $('previewVideo').srcObject = null;
-    $('previewEmpty').textContent = 'Камера выключена';
+    $('previewEmpty').textContent = tr('Camera is off', 'Камера выключена');
     $('previewEmpty').hidden = false;
     return;
   }
@@ -151,34 +173,34 @@ async function populateDevices() {
     if (current && list.some((device) => device.deviceId === current)) select.value = current;
     return select.value || null;
   };
-  selectedCameraId = fill('cameraSelect', 'videoinput', 'Камера', selectedCameraId);
-  selectedMicId = fill('micSelect', 'audioinput', 'Микрофон', selectedMicId);
-  selectedSpeakerId = fill('speakerSelect', 'audiooutput', 'Динамик', selectedSpeakerId);
+  selectedCameraId = fill('cameraSelect', 'videoinput', tr('Camera', 'Камера'), selectedCameraId);
+  selectedMicId = fill('micSelect', 'audioinput', tr('Microphone', 'Микрофон'), selectedMicId);
+  selectedSpeakerId = fill('speakerSelect', 'audiooutput', tr('Speaker', 'Динамик'), selectedSpeakerId);
 }
 
 async function loadIdentity() {
-  if (!supa || !sessionId) throw new Error('Ссылка на групповой урок неполная.');
+  if (!supa || !sessionId) throw new Error(tr('The group lesson link is incomplete.', 'Ссылка на групповой урок неполная.'));
   const auth = await supa.auth.getUser();
   if (!auth.data?.user) {
     location.href = './index.html?next=' + encodeURIComponent(location.href);
-    throw new Error('Войдите в Duvela.');
+    throw new Error(tr('Sign in to Duvela.', 'Войдите в Duvela.'));
   }
   me = auth.data.user;
   const [profileResult, sessionResult] = await Promise.all([
     supa.from('profiles').select('full_name,avatar_url').eq('id', me.id).maybeSingle(),
     supa.from('class_sessions').select('id,class_id,title,starts_at,status,provider').eq('id', sessionId).maybeSingle()
   ]);
-  if (sessionResult.error || !sessionResult.data) throw new Error('Урок не найден или у вас нет доступа.');
+  if (sessionResult.error || !sessionResult.data) throw new Error(tr('Lesson not found or you do not have access.', 'Урок не найден или у вас нет доступа.'));
   classSession = sessionResult.data;
   me.name = profileResult.data?.full_name || me.email?.split('@')[0] || 'Duvela learner';
-  $('joinTitle').textContent = classSession.title || 'Групповой урок';
-  $('roomTitle').textContent = classSession.title || 'Групповой урок';
+  $('joinTitle').textContent = classSession.title || tr('Group lesson', 'Групповой урок');
+  $('roomTitle').textContent = classSession.title || tr('Group lesson', 'Групповой урок');
 }
 
 async function token() {
   const result = await supa.functions.invoke('zoom-video-token', { body: { sessionId } });
   if (result.data?.waiting) return result.data;
-  if (result.error || !result.data?.token) throw new Error(result.data?.error || result.error?.message || 'Не удалось открыть Zoom Classroom.');
+  if (result.error || !result.data?.token) throw new Error(result.data?.error || result.error?.message || tr('Could not open Zoom Classroom.', 'Не удалось открыть Zoom Classroom.'));
   return result.data;
 }
 
@@ -189,15 +211,15 @@ function diagnostic(id, ok, text) {
 }
 
 async function runDiagnostics() {
-  diagnostic('diagBrowser', !!(window.WebAssembly && window.RTCPeerConnection), 'Браузер');
-  diagnostic('diagNetwork', navigator.onLine, navigator.connection?.effectiveType ? `Интернет · ${navigator.connection.effectiveType}` : 'Интернет');
-  diagnostic('diagCamera', !!navigator.mediaDevices?.getUserMedia, 'Камера');
+  diagnostic('diagBrowser', !!(window.WebAssembly && window.RTCPeerConnection), tr('Browser', 'Браузер'));
+  diagnostic('diagNetwork', navigator.onLine, navigator.connection?.effectiveType ? `${tr('Internet', 'Интернет')} · ${navigator.connection.effectiveType}` : tr('Internet', 'Интернет'));
+  diagnostic('diagCamera', !!navigator.mediaDevices?.getUserMedia, tr('Camera', 'Камера'));
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    diagnostic('diagMic', true, 'Микрофон');
+    diagnostic('diagMic', true, tr('Microphone', 'Микрофон'));
     stream.getTracks().forEach((track) => track.stop());
   } catch {
-    diagnostic('diagMic', false, 'Микрофон');
+    diagnostic('diagMic', false, tr('Microphone', 'Микрофон'));
   }
 }
 
@@ -206,7 +228,7 @@ async function renderWaitingRoom() {
   const { data } = await supa.from('class_waiting_room').select('id,user_id,status').eq('session_id', sessionId).eq('status', 'waiting');
   const rows = data || [];
   $('waitingWrap').hidden = !rows.length;
-  $('waitingList').innerHTML = rows.map((row) => `<div class="waiting-person"><b>${esc(row.user_id.slice(0, 8))}</b><button class="admit" data-wait="${row.id}" data-decision="admitted">Впустить</button><button data-wait="${row.id}" data-decision="denied">Отклонить</button></div>`).join('');
+  $('waitingList').innerHTML = rows.map((row) => `<div class="waiting-person"><b>${esc(row.user_id.slice(0, 8))}</b><button class="admit" data-wait="${row.id}" data-decision="admitted">${esc(tr('Admit', 'Впустить'))}</button><button data-wait="${row.id}" data-decision="denied">${esc(tr('Deny', 'Отклонить'))}</button></div>`).join('');
 }
 
 function tile(user) {
@@ -225,7 +247,7 @@ function tile(user) {
   node.classList.toggle('pinned', String(user.userId) === String(pinnedUserId));
   node.querySelector('.pin-mark').hidden = String(user.userId) !== String(pinnedUserId);
   node.querySelector('.hand-mark').hidden = !hasRaisedHand;
-  node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${userKey(user.userId) === userKey(ownId) ? ' (Вы)' : ''}`;
+  node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${userKey(user.userId) === userKey(ownId) ? ' (' + tr('You', 'Вы') + ')' : ''}`;
   node.querySelector('.avatar').hidden = !!user.bVideoOn;
   node.querySelector('.video-slot').hidden = !user.bVideoOn;
   return node;
@@ -367,8 +389,8 @@ async function renderUsers() {
     const hasRaisedHand = raisedUsers.has(key);
     const queueLabel = queueIndex.get(key) ? `<i class="queue-mark">${queueIndex.get(key)}</i>` : '';
     const netLevel = netLevels.get(key);
-    const netLabel = netLevel == null ? '' : netLevel <= 1 ? ' · слабая сеть' : ' · сеть ок';
-    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">Дать слово</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">Ответил</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">Удалить</button></span>` : '';
+    const netLabel = netLevel == null ? '' : netLevel <= 1 ? ' · ' + tr('weak network', 'слабая сеть') : ' · ' + tr('network ok', 'сеть ок');
+    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">${esc(tr('Give floor', 'Дать слово'))}</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">${esc(tr('Answered', 'Ответил'))}</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">${esc(tr('Remove', 'Удалить'))}</button></span>` : '';
     return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${queueLabel}${esc(user.displayName)} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span title="${esc(netLabel.trim())}">${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}${netLevel != null && netLevel <= 1 ? ' ⚠️' : ''}</span>${hostActions}</div>`;
   }).join('');
 }
@@ -417,7 +439,7 @@ function showHandNotice(name) {
   const node = document.createElement('button');
   node.type = 'button';
   node.className = 'hand-toast';
-  node.textContent = `✋ ${name || 'Ученик'} поднял руку`;
+  node.textContent = `✋ ${name || tr('Learner', 'Ученик')} ${tr('raised a hand', 'поднял руку')}`;
   node.onclick = () => { showPanel('people'); node.remove(); };
   document.body.append(node);
   setTimeout(() => node.remove(), 7000);
@@ -425,7 +447,7 @@ function showHandNotice(name) {
 
 async function acceptSpeakingTurn() {
   if (!media) return;
-  const ok = micOn || confirm('Преподаватель дал вам слово. Включить микрофон?');
+  const ok = micOn || confirm(tr('The teacher gave you the floor. Turn on your microphone?', 'Преподаватель дал вам слово. Включить микрофон?'));
   if (!ok) return;
   try {
     await media.unmuteAudio();
@@ -435,7 +457,7 @@ async function acceptSpeakingTurn() {
     await sendClassCommand({ type: 'hand', raised: false });
     await renderUsers();
   } catch (error) {
-    alert(error?.message || 'Не удалось включить микрофон.');
+    alert(error?.message || tr('Could not turn on the microphone.', 'Не удалось включить микрофон.'));
   }
 }
 
@@ -459,7 +481,7 @@ function handleClassCommand(message) {
   let payload;
   try { payload = JSON.parse(message?.text ?? message?.message ?? message); } catch { return; }
   const senderId = userKey(payload.senderUserId || payload.userId || message?.senderId || message?.sender?.userId);
-  const senderName = payload.senderName || message?.sender?.name || raisedUserNames.get(senderId) || 'Ученик';
+  const senderName = payload.senderName || message?.sender?.name || raisedUserNames.get(senderId) || tr('Learner', 'Ученик');
   const ownId = userKey(ownZoomUser()?.userId);
   if (payload.type === 'reaction' && payload.emoji) showReaction(payload.emoji);
   if (payload.type === 'hand') {
@@ -477,7 +499,7 @@ function handleClassCommand(message) {
     if (payload.action === 'stop-video') void media?.stopVideo();
     if (payload.action === 'speak') void acceptSpeakingTurn();
   }
-  if (payload.type === 'material-show' && payload.url) showMaterial(payload.title || 'Материал', payload.fileType || '', payload.url);
+  if (payload.type === 'material-show' && payload.url) showMaterial(payload.title || tr('Material', 'Материал'), payload.fileType || '', payload.url);
   if (payload.type === 'materials-changed') void loadMaterials();
 }
 
@@ -504,7 +526,7 @@ function bindZoomEvents() {
   });
   client.on('chat-on-message', (payload) => {
     const mine = payload.sender?.userId === client.getCurrentUserInfo()?.userId;
-    $('messages').insertAdjacentHTML('beforeend', `<div class="message"><small>${esc(mine ? 'Вы' : payload.sender?.name || 'Участник')}</small>${esc(payload.message)}</div>`);
+    $('messages').insertAdjacentHTML('beforeend', `<div class="message"><small>${esc(mine ? tr('You', 'Вы') : payload.sender?.name || tr('Participant', 'Участник'))}</small>${esc(payload.message)}</div>`);
     $('messages').scrollTop = $('messages').scrollHeight;
     if ($('chatPanel').hidden) {
       $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
@@ -540,7 +562,7 @@ function bindZoomEvents() {
         banner.className = 'reconnect';
         document.body.append(banner);
       }
-      banner.textContent = navigator.onLine ? 'Восстанавливаем соединение…' : 'Нет интернета. Ждём подключения…';
+      banner.textContent = navigator.onLine ? tr('Restoring connection...', 'Восстанавливаем соединение…') : tr('No internet. Waiting for connection...', 'Нет интернета. Ждём подключения…');
     } else if (state.includes('connected')) {
       banner?.remove();
       void renderUsers();
@@ -552,16 +574,16 @@ function bindZoomEvents() {
 
 async function join() {
   $('joinBtn').disabled = true;
-  setStatus('Подключаемся к уроку…');
+  setStatus(tr('Connecting to the lesson...', 'Подключаемся к уроку…'));
   try {
     previewStream?.getTracks().forEach((track) => track.stop());
     previewStream = null;
     $('previewVideo').srcObject = null;
-    $('previewEmpty').textContent = 'Подключаемся…';
+    $('previewEmpty').textContent = tr('Connecting...', 'Подключаемся…');
     $('previewEmpty').hidden = false;
     const auth = await token();
     if (auth.waiting) {
-      setStatus('Запрос отправлен. Ждём, когда преподаватель впустит вас…');
+      setStatus(tr('Request sent. Waiting for the teacher to admit you...', 'Запрос отправлен. Ждём, когда преподаватель впустит вас…'));
       $('joinBtn').disabled = true;
       clearInterval(waitingTimer);
       waitingTimer = setInterval(async () => {
@@ -574,7 +596,7 @@ async function join() {
           }
         } catch (error) {
           clearInterval(waitingTimer);
-          setStatus(error?.message || 'Вход отклонён.', true);
+          setStatus(error?.message || tr('Entry denied.', 'Вход отклонён.'), true);
         }
       }, 3000);
       return;
@@ -610,7 +632,7 @@ async function join() {
     await renderUsers();
     await loadMaterials();
   } catch (error) {
-    setStatus(error?.message || 'Не удалось войти в урок.', true);
+    setStatus(error?.message || tr('Could not join the lesson.', 'Не удалось войти в урок.'), true);
     $('joinBtn').disabled = false;
   }
 }
@@ -647,10 +669,12 @@ function updateShareUi() {
   const shareUser = activeShareUserId == null ? null : client?.getAllUser?.().find((user) => userKey(user.userId) === userKey(activeShareUserId));
   $('shareToolbar').hidden = !shareActive;
   $('stopShareBtn').hidden = !sharing;
-  $('shareStatus').textContent = sharing ? 'Вы показываете экран' : `${shareUser?.displayName || 'Участник'} показывает экран`;
+  $('shareStatus').textContent = sharing
+    ? tr('You are sharing your screen', 'Вы показываете экран')
+    : `${shareUser?.displayName || tr('Participant', 'Участник')} ${tr('is sharing a screen', 'показывает экран')}`;
   $('shareBtn').classList.toggle('off', sharing);
-  $('shareBtn').querySelector('span').textContent = sharing ? 'Остановить' : 'Экран';
-  $('shareFitBtn').textContent = document.fullscreenElement === $('shareStage') ? 'Свернуть' : 'Во весь экран';
+  $('shareBtn').querySelector('span').textContent = sharing ? tr('Stop', 'Остановить') : tr('Screen', 'Экран');
+  $('shareFitBtn').textContent = document.fullscreenElement === $('shareStage') ? tr('Collapse', 'Свернуть') : tr('Full screen', 'Во весь экран');
   $('restoreShareBtn').hidden = !(shareActive && focusedShareHidden);
 }
 
@@ -681,7 +705,7 @@ async function toggleShare() {
     // NotAllowedError/AbortError — that's a user cancel, not a failure, so stay quiet.
     if (error?.name === 'NotAllowedError' || error?.name === 'AbortError') return;
     console.error('startShareScreen failed:', error);
-    alert(`${error?.message || 'Не удалось начать демонстрацию экрана'}${error?.name ? ` [${error.name}]` : ''}`);
+    alert(`${error?.message || tr('Could not start screen sharing', 'Не удалось начать демонстрацию экрана')}${error?.name ? ` [${error.name}]` : ''}`);
   }
 }
 
@@ -699,11 +723,11 @@ const MATERIAL_SIGNED_TTL = 60 * 60;
 function showMaterial(title, fileType, url) {
   if (!url) return;
   activeMaterialUrl = url;
-  $('materialTitle').textContent = title || 'Материал';
+  $('materialTitle').textContent = title || tr('Material', 'Материал');
   const isImage = /^image\//.test(fileType || '') || /\.(png|jpe?g|webp)(\?|$)/i.test(url);
   const preview = isImage
-    ? `<img src="${esc(url)}" alt="${esc(title || 'Материал')}">`
-    : `<iframe src="${esc(url)}" title="${esc(title || 'Материал')}"></iframe>`;
+    ? `<img src="${esc(url)}" alt="${esc(title || tr('Material', 'Материал'))}">`
+    : `<iframe src="${esc(url)}" title="${esc(title || tr('Material', 'Материал'))}"></iframe>`;
   $('materialPreview').innerHTML = preview;
   $('materialOverlay').hidden = false;
 }
@@ -720,7 +744,7 @@ async function loadMaterials() {
     .select('id,title,storage_path,file_type,allow_download,sort_order')
     .eq('session_id', sessionId).order('sort_order').order('created_at');
   if (error) {
-    $('materialsList').innerHTML = '<p>Материалы пока недоступны.</p>';
+    $('materialsList').innerHTML = '<p>' + esc(tr('Materials are not available yet.', 'Материалы пока недоступны.')) + '</p>';
     return;
   }
   const rows = data || [];
@@ -736,9 +760,9 @@ async function loadMaterials() {
   resolved.forEach(({ item, url }) => currentMaterials.set(String(item.id), { item, url }));
   $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => {
     const canOpenExternal = (item.allow_download || roomRole === 'host') && url;
-    const actions = url ? `<div class="material-actions"><button data-material-action="preview" data-material-id="${esc(item.id)}">Смотреть</button>${canOpenExternal ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button type="button">Открыть</button></a>` : ''}${roomRole === 'host' ? `<button data-material-action="show" data-material-id="${esc(item.id)}">Показать всем</button>` : ''}</div>` : '<small>Только просмотр</small>';
-    return `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || 'Материал')}</small></div>${actions}</div>`;
-  }).join('') : '<p>Материалов к этому уроку пока нет.</p>';
+    const actions = url ? `<div class="material-actions"><button data-material-action="preview" data-material-id="${esc(item.id)}">${esc(tr('Watch', 'Смотреть'))}</button>${canOpenExternal ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button type="button">${esc(tr('Open', 'Открыть'))}</button></a>` : ''}${roomRole === 'host' ? `<button data-material-action="show" data-material-id="${esc(item.id)}">${esc(tr('Show everyone', 'Показать всем'))}</button>` : ''}</div>` : '<small>' + esc(tr('View only', 'Только просмотр')) + '</small>';
+    return `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || tr('Material', 'Материал'))}</small></div>${actions}</div>`;
+  }).join('') : '<p>' + esc(tr('No materials for this lesson yet.', 'Материалов к этому уроку пока нет.')) + '</p>';
 }
 
 async function uploadMaterial(file) {
@@ -774,7 +798,7 @@ async function performLeave(endForAll = false) {
   if (roomRole === 'host') {
     location.href = './app.html?role=teacher#management';
   } else {
-    $('reviewDuration').textContent = `Вы были на уроке ${$('roomTime').textContent || '00:00'}.`;
+    $('reviewDuration').textContent = `${tr('You were in the lesson for', 'Вы были на уроке')} ${$('roomTime').textContent || '00:00'}.`;
     $('reviewDialog').hidden = false;
   }
 }
@@ -844,7 +868,7 @@ $('peopleList').onclick = async (event) => {
   const userId = Number(button.dataset.zoomUser);
   const action = button.dataset.moderate;
   if (action === 'remove') {
-    if (confirm('Удалить участника из урока?')) await client.removeUser(userId);
+    if (confirm(tr('Remove this participant from the lesson?', 'Удалить участника из урока?'))) await client.removeUser(userId);
     return;
   }
   if (action === 'clear-hand') {
@@ -906,12 +930,12 @@ $('materialsList').onclick = async (event) => {
 $('materialFile').onchange = async () => {
   const file = $('materialFile').files?.[0];
   if (!file) return;
-  try { await uploadMaterial(file); } catch (error) { alert(error?.message || 'Не удалось добавить материал.'); }
+  try { await uploadMaterial(file); } catch (error) { alert(error?.message || tr('Could not add material.', 'Не удалось добавить материал.')); }
   $('materialFile').value = '';
 };
 $('exitOnlyBtn').onclick = () => { $('leaveDialog').hidden = true; void performLeave(false); };
 $('endForAllBtn').onclick = () => {
-  if (!confirm('Завершить урок для всех участников?')) return;
+  if (!confirm(tr('End the lesson for all participants?', 'Завершить урок для всех участников?'))) return;
   endingForAll = true;
   $('leaveDialog').hidden = true;
   void performLeave(true);
@@ -931,7 +955,7 @@ $('reviewSaveBtn').onclick = async () => {
       session_id: sessionId, user_id: me.id, rating: reviewRating, comment,
       updated_at: new Date().toISOString()
     }, { onConflict: 'session_id,user_id' });
-    if (result.error) return alert(result.error.message || 'Не удалось сохранить отзыв.');
+    if (result.error) return alert(result.error.message || tr('Could not save review.', 'Не удалось сохранить отзыв.'));
   }
   location.href = './app.html?role=learner#schedule';
 };

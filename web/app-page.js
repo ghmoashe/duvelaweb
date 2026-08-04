@@ -22,27 +22,23 @@
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const params = new URLSearchParams(window.location.search);
   const hasPinnedWebRole = Boolean(params.get('role') || localStorage.getItem(ROLE_KEY));
-  const supportedLocales = Array.isArray(localeCatalog?.locales) && localeCatalog.locales.length
-    ? localeCatalog.locales.map((locale) => ({
-        code: String(locale.code || '').toLowerCase(),
-        name: locale.name || String(locale.code || '').toUpperCase(),
-        dir: locale.dir || 'ltr'
-      })).filter((locale) => locale.code)
-    : [
-        { code: 'en', name: 'English', dir: 'ltr' },
-        { code: 'ru', name: 'Русский', dir: 'ltr' }
-      ];
-  function resolveAppLang(value) {
+  const appI18n = window.DuvelaAppI18n?.create({ localeCatalog, storageKeys: config.storageKeys });
+  const supportedLocales = appI18n?.locales || [
+    { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺', dir: 'ltr' }
+  ];
+  const resolveAppLang = appI18n?.resolveLang || function resolveAppLang(value) {
     const raw = String(value || '').trim().toLowerCase();
     if (!raw) return 'en';
     if (supportedLocales.some((locale) => locale.code === raw)) return raw;
     const base = raw.split('-')[0];
     if (supportedLocales.some((locale) => locale.code === base)) return base;
     return 'en';
-  }
-  const appLang = resolveAppLang(localStorage.getItem(LANG_KEY) || navigator.language || 'en');
-  const isRu = appLang.startsWith('ru');
-  const tr = (en, ru) => (isRu ? ru : en);
+  };
+  const appLang = appI18n?.appLang || resolveAppLang(localStorage.getItem(LANG_KEY) || navigator.language || 'en');
+  const isRu = appI18n?.isRu || appLang.startsWith('ru');
+  const tr = appI18n?.tr || ((en, ru) => (isRu ? ru : en));
+  const intlLocale = appI18n?.intlLocale || (isRu ? 'ru-RU' : 'en-US');
   let selectedRole = params.get('role') || localStorage.getItem(ROLE_KEY) || 'learner';
   let role = 'learner';
   let user = null;
@@ -85,7 +81,7 @@
   });
   const staticUiFeature = staticUiApi.create({ $, $$, tr, isRu, roleLabels, appLang, supportedLocales });
   function formatDate(value) {
-    return new Date(value).toLocaleDateString(isRu ? 'ru-RU' : 'en-US');
+    return new Date(value).toLocaleDateString(intlLocale);
   }
   function isApprovedForRole(targetRole, currentProfile) {
     return roleAccessFeature.isApprovedForRole(targetRole, currentProfile);
@@ -314,7 +310,9 @@
       supportedLocales,
       getAppLang: () => appLang,
       setAppLang(nextLang) {
-        localStorage.setItem(LANG_KEY, resolveAppLang(nextLang));
+        const normalizedLang = resolveAppLang(nextLang);
+        localStorage.setItem(LANG_KEY, normalizedLang);
+        localStorage.setItem('duvela.web.lang', normalizedLang);
         window.location.reload();
       },
       liveUrl,

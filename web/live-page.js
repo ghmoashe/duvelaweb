@@ -3,11 +3,15 @@
   var LIVE_FIELDS = 'id,channel_name,teacher_id,teacher_name,teacher_avatar_url,language,level,topic,price_per_minute,status,started_at,ended_at,created_at,heartbeat_at,is_private,material_url,allow_guest_requests,min_viewer_age,video_quality';
   var config = window.DuvelaWebConfig;
   var LANG_KEY = config.storageKeys.lang;
+  var liveI18n = window.DuvelaAppI18n?.create({ localeCatalog: window.DUVELA_WEB_I18N, storageKeys: config.storageKeys });
 
   var params = new URLSearchParams(window.location.search);
-  var appLang = (localStorage.getItem(LANG_KEY) || navigator.language || 'en').toLowerCase();
-  var isRu = appLang.indexOf('ru') === 0;
-  var tr = function (en, ru) { return isRu ? ru : en; };
+  var appLang = liveI18n?.appLang || (localStorage.getItem(LANG_KEY) || navigator.language || 'en').toLowerCase();
+  var isRu = liveI18n?.isRu || appLang.indexOf('ru') === 0;
+  var tr = liveI18n?.tr || function (en, ru) { return isRu ? ru : en; };
+  var intlLocale = liveI18n?.intlLocale || (isRu ? 'ru-RU' : 'en-GB');
+  liveI18n?.applyDocument?.();
+  window.DuvelaLiveI18n = liveI18n || { appLang: appLang, isRu: isRu, intlLocale: intlLocale, tr: tr };
   var sessionId = params.get('s') || '';
   var teacher = params.get('t') || '';
   var isHostMode = params.get('mode') === 'host';
@@ -108,7 +112,7 @@
   function formatChatTime(value) {
     if (!value) return '';
     try {
-      return new Date(value).toLocaleTimeString(isRu ? 'ru-RU' : 'en-GB', {
+      return new Date(value).toLocaleTimeString(intlLocale, {
         hour: '2-digit',
         minute: '2-digit'
       });
@@ -405,14 +409,14 @@
   }
   function formatDateLabel(value) {
     if (!value) return '';
-    return new Date(value).toLocaleDateString(isRu ? 'ru-RU' : 'en-GB', {
+    return new Date(value).toLocaleDateString(intlLocale, {
       day: '2-digit',
       month: 'short'
     });
   }
   function formatTimeLabel(value) {
     if (!value) return '';
-    return new Date(value).toLocaleTimeString(isRu ? 'ru-RU' : 'en-GB', {
+    return new Date(value).toLocaleTimeString(intlLocale, {
       hour: '2-digit',
       minute: '2-digit'
     });
