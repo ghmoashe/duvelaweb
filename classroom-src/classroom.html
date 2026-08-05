@@ -12,7 +12,7 @@
 <body>
   <div id="prejoin" class="prejoin">
     <section class="join-card">
-      <div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span></div>
+      <div class="join-head"><div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span></div><select id="joinLangSelect" class="class-lang" data-i18n-label="language"></select></div>
       <div class="preview"><video id="previewVideo" autoplay muted playsinline></video><div id="previewEmpty" data-i18n="cameraOff">Камера выключена</div></div>
       <h1 id="joinTitle" data-i18n="groupLesson">Групповой урок</h1>
       <p data-i18n="prejoinCheck">Проверьте камеру и микрофон перед входом.</p>
@@ -47,6 +47,7 @@
         <span id="handsPill" hidden>✋ 0</span>
         <span id="sharePill" hidden>Экран</span>
       </div>
+      <select id="roomLangSelect" class="class-lang" data-i18n-label="language"></select>
       <button id="copyRoomLinkBtn" type="button" data-i18n="copyLink">Ссылка</button>
       <button id="leaveTop" class="danger" data-i18n="leave">Выйти</button>
     </header>
