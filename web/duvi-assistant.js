@@ -132,10 +132,10 @@
   }
 
   function assetFor(type) {
-    if (type === 'thinking') return ASSET_ROOT + 'p-think.png';
-    if (type === 'success') return ASSET_ROOT + 'p-joy.png';
-    if (type === 'micError' || type === 'teacherFloor') return ASSET_ROOT + 'p-mic.png';
-    if (type === 'offline') return ASSET_ROOT + 'p-sleep.png';
+    if (type === 'thinking') return ASSET_ROOT + 'p-think.webp';
+    if (type === 'success') return ASSET_ROOT + 'p-joy.webp';
+    if (type === 'micError' || type === 'teacherFloor') return ASSET_ROOT + 'p-mic.webp';
+    if (type === 'offline') return ASSET_ROOT + 'p-sleep.webp';
     if (type === 'error' || type === 'locationError') return ASSET_ROOT + 'error.png';
     if (type === 'classroom' || type === 'handRaised') return ASSET_ROOT + 'classroom.png';
     if (type === 'start' || type === 'problem') return ASSET_ROOT + 'tip.png';
