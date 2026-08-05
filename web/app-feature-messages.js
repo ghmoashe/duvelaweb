@@ -16,6 +16,28 @@
     let multiSelectMode = false;
     const recentSends = [];
 
+    function emptyThreadHtml() {
+      return '<div class="empty">' + esc(tr('Choose a chat on the left to start messaging.', 'Выберите чат слева, чтобы начать переписку.')) + '</div>';
+    }
+
+    function localizeMessagesShell() {
+      const search = $('#chatSearchInput');
+      if (search) search.placeholder = tr('Search chats...', 'Поиск по чатам...');
+      if ($('#archiveToggle')) $('#archiveToggle').textContent = showingArchive ? tr('Chats', 'Чаты') : tr('Archive', 'Архив');
+      if ($('#blockedListBtn')) $('#blockedListBtn').textContent = tr('Blocked', 'Заблокированные');
+      if ($('#newChatBtnLabel')) $('#newChatBtnLabel').textContent = tr('New chat', 'Новый чат');
+      if ($('#threadTitle') && !state.activeConversationId) $('#threadTitle').textContent = tr('Select a conversation', 'Выберите диалог');
+      const body = $('#threadBody');
+      if (body && !state.activeConversationId && !body.querySelector('.bubble')) body.innerHTML = emptyThreadHtml();
+      if ($('#threadBack')) $('#threadBack').setAttribute('aria-label', tr('Back', 'Назад'));
+      if ($('#threadProfile')) $('#threadProfile').setAttribute('title', tr('Profile', 'Профиль'));
+      if ($('#threadSearch')) $('#threadSearch').setAttribute('title', tr('Search', 'Поиск'));
+      if ($('#multiSelectBtn')) $('#multiSelectBtn').setAttribute('title', tr('Select messages', 'Выбрать сообщения'));
+      if ($('#composeInput')) $('#composeInput').placeholder = tr('Write a message...', 'Напишите сообщение...');
+      const sendButton = $('#composeForm') && $('#composeForm').querySelector('button[type="submit"]');
+      if (sendButton) sendButton.textContent = tr('Send', 'Отправить');
+    }
+
     async function decryptMessages(messages) {
       return Promise.all((messages || []).map(async (message) => {
         try { return Object.assign({}, message, { body: await e2ee.decryptText(supa, ctx.user.id, message.conversation_id, message.body) }); }
@@ -99,6 +121,7 @@
     }
 
     function renderConversations() {
+      localizeMessagesShell();
       const list = $('#conversationList');
       if (!list) return;
       const search = $('#chatSearchInput');
@@ -326,7 +349,7 @@
         if (threadChannel) supa.removeChannel(threadChannel);
         threadChannel = null;
         $('#threadTitle').textContent = tr('Select a conversation', 'Выберите диалог');
-        $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Choose a chat on the left to start messaging.', 'Выберите чат слева, чтобы начать переписку.')) + '</div>';
+        $('#threadBody').innerHTML = emptyThreadHtml();
         $('#composeForm').style.display = 'none';
         $('#msgWrap').classList.remove('thread-open');
       }
@@ -344,11 +367,16 @@
     async function deleteConversationForEveryone(id) {
       if (!window.confirm(tr('Delete this conversation and all messages for everyone? This cannot be undone.', 'Удалить диалог и все сообщения у всех? Это действие нельзя отменить.'))) return;
       const result = await supa.rpc('delete_chat_for_everyone', { target_conversation_id: id });
-      if (result.error) { alert(result.error.message || tr('Could not delete the conversation.', 'Не удалось удалить диалог.')); return; }
+      if (result.error) {
+        console.warn('delete_chat_for_everyone failed', result.error);
+        alert(tr('This action is not available on the server yet. I can remove the chat only from your list.', 'Это действие пока не доступно на сервере. Я могу удалить чат только из вашего списка.'));
+        return;
+      }
       if (state.activeConversationId === id) {
         state.activeConversationId = null;
         $('#composeForm').style.display = 'none';
-        $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Choose a chat on the left to start messaging.', 'Выберите чат слева, чтобы начать переписку.')) + '</div>';
+        $('#threadTitle').textContent = tr('Select a conversation', 'Выберите диалог');
+        $('#threadBody').innerHTML = emptyThreadHtml();
         $('#msgWrap').classList.remove('thread-open');
       }
       await loadConversations();
@@ -550,10 +578,12 @@
     }
 
     function renderMessages() {
+      localizeMessagesShell();
       renderConversations();
     }
 
     function bindEvents() {
+      localizeMessagesShell();
       $('#conversationList').addEventListener('click', (event) => {
         const action = event.target.closest('[data-conv-action]');
         if (!action && !event.target.closest('.conv-actions')) return;
