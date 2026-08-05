@@ -40,6 +40,15 @@
   let context = 'app';
   let localeProvider = null;
   let attentionTimer = null;
+  const actionHandlers = new Map();
+  const builtInSelectors = {
+    openParticipants: ['#peopleBtn', '[data-panel="people"]'],
+    openChat: ['#chatBtn', '#openChat', '[data-panel="chat"]'],
+    openMaterials: ['#materialsBtn', '[data-panel="materials"]'],
+    toggleMic: ['#micBtn', '#toggleMic', '#previewMic'],
+    copyLink: ['#copyRoomLinkBtn', '#copyShare'],
+    openProfile: ['button[data-view="profile"]', '[data-go="profile"]', 'a[href="#profile"]']
+  };
 
   function currentLocale() {
     const supplied = typeof localeProvider === 'function' ? localeProvider() : localeProvider;
@@ -70,23 +79,78 @@
     return ASSET_ROOT + 'greeting.png';
   }
 
-  function setActions(type) {
+  function actionTarget(action) {
+    const selectors = builtInSelectors[action] || [];
+    for (const selector of selectors) {
+      const node = document.querySelector(selector);
+      if (node) return node;
+    }
+    return null;
+  }
+
+  function actionLabel(action) {
+    const target = actionTarget(action);
+    const fallback = {
+      openParticipants: 'Participants',
+      openChat: 'Chat',
+      openMaterials: 'Materials',
+      toggleMic: 'Microphone',
+      copyLink: 'Copy link',
+      openProfile: 'Profile',
+      dismiss: text('gotIt')
+    };
+    const label = target?.textContent?.replace(/\s+/g, ' ').trim();
+    return label || fallback[action] || action;
+  }
+
+  function defaultActions(type) {
+    if (type === 'home' || type === 'welcome') {
+      if (context === 'classroom') return ['openParticipants', 'openChat', 'openMaterials'];
+      return ['start', 'classroom', 'problem'];
+    }
+    if (type === 'handRaised') return ['openParticipants', 'openChat', 'dismiss'];
+    if (type === 'teacherFloor' || type === 'micError') return ['toggleMic', 'dismiss'];
+    if (type === 'locationError') return ['openProfile', 'dismiss'];
+    if (type === 'offline' || type === 'error') return ['dismiss'];
+    return ['dismiss'];
+  }
+
+  function performAction(action, payload = {}) {
+    const handler = actionHandlers.get(action);
+    if (handler) {
+      handler(payload);
+      return true;
+    }
+    const target = actionTarget(action);
+    if (!target) return false;
+    target.click();
+    return true;
+  }
+
+  function setActions(type, payload = {}) {
     actions.replaceChildren();
-    const items = type === 'home' || type === 'welcome'
-      ? [
-          ['start', text('start')],
-          ['classroom', text('classroom')],
-          ['problem', text('problem')]
-        ]
-      : [['dismiss', text('gotIt')]];
-    items.forEach(([action, label]) => {
+    const items = (Array.isArray(payload.actions) && payload.actions.length ? payload.actions : defaultActions(type))
+      .map((item) => {
+        if (typeof item === 'string') return { action: item, label: actionLabel(item) };
+        return {
+          action: item.action || 'dismiss',
+          label: item.label || actionLabel(item.action || 'dismiss'),
+          keepOpen: Boolean(item.keepOpen)
+        };
+      });
+    items.forEach(({ action, label, keepOpen }) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.dataset.duviAction = action;
       button.textContent = label;
       button.addEventListener('click', () => {
-        if (action === 'dismiss') hide();
-        else show(action);
+        if (action === 'dismiss') {
+          hide();
+          return;
+        }
+        const handled = performAction(action, payload);
+        if (!handled) show(action, payload);
+        if (!keepOpen) hide();
       });
       actions.append(button);
     });
@@ -106,7 +170,7 @@
     panel.hidden = false;
     image.src = assetFor(type);
     message.textContent = interpolate(body, data);
-    setActions(type);
+    setActions(type, data);
     root.classList.add('duvi-attention');
     clearTimeout(attentionTimer);
     attentionTimer = setTimeout(() => root?.classList.remove('duvi-attention'), 1300);
@@ -117,10 +181,31 @@
     if (panel) panel.hidden = true;
   }
 
+  function setContext(nextContext) {
+    context = nextContext || context;
+    return global.DuvelaDUVI;
+  }
+
+  function setLocale(nextLocale) {
+    localeProvider = nextLocale || localeProvider;
+    if (root) root.dir = RTL.has(currentLocale()) ? 'rtl' : 'ltr';
+    return global.DuvelaDUVI;
+  }
+
+  function registerAction(action, handler) {
+    if (!action) return global.DuvelaDUVI;
+    if (typeof handler === 'function') actionHandlers.set(action, handler);
+    else actionHandlers.delete(action);
+    return global.DuvelaDUVI;
+  }
+
   function mount(options = {}) {
-    if (root) return global.DuvelaDUVI;
     context = options.context || context;
-    localeProvider = options.locale || null;
+    localeProvider = options.locale || localeProvider;
+    if (options.handlers && typeof options.handlers === 'object') {
+      Object.entries(options.handlers).forEach(([action, handler]) => registerAction(action, handler));
+    }
+    if (root) return global.DuvelaDUVI;
 
     root = document.createElement('aside');
     root.className = 'duvi-assistant';
@@ -156,5 +241,5 @@
     return global.DuvelaDUVI;
   }
 
-  global.DuvelaDUVI = { mount, show, hide };
+  global.DuvelaDUVI = { mount, show, hide, setContext, setLocale, registerAction };
 })(window);

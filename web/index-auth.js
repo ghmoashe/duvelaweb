@@ -69,8 +69,9 @@
       window.location.href = appUrl(targetRole, hash || defaultHashForRole(targetRole));
     }
 
-    async function detectWebRole(userId) {
-      return rolesApi.detectWebRole(supa, userId);
+    async function detectWebRole(userOrId) {
+      const userId = typeof userOrId === 'string' ? userOrId : userOrId?.id;
+      return rolesApi.detectWebRole(supa, userId, typeof userOrId === 'object' ? userOrId : null);
     }
 
     function hasList(value) {
@@ -113,7 +114,7 @@
 
     async function goToDetectedWebApp(userOrId, hash) {
       const userId = typeof userOrId === 'string' ? userOrId : userOrId?.id;
-      const detectedRole = userId ? await detectWebRole(userId) : LOGIN_ROLE;
+      const detectedRole = userId ? await detectWebRole(userOrId) : LOGIN_ROLE;
       authUi.setCurrentRole(detectedRole);
       goToWebApp(detectedRole, hash || defaultHashForRole(detectedRole));
     }

@@ -84,7 +84,13 @@
         session.profile = { ...(session.profile || {}), ...roleProfile };
       }
 
-      const hasOrganization = session.profile?.is_organizer
+      if (!session.profile) {
+        session.role = normalizeRole(rolesApi.pickAuthRole(session.user));
+        session.selectedRole = session.role;
+        return;
+      }
+
+      const hasOrganization = session.profile.is_organizer
         ? await rolesApi.hasActiveOrganization(supa, session.user.id)
         : false;
       session.role = normalizeRole(rolesApi.pickWebRole(session.profile, hasOrganization));

@@ -37,6 +37,24 @@
     return 'learner';
   }
 
+  function pickAuthRole(user) {
+    const meta = user && typeof user === 'object'
+      ? {
+          ...(user.user_metadata || {}),
+          ...(user.app_metadata || {})
+        }
+      : {};
+    const requested = normalizeRole(
+      meta.last_web_role ||
+      meta.web_role ||
+      meta.role ||
+      meta.account_role ||
+      meta.signup_role ||
+      ''
+    );
+    return requested || 'learner';
+  }
+
   function pickWebRole(profile, hasOrganization) {
     const preferredRole = normalizeRole((profile && profile.last_web_role) || '');
     if (preferredRole !== 'learner' && isApprovedForRole(preferredRole, profile)) return preferredRole;
@@ -88,8 +106,9 @@
     }
   }
 
-  async function detectWebRole(supa, userId) {
+  async function detectWebRole(supa, userId, user) {
     const profile = await loadRoleProfile(supa, userId);
+    if (!profile) return pickAuthRole(user);
     const hasOrganization = profile && profile.is_organizer
       ? await hasActiveOrganization(supa, userId)
       : false;
@@ -107,6 +126,7 @@
     isRoleRequestable,
     isApprovedForRole,
     fallbackApprovedRole,
+    pickAuthRole,
     pickWebRole,
     loadRoleProfile,
     hasActiveOrganization,

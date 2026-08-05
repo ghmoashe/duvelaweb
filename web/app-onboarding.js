@@ -941,6 +941,7 @@
         gender: state.gender || null,
         is_teacher: role === 'teacher',
         is_organizer: role === 'organizer' || role === 'organization',
+        last_web_role: role,
         website: state.website.trim() || null,
         updated_at: new Date().toISOString()
       };
@@ -1208,7 +1209,7 @@
         localStorage.setItem('duvela.onboarding.' + u.id, '1');
         return;
       }
-      step = 1; role = ctx.session.role || 'learner';
+      step = 2; role = ctx.session.role || 'learner';
       render();
       $('#onboardingOverlay').classList.add('open');
       $('#onboardingOverlay').setAttribute('aria-hidden', 'false');
