@@ -42,6 +42,11 @@
   let attentionTimer = null;
   const actionHandlers = new Map();
   const builtInSelectors = {
+    openHome: ['button[data-view="home"]', '[data-go="home"]', 'a[href="#home"]'],
+    openManagement: ['button[data-view="management"]', '[data-go="management"]', 'a[href="#management"]'],
+    openMessages: ['button[data-view="messages"]', '[data-go="messages"]', 'a[href="#messages"]'],
+    openSchedule: ['button[data-view="schedule"]', '[data-go="schedule"]', 'a[href="#schedule"]'],
+    openLive: ['button[data-view="live"]', '[data-go="live"]', 'a[href="#live"]'],
     openParticipants: ['#peopleBtn', '[data-panel="people"]'],
     openChat: ['#chatBtn', '#openChat', '[data-panel="chat"]'],
     openMaterials: ['#materialsBtn', '[data-panel="materials"]'],
@@ -91,6 +96,14 @@
   function actionLabel(action) {
     const target = actionTarget(action);
     const fallback = {
+      start: text('start'),
+      classroom: text('classroom'),
+      problem: text('problem'),
+      openHome: 'Home',
+      openManagement: 'Management',
+      openMessages: 'Messages',
+      openSchedule: 'Schedule',
+      openLive: 'Live',
       openParticipants: 'Participants',
       openChat: 'Chat',
       openMaterials: 'Materials',
@@ -103,9 +116,30 @@
     return label || fallback[action] || action;
   }
 
+  function currentView() {
+    return String(global.location?.hash || '#home').replace(/^#/, '') || 'home';
+  }
+
+  function currentRole() {
+    const searchRole = new URLSearchParams(global.location?.search || '').get('role');
+    return searchRole || localStorage.getItem('duvela.webRole') || 'learner';
+  }
+
   function defaultActions(type) {
     if (type === 'home' || type === 'welcome') {
       if (context === 'classroom') return ['openParticipants', 'openChat', 'openMaterials'];
+      if (context === 'app') {
+        const role = currentRole();
+        const view = currentView();
+        if (view === 'messages') return ['openMessages', 'openProfile', 'problem'];
+        if (view === 'schedule') return ['openSchedule', 'openMessages', 'openProfile'];
+        if (view === 'management') return ['openManagement', 'openMessages', 'openProfile'];
+        if (view === 'live') return ['openLive', 'openMessages', 'openProfile'];
+        if (role === 'teacher' || role === 'organizer' || role === 'organization' || role === 'admin') {
+          return ['openManagement', 'openMessages', 'openProfile'];
+        }
+        return ['openSchedule', 'openMessages', 'openProfile'];
+      }
       return ['start', 'classroom', 'problem'];
     }
     if (type === 'handRaised') return ['openParticipants', 'openChat', 'dismiss'];
