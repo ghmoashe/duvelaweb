@@ -132,8 +132,11 @@
   }
 
   function assetFor(type) {
-    if (type === 'micError' || type === 'teacherFloor') return ASSET_ROOT + 'microphone.png';
-    if (type === 'error' || type === 'offline' || type === 'locationError') return ASSET_ROOT + 'error.png';
+    if (type === 'thinking') return ASSET_ROOT + 'p-think.png';
+    if (type === 'success') return ASSET_ROOT + 'p-joy.png';
+    if (type === 'micError' || type === 'teacherFloor') return ASSET_ROOT + 'p-mic.png';
+    if (type === 'offline') return ASSET_ROOT + 'p-sleep.png';
+    if (type === 'error' || type === 'locationError') return ASSET_ROOT + 'error.png';
     if (type === 'classroom' || type === 'handRaised') return ASSET_ROOT + 'classroom.png';
     if (type === 'start' || type === 'problem') return ASSET_ROOT + 'tip.png';
     return ASSET_ROOT + 'greeting.png';
@@ -267,6 +270,11 @@
     thread.append(row);
     scrollThread();
     return bubble;
+  }
+
+  function setBubbleAvatar(bubble, type) {
+    const img = bubble?.parentElement?.querySelector('.duvi-msg-avatar');
+    if (img) img.src = assetFor(type);
   }
 
   function openPanel() {
@@ -414,7 +422,7 @@
 
     streaming = true;
     sendBtn.disabled = true;
-    const bubble = appendBubble('bot', '', 'home');
+    const bubble = appendBubble('bot', '', 'thinking');
     bubble.classList.add('duvi-typing');
 
     try {
@@ -422,6 +430,7 @@
     } catch (err) {
       bubble.classList.remove('duvi-typing');
       bubble.textContent = ui('chatError');
+      setBubbleAvatar(bubble, 'error');
     } finally {
       streaming = false;
       sendBtn.disabled = false;
@@ -481,6 +490,7 @@
       return;
     }
     bubble.textContent = clean || (errored ? ui('chatError') : '');
+    setBubbleAvatar(bubble, clean ? 'home' : 'error');
     if (clean) history.push({ role: 'assistant', content: clean });
     scrollThread();
 

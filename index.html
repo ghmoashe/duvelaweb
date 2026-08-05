@@ -448,6 +448,30 @@
     animation: floaty 6s ease-in-out infinite;
   }
   @keyframes floaty { 0%,100% { transform: rotate(2.5deg) translateY(0);} 50% { transform: rotate(2.5deg) translateY(-14px);} }
+  /* DUVI mascot — hero companion */
+  .hero-duvi {
+    position: absolute; left: -26px; bottom: -18px; z-index: 4;
+    width: 170px; height: auto; pointer-events: none;
+    filter: drop-shadow(0 18px 26px rgba(31, 21, 53, .28));
+    animation: duviBob 5.5s ease-in-out infinite;
+  }
+  @keyframes duviBob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(0deg); } }
+  .hero-duvi-bubble {
+    position: absolute; left: 6px; bottom: 158px; z-index: 5; max-width: 188px;
+    background: #fff; color: var(--ink); border: 1px solid #EDE4FF;
+    border-radius: 16px 16px 16px 4px; padding: 10px 14px;
+    font-size: 13.5px; font-weight: 600; line-height: 1.42;
+    box-shadow: 0 14px 30px rgba(31, 21, 53, .16);
+    animation: duviBob 5.5s ease-in-out .25s infinite;
+  }
+  .hero-duvi-bubble b { color: var(--purple); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-duvi, .hero-duvi-bubble, .step-duvi { animation: none; }
+  }
+  @media (max-width: 620px) {
+    .hero-duvi { width: 118px; left: -8px; bottom: -8px; }
+    .hero-duvi-bubble { display: none; }
+  }
   .phone-notch {
     position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
     width: 110px; height: 26px; background: #1d1730; border-radius: 99px; z-index: 5;
@@ -669,6 +693,13 @@
     position: absolute; right: -19px; top: 50%; transform: translateY(-50%);
     z-index: 2; font-size: 22px; color: #B79CF2; font-weight: 700;
   }
+  .step-duvi {
+    position: absolute; top: 14px; right: 14px; width: 66px; height: auto; z-index: 1;
+    pointer-events: none; filter: drop-shadow(0 8px 14px rgba(31, 21, 53, .18));
+    animation: duviBob 5s ease-in-out infinite;
+  }
+  .step:nth-child(2) .step-duvi { animation-delay: .4s; }
+  .step:nth-child(3) .step-duvi { animation-delay: .8s; }
 
   /* levels */
   .levels-card {
@@ -1140,6 +1171,9 @@
     <!-- phone mockup: Videos feed like the app -->
     <div class="phone-area" aria-label="Duvela web app interface preview with sample content">
       <span class="preview-note">Interface preview · sample data</span>
+      <div class="hero-duvi-bubble">Hi! I'm <b>DUVI</b> 👋</div>
+      <img class="hero-duvi" src="./web/assets/duvi/hero-mascot.png" alt="DUVI, the Duvela assistant" loading="lazy" width="170" height="170">
+
 
       <div class="phone">
         <div class="phone-notch"></div>
@@ -1465,18 +1499,21 @@
     <div class="steps">
       <div class="step reveal">
         <div class="step-num">1</div>
+        <img class="step-duvi" src="./web/assets/duvi/p-think.png" alt="" aria-hidden="true" loading="lazy" width="66" height="66">
         <h3>Take the Level Test</h3>
         <p>Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
         <div class="step-num">2</div>
+        <img class="step-duvi" src="./web/assets/duvi/p-read.png" alt="" aria-hidden="true" loading="lazy" width="66" height="66">
         <h3>Watch &amp; Practice Daily</h3>
         <p>Your feed serves videos at your level. Like, comment, follow teachers — and build your streak.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
         <div class="step-num">3</div>
+        <img class="step-duvi" src="./web/assets/duvi/p-mic.png" alt="" aria-hidden="true" loading="lazy" width="66" height="66">
         <h3>Go Live with Teachers</h3>
         <p>Join live lessons, book courses and attend events. Speak from day one with real people.</p>
       </div>
@@ -1807,12 +1844,12 @@
 <script src="./web/duvela-web-roles.js?v=20260721-2"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js"></script>
-<script src="./web/index-i18n.js?v=20260805-lang1"></script>
+<script src="./web/index-i18n.js?v=20260806-duvi1"></script>
 <script src="./web/index-auth-ui.js"></script>
 <script src="./web/index-auth.js?v=20260805existingprofile1"></script>
 <script src="./web/index-public-data.js?v=20260801-1"></script>
 <script src="./web/index-page.js"></script>
-<script src="./web/duvi-assistant.js?v=20260805duvi3"></script>
+<script src="./web/duvi-assistant.js?v=20260806duvi4"></script>
 <script>window.DuvelaDUVI?.mount({context:'public',autoWelcome:true});</script>
 </body>
 </html>
