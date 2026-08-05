@@ -18,7 +18,7 @@ function loadScriptOnce(src, isReady) {
 }
 
 await loadScriptOnce('/locales/web-locales.js', () => Boolean(window.DUVELA_WEB_I18N));
-await loadScriptOnce('/web/app-i18n.js?v=20260804-i18n1', () => Boolean(window.DuvelaAppI18n));
+await loadScriptOnce('/web/app-i18n.js?v=20260805-classroom2', () => Boolean(window.DuvelaAppI18n));
 await new Promise((resolve, reject) => {
   if (window.DuvelaWebConfig) return resolve();
   const script = document.createElement('script');
@@ -72,6 +72,25 @@ let activeMaterialUrl = '';
 let focusedShareHidden = false;
 let lastCopiedAt = 0;
 const readiness = { browser: false, network: false, camera: false, mic: false };
+
+function renderLanguageSelectors() {
+  const locales = i18n?.locales || [];
+  const selects = [$('joinLangSelect'), $('roomLangSelect')].filter(Boolean);
+  if (!locales.length || !selects.length) return;
+  const options = locales.map((locale) => `<option value="${esc(locale.code)}">${esc(`${locale.flag ? `${locale.flag} ` : ''}${locale.name}`)}</option>`).join('');
+  const storageKey = config?.storageKeys?.lang || window.DUVELA_WEB_I18N?.storageKey || 'duvela.webLang';
+  selects.forEach((select) => {
+    select.innerHTML = options;
+    select.value = i18n.appLang;
+    select.onchange = () => {
+      localStorage.setItem(storageKey, select.value);
+      localStorage.setItem('duvela.web.lang', select.value);
+      location.reload();
+    };
+  });
+}
+
+renderLanguageSelectors();
 
 function videoStartOptions() { return selectedCameraId ? { cameraId: selectedCameraId } : {}; }
 function audioStartOptions() {
@@ -820,14 +839,29 @@ async function toggleShare() {
 const MATERIAL_BUCKET = 'class-materials';
 const MATERIAL_SIGNED_TTL = 60 * 60;
 
+function isImageMaterial(fileType, url = '') {
+  return /^image\//.test(fileType || '') || /\.(png|jpe?g|webp)(\?|$)/i.test(url);
+}
+
+function isPdfMaterial(fileType, url = '') {
+  return fileType === 'application/pdf' || /\.pdf(\?|$)/i.test(url);
+}
+
+function openMaterialExternal(url) {
+  if (!url) return;
+  window.open(url, '_blank', 'noopener');
+}
+
 function showMaterial(title, fileType, url) {
   if (!url) return;
   activeMaterialUrl = url;
-  $('materialTitle').textContent = title || tr('Material', 'Материал');
-  const isImage = /^image\//.test(fileType || '') || /\.(png|jpe?g|webp)(\?|$)/i.test(url);
+  const safeTitle = title || tr('Material', 'Материал');
+  $('materialTitle').textContent = safeTitle;
+  const isImage = isImageMaterial(fileType, url);
+  const isPdf = isPdfMaterial(fileType, url);
   const preview = isImage
-    ? `<img src="${esc(url)}" alt="${esc(title || tr('Material', 'Материал'))}">`
-    : `<iframe src="${esc(url)}" title="${esc(title || tr('Material', 'Материал'))}"></iframe>`;
+    ? `<img src="${esc(url)}" alt="${esc(safeTitle)}">`
+    : `<div class="material-empty"><b>${esc(isPdf ? tr('PDF opens outside the classroom', 'PDF открывается вне класса') : tr('Open this material in a new tab', 'Откройте материал в новой вкладке'))}</b><p>${esc(isPdf ? tr('Browsers block this PDF preview, so use a new tab for reliable viewing.', 'Браузер блокирует просмотр этого PDF внутри урока, поэтому откройте его в новой вкладке.') : tr('This file type cannot be previewed inside the classroom.', 'Этот тип файла нельзя надежно показать внутри класса.'))}</p><a href="${esc(url)}" target="_blank" rel="noopener">${esc(isPdf ? tr('Open PDF', 'Открыть PDF') : tr('Open', 'Открыть'))}</a></div>`;
   $('materialPreview').innerHTML = preview;
   $('materialOverlay').hidden = false;
 }
@@ -859,9 +893,12 @@ async function loadMaterials() {
   currentMaterials.clear();
   resolved.forEach(({ item, url }) => currentMaterials.set(String(item.id), { item, url }));
   $('materialsList').innerHTML = resolved.length ? resolved.map(({ item, url }) => {
-    const canOpenExternal = (item.allow_download || roomRole === 'host') && url;
-    const actions = url ? `<div class="material-actions"><button data-material-action="preview" data-material-id="${esc(item.id)}">${esc(tr('Watch', 'Смотреть'))}</button>${canOpenExternal ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button type="button">${esc(tr('Open', 'Открыть'))}</button></a>` : ''}${roomRole === 'host' ? `<button data-material-action="show" data-material-id="${esc(item.id)}">${esc(tr('Show everyone', 'Показать всем'))}</button>` : ''}</div>` : '<small>' + esc(tr('View only', 'Только просмотр')) + '</small>';
-    return `<div class="material-row"><span>${item.file_type === 'application/pdf' ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(item.file_type || tr('Material', 'Материал'))}</small></div>${actions}</div>`;
+    const fileType = item.file_type || '';
+    const isPdf = isPdfMaterial(fileType, url);
+    const canOpenExternal = (item.allow_download || roomRole === 'host' || isPdf) && url;
+    const previewLabel = isPdf ? tr('Open PDF', 'Открыть PDF') : tr('Watch', 'Смотреть');
+    const actions = url ? `<div class="material-actions"><button data-material-action="preview" data-material-id="${esc(item.id)}">${esc(previewLabel)}</button>${canOpenExternal ? `<a href="${esc(url)}" target="_blank" rel="noopener"><button type="button">${esc(tr('Open', 'Открыть'))}</button></a>` : ''}${roomRole === 'host' ? `<button data-material-action="show" data-material-id="${esc(item.id)}">${esc(tr('Show everyone', 'Показать всем'))}</button>` : ''}</div>` : '<small>' + esc(tr('View only', 'Только просмотр')) + '</small>';
+    return `<div class="material-row"><span>${isPdf ? '📄' : '🖼'}</span><div><b>${esc(item.title)}</b><small>${esc(fileType || tr('Material', 'Материал'))}</small></div>${actions}</div>`;
   }).join('') : '<p>' + esc(tr('No materials for this lesson yet.', 'Материалов к этому уроку пока нет.')) + '</p>';
 }
 
@@ -1020,6 +1057,9 @@ $('materialsList').onclick = async (event) => {
   const record = currentMaterials.get(String(button.dataset.materialId));
   if (!record?.url) return;
   showMaterial(record.item.title, record.item.file_type, record.url);
+  if (button.dataset.materialAction === 'preview' && isPdfMaterial(record.item.file_type, record.url)) {
+    openMaterialExternal(record.url);
+  }
   if (button.dataset.materialAction === 'show' && roomRole === 'host') {
     await sendClassCommand({
       type: 'material-show',
