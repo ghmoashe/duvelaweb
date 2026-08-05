@@ -36,6 +36,7 @@
     return 'en';
   };
   const appLang = appI18n?.appLang || resolveAppLang(localStorage.getItem(LANG_KEY) || navigator.language || 'en');
+  window.DuvelaCurrentAppLang = appLang;
   const isRu = appI18n?.isRu || appLang.startsWith('ru');
   const tr = appI18n?.tr || ((en, ru) => (isRu ? ru : en));
   const intlLocale = appI18n?.intlLocale || (isRu ? 'ru-RU' : 'en-US');
@@ -313,6 +314,9 @@
         const normalizedLang = resolveAppLang(nextLang);
         localStorage.setItem(LANG_KEY, normalizedLang);
         localStorage.setItem('duvela.web.lang', normalizedLang);
+        localStorage.setItem('duvela.webLang.userChoice', '1');
+        window.DuvelaCurrentAppLang = normalizedLang;
+        window.dispatchEvent(new CustomEvent('duvela-language-change', { detail: { locale: normalizedLang } }));
         window.location.reload();
       },
       liveUrl,
