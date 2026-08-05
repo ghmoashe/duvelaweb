@@ -2,6 +2,7 @@
   function setError(message) {
     var node = document.querySelector('#onboardingError');
     if (node) node.textContent = message || '';
+    if (message) window.DuvelaDUVI?.show('locationError');
   }
 
   function setField(selector, value) {

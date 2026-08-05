@@ -19,6 +19,7 @@ function loadScriptOnce(src, isReady) {
 
 await loadScriptOnce('/locales/web-locales.js', () => Boolean(window.DUVELA_WEB_I18N));
 await loadScriptOnce('/web/app-i18n.js?v=20260805-classroom2', () => Boolean(window.DuvelaAppI18n));
+await loadScriptOnce('/web/duvi-assistant.js?v=20260805duvi1', () => Boolean(window.DuvelaDUVI));
 await new Promise((resolve, reject) => {
   if (window.DuvelaWebConfig) return resolve();
   const script = document.createElement('script');
@@ -36,6 +37,7 @@ const config = window.DuvelaWebConfig;
 const i18n = window.DuvelaAppI18n?.create({ localeCatalog: window.DUVELA_WEB_I18N, storageKeys: config?.storageKeys });
 const tr = i18n?.tr || ((en, ru) => (String(localStorage.getItem('duvela.webLang') || navigator.language || '').toLowerCase().startsWith('ru') ? ru : en));
 i18n?.applyDocument?.();
+const duvi = window.DuvelaDUVI?.mount({ context: 'classroom', locale: () => i18n?.appLang, autoWelcome: true });
 const supa = config?.createSupabaseClient?.();
 let client = null;
 let zoomClientPromise = null;
@@ -221,6 +223,7 @@ function updateReadiness() {
 function setStatus(text, error = false) {
   $('joinStatus').textContent = text || '';
   $('joinStatus').style.color = error ? '#ff868c' : '';
+  if (error && text) duvi?.show('error', { message: text });
 }
 
 async function preview() {
@@ -533,6 +536,7 @@ function playNoticeSound() {
 function showHandNotice(name) {
   if (roomRole !== 'host') return;
   playNoticeSound();
+  duvi?.show('handRaised', { name: name || tr('Learner', 'Ученик') });
   document.querySelector('.hand-toast')?.remove();
   const node = document.createElement('button');
   node.type = 'button';
@@ -545,6 +549,7 @@ function showHandNotice(name) {
 
 async function acceptSpeakingTurn() {
   if (!media) return;
+  duvi?.show('teacherFloor');
   const ok = micOn || confirm(tr('The teacher gave you the floor. Turn on your microphone?', 'Преподаватель дал вам слово. Включить микрофон?'));
   if (!ok) return;
   try {
@@ -555,6 +560,7 @@ async function acceptSpeakingTurn() {
     await sendClassCommand({ type: 'hand', raised: false });
     await renderUsers();
   } catch (error) {
+    duvi?.show('micError');
     alert(error?.message || tr('Could not turn on the microphone.', 'Не удалось включить микрофон.'));
   }
 }

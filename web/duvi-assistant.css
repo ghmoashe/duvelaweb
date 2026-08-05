@@ -1,0 +1,210 @@
+.duvi-assistant {
+  --duvi-accent: #087d6d;
+  --duvi-gold: #f3b72f;
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(92px, calc(env(safe-area-inset-bottom) + 18px));
+  z-index: 120;
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.duvi-assistant[dir="rtl"] {
+  right: auto;
+  left: max(18px, env(safe-area-inset-left));
+  justify-items: start;
+}
+
+.duvi-launcher {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  padding: 3px;
+  border: 1px solid rgba(243, 183, 47, .9);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 12px 34px rgba(15, 25, 34, .28);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.duvi-launcher:hover,
+.duvi-launcher:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 38px rgba(15, 25, 34, .34);
+  outline: 3px solid rgba(8, 125, 109, .25);
+  outline-offset: 2px;
+}
+
+.duvi-launcher img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.duvi-launcher::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 3px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #24b47e;
+}
+
+.duvi-panel {
+  width: min(360px, calc(100vw - 28px));
+  overflow: hidden;
+  border: 1px solid rgba(30, 92, 82, .2);
+  border-radius: 8px;
+  background: #fff;
+  color: #172321;
+  box-shadow: 0 22px 60px rgba(10, 26, 31, .3);
+}
+
+.duvi-panel[hidden] {
+  display: none;
+}
+
+.duvi-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 10px 8px 14px;
+  border-bottom: 1px solid #e1ece9;
+  background: #f5fbf9;
+}
+
+.duvi-panel-head strong {
+  min-width: 0;
+  flex: 1;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.duvi-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #52615e;
+  font: 700 22px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.duvi-close:hover,
+.duvi-close:focus-visible {
+  background: #e6f1ee;
+  color: #172321;
+  outline: 2px solid rgba(8, 125, 109, .25);
+}
+
+.duvi-panel-body {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 126px;
+  padding: 14px;
+}
+
+.duvi-panel-body > img {
+  width: 96px;
+  height: 96px;
+  display: block;
+  object-fit: contain;
+  align-self: end;
+}
+
+.duvi-message {
+  margin: 0;
+  color: #35443f;
+  font-size: 14px;
+  line-height: 1.48;
+}
+
+.duvi-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0 14px 14px;
+}
+
+.duvi-actions button {
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 1px solid #bfd5cf;
+  border-radius: 7px;
+  background: #fff;
+  color: #174c43;
+  font: 700 12px/1.2 inherit;
+  cursor: pointer;
+}
+
+.duvi-actions button:hover,
+.duvi-actions button:focus-visible {
+  border-color: var(--duvi-accent);
+  background: #eaf7f3;
+  outline: 2px solid rgba(8, 125, 109, .18);
+}
+
+.duvi-actions button[data-duvi-action="dismiss"] {
+  margin-inline-start: auto;
+  border-color: var(--duvi-accent);
+  background: var(--duvi-accent);
+  color: #fff;
+}
+
+.duvi-assistant.duvi-attention .duvi-launcher {
+  animation: duviAttention .55s ease-out 2;
+}
+
+@keyframes duviAttention {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duvi-launcher,
+  .duvi-assistant.duvi-attention .duvi-launcher {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .duvi-assistant {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(78px, calc(env(safe-area-inset-bottom) + 76px));
+  }
+
+  .duvi-assistant[dir="rtl"] {
+    right: auto;
+    left: max(10px, env(safe-area-inset-left));
+  }
+
+  .duvi-launcher {
+    width: 58px;
+    height: 58px;
+  }
+
+  .duvi-panel-body {
+    grid-template-columns: 78px minmax(0, 1fr);
+    min-height: 112px;
+  }
+
+  .duvi-panel-body > img {
+    width: 78px;
+    height: 78px;
+  }
+}
