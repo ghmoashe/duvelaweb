@@ -1182,9 +1182,32 @@
       }
     }
 
+    function hasList(value) {
+      return Array.isArray(value) && value.some(function (item) { return String(item || '').trim(); });
+    }
+
+    function hasCompletedProfile(profile) {
+      if (!profile) return false;
+      if (profile.is_admin || profile.is_teacher || profile.is_organizer) return true;
+      if (String(profile.full_name || '').trim()) return true;
+      if (String(profile.bio || '').trim()) return true;
+      if (String(profile.city || '').trim() || String(profile.country || '').trim()) return true;
+      if (String(profile.language || '').trim()) return true;
+      if (String(profile.website || '').trim()) return true;
+      if (String(profile.avatar_url || '').trim()) return true;
+      if (hasList(profile.learning_languages) || hasList(profile.teaches_languages)) return true;
+      if (hasList(profile.learning_targets) || hasList(profile.profile_interests)) return true;
+      if (hasList(profile.specialization) || hasList(profile.qualifications)) return true;
+      return false;
+    }
+
     function openIfNeeded() {
       var u = ctx.getUser();
       if (!u || localStorage.getItem('duvela.onboarding.' + u.id)) return;
+      if (hasCompletedProfile(ctx.getProfile && ctx.getProfile())) {
+        localStorage.setItem('duvela.onboarding.' + u.id, '1');
+        return;
+      }
       step = 1; role = ctx.session.role || 'learner';
       render();
       $('#onboardingOverlay').classList.add('open');

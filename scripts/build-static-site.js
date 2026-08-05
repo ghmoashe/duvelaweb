@@ -83,7 +83,7 @@ fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders
   const headers = new Headers(response.headers);
   headers.set('x-content-type-options', 'nosniff');
   headers.set('referrer-policy', 'strict-origin-when-cross-origin');
-  headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=()');
+  headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=(self)');
   // The Zoom Video SDK classroom needs SharedArrayBuffer (multi-thread WASM and
   // canvas self-view) on Chromium, which requires cross-origin isolation. Scope
   // it to the classroom document only so other pages (Agora live, etc.) keep
@@ -95,7 +95,7 @@ fs.writeFileSync(path.join(serverDir, 'index.js'), `function withSecurityHeaders
     // Zoom's media SDK registers a (deprecated) unload handler for cleanup;
     // browsers now gate that behind Permissions-Policy and log a violation when
     // it's disallowed. Allow it just for the classroom so the console stays clean.
-    headers.set('permissions-policy', 'camera=(self), microphone=(self), display-capture=(self), geolocation=(), unload=*');
+    headers.set('permissions-policy', 'camera=(self), microphone=(self), display-capture=(self), geolocation=(self), unload=*');
   }
   return new Response(response.body, {
     status: response.status,
