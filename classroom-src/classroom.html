@@ -34,12 +34,28 @@
     </section>
   </div>
   <main id="room" class="room" hidden>
-    <header><div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span></div><div><b id="roomTitle" data-i18n="lesson">Урок</b><span id="roomTime">00:00</span></div><button id="leaveTop" class="danger" data-i18n="leave">Выйти</button></header>
+    <header>
+      <div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span></div>
+      <div class="room-heading"><b id="roomTitle" data-i18n="lesson">Урок</b><span id="roomTime">00:00</span></div>
+      <div class="room-status" id="roomStatusBar" aria-live="polite">
+        <span id="rolePill">Участник</span>
+        <span id="onlinePill">0 онлайн</span>
+        <span id="handsPill" hidden>✋ 0</span>
+        <span id="sharePill" hidden>Экран</span>
+      </div>
+      <button id="copyRoomLinkBtn" type="button" data-i18n="copyLink">Ссылка</button>
+      <button id="leaveTop" class="danger" data-i18n="leave">Выйти</button>
+    </header>
     <div class="workspace">
       <section class="stage"><div id="stageMain" class="stage-main"><div id="gallery" class="gallery"></div><div id="spotlight" class="spotlight" hidden></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas><video id="shareVideo" style="width:100%;height:100%;object-fit:contain" playsinline muted hidden></video><div id="shareToolbar" class="share-toolbar" hidden><span id="shareStatus" data-i18n="screenShare">Демонстрация экрана</span><button id="shareReturnBtn" type="button" data-i18n="cameras">Камеры</button><button id="shareFitBtn" type="button" data-i18n="fullScreen">Во весь экран</button><button id="stopShareBtn" type="button" hidden data-i18n="stop">Остановить</button></div></div><button id="restoreShareBtn" class="restore-share" type="button" hidden data-i18n="backToScreen">Вернуться к экрану</button><div id="materialOverlay" class="material-overlay" hidden><div><header><b id="materialTitle" data-i18n="material">Материал</b><button id="closeMaterialBtn" type="button" data-i18n="close">Закрыть</button></header><div id="materialPreview" class="material-preview"></div></div></div><div id="emptyState" class="empty-state" hidden>👋 <span data-i18n="waitingOthers">Ожидаем других участников…</span></div></div><div id="filmstrip" class="filmstrip" hidden></div></section>
       <aside id="sidePanel" class="side-panel">
         <nav><button data-panel="people" class="active"><span data-i18n="participants">Участники</span> <i id="peopleCount">0</i><i id="handBadge" class="hand-badge" hidden>✋ 0</i></button><button data-panel="chat"><span data-i18n="chat">Чат</span> <i id="chatBadge">0</i></button><button data-panel="materials" data-i18n="materials">Материалы</button></nav>
-        <section id="peoplePanel"><div id="waitingWrap" hidden><h3 data-i18n="waitingEntry">Ожидают входа</h3><div id="waitingList"></div></div><div id="hostControls" class="host-controls" hidden><button data-host-control="mute-all">🔇 <span data-i18n="muteAll">Всех</span></button><button data-host-control="stop-video-all">🚫 <span data-i18n="stopCameras">Камеры</span></button><button data-host-control="lower-all-hands">✋ <span data-i18n="lowerAllHands">Сбросить</span></button></div><div id="peopleList"></div></section>
+        <section id="peoplePanel">
+          <div id="waitingWrap" hidden><h3 data-i18n="waitingEntry">Ожидают входа</h3><div id="waitingList"></div></div>
+          <div id="hostControls" class="host-controls" hidden><button data-host-control="mute-all">🔇 <span data-i18n="muteAll">Всех</span></button><button data-host-control="stop-video-all">🚫 <span data-i18n="stopCameras">Камеры</span></button><button data-host-control="lower-all-hands">✋ <span data-i18n="lowerAllHands">Сбросить</span></button></div>
+          <div id="handQueue" class="hand-queue" hidden><div class="queue-head"><b data-i18n="raiseHand">Поднятые руки</b><span id="queueCount">0</span></div><div id="handQueueList"></div></div>
+          <div id="peopleList"></div>
+        </section>
         <section id="chatPanel" hidden><div id="chatQuick" class="chat-quick" hidden><button data-quick-chat="Пожалуйста, включите микрофон." data-i18n="microphone">Микрофон</button><button data-quick-chat="Напишите ответ в чат." data-i18n="chatAnswer">Ответ в чат</button><button data-quick-chat="Откройте материал урока." data-i18n="material">Материал</button></div><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…" data-i18n-placeholder="writeMessage"><button>➤</button></form></section>
         <section id="materialsPanel" hidden><div class="panel-head"><h3 data-i18n="lessonMaterials">Материалы урока</h3><button id="addMaterialBtn" hidden>+ <span data-i18n="add">Добавить</span></button></div><div id="materialsList"></div><input id="materialFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden></section>
       </aside>

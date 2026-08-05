@@ -70,6 +70,7 @@ const raisedAt = new Map();
 const currentMaterials = new Map();
 let activeMaterialUrl = '';
 let focusedShareHidden = false;
+let lastCopiedAt = 0;
 
 function videoStartOptions() { return selectedCameraId ? { cameraId: selectedCameraId } : {}; }
 function audioStartOptions() {
@@ -102,6 +103,46 @@ function userKey(userId) {
 
 function ownZoomUser() {
   return client?.getCurrentUserInfo?.() || null;
+}
+
+function roleLabel() {
+  return roomRole === 'host' ? tr('Teacher', 'Учитель') : tr('Learner', 'Ученик');
+}
+
+function updateRoomStatus(users = client?.getAllUser?.() || []) {
+  const activeShare = sharing || activeShareUserId != null;
+  const raisedCount = users.filter((user) => raisedUsers.has(userKey(user.userId))).length;
+  const weakCount = users.filter((user) => (netLevels.get(userKey(user.userId)) || 0) <= 1 && netLevels.has(userKey(user.userId))).length;
+  $('rolePill').textContent = roleLabel();
+  $('onlinePill').textContent = `${users.length} ${tr('online', 'онлайн')}`;
+  $('onlinePill').classList.toggle('warn', weakCount > 0);
+  $('onlinePill').title = weakCount ? `${weakCount} ${tr('weak connection', 'слабое соединение')}` : tr('Connection looks stable', 'Соединение выглядит стабильным');
+  $('handsPill').hidden = !raisedCount;
+  $('handsPill').textContent = `✋ ${raisedCount}`;
+  $('sharePill').hidden = !activeShare;
+  $('sharePill').textContent = sharing ? tr('You share screen', 'Вы показываете экран') : tr('Screen is shared', 'Экран показывают');
+  $('sharePill').classList.toggle('live', activeShare);
+}
+
+function renderHandQueue(users, queueIndex) {
+  const queued = users
+    .filter((user) => queueIndex.has(userKey(user.userId)))
+    .sort((a, b) => queueIndex.get(userKey(a.userId)) - queueIndex.get(userKey(b.userId)));
+  const wrap = $('handQueue');
+  wrap.hidden = !queued.length;
+  $('queueCount').textContent = String(queued.length);
+  if (!queued.length) {
+    $('handQueueList').replaceChildren();
+    return;
+  }
+  const ownId = userKey(ownZoomUser()?.userId);
+  $('handQueueList').innerHTML = queued.map((user) => {
+    const key = userKey(user.userId);
+    const actions = roomRole === 'host' && key !== ownId
+      ? `<span class="queue-actions"><button data-moderate="speak" data-zoom-user="${esc(user.userId)}">${esc(tr('Give floor', 'Дать слово'))}</button><button data-moderate="clear-hand" data-zoom-user="${esc(user.userId)}">${esc(tr('Done', 'Готово'))}</button></span>`
+      : '';
+    return `<div class="queue-row"><i>${queueIndex.get(key)}</i><span class="mini">${esc(initials(user.displayName))}</span><b>${esc(user.displayName || tr('Learner', 'Ученик'))}</b>${actions}</div>`;
+  }).join('');
 }
 
 function setRaisedUser(userId, value, name = '') {
@@ -376,6 +417,8 @@ async function renderUsers() {
     .sort((a, b) => (raisedAt.get(userKey(a.userId)) || 0) - (raisedAt.get(userKey(b.userId)) || 0))
     .map((user) => userKey(user.userId));
   const queueIndex = new Map(queueKeys.map((key, index) => [key, index + 1]));
+  renderHandQueue(users, queueIndex);
+  updateRoomStatus(users);
   const sortedUsers = users.slice().sort((a, b) => {
     const aQueue = queueIndex.get(userKey(a.userId)) || 0;
     const bQueue = queueIndex.get(userKey(b.userId)) || 0;
@@ -390,8 +433,8 @@ async function renderUsers() {
     const queueLabel = queueIndex.get(key) ? `<i class="queue-mark">${queueIndex.get(key)}</i>` : '';
     const netLevel = netLevels.get(key);
     const netLabel = netLevel == null ? '' : netLevel <= 1 ? ' · ' + tr('weak network', 'слабая сеть') : ' · ' + tr('network ok', 'сеть ок');
-    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">${esc(tr('Give floor', 'Дать слово'))}</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">${esc(tr('Answered', 'Ответил'))}</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">${esc(tr('Remove', 'Удалить'))}</button></span>` : '';
-    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${queueLabel}${esc(user.displayName)} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span title="${esc(netLabel.trim())}">${user.bVideoOn ? '🎥' : '🚫'} ${user.audio === 'muted' ? '🔇' : '🎙'}${netLevel != null && netLevel <= 1 ? ' ⚠️' : ''}</span>${hostActions}</div>`;
+    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">${esc(tr('Give floor', 'Дать слово'))}</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">${esc(tr('Answered', 'Ответил'))}</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}" title="${esc(tr('Mute', 'Отключить звук'))}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}" title="${esc(tr('Stop camera', 'Выключить камеру'))}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">${esc(tr('Remove', 'Удалить'))}</button></span>` : '';
+    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${queueLabel}${esc(user.displayName || tr('Participant', 'Участник'))} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span class="person-state" title="${esc(netLabel.trim())}"><i>${user.bVideoOn ? '🎥' : '🚫'}</i><i>${user.audio === 'muted' ? '🔇' : '🎙'}</i>${netLevel != null && netLevel <= 1 ? '<i class="bad">⚠️</i>' : ''}</span>${hostActions}</div>`;
   }).join('');
 }
 
@@ -676,6 +719,27 @@ function updateShareUi() {
   $('shareBtn').querySelector('span').textContent = sharing ? tr('Stop', 'Остановить') : tr('Screen', 'Экран');
   $('shareFitBtn').textContent = document.fullscreenElement === $('shareStage') ? tr('Collapse', 'Свернуть') : tr('Full screen', 'Во весь экран');
   $('restoreShareBtn').hidden = !(shareActive && focusedShareHidden);
+  updateRoomStatus();
+}
+
+async function copyRoomLink() {
+  const button = $('copyRoomLinkBtn');
+  const previous = button.textContent;
+  try {
+    await navigator.clipboard?.writeText(location.href);
+    lastCopiedAt = Date.now();
+    button.textContent = tr('Copied', 'Скопировано');
+    button.classList.add('copied');
+  } catch {
+    prompt(tr('Copy lesson link', 'Скопируйте ссылку урока'), location.href);
+  } finally {
+    setTimeout(() => {
+      if (Date.now() - lastCopiedAt >= 1400) {
+        button.textContent = previous;
+        button.classList.remove('copied');
+      }
+    }, 1500);
+  }
 }
 
 async function toggleShare() {
@@ -823,6 +887,7 @@ document.querySelector('.stage').onclick = (event) => {
 $('joinBtn').onclick = join;
 $('micBtn').onclick = toggleMic;
 $('camBtn').onclick = toggleCam;
+$('copyRoomLinkBtn').onclick = copyRoomLink;
 $('shareBtn').onclick = toggleShare;
 $('stopShareBtn').onclick = () => { if (sharing) void toggleShare(); };
 $('shareReturnBtn').onclick = () => {
@@ -888,6 +953,7 @@ $('peopleList').onclick = async (event) => {
   if (action === 'mute') await media.muteAudio(userId);
   if (action === 'stop-video') await sendClassCommand({ type: 'host-action', action: 'stop-video' }, userId);
 };
+$('handQueue').onclick = (event) => $('peopleList').onclick(event);
 $('hostControls').onclick = async (event) => {
   const button = event.target.closest('[data-host-control]');
   if (!button || roomRole !== 'host') return;
