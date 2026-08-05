@@ -3,7 +3,51 @@
 
   const ASSET_ROOT = '/web/assets/duvi/';
   const WELCOME_KEY = 'duvela.duvi.welcome.v1';
+  const VOICE_KEY = 'duvela.duvi.voice.v1';
   const RTL = new Set(['ar', 'fa']);
+
+  // ── AI backend (Supabase edge function duvi-chat) ──────────────────────────
+  const cfg = () => (typeof window !== 'undefined' && window.DuvelaWebConfig) || null;
+  function chatEndpoint() {
+    const url = cfg()?.supabaseUrl || 'https://ohtkryanqcnwghcnipsr.supabase.co';
+    return url.replace(/\/+$/, '') + '/functions/v1/duvi-chat';
+  }
+  function anonKey() {
+    return cfg()?.supabaseAnonKey || '';
+  }
+  async function accessToken() {
+    try {
+      const client = cfg()?.createSupabaseClient?.();
+      const { data } = await client.auth.getSession();
+      return data?.session?.access_token || null;
+    } catch { return null; }
+  }
+
+  // BCP-47 tags for Web Speech (STT/TTS), keyed by our locale bases.
+  const SPEECH_LANG = {
+    en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR', it: 'it-IT', pt: 'pt-PT',
+    nl: 'nl-NL', sv: 'sv-SE', no: 'nb-NO', pl: 'pl-PL', cs: 'cs-CZ', sq: 'sq-AL',
+    tr: 'tr-TR', ru: 'ru-RU', uk: 'uk-UA', kk: 'kk-KZ', az: 'az-AZ', uz: 'uz-UZ',
+    tg: 'tg-TJ', fa: 'fa-IR', ar: 'ar-SA', vi: 'vi-VN', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR'
+  };
+
+  // Chat-UI strings. Falls back to English for locales not listed here; the AI
+  // itself always answers in the user's language regardless.
+  const UI = {
+    en: { placeholder: 'Ask DUVI…', send: 'Send', listen: 'Speak', stop: 'Stop', thinking: 'DUVI is thinking…', voiceOn: 'Voice on', voiceOff: 'Voice off', chatError: "I couldn't reach the assistant. Check your connection and try again.", micDenied: 'Microphone access is blocked. Allow it in browser settings.', you: 'You' },
+    ru: { placeholder: 'Спросите DUVI…', send: 'Отправить', listen: 'Голос', stop: 'Стоп', thinking: 'DUVI думает…', voiceOn: 'Озвучка вкл', voiceOff: 'Озвучка выкл', chatError: 'Не удалось связаться с ассистентом. Проверьте интернет и попробуйте снова.', micDenied: 'Доступ к микрофону запрещён. Разрешите его в настройках браузера.', you: 'Вы' },
+    de: { placeholder: 'Frag DUVI…', send: 'Senden', listen: 'Sprechen', stop: 'Stopp', thinking: 'DUVI denkt nach…', voiceOn: 'Stimme an', voiceOff: 'Stimme aus', chatError: 'Der Assistent ist nicht erreichbar. Prüfe die Verbindung und versuche es erneut.', micDenied: 'Mikrofonzugriff ist blockiert. Erlaube ihn in den Browsereinstellungen.', you: 'Du' },
+    es: { placeholder: 'Pregunta a DUVI…', send: 'Enviar', listen: 'Hablar', stop: 'Detener', thinking: 'DUVI está pensando…', voiceOn: 'Voz activada', voiceOff: 'Voz desactivada', chatError: 'No pude contactar con el asistente. Revisa tu conexión e inténtalo de nuevo.', micDenied: 'El acceso al micrófono está bloqueado. Permítelo en el navegador.', you: 'Tú' },
+    fr: { placeholder: 'Demandez à DUVI…', send: 'Envoyer', listen: 'Parler', stop: 'Arrêter', thinking: 'DUVI réfléchit…', voiceOn: 'Voix activée', voiceOff: 'Voix désactivée', chatError: "Impossible de joindre l'assistant. Vérifiez la connexion et réessayez.", micDenied: "L'accès au micro est bloqué. Autorisez-le dans le navigateur.", you: 'Vous' },
+    uk: { placeholder: 'Запитайте DUVI…', send: 'Надіслати', listen: 'Голос', stop: 'Стоп', thinking: 'DUVI думає…', voiceOn: 'Озвучення увімк', voiceOff: 'Озвучення вимк', chatError: 'Не вдалося зв’язатися з асистентом. Перевірте інтернет і спробуйте знову.', micDenied: 'Доступ до мікрофона заблоковано. Дозвольте його в налаштуваннях браузера.', you: 'Ви' },
+    tr: { placeholder: "DUVI'ye sor…", send: 'Gönder', listen: 'Konuş', stop: 'Durdur', thinking: 'DUVI düşünüyor…', voiceOn: 'Ses açık', voiceOff: 'Ses kapalı', chatError: 'Asistana ulaşılamadı. Bağlantını kontrol edip tekrar dene.', micDenied: 'Mikrofon erişimi engelli. Tarayıcı ayarlarından izin ver.', you: 'Sen' },
+    ar: { placeholder: 'اسأل DUVI…', send: 'إرسال', listen: 'تحدث', stop: 'إيقاف', thinking: 'DUVI يفكر…', voiceOn: 'الصوت مفعّل', voiceOff: 'الصوت متوقف', chatError: 'تعذّر الوصول إلى المساعد. تحقق من الاتصال وحاول مجدداً.', micDenied: 'الوصول إلى الميكروفون محظور. اسمح به من إعدادات المتصفح.', you: 'أنت' },
+    zh: { placeholder: '问问 DUVI…', send: '发送', listen: '说话', stop: '停止', thinking: 'DUVI 正在思考…', voiceOn: '语音开', voiceOff: '语音关', chatError: '无法连接助手。请检查网络后重试。', micDenied: '麦克风访问被阻止。请在浏览器设置中允许。', you: '你' }
+  };
+  function ui(key) {
+    const loc = currentLocale();
+    return UI[loc]?.[key] || UI.en[key] || key;
+  }
   const COPY = {
     en: { hello: "Hello! I'm DUVI. I'll help you find your way, understand errors and prepare for lessons.", question: 'What do you need help with?', start: 'Getting started', classroom: 'Classroom', problem: 'Fix a problem', startText: 'Start with your profile, choose the languages you learn, then open Home to see suitable lessons and people.', classroomText: 'Before joining, check the camera and microphone. During class, use Raise hand when you want to speak.', problemText: 'Check your internet and browser permissions first. When DUVI notices a specific problem, you will see the next action here.', offline: 'The internet connection was lost. Keep this page open; Duvela will reconnect when the network returns.', locationError: 'Location is optional. Allow it in browser settings, or enter your city manually and continue.', micError: 'The microphone could not start. Allow microphone access in device settings, then try again.', handRaised: '{name} raised a hand. Open Participants to give them the floor.', teacherFloor: 'The teacher gave you the floor. Turn on your microphone when you are ready.', gotIt: 'Got it', close: 'Close DUVI' },
     de: { hello: 'Hallo! Ich bin DUVI. Ich helfe dir bei der Orientierung, bei Fehlern und bei der Vorbereitung auf den Unterricht.', question: 'Wobei brauchst du Hilfe?', start: 'Erste Schritte', classroom: 'Klassenraum', problem: 'Problem lösen', startText: 'Vervollständige zuerst dein Profil, wähle deine Lernsprachen und öffne dann Start für passende Lektionen und Kontakte.', classroomText: 'Prüfe vor dem Beitritt Kamera und Mikrofon. Nutze im Unterricht Hand heben, wenn du sprechen möchtest.', problemText: 'Prüfe zuerst Internet und Browserberechtigungen. Bei einem konkreten Problem zeigt DUVI hier den nächsten Schritt.', offline: 'Die Internetverbindung wurde unterbrochen. Lass die Seite geöffnet; Duvela verbindet sich automatisch neu.', locationError: 'Der Standort ist optional. Erlaube ihn in den Browsereinstellungen oder gib deine Stadt manuell ein.', micError: 'Das Mikrofon konnte nicht gestartet werden. Erlaube den Zugriff in den Geräteeinstellungen und versuche es erneut.', handRaised: '{name} hat die Hand gehoben. Öffne Teilnehmer, um das Wort zu erteilen.', teacherFloor: 'Die Lehrkraft hat dir das Wort erteilt. Schalte dein Mikrofon ein, wenn du bereit bist.', gotIt: 'Verstanden', close: 'DUVI schließen' },
@@ -34,13 +78,24 @@
 
   let root = null;
   let panel = null;
-  let message = null;
-  let image = null;
   let actions = null;
   let context = 'app';
   let localeProvider = null;
   let attentionTimer = null;
   const actionHandlers = new Map();
+
+  // Chat + voice state
+  let thread = null;
+  let inputEl = null;
+  let sendBtn = null;
+  let micBtn = null;
+  let voiceBtn = null;
+  let form = null;
+  const history = [];       // [{ role:'user'|'assistant', content }]
+  let streaming = false;
+  let recognition = null;
+  let listening = false;
+  let voiceEnabled = localStorage.getItem(VOICE_KEY) === '1';
   const builtInSelectors = {
     openHome: ['button[data-view="home"]', '[data-go="home"]', 'a[href="#home"]'],
     openManagement: ['button[data-view="management"]', '[data-go="management"]', 'a[href="#management"]'],
@@ -190,8 +245,42 @@
     });
   }
 
-  function show(type = 'home', data = {}) {
+  // ── Thread rendering ───────────────────────────────────────────────────────
+  function scrollThread() {
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  }
+
+  function appendBubble(who, textContent, avatarType) {
+    const row = document.createElement('div');
+    row.className = 'duvi-msg duvi-msg-' + who;
+    if (who === 'bot') {
+      const img = document.createElement('img');
+      img.className = 'duvi-msg-avatar';
+      img.alt = '';
+      img.src = assetFor(avatarType || 'home');
+      row.append(img);
+    }
+    const bubble = document.createElement('p');
+    bubble.className = 'duvi-bubble';
+    bubble.textContent = textContent || '';
+    row.append(bubble);
+    thread.append(row);
+    scrollThread();
+    return bubble;
+  }
+
+  function openPanel() {
     if (!root) mount();
+    root.dir = RTL.has(currentLocale()) ? 'rtl' : 'ltr';
+    panel.hidden = false;
+    root.classList.add('duvi-attention');
+    clearTimeout(attentionTimer);
+    attentionTimer = setTimeout(() => root?.classList.remove('duvi-attention'), 1300);
+  }
+
+  // Scripted (non-AI) messages: greetings, errors, classroom events.
+  function show(type = 'home', data = {}) {
+    openPanel();
     const knownType = type === 'welcome' ? 'hello' : type;
     const body = data.message || text(
       knownType === 'home'
@@ -200,15 +289,9 @@
           ? 'problemText'
           : knownType
     );
-    root.dir = RTL.has(currentLocale()) ? 'rtl' : 'ltr';
-    panel.hidden = false;
-    image.src = assetFor(type);
-    message.textContent = interpolate(body, data);
+    appendBubble('bot', interpolate(body, data), type);
     setActions(type, data);
-    root.classList.add('duvi-attention');
-    clearTimeout(attentionTimer);
-    attentionTimer = setTimeout(() => root?.classList.remove('duvi-attention'), 1300);
-    panel.querySelector('.duvi-close')?.focus({ preventScroll: true });
+    if (inputEl) inputEl.focus({ preventScroll: true });
   }
 
   function hide() {
@@ -245,27 +328,56 @@
     root.className = 'duvi-assistant';
     root.dir = RTL.has(currentLocale()) ? 'rtl' : 'ltr';
     root.innerHTML =
-      '<section class="duvi-panel" hidden aria-live="polite">' +
-        '<div class="duvi-panel-head"><strong>DUVI</strong><button class="duvi-close" type="button" aria-label="' + text('close') + '">×</button></div>' +
-        '<div class="duvi-panel-body"><img alt="" src="' + ASSET_ROOT + 'greeting.png"><p class="duvi-message"></p></div>' +
+      '<section class="duvi-panel" hidden>' +
+        '<div class="duvi-panel-head">' +
+          '<strong>DUVI</strong>' +
+          '<span class="duvi-head-btns">' +
+            '<button class="duvi-voice" type="button" aria-pressed="false"></button>' +
+            '<button class="duvi-close" type="button" aria-label="' + text('close') + '">×</button>' +
+          '</span>' +
+        '</div>' +
+        '<div class="duvi-thread" aria-live="polite"></div>' +
         '<div class="duvi-actions"></div>' +
+        '<form class="duvi-input">' +
+          '<button class="duvi-mic" type="button" aria-label="' + ui('listen') + '" title="' + ui('listen') + '">🎤</button>' +
+          '<input class="duvi-text" type="text" autocomplete="off" enterkeyhint="send" placeholder="' + ui('placeholder') + '">' +
+          '<button class="duvi-send" type="submit" aria-label="' + ui('send') + '" title="' + ui('send') + '">➤</button>' +
+        '</form>' +
       '</section>' +
       '<button class="duvi-launcher" type="button" aria-label="DUVI" title="DUVI"><img alt="" src="' + ASSET_ROOT + 'greeting.png"></button>';
     document.body.append(root);
     panel = root.querySelector('.duvi-panel');
-    message = root.querySelector('.duvi-message');
-    image = root.querySelector('.duvi-panel-body img');
+    thread = root.querySelector('.duvi-thread');
     actions = root.querySelector('.duvi-actions');
+    inputEl = root.querySelector('.duvi-text');
+    sendBtn = root.querySelector('.duvi-send');
+    micBtn = root.querySelector('.duvi-mic');
+    voiceBtn = root.querySelector('.duvi-voice');
+    form = root.querySelector('.duvi-input');
+
     root.querySelector('.duvi-close').addEventListener('click', hide);
     root.querySelector('.duvi-launcher').addEventListener('click', () => {
-      if (panel.hidden) show('home');
-      else hide();
+      if (panel.hidden) {
+        openPanel();
+        if (!thread.childElementCount) show('home');
+        inputEl.focus({ preventScroll: true });
+      } else hide();
     });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      sendChat(inputEl.value);
+    });
+    micBtn.addEventListener('click', toggleListening);
+    voiceBtn.addEventListener('click', () => setVoiceEnabled(!voiceEnabled));
+    updateVoiceButton();
+    if (!speechSupported()) micBtn.hidden = true;
 
     global.addEventListener('offline', () => show('offline'));
     global.addEventListener('duvela-language-change', () => {
       root.dir = RTL.has(currentLocale()) ? 'rtl' : 'ltr';
       root.querySelector('.duvi-close').setAttribute('aria-label', text('close'));
+      inputEl.placeholder = ui('placeholder');
+      updateVoiceButton();
     });
 
     if (options.autoWelcome !== false && !localStorage.getItem(WELCOME_KEY)) {
@@ -275,5 +387,209 @@
     return global.DuvelaDUVI;
   }
 
-  global.DuvelaDUVI = { mount, show, hide, setContext, setLocale, registerAction };
+  // ── AI chat ────────────────────────────────────────────────────────────────
+  function buildContext() {
+    return { app: context, view: currentView(), role: currentRole(), lang: currentLocale() };
+  }
+
+  function extractActions(raw) {
+    const found = [];
+    const clean = String(raw || '').replace(/\[\[action:([a-zA-Z]+)\]\]/g, (_, name) => {
+      found.push(name);
+      return '';
+    }).replace(/[ \t]+\n/g, '\n').trim();
+    return { clean, found };
+  }
+
+  async function sendChat(rawText) {
+    const value = String(rawText || '').trim();
+    if (!value || streaming) return;
+    openPanel();
+    if (listening) stopListening();
+    stopSpeaking();
+    inputEl.value = '';
+    actions.replaceChildren();
+    appendBubble('user', value);
+    history.push({ role: 'user', content: value });
+
+    streaming = true;
+    sendBtn.disabled = true;
+    const bubble = appendBubble('bot', '', 'home');
+    bubble.classList.add('duvi-typing');
+
+    try {
+      await streamReply(bubble);
+    } catch (err) {
+      bubble.classList.remove('duvi-typing');
+      bubble.textContent = ui('chatError');
+    } finally {
+      streaming = false;
+      sendBtn.disabled = false;
+      inputEl.focus({ preventScroll: true });
+    }
+  }
+
+  async function streamReply(bubble) {
+    const token = await accessToken();
+    const res = await fetch(chatEndpoint(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: anonKey(),
+        Authorization: 'Bearer ' + (token || anonKey())
+      },
+      body: JSON.stringify({ messages: history.slice(-16), context: buildContext(), locale: currentLocale() })
+    });
+    if (!res.ok || !res.body) throw new Error('duvi-chat ' + res.status);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let acc = '';
+    let errored = null;
+
+    const consume = (payload) => {
+      let obj;
+      try { obj = JSON.parse(payload); } catch { return; }
+      if (obj.delta) {
+        if (bubble.classList.contains('duvi-typing')) bubble.classList.remove('duvi-typing');
+        acc += obj.delta;
+        bubble.textContent = extractActions(acc).clean;
+        scrollThread();
+      } else if (obj.error) {
+        errored = obj.error;
+      }
+    };
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+      for (const part of parts) {
+        const line = part.split('\n').find((l) => l.startsWith('data:'));
+        if (line) consume(line.slice(5).trim());
+      }
+    }
+
+    bubble.classList.remove('duvi-typing');
+    const { clean, found } = extractActions(acc);
+
+    if (!clean && errored) {
+      bubble.textContent = ui('chatError');
+      return;
+    }
+    bubble.textContent = clean || (errored ? ui('chatError') : '');
+    if (clean) history.push({ role: 'assistant', content: clean });
+    scrollThread();
+
+    found.forEach((action) => { performAction(action); });
+    if (voiceEnabled && clean) speak(clean);
+  }
+
+  // ── Voice: speech-to-text (mic) + text-to-speech (replies) ──────────────────
+  function speechLang() {
+    return SPEECH_LANG[currentLocale()] || 'en-US';
+  }
+
+  function speechSupported() {
+    return typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
+  function getRecognition() {
+    const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Ctor) return null;
+    const rec = new Ctor();
+    rec.lang = speechLang();
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (event) => {
+      let text = '';
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        text += event.results[i][0].transcript;
+      }
+      inputEl.value = text.trim();
+      const last = event.results[event.results.length - 1];
+      if (last && last.isFinal) {
+        stopListening();
+        sendChat(inputEl.value);
+      }
+    };
+    rec.onerror = (event) => {
+      listening = false;
+      updateMicButton();
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        appendBubble('bot', ui('micDenied'), 'micError');
+      }
+    };
+    rec.onend = () => { listening = false; updateMicButton(); };
+    return rec;
+  }
+
+  function toggleListening() {
+    if (listening) { stopListening(); return; }
+    if (!recognition) recognition = getRecognition();
+    if (!recognition) return;
+    recognition.lang = speechLang();
+    stopSpeaking();
+    try {
+      recognition.start();
+      listening = true;
+      updateMicButton();
+    } catch { /* already started */ }
+  }
+
+  function stopListening() {
+    listening = false;
+    updateMicButton();
+    try { recognition?.stop(); } catch { /* noop */ }
+  }
+
+  function updateMicButton() {
+    if (!micBtn) return;
+    micBtn.classList.toggle('duvi-listening', listening);
+    micBtn.setAttribute('aria-label', listening ? ui('stop') : ui('listen'));
+    micBtn.title = listening ? ui('stop') : ui('listen');
+  }
+
+  function pickVoice(lang) {
+    const voices = window.speechSynthesis?.getVoices?.() || [];
+    const base = lang.split('-')[0];
+    return voices.find((v) => v.lang === lang) || voices.find((v) => v.lang?.startsWith(base)) || null;
+  }
+
+  function speak(textContent) {
+    if (!window.speechSynthesis) return;
+    stopSpeaking();
+    const utter = new SpeechSynthesisUtterance(textContent);
+    utter.lang = speechLang();
+    const voice = pickVoice(utter.lang);
+    if (voice) utter.voice = voice;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopSpeaking() {
+    try { window.speechSynthesis?.cancel(); } catch { /* noop */ }
+  }
+
+  function setVoiceEnabled(next) {
+    voiceEnabled = Boolean(next);
+    localStorage.setItem(VOICE_KEY, voiceEnabled ? '1' : '0');
+    if (!voiceEnabled) stopSpeaking();
+    updateVoiceButton();
+    return global.DuvelaDUVI;
+  }
+
+  function updateVoiceButton() {
+    if (!voiceBtn) return;
+    voiceBtn.textContent = voiceEnabled ? '🔊' : '🔈';
+    voiceBtn.setAttribute('aria-pressed', voiceEnabled ? 'true' : 'false');
+    const label = voiceEnabled ? ui('voiceOn') : ui('voiceOff');
+    voiceBtn.setAttribute('aria-label', label);
+    voiceBtn.title = label;
+  }
+
+  global.DuvelaDUVI = { mount, show, hide, setContext, setLocale, registerAction, ask: sendChat, setVoice: setVoiceEnabled };
 })(window);
