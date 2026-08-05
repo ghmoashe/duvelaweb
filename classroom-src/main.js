@@ -71,6 +71,7 @@ const currentMaterials = new Map();
 let activeMaterialUrl = '';
 let focusedShareHidden = false;
 let lastCopiedAt = 0;
+const readiness = { browser: false, network: false, camera: false, mic: false };
 
 function videoStartOptions() { return selectedCameraId ? { cameraId: selectedCameraId } : {}; }
 function audioStartOptions() {
@@ -166,8 +167,36 @@ function setOwnHandRaised(value) {
   setRaisedUser(own?.userId, raised, own?.displayName || own?.userName || me?.name);
   const button = $('handBtn');
   button.classList.toggle('off', raised);
+  button.classList.toggle('active', raised);
   button.setAttribute('aria-pressed', String(raised));
   button.querySelector('span').textContent = raised ? tr('Lower hand', 'Опустить руку') : tr('Raise hand', 'Поднять руку');
+}
+
+function updateControlStates() {
+  $('previewMic')?.classList.toggle('off', !micOn);
+  $('previewCam')?.classList.toggle('off', !camOn);
+  $('micBtn')?.classList.toggle('off', !micOn);
+  $('micBtn')?.classList.toggle('active', micOn);
+  $('camBtn')?.classList.toggle('off', !camOn);
+  $('camBtn')?.classList.toggle('active', camOn);
+  $('shareBtn')?.classList.toggle('active', sharing);
+  $('handBtn')?.classList.toggle('active', raised);
+  const micLabel = $('micBtn')?.querySelector('span');
+  const camLabel = $('camBtn')?.querySelector('span');
+  if (micLabel) micLabel.textContent = micOn ? tr('Microphone', 'Микрофон') : tr('Mic off', 'Микрофон выкл.');
+  if (camLabel) camLabel.textContent = camOn ? tr('Camera', 'Камера') : tr('Camera off', 'Камера выкл.');
+}
+
+function updateReadiness() {
+  const readyCount = Object.values(readiness).filter(Boolean).length;
+  $('readyScore').textContent = `${readyCount}/4`;
+  $('prejoinReadiness').classList.toggle('ready', readyCount === 4);
+  $('prejoinReadiness').classList.toggle('warn', readyCount > 1 && readyCount < 4);
+  $('readyText').textContent = readyCount === 4
+    ? tr('Ready to join.', 'Можно входить.')
+    : readyCount >= 2
+      ? tr('You can join, but check highlighted items.', 'Можно войти, но проверьте отмеченные пункты.')
+      : tr('Check device permissions before joining.', 'Проверьте разрешения устройств перед входом.');
 }
 
 function setStatus(text, error = false) {
@@ -252,16 +281,23 @@ function diagnostic(id, ok, text) {
 }
 
 async function runDiagnostics() {
-  diagnostic('diagBrowser', !!(window.WebAssembly && window.RTCPeerConnection), tr('Browser', 'Браузер'));
-  diagnostic('diagNetwork', navigator.onLine, navigator.connection?.effectiveType ? `${tr('Internet', 'Интернет')} · ${navigator.connection.effectiveType}` : tr('Internet', 'Интернет'));
-  diagnostic('diagCamera', !!navigator.mediaDevices?.getUserMedia, tr('Camera', 'Камера'));
+  readiness.browser = !!(window.WebAssembly && window.RTCPeerConnection);
+  readiness.network = navigator.onLine;
+  readiness.camera = !!navigator.mediaDevices?.getUserMedia && camOn;
+  diagnostic('diagBrowser', readiness.browser, tr('Browser', 'Браузер'));
+  diagnostic('diagNetwork', readiness.network, navigator.connection?.effectiveType ? `${tr('Internet', 'Интернет')} · ${navigator.connection.effectiveType}` : tr('Internet', 'Интернет'));
+  diagnostic('diagCamera', readiness.camera, camOn ? tr('Camera', 'Камера') : tr('Camera off', 'Камера выкл.'));
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    diagnostic('diagMic', true, tr('Microphone', 'Микрофон'));
+    readiness.mic = micOn;
+    diagnostic('diagMic', readiness.mic, micOn ? tr('Microphone', 'Микрофон') : tr('Mic off', 'Микрофон выкл.'));
     stream.getTracks().forEach((track) => track.stop());
   } catch {
+    readiness.mic = false;
     diagnostic('diagMic', false, tr('Microphone', 'Микрофон'));
   }
+  updateReadiness();
+  updateControlStates();
 }
 
 async function renderWaitingRoom() {
@@ -684,7 +720,7 @@ async function toggleMic() {
   if (!media) return;
   micOn = !micOn;
   if (micOn) await media.unmuteAudio(); else await media.muteAudio();
-  $('micBtn').classList.toggle('off', !micOn);
+  updateControlStates();
   await renderUsers();
 }
 
@@ -692,7 +728,7 @@ async function toggleCam() {
   if (!media) return;
   camOn = !camOn;
   if (camOn) await media.startVideo(videoStartOptions()); else await media.stopVideo();
-  $('camBtn').classList.toggle('off', !camOn);
+  updateControlStates();
   await renderUsers();
 }
 
@@ -715,10 +751,10 @@ function updateShareUi() {
   $('shareStatus').textContent = sharing
     ? tr('You are sharing your screen', 'Вы показываете экран')
     : `${shareUser?.displayName || tr('Participant', 'Участник')} ${tr('is sharing a screen', 'показывает экран')}`;
-  $('shareBtn').classList.toggle('off', sharing);
   $('shareBtn').querySelector('span').textContent = sharing ? tr('Stop', 'Остановить') : tr('Screen', 'Экран');
   $('shareFitBtn').textContent = document.fullscreenElement === $('shareStage') ? tr('Collapse', 'Свернуть') : tr('Full screen', 'Во весь экран');
   $('restoreShareBtn').hidden = !(shareActive && focusedShareHidden);
+  updateControlStates();
   updateRoomStatus();
 }
 
@@ -872,8 +908,8 @@ function leave() {
   $('endForAllBtn').hidden = roomRole !== 'host';
 }
 
-$('previewMic').onclick = () => { micOn = !micOn; $('previewMic').classList.toggle('active', micOn); };
-$('previewCam').onclick = () => { camOn = !camOn; $('previewCam').classList.toggle('active', camOn); preview(); };
+$('previewMic').onclick = () => { micOn = !micOn; $('previewMic').classList.toggle('active', micOn); updateControlStates(); void runDiagnostics(); };
+$('previewCam').onclick = () => { camOn = !camOn; $('previewCam').classList.toggle('active', camOn); updateControlStates(); void preview(); void runDiagnostics(); };
 $('cameraSelect').onchange = () => { selectedCameraId = $('cameraSelect').value || null; void preview(); };
 $('micSelect').onchange = () => { selectedMicId = $('micSelect').value || null; };
 $('speakerSelect').onchange = () => { selectedSpeakerId = $('speakerSelect').value || null; };
