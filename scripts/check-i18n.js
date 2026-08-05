@@ -140,10 +140,10 @@ function validateCatalog(catalog, source) {
 function validateHtml(html, indexPageSource, indexI18nSource, catalog) {
   const externalScript = '<script src="./locales/web-locales.js"></script>';
   const externalIndex = html.indexOf(externalScript);
-  const i18nScript = '<script src="./web/index-i18n.js"></script>';
-  const i18nScriptIndex = html.indexOf(i18nScript, externalIndex + externalScript.length);
+  const i18nScriptMatch = html.slice(externalIndex + externalScript.length).match(/<script src="\.\/web\/index-i18n\.js(?:\?[^"]*)?"><\/script>/u);
+  const i18nScriptIndex = i18nScriptMatch ? externalIndex + externalScript.length + i18nScriptMatch.index : -1;
   const pageScript = '<script src="./web/index-page.js"></script>';
-  const pageScriptIndex = html.indexOf(pageScript, i18nScriptIndex + i18nScript.length);
+  const pageScriptIndex = html.indexOf(pageScript, i18nScriptIndex + (i18nScriptMatch ? i18nScriptMatch[0].length : 0));
   if (externalIndex < 0) fail('index.html does not load locales/web-locales.js.');
   if (i18nScriptIndex < externalIndex) fail('index.html must load web/index-i18n.js after the locale catalog.');
   if (pageScriptIndex < externalIndex) fail('Locale catalog must load before the main page script.');

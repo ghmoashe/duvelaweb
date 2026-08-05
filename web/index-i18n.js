@@ -334,7 +334,7 @@
       langMenu.replaceChildren(fragment);
     }
 
-    function setLang(code) {
+    function setLang(code, userChoice = false) {
       const entry = LANG_DATA.find((language) => language.code === code) || LANG_DATA[0];
       langBtnFlag.textContent = entry.flag;
       langBtnCode.textContent = entry.code.toUpperCase();
@@ -344,6 +344,7 @@
         li.setAttribute('aria-selected', String(active));
       });
       localStorage.setItem(LANG_STORAGE_KEY, entry.code);
+      if (userChoice) localStorage.setItem('duvela.webLang.userChoice', '1');
       applyWebLanguage(entry.code);
     }
 
@@ -361,7 +362,7 @@
         langMenu.classList.remove('open');
         langBtn.classList.remove('open');
         langBtn.setAttribute('aria-expanded', 'false');
-        setLang(item.dataset.val);
+        setLang(item.dataset.val, true);
       });
 
       document.addEventListener('click', () => {

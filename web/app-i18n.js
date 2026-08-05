@@ -137,7 +137,9 @@
     const locales = catalogLocales(localeCatalog);
     const storageKeys = options.storageKeys || global.DuvelaWebConfig?.storageKeys || {};
     const configuredKey = storageKeys.lang || localeCatalog?.storageKey || 'duvela.webLang';
-    const stored = options.lang || localStorage.getItem(configuredKey) || localStorage.getItem('duvela.web.lang') || navigator.language || 'en';
+    const storedChoice = localStorage.getItem(configuredKey) || localStorage.getItem('duvela.web.lang') || '';
+    const hasUserChoice = localStorage.getItem('duvela.webLang.userChoice') === '1';
+    const stored = options.lang || (hasUserChoice ? storedChoice : '') || navigator.language || storedChoice || 'en';
     const appLang = resolveLang(stored, locales);
     const locale = locales.find((item) => item.code === appLang) || locales[0] || FALLBACK_LOCALES[0];
     const intlLocale = LOCALE_TO_INTL[appLang] || appLang || 'en-US';
@@ -155,7 +157,7 @@
 
     function tr(en, ru) {
       if (appLang === 'en') return en;
-      if (isRu && ru) return ru;
+      if (isRu && ru && ru !== en) return ru;
       return translatePhrase(en) || translatePhrase(ru) || en;
     }
 
@@ -179,5 +181,12 @@
     return { appLang, isRu, locale, locales, intlLocale, tr, term, applyDocument, resolveLang: (value) => resolveLang(value, locales) };
   }
 
-  global.DuvelaAppI18n = { create, locales: FALLBACK_LOCALES };
+  function extend(extension = {}) {
+    Object.entries(extension.terms || {}).forEach(([code, terms]) => {
+      Object.assign(L[code] || (L[code] = {}), terms || {});
+    });
+    Object.assign(PHRASES, extension.phrases || {});
+  }
+
+  global.DuvelaAppI18n = { create, extend, locales: FALLBACK_LOCALES };
 })(window);
