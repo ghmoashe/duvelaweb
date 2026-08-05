@@ -73,6 +73,44 @@
       return rolesApi.detectWebRole(supa, userId);
     }
 
+    function hasList(value) {
+      return Array.isArray(value) && value.some((item) => String(item || '').trim());
+    }
+
+    function hasCompletedProfile(profile) {
+      if (!profile) return false;
+      if (profile.is_admin || profile.is_teacher || profile.is_organizer) return true;
+      if (String(profile.full_name || '').trim()) return true;
+      if (String(profile.bio || '').trim()) return true;
+      if (String(profile.city || '').trim() || String(profile.country || '').trim()) return true;
+      if (String(profile.language || '').trim()) return true;
+      if (String(profile.website || '').trim()) return true;
+      if (String(profile.avatar_url || '').trim()) return true;
+      if (hasList(profile.learning_languages) || hasList(profile.teaches_languages)) return true;
+      if (hasList(profile.learning_targets) || hasList(profile.profile_interests)) return true;
+      if (hasList(profile.specialization) || hasList(profile.qualifications)) return true;
+      return false;
+    }
+
+    async function loadExistingProfile(userId) {
+      if (!userId) return null;
+      try {
+        const { data, error } = await supa.from('profiles')
+          .select('id,full_name,avatar_url,city,country,language,bio,website,is_teacher,is_organizer,is_admin,learning_languages,learning_targets,teaches_languages,profile_interests,specialization,qualifications,last_web_role')
+          .eq('id', userId)
+          .maybeSingle();
+        if (!error && data) return data;
+        if (error) console.warn('existing profile query failed', error);
+      } catch (error) {
+        console.warn('existing profile query skipped', error);
+      }
+      return null;
+    }
+
+    function rememberCompletedOnboarding(userId, profile) {
+      if (userId && hasCompletedProfile(profile)) localStorage.setItem('duvela.onboarding.' + userId, '1');
+    }
+
     async function goToDetectedWebApp(userOrId, hash) {
       const userId = typeof userOrId === 'string' ? userOrId : userOrId?.id;
       const detectedRole = userId ? await detectWebRole(userId) : LOGIN_ROLE;
@@ -93,6 +131,17 @@
       sessionStorage.removeItem(SIGNUP_ROLE_KEY);
 
       if (flowMode === 'signup') {
+        const existingProfile = await loadExistingProfile(sessionUser.id);
+        if (hasCompletedProfile(existingProfile)) {
+          rememberCompletedOnboarding(sessionUser.id, existingProfile);
+          await upsertWebProfile(
+            sessionUser.id,
+            sessionUser.email,
+            document.documentElement.getAttribute('lang') || 'en'
+          );
+          await goToDetectedWebApp(sessionUser);
+          return;
+        }
         authUi.setSignupRole(savedSignupRole);
         authUi.setCurrentRole(savedSignupRole);
         await upsertWebProfile(
@@ -147,9 +196,9 @@
       const currentRole = authUi.getCurrentRole();
 
       authUi.clearNote();
-      localStorage.setItem(WEB_ROLE_KEY, currentRole);
 
       if (authMode === 'signup') {
+        localStorage.setItem(WEB_ROLE_KEY, currentRole);
         const confirm = loginConfirmInput.value;
         if (password.length < 6) {
           authUi.showNote(authUi.getCopy('pwTooShort', 'Password must be at least 6 characters.'));
@@ -197,6 +246,7 @@
       }
 
       if (data.user) await upsertWebProfile(data.user.id, email, locale);
+      rememberCompletedOnboarding(data.user?.id, await loadExistingProfile(data.user?.id));
       await goToDetectedWebApp(data.user);
     }
 
