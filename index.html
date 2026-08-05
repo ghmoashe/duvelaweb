@@ -678,13 +678,22 @@
   /* how it works */
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; counter-reset: step; }
   .step {
-    background: var(--card); border-radius: 24px; padding: 30px 26px;
+    background: var(--card); border-radius: 24px; padding: 26px 24px 30px;
     border: 1px solid var(--lav-line); position: relative; box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+  .step-figure {
+    position: relative; width: 152px; height: 152px; margin: 4px auto 18px;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 44%, rgba(201, 168, 255, .34), rgba(201, 168, 255, 0) 68%);
+    border-radius: 50%;
   }
   .step-num {
-    width: 46px; height: 46px; border-radius: 16px;
-    background: var(--grad); color: #fff; font-size: 19px; font-weight: 700;
-    display: grid; place-items: center; margin-bottom: 18px;
+    position: absolute; right: 4px; bottom: 6px; z-index: 2;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--grad); color: #fff; font-size: 16px; font-weight: 700;
+    display: grid; place-items: center;
+    border: 3px solid var(--card);
     box-shadow: 0 8px 18px rgba(168, 85, 247, .35);
   }
   .step h3 { font-size: 18.5px; font-weight: 700; margin-bottom: 8px; }
@@ -694,8 +703,8 @@
     z-index: 2; font-size: 22px; color: #B79CF2; font-weight: 700;
   }
   .step-duvi {
-    position: absolute; top: 14px; right: 14px; width: 66px; height: auto; z-index: 1;
-    pointer-events: none; filter: drop-shadow(0 8px 14px rgba(31, 21, 53, .18));
+    width: 134px; height: auto; z-index: 1;
+    pointer-events: none; filter: drop-shadow(0 12px 20px rgba(31, 21, 53, .2));
     animation: duviBob 5s ease-in-out infinite;
   }
   .step:nth-child(2) .step-duvi { animation-delay: .4s; }
@@ -895,6 +904,8 @@
     .hero-preview-link { width: 100%; }
     .phone { width: 290px; height: 590px; }
     .foot-inner { grid-template-columns: 1fr; }
+    .step-figure { width: 128px; height: 128px; }
+    .step-duvi { width: 112px; }
   }
 
   /* ── Scroll progress bar ───────────────────────── */
@@ -1498,22 +1509,28 @@
 
     <div class="steps">
       <div class="step reveal">
-        <div class="step-num">1</div>
-        <img class="step-duvi" src="./web/assets/duvi/p-think.png" alt="" aria-hidden="true" loading="lazy" width="66" height="66">
+        <div class="step-figure">
+          <img class="step-duvi" src="./web/assets/duvi/p-think.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+          <div class="step-num">1</div>
+        </div>
         <h3>Take the Level Test</h3>
         <p>Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
-        <div class="step-num">2</div>
-        <img class="step-duvi" src="./web/assets/duvi/p-read.png" alt="" aria-hidden="true" loading="lazy" width="66" height="66">
+        <div class="step-figure">
+          <img class="step-duvi" src="./web/assets/duvi/p-read.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+          <div class="step-num">2</div>
+        </div>
         <h3>Watch &amp; Practice Daily</h3>
         <p>Your feed serves videos at your level. Like, comment, follow teachers — and build your streak.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
-        <div class="step-num">3</div>
-        <img class="step-duvi" src="./web/assets/duvi/p-mic.png" alt="" aria-hidden="true" loading="lazy" width="66" height="66">
+        <div class="step-figure">
+          <img class="step-duvi" src="./web/assets/duvi/p-mic.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+          <div class="step-num">3</div>
+        </div>
         <h3>Go Live with Teachers</h3>
         <p>Join live lessons, book courses and attend events. Speak from day one with real people.</p>
       </div>
