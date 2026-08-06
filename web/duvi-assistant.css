@@ -60,6 +60,10 @@
 .duvi-panel {
   display: flex;
   flex-direction: column;
+  /* Reset host-page styles: the panel is a <section>, and host pages style
+     `section` (e.g. the landing gives sections padding-top ~90px). */
+  margin: 0;
+  padding: 0;
   width: min(370px, calc(100vw - 28px));
   max-height: min(560px, calc(100vh - 140px));
   overflow: hidden;
