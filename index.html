@@ -23,12 +23,11 @@
 <meta name="twitter:description" content="Languages, arts, school subjects & more — level-matched videos, live lessons and events, all in one academy.">
 <meta name="twitter:image" content="https://www.vela.cafe/og.png">
 <link rel="icon" href="./logo.webp" type="image/webp">
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="stylesheet" href="./web/duvi-assistant.css?v=20260805duvi1">
+<link rel="stylesheet" href="./web/duvi-assistant.css?v=20260806duvi7">
 <link rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co" crossorigin>
 <link rel="preload" href="./logo2.png" as="image">
 <script src="./web/vendor/supabase-js-v2.js"></script>
-<script defer src="https://unpkg.com/lucide@1.25.0/dist/umd/lucide.js"></script>
+<script defer src="./web/vendor/lucide.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -449,6 +448,30 @@
     animation: floaty 6s ease-in-out infinite;
   }
   @keyframes floaty { 0%,100% { transform: rotate(2.5deg) translateY(0);} 50% { transform: rotate(2.5deg) translateY(-14px);} }
+  /* DUVI mascot — hero companion */
+  .hero-duvi {
+    position: absolute; left: -26px; bottom: -18px; z-index: 4;
+    width: 170px; height: auto; pointer-events: none;
+    filter: drop-shadow(0 18px 26px rgba(31, 21, 53, .28));
+    animation: duviBob 5.5s ease-in-out infinite;
+  }
+  @keyframes duviBob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(0deg); } }
+  .hero-duvi-bubble {
+    position: absolute; left: 6px; bottom: 158px; z-index: 5; max-width: 188px;
+    background: #fff; color: var(--ink); border: 1px solid #EDE4FF;
+    border-radius: 16px 16px 16px 4px; padding: 10px 14px;
+    font-size: 13.5px; font-weight: 600; line-height: 1.42;
+    box-shadow: 0 14px 30px rgba(31, 21, 53, .16);
+    animation: duviBob 5.5s ease-in-out .25s infinite;
+  }
+  .hero-duvi-bubble b { color: var(--purple); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-duvi, .hero-duvi-bubble, .step-duvi { animation: none; }
+  }
+  @media (max-width: 620px) {
+    .hero-duvi { width: 118px; left: -8px; bottom: -8px; }
+    .hero-duvi-bubble { display: none; }
+  }
   .phone-notch {
     position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
     width: 110px; height: 26px; background: #1d1730; border-radius: 99px; z-index: 5;
@@ -652,16 +675,178 @@
     font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
   }
 
+  /* DUVI friends */
+  .crew-showcase {
+    background:
+      radial-gradient(circle at top left, rgba(168, 85, 247, .16), transparent 34%),
+      linear-gradient(135deg, #ffffff 0%, #f8f5ff 55%, #effaf7 100%);
+    border: 1px solid var(--lav-line);
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: var(--shadow-sm);
+  }
+  .crew-showcase h3 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .crew-showcase p {
+    margin-top: 10px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.65;
+    max-width: 760px;
+  }
+  .crew-flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .crew-flow-step {
+    background: rgba(255,255,255,.82);
+    border: 1px solid var(--lav-line);
+    border-radius: 18px;
+    padding: 16px 14px;
+    box-shadow: 0 10px 24px rgba(32, 22, 64, .06);
+  }
+  .crew-flow-step b {
+    display: block;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .crew-flow-step span {
+    display: block;
+    margin-top: 6px;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    margin-top: 26px;
+  }
+  .friend-card {
+    background: var(--card);
+    border: 1px solid var(--lav-line);
+    border-radius: 26px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: .28s;
+  }
+  .friend-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow);
+    border-color: #d5c2ff;
+  }
+  .friend-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--friend-accent, #6D3FE0), rgba(255,255,255,0));
+  }
+  .friend-art {
+    position: relative;
+    height: 172px;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(201, 168, 255, .32), rgba(201, 168, 255, 0) 62%),
+      linear-gradient(180deg, #fbf8ff 0%, #f8fcfb 100%);
+  }
+  .friend-card.friend-nova .friend-art {
+    background:
+      radial-gradient(circle at 50% 40%, rgba(34, 193, 220, .22), rgba(34, 193, 220, 0) 62%),
+      linear-gradient(180deg, #fbfeff 0%, #f6fbfc 100%);
+  }
+  .friend-art img {
+    width: min(100%, 154px);
+    height: 154px;
+    object-fit: contain;
+    filter: drop-shadow(0 14px 22px rgba(31, 21, 53, .16));
+  }
+  .friend-card h3 {
+    margin-top: 16px;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+  .friend-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: var(--lav-soft);
+    color: var(--friend-accent, var(--purple));
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .friend-card p {
+    margin-top: 12px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .friend-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .friend-points span,
+  .friend-stickers span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--lav-line);
+    background: #fff;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .friend-stickers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
   /* how it works */
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; counter-reset: step; }
   .step {
-    background: var(--card); border-radius: 24px; padding: 30px 26px;
+    background: var(--card); border-radius: 24px; padding: 26px 24px 30px;
     border: 1px solid var(--lav-line); position: relative; box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+  .step-figure {
+    position: relative; width: 152px; height: 152px; margin: 4px auto 18px;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 44%, rgba(201, 168, 255, .34), rgba(201, 168, 255, 0) 68%);
+    border-radius: 50%;
   }
   .step-num {
-    width: 46px; height: 46px; border-radius: 16px;
-    background: var(--grad); color: #fff; font-size: 19px; font-weight: 700;
-    display: grid; place-items: center; margin-bottom: 18px;
+    position: absolute; right: 4px; bottom: 6px; z-index: 2;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--grad); color: #fff; font-size: 16px; font-weight: 700;
+    display: grid; place-items: center;
+    border: 3px solid var(--card);
     box-shadow: 0 8px 18px rgba(168, 85, 247, .35);
   }
   .step h3 { font-size: 18.5px; font-weight: 700; margin-bottom: 8px; }
@@ -670,6 +855,13 @@
     position: absolute; right: -19px; top: 50%; transform: translateY(-50%);
     z-index: 2; font-size: 22px; color: #B79CF2; font-weight: 700;
   }
+  .step-duvi {
+    width: 134px; height: auto; z-index: 1;
+    pointer-events: none; filter: drop-shadow(0 12px 20px rgba(31, 21, 53, .2));
+    animation: duviBob 5s ease-in-out infinite;
+  }
+  .step:nth-child(2) .step-duvi { animation-delay: .4s; }
+  .step:nth-child(3) .step-duvi { animation-delay: .8s; }
 
   /* levels */
   .levels-card {
@@ -725,6 +917,7 @@
   }
   .store-btn:hover { transform: translateY(-2px); background: #0d0a19; }
   .store-btn .s-icon { font-size: 22px; }
+  .mobile-store-row .store-btn .s-logo { height: 26px; width: auto; flex: 0 0 auto; display: block; }
   .store-btn small { display: block; font-size: 9.5px; font-weight: 700; opacity: .75; letter-spacing: .4px; }
   .store-btn b { font-size: 14.5px; font-weight: 700; }
   .app-bubble {
@@ -821,6 +1014,7 @@
     .hero-preview-link { margin-left: 0; }
     .hero-preview-body { text-align: center; }
     .feat-grid, .steps { grid-template-columns: 1fr 1fr; }
+    .crew-flow, .friends-grid { grid-template-columns: 1fr 1fr; }
     .step-arrow { display: none; }
     .apps-grid { grid-template-columns: 1fr; }
     .foot-inner { grid-template-columns: 1fr 1fr; }
@@ -840,6 +1034,10 @@
       font-size: 16px;
       line-height: 1.6;
     }
+    .crew-showcase { padding: 24px 18px; }
+    .crew-flow, .friends-grid { grid-template-columns: 1fr; }
+    .friend-art { height: 158px; }
+    .friend-art img { width: min(100%, 144px); height: 144px; }
     .hero-badge {
       font-size: 12px;
       padding: 8px 14px;
@@ -865,6 +1063,8 @@
     .hero-preview-link { width: 100%; }
     .phone { width: 290px; height: 590px; }
     .foot-inner { grid-template-columns: 1fr; }
+    .step-figure { width: 128px; height: 128px; }
+    .step-duvi { width: 112px; }
   }
 
   /* ── Scroll progress bar ───────────────────────── */
@@ -1141,6 +1341,12 @@
     <!-- phone mockup: Videos feed like the app -->
     <div class="phone-area" aria-label="Duvela web app interface preview with sample content">
       <span class="preview-note">Interface preview · sample data</span>
+      <div class="hero-duvi-bubble">Hi! I'm <b>DUVI</b> 👋</div>
+      <picture>
+        <source srcset="./web/assets/duvi/hero-mascot.webp" type="image/webp">
+        <img class="hero-duvi" src="./web/assets/duvi/hero-mascot.png" alt="DUVI, the Duvela assistant" loading="lazy" width="170" height="170">
+      </picture>
+
 
       <div class="phone">
         <div class="phone-notch"></div>
@@ -1451,6 +1657,128 @@
         <p>Built-in messaging connects learners, teachers and organizers — ask questions, book lessons and stay in touch in real time.</p>
         <span class="feat-tag">Connected</span>
       </div>
+      <div class="feat reveal">
+        <div class="feat-icon fi-teal"><i data-lucide="presentation"></i></div>
+        <h3>Duvela Classroom</h3>
+        <p>Private group video lessons in a dedicated classroom — camera, microphone, raise hand and shared lesson materials.</p>
+        <span class="feat-tag">Group lessons</span>
+      </div>
+      <div class="feat reveal">
+        <div class="feat-icon fi-indigo"><i data-lucide="graduation-cap"></i></div>
+        <h3>Exam Practice</h3>
+        <p>Take full telc-style German exams — Hören, Lesen, Schreiben and Sprechen. Auto-scored, with AI feedback and a full answer review.</p>
+        <span class="feat-tag">telc-style</span>
+      </div>
+      <div class="feat reveal">
+        <div class="feat-icon fi-red"><i data-lucide="swords"></i></div>
+        <h3>Language Duels</h3>
+        <p>Challenge another learner at your level to a real-time duel — timed questions, live scoring and XP for the winner.</p>
+        <span class="feat-tag">Compete</span>
+      </div>
+      <div class="feat reveal">
+        <div class="feat-icon fi-purple"><i data-lucide="sparkles"></i></div>
+        <h3>DUVI Assistant</h3>
+        <p>Your in-app helper answers questions by voice or text, explains errors and guides you around Duvela — in your language.</p>
+        <span class="feat-tag">AI Helper</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="friends">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-kicker">DUVI Crew</span>
+      <h2 class="sec-title">Meet <span class="grad-text">DUVI's friends</span></h2>
+      <p class="sec-sub">DUVI stays the main guide. When a learner needs speaking, grammar, stories, pronunciation, or motivation, the right buddy steps in.</p>
+    </div>
+
+    <div class="crew-showcase reveal">
+      <span class="feat-tag">Inside DUVI Assistant</span>
+      <h3>One assistant, five specialist buddies</h3>
+      <p>Open DUVI, tap a friend, and the next prompt is prepared for the right helper. The assistant also auto-routes obvious intents like speaking, grammar mistakes, short stories, listening drills, and streak support.</p>
+      <div class="crew-flow">
+        <article class="crew-flow-step"><b>1. NOVA</b><span>Hear one short phrase and repeat it.</span></article>
+        <article class="crew-flow-step"><b>2. LINA</b><span>Do a tiny speaking sprint or roleplay.</span></article>
+        <article class="crew-flow-step"><b>3. GRAMI</b><span>Fix one mistake and explain the rule.</span></article>
+        <article class="crew-flow-step"><b>4. STELLA</b><span>Get a mini story with easy vocabulary.</span></article>
+        <article class="crew-flow-step"><b>5. MOTI</b><span>Protect the streak and reward progress.</span></article>
+      </div>
+    </div>
+
+    <div class="friends-grid">
+      <article class="friend-card reveal friend-lina" style="--friend-accent:#d85a62">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/lina.png" alt="LINA, the DUVI speaking buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>LINA</h3>
+        <span class="friend-role">Speaking buddy</span>
+        <p>Short dialogues, roleplay, confidence drills, and first words out loud from day one.</p>
+        <div class="friend-points">
+          <span>🎤 Speaking</span>
+          <span>🗣 Roleplay</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-grami" style="--friend-accent:#4b78de">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/grami.png" alt="GRAMI, the DUVI grammar buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>GRAMI</h3>
+        <span class="friend-role">Grammar buddy</span>
+        <p>Simple corrections, grammar patterns, articles, verb forms, and clear next-step explanations.</p>
+        <div class="friend-points">
+          <span>✅ Corrections</span>
+          <span>📘 Rules</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-stella" style="--friend-accent:#9c53df">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/stella.png" alt="STELLA, the DUVI story buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>STELLA</h3>
+        <span class="friend-role">Story buddy</span>
+        <p>Micro stories, simple scenes, and short dialogue moments that turn vocabulary into memory.</p>
+        <div class="friend-points">
+          <span>✨ Stories</span>
+          <span>📖 Reading</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-nova" style="--friend-accent:#1ea6ba">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/nova.png" alt="NOVA, the DUVI pronunciation buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>NOVA</h3>
+        <span class="friend-role">Pronunciation buddy</span>
+        <p>Listening checks, sound practice, repeat-after-me drills, and phrase-by-phrase pronunciation work.</p>
+        <div class="friend-points">
+          <span>🎧 Listening</span>
+          <span>🔊 Pronunciation</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-moti" style="--friend-accent:#8dad16">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/moti.png" alt="MOTI, the DUVI motivation buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>MOTI</h3>
+        <span class="friend-role">Motivation buddy</span>
+        <p>Streak support, rewards, encouragement, mini challenges, and the next small win to chase.</p>
+        <div class="friend-points">
+          <span>🔥 Streaks</span>
+          <span>🏆 Rewards</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="friend-stickers reveal" aria-label="DUVI sticker pack">
+      <span>🔥 Streak Boost</span>
+      <span>🎧 Repeat With NOVA</span>
+      <span>✨ Story Spark</span>
+      <span>✅ Fix It</span>
+      <span>🎤 Tiny Roleplay</span>
     </div>
   </div>
 </section>
@@ -1465,19 +1793,37 @@
 
     <div class="steps">
       <div class="step reveal">
-        <div class="step-num">1</div>
+        <div class="step-figure">
+          <picture>
+            <source srcset="./web/assets/duvi/p-think.webp" type="image/webp">
+            <img class="step-duvi" src="./web/assets/duvi/p-think.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+          </picture>
+          <div class="step-num">1</div>
+        </div>
         <h3>Take the Level Test</h3>
         <p>Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
-        <div class="step-num">2</div>
+        <div class="step-figure">
+          <picture>
+            <source srcset="./web/assets/duvi/p-read.webp" type="image/webp">
+            <img class="step-duvi" src="./web/assets/duvi/p-read.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+          </picture>
+          <div class="step-num">2</div>
+        </div>
         <h3>Watch &amp; Practice Daily</h3>
         <p>Your feed serves videos at your level. Like, comment, follow teachers — and build your streak.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
-        <div class="step-num">3</div>
+        <div class="step-figure">
+          <picture>
+            <source srcset="./web/assets/duvi/p-mic.webp" type="image/webp">
+            <img class="step-duvi" src="./web/assets/duvi/p-mic.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+          </picture>
+          <div class="step-num">3</div>
+        </div>
         <h3>Go Live with Teachers</h3>
         <p>Join live lessons, book courses and attend events. Speak from day one with real people.</p>
       </div>
@@ -1575,11 +1921,11 @@
       </div>
       <div class="mobile-store-row" aria-label="Mobile application stores">
         <button class="store-btn" type="button" data-store-soon="app-store" title="App Store link is coming soon">
-          <i data-lucide="download" aria-hidden="true"></i>
+          <svg class="s-logo" viewBox="0 0 384 512" aria-hidden="true"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
           <span><small>Download on the</small><b>App Store</b></span>
         </button>
         <button class="store-btn" type="button" data-store-soon="google-play" title="Google Play link is coming soon">
-          <i data-lucide="download" aria-hidden="true"></i>
+          <svg class="s-logo" viewBox="0 0 512 512" aria-hidden="true"><path fill="#00D2FF" d="M47.5 24.6C43.4 28.9 41 35.6 41 44.3v423.4c0 8.7 2.4 15.4 6.5 19.7l1.4 1.3 237.2-237.2v-5.6L48.9 23.3z"/><path fill="#00E676" d="M365.3 344.7l-79.2-79.2v-5.6l79.3-79.2 1.8 1L461.5 235c26.9 15.3 26.9 40.2 0 55.5l-94.3 53.3z"/><path fill="#FF3D47" d="M367.1 343.7L286.1 262.7 47.5 501.3c8.9 9.4 23.5 10.5 40 1.3l279.6-158.9"/><path fill="#FFC107" d="M367.1 181.8L87.5 22.9c-16.5-9.4-31.1-8.2-40 1.2l238.6 238.6z"/></svg>
           <span><small>Get it on</small><b>Google Play</b></span>
         </button>
       </div>
@@ -1808,12 +2154,12 @@
 <script src="./web/duvela-web-roles.js?v=20260721-2"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js"></script>
-<script src="./web/index-i18n.js?v=20260805-lang1"></script>
+<script src="./web/index-i18n.js?v=20260806-duvi4"></script>
 <script src="./web/index-auth-ui.js"></script>
 <script src="./web/index-auth.js?v=20260805existingprofile1"></script>
 <script src="./web/index-public-data.js?v=20260801-1"></script>
 <script src="./web/index-page.js"></script>
-<script src="./web/duvi-assistant.js?v=20260805duvi1"></script>
+<script src="./web/duvi-assistant.js?v=20260806duvi7"></script>
 <script>window.DuvelaDUVI?.mount({context:'public',autoWelcome:true});</script>
 </body>
 </html>
