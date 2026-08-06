@@ -5,6 +5,8 @@
   const WELCOME_KEY = 'duvela.duvi.welcome.v1';
   const VOICE_KEY = 'duvela.duvi.voice.v1';
   const FRIEND_KEY = 'duvela.duvi.friend.v1';
+  const MODE_KEY = 'duvela.duvi.mode.v1';
+  const LEVEL_CHAIN_KEY = 'duvela.duvi.level-chain.v1';
   const RTL = new Set(['ar', 'fa']);
   const FRIENDS = [
     {
@@ -179,6 +181,40 @@
       }
     }
   ];
+  const MODE_OPTIONS = [
+    {
+      id: 'strict',
+      label: { en: 'Strict', ru: 'Строго', de: 'Strikt' },
+      hint: { en: 'Direct corrections first', ru: 'Сначала точные исправления', de: 'Direkt und korrekturorientiert' }
+    },
+    {
+      id: 'friendly',
+      label: { en: 'Friendly', ru: 'Дружелюбно', de: 'Freundlich' },
+      hint: { en: 'Warm and balanced guidance', ru: 'Тёплый и ровный тон', de: 'Warm und ausgewogen' }
+    },
+    {
+      id: 'playful',
+      label: { en: 'Playful', ru: 'Игриво', de: 'Verspielt' },
+      hint: { en: 'Lighter, game-like energy', ru: 'Легче и более игрово', de: 'Leichter und spielerischer' }
+    }
+  ];
+  const LEVEL_BANDS = [
+    {
+      id: 'A1-A2',
+      label: { en: 'A1 → A2', ru: 'A1 → A2', de: 'A1 → A2' },
+      hint: { en: 'Short, simple language', ru: 'Короткий и простой язык', de: 'Kurz und einfach' }
+    },
+    {
+      id: 'B1-B2',
+      label: { en: 'B1 → B2', ru: 'B1 → B2', de: 'B1 → B2' },
+      hint: { en: 'Everyday detail and nuance', ru: 'Больше деталей и нюансов', de: 'Mehr Alltag und Nuancen' }
+    },
+    {
+      id: 'C1',
+      label: { en: 'C1', ru: 'C1', de: 'C1' },
+      hint: { en: 'Advanced precision and style', ru: 'Продвинутый уровень и стиль', de: 'Fortgeschritten und praezise' }
+    }
+  ];
 
   const FRIEND_TONES = {
     en: {
@@ -312,7 +348,11 @@
   Object.assign(FRIEND_UI.en, {
     scenarios: 'Starter scenarios',
     scenarioLead: 'Tone: {tone}',
-    scenarioEmpty: 'Pick a friend to unlock tone and starter scenes.'
+    scenarioEmpty: 'Pick a friend to unlock tone and starter scenes.',
+    modes: 'Response mode',
+    modeLead: 'Set how every buddy answers.',
+    levels: 'Level chain',
+    levelLead: 'Clamp explanations and tasks to your band.'
   });
   Object.assign(FRIEND_UI.ru, {
     friends: '\u041c\u043e\u0438 \u0434\u0440\u0443\u0437\u044c\u044f',
@@ -322,6 +362,10 @@
     scenarios: '\u0421\u0442\u0430\u0440\u0442\u043e\u0432\u044b\u0435 \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u0438',
     scenarioLead: '\u0422\u043e\u043d: {tone}',
     scenarioEmpty: '\u0412\u044b\u0431\u0435\u0440\u0438 \u0434\u0440\u0443\u0433\u0430, \u0447\u0442\u043e\u0431\u044b \u0443\u0432\u0438\u0434\u0435\u0442\u044c tone \u0438 starter scenes.',
+    modes: '\u0420\u0435\u0436\u0438\u043c \u043e\u0442\u0432\u0435\u0442\u0430',
+    modeLead: '\u041a\u0430\u043a \u0438\u043c\u0435\u043d\u043d\u043e \u0434\u0440\u0443\u0437\u044c\u044f \u0434\u043e\u043b\u0436\u043d\u044b \u043e\u0442\u0432\u0435\u0447\u0430\u0442\u044c.',
+    levels: '\u0426\u0435\u043f\u043e\u0447\u043a\u0430 \u0443\u0440\u043e\u0432\u043d\u044f',
+    levelLead: '\u0414\u0435\u0440\u0436\u0438 \u0441\u043b\u043e\u0436\u043d\u043e\u0441\u0442\u044c \u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u0442\u0432\u043e\u0435\u0433\u043e \u0434\u0438\u0430\u043f\u0430\u0437\u043e\u043d\u0430.',
     crewLead: '\u041e\u0434\u0438\u043d \u0442\u0430\u043f: \u0441\u043b\u0443\u0448\u0430\u0439, \u0433\u043e\u0432\u043e\u0440\u0438, \u0438\u0441\u043f\u0440\u0430\u0432\u044c, \u0438\u0441\u0442\u043e\u0440\u0438\u044f, \u043d\u0430\u0433\u0440\u0430\u0434\u0430.',
     stickers: '\u0411\u044b\u0441\u0442\u0440\u044b\u0435 \u0441\u0442\u0438\u043a\u0435\u0440\u044b'
   });
@@ -333,6 +377,10 @@
     scenarios: 'Start-Szenarien',
     scenarioLead: 'Ton: {tone}',
     scenarioEmpty: 'Waehle einen Buddy, um Ton und Startszenen zu sehen.',
+    modes: 'Antwortmodus',
+    modeLead: 'Lege fest, wie die Buddys antworten.',
+    levels: 'Level-Kette',
+    levelLead: 'Halte Aufgaben und Erklaerungen in deinem Bereich.',
     crew: 'DUVI Crew · 5 min',
     crewLead: 'Ein Tipp fuer Hoeren, Sprechen, Korrigieren, Story und Belohnung.',
     stickers: 'Schnelle Sticker'
@@ -461,6 +509,12 @@
   let scenarioTitle = null;
   let scenarioLead = null;
   let scenarioStrip = null;
+  let modeTitle = null;
+  let modeLead = null;
+  let modeStrip = null;
+  let levelTitle = null;
+  let levelLead = null;
+  let levelStrip = null;
   let crewTitle = null;
   let crewLead = null;
   let crewStrip = null;
@@ -472,6 +526,8 @@
   let listening = false;
   let voiceEnabled = localStorage.getItem(VOICE_KEY) === '1';
   let activeFriendId = localStorage.getItem(FRIEND_KEY) || 'duvi';
+  let responseMode = localStorage.getItem(MODE_KEY) || 'friendly';
+  let levelBand = localStorage.getItem(LEVEL_CHAIN_KEY) || 'A1-A2';
   const builtInSelectors = {
     openHome: ['button[data-view="home"]', '[data-go="home"]', 'a[href="#home"]'],
     openManagement: ['button[data-view="management"]', '[data-go="management"]', 'a[href="#management"]'],
@@ -530,6 +586,28 @@
   function syncActiveFriendId() {
     if (!friendById(activeFriendId)) activeFriendId = 'duvi';
     localStorage.setItem(FRIEND_KEY, activeFriendId);
+  }
+
+  function currentMode() {
+    return MODE_OPTIONS.some((option) => option.id === responseMode) ? responseMode : 'friendly';
+  }
+
+  function currentLevelBand() {
+    return LEVEL_BANDS.some((option) => option.id === levelBand) ? levelBand : 'A1-A2';
+  }
+
+  function setMode(nextMode) {
+    responseMode = MODE_OPTIONS.some((option) => option.id === nextMode) ? nextMode : 'friendly';
+    localStorage.setItem(MODE_KEY, responseMode);
+    renderModeStrip();
+    return responseMode;
+  }
+
+  function setLevelBand(nextBand) {
+    levelBand = LEVEL_BANDS.some((option) => option.id === nextBand) ? nextBand : 'A1-A2';
+    localStorage.setItem(LEVEL_CHAIN_KEY, levelBand);
+    renderLevelStrip();
+    return levelBand;
   }
 
   function interpolate(value, data) {
@@ -700,6 +778,10 @@
     deckTitle.textContent = deckText('friends');
     deckLead.textContent = deckText('friendsLead');
     if (scenarioTitle) scenarioTitle.textContent = deckText('scenarios');
+    if (modeTitle) modeTitle.textContent = deckText('modes');
+    if (modeLead) modeLead.textContent = deckText('modeLead');
+    if (levelTitle) levelTitle.textContent = deckText('levels');
+    if (levelLead) levelLead.textContent = deckText('levelLead');
     crewTitle.textContent = deckText('crew');
     crewLead.textContent = deckText('crewLead');
     stickerTitle.textContent = deckText('stickers');
@@ -727,6 +809,32 @@
       button.title = scenario.prompt;
       button.addEventListener('click', () => runFriendPrompt(friend.id, scenario.prompt, true));
       scenarioStrip.append(button);
+    });
+  }
+
+  function renderModeStrip() {
+    if (!modeStrip) return;
+    modeStrip.replaceChildren();
+    MODE_OPTIONS.forEach((option) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'duvi-mini-chip' + (option.id === currentMode() ? ' is-active' : '');
+      button.innerHTML = '<b>' + localized(option.label) + '</b><span>' + localized(option.hint) + '</span>';
+      button.addEventListener('click', () => setMode(option.id));
+      modeStrip.append(button);
+    });
+  }
+
+  function renderLevelStrip() {
+    if (!levelStrip) return;
+    levelStrip.replaceChildren();
+    LEVEL_BANDS.forEach((option) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'duvi-mini-chip' + (option.id === currentLevelBand() ? ' is-active' : '');
+      button.innerHTML = '<b>' + localized(option.label) + '</b><span>' + localized(option.hint) + '</span>';
+      button.addEventListener('click', () => setLevelBand(option.id));
+      levelStrip.append(button);
     });
   }
 
@@ -835,6 +943,8 @@
       ' | focus: ' + localized(friend.blurb) +
       ' | tone: ' + localized(friend.tone) +
       ' | style: ' + localized(friend.style) +
+      ' | mode: ' + currentMode() +
+      ' | level: ' + currentLevelBand() +
       '] ' + value;
   }
 
@@ -924,6 +1034,20 @@
           '</div>' +
           '<div class="duvi-mini-block">' +
             '<div class="duvi-mini-head">' +
+              '<strong class="duvi-mode-title"></strong>' +
+              '<small class="duvi-mode-lead"></small>' +
+            '</div>' +
+            '<div class="duvi-mode-strip"></div>' +
+          '</div>' +
+          '<div class="duvi-mini-block">' +
+            '<div class="duvi-mini-head">' +
+              '<strong class="duvi-level-title"></strong>' +
+              '<small class="duvi-level-lead"></small>' +
+            '</div>' +
+            '<div class="duvi-level-strip"></div>' +
+          '</div>' +
+          '<div class="duvi-mini-block">' +
+            '<div class="duvi-mini-head">' +
               '<strong class="duvi-crew-title"></strong>' +
               '<small class="duvi-crew-lead"></small>' +
             '</div>' +
@@ -961,6 +1085,12 @@
     scenarioTitle = root.querySelector('.duvi-scenarios-title');
     scenarioLead = root.querySelector('.duvi-scenarios-lead');
     scenarioStrip = root.querySelector('.duvi-scenarios-strip');
+    modeTitle = root.querySelector('.duvi-mode-title');
+    modeLead = root.querySelector('.duvi-mode-lead');
+    modeStrip = root.querySelector('.duvi-mode-strip');
+    levelTitle = root.querySelector('.duvi-level-title');
+    levelLead = root.querySelector('.duvi-level-lead');
+    levelStrip = root.querySelector('.duvi-level-strip');
     crewTitle = root.querySelector('.duvi-crew-title');
     crewLead = root.querySelector('.duvi-crew-lead');
     crewStrip = root.querySelector('.duvi-crew-strip');
@@ -985,6 +1115,8 @@
     syncDeckCopy();
     renderFriendRail();
     renderScenarioStrip();
+    renderModeStrip();
+    renderLevelStrip();
     renderCrewStrip();
     renderStickerStrip();
     setActiveFriend(activeFriendId);
@@ -999,6 +1131,8 @@
       syncDeckCopy();
       renderFriendRail();
       renderScenarioStrip();
+      renderModeStrip();
+      renderLevelStrip();
       renderCrewStrip();
       renderStickerStrip();
       setActiveFriend(activeFriendId);
@@ -1025,6 +1159,8 @@
       friendFocus: friend ? localized(friend.blurb) : 'Navigation and support',
       friendTone: friend ? localized(friend.tone) : 'Helpful guide',
       friendStyle: friend ? localized(friend.style) : 'Clear, practical support',
+      responseMode: currentMode(),
+      levelBand: currentLevelBand(),
       friendScenarios: friend ? friendScenarios(friend.id).map((scenario) => scenario.title) : []
     };
   }
@@ -1241,6 +1377,8 @@
     registerAction,
     ask: sendChat,
     setVoice: setVoiceEnabled,
-    setFriend: (friendId) => setActiveFriend(friendId, { focus: true })
+    setFriend: (friendId) => setActiveFriend(friendId, { focus: true }),
+    setMode,
+    setLevelBand
   };
 })(window);
