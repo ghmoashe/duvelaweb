@@ -19,7 +19,7 @@ function loadScriptOnce(src, isReady) {
 
 await loadScriptOnce('/locales/web-locales.js', () => Boolean(window.DUVELA_WEB_I18N));
 await loadScriptOnce('/web/app-i18n.js?v=20260805-classroom2', () => Boolean(window.DuvelaAppI18n));
-await loadScriptOnce('/web/duvi-assistant.js?v=20260806duvi7', () => Boolean(window.DuvelaDUVI));
+await loadScriptOnce('/web/duvi-assistant.js?v=20260806duvi8', () => Boolean(window.DuvelaDUVI));
 await new Promise((resolve, reject) => {
   if (window.DuvelaWebConfig) return resolve();
   const script = document.createElement('script');

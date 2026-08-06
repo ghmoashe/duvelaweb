@@ -150,6 +150,8 @@
 
 .duvi-friend-rail,
 .duvi-scenarios-strip,
+.duvi-mode-strip,
+.duvi-level-strip,
 .duvi-crew-strip,
 .duvi-sticker-strip {
   display: flex;
@@ -220,6 +222,8 @@
 .duvi-friend-card.is-active,
 .duvi-friend-card:hover,
 .duvi-friend-card:focus-visible,
+.duvi-scenario-chip:hover,
+.duvi-scenario-chip:focus-visible,
 .duvi-mini-chip:hover,
 .duvi-mini-chip:focus-visible,
 .duvi-sticker-chip:hover,
@@ -232,6 +236,14 @@
 
 .duvi-friend-card.is-active {
   background: #edf7f4;
+}
+
+.duvi-scenario-chip.is-active,
+.duvi-mini-chip.is-active,
+.duvi-sticker-chip.is-active {
+  background: #edf7f4;
+  border-color: rgba(8, 125, 109, .55);
+  box-shadow: 0 10px 26px rgba(8, 125, 109, .12);
 }
 
 .duvi-mini-block {
