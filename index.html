@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="Languages, arts, school subjects & more — level-matched videos, live lessons and events, all in one academy.">
 <meta name="twitter:image" content="https://www.vela.cafe/og.png">
 <link rel="icon" href="./logo.webp" type="image/webp">
-<link rel="stylesheet" href="./web/duvi-assistant.css?v=20260806duvi5">
+<link rel="stylesheet" href="./web/duvi-assistant.css?v=20260806duvi7">
 <link rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co" crossorigin>
 <link rel="preload" href="./logo2.png" as="image">
 <script src="./web/vendor/supabase-js-v2.js"></script>
@@ -675,6 +675,159 @@
     font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
   }
 
+  /* DUVI friends */
+  .crew-showcase {
+    background:
+      radial-gradient(circle at top left, rgba(168, 85, 247, .16), transparent 34%),
+      linear-gradient(135deg, #ffffff 0%, #f8f5ff 55%, #effaf7 100%);
+    border: 1px solid var(--lav-line);
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: var(--shadow-sm);
+  }
+  .crew-showcase h3 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .crew-showcase p {
+    margin-top: 10px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.65;
+    max-width: 760px;
+  }
+  .crew-flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .crew-flow-step {
+    background: rgba(255,255,255,.82);
+    border: 1px solid var(--lav-line);
+    border-radius: 18px;
+    padding: 16px 14px;
+    box-shadow: 0 10px 24px rgba(32, 22, 64, .06);
+  }
+  .crew-flow-step b {
+    display: block;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .crew-flow-step span {
+    display: block;
+    margin-top: 6px;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    margin-top: 26px;
+  }
+  .friend-card {
+    background: var(--card);
+    border: 1px solid var(--lav-line);
+    border-radius: 26px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: .28s;
+  }
+  .friend-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow);
+    border-color: #d5c2ff;
+  }
+  .friend-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--friend-accent, #6D3FE0), rgba(255,255,255,0));
+  }
+  .friend-art {
+    position: relative;
+    height: 172px;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(201, 168, 255, .32), rgba(201, 168, 255, 0) 62%),
+      linear-gradient(180deg, #fbf8ff 0%, #f8fcfb 100%);
+  }
+  .friend-card.friend-nova .friend-art {
+    background:
+      radial-gradient(circle at 50% 40%, rgba(34, 193, 220, .22), rgba(34, 193, 220, 0) 62%),
+      linear-gradient(180deg, #fbfeff 0%, #f6fbfc 100%);
+  }
+  .friend-art img {
+    width: min(100%, 154px);
+    height: 154px;
+    object-fit: contain;
+    filter: drop-shadow(0 14px 22px rgba(31, 21, 53, .16));
+  }
+  .friend-card h3 {
+    margin-top: 16px;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+  .friend-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: var(--lav-soft);
+    color: var(--friend-accent, var(--purple));
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .friend-card p {
+    margin-top: 12px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .friend-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .friend-points span,
+  .friend-stickers span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--lav-line);
+    background: #fff;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .friend-stickers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
   /* how it works */
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; counter-reset: step; }
   .step {
@@ -861,6 +1014,7 @@
     .hero-preview-link { margin-left: 0; }
     .hero-preview-body { text-align: center; }
     .feat-grid, .steps { grid-template-columns: 1fr 1fr; }
+    .crew-flow, .friends-grid { grid-template-columns: 1fr 1fr; }
     .step-arrow { display: none; }
     .apps-grid { grid-template-columns: 1fr; }
     .foot-inner { grid-template-columns: 1fr 1fr; }
@@ -880,6 +1034,10 @@
       font-size: 16px;
       line-height: 1.6;
     }
+    .crew-showcase { padding: 24px 18px; }
+    .crew-flow, .friends-grid { grid-template-columns: 1fr; }
+    .friend-art { height: 158px; }
+    .friend-art img { width: min(100%, 144px); height: 144px; }
     .hero-badge {
       font-size: 12px;
       padding: 8px 14px;
@@ -1527,6 +1685,104 @@
   </div>
 </section>
 
+<section id="friends">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-kicker">DUVI Crew</span>
+      <h2 class="sec-title">Meet <span class="grad-text">DUVI's friends</span></h2>
+      <p class="sec-sub">DUVI stays the main guide. When a learner needs speaking, grammar, stories, pronunciation, or motivation, the right buddy steps in.</p>
+    </div>
+
+    <div class="crew-showcase reveal">
+      <span class="feat-tag">Inside DUVI Assistant</span>
+      <h3>One assistant, five specialist buddies</h3>
+      <p>Open DUVI, tap a friend, and the next prompt is prepared for the right helper. The assistant also auto-routes obvious intents like speaking, grammar mistakes, short stories, listening drills, and streak support.</p>
+      <div class="crew-flow">
+        <article class="crew-flow-step"><b>1. NOVA</b><span>Hear one short phrase and repeat it.</span></article>
+        <article class="crew-flow-step"><b>2. LINA</b><span>Do a tiny speaking sprint or roleplay.</span></article>
+        <article class="crew-flow-step"><b>3. GRAMI</b><span>Fix one mistake and explain the rule.</span></article>
+        <article class="crew-flow-step"><b>4. STELLA</b><span>Get a mini story with easy vocabulary.</span></article>
+        <article class="crew-flow-step"><b>5. MOTI</b><span>Protect the streak and reward progress.</span></article>
+      </div>
+    </div>
+
+    <div class="friends-grid">
+      <article class="friend-card reveal friend-lina" style="--friend-accent:#d85a62">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/lina.png" alt="LINA, the DUVI speaking buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>LINA</h3>
+        <span class="friend-role">Speaking buddy</span>
+        <p>Short dialogues, roleplay, confidence drills, and first words out loud from day one.</p>
+        <div class="friend-points">
+          <span>🎤 Speaking</span>
+          <span>🗣 Roleplay</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-grami" style="--friend-accent:#4b78de">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/grami.png" alt="GRAMI, the DUVI grammar buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>GRAMI</h3>
+        <span class="friend-role">Grammar buddy</span>
+        <p>Simple corrections, grammar patterns, articles, verb forms, and clear next-step explanations.</p>
+        <div class="friend-points">
+          <span>✅ Corrections</span>
+          <span>📘 Rules</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-stella" style="--friend-accent:#9c53df">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/stella.png" alt="STELLA, the DUVI story buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>STELLA</h3>
+        <span class="friend-role">Story buddy</span>
+        <p>Micro stories, simple scenes, and short dialogue moments that turn vocabulary into memory.</p>
+        <div class="friend-points">
+          <span>✨ Stories</span>
+          <span>📖 Reading</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-nova" style="--friend-accent:#1ea6ba">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/nova.png" alt="NOVA, the DUVI pronunciation buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>NOVA</h3>
+        <span class="friend-role">Pronunciation buddy</span>
+        <p>Listening checks, sound practice, repeat-after-me drills, and phrase-by-phrase pronunciation work.</p>
+        <div class="friend-points">
+          <span>🎧 Listening</span>
+          <span>🔊 Pronunciation</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-moti" style="--friend-accent:#8dad16">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/moti.png" alt="MOTI, the DUVI motivation buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>MOTI</h3>
+        <span class="friend-role">Motivation buddy</span>
+        <p>Streak support, rewards, encouragement, mini challenges, and the next small win to chase.</p>
+        <div class="friend-points">
+          <span>🔥 Streaks</span>
+          <span>🏆 Rewards</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="friend-stickers reveal" aria-label="DUVI sticker pack">
+      <span>🔥 Streak Boost</span>
+      <span>🎧 Repeat With NOVA</span>
+      <span>✨ Story Spark</span>
+      <span>✅ Fix It</span>
+      <span>🎤 Tiny Roleplay</span>
+    </div>
+  </div>
+</section>
+
 <!-- ── HOW IT WORKS ───────────────────────────────── -->
 <section id="how">
   <div class="wrap">
@@ -1903,7 +2159,7 @@
 <script src="./web/index-auth.js?v=20260805existingprofile1"></script>
 <script src="./web/index-public-data.js?v=20260801-1"></script>
 <script src="./web/index-page.js"></script>
-<script src="./web/duvi-assistant.js?v=20260806duvi5"></script>
+<script src="./web/duvi-assistant.js?v=20260806duvi7"></script>
 <script>window.DuvelaDUVI?.mount({context:'public',autoWelcome:true});</script>
 </body>
 </html>
