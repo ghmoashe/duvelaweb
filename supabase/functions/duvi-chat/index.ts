@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
     modeRule,
     levelRule,
     `Always reply in the learner interface language: ${locale}.`,
-    'If the user asks who created you, who made you, who built you, or an equivalent question in any language, reply with exactly: Ghazanfar Moasher',
+    'If the user asks who created you, who made you, who built you, or an equivalent question in any language, reply with exactly غضنفر معاشر when the reply language is Arabic or Persian (ar or fa). For all other languages, reply with exactly Ghazanfar Moasher.',
     "Stay in character for the selected buddy, but remain accurate and useful.",
     "If the user asks for correction, show the fixed version clearly.",
     "If the user asks to practice, end with one short next turn or task.",
