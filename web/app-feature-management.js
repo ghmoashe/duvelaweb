@@ -10,6 +10,13 @@
     let data = null;    // {events, courses, challenges, classSessions}
     let loadedFor = null;
 
+    function isCanceledSession(session) {
+      return ['canceled', 'cancelled'].includes(String(session && session.status || '').toLowerCase());
+    }
+    function isEndedSession(session) {
+      return ['ended', 'completed'].includes(String(session && session.status || '').toLowerCase());
+    }
+
     function todayStr() {
       return new Date().toISOString().slice(0, 10);
     }
@@ -173,7 +180,7 @@
       html += '<div class="mg-course-list">' + courses.map(function (c) {
         var courseGroup = ((state && state.orgClasses) || []).find(function (group) { return String(group.course_id) === String(c.id); });
         var nextSession = courseGroup && (data.classSessions || []).filter(function (session) {
-          return String(session.class_id) === String(courseGroup.id) && session.status !== 'cancelled' && session.status !== 'ended' && Date.parse(session.starts_at) >= Date.now() - 21600000;
+          return String(session.class_id) === String(courseGroup.id) && !isCanceledSession(session) && !isEndedSession(session) && Date.parse(session.starts_at) >= Date.now() - 21600000;
         })[0];
         var tags = [c.level, c.language].filter(Boolean).map(function (t) { return '<span class="mg-chip">' + esc(t) + '</span>'; }).join('') +
           (c.zoom_enabled ? '<span class="mg-chip" style="color:var(--purple)">Zoom Classroom · ' + esc(c.max_students || 25) + '</span>' : '');
@@ -217,7 +224,7 @@
 
     function renderLiveTab() {
       var live = data.events.filter(function (e) { return isUpcoming(e) && isOnline(e); });
-      var classrooms = (data.classSessions || []).filter(function (s) { return s.status !== 'ended' && s.status !== 'cancelled'; });
+      var classrooms = (data.classSessions || []).filter(function (s) { return !isEndedSession(s) && !isCanceledSession(s); });
       var html = '<div class="mg-summary">' +
         '<span class="mg-summary-ic red">' + IC.live + '</span>' +
         '<div class="mg-summary-copy"><b>' + esc(tr('Online lessons and broadcasts', 'Онлайн-уроки и эфиры')) + '</b>' +
@@ -420,7 +427,7 @@
         var linkedGroup = ((state && state.orgClasses) || []).find(function (group) { return String(group.course_id) === String(id); });
         if (linkedGroup) {
           courseEditing.group_name = linkedGroup.name || '';
-          var existing = await safe(supa.from('class_sessions').select('starts_at,duration_min').eq('class_id', linkedGroup.id).neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(100));
+          var existing = await safe(supa.from('class_sessions').select('starts_at,duration_min').eq('class_id', linkedGroup.id).neq('status', 'canceled').neq('status', 'cancelled').order('starts_at', { ascending: true }).limit(100));
           var rows = existing.data || [];
           if (rows[0]) {
             var first = new Date(rows[0].starts_at);
@@ -644,7 +651,7 @@
           var sessionStarts = buildZoomStarts(firstLesson, zoomRepeat, zoomWeekdays, fields.ends_on);
           var existingSessions = await supa.from('class_sessions').select('id,starts_at,status').eq('class_id', groupResult.data.id).order('starts_at', { ascending: true });
           var existingRows = existingSessions.data || [];
-          var existingTimes = new Set(existingRows.filter(function (item) { return item.status !== 'cancelled'; }).map(function (item) { return new Date(item.starts_at).toISOString(); }));
+          var existingTimes = new Set(existingRows.filter(function (item) { return !isCanceledSession(item); }).map(function (item) { return new Date(item.starts_at).toISOString(); }));
           var missingStarts = sessionStarts.filter(function (startsAt) { return !existingTimes.has(startsAt.toISOString()); });
           if (editingCourseId && missingStarts.length && existingRows.length) {
             var enrolledCount = (await supa.from('course_enrollments').select('id', { count: 'exact', head: true }).eq('course_id', courseId).eq('status', 'confirmed')).count || 0;

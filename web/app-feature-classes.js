@@ -4,6 +4,8 @@
     let currentClassId = null;
     let selectedSessionId = null;
     let clsStudentTimer = null;
+    const isCanceledSession = (session) => ['canceled', 'cancelled'].includes(String(session?.status || '').toLowerCase());
+    const isEndedSession = (session) => ['ended', 'completed'].includes(String(session?.status || '').toLowerCase());
 
     async function openClassManage(classId) {
       currentClassId = classId;
@@ -40,7 +42,7 @@
         '<div class="section-head"><h2 style="font-size:15px">' + esc(tr('Sessions', 'Сессии')) + '</h2></div>' +
         '<div class="card" style="padding:10px;margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="csTitle" placeholder="' + esc(tr('Session title', 'Название сессии')) + '" style="' + inputStyle + '"><input id="csWhen" type="datetime-local" style="' + inputStyle + '"><button class="btn primary" data-add-session="1">' + esc(tr('Add', 'Добавить')) + '</button></div>' +
         (sessions.length ? sessions.map((session) => '<div class="card row" style="grid-template-columns:minmax(0,1fr) auto"><div><h3>' + esc(session.title || tr('Session', 'Сессия')) + '</h3><p>' + esc(session.starts_at ? formatDate(session.starts_at) : '') + ' · ' + esc(session.status || 'scheduled') + '</p></div><div class="class-session-actions">' +
-          (session.status !== 'cancelled' && session.status !== 'ended' ? '<button class="btn" data-session-reschedule="' + esc(session.id) + '">' + esc(tr('Reschedule', 'Перенести')) + '</button>' + (session.recurrence_group_id ? '<button class="btn" data-series-reschedule="' + esc(session.id) + '">' + esc(tr('This and next', 'Этот и следующие')) + '</button>' : '') + '<button class="btn danger" data-session-cancel="' + esc(session.id) + '">' + esc(tr('Cancel', 'Отменить')) + '</button>' + (session.recurrence_group_id ? '<button class="btn danger" data-series-cancel="' + esc(session.id) + '">' + esc(tr('Cancel series', 'Отменить серию')) + '</button>' : '') : '') +
+          (!isCanceledSession(session) && !isEndedSession(session) ? '<button class="btn" data-session-reschedule="' + esc(session.id) + '">' + esc(tr('Reschedule', 'Перенести')) + '</button>' + (session.recurrence_group_id ? '<button class="btn" data-series-reschedule="' + esc(session.id) + '">' + esc(tr('This and next', 'Этот и следующие')) + '</button>' : '') + '<button class="btn danger" data-session-cancel="' + esc(session.id) + '">' + esc(tr('Cancel', 'Отменить')) + '</button>' + (session.recurrence_group_id ? '<button class="btn danger" data-series-cancel="' + esc(session.id) + '">' + esc(tr('Cancel series', 'Отменить серию')) + '</button>' : '') : isCanceledSession(session) ? '<button class="btn primary" data-session-restore="' + esc(session.id) + '">' + esc(tr('Restore', 'Восстановить')) + '</button>' : '') +
           '<button class="btn' + (selectedSessionId === session.id ? ' primary' : '') + '" data-session-att="' + esc(session.id) + '">' + esc(tr('Attendance', 'Посещаемость')) + '</button></div></div>').join('') : '<div class="empty">' + esc(tr('No sessions yet.', 'Сессий пока нет.')) + '</div>') +
         '<div class="section-head" style="margin-top:16px"><h2 style="font-size:15px">' + esc(tr('Students', 'Ученики')) + '</h2>' + (selectedSessionId ? '<span>' + esc(tr('Marking attendance', 'Отметка посещаемости')) + '</span>' : '') + '</div>' +
         '<input id="clsStudentSearch" class="search" placeholder="' + esc(tr('Add student by name...', 'Добавить ученика по имени...')) + '"><div id="clsStudentResults"></div>' +
@@ -61,6 +63,8 @@
       }
       body.querySelectorAll('[data-session-att]').forEach((button) => {
         const sessionId = button.getAttribute('data-session-att');
+        const session = sessions.find((item) => String(item.id) === String(sessionId));
+        if (!session || isCanceledSession(session) || isEndedSession(session)) return;
         const classroomLink = document.createElement('a');
         classroomLink.className = 'btn primary';
         classroomLink.href = './classroom.html?s=' + encodeURIComponent(sessionId);
@@ -72,6 +76,9 @@
       });
       body.querySelectorAll('[data-session-cancel]').forEach((button) => {
         button.onclick = () => cancelSession(button.dataset.sessionCancel, roster.length);
+      });
+      body.querySelectorAll('[data-session-restore]').forEach((button) => {
+        button.onclick = () => restoreSession(button.dataset.sessionRestore);
       });
       body.querySelectorAll('[data-series-reschedule]').forEach((button) => {
         button.onclick = () => rescheduleSeries(button.dataset.seriesReschedule, sessions, roster.length);
@@ -162,10 +169,19 @@
         learnerCount + ' учеников получат уведомление об отмене. Продолжить?'
       ))) return;
       const { error } = await supa.from('class_sessions').update({
-        status: 'cancelled', cancellation_reason: reason.trim() || null,
+        status: 'canceled', cancellation_reason: reason.trim() || null,
         cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString()
       }).eq('id', sessionId);
       if (error) return alert(error.message || tr('Could not cancel the lesson.', 'Не удалось отменить урок.'));
+      openClassManage(currentClassId);
+    }
+
+    async function restoreSession(sessionId) {
+      if (!window.confirm(tr('Restore this lesson?', 'Восстановить этот урок?'))) return;
+      const { error } = await supa.from('class_sessions').update({
+        status: 'scheduled', cancellation_reason: null, cancelled_at: null, updated_at: new Date().toISOString()
+      }).eq('id', sessionId);
+      if (error) return alert(error.message || tr('Could not restore the lesson.', 'Не удалось восстановить урок.'));
       openClassManage(currentClassId);
     }
 
@@ -195,7 +211,7 @@
       const reason = window.prompt(tr('Cancellation reason for the series:', 'Причина отмены серии:'));
       if (reason === null || !window.confirm(tr('Cancel this and all following lessons?', 'Отменить этот и все следующие уроки?'))) return;
       const ids = sessions.filter((item) => item.recurrence_group_id === session.recurrence_group_id && Date.parse(item.starts_at) >= Date.parse(session.starts_at) && item.status === 'scheduled').map((item) => item.id);
-      if (ids.length) await supa.from('class_sessions').update({ status: 'cancelled', cancellation_reason: reason || null, cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() }).in('id', ids);
+      if (ids.length) await supa.from('class_sessions').update({ status: 'canceled', cancellation_reason: reason || null, cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() }).in('id', ids);
       openClassManage(currentClassId);
     }
 

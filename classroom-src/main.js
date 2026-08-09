@@ -75,6 +75,25 @@ let focusedShareHidden = false;
 let lastCopiedAt = 0;
 const readiness = { browser: false, network: false, camera: false, mic: false };
 
+function isCanceledStatus(status) {
+  const value = String(status || '').toLowerCase();
+  return value === 'canceled' || value === 'cancelled';
+}
+
+async function edgeFunctionMessage(error) {
+  const response = error?.context;
+  if (response && typeof response.clone === 'function') {
+    try {
+      const payload = await response.clone().json();
+      if (payload?.error) return payload.error;
+      if (payload?.message) return payload.message;
+    } catch {
+      // Fall back to the SDK message when the response is not JSON.
+    }
+  }
+  return error?.message || '';
+}
+
 function renderLanguageSelectors() {
   const locales = i18n?.locales || [];
   const selects = [$('joinLangSelect'), $('roomLangSelect')].filter(Boolean);
@@ -287,12 +306,22 @@ async function loadIdentity() {
   me.name = profileResult.data?.full_name || me.email?.split('@')[0] || 'Duvela learner';
   $('joinTitle').textContent = classSession.title || tr('Group lesson', 'Групповой урок');
   $('roomTitle').textContent = classSession.title || tr('Group lesson', 'Групповой урок');
+  if (isCanceledStatus(classSession.status)) {
+    $('joinBtn').disabled = true;
+    throw new Error(tr(
+      'This lesson was canceled. The teacher can restore it in Management.',
+      'Этот урок отменён. Преподаватель может восстановить его в разделе «Управление».'
+    ));
+  }
 }
 
 async function token() {
   const result = await supa.functions.invoke('zoom-video-token', { body: { sessionId } });
   if (result.data?.waiting) return result.data;
-  if (result.error || !result.data?.token) throw new Error(result.data?.error || result.error?.message || tr('Could not open Zoom Classroom.', 'Не удалось открыть Zoom Classroom.'));
+  if (result.error || !result.data?.token) {
+    const message = result.data?.error || await edgeFunctionMessage(result.error);
+    throw new Error(message || tr('Could not open Zoom Classroom.', 'Не удалось открыть Zoom Classroom.'));
+  }
   return result.data;
 }
 
