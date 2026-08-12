@@ -16,7 +16,9 @@ let timerCallback = null;
 let activeCollector = null;
 let activeRecorderCleanup = null;
 let activeExamAudio = null;
+let preflightMicUrl = '';
 const SESSION_KEY = 'duvela_exam_session_v2';
+const preflight = { sound: false, microphone: false, browser: false, online: navigator.onLine, recording: false };
 
 const state = {
   mode: 'exam',
@@ -39,6 +41,13 @@ const state = {
   speakTurn: 0,
   timerBlock: '',
   timeWarnings: [],
+  candidateName: '',
+  candidateNumber: '',
+  reportId: '',
+  completedSections: [],
+  integrity: { focusLeaves: 0, reconnects: 0, reloads: 0 },
+  aborted: false,
+  finishedAt: 0,
 };
 
 await new Promise((resolve) => {
@@ -65,6 +74,30 @@ window.addEventListener('beforeunload', (event) => {
   if (!state.active || state.mode !== 'exam') return;
   event.preventDefault();
   event.returnValue = '';
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden || !state.active || state.mode !== 'exam') return;
+  state.integrity.focusLeaves++;
+  persistSession();
+});
+
+window.addEventListener('offline', () => {
+  if (!state.active || state.mode !== 'exam') return;
+  showExamNotice('Internetverbindung unterbrochen. Die Prüfungszeit läuft weiter.', true);
+});
+
+window.addEventListener('online', () => {
+  if (!state.active || state.mode !== 'exam') return;
+  state.integrity.reconnects++;
+  showExamNotice('Internetverbindung wiederhergestellt.');
+  persistSession();
+});
+
+document.querySelector('.back-link')?.addEventListener('click', (event) => {
+  if (!state.active || state.mode !== 'exam') return;
+  event.preventDefault();
+  submitExamEarly();
 });
 
 // ---------- audio and timer ----------
@@ -153,6 +186,17 @@ function showTimeNotice(seconds) {
   setTimeout(() => notice.remove(), 5000);
 }
 
+function showExamNotice(message, urgent = false) {
+  const old = document.getElementById('time-notice');
+  old?.remove();
+  const notice = document.createElement('div');
+  notice.id = 'time-notice';
+  notice.className = `time-notice${urgent ? ' urgent' : ''}`;
+  notice.textContent = message;
+  document.body.append(notice);
+  setTimeout(() => notice.remove(), 6000);
+}
+
 function remainingSeconds() {
   return timerDeadline ? Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000)) : 0;
 }
@@ -182,6 +226,11 @@ function savedSession() {
 // ---------- setup ----------
 function renderSetup() {
   state.active = false;
+  document.body.classList.remove('exam-active');
+  if (state.finishedAt) {
+    Object.assign(preflight, { sound: false, microphone: false, browser: false, online: navigator.onLine, recording: false });
+    state.finishedAt = 0;
+  }
   stopTimer();
   cleanupRecorder();
   document.onkeydown = null;
@@ -244,6 +293,9 @@ function blueprintCard(number, title, description, duration, points) {
 }
 
 function renderPreflight() {
+  preflight.browser = supportsExamBrowser();
+  preflight.online = navigator.onLine;
+  if (preflightMicUrl) { URL.revokeObjectURL(preflightMicUrl); preflightMicUrl = ''; }
   app.innerHTML = `
     <section class="preflight">
       <div class="paper-card preflight-main">
@@ -256,14 +308,20 @@ function renderPreflight() {
           <span><small>Gesamt</small><b>60 Punkte</b></span>
           <span><small>Bestehen</small><b>ab 36 Punkten</b></span>
         </div>
-        <div class="check-list">
-          ${checkRow('Kopfhörer bereithalten', 'Die Hörtexte werden je nach Prüfungsteil ein- oder zweimal abgespielt.')}
-          ${checkRow('80 Minuten freihalten', 'Hören dauert ca. 20 Minuten, Lesen und Schreiben zusammen 45 Minuten, Sprechen ca. 15 Minuten.')}
-          ${checkRow('Ohne Hilfsmittel arbeiten', 'Im realen Test sind Wörterbuch, Übersetzer und andere Hilfsmittel nicht erlaubt.')}
-          ${checkRow('Ruhigen Ort wählen', 'Die Prüfung läuft ohne Pause. Beim Sprechen benötigt DUVELA Zugriff auf Ihr Mikrofon.')}
+        <div class="candidate-fields">
+          <div class="field"><label for="candidate-name">Vor- und Familienname</label><input id="candidate-name" autocomplete="name" maxlength="80" placeholder="z. B. Anna Müller" value="${esc(state.candidateName)}"></div>
+          <div class="field"><label for="candidate-number">Teilnehmernummer</label><input id="candidate-number" readonly value="${esc(state.candidateNumber || createCandidateNumber())}"></div>
         </div>
+        <div class="equipment-grid" aria-label="Geräteprüfung">
+          ${equipmentCard('browser', 'Browser', preflight.browser ? 'Kompatibel' : 'Nicht kompatibel', 'Audioaufnahme und lokales Speichern', preflight.browser)}
+          ${equipmentCard('online', 'Verbindung', preflight.online ? 'Online' : 'Offline', 'Stabile Verbindung für Auswertung', preflight.online)}
+          ${equipmentCard('sound', 'Kopfhörer / Ton', preflight.sound ? 'Ton bestätigt' : 'Noch nicht geprüft', 'Testansage anhören und bestätigen', preflight.sound, '<div class="equipment-actions"><button class="button secondary compact" id="test-sound">Testton abspielen</button><button class="button primary compact" id="confirm-sound" hidden>Ton war hörbar ✓</button></div>')}
+          ${equipmentCard('microphone', 'Mikrofon', preflight.microphone ? 'Aufnahme bereit' : 'Noch nicht geprüft', 'Kurze Probe aufnehmen und anhören', preflight.microphone, '<button class="button secondary compact" id="test-mic">Mikrofon testen</button><audio id="preflight-playback" controls hidden></audio>')}
+        </div>
+        <label class="rules-confirm"><input type="checkbox" id="rules-confirm"><span>Ich habe 80 Minuten Zeit, arbeite ohne Hilfsmittel und weiß, dass die Prüfung nicht pausiert werden kann.</span></label>
+        <p class="preflight-status" id="preflight-status" aria-live="polite">Bitte führen Sie Ton- und Mikrofontest durch.</p>
         <div class="result-actions">
-          <button class="button primary" id="begin-exam">Prüfung jetzt starten →</button>
+          <button class="button primary" id="begin-exam" disabled>Prüfung jetzt starten →</button>
           <button class="button secondary" id="back-setup">Zurück</button>
         </div>
       </div>
@@ -276,20 +334,129 @@ function renderPreflight() {
         <p class="exam-note">In der echten Prüfung findet Sprechen in der Regel mit vier Teilnehmenden und ohne Vorbereitungszeit statt. Hier simuliert DUVELA die Gesprächssituationen digital.</p>
       </aside>
     </section>`;
-  document.getElementById('begin-exam').onclick = startSession;
+  const nameInput = document.getElementById('candidate-name');
+  const numberInput = document.getElementById('candidate-number');
+  state.candidateNumber = numberInput.value;
+  nameInput.addEventListener('input', updatePreflightReady);
+  document.getElementById('rules-confirm').addEventListener('change', updatePreflightReady);
+  document.getElementById('test-sound').onclick = () => {
+    speak('Guten Tag. Wenn Sie diese Ansage hören, funktioniert die Tonausgabe.');
+    document.getElementById('confirm-sound').hidden = false;
+    document.getElementById('preflight-status').textContent = 'Bestätigen Sie bitte, dass die Testansage hörbar war.';
+  };
+  document.getElementById('confirm-sound').onclick = () => {
+    preflight.sound = true;
+    updateEquipmentCard('sound', true, 'Ton bestätigt');
+    updatePreflightReady();
+  };
+  document.getElementById('test-mic').onclick = testPreflightMicrophone;
+  document.getElementById('begin-exam').onclick = () => {
+    state.candidateName = nameInput.value.trim();
+    state.candidateNumber = numberInput.value;
+    requestExamFullscreen();
+    startSession();
+  };
   document.getElementById('back-setup').onclick = renderSetup;
+  verifyConnection();
+  updatePreflightReady();
 }
 
-function checkRow(title, text) {
-  return `<div class="check-row"><span>✓</span><div><b>${title}</b><p>${text}</p></div></div>`;
+function supportsExamBrowser() {
+  try { localStorage.setItem('duvela_device_test', '1'); localStorage.removeItem('duvela_device_test'); } catch { return false; }
+  return !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder && window.Audio);
+}
+
+function equipmentCard(id, title, status, text, ready, action = '') {
+  return `<article class="equipment-card ${ready ? 'ready' : ''}" id="equipment-${id}"><span class="equipment-icon">${ready ? '✓' : '•'}</span><div><small>${esc(title)}</small><b class="equipment-state">${esc(status)}</b><p>${esc(text)}</p>${action}</div></article>`;
+}
+
+function updateEquipmentCard(id, ready, status) {
+  const card = document.getElementById(`equipment-${id}`);
+  if (!card) return;
+  card.classList.toggle('ready', ready);
+  card.querySelector('.equipment-icon').textContent = ready ? '✓' : '!';
+  card.querySelector('.equipment-state').textContent = status;
+}
+
+async function verifyConnection() {
+  try {
+    const response = await fetch('./web/content/telc-a1-exam-bank.json', { cache: 'no-store' });
+    preflight.online = response.ok;
+  } catch { preflight.online = false; }
+  updateEquipmentCard('online', preflight.online, preflight.online ? 'Online' : 'Keine Verbindung');
+  updatePreflightReady();
+}
+
+async function testPreflightMicrophone() {
+  if (preflight.recording) return;
+  const button = document.getElementById('test-mic');
+  const status = document.getElementById('preflight-status');
+  preflight.recording = true;
+  button.disabled = true;
+  button.textContent = 'Aufnahme läuft …';
+  status.textContent = 'Sprechen Sie jetzt etwa drei Sekunden lang.';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+    recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+    recorder.onstop = () => {
+      stream.getTracks().forEach((track) => track.stop());
+      const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+      preflight.microphone = blob.size > 100;
+      if (preflightMicUrl) URL.revokeObjectURL(preflightMicUrl);
+      preflightMicUrl = URL.createObjectURL(blob);
+      const playback = document.getElementById('preflight-playback');
+      playback.src = preflightMicUrl;
+      playback.hidden = !preflight.microphone;
+      updateEquipmentCard('microphone', preflight.microphone, preflight.microphone ? 'Aufnahme bereit' : 'Keine Aufnahme erkannt');
+      button.textContent = 'Erneut testen';
+      button.disabled = false;
+      preflight.recording = false;
+      status.textContent = preflight.microphone ? 'Probe gespeichert. Hören Sie sie kurz an und bestätigen Sie die Regeln.' : 'Mikrofon konnte nicht geprüft werden.';
+      updatePreflightReady();
+    };
+    recorder.start();
+    setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 3000);
+  } catch {
+    preflight.recording = false;
+    button.disabled = false;
+    button.textContent = 'Erneut versuchen';
+    status.textContent = 'Mikrofonzugriff fehlt. Erlauben Sie ihn in den Browser-Einstellungen.';
+    updateEquipmentCard('microphone', false, 'Zugriff erforderlich');
+    updatePreflightReady();
+  }
+}
+
+function updatePreflightReady() {
+  const button = document.getElementById('begin-exam');
+  if (!button) return;
+  const nameReady = document.getElementById('candidate-name').value.trim().length >= 3;
+  const rulesReady = document.getElementById('rules-confirm').checked;
+  const ready = nameReady && rulesReady && preflight.browser && preflight.online && preflight.sound && preflight.microphone;
+  button.disabled = !ready;
+  const status = document.getElementById('preflight-status');
+  if (ready) status.textContent = 'Alle Prüfungen bestanden. Sie können die Simulation starten.';
+}
+
+function createCandidateNumber() {
+  const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+  return `DVL-A1-${date}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+}
+
+function requestExamFullscreen() {
+  const request = document.documentElement.requestFullscreen?.();
+  request?.catch?.(() => {});
 }
 
 // ---------- session flow ----------
 function resetSession() {
   Object.assign(state, {
     sec: 0, part: 0, idx: 0, answers: {}, scores: {}, ai: {}, review: [], audio: {}, plays: {}, graded: {}, autoScored: {}, formScored: false,
-    startTime: Date.now(), active: true, speakTurn: 0, timerBlock: '', timeWarnings: [],
+    startTime: Date.now(), active: true, speakTurn: 0, timerBlock: '', timeWarnings: [], reportId: createReportId(), completedSections: [],
+    integrity: { focusLeaves: 0, reconnects: 0, reloads: 0 }, aborted: false, finishedAt: 0,
   });
+  document.body.classList.toggle('exam-active', state.mode === 'exam');
   if (state.mode === 'practice' && state.practiceSection !== 'all') {
     state.sec = Math.max(0, exam.sections.findIndex((section) => section.id === state.practiceSection));
   }
@@ -300,6 +467,9 @@ function resumeSession() {
   if (!saved) return renderSetup();
   exam = bank.tests.find((test) => test.id === saved.examId) || bank.tests[0];
   Object.assign(state, saved.state, { audio: {}, active: true });
+  state.integrity = { focusLeaves: 0, reconnects: 0, reloads: 0, ...(state.integrity || {}) };
+  state.integrity.reloads++;
+  document.body.classList.add('exam-active');
   const block = state.timerBlock;
   const adjustedRemaining = Math.max(0, Number(saved.remaining || 0) - Math.floor((Date.now() - Number(saved.savedAt || Date.now())) / 1000));
   if (state.mode === 'exam' && adjustedRemaining > 0 && block) {
@@ -372,17 +542,20 @@ async function handleTimeout(block) {
   activeCollector?.();
   cleanupRecorder();
   if (block === 'hoeren') {
+    if (!state.completedSections.includes('hoeren')) state.completedSections.push('hoeren');
     scoreAuto(exam.sections.find((section) => section.id === 'hoeren'));
     state.sec = exam.sections.findIndex((section) => section.id === 'lesen');
     startSection();
     return;
   }
   if (block === 'lesen-schreiben') {
+    for (const id of ['lesen', 'schreiben']) if (!state.completedSections.includes(id)) state.completedSections.push(id);
     scoreAuto(exam.sections.find((section) => section.id === 'lesen'));
     state.sec = exam.sections.findIndex((section) => section.id === 'sprechen');
     startSection();
     return;
   }
+  if (!state.completedSections.includes('sprechen')) state.completedSections.push('sprechen');
   await results();
 }
 
@@ -399,6 +572,8 @@ function nextPart(section) {
 }
 
 function finishSection(section) {
+  if (!state.completedSections.includes(section.id)) state.completedSections.push(section.id);
+  persistSession();
   if (section.id === 'hoeren' || section.id === 'lesen') scoreAuto(section);
   if (state.mode === 'practice' && state.practiceSection !== 'all') {
     stopTimer();
@@ -821,7 +996,8 @@ function wireNavigation(section, part, collect = null) {
   const previous = document.getElementById('previous');
   if (previous && !previous.disabled) previous.onclick = () => { collect?.(); if (part.type === 'speak-intro' || part.type === 'speak-cards') state.speakTurn--; else state.idx--; persistSession(); renderPart(); };
   document.getElementById('leave-session').onclick = () => {
-    if (state.mode === 'practice' || window.confirm('Prüfung wirklich beenden? Ihr aktueller Fortschritt geht verloren.')) { clearSession(); renderSetup(); }
+    if (state.mode === 'practice') { clearSession(); renderSetup(); return; }
+    submitExamEarly();
   };
   document.getElementById('next').onclick = async () => {
     collect?.();
@@ -848,6 +1024,14 @@ function wireNavigation(section, part, collect = null) {
     if (section.aiGraded && part.type === 'free-write') await gradeAi(section, part, true);
     nextPart(section);
   };
+}
+
+function submitExamEarly() {
+  if (!state.active || state.mode !== 'exam') return;
+  if (!window.confirm('Prüfung vorzeitig und endgültig abgeben? Leere Antworten werden mit 0 Punkten bewertet.')) return;
+  activeCollector?.();
+  state.aborted = true;
+  results();
 }
 
 function confirmSectionCompletion(section) {
@@ -1013,6 +1197,10 @@ function loading(message) {
 async function results() {
   if (!state.active && app.querySelector('.result-wrap')) return;
   state.active = false;
+  state.finishedAt = Date.now();
+  document.body.classList.remove('exam-active');
+  const exit = document.exitFullscreen?.();
+  exit?.catch?.(() => {});
   stopTimer();
   cleanupRecorder();
   document.onkeydown = null;
@@ -1029,25 +1217,61 @@ async function results() {
   const maxPoints = rows.reduce((sum, row) => sum + row.max, 0);
   const percent = Math.round((points / Math.max(1, maxPoints)) * 100);
   const isFull = sections.length === exam.sections.length;
-  const passed = isFull && points >= 36;
-  const predicate = isFull ? resultPredicate(points) : 'Training abgeschlossen';
+  const passed = isFull && !state.aborted && points >= 36;
+  const predicate = state.aborted ? 'Vorzeitig beendet' : isFull ? resultPredicate(points) : 'Training abgeschlossen';
   const sectionScores = rows.reduce((result, row) => { result[row.id] = { pts: row.pts, max: row.max, pct: row.pct }; return result; }, {});
   const saved = state.mode === 'exam' && isFull ? await saveAttempt(percent, passed, sectionScores) : false;
   const durationMinutes = Math.max(1, Math.round((Date.now() - state.startTime) / 60000));
+  const statusLabel = state.aborted ? 'ABGEBROCHEN' : isFull ? (passed ? 'BESTANDEN' : 'NOCH NICHT BESTANDEN') : 'ABGESCHLOSSEN';
+  const weakest = rows.reduce((lowest, row) => !lowest || row.pct < lowest.pct ? row : lowest, null);
+  const reportDate = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.finishedAt));
+  const integrity = state.integrity || { focusLeaves: 0, reconnects: 0, reloads: 0 };
 
   app.innerHTML = `
     <div class="result-wrap">
+      <section class="report-heading print-only"><div><b>DUVELA</b><strong>EXAM</strong></div><span>Ergebnisbericht · Deutsch A1</span></section>
       <section class="result-card result-hero">
-        <div><span class="eyebrow">${state.mode === 'exam' ? 'Prüfungsergebnis' : 'Trainingsergebnis'} · ${esc(exam.title)}</span><span class="result-status ${isFull && !passed ? 'fail' : ''}">${isFull ? (passed ? 'BESTANDEN' : 'NOCH NICHT BESTANDEN') : 'ABGESCHLOSSEN'}</span><h2 style="margin-top:14px">${esc(predicate)}</h2><p class="lead">${isFull ? `Sie haben ${points} von 60 Punkten erreicht. Zum Bestehen benötigen Sie mindestens 36 Punkte.` : `Sie haben ${points} von ${maxPoints} Punkten in diesem Training erreicht.`}</p><p class="small muted">Bearbeitungszeit: ${durationMinutes} Min.${saved ? ' · Ergebnis im Profil gespeichert' : ''}</p></div>
+        <div><span class="eyebrow">${state.mode === 'exam' ? 'Prüfungsergebnis' : 'Trainingsergebnis'} · ${esc(exam.title)}</span><span class="result-status ${isFull && !passed ? 'fail' : ''}">${statusLabel}</span><h2 style="margin-top:14px">${esc(predicate)}</h2><p class="lead">${isFull ? `Sie haben ${points} von 60 Punkten erreicht. Zum Bestehen benötigen Sie mindestens 36 Punkte.` : `Sie haben ${points} von ${maxPoints} Punkten in diesem Training erreicht.`}</p><p class="small muted">Bearbeitungszeit: ${durationMinutes} Min.${saved ? ' · Ergebnis im Profil gespeichert' : ''}</p></div>
         <div class="score-ring"><div><b>${points} / ${maxPoints}</b><small>${percent}%</small></div></div>
       </section>
+      <section class="paper-card report-data">
+        <div><small>TEILNEHMER/IN</small><b>${esc(state.candidateName || 'Trainingsteilnehmer/in')}</b></div>
+        <div><small>TEILNEHMERNUMMER</small><b>${esc(state.candidateNumber || '—')}</b></div>
+        <div><small>BERICHTSNUMMER</small><b>${esc(state.reportId || '—')}</b></div>
+        <div><small>DATUM</small><b>${esc(reportDate)}</b></div>
+      </section>
       <section class="paper-card question-card"><span class="eyebrow">Leistungsprofil</span><h2>Ergebnis nach Fertigkeit</h2><div class="score-grid">${rows.map(scoreBox).join('')}</div></section>
+      <section class="paper-card question-card result-guidance"><span class="eyebrow">Nächster Schwerpunkt</span><h2>${esc(weakest?.title || 'Weiterlernen')}</h2><p class="lead">${esc(resultRecommendation(weakest?.id, weakest?.pct || 0))}</p>${state.mode === 'exam' ? `<div class="integrity-strip"><span><small>NEUSTARTS</small><b>${integrity.reloads}</b></span><span><small>FENSTER VERLASSEN</small><b>${integrity.focusLeaves}</b></span><span><small>VERBINDUNG WIEDERHERGESTELLT</small><b>${integrity.reconnects}</b></span></div>` : ''}</section>
+      <section class="paper-card question-card report-table-wrap"><span class="eyebrow">Punkteübersicht</span><table class="report-table"><thead><tr><th>Fertigkeit</th><th>Punkte</th><th>Maximum</th><th>Ergebnis</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${esc(row.title)}</td><td>${row.pts}</td><td>${row.max}</td><td>${row.pct}%</td></tr>`).join('')}</tbody><tfoot><tr><th>Gesamt</th><th>${points}</th><th>${maxPoints}</th><th>${percent}%</th></tr></tfoot></table></section>
       <section class="paper-card question-card"><span class="eyebrow">Auswertung</span><h2>Antworten und Erklärungen</h2><p class="muted">Nutzen Sie die Hinweise, um Ihren nächsten Trainingsschwerpunkt zu wählen.</p><div class="review-list">${reviewHtml(sections)}</div></section>
-      <div class="result-actions"><button class="button primary" id="again">Neuen Modelltest starten</button><button class="button secondary" id="home">Zum Lernbereich</button></div>
+      <div class="result-actions no-print"><button class="button primary" id="download-report">PDF speichern / drucken</button><button class="button secondary" id="again">Neuen Modelltest starten</button><button class="button secondary" id="home">Zum Lernbereich</button></div>
       <p class="small muted">Der DUVELA-Ergebnisbericht ist eine Übungsauswertung und kein offizielles Sprachzertifikat.</p>
     </div>`;
+  document.getElementById('download-report').onclick = printResultReport;
   document.getElementById('again').onclick = renderSetup;
   document.getElementById('home').onclick = () => { location.href = './app.html?role=learner#study'; };
+}
+
+function createReportId() {
+  return `DX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+}
+
+function printResultReport() {
+  const oldTitle = document.title;
+  document.title = `DUVELA_A1_Ergebnis_${state.candidateNumber || state.reportId}`;
+  window.print();
+  setTimeout(() => { document.title = oldTitle; }, 500);
+}
+
+function resultRecommendation(sectionId, percent) {
+  const level = percent < 40 ? 'Beginnen Sie mit kurzen, klaren A1-Aufgaben und wiederholen Sie sie täglich.' : 'Festigen Sie diesen Bereich mit einem weiteren Modelltest und prüfen Sie danach Ihre Fehler.';
+  const advice = {
+    hoeren: 'Trainieren Sie Uhrzeiten, Zahlen und kurze Ansagen. Hören Sie zuerst auf Schlüsselwörter und erst danach auf Details.',
+    lesen: 'Markieren Sie Namen, Zeiten, Orte und Negationen. Vergleichen Sie anschließend jede Aussage direkt mit dem Text.',
+    schreiben: 'Üben Sie Formularfelder und kurze Mitteilungen mit Anrede, drei Leitpunkten und Schlussformel.',
+    sprechen: 'Antworten Sie in vollständigen, einfachen Sätzen und üben Sie Fragen, Bitten, Buchstabieren und Zahlen laut.',
+  };
+  return `${advice[sectionId] || 'Wiederholen Sie die Aufgaben, bei denen Sie Punkte verloren haben.'} ${level}`;
 }
 
 function resultPredicate(points) {

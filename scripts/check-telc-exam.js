@@ -5,6 +5,8 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const bank = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', 'telc-a1-exam-bank.json'), 'utf8'));
+const examClient = fs.readFileSync(path.join(root, 'web', 'telc-exam.js'), 'utf8');
+const examStyles = fs.readFileSync(path.join(root, 'web', 'telc-exam.css'), 'utf8');
 const errors = [];
 const requiredSections = ['hoeren', 'lesen', 'schreiben', 'sprechen'];
 
@@ -28,8 +30,13 @@ for (const test of bank.tests || []) {
   }
 }
 
+for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation']) {
+  if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
+}
+if (!examStyles.includes('@media print')) errors.push('Missing printable PDF result report styles.');
+
 if (errors.length) {
   errors.forEach((error) => console.error(`[exam] ${error}`));
   process.exit(1);
 }
-console.log('[exam] Five Modelltests, 60-point rubric, task counts and 75 audio paths: OK');
+console.log('[exam] Five Modelltests, official rubric, 75 audio paths, device check, strict flow and PDF report: OK');
