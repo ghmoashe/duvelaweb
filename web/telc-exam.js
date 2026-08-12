@@ -15,6 +15,8 @@ let timerDuration = 0;
 let timerCallback = null;
 let activeCollector = null;
 let activeRecorderCleanup = null;
+let activeExamAudio = null;
+const SESSION_KEY = 'duvela_exam_session_v2';
 
 const state = {
   mode: 'exam',
@@ -34,6 +36,9 @@ const state = {
   formScored: false,
   startTime: 0,
   active: false,
+  speakTurn: 0,
+  timerBlock: '',
+  timeWarnings: [],
 };
 
 await new Promise((resolve) => {
@@ -68,7 +73,7 @@ function loadVoices() { try { voices = speechSynthesis.getVoices() || []; } catc
 loadVoices();
 try { speechSynthesis.onvoiceschanged = loadVoices; } catch {}
 
-function speak(text) {
+function speak(text, onDone) {
   try {
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -76,9 +81,27 @@ function speak(text) {
     utterance.rate = 0.9;
     const germanVoice = voices.find((voice) => /de[-_]/i.test(voice.lang));
     if (germanVoice) utterance.voice = germanVoice;
+    utterance.onend = () => onDone?.();
+    utterance.onerror = () => onDone?.();
     speechSynthesis.speak(utterance);
     return true;
   } catch { return false; }
+}
+
+function stopExamAudio() {
+  try { activeExamAudio?.pause(); } catch {}
+  activeExamAudio = null;
+  try { speechSynthesis.cancel(); } catch {}
+}
+
+function playExamAudio(item, onDone) {
+  stopExamAudio();
+  if (!item.audio) { speak(item.transcript, onDone); return; }
+  const audio = new Audio(item.audio);
+  activeExamAudio = audio;
+  audio.onended = () => { activeExamAudio = null; onDone?.(); };
+  audio.onerror = () => { activeExamAudio = null; speak(item.transcript, onDone); };
+  audio.play().catch(() => { activeExamAudio = null; speak(item.transcript, onDone); });
 }
 
 function stopTimer(hide = true) {
@@ -94,6 +117,7 @@ function startTimer(minutes, label, onEnd) {
   timerDuration = Math.max(1, Math.round(minutes * 60));
   timerDeadline = Date.now() + timerDuration * 1000;
   timerCallback = onEnd;
+  state.timerBlock = label;
   timerLabelEl.textContent = label;
   clockEl.hidden = false;
   const tick = () => {
@@ -101,6 +125,13 @@ function startTimer(minutes, label, onEnd) {
     timerEl.textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`;
     const ratio = left / timerDuration;
     clockEl.className = `exam-clock${ratio <= .2 ? ' urgent' : ratio <= .5 ? ' warning' : ''}`;
+    for (const mark of [600, 300, 60]) {
+      if (left <= mark && timerDuration > mark && !state.timeWarnings.includes(mark)) {
+        state.timeWarnings.push(mark);
+        showTimeNotice(mark);
+        persistSession();
+      }
+    }
     if (left > 0) return;
     const callback = timerCallback;
     stopTimer();
@@ -108,6 +139,44 @@ function startTimer(minutes, label, onEnd) {
   };
   tick();
   timerId = setInterval(tick, 1000);
+  persistSession();
+}
+
+function showTimeNotice(seconds) {
+  const old = document.getElementById('time-notice');
+  old?.remove();
+  const notice = document.createElement('div');
+  notice.id = 'time-notice';
+  notice.className = `time-notice${seconds <= 60 ? ' urgent' : ''}`;
+  notice.textContent = seconds === 60 ? 'Noch 1 Minute.' : `Noch ${seconds / 60} Minuten.`;
+  document.body.append(notice);
+  setTimeout(() => notice.remove(), 5000);
+}
+
+function remainingSeconds() {
+  return timerDeadline ? Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000)) : 0;
+}
+
+function persistSession() {
+  if (!state.active) return;
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      examId: exam?.id,
+      state: { ...state, audio: {} },
+      remaining: remainingSeconds(),
+      savedAt: Date.now(),
+    }));
+  } catch {}
+}
+
+function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch {} }
+
+function savedSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    if (!saved?.state?.active || !bank.tests.some((test) => test.id === saved.examId)) return null;
+    return saved;
+  } catch { return null; }
 }
 
 // ---------- setup ----------
@@ -121,6 +190,7 @@ function renderSetup() {
     ['all', 'Komplettes Training'],
     ...bank.tests[0].sections.map((section) => [section.id, section.title]),
   ].map(([value, label]) => `<option value="${esc(value)}" ${value === state.practiceSection ? 'selected' : ''}>${esc(label)}</option>`).join('');
+  const resumable = savedSession();
 
   app.innerHTML = `
     <section class="setup-hero">
@@ -144,6 +214,7 @@ function renderSetup() {
         </div>
         <p class="exam-note">DUVELA EXAM orientiert sich am Format Start Deutsch 1 / telc Deutsch A1. Die Aufgaben sind eigenständiges Übungsmaterial und kein offizieller telc-Prüfungssatz.</p>
       </div>
+      ${resumable ? `<div class="resume-banner"><div><span class="eyebrow">Gespeicherter Versuch</span><b>Sie können Ihre unterbrochene Prüfung fortsetzen.</b><small>Modelltest ${esc(String(resumable.examId).replace('mt', ''))} · ${esc(resumable.state.timerBlock || 'Prüfung')}</small></div><button class="button primary" id="resume-session">Fortsetzen →</button><button class="button ghost" id="discard-session">Verwerfen</button></div>` : ''}
       <div class="blueprint" aria-label="Prüfungsaufbau">
         ${blueprintCard('01', 'Hören', '3 Teile · 15 Aufgaben', 'ca. 20 Min.', '15 Punkte')}
         ${blueprintCard('02', 'Lesen', '3 Teile · 15 Aufgaben', 'ca. 25 Min.', '15 Punkte')}
@@ -164,6 +235,8 @@ function renderSetup() {
     if (state.mode === 'exam') renderPreflight();
     else startSession();
   };
+  document.getElementById('resume-session')?.addEventListener('click', resumeSession);
+  document.getElementById('discard-session')?.addEventListener('click', () => { clearSession(); renderSetup(); });
 }
 
 function blueprintCard(number, title, description, duration, points) {
@@ -215,11 +288,29 @@ function checkRow(title, text) {
 function resetSession() {
   Object.assign(state, {
     sec: 0, part: 0, idx: 0, answers: {}, scores: {}, ai: {}, review: [], audio: {}, plays: {}, graded: {}, autoScored: {}, formScored: false,
-    startTime: Date.now(), active: true,
+    startTime: Date.now(), active: true, speakTurn: 0, timerBlock: '', timeWarnings: [],
   });
   if (state.mode === 'practice' && state.practiceSection !== 'all') {
     state.sec = Math.max(0, exam.sections.findIndex((section) => section.id === state.practiceSection));
   }
+}
+
+function resumeSession() {
+  const saved = savedSession();
+  if (!saved) return renderSetup();
+  exam = bank.tests.find((test) => test.id === saved.examId) || bank.tests[0];
+  Object.assign(state, saved.state, { audio: {}, active: true });
+  const block = state.timerBlock;
+  const adjustedRemaining = Math.max(0, Number(saved.remaining || 0) - Math.floor((Date.now() - Number(saved.savedAt || Date.now())) / 1000));
+  if (state.mode === 'exam' && adjustedRemaining > 0 && block) {
+    const callbackBlock = block === 'Hören' ? 'hoeren' : block === 'Sprechen' ? 'sprechen' : 'lesen-schreiben';
+    startTimer(adjustedRemaining / 60, block, () => handleTimeout(callbackBlock));
+  } else if (state.mode === 'exam' && block) {
+    const callbackBlock = block === 'Hören' ? 'hoeren' : block === 'Sprechen' ? 'sprechen' : 'lesen-schreiben';
+    handleTimeout(callbackBlock);
+    return;
+  }
+  renderPart();
 }
 
 function startSession() {
@@ -299,6 +390,8 @@ function nextPart(section) {
   if (state.part + 1 < section.parts.length) {
     state.part++;
     state.idx = 0;
+    state.speakTurn = 0;
+    persistSession();
     renderPart();
     return;
   }
@@ -326,6 +419,7 @@ function finishSection(section) {
 
 function renderPart() {
   cleanupRecorder();
+  stopExamAudio();
   activeCollector = null;
   document.onkeydown = null;
   const section = exam.sections[state.sec];
@@ -377,7 +471,7 @@ function renderTrueFalse(section, part, isAudio) {
     ${feedbackHtml(item, part, selected)}`);
   if (isAudio) wireAudio(item, part);
   app.querySelectorAll('[data-value]').forEach((button) => {
-    button.onclick = () => { state.answers[item.id] = button.dataset.value === 'true'; renderPart(); };
+    button.onclick = () => { state.answers[item.id] = button.dataset.value === 'true'; persistSession(); renderPart(); };
   });
   wireNavigation(section, part);
   document.onkeydown = (event) => {
@@ -405,7 +499,7 @@ function passageFor(part, item) {
 
 function wireChoices(item, part, selector) {
   app.querySelectorAll(selector).forEach((button) => {
-    button.onclick = () => { state.answers[item.id] = Number(button.dataset.answer); renderPart(); };
+    button.onclick = () => { state.answers[item.id] = Number(button.dataset.answer); persistSession(); renderPart(); };
   });
 }
 
@@ -439,10 +533,16 @@ function wireAudio(item, part) {
     const used = state.plays[item.id] || 0;
     if (used >= limit) return;
     state.plays[item.id] = used + 1;
-    speak(item.transcript);
-    button.disabled = state.plays[item.id] >= limit;
+    button.disabled = true;
+    button.textContent = '…';
     document.getElementById('play-status').textContent = audioStatus(state.plays[item.id], limit);
+    persistSession();
+    playExamAudio(item, () => {
+      button.textContent = '▶';
+      button.disabled = state.plays[item.id] >= limit;
+    });
   };
+  if (state.mode === 'exam' && (state.plays[item.id] || 0) === 0) setTimeout(() => button.click(), 650);
 }
 
 function answerClass(item, selected, candidate) {
@@ -465,6 +565,7 @@ function renderForm(section, part) {
     <div class="passage"><span class="passage-label">Situation</span>${esc(part.instructions)}</div>
     <div class="form-grid">${part.fields.map((field) => `<div class="field"><label for="field-${esc(field.id)}">${esc(field.label)}</label><input id="field-${esc(field.id)}" value="${esc(state.answers[field.id] || '')}" autocomplete="off"></div>`).join('')}</div>`);
   activeCollector = () => part.fields.forEach((field) => { state.answers[field.id] = document.getElementById(`field-${field.id}`)?.value.trim() || ''; });
+  app.querySelectorAll('.form-grid input').forEach((input) => input.addEventListener('input', () => { activeCollector(); persistSession(); }));
   wireNavigation(section, part, activeCollector);
 }
 
@@ -476,31 +577,68 @@ function renderWrite(section, part) {
     <div class="word-count" id="word-count">0 Wörter</div>`);
   const textarea = document.getElementById('write-answer');
   const updateCount = () => { document.getElementById('word-count').textContent = `${wordCount(textarea.value)} Wörter · Empfehlung: ca. ${part.minWords || 30}`; };
-  textarea.oninput = updateCount;
+  textarea.oninput = () => { updateCount(); state.answers[part.id] = textarea.value.trim(); persistSession(); };
   updateCount();
   activeCollector = () => { state.answers[part.id] = textarea.value.trim(); };
   wireNavigation(section, part, activeCollector);
 }
 
 function renderSpeak(section, part) {
-  const isIntro = part.type === 'speak-intro';
-  const cards = isIntro
-    ? `<div class="keyword-grid">${part.prompts.map((prompt) => `<div class="keyword-card"><small>Stichwort</small><b>${esc(prompt)}</b></div>`).join('')}</div>`
-    : `<div class="keyword-grid">${part.cards.map((card) => `<div class="keyword-card"><small>Prüfungskarte</small><b>${esc(card.keyword)}</b><p>Beispiel: ${esc(card.example)}</p></div>`).join('')}</div>`;
+  const turns = speakingTurns(part);
+  const turn = turns[state.speakTurn] || turns[0];
+  const answerKey = `${part.id}:turn:${state.speakTurn}`;
   const canRecord = !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   app.innerHTML = questionShell(section, part, `
-    <div class="passage"><span class="passage-label">Aufgabe</span>${esc(part.instructions)}</div>
-    ${cards}
+    <div class="speaking-room">
+      <div class="examiner-row"><span class="examiner-avatar">D</span><div class="examiner-bubble"><small>${esc(turn.role)}</small><b>${esc(turn.prompt)}</b>${turn.spoken ? `<button class="speaker-mini" id="speak-prompt" aria-label="Ansage wiederholen">▶ Ansage</button>` : ''}</div></div>
+      ${turn.partner ? `<div class="partner-row"><span class="partner-avatar">M</span><div><small>Prüfungspartnerin Mia</small><p>${esc(turn.partner)}</p></div></div>` : ''}
+      ${turn.keyword ? `<div class="speaking-card"><small>IHRE KARTE</small><b>${esc(turn.keyword)}</b>${state.mode === 'practice' && turn.example ? `<p>Beispiel: ${esc(turn.example)}</p>` : ''}</div>` : ''}
+    </div>
     ${(canRecord || Recognition) ? `<div class="recording-box"><button class="record-button" id="record" aria-label="Aufnahme starten">●</button><div><b id="record-title">Antwort aufnehmen</b><small id="record-status">Drücken Sie auf den roten Knopf und sprechen Sie deutlich.</small></div><audio class="audio-playback" id="playback" controls hidden></audio></div>` : '<p class="exam-note">Ihr Browser unterstützt keine Audioaufnahme. Schreiben Sie ersatzweise ein Transkript Ihrer Antwort.</p>'}
-    <div class="field"><label for="speak-answer">Transkript Ihrer Antwort</label><textarea id="speak-answer" placeholder="Das erkannte Gesprochene erscheint hier. Sie können den Text korrigieren.">${esc(state.answers[part.id] || '')}</textarea></div>`);
+    <div class="field"><label for="speak-answer">Transkript dieser Antwort</label><textarea id="speak-answer" placeholder="Das erkannte Gesprochene erscheint hier. Sie können den Text korrigieren.">${esc(state.answers[answerKey] || '')}</textarea></div>`);
   const textarea = document.getElementById('speak-answer');
-  activeCollector = () => { state.answers[part.id] = textarea.value.trim(); };
-  setupRecorder(part, textarea, Recognition, canRecord);
+  activeCollector = () => { state.answers[answerKey] = textarea.value.trim(); persistSession(); };
+  textarea.addEventListener('input', activeCollector);
+  setupRecorder(part, answerKey, textarea, Recognition, canRecord);
   wireNavigation(section, part, activeCollector);
+  document.getElementById('speak-prompt')?.addEventListener('click', () => speak(turn.spoken));
+  if (state.mode === 'exam' && turn.spoken) setTimeout(() => speak(turn.spoken), 500);
 }
 
-function setupRecorder(part, textarea, Recognition, canRecord) {
+function speakingTurns(part) {
+  if (part.type === 'speak-intro') return [
+    { role: 'Prüferin DUVI', prompt: 'Bitte stellen Sie sich kurz vor.', spoken: 'Guten Tag. Bitte stellen Sie sich kurz vor.' },
+    { role: 'Prüferin DUVI', prompt: 'Können Sie bitte Ihren Familiennamen buchstabieren?', spoken: 'Danke. Können Sie bitte Ihren Familiennamen buchstabieren?' },
+    { role: 'Prüferin DUVI', prompt: 'Und wie ist bitte Ihre Telefonnummer oder Hausnummer?', spoken: 'Und wie ist bitte Ihre Telefonnummer oder Hausnummer?' },
+  ];
+  const cards = (part.cards || []).slice(0, 2);
+  if (part.id === 'sp2') return cards.flatMap((card) => [
+    { role: 'Prüferin DUVI', prompt: `Stellen Sie Mia eine Frage mit dem Wort „${card.keyword}“.`, spoken: `Bitte stellen Sie Ihrer Partnerin eine Frage mit dem Wort ${card.keyword}.`, keyword: card.keyword, example: card.example },
+    { role: 'Prüfungspartnerin Mia', prompt: partnerQuestion(card.keyword), spoken: partnerQuestion(card.keyword), partner: partnerAnswer(card.keyword) },
+  ]);
+  return cards.flatMap((card) => [
+    { role: 'Prüferin DUVI', prompt: `Formulieren Sie eine Bitte mit „${card.keyword}“.`, spoken: `Bitte formulieren Sie eine Bitte mit dem Wort ${card.keyword}.`, keyword: card.keyword, example: card.example },
+    { role: 'Prüfungspartnerin Mia', prompt: `Reagieren Sie auf Mias Bitte: „${partnerRequest(card.keyword)}“`, spoken: partnerRequest(card.keyword), partner: 'Mia reagiert auf Ihre Bitte: „Ja, natürlich.“ Jetzt bittet sie Sie um etwas.' },
+  ]);
+}
+
+function partnerAnswer(keyword) {
+  const answers = { Supermarkt: 'Der Supermarkt ist neben dem Bahnhof.', Brot: 'Das Brot kostet zwei Euro.', Öffnungszeiten: 'Der Laden ist von acht bis zwanzig Uhr geöffnet.', Zug: 'Der Zug fährt um neun Uhr.', Fahrkarte: 'Die Fahrkarte kostet zwölf Euro.', Hotel: 'Das Hotel ist in der Gartenstraße.', Gehalt: 'Das Gehalt kommt am Monatsende.', Urlaub: 'Ich habe vier Wochen Urlaub.', Vertrag: 'Mein Vertrag läuft ein Jahr.', Flugticket: 'Das Flugticket kostet 150 Euro.', Visum: 'Für dieses Land brauchen Sie kein Visum.', Bruder: 'Mein Bruder heißt Daniel.', Schwester: 'Meine Schwester ist 20 Jahre alt.', Familie: 'In meiner Familie sind fünf Personen.' };
+  return answers[keyword] || `Hier ist meine Information zum Thema ${keyword}.`;
+}
+
+function partnerQuestion(keyword) {
+  const questions = { Supermarkt: 'Wo kaufen Sie normalerweise ein?', Brot: 'Was essen Sie gern zum Frühstück?', Öffnungszeiten: 'Wann gehen Sie gern einkaufen?', Zug: 'Wohin fahren Sie gern mit dem Zug?', Fahrkarte: 'Wo kaufen Sie Ihre Fahrkarte?', Hotel: 'Wo übernachten Sie im Urlaub?', Gehalt: 'Wann bekommen Sie Ihr Gehalt?', Urlaub: 'Wohin fahren Sie im Urlaub?', Vertrag: 'Wo arbeiten Sie?', Flugticket: 'Wohin möchten Sie fliegen?', Visum: 'In welches Land möchten Sie reisen?', Bruder: 'Wie heißt Ihr Bruder?', Schwester: 'Wie alt ist Ihre Schwester?', Familie: 'Wie groß ist Ihre Familie?' };
+  return questions[keyword] || `Was können Sie über ${keyword} sagen?`;
+}
+
+function partnerRequest(keyword) {
+  const requests = { Fenster: 'Können Sie bitte das Fenster schließen?', Stift: 'Geben Sie mir bitte einen Stift.', Licht: 'Machen Sie bitte das Licht aus.', Tür: 'Können Sie bitte die Tür öffnen?', Wasser: 'Kann ich bitte ein Glas Wasser haben?', Handy: 'Kann ich bitte kurz Ihr Handy benutzen?', Bericht: 'Können Sie mir bitte den Bericht zeigen?', Kopiermaschine: 'Helfen Sie mir bitte mit der Kopiermaschine.', Präsentation: 'Können Sie mir bitte bei der Präsentation helfen?', Koffer: 'Helfen Sie mir bitte mit dem Koffer.', Weg: 'Zeigen Sie mir bitte den Weg zum Bahnhof.', Rechnung: 'Bringen Sie mir bitte die Rechnung.', Kuchen: 'Kann ich bitte ein Stück Kuchen haben?', Spiel: 'Spielen Sie bitte mit mir.', Hilfe: 'Können Sie mir bitte helfen?' };
+  return requests[keyword] || `Können Sie mir bitte mit ${keyword} helfen?`;
+}
+
+function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
   const button = document.getElementById('record');
   if (!button) return;
   let recognition = null;
@@ -529,14 +667,35 @@ function setupRecorder(part, textarea, Recognition, canRecord) {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         mediaRecorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
-        mediaRecorder.onstop = () => {
+        mediaRecorder.onstop = async () => {
           const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-          const oldUrl = state.audio[part.id];
+          const oldUrl = state.audio[answerKey];
           if (oldUrl) URL.revokeObjectURL(oldUrl);
           const url = URL.createObjectURL(blob);
-          state.audio[part.id] = url;
+          state.audio[answerKey] = url;
           const playback = document.getElementById('playback');
           if (playback) { playback.src = url; playback.hidden = false; }
+          if (!Recognition && !textarea.value.trim() && supa) {
+            const nextButton = document.getElementById('next');
+            if (nextButton) nextButton.disabled = true;
+            status.textContent = 'Aufnahme wird sicher transkribiert …';
+            try {
+              const audioBase64 = await blobToBase64(blob);
+              const { data, error } = await supa.functions.invoke('practice-ai-evaluate', {
+                body: { action: 'transcribe-speaking', audioBase64, mimeType: blob.type, language: 'de' },
+              });
+              if (error || data?.error) throw error || new Error(data.error);
+              textarea.value = String(data?.text || '').trim();
+              activeCollector?.();
+              status.textContent = textarea.value
+                ? 'Transkript erstellt. Bitte kurz prüfen und bei Bedarf korrigieren.'
+                : 'Keine Sprache erkannt. Bitte noch einmal aufnehmen oder den Text eingeben.';
+            } catch {
+              status.textContent = 'Automatische Transkription nicht verfügbar. Bitte den Text manuell eingeben.';
+            } finally {
+              if (nextButton) nextButton.disabled = false;
+            }
+          }
         };
         mediaRecorder.start();
       } catch {
@@ -563,6 +722,15 @@ function setupRecorder(part, textarea, Recognition, canRecord) {
     status.textContent = 'Sprechen Sie jetzt. Drücken Sie zum Beenden erneut auf den Knopf.';
   };
   activeRecorderCleanup = stop;
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '');
+    reader.onerror = () => reject(reader.error || new Error('Audio konnte nicht gelesen werden.'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 function cleanupRecorder() {
@@ -595,6 +763,10 @@ function questionShell(section, part, content) {
 }
 
 function taskProgress(section, part) {
+  if (part.type === 'speak-intro' || part.type === 'speak-cards') {
+    const total = speakingTurns(part).length;
+    return { current: state.speakTurn + 1, total, percent: Math.round(((state.speakTurn + 1) / total) * 100) };
+  }
   if (part.items) {
     const itemParts = section.parts.filter((entry) => entry.items);
     const previous = itemParts.slice(0, itemParts.indexOf(part)).reduce((sum, entry) => sum + entry.items.length, 0);
@@ -607,10 +779,14 @@ function taskProgress(section, part) {
 }
 
 function canGoBack(section, part) {
+  if (part.type === 'speak-intro' || part.type === 'speak-cards') return state.speakTurn > 0 && state.mode === 'practice';
   return !!part.items && state.idx > 0 && !(state.mode === 'exam' && section.id === 'hoeren');
 }
 
 function nextLabel(section, part) {
+  if (part.type === 'speak-intro' || part.type === 'speak-cards') {
+    return state.speakTurn + 1 < speakingTurns(part).length ? 'Nächste Gesprächsrunde →' : (state.part + 1 < section.parts.length ? 'Nächster Teil →' : 'Mündliche Prüfung abschließen →');
+  }
   if (part.items && state.idx + 1 < part.items.length) return 'Weiter →';
   if (state.part + 1 < section.parts.length) return 'Nächster Teil →';
   if (state.mode === 'exam' && section.id === 'lesen') return 'Weiter zu Schreiben →';
@@ -618,12 +794,14 @@ function nextLabel(section, part) {
 }
 
 function answeredInPart(part) {
+  if (part.type === 'speak-intro' || part.type === 'speak-cards') return speakingTurns(part).filter((_, index) => state.answers[`${part.id}:turn:${index}`]).length;
   if (part.items) return part.items.filter((item) => state.answers[item.id] !== undefined).length;
   if (part.fields) return part.fields.filter((field) => state.answers[field.id]).length;
   return state.answers[part.id] ? 1 : 0;
 }
 
 function partNavigator(part) {
+  if (part.type === 'speak-intro' || part.type === 'speak-cards') return `<div class="part-nav">${speakingTurns(part).map((_, index) => `<span class="${index === state.speakTurn ? 'now' : state.answers[`${part.id}:turn:${index}`] ? 'done' : ''}">${index + 1}</span>`).join('')}</div>`;
   if (!part.items) return '';
   return `<div class="part-nav">${part.items.map((item, index) => `<span class="${index === state.idx ? 'now' : state.answers[item.id] !== undefined ? 'done' : ''}">${index + 1}</span>`).join('')}</div>`;
 }
@@ -641,21 +819,47 @@ function stepsBar() {
 
 function wireNavigation(section, part, collect = null) {
   const previous = document.getElementById('previous');
-  if (previous && !previous.disabled) previous.onclick = () => { collect?.(); state.idx--; renderPart(); };
+  if (previous && !previous.disabled) previous.onclick = () => { collect?.(); if (part.type === 'speak-intro' || part.type === 'speak-cards') state.speakTurn--; else state.idx--; persistSession(); renderPart(); };
   document.getElementById('leave-session').onclick = () => {
-    if (state.mode === 'practice' || window.confirm('Prüfung wirklich beenden? Ihr aktueller Fortschritt geht verloren.')) renderSetup();
+    if (state.mode === 'practice' || window.confirm('Prüfung wirklich beenden? Ihr aktueller Fortschritt geht verloren.')) { clearSession(); renderSetup(); }
   };
   document.getElementById('next').onclick = async () => {
     collect?.();
     cleanupRecorder();
+    if (part.type === 'speak-intro' || part.type === 'speak-cards') {
+      if (state.speakTurn + 1 < speakingTurns(part).length) {
+        state.speakTurn++;
+        persistSession();
+        renderPart();
+        return;
+      }
+      if (state.part + 1 >= section.parts.length && !confirmSectionCompletion(section)) return;
+      await gradeAi(section, part, true);
+      nextPart(section);
+      return;
+    }
     if (part.items && state.idx + 1 < part.items.length) {
       state.idx++;
+      persistSession();
       renderPart();
       return;
     }
-    if (section.aiGraded && ['free-write', 'speak-intro', 'speak-cards'].includes(part.type)) await gradeAi(section, part, true);
+    if (state.part + 1 >= section.parts.length && !confirmSectionCompletion(section)) return;
+    if (section.aiGraded && part.type === 'free-write') await gradeAi(section, part, true);
     nextPart(section);
   };
+}
+
+function confirmSectionCompletion(section) {
+  if (state.mode !== 'exam') return true;
+  const missing = section.parts.reduce((sum, task) => {
+    if (task.items) return sum + task.items.filter((item) => state.answers[item.id] === undefined).length;
+    if (task.fields) return sum + task.fields.filter((field) => !state.answers[field.id]).length;
+    if (task.type === 'speak-intro' || task.type === 'speak-cards') return sum + speakingTurns(task).filter((_, index) => !state.answers[`${task.id}:turn:${index}`]).length;
+    return sum + (!state.answers[task.id] ? 1 : 0);
+  }, 0);
+  const message = missing ? `In diesem Abschnitt sind noch ${missing} Antworten leer. Trotzdem abschließen?` : `${section.title} abschließen? Danach können Sie nicht zurückkehren.`;
+  return window.confirm(message);
 }
 
 // ---------- scoring ----------
@@ -685,29 +889,66 @@ async function gradeAi(section, part, showLoading = false) {
   if (state.graded[gradeKey]) return;
   if (showLoading) loading('Ihre Antwort wird ausgewertet …');
   const isWrite = part.type === 'free-write';
-  const answer = state.answers[part.id] || '';
+  const isSpeaking = part.type === 'speak-intro' || part.type === 'speak-cards';
+  const answer = isSpeaking
+    ? speakingTurns(part).map((turn, index) => `${turn.role}: ${turn.prompt}\nTeilnehmer/in: ${state.answers[`${part.id}:turn:${index}`] || '—'}`).join('\n\n')
+    : state.answers[part.id] || '';
   let result = null;
   if (supa && answer.length >= 4) {
     try {
       const { data } = await supa.functions.invoke('practice-ai-evaluate', {
-        body: { action: isWrite ? 'evaluate-writing' : 'evaluate-speaking', [isWrite ? 'text' : 'transcript']: answer, language: 'de', level: 'A1', nativeLocale: 'ru-RU', prompt: part.instructions },
+        body: { action: isWrite ? 'evaluate-writing' : 'evaluate-speaking', [isWrite ? 'text' : 'transcript']: answer, language: 'de', level: 'A1', nativeLocale: 'de-DE', prompt: part.instructions, examMaxPoints: maxPointsForPart(part), examRubric: officialRubricPrompt(part) },
       });
-      result = data && !data.error ? data : null;
+      result = data && !data.error ? (data.evaluation || data) : null;
     } catch { result = null; }
   }
   const maxPoints = part.rubric?.maxPoints || section.maxPoints;
-  const points = result && typeof result.score === 'number' ? Math.round((result.score / 100) * maxPoints) : Math.round(heuristicBand(answer, part) * maxPoints);
+  const points = officialProductivePoints(result, answer, part, maxPoints);
   const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints };
   state.scores[section.id] = { pts: Math.min(section.maxPoints, (previous.pts || 0) + points), max: section.maxPoints };
   state.ai[part.id] = result;
   state.graded[gradeKey] = true;
-  state.review.push({ sectionId: section.id, sec: section.title, part: part.title, q: part.instructions, your: answer || '—', correct: '', ok: points >= maxPoints * .6, explain: result?.summary || result?.nextStep || (answer ? 'Antwort erfasst und anhand von Umfang und Aufgabe eingeschätzt.' : 'Keine Antwort abgegeben.') });
+  const breakdown = Array.isArray(result?.officialBreakdown)
+    ? result.officialBreakdown.map((entry) => `${entry.criterion}: ${entry.points}/${entry.maxPoints}`).join(' · ')
+    : '';
+  state.review.push({ sectionId: section.id, sec: section.title, part: part.title, q: part.instructions, your: answer || '—', correct: '', ok: points >= maxPoints * .6, explain: `${points} / ${maxPoints} Punkte${breakdown ? ` · ${breakdown}` : ''} · ${result?.summary || result?.nextStep || (answer ? 'Vorläufige regelbasierte Bewertung; für eine vollständige KI-Auswertung bitte anmelden.' : 'Keine Antwort abgegeben.')}` });
 }
 
-function heuristicBand(answer, part) {
-  const words = wordCount(answer);
-  if (words < 4) return 0;
-  return Math.max(.3, Math.min(1, (words / (part.minWords || 12)) * .8));
+function officialRubricPrompt(part) {
+  if (part.type === 'free-write') return `${part.instructions}\nLeitpunkte: ${(part.leitpunkte || []).join(' | ')}. Bewerten Sie wie Start Deutsch 1: jeden der drei Inhaltspunkte mit voll erfüllt, teilweise erfüllt oder nicht erfüllt; zusätzlich Anrede, Schluss und passende Textsorte.`;
+  if (part.type === 'speak-intro') return `${part.instructions} Bewerten Sie getrennt: Vorstellung, Buchstabieren und Zahlenangabe. Je Leistung: voll erfüllt und verständlich, teilweise erfüllt oder nicht erfüllt.`;
+  return `${part.instructions} Bewerten Sie jede dokumentierte Frage bzw. Bitte und jede Antwort bzw. Reaktion getrennt. Volle Punktzahl nur bei erfüllter und verständlicher Aufgabe, halbe Punktzahl bei teilweise erfüllter Aufgabe, sonst null.`;
+}
+
+function maxPointsForPart(part) { return Number(part.rubric?.maxPoints || (part.type === 'free-write' ? 10 : 0)); }
+
+function officialProductivePoints(result, answer, part, maxPoints) {
+  const official = Number(result?.officialPoints);
+  if (Number.isFinite(official)) return Math.max(0, Math.min(maxPoints, official));
+  const overall = Number(result?.overall);
+  if (Number.isFinite(overall)) {
+    if (part.type === 'free-write') {
+      const task = Number(result?.criteria?.taskCompletion ?? overall);
+      const communication = Number(result?.criteria?.communication ?? overall);
+      const content = task >= 80 ? 9 : task >= 35 ? 4.5 : 0;
+      const design = communication >= 75 ? 1 : communication >= 35 ? .5 : 0;
+      return content + design;
+    }
+    return overall >= 75 ? maxPoints : overall >= 35 ? maxPoints / 2 : 0;
+  }
+  if (part.type === 'free-write') {
+    const words = wordCount(answer);
+    const hasGreeting = /\b(hallo|liebe[rn]?|sehr geehrte|guten tag)\b/i.test(answer);
+    const hasClosing = /\b(grüße|gruß|tschüss|bis bald|danke)\b/i.test(answer);
+    const content = words >= (part.minWords || 30) ? 9 : words >= 8 ? 4.5 : 0;
+    return content + (hasGreeting && hasClosing ? 1 : hasGreeting || hasClosing ? .5 : 0);
+  }
+  const turns = speakingTurns(part);
+  const weights = part.type === 'speak-intro' ? [1, 1, 1] : [2, 1, 2, 1];
+  return turns.reduce((score, _, index) => {
+    const words = wordCount(state.answers[`${part.id}:turn:${index}`] || '');
+    return score + (words >= 4 ? weights[index] : words >= 1 ? weights[index] / 2 : 0);
+  }, 0);
 }
 
 function scoreForm(section) {
@@ -716,13 +957,36 @@ function scoreForm(section) {
   if (!form) return;
   let correct = 0;
   form.fields.forEach((field) => {
-    const ok = norm(state.answers[field.id]) === norm(field.expected);
+    const ok = formAnswerMatches(state.answers[field.id], field.expected);
     if (ok) correct++;
     state.review.push({ sectionId: section.id, sec: section.title, part: form.title, q: field.label, your: state.answers[field.id] || '—', correct: field.expected, ok, explain: '' });
   });
   const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints };
   state.scores[section.id] = { pts: Math.min(section.maxPoints, (previous.pts || 0) + Math.round((correct / Math.max(1, form.fields.length)) * 5)), max: section.maxPoints };
   state.formScored = true;
+}
+
+function formAnswerMatches(answer, expected) {
+  const actual = norm(answer);
+  const target = norm(expected);
+  if (!actual || !target) return false;
+  if (/\d/.test(target)) return actual === target;
+  if (actual === target) return true;
+  return target.length >= 5 && editDistance(actual, target) <= 1;
+}
+
+function editDistance(a, b) {
+  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i++) {
+    let previous = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const old = row[j];
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, previous + (a[i - 1] === b[j - 1] ? 0 : 1));
+      previous = old;
+    }
+  }
+  return row[b.length];
 }
 
 function includedSections() {
@@ -753,6 +1017,7 @@ async function results() {
   cleanupRecorder();
   document.onkeydown = null;
   activeCollector?.();
+  clearSession();
   const sections = includedSections();
   loading('Ergebnis wird berechnet');
   await gradePending(sections);

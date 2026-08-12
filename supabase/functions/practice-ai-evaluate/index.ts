@@ -46,7 +46,38 @@ const evaluationSchema = {
   required: ["overall", "criteria", "summary", "strengths", "corrections", "improvedVersion", "nextStep"],
 };
 
-async function structuredResponse(openaiKey: string, model: string, instructions: string, input: string) {
+const examEvaluationSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    overall: { type: "integer", minimum: 0, maximum: 100 },
+    officialPoints: { type: "number", minimum: 0, maximum: 15 },
+    officialBreakdown: {
+      type: "array",
+      maxItems: 8,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          criterion: { type: "string" },
+          points: { type: "number", minimum: 0, maximum: 15 },
+          maxPoints: { type: "number", minimum: 0, maximum: 15 },
+          reason: { type: "string" },
+        },
+        required: ["criterion", "points", "maxPoints", "reason"],
+      },
+    },
+    criteria: evaluationSchema.properties.criteria,
+    summary: { type: "string" },
+    strengths: { type: "array", items: { type: "string" }, maxItems: 3 },
+    corrections: evaluationSchema.properties.corrections,
+    improvedVersion: { type: "string" },
+    nextStep: { type: "string" },
+  },
+  required: ["overall", "officialPoints", "officialBreakdown", "criteria", "summary", "strengths", "corrections", "improvedVersion", "nextStep"],
+};
+
+async function structuredResponse(openaiKey: string, model: string, instructions: string, input: string, schema: Record<string, unknown> = evaluationSchema, schemaName = "language_evaluation") {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
@@ -57,7 +88,7 @@ async function structuredResponse(openaiKey: string, model: string, instructions
       input,
       text: {
         verbosity: "medium",
-        format: { type: "json_schema", name: "language_evaluation", strict: true, schema: evaluationSchema },
+        format: { type: "json_schema", name: schemaName, strict: true, schema },
       },
     }),
   });
@@ -67,6 +98,30 @@ async function structuredResponse(openaiKey: string, model: string, instructions
     result.output?.flatMap((item: any) => item.content || []).find((item: any) => item.type === "output_text")?.text;
   if (!outputText) throw new Error("The AI returned an empty evaluation.");
   return { evaluation: JSON.parse(outputText), model: result.model || model, responseId: result.id || null };
+}
+
+async function transcribeAudio(openaiKey: string, audioBase64: string, mimeType: string, language: string) {
+  const estimatedBytes = Math.floor((audioBase64.length * 3) / 4);
+  if (!audioBase64 || estimatedBytes > 8_000_000) throw new Error("Audio must be smaller than 8 MB.");
+  let bytes: Uint8Array;
+  try {
+    bytes = Uint8Array.from(atob(audioBase64), (character) => character.charCodeAt(0));
+  } catch {
+    throw new Error("Invalid audio data.");
+  }
+  const extension = mimeType.includes("mp4") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
+  const form = new FormData();
+  form.append("model", "gpt-4o-mini-transcribe");
+  form.append("language", language.slice(0, 2) || "de");
+  form.append("file", new File([bytes], `exam-answer.${extension}`, { type: mimeType || "audio/webm" }));
+  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${openaiKey}` },
+    body: form,
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result?.error?.message || "Audio transcription failed.");
+  return String(result?.text || "").trim();
 }
 
 Deno.serve(async (req) => {
@@ -86,8 +141,22 @@ Deno.serve(async (req) => {
 
   const body = await req.json().catch(() => ({}));
   const action = String(body.action || "");
-  if (!["evaluate-writing", "evaluate-speaking"].includes(action)) {
+  if (!["evaluate-writing", "evaluate-speaking", "transcribe-speaking"].includes(action)) {
     return json({ error: "Unsupported assistant action." }, 400);
+  }
+  if (action === "transcribe-speaking") {
+    try {
+      const text = await transcribeAudio(
+        openaiKey,
+        String(body.audioBase64 || ""),
+        String(body.mimeType || "audio/webm").slice(0, 80),
+        String(body.language || "de").slice(0, 12),
+      );
+      return json({ text });
+    } catch (error) {
+      console.error("practice-ai-evaluate transcription", error);
+      return json({ error: error instanceof Error ? error.message : "Audio transcription failed." }, 502);
+    }
   }
   const answer = String(body.text || body.transcript || "").trim().slice(0, 12_000);
   if (answer.length < 4) return json({ error: "The answer is too short to evaluate." }, 400);
@@ -96,6 +165,8 @@ Deno.serve(async (req) => {
   const level = String(body.level || "A1").slice(0, 12);
   const nativeLocale = String(body.nativeLocale || "ru-RU").slice(0, 12);
   const prompt = String(body.prompt || body.expected || "").slice(0, 2_000);
+  const examMaxPoints = Math.max(0, Math.min(15, Number(body.examMaxPoints || 0)));
+  const examRubric = String(body.examRubric || "").slice(0, 3_000);
   const kind = action === "evaluate-writing" ? "written response" : "spoken transcript";
   const instructions = [
     `You are a supportive CEFR language examiner evaluating a ${kind}.`,
@@ -104,11 +175,12 @@ Deno.serve(async (req) => {
     `Write explanations, summary and nextStep in the learner interface locale ${nativeLocale}.`,
     "For speaking transcripts, fluency is a cautious transcript-based estimate; do not claim acoustic pronunciation analysis.",
     "Keep feedback specific, kind, actionable, and suitable for a learner.",
+    examMaxPoints ? `This is an exam simulation. Apply the supplied rubric exactly, use only its permitted full/half/zero increments, and return officialPoints out of ${examMaxPoints}.` : "",
   ].join(" ");
-  const input = JSON.stringify({ targetLanguage: language, cefrLevel: level, task: prompt, learnerAnswer: answer });
+  const input = JSON.stringify({ targetLanguage: language, cefrLevel: level, task: prompt, learnerAnswer: answer, examMaxPoints, examRubric });
 
   try {
-    return json(await structuredResponse(openaiKey, model, instructions, input));
+    return json(await structuredResponse(openaiKey, model, instructions, input, examMaxPoints ? examEvaluationSchema : evaluationSchema, examMaxPoints ? "exam_language_evaluation" : "language_evaluation"));
   } catch (error) {
     console.error("practice-ai-evaluate", error);
     return json({ error: error instanceof Error ? error.message : "AI evaluation failed." }, 502);
