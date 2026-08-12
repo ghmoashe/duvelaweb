@@ -52,6 +52,10 @@ async function smokePages() {
     '/live.html?app=business&mode=host',
     '/profile.html',
     '/legal.html',
+    '/telc-exam.html',
+    '/web/telc-exam.css',
+    '/web/telc-exam.js',
+    '/web/content/telc-a1-exam-bank.json',
   ];
   for (const target of targets) {
     const response = await fetch(`${webUrl}${target}`);
