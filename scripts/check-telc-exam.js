@@ -43,6 +43,7 @@ for (const test of bank.tests || []) {
 for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
+if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
 if (!examStyles.includes('@media print')) errors.push('Missing printable PDF result report styles.');
 
 if (errors.length) {
