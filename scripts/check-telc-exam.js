@@ -50,7 +50,7 @@ const vm = require('vm');
 const localeSandbox = { window: {} };
 vm.runInNewContext(examLocaleSource, localeSandbox);
 const examLocales = localeSandbox.window.DUVELA_EXAM_I18N;
-const requiredLocaleKeys = ['language','before','ready','intro','name','number','browser','connection','sound','microphone','rules','initial','start','back','flow','written','oral','processing','processingLead','wait','stages'];
+const requiredLocaleKeys = ['language','before','ready','intro','name','number','browser','connection','sound','microphone','rules','initial','start','back','flow','written','oral','processing','processingLead','wait','stages','nav','timeLabel','heroPrefix','heroAccent','heroDesc','factTests','factTime','factPass','assurance','configure','choose','chooseDesc','simulation','simDesc','training','trainingDesc','modelTest','germanNote','scope','allTraining','prepare','startTraining','soundCheck','disclaimer','savedAttempt','resumeCopy','resume','discard','examWord'];
 if (examLocales?.locales?.length !== 25) errors.push('Exam preparation must support all 25 DUVELA locales.');
 for (const locale of examLocales?.locales || []) {
   const translation = examLocales.text?.[locale.code];
