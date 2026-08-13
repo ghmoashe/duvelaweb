@@ -5,6 +5,15 @@ const timerEl = document.getElementById('timer');
 const timerLabelEl = document.getElementById('timer-label');
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const norm = (value) => String(value || '').toLowerCase().replace(/\s+/g, '').replace(/[.,;:!?]/g, '');
+const examI18n = window.DUVELA_EXAM_I18N || { locales: [{ code: 'de', flag: '🇩🇪', name: 'Deutsch', dir: 'ltr' }], text: { de: {} } };
+const normalizeUiLocale = (value) => {
+  const raw = String(value || '').toLowerCase().replace('_', '-');
+  const base = raw.split('-')[0];
+  return examI18n.locales.some((locale) => locale.code === base) ? base : 'de';
+};
+const initialUiLocale = normalizeUiLocale(localStorage.getItem('duvela.webLang') || localStorage.getItem('duvela.web.lang') || navigator.language);
+const tx = (key) => examI18n.text[state?.uiLocale]?.[key] ?? examI18n.text.en?.[key] ?? examI18n.text.de?.[key] ?? key;
+const uiLocaleMeta = () => examI18n.locales.find((locale) => locale.code === state.uiLocale) || examI18n.locales[0];
 
 let bank = null;
 let exam = null;
@@ -48,6 +57,7 @@ const state = {
   integrity: { focusLeaves: 0, reconnects: 0, reloads: 0 },
   aborted: false,
   finishedAt: 0,
+  uiLocale: initialUiLocale,
 };
 
 await new Promise((resolve) => {
@@ -285,6 +295,7 @@ function renderSetup() {
     ...bank.tests[0].sections.map((section) => [section.id, section.title]),
   ].map(([value, label]) => `<option value="${esc(value)}" ${value === state.practiceSection ? 'selected' : ''}>${esc(label)}</option>`).join('');
   const resumable = savedSession();
+  const languageOptions = examI18n.locales.map((locale) => `<option value="${locale.code}" ${locale.code === state.uiLocale ? 'selected' : ''}>${locale.flag} ${esc(locale.name)}</option>`).join('');
 
   app.innerHTML = `
     <section class="setup-hero">
@@ -302,6 +313,7 @@ function renderSetup() {
           <button class="mode-choice ${state.mode === 'practice' ? 'active' : ''}" data-mode="practice" role="radio" aria-checked="${state.mode === 'practice'}"><i>02</i><b>Training</b><small>Ohne Zeitdruck, mit direktem Feedback</small></button>
         </div>
         <div class="field"><label for="test-select">Modelltest</label><select id="test-select">${testOptions}</select></div>
+        <div class="field locale-field"><label for="exam-language">${esc(tx('language'))}</label><select id="exam-language">${languageOptions}</select><small>Die Prüfung bleibt auf Deutsch · Exam stays in German</small></div>
         ${state.mode === 'practice' ? `<div class="field"><label for="section-select">Trainingsumfang</label><select id="section-select">${sectionOptions}</select></div>` : ''}
         <div class="setup-actions">
           <button class="button primary" id="continue">${state.mode === 'exam' ? 'Simulation vorbereiten' : 'Training starten'} <span>→</span></button>
@@ -322,6 +334,13 @@ function renderSetup() {
     button.onclick = () => { state.mode = button.dataset.mode; renderSetup(); };
   });
   document.getElementById('test-select').onchange = (event) => { state.selectedTest = event.target.value; };
+  document.getElementById('exam-language').onchange = (event) => {
+    state.uiLocale = normalizeUiLocale(event.target.value);
+    localStorage.setItem('duvela.webLang', state.uiLocale);
+    localStorage.setItem('duvela.webLang.userChoice', '1');
+    window.DuvelaCurrentAppLang = state.uiLocale;
+    renderSetup();
+  };
   const sectionSelect = document.getElementById('section-select');
   if (sectionSelect) sectionSelect.onchange = (event) => { state.practiceSection = event.target.value; };
   document.getElementById('sound-check').onclick = () => speak('Guten Tag. Der Ton funktioniert. Sie können die Prüfung beginnen.');
@@ -342,12 +361,12 @@ function renderPreflight() {
   preflight.browser = supportsExamBrowser();
   preflight.online = navigator.onLine;
   if (preflightMicUrl) { URL.revokeObjectURL(preflightMicUrl); preflightMicUrl = ''; }
+  const locale = uiLocaleMeta();
   app.innerHTML = `
-    <section class="preflight">
-      <div class="paper-card preflight-main">
-        <span class="eyebrow">Vor dem Start</span>
-        <h2>Bereit für ${esc(exam.title)}?</h2>
-        <p class="lead">Die Simulation folgt dem Ablauf der A1-Prüfung. Antworten und Feedback sehen Sie erst nach dem Abschluss.</p>
+    <section class="preflight" data-ui-locale="${locale.code}">
+      <div class="paper-card preflight-main localized-copy" dir="${locale.dir}" lang="${locale.code}">
+        <div class="preflight-titlebar"><div><span class="eyebrow">${esc(tx('before'))}</span><h2>${esc(tx('ready'))}</h2></div><label class="inline-locale"><span>${esc(tx('language'))}</span><select id="preflight-language">${examI18n.locales.map((item) => `<option value="${item.code}" ${item.code === state.uiLocale ? 'selected' : ''}>${item.flag} ${esc(item.name)}</option>`).join('')}</select></label></div>
+        <p class="lead">${esc(tx('intro'))}</p>
         <div class="candidate-strip">
           <span><small>Prüfung</small><b>Deutsch A1</b></span>
           <span><small>Modelltest</small><b>${esc(exam.id.toUpperCase())}</b></span>
@@ -355,44 +374,51 @@ function renderPreflight() {
           <span><small>Bestehen</small><b>ab 36 Punkten</b></span>
         </div>
         <div class="candidate-fields">
-          <div class="field"><label for="candidate-name">Vor- und Familienname</label><input id="candidate-name" autocomplete="name" maxlength="80" placeholder="z. B. Anna Müller" value="${esc(state.candidateName)}"></div>
-          <div class="field"><label for="candidate-number">Teilnehmernummer</label><input id="candidate-number" readonly value="${esc(state.candidateNumber || createCandidateNumber())}"></div>
+          <div class="field"><label for="candidate-name">${esc(tx('name'))}</label><input id="candidate-name" autocomplete="name" maxlength="80" placeholder="Anna Müller" value="${esc(state.candidateName)}"></div>
+          <div class="field"><label for="candidate-number">${esc(tx('number'))}</label><input id="candidate-number" readonly value="${esc(state.candidateNumber || createCandidateNumber())}"></div>
         </div>
         <div class="equipment-grid" aria-label="Geräteprüfung">
-          ${equipmentCard('browser', 'Browser', preflight.browser ? 'Kompatibel' : 'Nicht kompatibel', 'Audioaufnahme und lokales Speichern', preflight.browser)}
-          ${equipmentCard('online', 'Verbindung', preflight.online ? 'Online' : 'Offline', 'Stabile Verbindung für Auswertung', preflight.online)}
-          ${equipmentCard('sound', 'Kopfhörer / Ton', preflight.sound ? 'Ton bestätigt' : 'Noch nicht geprüft', 'Testansage anhören und bestätigen', preflight.sound, '<div class="equipment-actions"><button class="button secondary compact" id="test-sound">Testton abspielen</button><button class="button primary compact" id="confirm-sound" hidden>Ton war hörbar ✓</button></div>')}
-          ${equipmentCard('microphone', 'Mikrofon', preflight.microphone ? 'Aufnahme bereit' : 'Noch nicht geprüft', 'Kurze Probe aufnehmen und anhören', preflight.microphone, '<button class="button secondary compact" id="test-mic">Mikrofon testen</button><audio id="preflight-playback" controls hidden></audio>')}
+          ${equipmentCard('browser', tx('browser'), preflight.browser ? tx('compatible') : tx('unchecked'), tx('browserDesc'), preflight.browser)}
+          ${equipmentCard('online', tx('connection'), preflight.online ? tx('online') : tx('unchecked'), tx('connectionDesc'), preflight.online)}
+          ${equipmentCard('sound', tx('sound'), preflight.sound ? tx('heard') : tx('unchecked'), tx('soundDesc'), preflight.sound, `<div class="equipment-actions"><button class="button secondary compact" id="test-sound">${esc(tx('testSound'))}</button><button class="button primary compact" id="confirm-sound" hidden>${esc(tx('heard'))} ✓</button></div>`)}
+          ${equipmentCard('microphone', tx('microphone'), preflight.microphone ? tx('compatible') : tx('unchecked'), tx('micDesc'), preflight.microphone, `<button class="button secondary compact" id="test-mic">${esc(tx('testMic'))}</button><audio id="preflight-playback" controls hidden></audio>`)}
         </div>
-        <label class="rules-confirm"><input type="checkbox" id="rules-confirm"><span>Ich habe 80 Minuten Zeit, arbeite ohne Hilfsmittel und weiß, dass die Prüfung nicht pausiert werden kann.</span></label>
-        <p class="preflight-status" id="preflight-status" aria-live="polite">Bitte führen Sie Ton- und Mikrofontest durch.</p>
+        <label class="rules-confirm"><input type="checkbox" id="rules-confirm"><span>${esc(tx('rules'))}</span></label>
+        <p class="preflight-status" id="preflight-status" aria-live="polite">${esc(tx('initial'))}</p>
         <div class="result-actions">
-          <button class="button primary" id="begin-exam" disabled>Prüfung jetzt starten →</button>
-          <button class="button secondary" id="back-setup">Zurück</button>
+          <button class="button primary" id="begin-exam" disabled>${esc(tx('start'))} →</button>
+          <button class="button secondary" id="back-setup">${esc(tx('back'))}</button>
         </div>
       </div>
-      <aside class="paper-card preflight-aside">
-        <span class="eyebrow">Offizieller Ablauf</span>
-        <h3>Schriftliche Prüfung</h3>
+      <aside class="paper-card preflight-aside localized-copy" dir="${locale.dir}" lang="${locale.code}">
+        <span class="eyebrow">${esc(tx('flow'))}</span>
+        <h3>${esc(tx('written'))}</h3>
         <div class="format-list"><div><span>Hören</span><small>3 Teile · 20 Min.</small></div><div><span>Lesen + Schreiben</span><small>3 + 2 Teile · 45 Min.</small></div></div>
-        <h3>Mündliche Prüfung</h3>
+        <h3>${esc(tx('oral'))}</h3>
         <div class="format-list"><div><span>Sprechen</span><small>3 Teile · 15 Min.</small></div></div>
-        <p class="exam-note">In der echten Prüfung findet Sprechen in der Regel mit vier Teilnehmenden und ohne Vorbereitungszeit statt. Hier simuliert DUVELA die Gesprächssituationen digital.</p>
+        <p class="exam-note">${esc(tx('speakingNote'))}</p>
       </aside>
     </section>`;
   const nameInput = document.getElementById('candidate-name');
   const numberInput = document.getElementById('candidate-number');
   state.candidateNumber = numberInput.value;
+  document.getElementById('preflight-language').onchange = (event) => {
+    state.candidateName = nameInput.value.trim();
+    state.uiLocale = normalizeUiLocale(event.target.value);
+    localStorage.setItem('duvela.webLang', state.uiLocale);
+    localStorage.setItem('duvela.webLang.userChoice', '1');
+    renderPreflight();
+  };
   nameInput.addEventListener('input', updatePreflightReady);
   document.getElementById('rules-confirm').addEventListener('change', updatePreflightReady);
   document.getElementById('test-sound').onclick = () => {
     speak('Guten Tag. Wenn Sie diese Ansage hören, funktioniert die Tonausgabe.');
     document.getElementById('confirm-sound').hidden = false;
-    document.getElementById('preflight-status').textContent = 'Bestätigen Sie bitte, dass die Testansage hörbar war.';
+    document.getElementById('preflight-status').textContent = tx('soundDesc');
   };
   document.getElementById('confirm-sound').onclick = () => {
     preflight.sound = true;
-    updateEquipmentCard('sound', true, 'Ton bestätigt');
+    updateEquipmentCard('sound', true, tx('heard'));
     updatePreflightReady();
   };
   document.getElementById('test-mic').onclick = testPreflightMicrophone;
@@ -429,7 +455,7 @@ async function verifyConnection() {
     const response = await fetch('./web/content/telc-a1-exam-bank.json', { cache: 'no-store' });
     preflight.online = response.ok;
   } catch { preflight.online = false; }
-  updateEquipmentCard('online', preflight.online, preflight.online ? 'Online' : 'Keine Verbindung');
+  updateEquipmentCard('online', preflight.online, preflight.online ? tx('online') : tx('unchecked'));
   updatePreflightReady();
 }
 
@@ -439,8 +465,8 @@ async function testPreflightMicrophone() {
   const status = document.getElementById('preflight-status');
   preflight.recording = true;
   button.disabled = true;
-  button.textContent = 'Aufnahme läuft …';
-  status.textContent = 'Sprechen Sie jetzt etwa drei Sekunden lang.';
+  button.textContent = '● 3…';
+  status.textContent = tx('micDesc');
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const recorder = new MediaRecorder(stream);
@@ -455,11 +481,11 @@ async function testPreflightMicrophone() {
       const playback = document.getElementById('preflight-playback');
       playback.src = preflightMicUrl;
       playback.hidden = !preflight.microphone;
-      updateEquipmentCard('microphone', preflight.microphone, preflight.microphone ? 'Aufnahme bereit' : 'Keine Aufnahme erkannt');
-      button.textContent = 'Erneut testen';
+      updateEquipmentCard('microphone', preflight.microphone, preflight.microphone ? tx('compatible') : tx('unchecked'));
+      button.textContent = tx('testMic');
       button.disabled = false;
       preflight.recording = false;
-      status.textContent = preflight.microphone ? 'Probe gespeichert. Hören Sie sie kurz an und bestätigen Sie die Regeln.' : 'Mikrofon konnte nicht geprüft werden.';
+      status.textContent = preflight.microphone ? tx('micDesc') : tx('initial');
       updatePreflightReady();
     };
     recorder.start();
@@ -467,9 +493,9 @@ async function testPreflightMicrophone() {
   } catch {
     preflight.recording = false;
     button.disabled = false;
-    button.textContent = 'Erneut versuchen';
-    status.textContent = 'Mikrofonzugriff fehlt. Erlauben Sie ihn in den Browser-Einstellungen.';
-    updateEquipmentCard('microphone', false, 'Zugriff erforderlich');
+    button.textContent = tx('testMic');
+    status.textContent = tx('initial');
+    updateEquipmentCard('microphone', false, tx('unchecked'));
     updatePreflightReady();
   }
 }
@@ -482,7 +508,7 @@ function updatePreflightReady() {
   const ready = nameReady && rulesReady && preflight.browser && preflight.online && preflight.sound && preflight.microphone;
   button.disabled = !ready;
   const status = document.getElementById('preflight-status');
-  if (ready) status.textContent = 'Alle Prüfungen bestanden. Sie können die Simulation starten.';
+  if (ready) status.textContent = tx('allReady');
 }
 
 function createCandidateNumber() {
@@ -513,6 +539,7 @@ function resumeSession() {
   if (!saved) return renderSetup();
   exam = bank.tests.find((test) => test.id === saved.examId) || bank.tests[0];
   Object.assign(state, saved.state, { audio: {}, active: true });
+  state.uiLocale = normalizeUiLocale(state.uiLocale || initialUiLocale);
   state.integrity = { focusLeaves: 0, reconnects: 0, reloads: 0, ...(state.integrity || {}) };
   state.integrity.reloads++;
   document.body.classList.add('exam-active');
@@ -1242,20 +1269,49 @@ function includedSections() {
   return exam.sections;
 }
 
-async function gradePending(sections) {
-  for (const section of sections) {
-    if (section.id === 'hoeren' || section.id === 'lesen') scoreAuto(section);
-    if (section.id === 'schreiben') scoreForm(section);
-    if (!section.aiGraded) continue;
-    for (const part of section.parts) {
-      if (['free-write', 'speak-intro', 'speak-cards'].includes(part.type)) await gradeAi(section, part, false);
-    }
+async function gradePending(sections, updateStage = async () => {}) {
+  await updateStage(0);
+  for (const section of sections) if (section.id === 'hoeren' || section.id === 'lesen') scoreAuto(section);
+  await updateStage(1);
+  const writing = sections.find((section) => section.id === 'schreiben');
+  if (writing) {
+    scoreForm(writing);
+    for (const part of writing.parts) if (part.type === 'free-write') await gradeAi(writing, part, false);
   }
+  await updateStage(2);
+  const speaking = sections.find((section) => section.id === 'sprechen');
+  if (speaking) for (const part of speaking.parts) if (['speak-intro', 'speak-cards'].includes(part.type)) await gradeAi(speaking, part, false);
+  await updateStage(3);
+  await updateStage(4);
 }
 
 // ---------- results ----------
 function loading(message) {
   app.innerHTML = `<section class="paper-card loading-card"><div class="spinner"></div><h3>${esc(message)}</h3><p class="muted small">Einen Moment bitte.</p></section>`;
+}
+
+function renderResultProcessing() {
+  const locale = uiLocaleMeta();
+  const stages = Array.isArray(tx('stages')) ? tx('stages') : examI18n.text.en.stages;
+  app.innerHTML = `
+    <section class="paper-card result-processing localized-copy" dir="${locale.dir}" lang="${locale.code}">
+      <div class="processing-orbit" aria-hidden="true"><i></i><span>DX</span></div>
+      <span class="eyebrow">DUVELA EXAM · Deutsch A1</span>
+      <h2>${esc(tx('processing'))}</h2>
+      <p class="lead">${esc(tx('processingLead'))}</p>
+      <ol class="processing-stages">${stages.map((stage, index) => `<li data-stage="${index}"><span>${index + 1}</span><div><b>${esc(stage)}</b><i></i></div></li>`).join('')}</ol>
+      <p class="processing-wait">${esc(tx('wait'))}</p>
+    </section>`;
+  let previous = -1;
+  return async (activeIndex) => {
+    const items = [...document.querySelectorAll('.processing-stages li')];
+    items.forEach((item, index) => {
+      item.classList.toggle('done', index < activeIndex);
+      item.classList.toggle('active', index === activeIndex);
+    });
+    if (activeIndex > previous) await new Promise((resolve) => setTimeout(resolve, activeIndex === 0 ? 180 : 360));
+    previous = activeIndex;
+  };
 }
 
 async function results() {
@@ -1271,8 +1327,8 @@ async function results() {
   activeCollector?.();
   clearSession();
   const sections = includedSections();
-  loading('Ergebnis wird berechnet');
-  await gradePending(sections);
+  const updateProcessingStage = renderResultProcessing();
+  await gradePending(sections, updateProcessingStage);
   const rows = sections.map((section) => {
     const score = state.scores[section.id] || { pts: 0, max: section.maxPoints };
     return { id: section.id, title: section.title, pts: score.pts || 0, max: score.max || section.maxPoints, pct: Math.round(((score.pts || 0) / Math.max(1, score.max || section.maxPoints)) * 100) };
