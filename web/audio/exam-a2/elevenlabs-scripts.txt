@@ -1,0 +1,78 @@
+DUVELA EXAM · TELC DEUTSCH A2 · ELEVENLABS AUDIO SCRIPTS
+Format: relative MP3 path | German transcript
+
+mt1/a2m1-h1-1.mp3 | Guten Tag, hier ist die Praxis Dr. König. Ihr Termin am Mittwoch muss leider ausfallen. Wir können Ihnen stattdessen Donnerstag um sechzehn Uhr dreißig anbieten. Bitte rufen Sie kurz zurück.
+mt1/a2m1-h1-2.mp3 | Hallo Frau Aydin, Ihr Fahrrad ist fertig. Die Reparatur kostet achtundvierzig Euro. Sie können es heute bis achtzehn Uhr oder morgen ab neun Uhr abholen.
+mt1/a2m1-h1-3.mp3 | Hi Lukas, wir treffen uns nicht vor dem Kino, sondern direkt im Café gegenüber. Ich bin gegen Viertel nach sieben da.
+mt1/a2m1-h1-4.mp3 | Guten Morgen, der Computerkurs beginnt erst nächste Woche. Der erste Termin ist am zwölften September in Raum zweihundertvier.
+mt1/a2m1-h1-5.mp3 | Hier ist der Paketdienst. Wir konnten Sie nicht erreichen. Ihr Paket liegt ab morgen in der Postfiliale am Markt und bleibt dort sieben Tage.
+mt1/a2m1-h2-1.mp3 | Und nun zum Wetter: Am Vormittag bleibt es trocken. Ab vierzehn Uhr gibt es starke Regenschauer, am Abend wird es wieder freundlicher.
+mt1/a2m1-h2-2.mp3 | Wegen einer technischen Störung fährt die U-Bahn-Linie drei heute nur bis Rathaus. Fahrgäste zum Hauptbahnhof nehmen bitte den Bus Nummer acht.
+mt1/a2m1-h2-3.mp3 | In unserer Mittagssendung sprechen wir heute über gesundes Essen im Büro. Danach können Hörerinnen und Hörer anrufen und Fragen stellen.
+mt1/a2m1-h2-4.mp3 | Das Stadtmuseum lädt am Sonntag zum Familientag ein. Kinder bis zwölf Jahre zahlen keinen Eintritt. Erwachsene zahlen sechs Euro.
+mt1/a2m1-h2-5.mp3 | Achtung Autofahrer: Auf der A fünf zwischen Nordkreuz und Flughafen gibt es nach einem Unfall zehn Kilometer Stau. Bitte fahren Sie über die Bundesstraße.
+mt1/a2m1-h3-1.mp3 | Mara: Für das Sommerfest brauchen wir noch Hilfe. Jonas, kannst du die Getränke kaufen? Jonas: Ja, das mache ich nach der Arbeit.
+mt1/a2m1-h3-2.mp3 | Mara: Lea, kümmerst du dich um die Musik? Lea: Gern, ich bringe meine Lautsprecher und eine Playlist mit.
+mt1/a2m1-h3-3.mp3 | Mara: Ben, wir brauchen noch sechs Tische. Ben: Ich frage den Nachbarn, er kann sie mit seinem Wagen bringen.
+mt1/a2m1-h3-4.mp3 | Mara: Sofia, könntest du zwei Salate machen? Sofia: Natürlich, einen Kartoffelsalat und einen grünen Salat.
+mt1/a2m1-h3-5.mp3 | Mara: Und wer fotografiert? Amir: Ich nehme meine Kamera mit und schicke später allen die Bilder.
+mt2/a2m2-h1-1.mp3 | Hallo Frau Berger, der Hausmeister kommt morgen zwischen zehn und zwölf Uhr wegen Ihrer Heizung. Bitte stellen Sie sicher, dass jemand zu Hause ist.
+mt2/a2m2-h1-2.mp3 | Guten Tag, Sie interessieren sich für die Wohnung in der Gartenstraße. Die Besichtigung ist am Freitag um siebzehn Uhr. Treffen ist vor Haus Nummer neun.
+mt2/a2m2-h1-3.mp3 | Hallo David, ich leihe dir gern meine Bohrmaschine. Hol sie bitte heute Abend bei mir im dritten Stock ab.
+mt2/a2m2-h1-4.mp3 | Hier ist Möbelhaus Kern. Ihr Schrank wird nicht am Montag, sondern am Dienstagvormittag geliefert. Die Montage dauert ungefähr eine Stunde.
+mt2/a2m2-h1-5.mp3 | Liebe Mieter, wegen Arbeiten am Wasserrohr gibt es am Donnerstag von acht bis elf Uhr kein warmes Wasser.
+mt2/a2m2-h2-1.mp3 | Die Stadt eröffnet heute einen neuen Wertstoffhof im Norden. Geöffnet ist montags bis samstags von acht bis siebzehn Uhr.
+mt2/a2m2-h2-2.mp3 | Wegen des Straßenfests dürfen Autos morgen nicht in der Rosenstraße parken. Bitte nutzen Sie das Parkhaus am Bahnhof.
+mt2/a2m2-h2-3.mp3 | Unsere heutige Sendung zeigt, wie man im Haushalt Energie spart. Experten erklären, welche Geräte besonders viel Strom brauchen.
+mt2/a2m2-h2-4.mp3 | Im Stadtteilzentrum findet am Mittwoch ein kostenloser Tauschabend statt. Bringen Sie Kleidung mit, die Sie nicht mehr tragen.
+mt2/a2m2-h2-5.mp3 | Die Müllabfuhr kommt wegen des Feiertags einen Tag später. Stellen Sie die Tonnen bitte erst am Donnerstagabend heraus.
+mt2/a2m2-h3-1.mp3 | Eva: Beim Umzug brauchen wir Aufgaben. Tom, kannst du den Transporter fahren? Tom: Ja, ich hole ihn morgens ab.
+mt2/a2m2-h3-2.mp3 | Eva: Leni, packst du bitte die Bücher ein? Leni: Klar, ich bringe auch stabile Kartons mit.
+mt2/a2m2-h3-3.mp3 | Eva: Paul, kannst du die Lampen abmontieren? Paul: Ja, ich bringe Werkzeug mit.
+mt2/a2m2-h3-4.mp3 | Eva: Sara, könntest du für alle etwas kochen? Sara: Ich mache eine große Suppe.
+mt2/a2m2-h3-5.mp3 | Eva: Ali, wir müssen noch die alte Wohnung reinigen. Ali: Ich komme am Sonntag mit Putzmitteln.
+mt3/a2m3-h1-1.mp3 | Guten Morgen Herr Lee, Ihr Vorstellungsgespräch ist am Montag um neun Uhr dreißig im Büro von Frau Stein, Zimmer vierzehn.
+mt3/a2m3-h1-2.mp3 | Hallo Jana, ich übernehme morgen deine Frühschicht. Kannst du dafür am Freitag von vierzehn bis zwanzig Uhr arbeiten?
+mt3/a2m3-h1-3.mp3 | Hier ist die Volkshochschule. Der Excelkurs findet ab nächster Woche nicht in Raum drei, sondern im Computerraum sieben statt.
+mt3/a2m3-h1-4.mp3 | Guten Tag, Ihre Bewerbung ist angekommen. Bitte senden Sie uns noch bis Donnerstag eine Kopie Ihres Abschlusszeugnisses.
+mt3/a2m3-h1-5.mp3 | Hallo Mehmet, die Teamsitzung beginnt heute eine halbe Stunde später, also erst um elf Uhr.
+mt3/a2m3-h2-1.mp3 | Die Bibliothek bietet ab Oktober längere Öffnungszeiten. Unter der Woche können Studierende bis zweiundzwanzig Uhr lernen.
+mt3/a2m3-h2-2.mp3 | Heute fällt der Kurs Deutsch im Beruf wegen Krankheit aus. Der nächste Unterricht ist regulär am Donnerstag.
+mt3/a2m3-h2-3.mp3 | Bei der Ausbildungsmesse am Samstag stellen dreißig Betriebe ihre Berufe vor. Der Eintritt ist frei.
+mt3/a2m3-h2-4.mp3 | Unsere Radioserie erklärt diese Woche, wie man Konflikte am Arbeitsplatz ruhig und fair löst.
+mt3/a2m3-h2-5.mp3 | Das Jobcenter ist heute wegen einer Fortbildung nur telefonisch erreichbar. Persönliche Termine finden nicht statt.
+mt3/a2m3-h3-1.mp3 | Chef: Für die Präsentation brauchen wir Hilfe. Lina, bereitest du die Folien vor? Lina: Ja, bis Mittwoch sind sie fertig.
+mt3/a2m3-h3-2.mp3 | Chef: Ben, reservierst du bitte den großen Besprechungsraum? Ben: Ich kümmere mich sofort darum.
+mt3/a2m3-h3-3.mp3 | Chef: Aylin, kannst du die Kundinnen und Kunden einladen? Aylin: Ja, ich schicke heute die E-Mails.
+mt3/a2m3-h3-4.mp3 | Chef: Noah, prüfst du Beamer und Mikrofon? Noah: Natürlich, morgen früh.
+mt3/a2m3-h3-5.mp3 | Chef: Mia, schreibst du während des Treffens das Protokoll? Mia: Ja, danach verteile ich es an alle.
+mt4/a2m4-h1-1.mp3 | Guten Tag, Ihre Zugverbindung nach Hamburg hat sich geändert. Sie fahren um acht Uhr zwölf von Gleis sechs und steigen in Hannover um.
+mt4/a2m4-h1-2.mp3 | Hallo, hier ist Hotel Seeblick. Ihr Zimmer ist ab fünfzehn Uhr bereit. Das Frühstück wird von sieben bis zehn Uhr angeboten.
+mt4/a2m4-h1-3.mp3 | Hi Emma, die Radtour beginnt nicht am Bahnhof, sondern am Parkplatz beim Schwimmbad. Wir starten um halb zehn.
+mt4/a2m4-h1-4.mp3 | Guten Tag, der Rückflug am Sonntag wurde auf neunzehn Uhr fünfundvierzig verschoben. Der Check-in öffnet zwei Stunden vorher.
+mt4/a2m4-h1-5.mp3 | Hallo Frau Novak, für die Stadtführung am Samstag sind noch zwei Plätze frei. Treffpunkt ist um elf Uhr vor dem alten Rathaus.
+mt4/a2m4-h2-1.mp3 | Wegen starken Windes fahren heute keine Schiffe zur Insel. Bereits gekaufte Tickets gelten auch morgen.
+mt4/a2m4-h2-2.mp3 | Im Freizeitpark ist heute Familientag. Ab drei Kindern zahlt nur ein Erwachsener Eintritt.
+mt4/a2m4-h2-3.mp3 | Das Open-Air-Konzert wird wegen des Wetters in die Stadthalle verlegt. Beginn bleibt um zwanzig Uhr.
+mt4/a2m4-h2-4.mp3 | Unser Reisetipp der Woche ist Leipzig: Wir stellen Museen, Parks und günstige Restaurants für ein Wochenende vor.
+mt4/a2m4-h2-5.mp3 | Auf Wanderweg vier ist eine Brücke gesperrt. Bitte folgen Sie ab dem See der gelben Umleitung.
+mt4/a2m4-h3-1.mp3 | Nora: Für den Wochenendtrip buche ich die Unterkunft. Erik: Gut, such bitte etwas nahe am Zentrum.
+mt4/a2m4-h3-2.mp3 | Nora: Erik, kannst du die Zugtickets kaufen? Erik: Ja, heute Abend online.
+mt4/a2m4-h3-3.mp3 | Nora: Mei, erstellst du ein Programm für Samstag? Mei: Gern, ich suche zwei Museen und einen Park aus.
+mt4/a2m4-h3-4.mp3 | Nora: Samir, reservierst du ein Restaurant für Samstagabend? Samir: Ja, am liebsten regional.
+mt4/a2m4-h3-5.mp3 | Nora: Klara, schaust du nach dem Wetter und schreibst uns, was wir einpacken sollen? Klara: Mache ich.
+mt5/a2m5-h1-1.mp3 | Guten Tag Frau Silva, Ihre Blutwerte sind da. Bitte kommen Sie am Dienstag um acht Uhr nüchtern in die Praxis. Sie dürfen vorher nur Wasser trinken.
+mt5/a2m5-h1-2.mp3 | Hallo Papa, der Elternabend beginnt heute schon um achtzehn Uhr im Musikraum. Bitte bring auch den unterschriebenen Zettel mit.
+mt5/a2m5-h1-3.mp3 | Hier ist die Apotheke am Markt. Ihr Medikament ist heute Nachmittag ab sechzehn Uhr verfügbar. Wir haben bis neunzehn Uhr geöffnet.
+mt5/a2m5-h1-4.mp3 | Hallo Elena, ich kann die Kinder am Donnerstag von der Schule abholen. Am Freitag musst du es bitte selbst machen.
+mt5/a2m5-h1-5.mp3 | Guten Tag, Ihr Termin zur Zahnreinigung dauert ungefähr fünfundvierzig Minuten. Bitte kommen Sie zehn Minuten früher.
+mt5/a2m5-h2-1.mp3 | Die Krankenkasse bietet am Samstag einen kostenlosen Kurs zum gesunden Schlaf an. Eine Anmeldung ist online erforderlich.
+mt5/a2m5-h2-2.mp3 | Wegen vieler Grippefälle gelten im Krankenhaus neue Besuchszeiten: täglich nur von fünfzehn bis siebzehn Uhr.
+mt5/a2m5-h2-3.mp3 | In unserer Gesundheitssendung erklärt eine Ärztin heute, wie regelmäßige Bewegung Rückenschmerzen verhindern kann.
+mt5/a2m5-h2-4.mp3 | Das Familienbad bleibt am Montag wegen Reinigung geschlossen. Der Schwimmkurs beginnt deshalb erst am Mittwoch.
+mt5/a2m5-h2-5.mp3 | Bitte beachten Sie: Für die Kinderbetreuung in den Ferien sind nur noch Plätze in der zweiten Augustwoche frei.
+mt5/a2m5-h3-1.mp3 | Mutter: Für Omas Geburtstag backe ich den Kuchen. Luis: Gut, ich kaufe die Zutaten.
+mt5/a2m5-h3-2.mp3 | Mutter: Luis, kaufst du bitte Mehl, Eier und Obst? Luis: Ja, nach der Schule.
+mt5/a2m5-h3-3.mp3 | Mutter: Zoe, kannst du die Verwandten anrufen? Zoe: Natürlich, ich frage auch, wer kommen kann.
+mt5/a2m5-h3-4.mp3 | Mutter: David, dekorierst du den Tisch? David: Ja, ich bringe Blumen und Kerzen mit.
+mt5/a2m5-h3-5.mp3 | Mutter: Amina, stellst du eine Liste mit Omas Lieblingsliedern zusammen? Amina: Sehr gern.

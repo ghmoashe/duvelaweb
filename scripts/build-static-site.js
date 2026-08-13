@@ -12,6 +12,7 @@ const files = [
   'profile.html',
   'legal.html',
   'telc-exam.html',
+  'telc-a2-exam.html',
   'sw.js',
   'logo.webp',
   'logo2.png',

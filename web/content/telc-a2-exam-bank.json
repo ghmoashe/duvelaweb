@@ -1,0 +1,3294 @@
+{
+  "exam": "telc-deutsch-a2",
+  "level": "A2",
+  "note": "Originalinhalte im Format Start Deutsch 2 / telc Deutsch A2. Kein offizielles telc-Prüfungsmaterial.",
+  "passMark": 60,
+  "weights": {
+    "hoeren": 25,
+    "lesen": 25,
+    "schreiben": 25,
+    "sprechen": 25
+  },
+  "tests": [
+    {
+      "id": "mt1",
+      "title": "Modelltest 1 – Alltag und Termine",
+      "sections": [
+        {
+          "id": "hoeren",
+          "title": "Hören",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "instructions": "Sie hören 15 Aufgaben in drei Teilen.",
+          "parts": [
+            {
+              "id": "h1",
+              "title": "Teil 1 – Telefonnotizen",
+              "type": "audio-fill",
+              "plays": 2,
+              "instructions": "Sie hören fünf Mitteilungen. Ergänzen Sie die Information. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m1-h1-1",
+                  "transcript": "Guten Tag, hier ist die Praxis Dr. König. Ihr Termin am Mittwoch muss leider ausfallen. Wir können Ihnen stattdessen Donnerstag um sechzehn Uhr dreißig anbieten. Bitte rufen Sie kurz zurück.",
+                  "question": "Wann ist der neue Termin?",
+                  "answer": "Donnerstag, 16:30 Uhr",
+                  "explain": "Richtig: Donnerstag, 16:30 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h1-1.mp3"
+                },
+                {
+                  "id": "a2m1-h1-2",
+                  "transcript": "Hallo Frau Aydin, Ihr Fahrrad ist fertig. Die Reparatur kostet achtundvierzig Euro. Sie können es heute bis achtzehn Uhr oder morgen ab neun Uhr abholen.",
+                  "question": "Wie viel kostet die Reparatur?",
+                  "answer": "48 Euro",
+                  "explain": "Richtig: 48 Euro.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h1-2.mp3"
+                },
+                {
+                  "id": "a2m1-h1-3",
+                  "transcript": "Hi Lukas, wir treffen uns nicht vor dem Kino, sondern direkt im Café gegenüber. Ich bin gegen Viertel nach sieben da.",
+                  "question": "Wo treffen sich die Personen?",
+                  "answer": "im Café gegenüber",
+                  "explain": "Richtig: im Café gegenüber.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h1-3.mp3"
+                },
+                {
+                  "id": "a2m1-h1-4",
+                  "transcript": "Guten Morgen, der Computerkurs beginnt erst nächste Woche. Der erste Termin ist am zwölften September in Raum zweihundertvier.",
+                  "question": "Wann beginnt der Kurs?",
+                  "answer": "am 12. September",
+                  "explain": "Richtig: am 12. September.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h1-4.mp3"
+                },
+                {
+                  "id": "a2m1-h1-5",
+                  "transcript": "Hier ist der Paketdienst. Wir konnten Sie nicht erreichen. Ihr Paket liegt ab morgen in der Postfiliale am Markt und bleibt dort sieben Tage.",
+                  "question": "Wo kann man das Paket abholen?",
+                  "answer": "in der Postfiliale",
+                  "explain": "Richtig: in der Postfiliale.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h1-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h2",
+              "title": "Teil 2 – Informationen im Radio",
+              "type": "audio-choice",
+              "plays": 1,
+              "instructions": "Sie hören fünf Informationen aus dem Radio. Kreuzen Sie an: a, b oder c. Sie hören jeden Text einmal.",
+              "items": [
+                {
+                  "id": "a2m1-h2-1",
+                  "transcript": "Und nun zum Wetter: Am Vormittag bleibt es trocken. Ab vierzehn Uhr gibt es starke Regenschauer, am Abend wird es wieder freundlicher.",
+                  "question": "Wann regnet es?",
+                  "options": [
+                    "am Vormittag",
+                    "am Nachmittag",
+                    "erst in der Nacht"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: am Nachmittag.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h2-1.mp3"
+                },
+                {
+                  "id": "a2m1-h2-2",
+                  "transcript": "Wegen einer technischen Störung fährt die U-Bahn-Linie drei heute nur bis Rathaus. Fahrgäste zum Hauptbahnhof nehmen bitte den Bus Nummer acht.",
+                  "question": "Wie kommt man zum Hauptbahnhof?",
+                  "options": [
+                    "mit der U-Bahn 3",
+                    "mit dem Bus 8",
+                    "mit der Straßenbahn 8"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: mit dem Bus 8.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h2-2.mp3"
+                },
+                {
+                  "id": "a2m1-h2-3",
+                  "transcript": "In unserer Mittagssendung sprechen wir heute über gesundes Essen im Büro. Danach können Hörerinnen und Hörer anrufen und Fragen stellen.",
+                  "question": "Worum geht es in der Sendung?",
+                  "options": [
+                    "Sport im Büro",
+                    "gesundes Essen",
+                    "neue Arbeitsplätze"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: gesundes Essen.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h2-3.mp3"
+                },
+                {
+                  "id": "a2m1-h2-4",
+                  "transcript": "Das Stadtmuseum lädt am Sonntag zum Familientag ein. Kinder bis zwölf Jahre zahlen keinen Eintritt. Erwachsene zahlen sechs Euro.",
+                  "question": "Wer hat freien Eintritt?",
+                  "options": [
+                    "alle Besucher",
+                    "Kinder bis zwölf",
+                    "Erwachsene ab sechzig"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Kinder bis zwölf.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h2-4.mp3"
+                },
+                {
+                  "id": "a2m1-h2-5",
+                  "transcript": "Achtung Autofahrer: Auf der A fünf zwischen Nordkreuz und Flughafen gibt es nach einem Unfall zehn Kilometer Stau. Bitte fahren Sie über die Bundesstraße.",
+                  "question": "Was wird empfohlen?",
+                  "options": [
+                    "über die Bundesstraße fahren",
+                    "am Flughafen warten",
+                    "die A fünf schneller fahren"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: über die Bundesstraße fahren.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h2-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h3",
+              "title": "Teil 3 – Gespräch zuordnen",
+              "type": "audio-choice",
+              "plays": 2,
+              "instructions": "Sie hören Gespräche zu einer gemeinsamen Planung. Ordnen Sie die Aufgaben zu. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m1-h3-1",
+                  "transcript": "Mara: Für das Sommerfest brauchen wir noch Hilfe. Jonas, kannst du die Getränke kaufen? Jonas: Ja, das mache ich nach der Arbeit.",
+                  "question": "Was übernimmt Jonas?",
+                  "options": [
+                    "Getränke kaufen",
+                    "Musik organisieren",
+                    "Tische aufstellen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Getränke kaufen.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h3-1.mp3"
+                },
+                {
+                  "id": "a2m1-h3-2",
+                  "transcript": "Mara: Lea, kümmerst du dich um die Musik? Lea: Gern, ich bringe meine Lautsprecher und eine Playlist mit.",
+                  "question": "Was übernimmt Lea?",
+                  "options": [
+                    "Salate machen",
+                    "Musik organisieren",
+                    "Einladungen schreiben"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Musik organisieren.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h3-2.mp3"
+                },
+                {
+                  "id": "a2m1-h3-3",
+                  "transcript": "Mara: Ben, wir brauchen noch sechs Tische. Ben: Ich frage den Nachbarn, er kann sie mit seinem Wagen bringen.",
+                  "question": "Was übernimmt Ben?",
+                  "options": [
+                    "Tische organisieren",
+                    "Kuchen backen",
+                    "Fotos machen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Tische organisieren.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h3-3.mp3"
+                },
+                {
+                  "id": "a2m1-h3-4",
+                  "transcript": "Mara: Sofia, könntest du zwei Salate machen? Sofia: Natürlich, einen Kartoffelsalat und einen grünen Salat.",
+                  "question": "Was übernimmt Sofia?",
+                  "options": [
+                    "Getränke kaufen",
+                    "Salate machen",
+                    "Gäste abholen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Salate machen.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h3-4.mp3"
+                },
+                {
+                  "id": "a2m1-h3-5",
+                  "transcript": "Mara: Und wer fotografiert? Amir: Ich nehme meine Kamera mit und schicke später allen die Bilder.",
+                  "question": "Was übernimmt Amir?",
+                  "options": [
+                    "Musik organisieren",
+                    "Fotos machen",
+                    "Tische bringen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Fotos machen.",
+                  "audio": "./web/audio/exam-a2/mt1/a2m1-h3-5.mp3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen",
+          "title": "Lesen",
+          "durationMin": 30,
+          "maxPoints": 15,
+          "instructions": "Lesen Sie Informationen, einen längeren Text und Anzeigen.",
+          "parts": [
+            {
+              "id": "l1",
+              "title": "Teil 1 – Informationen finden",
+              "type": "read-choice",
+              "instructions": "Lesen Sie die Aufgaben und die Information. Kreuzen Sie an: a, b oder c.",
+              "texts": [
+                {
+                  "id": "a2m1-l1-text",
+                  "label": "Information",
+                  "body": "BÜRGERHAUS WEST – Erdgeschoss: Anmeldung, Fundbüro, Café. 1. Stock: Sprachberatung, Computerkurse, Raum 101–108. 2. Stock: Musikschule, Familienberatung, Raum 201–206. Öffnungszeiten: Mo–Fr 8–18 Uhr, Samstag 9–13 Uhr."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m1-l1-1",
+                  "textRef": "a2m1-l1-text",
+                  "question": "Sie möchten sich für einen Kurs anmelden.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Erdgeschoss."
+                },
+                {
+                  "id": "a2m1-l1-2",
+                  "textRef": "a2m1-l1-text",
+                  "question": "Sie suchen die Sprachberatung.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: 1. Stock."
+                },
+                {
+                  "id": "a2m1-l1-3",
+                  "textRef": "a2m1-l1-text",
+                  "question": "Ihr Kind möchte Klavier lernen.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: 2. Stock."
+                },
+                {
+                  "id": "a2m1-l1-4",
+                  "textRef": "a2m1-l1-text",
+                  "question": "Sie haben Ihre Tasche verloren.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Erdgeschoss."
+                },
+                {
+                  "id": "a2m1-l1-5",
+                  "textRef": "a2m1-l1-text",
+                  "question": "Sie brauchen Hilfe bei einem Familienproblem.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: 2. Stock."
+                }
+              ]
+            },
+            {
+              "id": "l2",
+              "title": "Teil 2 – Text verstehen",
+              "type": "read-truefalse",
+              "instructions": "Lesen Sie den Text. Sind die Aussagen richtig oder falsch?",
+              "texts": [
+                {
+                  "id": "a2m1-l2-text",
+                  "label": "Artikel",
+                  "body": "Nachbarschaftsgarten am Park: Seit März bauen Bewohnerinnen und Bewohner gemeinsam Gemüse und Kräuter an. Wer mitmachen möchte, kommt samstags um zehn Uhr zum Gartentor. Werkzeug ist vorhanden, nur Handschuhe sollte man selbst mitbringen. Die Ernte wird unter allen Helfenden geteilt. Einmal im Monat gibt es außerdem ein gemeinsames Frühstück."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m1-l2-1",
+                  "textRef": "a2m1-l2-text",
+                  "statement": "Das Gartenprojekt gibt es seit März.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m1-l2-2",
+                  "textRef": "a2m1-l2-text",
+                  "statement": "Man arbeitet jeden Sonntag im Garten.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m1-l2-3",
+                  "textRef": "a2m1-l2-text",
+                  "statement": "Werkzeug muss jeder selbst kaufen.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m1-l2-4",
+                  "textRef": "a2m1-l2-text",
+                  "statement": "Die Helfenden teilen das Gemüse.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m1-l2-5",
+                  "textRef": "a2m1-l2-text",
+                  "statement": "Jeden Monat frühstückt die Gruppe zusammen.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                }
+              ]
+            },
+            {
+              "id": "l3",
+              "title": "Teil 3 – Anzeigen zuordnen",
+              "type": "read-match",
+              "instructions": "Welche Anzeige passt? Für eine Aufgabe kann auch x richtig sein.",
+              "ads": [
+                {
+                  "id": "a",
+                  "label": "a",
+                  "body": "Kochstudio Löffel: schnelle Gerichte für Berufstätige, dienstags 19 Uhr."
+                },
+                {
+                  "id": "b",
+                  "label": "b",
+                  "body": "RadFit: Fahrradwerkstatt und Reparaturkurs am Samstag."
+                },
+                {
+                  "id": "c",
+                  "label": "c",
+                  "body": "City-Sprachen: Deutsch am Abend, Niveau A2, kleine Gruppen."
+                },
+                {
+                  "id": "d",
+                  "label": "d",
+                  "body": "Tierfreunde: Ehrenamtliche Hilfe im Tierheim gesucht."
+                },
+                {
+                  "id": "e",
+                  "label": "e",
+                  "body": "Tanzraum: Salsa für Anfänger, freitags ab 20 Uhr."
+                },
+                {
+                  "id": "f",
+                  "label": "f",
+                  "body": "Computerhilfe zu Hause – Einrichtung, Internet und Drucker."
+                },
+                {
+                  "id": "g",
+                  "label": "g",
+                  "body": "Familienausflug mit dem Schiff, Sonntag 10 Uhr."
+                },
+                {
+                  "id": "h",
+                  "label": "h",
+                  "body": "Wohnungsbörse: Zimmer und Wohnungen in der Region."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m1-l3-1",
+                  "situation": "Sie arbeiten tagsüber und suchen einen Deutschkurs.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 2,
+                  "explain": "Anzeige c passt."
+                },
+                {
+                  "id": "a2m1-l3-2",
+                  "situation": "Ihr Drucker funktioniert nicht.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 5,
+                  "explain": "Anzeige f passt."
+                },
+                {
+                  "id": "a2m1-l3-3",
+                  "situation": "Sie möchten lernen, Ihr Fahrrad selbst zu reparieren.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 1,
+                  "explain": "Anzeige b passt."
+                },
+                {
+                  "id": "a2m1-l3-4",
+                  "situation": "Sie möchten am Wochenende etwas mit Kindern unternehmen.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 6,
+                  "explain": "Anzeige g passt."
+                },
+                {
+                  "id": "a2m1-l3-5",
+                  "situation": "Sie suchen eine kleine Wohnung.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 7,
+                  "explain": "Anzeige h passt."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben",
+          "title": "Schreiben",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1",
+              "title": "Teil 1 – Formular",
+              "type": "form-fill",
+              "instructions": "Ihr Bekannter Karim Mansour möchte Mitglied im Sportverein Aktiv werden. Er wurde am 14. Mai 1994 in Alexandria geboren, wohnt in der Lindenstraße 8 in Bremen und spielt gern Volleyball.",
+              "fields": [
+                {
+                  "id": "a2m1-f-1",
+                  "label": "Familienname",
+                  "expected": "Mansour"
+                },
+                {
+                  "id": "a2m1-f-2",
+                  "label": "Vorname",
+                  "expected": "Karim"
+                },
+                {
+                  "id": "a2m1-f-3",
+                  "label": "Geburtsdatum",
+                  "expected": "14.05.1994"
+                },
+                {
+                  "id": "a2m1-f-4",
+                  "label": "Wohnort",
+                  "expected": "Bremen"
+                },
+                {
+                  "id": "a2m1-f-5",
+                  "label": "Sportart",
+                  "expected": "Volleyball"
+                }
+              ]
+            },
+            {
+              "id": "s2",
+              "title": "Teil 2 – Brief oder E-Mail",
+              "type": "free-write",
+              "instructions": "Ihre Freundin Nina feiert am Samstag Geburtstag und hat Sie eingeladen. Antworten Sie ihr. Wählen Sie drei der vier Punkte und schreiben Sie etwa 40 Wörter.",
+              "minWords": 40,
+              "leitpunkte": [
+                "für die Einladung danken",
+                "sagen, ob Sie kommen",
+                "nach einem Geschenk fragen",
+                "jemanden mitbringen"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 10,
+                "criteria": [
+                  "Drei Inhaltspunkte verständlich bearbeitet",
+                  "Passende Anrede und Schluss",
+                  "Zusammenhängender Text",
+                  "Etwa 40 Wörter"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "sprechen",
+          "title": "Sprechen",
+          "durationMin": 15,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Sprechen Sie mit der Prüferin und Ihrer virtuellen Prüfungspartnerin. Es gibt keine Vorbereitungszeit.",
+          "parts": [
+            {
+              "id": "sp1",
+              "title": "Teil 1 – Sich vorstellen",
+              "type": "speak-intro",
+              "instructions": "Stellen Sie sich vor und beantworten Sie eine Nachfrage.",
+              "prompts": [
+                "Name",
+                "Herkunft und Wohnort",
+                "Familie",
+                "Beruf oder Ausbildung",
+                "Sprachen",
+                "Freizeit"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 3,
+                "criteria": [
+                  "Zusammenhängende Vorstellung",
+                  "Verständliche Aussprache",
+                  "Passende Antwort auf Nachfrage"
+                ]
+              }
+            },
+            {
+              "id": "sp2",
+              "title": "Teil 2 – Ein Alltagsgespräch führen",
+              "type": "speak-cards",
+              "instructions": "Thema „Freizeit planen“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.",
+              "cards": [
+                {
+                  "id": "sp2-1",
+                  "keyword": "Wann haben Sie Zeit?",
+                  "example": "Können wir über „Wann haben Sie Zeit?“ sprechen?"
+                },
+                {
+                  "id": "sp2-2",
+                  "keyword": "Was möchten Sie machen?",
+                  "example": "Können wir über „Was möchten Sie machen?“ sprechen?"
+                },
+                {
+                  "id": "sp2-3",
+                  "keyword": "Wo treffen wir uns?",
+                  "example": "Können wir über „Wo treffen wir uns?“ sprechen?"
+                },
+                {
+                  "id": "sp2-4",
+                  "keyword": "Wie kommen wir dorthin?",
+                  "example": "Können wir über „Wie kommen wir dorthin?“ sprechen?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Passende Fragen",
+                  "Angemessene Antworten",
+                  "Verständlichkeit",
+                  "Interaktion"
+                ]
+              }
+            },
+            {
+              "id": "sp3",
+              "title": "Teil 3 – Etwas aushandeln",
+              "type": "speak-cards",
+              "instructions": "Planen Sie gemeinsam: Freizeit planen. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.",
+              "cards": [
+                {
+                  "id": "sp3-1",
+                  "keyword": "Wann haben Sie Zeit?",
+                  "example": "Ich schlage vor: Wann haben Sie Zeit?"
+                },
+                {
+                  "id": "sp3-2",
+                  "keyword": "Was möchten Sie machen?",
+                  "example": "Ich schlage vor: Was möchten Sie machen?"
+                },
+                {
+                  "id": "sp3-3",
+                  "keyword": "Wo treffen wir uns?",
+                  "example": "Ich schlage vor: Wo treffen wir uns?"
+                },
+                {
+                  "id": "sp3-4",
+                  "keyword": "Wie kommen wir dorthin?",
+                  "example": "Ich schlage vor: Wie kommen wir dorthin?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Vorschläge machen",
+                  "Zustimmen oder widersprechen",
+                  "Begründung geben",
+                  "Gemeinsame Entscheidung"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mt2",
+      "title": "Modelltest 2 – Wohnen und Nachbarschaft",
+      "sections": [
+        {
+          "id": "hoeren",
+          "title": "Hören",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "instructions": "Sie hören 15 Aufgaben in drei Teilen.",
+          "parts": [
+            {
+              "id": "h1",
+              "title": "Teil 1 – Telefonnotizen",
+              "type": "audio-fill",
+              "plays": 2,
+              "instructions": "Sie hören fünf Mitteilungen. Ergänzen Sie die Information. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m2-h1-1",
+                  "transcript": "Hallo Frau Berger, der Hausmeister kommt morgen zwischen zehn und zwölf Uhr wegen Ihrer Heizung. Bitte stellen Sie sicher, dass jemand zu Hause ist.",
+                  "question": "Wann kommt der Hausmeister?",
+                  "answer": "morgen 10–12 Uhr",
+                  "explain": "Richtig: morgen 10–12 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h1-1.mp3"
+                },
+                {
+                  "id": "a2m2-h1-2",
+                  "transcript": "Guten Tag, Sie interessieren sich für die Wohnung in der Gartenstraße. Die Besichtigung ist am Freitag um siebzehn Uhr. Treffen ist vor Haus Nummer neun.",
+                  "question": "Wo ist der Treffpunkt?",
+                  "answer": "vor Haus 9",
+                  "explain": "Richtig: vor Haus 9.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h1-2.mp3"
+                },
+                {
+                  "id": "a2m2-h1-3",
+                  "transcript": "Hallo David, ich leihe dir gern meine Bohrmaschine. Hol sie bitte heute Abend bei mir im dritten Stock ab.",
+                  "question": "Was kann David ausleihen?",
+                  "answer": "eine Bohrmaschine",
+                  "explain": "Richtig: eine Bohrmaschine.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h1-3.mp3"
+                },
+                {
+                  "id": "a2m2-h1-4",
+                  "transcript": "Hier ist Möbelhaus Kern. Ihr Schrank wird nicht am Montag, sondern am Dienstagvormittag geliefert. Die Montage dauert ungefähr eine Stunde.",
+                  "question": "Wann kommt der Schrank?",
+                  "answer": "Dienstagvormittag",
+                  "explain": "Richtig: Dienstagvormittag.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h1-4.mp3"
+                },
+                {
+                  "id": "a2m2-h1-5",
+                  "transcript": "Liebe Mieter, wegen Arbeiten am Wasserrohr gibt es am Donnerstag von acht bis elf Uhr kein warmes Wasser.",
+                  "question": "Was gibt es am Donnerstag nicht?",
+                  "answer": "warmes Wasser",
+                  "explain": "Richtig: warmes Wasser.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h1-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h2",
+              "title": "Teil 2 – Informationen im Radio",
+              "type": "audio-choice",
+              "plays": 1,
+              "instructions": "Sie hören fünf Informationen aus dem Radio. Kreuzen Sie an: a, b oder c. Sie hören jeden Text einmal.",
+              "items": [
+                {
+                  "id": "a2m2-h2-1",
+                  "transcript": "Die Stadt eröffnet heute einen neuen Wertstoffhof im Norden. Geöffnet ist montags bis samstags von acht bis siebzehn Uhr.",
+                  "question": "Wann ist der Wertstoffhof geöffnet?",
+                  "options": [
+                    "nur am Wochenende",
+                    "Montag bis Samstag",
+                    "jeden Tag"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Montag bis Samstag.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h2-1.mp3"
+                },
+                {
+                  "id": "a2m2-h2-2",
+                  "transcript": "Wegen des Straßenfests dürfen Autos morgen nicht in der Rosenstraße parken. Bitte nutzen Sie das Parkhaus am Bahnhof.",
+                  "question": "Wo soll man parken?",
+                  "options": [
+                    "in der Rosenstraße",
+                    "am Rathaus",
+                    "im Parkhaus am Bahnhof"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: im Parkhaus am Bahnhof.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h2-2.mp3"
+                },
+                {
+                  "id": "a2m2-h2-3",
+                  "transcript": "Unsere heutige Sendung zeigt, wie man im Haushalt Energie spart. Experten erklären, welche Geräte besonders viel Strom brauchen.",
+                  "question": "Was ist das Thema?",
+                  "options": [
+                    "Energie sparen",
+                    "neue Haushaltsgeräte kaufen",
+                    "Wohnungen mieten"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Energie sparen.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h2-3.mp3"
+                },
+                {
+                  "id": "a2m2-h2-4",
+                  "transcript": "Im Stadtteilzentrum findet am Mittwoch ein kostenloser Tauschabend statt. Bringen Sie Kleidung mit, die Sie nicht mehr tragen.",
+                  "question": "Was wird getauscht?",
+                  "options": [
+                    "Bücher",
+                    "Kleidung",
+                    "Möbel"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Kleidung.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h2-4.mp3"
+                },
+                {
+                  "id": "a2m2-h2-5",
+                  "transcript": "Die Müllabfuhr kommt wegen des Feiertags einen Tag später. Stellen Sie die Tonnen bitte erst am Donnerstagabend heraus.",
+                  "question": "Wann sollen die Tonnen heraus?",
+                  "options": [
+                    "Mittwochabend",
+                    "Donnerstagabend",
+                    "Freitagmorgen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Donnerstagabend.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h2-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h3",
+              "title": "Teil 3 – Gespräch zuordnen",
+              "type": "audio-choice",
+              "plays": 2,
+              "instructions": "Sie hören Gespräche zu einer gemeinsamen Planung. Ordnen Sie die Aufgaben zu. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m2-h3-1",
+                  "transcript": "Eva: Beim Umzug brauchen wir Aufgaben. Tom, kannst du den Transporter fahren? Tom: Ja, ich hole ihn morgens ab.",
+                  "question": "Was macht Tom?",
+                  "options": [
+                    "Kartons packen",
+                    "Transporter fahren",
+                    "Essen kochen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Transporter fahren.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h3-1.mp3"
+                },
+                {
+                  "id": "a2m2-h3-2",
+                  "transcript": "Eva: Leni, packst du bitte die Bücher ein? Leni: Klar, ich bringe auch stabile Kartons mit.",
+                  "question": "Was macht Leni?",
+                  "options": [
+                    "Bücher einpacken",
+                    "Möbel tragen",
+                    "Fenster putzen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Bücher einpacken.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h3-2.mp3"
+                },
+                {
+                  "id": "a2m2-h3-3",
+                  "transcript": "Eva: Paul, kannst du die Lampen abmontieren? Paul: Ja, ich bringe Werkzeug mit.",
+                  "question": "Was macht Paul?",
+                  "options": [
+                    "Lampen abmontieren",
+                    "Transporter fahren",
+                    "Adresse ändern"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Lampen abmontieren.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h3-3.mp3"
+                },
+                {
+                  "id": "a2m2-h3-4",
+                  "transcript": "Eva: Sara, könntest du für alle etwas kochen? Sara: Ich mache eine große Suppe.",
+                  "question": "Was macht Sara?",
+                  "options": [
+                    "Kartons kaufen",
+                    "Essen vorbereiten",
+                    "Wohnung streichen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Essen vorbereiten.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h3-4.mp3"
+                },
+                {
+                  "id": "a2m2-h3-5",
+                  "transcript": "Eva: Ali, wir müssen noch die alte Wohnung reinigen. Ali: Ich komme am Sonntag mit Putzmitteln.",
+                  "question": "Was macht Ali?",
+                  "options": [
+                    "alte Wohnung reinigen",
+                    "Möbel verkaufen",
+                    "Schlüssel abholen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: alte Wohnung reinigen.",
+                  "audio": "./web/audio/exam-a2/mt2/a2m2-h3-5.mp3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen",
+          "title": "Lesen",
+          "durationMin": 30,
+          "maxPoints": 15,
+          "instructions": "Lesen Sie Informationen, einen längeren Text und Anzeigen.",
+          "parts": [
+            {
+              "id": "l1",
+              "title": "Teil 1 – Informationen finden",
+              "type": "read-choice",
+              "instructions": "Lesen Sie die Aufgaben und die Information. Kreuzen Sie an: a, b oder c.",
+              "texts": [
+                {
+                  "id": "a2m2-l1-text",
+                  "label": "Information",
+                  "body": "WOHNSERVICE MITTE – Schalter A: Mietverträge und Kündigungen. Schalter B: Reparaturen und Schäden. Schalter C: Schlüssel und Hausordnung. Beratung ohne Termin: Dienstag und Donnerstag 9–12 Uhr. Telefonisch: Mo–Fr 8–16 Uhr."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m2-l1-1",
+                  "textRef": "a2m2-l1-text",
+                  "question": "Ihr Fenster ist kaputt.",
+                  "options": [
+                    "Schalter A",
+                    "Schalter B",
+                    "Schalter C"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Schalter B."
+                },
+                {
+                  "id": "a2m2-l1-2",
+                  "textRef": "a2m2-l1-text",
+                  "question": "Sie möchten Ihre Wohnung kündigen.",
+                  "options": [
+                    "Schalter A",
+                    "Schalter B",
+                    "Schalter C"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Schalter A."
+                },
+                {
+                  "id": "a2m2-l1-3",
+                  "textRef": "a2m2-l1-text",
+                  "question": "Sie haben den Hausschlüssel verloren.",
+                  "options": [
+                    "Schalter A",
+                    "Schalter B",
+                    "Schalter C"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: Schalter C."
+                },
+                {
+                  "id": "a2m2-l1-4",
+                  "textRef": "a2m2-l1-text",
+                  "question": "Sie haben eine Frage zur Hausordnung.",
+                  "options": [
+                    "Schalter A",
+                    "Schalter B",
+                    "Schalter C"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: Schalter C."
+                },
+                {
+                  "id": "a2m2-l1-5",
+                  "textRef": "a2m2-l1-text",
+                  "question": "Sie möchten einen Mietvertrag unterschreiben.",
+                  "options": [
+                    "Schalter A",
+                    "Schalter B",
+                    "Schalter C"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Schalter A."
+                }
+              ]
+            },
+            {
+              "id": "l2",
+              "title": "Teil 2 – Text verstehen",
+              "type": "read-truefalse",
+              "instructions": "Lesen Sie den Text. Sind die Aussagen richtig oder falsch?",
+              "texts": [
+                {
+                  "id": "a2m2-l2-text",
+                  "label": "Artikel",
+                  "body": "In unserem Haus gibt es seit einem Jahr eine Nachbarschaftshilfe. Ältere Bewohner bekommen Unterstützung beim Einkaufen, junge Familien können Werkzeuge oder Kinderkleidung ausleihen. Die Hilfe kostet nichts. Wer etwas anbieten oder suchen möchte, schreibt eine Nachricht auf die Tafel im Eingangsbereich. Jeden ersten Montag im Monat trifft sich die Gruppe im Hof."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m2-l2-1",
+                  "textRef": "a2m2-l2-text",
+                  "statement": "Die Nachbarschaftshilfe besteht seit einem Jahr.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m2-l2-2",
+                  "textRef": "a2m2-l2-text",
+                  "statement": "Nur ältere Menschen dürfen teilnehmen.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m2-l2-3",
+                  "textRef": "a2m2-l2-text",
+                  "statement": "Das Angebot ist kostenlos.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m2-l2-4",
+                  "textRef": "a2m2-l2-text",
+                  "statement": "Nachrichten stehen im Keller.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m2-l2-5",
+                  "textRef": "a2m2-l2-text",
+                  "statement": "Die Gruppe trifft sich monatlich.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                }
+              ]
+            },
+            {
+              "id": "l3",
+              "title": "Teil 3 – Anzeigen zuordnen",
+              "type": "read-match",
+              "instructions": "Welche Anzeige passt? Für eine Aufgabe kann auch x richtig sein.",
+              "ads": [
+                {
+                  "id": "a",
+                  "label": "a",
+                  "body": "Helle Zwei-Zimmer-Wohnung, Balkon, Nähe Zentrum, 780 Euro warm."
+                },
+                {
+                  "id": "b",
+                  "label": "b",
+                  "body": "Malerbetrieb Bunt – Zimmer streichen, schnell und sauber."
+                },
+                {
+                  "id": "c",
+                  "label": "c",
+                  "body": "Umzugshelfer am Wochenende, auch mit Transporter."
+                },
+                {
+                  "id": "d",
+                  "label": "d",
+                  "body": "Gartenmöbel günstig abzugeben, nur Selbstabholung."
+                },
+                {
+                  "id": "e",
+                  "label": "e",
+                  "body": "Reinigungskraft sucht Arbeit in Privathaushalten."
+                },
+                {
+                  "id": "f",
+                  "label": "f",
+                  "body": "Mieterverein: Beratung zu Vertrag, Miete und Nebenkosten."
+                },
+                {
+                  "id": "g",
+                  "label": "g",
+                  "body": "WG-Zimmer für Studierende, 350 Euro, Internet inklusive."
+                },
+                {
+                  "id": "h",
+                  "label": "h",
+                  "body": "Schlüsseldienst Tag und Nacht, in 30 Minuten vor Ort."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m2-l3-1",
+                  "situation": "Sie haben sich ausgesperrt.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 7,
+                  "explain": "Anzeige h passt."
+                },
+                {
+                  "id": "a2m2-l3-2",
+                  "situation": "Sie möchten ein Zimmer in Ihrer Wohnung neu anstreichen lassen.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 1,
+                  "explain": "Anzeige b passt."
+                },
+                {
+                  "id": "a2m2-l3-3",
+                  "situation": "Sie studieren und suchen ein günstiges Zimmer.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 6,
+                  "explain": "Anzeige g passt."
+                },
+                {
+                  "id": "a2m2-l3-4",
+                  "situation": "Sie verstehen Ihre Nebenkostenabrechnung nicht.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 5,
+                  "explain": "Anzeige f passt."
+                },
+                {
+                  "id": "a2m2-l3-5",
+                  "situation": "Sie brauchen Hilfe beim Wohnungswechsel.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 2,
+                  "explain": "Anzeige c passt."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben",
+          "title": "Schreiben",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1",
+              "title": "Teil 1 – Formular",
+              "type": "form-fill",
+              "instructions": "Ihre Freundin Marta Nowak sucht eine neue Wohnung. Sie wurde am 3. Februar 1988 geboren, arbeitet als Köchin, wohnt aktuell in der Parkstraße 21 in Essen und möchte eine Zwei-Zimmer-Wohnung.",
+              "fields": [
+                {
+                  "id": "a2m2-f-1",
+                  "label": "Familienname",
+                  "expected": "Nowak"
+                },
+                {
+                  "id": "a2m2-f-2",
+                  "label": "Vorname",
+                  "expected": "Marta"
+                },
+                {
+                  "id": "a2m2-f-3",
+                  "label": "Geburtsdatum",
+                  "expected": "03.02.1988"
+                },
+                {
+                  "id": "a2m2-f-4",
+                  "label": "Beruf",
+                  "expected": "Köchin"
+                },
+                {
+                  "id": "a2m2-f-5",
+                  "label": "Zimmerzahl",
+                  "expected": "2"
+                }
+              ]
+            },
+            {
+              "id": "s2",
+              "title": "Teil 2 – Brief oder E-Mail",
+              "type": "free-write",
+              "instructions": "In Ihrer Wohnung funktioniert die Heizung nicht. Schreiben Sie an die Hausverwaltung. Wählen Sie drei der vier Punkte und schreiben Sie etwa 40 Wörter.",
+              "minWords": 40,
+              "leitpunkte": [
+                "Problem beschreiben",
+                "seit wann",
+                "um Reparatur bitten",
+                "möglicher Termin"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 10,
+                "criteria": [
+                  "Drei Inhaltspunkte verständlich bearbeitet",
+                  "Passende Anrede und Schluss",
+                  "Zusammenhängender Text",
+                  "Etwa 40 Wörter"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "sprechen",
+          "title": "Sprechen",
+          "durationMin": 15,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Sprechen Sie mit der Prüferin und Ihrer virtuellen Prüfungspartnerin. Es gibt keine Vorbereitungszeit.",
+          "parts": [
+            {
+              "id": "sp1",
+              "title": "Teil 1 – Sich vorstellen",
+              "type": "speak-intro",
+              "instructions": "Stellen Sie sich vor und beantworten Sie eine Nachfrage.",
+              "prompts": [
+                "Name",
+                "Herkunft und Wohnort",
+                "Familie",
+                "Beruf oder Ausbildung",
+                "Sprachen",
+                "Freizeit"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 3,
+                "criteria": [
+                  "Zusammenhängende Vorstellung",
+                  "Verständliche Aussprache",
+                  "Passende Antwort auf Nachfrage"
+                ]
+              }
+            },
+            {
+              "id": "sp2",
+              "title": "Teil 2 – Ein Alltagsgespräch führen",
+              "type": "speak-cards",
+              "instructions": "Thema „Eine Wohnung gemeinsam einrichten“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.",
+              "cards": [
+                {
+                  "id": "sp2-1",
+                  "keyword": "Welches Zimmer zuerst?",
+                  "example": "Können wir über „Welches Zimmer zuerst?“ sprechen?"
+                },
+                {
+                  "id": "sp2-2",
+                  "keyword": "Welche Möbel brauchen wir?",
+                  "example": "Können wir über „Welche Möbel brauchen wir?“ sprechen?"
+                },
+                {
+                  "id": "sp2-3",
+                  "keyword": "Wo kaufen wir ein?",
+                  "example": "Können wir über „Wo kaufen wir ein?“ sprechen?"
+                },
+                {
+                  "id": "sp2-4",
+                  "keyword": "Wie viel darf es kosten?",
+                  "example": "Können wir über „Wie viel darf es kosten?“ sprechen?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Passende Fragen",
+                  "Angemessene Antworten",
+                  "Verständlichkeit",
+                  "Interaktion"
+                ]
+              }
+            },
+            {
+              "id": "sp3",
+              "title": "Teil 3 – Etwas aushandeln",
+              "type": "speak-cards",
+              "instructions": "Planen Sie gemeinsam: Eine Wohnung gemeinsam einrichten. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.",
+              "cards": [
+                {
+                  "id": "sp3-1",
+                  "keyword": "Welches Zimmer zuerst?",
+                  "example": "Ich schlage vor: Welches Zimmer zuerst?"
+                },
+                {
+                  "id": "sp3-2",
+                  "keyword": "Welche Möbel brauchen wir?",
+                  "example": "Ich schlage vor: Welche Möbel brauchen wir?"
+                },
+                {
+                  "id": "sp3-3",
+                  "keyword": "Wo kaufen wir ein?",
+                  "example": "Ich schlage vor: Wo kaufen wir ein?"
+                },
+                {
+                  "id": "sp3-4",
+                  "keyword": "Wie viel darf es kosten?",
+                  "example": "Ich schlage vor: Wie viel darf es kosten?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Vorschläge machen",
+                  "Zustimmen oder widersprechen",
+                  "Begründung geben",
+                  "Gemeinsame Entscheidung"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mt3",
+      "title": "Modelltest 3 – Arbeit und Lernen",
+      "sections": [
+        {
+          "id": "hoeren",
+          "title": "Hören",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "instructions": "Sie hören 15 Aufgaben in drei Teilen.",
+          "parts": [
+            {
+              "id": "h1",
+              "title": "Teil 1 – Telefonnotizen",
+              "type": "audio-fill",
+              "plays": 2,
+              "instructions": "Sie hören fünf Mitteilungen. Ergänzen Sie die Information. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m3-h1-1",
+                  "transcript": "Guten Morgen Herr Lee, Ihr Vorstellungsgespräch ist am Montag um neun Uhr dreißig im Büro von Frau Stein, Zimmer vierzehn.",
+                  "question": "Wann ist das Gespräch?",
+                  "answer": "Montag 9:30 Uhr",
+                  "explain": "Richtig: Montag 9:30 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h1-1.mp3"
+                },
+                {
+                  "id": "a2m3-h1-2",
+                  "transcript": "Hallo Jana, ich übernehme morgen deine Frühschicht. Kannst du dafür am Freitag von vierzehn bis zwanzig Uhr arbeiten?",
+                  "question": "Wann soll Jana arbeiten?",
+                  "answer": "Freitag 14–20 Uhr",
+                  "explain": "Richtig: Freitag 14–20 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h1-2.mp3"
+                },
+                {
+                  "id": "a2m3-h1-3",
+                  "transcript": "Hier ist die Volkshochschule. Der Excelkurs findet ab nächster Woche nicht in Raum drei, sondern im Computerraum sieben statt.",
+                  "question": "Wo findet der Kurs statt?",
+                  "answer": "Raum 7",
+                  "explain": "Richtig: Raum 7.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h1-3.mp3"
+                },
+                {
+                  "id": "a2m3-h1-4",
+                  "transcript": "Guten Tag, Ihre Bewerbung ist angekommen. Bitte senden Sie uns noch bis Donnerstag eine Kopie Ihres Abschlusszeugnisses.",
+                  "question": "Was fehlt noch?",
+                  "answer": "eine Zeugniskopie",
+                  "explain": "Richtig: eine Zeugniskopie.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h1-4.mp3"
+                },
+                {
+                  "id": "a2m3-h1-5",
+                  "transcript": "Hallo Mehmet, die Teamsitzung beginnt heute eine halbe Stunde später, also erst um elf Uhr.",
+                  "question": "Wann beginnt die Sitzung?",
+                  "answer": "11:00 Uhr",
+                  "explain": "Richtig: 11:00 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h1-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h2",
+              "title": "Teil 2 – Informationen im Radio",
+              "type": "audio-choice",
+              "plays": 1,
+              "instructions": "Sie hören fünf Informationen aus dem Radio. Kreuzen Sie an: a, b oder c. Sie hören jeden Text einmal.",
+              "items": [
+                {
+                  "id": "a2m3-h2-1",
+                  "transcript": "Die Bibliothek bietet ab Oktober längere Öffnungszeiten. Unter der Woche können Studierende bis zweiundzwanzig Uhr lernen.",
+                  "question": "Was ändert sich?",
+                  "options": [
+                    "Die Bibliothek öffnet später.",
+                    "Sie schließt später.",
+                    "Sie bleibt sonntags geschlossen."
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Sie schließt später..",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h2-1.mp3"
+                },
+                {
+                  "id": "a2m3-h2-2",
+                  "transcript": "Heute fällt der Kurs Deutsch im Beruf wegen Krankheit aus. Der nächste Unterricht ist regulär am Donnerstag.",
+                  "question": "Wann ist der nächste Unterricht?",
+                  "options": [
+                    "heute",
+                    "am Mittwoch",
+                    "am Donnerstag"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: am Donnerstag.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h2-2.mp3"
+                },
+                {
+                  "id": "a2m3-h2-3",
+                  "transcript": "Bei der Ausbildungsmesse am Samstag stellen dreißig Betriebe ihre Berufe vor. Der Eintritt ist frei.",
+                  "question": "Was kostet der Eintritt?",
+                  "options": [
+                    "nichts",
+                    "fünf Euro",
+                    "dreißig Euro"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: nichts.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h2-3.mp3"
+                },
+                {
+                  "id": "a2m3-h2-4",
+                  "transcript": "Unsere Radioserie erklärt diese Woche, wie man Konflikte am Arbeitsplatz ruhig und fair löst.",
+                  "question": "Worum geht es?",
+                  "options": [
+                    "neue Arbeitsverträge",
+                    "Konflikte bei der Arbeit",
+                    "Arbeit im Ausland"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Konflikte bei der Arbeit.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h2-4.mp3"
+                },
+                {
+                  "id": "a2m3-h2-5",
+                  "transcript": "Das Jobcenter ist heute wegen einer Fortbildung nur telefonisch erreichbar. Persönliche Termine finden nicht statt.",
+                  "question": "Wie erreicht man das Jobcenter heute?",
+                  "options": [
+                    "persönlich",
+                    "nur telefonisch",
+                    "gar nicht"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: nur telefonisch.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h2-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h3",
+              "title": "Teil 3 – Gespräch zuordnen",
+              "type": "audio-choice",
+              "plays": 2,
+              "instructions": "Sie hören Gespräche zu einer gemeinsamen Planung. Ordnen Sie die Aufgaben zu. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m3-h3-1",
+                  "transcript": "Chef: Für die Präsentation brauchen wir Hilfe. Lina, bereitest du die Folien vor? Lina: Ja, bis Mittwoch sind sie fertig.",
+                  "question": "Was macht Lina?",
+                  "options": [
+                    "Folien vorbereiten",
+                    "Raum reservieren",
+                    "Kunden anrufen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Folien vorbereiten.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h3-1.mp3"
+                },
+                {
+                  "id": "a2m3-h3-2",
+                  "transcript": "Chef: Ben, reservierst du bitte den großen Besprechungsraum? Ben: Ich kümmere mich sofort darum.",
+                  "question": "Was macht Ben?",
+                  "options": [
+                    "Kaffee bestellen",
+                    "Raum reservieren",
+                    "Folien drucken"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Raum reservieren.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h3-2.mp3"
+                },
+                {
+                  "id": "a2m3-h3-3",
+                  "transcript": "Chef: Aylin, kannst du die Kundinnen und Kunden einladen? Aylin: Ja, ich schicke heute die E-Mails.",
+                  "question": "Was macht Aylin?",
+                  "options": [
+                    "Einladungen senden",
+                    "Technik prüfen",
+                    "Protokoll schreiben"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Einladungen senden.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h3-3.mp3"
+                },
+                {
+                  "id": "a2m3-h3-4",
+                  "transcript": "Chef: Noah, prüfst du Beamer und Mikrofon? Noah: Natürlich, morgen früh.",
+                  "question": "Was macht Noah?",
+                  "options": [
+                    "Raum reservieren",
+                    "Technik prüfen",
+                    "Gäste empfangen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Technik prüfen.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h3-4.mp3"
+                },
+                {
+                  "id": "a2m3-h3-5",
+                  "transcript": "Chef: Mia, schreibst du während des Treffens das Protokoll? Mia: Ja, danach verteile ich es an alle.",
+                  "question": "Was macht Mia?",
+                  "options": [
+                    "Protokoll schreiben",
+                    "Folien vorbereiten",
+                    "Kunden anrufen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Protokoll schreiben.",
+                  "audio": "./web/audio/exam-a2/mt3/a2m3-h3-5.mp3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen",
+          "title": "Lesen",
+          "durationMin": 30,
+          "maxPoints": 15,
+          "instructions": "Lesen Sie Informationen, einen längeren Text und Anzeigen.",
+          "parts": [
+            {
+              "id": "l1",
+              "title": "Teil 1 – Informationen finden",
+              "type": "read-choice",
+              "instructions": "Lesen Sie die Aufgaben und die Information. Kreuzen Sie an: a, b oder c.",
+              "texts": [
+                {
+                  "id": "a2m3-l1-text",
+                  "label": "Information",
+                  "body": "BILDUNGSZENTRUM – Büro 01: Anmeldung und Bezahlung. Raum 12: Sprachkurse. Raum 18: Bewerbungstraining. Computerraum 21: EDV-Kurse. Lernberatung: Mittwoch 14–18 Uhr in Büro 05."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m3-l1-1",
+                  "textRef": "a2m3-l1-text",
+                  "question": "Sie möchten Ihren Kurs bezahlen.",
+                  "options": [
+                    "Büro 01",
+                    "Raum 18",
+                    "Büro 05"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Büro 01."
+                },
+                {
+                  "id": "a2m3-l1-2",
+                  "textRef": "a2m3-l1-text",
+                  "question": "Sie brauchen Hilfe mit einer Bewerbung.",
+                  "options": [
+                    "Raum 12",
+                    "Raum 18",
+                    "Raum 21"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Raum 18."
+                },
+                {
+                  "id": "a2m3-l1-3",
+                  "textRef": "a2m3-l1-text",
+                  "question": "Sie lernen den Umgang mit Tabellenprogrammen.",
+                  "options": [
+                    "Raum 12",
+                    "Raum 18",
+                    "Raum 21"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: Raum 21."
+                },
+                {
+                  "id": "a2m3-l1-4",
+                  "textRef": "a2m3-l1-text",
+                  "question": "Sie möchten sich zum Lernen beraten lassen.",
+                  "options": [
+                    "Büro 01",
+                    "Büro 05",
+                    "Raum 12"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Büro 05."
+                },
+                {
+                  "id": "a2m3-l1-5",
+                  "textRef": "a2m3-l1-text",
+                  "question": "Sie besuchen einen Deutschkurs.",
+                  "options": [
+                    "Raum 12",
+                    "Raum 18",
+                    "Raum 21"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Raum 12."
+                }
+              ]
+            },
+            {
+              "id": "l2",
+              "title": "Teil 2 – Text verstehen",
+              "type": "read-truefalse",
+              "instructions": "Lesen Sie den Text. Sind die Aussagen richtig oder falsch?",
+              "texts": [
+                {
+                  "id": "a2m3-l2-text",
+                  "label": "Artikel",
+                  "body": "Die Firma Nordlicht testet seit sechs Monaten einen flexiblen Arbeitstag. Beschäftigte können zwischen sieben und zehn Uhr beginnen. Die tägliche Arbeitszeit bleibt gleich. Viele Mitarbeitende fahren nun außerhalb der Hauptverkehrszeit und sind zufriedener. Besprechungen finden jedoch weiterhin zwischen zehn und fünfzehn Uhr statt, damit alle teilnehmen können."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m3-l2-1",
+                  "textRef": "a2m3-l2-text",
+                  "statement": "Das Modell läuft seit einem halben Jahr.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m3-l2-2",
+                  "textRef": "a2m3-l2-text",
+                  "statement": "Alle müssen um sieben Uhr beginnen.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m3-l2-3",
+                  "textRef": "a2m3-l2-text",
+                  "statement": "Die Arbeitszeit pro Tag wurde kürzer.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m3-l2-4",
+                  "textRef": "a2m3-l2-text",
+                  "statement": "Viele vermeiden den Berufsverkehr.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m3-l2-5",
+                  "textRef": "a2m3-l2-text",
+                  "statement": "Besprechungen können jederzeit stattfinden.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                }
+              ]
+            },
+            {
+              "id": "l3",
+              "title": "Teil 3 – Anzeigen zuordnen",
+              "type": "read-match",
+              "instructions": "Welche Anzeige passt? Für eine Aufgabe kann auch x richtig sein.",
+              "ads": [
+                {
+                  "id": "a",
+                  "label": "a",
+                  "body": "Onlinekurs: Sicher präsentieren vor Gruppen."
+                },
+                {
+                  "id": "b",
+                  "label": "b",
+                  "body": "Deutsch für Pflegeberufe, Niveau A2/B1."
+                },
+                {
+                  "id": "c",
+                  "label": "c",
+                  "body": "Nebenjob im Café, samstags und sonntags."
+                },
+                {
+                  "id": "d",
+                  "label": "d",
+                  "body": "Bewerbungsfotos professionell und günstig."
+                },
+                {
+                  "id": "e",
+                  "label": "e",
+                  "body": "Mathematik-Nachhilfe für Ausbildung und Schule."
+                },
+                {
+                  "id": "f",
+                  "label": "f",
+                  "body": "Laptop-Reparatur innerhalb von 24 Stunden."
+                },
+                {
+                  "id": "g",
+                  "label": "g",
+                  "body": "Ausbildung als Verkäufer/in – Start September."
+                },
+                {
+                  "id": "h",
+                  "label": "h",
+                  "body": "Coaching für Vorstellungsgespräche."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m3-l3-1",
+                  "situation": "Sie möchten ein Bewerbungsgespräch üben.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 7,
+                  "explain": "Anzeige h passt."
+                },
+                {
+                  "id": "a2m3-l3-2",
+                  "situation": "Sie suchen Wochenendarbeit.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 2,
+                  "explain": "Anzeige c passt."
+                },
+                {
+                  "id": "a2m3-l3-3",
+                  "situation": "Sie möchten eine Berufsausbildung im Handel machen.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 6,
+                  "explain": "Anzeige g passt."
+                },
+                {
+                  "id": "a2m3-l3-4",
+                  "situation": "Sie arbeiten im Krankenhaus und brauchen Fachdeutsch.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 1,
+                  "explain": "Anzeige b passt."
+                },
+                {
+                  "id": "a2m3-l3-5",
+                  "situation": "Ihr Computer ist kaputt und Sie brauchen ihn morgen.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 5,
+                  "explain": "Anzeige f passt."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben",
+          "title": "Schreiben",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1",
+              "title": "Teil 1 – Formular",
+              "type": "form-fill",
+              "instructions": "Ihr Freund Diego Ruiz möchte einen Abendkurs besuchen. Er wurde am 27. November 1997 in Madrid geboren, arbeitet als Elektriker, wohnt in der Hauptstraße 44 in Mainz und interessiert sich für den Excelkurs.",
+              "fields": [
+                {
+                  "id": "a2m3-f-1",
+                  "label": "Familienname",
+                  "expected": "Ruiz"
+                },
+                {
+                  "id": "a2m3-f-2",
+                  "label": "Vorname",
+                  "expected": "Diego"
+                },
+                {
+                  "id": "a2m3-f-3",
+                  "label": "Geburtsdatum",
+                  "expected": "27.11.1997"
+                },
+                {
+                  "id": "a2m3-f-4",
+                  "label": "Beruf",
+                  "expected": "Elektriker"
+                },
+                {
+                  "id": "a2m3-f-5",
+                  "label": "Kurs",
+                  "expected": "Excel"
+                }
+              ]
+            },
+            {
+              "id": "s2",
+              "title": "Teil 2 – Brief oder E-Mail",
+              "type": "free-write",
+              "instructions": "Sie können morgen nicht zur Arbeit kommen. Schreiben Sie Ihrer Chefin. Wählen Sie drei der vier Punkte und schreiben Sie etwa 40 Wörter.",
+              "minWords": 40,
+              "leitpunkte": [
+                "Grund nennen",
+                "Dauer der Abwesenheit",
+                "wichtige Aufgabe erwähnen",
+                "Vertretung vorschlagen"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 10,
+                "criteria": [
+                  "Drei Inhaltspunkte verständlich bearbeitet",
+                  "Passende Anrede und Schluss",
+                  "Zusammenhängender Text",
+                  "Etwa 40 Wörter"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "sprechen",
+          "title": "Sprechen",
+          "durationMin": 15,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Sprechen Sie mit der Prüferin und Ihrer virtuellen Prüfungspartnerin. Es gibt keine Vorbereitungszeit.",
+          "parts": [
+            {
+              "id": "sp1",
+              "title": "Teil 1 – Sich vorstellen",
+              "type": "speak-intro",
+              "instructions": "Stellen Sie sich vor und beantworten Sie eine Nachfrage.",
+              "prompts": [
+                "Name",
+                "Herkunft und Wohnort",
+                "Familie",
+                "Beruf oder Ausbildung",
+                "Sprachen",
+                "Freizeit"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 3,
+                "criteria": [
+                  "Zusammenhängende Vorstellung",
+                  "Verständliche Aussprache",
+                  "Passende Antwort auf Nachfrage"
+                ]
+              }
+            },
+            {
+              "id": "sp2",
+              "title": "Teil 2 – Ein Alltagsgespräch führen",
+              "type": "speak-cards",
+              "instructions": "Thema „Gemeinsam einen Kurs auswählen“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.",
+              "cards": [
+                {
+                  "id": "sp2-1",
+                  "keyword": "Was möchten wir lernen?",
+                  "example": "Können wir über „Was möchten wir lernen?“ sprechen?"
+                },
+                {
+                  "id": "sp2-2",
+                  "keyword": "Wann haben wir Zeit?",
+                  "example": "Können wir über „Wann haben wir Zeit?“ sprechen?"
+                },
+                {
+                  "id": "sp2-3",
+                  "keyword": "Online oder vor Ort?",
+                  "example": "Können wir über „Online oder vor Ort?“ sprechen?"
+                },
+                {
+                  "id": "sp2-4",
+                  "keyword": "Wie viel darf der Kurs kosten?",
+                  "example": "Können wir über „Wie viel darf der Kurs kosten?“ sprechen?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Passende Fragen",
+                  "Angemessene Antworten",
+                  "Verständlichkeit",
+                  "Interaktion"
+                ]
+              }
+            },
+            {
+              "id": "sp3",
+              "title": "Teil 3 – Etwas aushandeln",
+              "type": "speak-cards",
+              "instructions": "Planen Sie gemeinsam: Gemeinsam einen Kurs auswählen. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.",
+              "cards": [
+                {
+                  "id": "sp3-1",
+                  "keyword": "Was möchten wir lernen?",
+                  "example": "Ich schlage vor: Was möchten wir lernen?"
+                },
+                {
+                  "id": "sp3-2",
+                  "keyword": "Wann haben wir Zeit?",
+                  "example": "Ich schlage vor: Wann haben wir Zeit?"
+                },
+                {
+                  "id": "sp3-3",
+                  "keyword": "Online oder vor Ort?",
+                  "example": "Ich schlage vor: Online oder vor Ort?"
+                },
+                {
+                  "id": "sp3-4",
+                  "keyword": "Wie viel darf der Kurs kosten?",
+                  "example": "Ich schlage vor: Wie viel darf der Kurs kosten?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Vorschläge machen",
+                  "Zustimmen oder widersprechen",
+                  "Begründung geben",
+                  "Gemeinsame Entscheidung"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mt4",
+      "title": "Modelltest 4 – Reisen und Freizeit",
+      "sections": [
+        {
+          "id": "hoeren",
+          "title": "Hören",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "instructions": "Sie hören 15 Aufgaben in drei Teilen.",
+          "parts": [
+            {
+              "id": "h1",
+              "title": "Teil 1 – Telefonnotizen",
+              "type": "audio-fill",
+              "plays": 2,
+              "instructions": "Sie hören fünf Mitteilungen. Ergänzen Sie die Information. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m4-h1-1",
+                  "transcript": "Guten Tag, Ihre Zugverbindung nach Hamburg hat sich geändert. Sie fahren um acht Uhr zwölf von Gleis sechs und steigen in Hannover um.",
+                  "question": "Von welchem Gleis fährt der Zug?",
+                  "answer": "Gleis 6",
+                  "explain": "Richtig: Gleis 6.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h1-1.mp3"
+                },
+                {
+                  "id": "a2m4-h1-2",
+                  "transcript": "Hallo, hier ist Hotel Seeblick. Ihr Zimmer ist ab fünfzehn Uhr bereit. Das Frühstück wird von sieben bis zehn Uhr angeboten.",
+                  "question": "Ab wann ist das Zimmer bereit?",
+                  "answer": "15 Uhr",
+                  "explain": "Richtig: 15 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h1-2.mp3"
+                },
+                {
+                  "id": "a2m4-h1-3",
+                  "transcript": "Hi Emma, die Radtour beginnt nicht am Bahnhof, sondern am Parkplatz beim Schwimmbad. Wir starten um halb zehn.",
+                  "question": "Wo startet die Radtour?",
+                  "answer": "beim Schwimmbad",
+                  "explain": "Richtig: beim Schwimmbad.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h1-3.mp3"
+                },
+                {
+                  "id": "a2m4-h1-4",
+                  "transcript": "Guten Tag, der Rückflug am Sonntag wurde auf neunzehn Uhr fünfundvierzig verschoben. Der Check-in öffnet zwei Stunden vorher.",
+                  "question": "Wann fliegt das Flugzeug?",
+                  "answer": "19:45 Uhr",
+                  "explain": "Richtig: 19:45 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h1-4.mp3"
+                },
+                {
+                  "id": "a2m4-h1-5",
+                  "transcript": "Hallo Frau Novak, für die Stadtführung am Samstag sind noch zwei Plätze frei. Treffpunkt ist um elf Uhr vor dem alten Rathaus.",
+                  "question": "Was ist noch verfügbar?",
+                  "answer": "zwei Plätze",
+                  "explain": "Richtig: zwei Plätze.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h1-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h2",
+              "title": "Teil 2 – Informationen im Radio",
+              "type": "audio-choice",
+              "plays": 1,
+              "instructions": "Sie hören fünf Informationen aus dem Radio. Kreuzen Sie an: a, b oder c. Sie hören jeden Text einmal.",
+              "items": [
+                {
+                  "id": "a2m4-h2-1",
+                  "transcript": "Wegen starken Windes fahren heute keine Schiffe zur Insel. Bereits gekaufte Tickets gelten auch morgen.",
+                  "question": "Warum fahren keine Schiffe?",
+                  "options": [
+                    "wegen Regen",
+                    "wegen Wind",
+                    "wegen Nebel"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: wegen Wind.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h2-1.mp3"
+                },
+                {
+                  "id": "a2m4-h2-2",
+                  "transcript": "Im Freizeitpark ist heute Familientag. Ab drei Kindern zahlt nur ein Erwachsener Eintritt.",
+                  "question": "Was ist heute besonders?",
+                  "options": [
+                    "Kinder haben frei.",
+                    "Familien zahlen weniger.",
+                    "Der Park schließt früher."
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Familien zahlen weniger..",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h2-2.mp3"
+                },
+                {
+                  "id": "a2m4-h2-3",
+                  "transcript": "Das Open-Air-Konzert wird wegen des Wetters in die Stadthalle verlegt. Beginn bleibt um zwanzig Uhr.",
+                  "question": "Was ändert sich?",
+                  "options": [
+                    "der Ort",
+                    "die Uhrzeit",
+                    "die Musikgruppe"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: der Ort.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h2-3.mp3"
+                },
+                {
+                  "id": "a2m4-h2-4",
+                  "transcript": "Unser Reisetipp der Woche ist Leipzig: Wir stellen Museen, Parks und günstige Restaurants für ein Wochenende vor.",
+                  "question": "Welche Stadt wird vorgestellt?",
+                  "options": [
+                    "Leipzig",
+                    "Dresden",
+                    "Berlin"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Leipzig.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h2-4.mp3"
+                },
+                {
+                  "id": "a2m4-h2-5",
+                  "transcript": "Auf Wanderweg vier ist eine Brücke gesperrt. Bitte folgen Sie ab dem See der gelben Umleitung.",
+                  "question": "Was sollen Wanderer tun?",
+                  "options": [
+                    "am See warten",
+                    "der gelben Umleitung folgen",
+                    "Weg vier weitergehen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: der gelben Umleitung folgen.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h2-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h3",
+              "title": "Teil 3 – Gespräch zuordnen",
+              "type": "audio-choice",
+              "plays": 2,
+              "instructions": "Sie hören Gespräche zu einer gemeinsamen Planung. Ordnen Sie die Aufgaben zu. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m4-h3-1",
+                  "transcript": "Nora: Für den Wochenendtrip buche ich die Unterkunft. Erik: Gut, such bitte etwas nahe am Zentrum.",
+                  "question": "Was macht Nora?",
+                  "options": [
+                    "Unterkunft buchen",
+                    "Tickets kaufen",
+                    "Programm planen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Unterkunft buchen.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h3-1.mp3"
+                },
+                {
+                  "id": "a2m4-h3-2",
+                  "transcript": "Nora: Erik, kannst du die Zugtickets kaufen? Erik: Ja, heute Abend online.",
+                  "question": "Was macht Erik?",
+                  "options": [
+                    "Restaurant suchen",
+                    "Zugtickets kaufen",
+                    "Koffer packen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Zugtickets kaufen.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h3-2.mp3"
+                },
+                {
+                  "id": "a2m4-h3-3",
+                  "transcript": "Nora: Mei, erstellst du ein Programm für Samstag? Mei: Gern, ich suche zwei Museen und einen Park aus.",
+                  "question": "Was macht Mei?",
+                  "options": [
+                    "Programm planen",
+                    "Unterkunft buchen",
+                    "Fahrplan prüfen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Programm planen.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h3-3.mp3"
+                },
+                {
+                  "id": "a2m4-h3-4",
+                  "transcript": "Nora: Samir, reservierst du ein Restaurant für Samstagabend? Samir: Ja, am liebsten regional.",
+                  "question": "Was macht Samir?",
+                  "options": [
+                    "Restaurant reservieren",
+                    "Tickets kaufen",
+                    "Wetter prüfen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Restaurant reservieren.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h3-4.mp3"
+                },
+                {
+                  "id": "a2m4-h3-5",
+                  "transcript": "Nora: Klara, schaust du nach dem Wetter und schreibst uns, was wir einpacken sollen? Klara: Mache ich.",
+                  "question": "Was macht Klara?",
+                  "options": [
+                    "Koffer tragen",
+                    "Wetter prüfen",
+                    "Fotos machen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Wetter prüfen.",
+                  "audio": "./web/audio/exam-a2/mt4/a2m4-h3-5.mp3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen",
+          "title": "Lesen",
+          "durationMin": 30,
+          "maxPoints": 15,
+          "instructions": "Lesen Sie Informationen, einen längeren Text und Anzeigen.",
+          "parts": [
+            {
+              "id": "l1",
+              "title": "Teil 1 – Informationen finden",
+              "type": "read-choice",
+              "instructions": "Lesen Sie die Aufgaben und die Information. Kreuzen Sie an: a, b oder c.",
+              "texts": [
+                {
+                  "id": "a2m4-l1-text",
+                  "label": "Information",
+                  "body": "TOURIST-INFORMATION – Schalter 1: Stadtführungen und Museen. Schalter 2: Bus- und Bahntickets. Schalter 3: Hotels und Ferienwohnungen. Fahrradverleih im Hof. Geöffnet täglich 9–18 Uhr, sonntags 10–15 Uhr."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m4-l1-1",
+                  "textRef": "a2m4-l1-text",
+                  "question": "Sie möchten eine Stadtführung buchen.",
+                  "options": [
+                    "Schalter 1",
+                    "Schalter 2",
+                    "Schalter 3"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Schalter 1."
+                },
+                {
+                  "id": "a2m4-l1-2",
+                  "textRef": "a2m4-l1-text",
+                  "question": "Sie brauchen eine Fahrkarte.",
+                  "options": [
+                    "Schalter 1",
+                    "Schalter 2",
+                    "Schalter 3"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Schalter 2."
+                },
+                {
+                  "id": "a2m4-l1-3",
+                  "textRef": "a2m4-l1-text",
+                  "question": "Sie suchen ein Hotelzimmer.",
+                  "options": [
+                    "Schalter 1",
+                    "Schalter 2",
+                    "Schalter 3"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: Schalter 3."
+                },
+                {
+                  "id": "a2m4-l1-4",
+                  "textRef": "a2m4-l1-text",
+                  "question": "Sie möchten ein Fahrrad mieten.",
+                  "options": [
+                    "im Hof",
+                    "Schalter 2",
+                    "Schalter 3"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: im Hof."
+                },
+                {
+                  "id": "a2m4-l1-5",
+                  "textRef": "a2m4-l1-text",
+                  "question": "Sie brauchen Informationen über Museen.",
+                  "options": [
+                    "Schalter 1",
+                    "Schalter 2",
+                    "im Hof"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Schalter 1."
+                }
+              ]
+            },
+            {
+              "id": "l2",
+              "title": "Teil 2 – Text verstehen",
+              "type": "read-truefalse",
+              "instructions": "Lesen Sie den Text. Sind die Aussagen richtig oder falsch?",
+              "texts": [
+                {
+                  "id": "a2m4-l2-text",
+                  "label": "Artikel",
+                  "body": "Seit diesem Sommer bietet die Stadt kostenlose Kulturabende im Park an. Jeden Donnerstag gibt es Musik, Theater oder Filme. Besucher bringen Decken und Getränke selbst mit. Bei starkem Regen fällt die Veranstaltung aus; aktuelle Informationen stehen ab vierzehn Uhr auf der Internetseite. Die Veranstaltungen beginnen um neunzehn Uhr und enden spätestens um zweiundzwanzig Uhr."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m4-l2-1",
+                  "textRef": "a2m4-l2-text",
+                  "statement": "Die Kulturabende kosten keinen Eintritt.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m4-l2-2",
+                  "textRef": "a2m4-l2-text",
+                  "statement": "Sie finden jeden Freitag statt.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m4-l2-3",
+                  "textRef": "a2m4-l2-text",
+                  "statement": "Getränke kann man dort kostenlos bekommen.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m4-l2-4",
+                  "textRef": "a2m4-l2-text",
+                  "statement": "Bei starkem Regen gibt es keine Veranstaltung.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m4-l2-5",
+                  "textRef": "a2m4-l2-text",
+                  "statement": "Das Programm endet spätestens um 22 Uhr.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                }
+              ]
+            },
+            {
+              "id": "l3",
+              "title": "Teil 3 – Anzeigen zuordnen",
+              "type": "read-match",
+              "instructions": "Welche Anzeige passt? Für eine Aufgabe kann auch x richtig sein.",
+              "ads": [
+                {
+                  "id": "a",
+                  "label": "a",
+                  "body": "Ferienwohnung am See, vier Personen, Küche und Balkon."
+                },
+                {
+                  "id": "b",
+                  "label": "b",
+                  "body": "Günstige Bahntickets für Gruppen ab sechs Personen."
+                },
+                {
+                  "id": "c",
+                  "label": "c",
+                  "body": "Wanderverein: leichte Touren jeden Sonntag."
+                },
+                {
+                  "id": "d",
+                  "label": "d",
+                  "body": "Sprachreise nach Wien mit Deutschkurs am Vormittag."
+                },
+                {
+                  "id": "e",
+                  "label": "e",
+                  "body": "Fotokurs unterwegs – bessere Urlaubsbilder machen."
+                },
+                {
+                  "id": "f",
+                  "label": "f",
+                  "body": "Campingplatz im Wald, Hunde willkommen."
+                },
+                {
+                  "id": "g",
+                  "label": "g",
+                  "body": "Mitfahrgelegenheit Berlin–Prag am Freitag."
+                },
+                {
+                  "id": "h",
+                  "label": "h",
+                  "body": "Kofferreparatur und Reisegepäck-Service."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m4-l3-1",
+                  "situation": "Sie möchten im Urlaub Deutsch lernen.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 3,
+                  "explain": "Anzeige d passt."
+                },
+                {
+                  "id": "a2m4-l3-2",
+                  "situation": "Ihre Familie mit vier Personen sucht eine Unterkunft.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 0,
+                  "explain": "Anzeige a passt."
+                },
+                {
+                  "id": "a2m4-l3-3",
+                  "situation": "Sie möchten mit Ihrem Hund zelten.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 5,
+                  "explain": "Anzeige f passt."
+                },
+                {
+                  "id": "a2m4-l3-4",
+                  "situation": "Sie wollen am Sonntag nicht allein wandern.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 2,
+                  "explain": "Anzeige c passt."
+                },
+                {
+                  "id": "a2m4-l3-5",
+                  "situation": "Ihr Reisekoffer ist kaputt.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 7,
+                  "explain": "Anzeige h passt."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben",
+          "title": "Schreiben",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1",
+              "title": "Teil 1 – Formular",
+              "type": "form-fill",
+              "instructions": "Ihre Bekannte Hana Kim möchte eine Reise buchen. Sie wurde am 9. August 1992 in Seoul geboren, wohnt in der Goethestraße 17 in Bonn, reist mit einer Person und möchte vom 12. bis 18. Oktober nach Wien fahren.",
+              "fields": [
+                {
+                  "id": "a2m4-f-1",
+                  "label": "Familienname",
+                  "expected": "Kim"
+                },
+                {
+                  "id": "a2m4-f-2",
+                  "label": "Vorname",
+                  "expected": "Hana"
+                },
+                {
+                  "id": "a2m4-f-3",
+                  "label": "Geburtsdatum",
+                  "expected": "09.08.1992"
+                },
+                {
+                  "id": "a2m4-f-4",
+                  "label": "Reiseziel",
+                  "expected": "Wien"
+                },
+                {
+                  "id": "a2m4-f-5",
+                  "label": "Personenzahl",
+                  "expected": "1"
+                }
+              ]
+            },
+            {
+              "id": "s2",
+              "title": "Teil 2 – Brief oder E-Mail",
+              "type": "free-write",
+              "instructions": "Sie haben in einem Hotel übernachtet und etwas vergessen. Schreiben Sie dem Hotel. Wählen Sie drei der vier Punkte und schreiben Sie etwa 40 Wörter.",
+              "minWords": 40,
+              "leitpunkte": [
+                "Aufenthaltsdatum",
+                "Gegenstand beschreiben",
+                "Fundort vermuten",
+                "um Zusendung bitten"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 10,
+                "criteria": [
+                  "Drei Inhaltspunkte verständlich bearbeitet",
+                  "Passende Anrede und Schluss",
+                  "Zusammenhängender Text",
+                  "Etwa 40 Wörter"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "sprechen",
+          "title": "Sprechen",
+          "durationMin": 15,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Sprechen Sie mit der Prüferin und Ihrer virtuellen Prüfungspartnerin. Es gibt keine Vorbereitungszeit.",
+          "parts": [
+            {
+              "id": "sp1",
+              "title": "Teil 1 – Sich vorstellen",
+              "type": "speak-intro",
+              "instructions": "Stellen Sie sich vor und beantworten Sie eine Nachfrage.",
+              "prompts": [
+                "Name",
+                "Herkunft und Wohnort",
+                "Familie",
+                "Beruf oder Ausbildung",
+                "Sprachen",
+                "Freizeit"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 3,
+                "criteria": [
+                  "Zusammenhängende Vorstellung",
+                  "Verständliche Aussprache",
+                  "Passende Antwort auf Nachfrage"
+                ]
+              }
+            },
+            {
+              "id": "sp2",
+              "title": "Teil 2 – Ein Alltagsgespräch führen",
+              "type": "speak-cards",
+              "instructions": "Thema „Einen Wochenendausflug planen“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.",
+              "cards": [
+                {
+                  "id": "sp2-1",
+                  "keyword": "Wohin fahren wir?",
+                  "example": "Können wir über „Wohin fahren wir?“ sprechen?"
+                },
+                {
+                  "id": "sp2-2",
+                  "keyword": "Wie reisen wir?",
+                  "example": "Können wir über „Wie reisen wir?“ sprechen?"
+                },
+                {
+                  "id": "sp2-3",
+                  "keyword": "Was machen wir dort?",
+                  "example": "Können wir über „Was machen wir dort?“ sprechen?"
+                },
+                {
+                  "id": "sp2-4",
+                  "keyword": "Was müssen wir mitnehmen?",
+                  "example": "Können wir über „Was müssen wir mitnehmen?“ sprechen?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Passende Fragen",
+                  "Angemessene Antworten",
+                  "Verständlichkeit",
+                  "Interaktion"
+                ]
+              }
+            },
+            {
+              "id": "sp3",
+              "title": "Teil 3 – Etwas aushandeln",
+              "type": "speak-cards",
+              "instructions": "Planen Sie gemeinsam: Einen Wochenendausflug planen. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.",
+              "cards": [
+                {
+                  "id": "sp3-1",
+                  "keyword": "Wohin fahren wir?",
+                  "example": "Ich schlage vor: Wohin fahren wir?"
+                },
+                {
+                  "id": "sp3-2",
+                  "keyword": "Wie reisen wir?",
+                  "example": "Ich schlage vor: Wie reisen wir?"
+                },
+                {
+                  "id": "sp3-3",
+                  "keyword": "Was machen wir dort?",
+                  "example": "Ich schlage vor: Was machen wir dort?"
+                },
+                {
+                  "id": "sp3-4",
+                  "keyword": "Was müssen wir mitnehmen?",
+                  "example": "Ich schlage vor: Was müssen wir mitnehmen?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Vorschläge machen",
+                  "Zustimmen oder widersprechen",
+                  "Begründung geben",
+                  "Gemeinsame Entscheidung"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mt5",
+      "title": "Modelltest 5 – Gesundheit und Familie",
+      "sections": [
+        {
+          "id": "hoeren",
+          "title": "Hören",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "instructions": "Sie hören 15 Aufgaben in drei Teilen.",
+          "parts": [
+            {
+              "id": "h1",
+              "title": "Teil 1 – Telefonnotizen",
+              "type": "audio-fill",
+              "plays": 2,
+              "instructions": "Sie hören fünf Mitteilungen. Ergänzen Sie die Information. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m5-h1-1",
+                  "transcript": "Guten Tag Frau Silva, Ihre Blutwerte sind da. Bitte kommen Sie am Dienstag um acht Uhr nüchtern in die Praxis. Sie dürfen vorher nur Wasser trinken.",
+                  "question": "Was darf Frau Silva vorher trinken?",
+                  "answer": "Wasser",
+                  "explain": "Richtig: Wasser.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h1-1.mp3"
+                },
+                {
+                  "id": "a2m5-h1-2",
+                  "transcript": "Hallo Papa, der Elternabend beginnt heute schon um achtzehn Uhr im Musikraum. Bitte bring auch den unterschriebenen Zettel mit.",
+                  "question": "Was soll der Vater mitbringen?",
+                  "answer": "einen Zettel",
+                  "explain": "Richtig: einen Zettel.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h1-2.mp3"
+                },
+                {
+                  "id": "a2m5-h1-3",
+                  "transcript": "Hier ist die Apotheke am Markt. Ihr Medikament ist heute Nachmittag ab sechzehn Uhr verfügbar. Wir haben bis neunzehn Uhr geöffnet.",
+                  "question": "Ab wann ist das Medikament da?",
+                  "answer": "16 Uhr",
+                  "explain": "Richtig: 16 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h1-3.mp3"
+                },
+                {
+                  "id": "a2m5-h1-4",
+                  "transcript": "Hallo Elena, ich kann die Kinder am Donnerstag von der Schule abholen. Am Freitag musst du es bitte selbst machen.",
+                  "question": "Wann kann die Person helfen?",
+                  "answer": "am Donnerstag",
+                  "explain": "Richtig: am Donnerstag.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h1-4.mp3"
+                },
+                {
+                  "id": "a2m5-h1-5",
+                  "transcript": "Guten Tag, Ihr Termin zur Zahnreinigung dauert ungefähr fünfundvierzig Minuten. Bitte kommen Sie zehn Minuten früher.",
+                  "question": "Wie lange dauert die Behandlung?",
+                  "answer": "45 Minuten",
+                  "explain": "Richtig: 45 Minuten.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h1-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h2",
+              "title": "Teil 2 – Informationen im Radio",
+              "type": "audio-choice",
+              "plays": 1,
+              "instructions": "Sie hören fünf Informationen aus dem Radio. Kreuzen Sie an: a, b oder c. Sie hören jeden Text einmal.",
+              "items": [
+                {
+                  "id": "a2m5-h2-1",
+                  "transcript": "Die Krankenkasse bietet am Samstag einen kostenlosen Kurs zum gesunden Schlaf an. Eine Anmeldung ist online erforderlich.",
+                  "question": "Was muss man tun?",
+                  "options": [
+                    "online anmelden",
+                    "eine Gebühr zahlen",
+                    "Schlafkleidung mitbringen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: online anmelden.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h2-1.mp3"
+                },
+                {
+                  "id": "a2m5-h2-2",
+                  "transcript": "Wegen vieler Grippefälle gelten im Krankenhaus neue Besuchszeiten: täglich nur von fünfzehn bis siebzehn Uhr.",
+                  "question": "Wann darf man besuchen?",
+                  "options": [
+                    "vormittags",
+                    "15–17 Uhr",
+                    "nach 18 Uhr"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: 15–17 Uhr.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h2-2.mp3"
+                },
+                {
+                  "id": "a2m5-h2-3",
+                  "transcript": "In unserer Gesundheitssendung erklärt eine Ärztin heute, wie regelmäßige Bewegung Rückenschmerzen verhindern kann.",
+                  "question": "Worum geht es?",
+                  "options": [
+                    "gesunde Ernährung",
+                    "Bewegung gegen Rückenschmerzen",
+                    "Medikamente"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Bewegung gegen Rückenschmerzen.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h2-3.mp3"
+                },
+                {
+                  "id": "a2m5-h2-4",
+                  "transcript": "Das Familienbad bleibt am Montag wegen Reinigung geschlossen. Der Schwimmkurs beginnt deshalb erst am Mittwoch.",
+                  "question": "Wann beginnt der Schwimmkurs?",
+                  "options": [
+                    "Montag",
+                    "Dienstag",
+                    "Mittwoch"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: Mittwoch.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h2-4.mp3"
+                },
+                {
+                  "id": "a2m5-h2-5",
+                  "transcript": "Bitte beachten Sie: Für die Kinderbetreuung in den Ferien sind nur noch Plätze in der zweiten Augustwoche frei.",
+                  "question": "Wann gibt es noch Plätze?",
+                  "options": [
+                    "erste Juliwoche",
+                    "erste Augustwoche",
+                    "zweite Augustwoche"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: zweite Augustwoche.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h2-5.mp3"
+                }
+              ]
+            },
+            {
+              "id": "h3",
+              "title": "Teil 3 – Gespräch zuordnen",
+              "type": "audio-choice",
+              "plays": 2,
+              "instructions": "Sie hören Gespräche zu einer gemeinsamen Planung. Ordnen Sie die Aufgaben zu. Sie hören jeden Text zweimal.",
+              "items": [
+                {
+                  "id": "a2m5-h3-1",
+                  "transcript": "Mutter: Für Omas Geburtstag backe ich den Kuchen. Luis: Gut, ich kaufe die Zutaten.",
+                  "question": "Was macht die Mutter?",
+                  "options": [
+                    "Kuchen backen",
+                    "Zutaten kaufen",
+                    "Gäste anrufen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Kuchen backen.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h3-1.mp3"
+                },
+                {
+                  "id": "a2m5-h3-2",
+                  "transcript": "Mutter: Luis, kaufst du bitte Mehl, Eier und Obst? Luis: Ja, nach der Schule.",
+                  "question": "Was macht Luis?",
+                  "options": [
+                    "Tisch dekorieren",
+                    "Zutaten kaufen",
+                    "Fotos sammeln"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Zutaten kaufen.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h3-2.mp3"
+                },
+                {
+                  "id": "a2m5-h3-3",
+                  "transcript": "Mutter: Zoe, kannst du die Verwandten anrufen? Zoe: Natürlich, ich frage auch, wer kommen kann.",
+                  "question": "Was macht Zoe?",
+                  "options": [
+                    "Gäste anrufen",
+                    "Kuchen backen",
+                    "Musik auswählen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Gäste anrufen.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h3-3.mp3"
+                },
+                {
+                  "id": "a2m5-h3-4",
+                  "transcript": "Mutter: David, dekorierst du den Tisch? David: Ja, ich bringe Blumen und Kerzen mit.",
+                  "question": "Was macht David?",
+                  "options": [
+                    "Geschenk holen",
+                    "Tisch dekorieren",
+                    "Essen kochen"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: Tisch dekorieren.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h3-4.mp3"
+                },
+                {
+                  "id": "a2m5-h3-5",
+                  "transcript": "Mutter: Amina, stellst du eine Liste mit Omas Lieblingsliedern zusammen? Amina: Sehr gern.",
+                  "question": "Was macht Amina?",
+                  "options": [
+                    "Musik auswählen",
+                    "Gäste abholen",
+                    "Fotos machen"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Musik auswählen.",
+                  "audio": "./web/audio/exam-a2/mt5/a2m5-h3-5.mp3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lesen",
+          "title": "Lesen",
+          "durationMin": 30,
+          "maxPoints": 15,
+          "instructions": "Lesen Sie Informationen, einen längeren Text und Anzeigen.",
+          "parts": [
+            {
+              "id": "l1",
+              "title": "Teil 1 – Informationen finden",
+              "type": "read-choice",
+              "instructions": "Lesen Sie die Aufgaben und die Information. Kreuzen Sie an: a, b oder c.",
+              "texts": [
+                {
+                  "id": "a2m5-l1-text",
+                  "label": "Information",
+                  "body": "GESUNDHEITSZENTRUM – Erdgeschoss: Anmeldung, Apotheke, Labor. 1. Stock: Hausarzt, Kinderarzt, Zimmer 101–110. 2. Stock: Zahnarzt, Physiotherapie, Ernährungsberatung. Notdienst: Eingang an der Rückseite, täglich bis 22 Uhr."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m5-l1-1",
+                  "textRef": "a2m5-l1-text",
+                  "question": "Sie müssen Blut abgeben.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Erdgeschoss."
+                },
+                {
+                  "id": "a2m5-l1-2",
+                  "textRef": "a2m5-l1-text",
+                  "question": "Ihr Kind ist krank.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 1,
+                  "explain": "Richtig: 1. Stock."
+                },
+                {
+                  "id": "a2m5-l1-3",
+                  "textRef": "a2m5-l1-text",
+                  "question": "Sie brauchen Hilfe bei Rückenschmerzen.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: 2. Stock."
+                },
+                {
+                  "id": "a2m5-l1-4",
+                  "textRef": "a2m5-l1-text",
+                  "question": "Sie möchten ein Medikament kaufen.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 0,
+                  "explain": "Richtig: Erdgeschoss."
+                },
+                {
+                  "id": "a2m5-l1-5",
+                  "textRef": "a2m5-l1-text",
+                  "question": "Sie möchten über gesunde Ernährung sprechen.",
+                  "options": [
+                    "Erdgeschoss",
+                    "1. Stock",
+                    "2. Stock"
+                  ],
+                  "answer": 2,
+                  "explain": "Richtig: 2. Stock."
+                }
+              ]
+            },
+            {
+              "id": "l2",
+              "title": "Teil 2 – Text verstehen",
+              "type": "read-truefalse",
+              "instructions": "Lesen Sie den Text. Sind die Aussagen richtig oder falsch?",
+              "texts": [
+                {
+                  "id": "a2m5-l2-text",
+                  "label": "Artikel",
+                  "body": "Die Grundschule Sonnenweg hat vor einem Jahr einen bewegten Schulweg gestartet. Kinder treffen sich morgens an festen Punkten und gehen gemeinsam mit Erwachsenen zur Schule. So bewegen sie sich mehr und es gibt weniger Autos vor dem Gebäude. Eltern können sich für einzelne Wochentage als Begleitung anmelden. Bei sehr schlechtem Wetter fällt der gemeinsame Weg aus."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m5-l2-1",
+                  "textRef": "a2m5-l2-text",
+                  "statement": "Das Projekt begann vor einem Jahr.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m5-l2-2",
+                  "textRef": "a2m5-l2-text",
+                  "statement": "Die Kinder fahren gemeinsam mit dem Bus.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m5-l2-3",
+                  "textRef": "a2m5-l2-text",
+                  "statement": "Vor der Schule gibt es jetzt weniger Autos.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                },
+                {
+                  "id": "a2m5-l2-4",
+                  "textRef": "a2m5-l2-text",
+                  "statement": "Eltern müssen jeden Tag helfen.",
+                  "answer": false,
+                  "explain": "Die Aussage widerspricht dem Text."
+                },
+                {
+                  "id": "a2m5-l2-5",
+                  "textRef": "a2m5-l2-text",
+                  "statement": "Bei sehr schlechtem Wetter findet das Projekt nicht statt.",
+                  "answer": true,
+                  "explain": "Die Aussage steht so im Text."
+                }
+              ]
+            },
+            {
+              "id": "l3",
+              "title": "Teil 3 – Anzeigen zuordnen",
+              "type": "read-match",
+              "instructions": "Welche Anzeige passt? Für eine Aufgabe kann auch x richtig sein.",
+              "ads": [
+                {
+                  "id": "a",
+                  "label": "a",
+                  "body": "Babysitterin mit Erfahrung, abends und am Wochenende."
+                },
+                {
+                  "id": "b",
+                  "label": "b",
+                  "body": "Rückenkurs für Anfänger, Krankenkasse zahlt."
+                },
+                {
+                  "id": "c",
+                  "label": "c",
+                  "body": "Familienberatung kostenlos und vertraulich."
+                },
+                {
+                  "id": "d",
+                  "label": "d",
+                  "body": "Kinderfahrrad, guter Zustand, günstig zu verkaufen."
+                },
+                {
+                  "id": "e",
+                  "label": "e",
+                  "body": "Gesundes Kochen für die ganze Familie."
+                },
+                {
+                  "id": "f",
+                  "label": "f",
+                  "body": "Pflegedienst unterstützt ältere Menschen zu Hause."
+                },
+                {
+                  "id": "g",
+                  "label": "g",
+                  "body": "Zahnarztpraxis mit Abendsprechstunde."
+                },
+                {
+                  "id": "h",
+                  "label": "h",
+                  "body": "Sportgruppe für Eltern mit kleinen Kindern."
+                }
+              ],
+              "items": [
+                {
+                  "id": "a2m5-l3-1",
+                  "situation": "Sie brauchen Betreuung für Ihr Kind am Samstagabend.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 0,
+                  "explain": "Anzeige a passt."
+                },
+                {
+                  "id": "a2m5-l3-2",
+                  "situation": "Ihre Mutter benötigt täglich Hilfe zu Hause.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 5,
+                  "explain": "Anzeige f passt."
+                },
+                {
+                  "id": "a2m5-l3-3",
+                  "situation": "Sie arbeiten lange und suchen einen späten Zahnarzttermin.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 6,
+                  "explain": "Anzeige g passt."
+                },
+                {
+                  "id": "a2m5-l3-4",
+                  "situation": "Sie möchten etwas gegen Rückenschmerzen tun.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 1,
+                  "explain": "Anzeige b passt."
+                },
+                {
+                  "id": "a2m5-l3-5",
+                  "situation": "Sie haben Probleme in der Familie und möchten darüber sprechen.",
+                  "options": [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "x"
+                  ],
+                  "answer": 2,
+                  "explain": "Anzeige c passt."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schreiben",
+          "title": "Schreiben",
+          "durationMin": 20,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Bearbeiten Sie beide Aufgaben.",
+          "parts": [
+            {
+              "id": "s1",
+              "title": "Teil 1 – Formular",
+              "type": "form-fill",
+              "instructions": "Ihr Bekannter Paulo Costa möchte an einem Gesundheitskurs teilnehmen. Er wurde am 21. Juni 1985 in Porto geboren, wohnt in der Waldstraße 6 in Köln, arbeitet als Fahrer und interessiert sich für den Rückenkurs am Mittwoch.",
+              "fields": [
+                {
+                  "id": "a2m5-f-1",
+                  "label": "Familienname",
+                  "expected": "Costa"
+                },
+                {
+                  "id": "a2m5-f-2",
+                  "label": "Vorname",
+                  "expected": "Paulo"
+                },
+                {
+                  "id": "a2m5-f-3",
+                  "label": "Geburtsdatum",
+                  "expected": "21.06.1985"
+                },
+                {
+                  "id": "a2m5-f-4",
+                  "label": "Beruf",
+                  "expected": "Fahrer"
+                },
+                {
+                  "id": "a2m5-f-5",
+                  "label": "Kurs",
+                  "expected": "Rückenkurs"
+                }
+              ]
+            },
+            {
+              "id": "s2",
+              "title": "Teil 2 – Brief oder E-Mail",
+              "type": "free-write",
+              "instructions": "Ihr Kind ist krank und kann morgen nicht zur Schule kommen. Schreiben Sie der Lehrerin. Wählen Sie drei der vier Punkte und schreiben Sie etwa 40 Wörter.",
+              "minWords": 40,
+              "leitpunkte": [
+                "Grund nennen",
+                "voraussichtliche Dauer",
+                "nach Aufgaben fragen",
+                "um Rückmeldung bitten"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 10,
+                "criteria": [
+                  "Drei Inhaltspunkte verständlich bearbeitet",
+                  "Passende Anrede und Schluss",
+                  "Zusammenhängender Text",
+                  "Etwa 40 Wörter"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "sprechen",
+          "title": "Sprechen",
+          "durationMin": 15,
+          "maxPoints": 15,
+          "aiGraded": true,
+          "instructions": "Sprechen Sie mit der Prüferin und Ihrer virtuellen Prüfungspartnerin. Es gibt keine Vorbereitungszeit.",
+          "parts": [
+            {
+              "id": "sp1",
+              "title": "Teil 1 – Sich vorstellen",
+              "type": "speak-intro",
+              "instructions": "Stellen Sie sich vor und beantworten Sie eine Nachfrage.",
+              "prompts": [
+                "Name",
+                "Herkunft und Wohnort",
+                "Familie",
+                "Beruf oder Ausbildung",
+                "Sprachen",
+                "Freizeit"
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 3,
+                "criteria": [
+                  "Zusammenhängende Vorstellung",
+                  "Verständliche Aussprache",
+                  "Passende Antwort auf Nachfrage"
+                ]
+              }
+            },
+            {
+              "id": "sp2",
+              "title": "Teil 2 – Ein Alltagsgespräch führen",
+              "type": "speak-cards",
+              "instructions": "Thema „Ein Familienfest organisieren“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.",
+              "cards": [
+                {
+                  "id": "sp2-1",
+                  "keyword": "Wann feiern wir?",
+                  "example": "Können wir über „Wann feiern wir?“ sprechen?"
+                },
+                {
+                  "id": "sp2-2",
+                  "keyword": "Wo findet das Fest statt?",
+                  "example": "Können wir über „Wo findet das Fest statt?“ sprechen?"
+                },
+                {
+                  "id": "sp2-3",
+                  "keyword": "Was essen und trinken wir?",
+                  "example": "Können wir über „Was essen und trinken wir?“ sprechen?"
+                },
+                {
+                  "id": "sp2-4",
+                  "keyword": "Wer übernimmt welche Aufgabe?",
+                  "example": "Können wir über „Wer übernimmt welche Aufgabe?“ sprechen?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Passende Fragen",
+                  "Angemessene Antworten",
+                  "Verständlichkeit",
+                  "Interaktion"
+                ]
+              }
+            },
+            {
+              "id": "sp3",
+              "title": "Teil 3 – Etwas aushandeln",
+              "type": "speak-cards",
+              "instructions": "Planen Sie gemeinsam: Ein Familienfest organisieren. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.",
+              "cards": [
+                {
+                  "id": "sp3-1",
+                  "keyword": "Wann feiern wir?",
+                  "example": "Ich schlage vor: Wann feiern wir?"
+                },
+                {
+                  "id": "sp3-2",
+                  "keyword": "Wo findet das Fest statt?",
+                  "example": "Ich schlage vor: Wo findet das Fest statt?"
+                },
+                {
+                  "id": "sp3-3",
+                  "keyword": "Was essen und trinken wir?",
+                  "example": "Ich schlage vor: Was essen und trinken wir?"
+                },
+                {
+                  "id": "sp3-4",
+                  "keyword": "Wer übernimmt welche Aufgabe?",
+                  "example": "Ich schlage vor: Wer übernimmt welche Aufgabe?"
+                }
+              ],
+              "rubric": {
+                "level": "A2",
+                "maxPoints": 6,
+                "criteria": [
+                  "Vorschläge machen",
+                  "Zustimmen oder widersprechen",
+                  "Begründung geben",
+                  "Gemeinsame Entscheidung"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

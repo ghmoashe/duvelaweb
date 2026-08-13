@@ -15,6 +15,7 @@
     "check:i18n": "node ./scripts/check-i18n.js",
     "check:exam": "node ./scripts/check-telc-exam.js",
     "import:exam-audio": "node ./scripts/import-telc-exam-audio.js",
+    "import:exam-a2-audio": "node ./scripts/import-telc-exam-audio.js",
     "import:legal": "node ./scripts/import-legal-content.js"
   },
   "dependencies": {
