@@ -244,13 +244,14 @@ function renderSetup() {
   app.innerHTML = `
     <section class="setup-hero">
       <div class="setup-copy">
-        <span class="eyebrow">Deutsch A1 · Prüfungssimulation</span>
+        <div class="hero-badge"><span></span>Deutsch A1 · Prüfungssimulation</div>
         <h1>Üben, als wäre heute <span>Prüfungstag.</span></h1>
         <p class="lead">Ein klarer, realistischer Ablauf mit Hören, Lesen, Schreiben und Sprechen — inklusive Zeitdruck, 60-Punkte-Auswertung und verständlichem Feedback.</p>
-        <div class="fact-row"><span>5 Modelltests</span><span>80 Min. Aufgabenzeit</span><span>Bestehen ab 36 / 60</span><span>Originale Übungsinhalte</span></div>
+        <div class="fact-row"><span>5 vollständige Modelltests</span><span>80 Minuten Aufgabenzeit</span><span>Bestehen ab 36 / 60</span></div>
+        <p class="hero-assurance"><b>✓</b> Mit echten Hörtexten, Mikrofontest und persönlichem Ergebnisbericht.</p>
       </div>
       <div class="setup-card">
-        <header><div><span class="eyebrow">Prüfung einrichten</span><h3>Wie möchten Sie starten?</h3></div><span>A1</span></header>
+        <header><div><span class="eyebrow">Prüfung einrichten</span><h3>Wie möchten Sie starten?</h3><p>Wählen Sie den passenden Modus und Modelltest.</p></div><span>A1</span></header>
         <div class="mode-grid" role="radiogroup" aria-label="Prüfungsmodus">
           <button class="mode-choice ${state.mode === 'exam' ? 'active' : ''}" data-mode="exam" role="radio" aria-checked="${state.mode === 'exam'}"><i>01</i><b>Simulation</b><small>Kompletter Ablauf mit echter Zeitbegrenzung</small></button>
           <button class="mode-choice ${state.mode === 'practice' ? 'active' : ''}" data-mode="practice" role="radio" aria-checked="${state.mode === 'practice'}"><i>02</i><b>Training</b><small>Ohne Zeitdruck, mit direktem Feedback</small></button>
@@ -259,7 +260,7 @@ function renderSetup() {
         ${state.mode === 'practice' ? `<div class="field"><label for="section-select">Trainingsumfang</label><select id="section-select">${sectionOptions}</select></div>` : ''}
         <div class="setup-actions">
           <button class="button primary" id="continue">${state.mode === 'exam' ? 'Simulation vorbereiten' : 'Training starten'} <span>→</span></button>
-          <button class="button secondary" id="sound-check" title="Audio prüfen">Ton prüfen</button>
+          <button class="button secondary" id="sound-check" title="Audio prüfen"><span class="sound-icon">♪</span> Ton prüfen</button>
         </div>
         <p class="exam-note">DUVELA EXAM orientiert sich am Format Start Deutsch 1 / telc Deutsch A1. Die Aufgaben sind eigenständiges Übungsmaterial und kein offizieller telc-Prüfungssatz.</p>
       </div>
