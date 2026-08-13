@@ -60,6 +60,8 @@ const state = {
   uiLocale: initialUiLocale,
 };
 
+syncLocalizedChrome();
+
 await new Promise((resolve) => {
   if (window.DuvelaWebConfig) return resolve();
   const script = document.createElement('script');
@@ -279,7 +281,18 @@ function savedSession() {
 }
 
 // ---------- setup ----------
+function syncLocalizedChrome() {
+  const locale = uiLocaleMeta();
+  document.documentElement.lang = locale.code;
+  const backLink = document.querySelector('.back-link');
+  const backLabel = backLink?.querySelector('span');
+  if (backLabel) backLabel.textContent = tx('nav');
+  if (backLink) backLink.setAttribute('aria-label', `${tx('back')}: ${tx('nav')}`);
+  if (timerLabelEl) timerLabelEl.textContent = tx('timeLabel');
+}
+
 function renderSetup() {
+  syncLocalizedChrome();
   state.active = false;
   document.body.classList.remove('exam-active');
   if (state.finishedAt) {
@@ -291,38 +304,39 @@ function renderSetup() {
   document.onkeydown = null;
   const testOptions = bank.tests.map((test) => `<option value="${esc(test.id)}" ${test.id === state.selectedTest ? 'selected' : ''}>${esc(test.title)}</option>`).join('');
   const sectionOptions = [
-    ['all', 'Komplettes Training'],
+    ['all', tx('allTraining')],
     ...bank.tests[0].sections.map((section) => [section.id, section.title]),
   ].map(([value, label]) => `<option value="${esc(value)}" ${value === state.practiceSection ? 'selected' : ''}>${esc(label)}</option>`).join('');
   const resumable = savedSession();
   const languageOptions = examI18n.locales.map((locale) => `<option value="${locale.code}" ${locale.code === state.uiLocale ? 'selected' : ''}>${locale.flag} ${esc(locale.name)}</option>`).join('');
+  const locale = uiLocaleMeta();
 
   app.innerHTML = `
-    <section class="setup-hero">
+    <section class="setup-hero localized-copy" dir="${locale.dir}" lang="${locale.code}">
       <div class="setup-copy">
-        <div class="hero-badge"><span></span>Deutsch A1 · Prüfungssimulation</div>
-        <h1>Üben, als wäre heute <span>Prüfungstag.</span></h1>
-        <p class="lead">Ein klarer, realistischer Ablauf mit Hören, Lesen, Schreiben und Sprechen — inklusive Zeitdruck, 60-Punkte-Auswertung und verständlichem Feedback.</p>
-        <div class="fact-row"><span>5 vollständige Modelltests</span><span>80 Minuten Aufgabenzeit</span><span>Bestehen ab 36 / 60</span></div>
-        <p class="hero-assurance"><b>✓</b> Mit echten Hörtexten, Mikrofontest und persönlichem Ergebnisbericht.</p>
+        <div class="hero-badge"><span></span>Deutsch A1 · ${esc(tx('simulation'))}</div>
+        <h1>${esc(tx('heroPrefix'))} <span>${esc(tx('heroAccent'))}</span></h1>
+        <p class="lead">${esc(tx('heroDesc'))}</p>
+        <div class="fact-row"><span>${esc(tx('factTests'))}</span><span>${esc(tx('factTime'))}</span><span>${esc(tx('factPass'))}</span></div>
+        <p class="hero-assurance"><b>✓</b> ${esc(tx('assurance'))}</p>
       </div>
       <div class="setup-card">
-        <header><div><span class="eyebrow">Prüfung einrichten</span><h3>Wie möchten Sie starten?</h3><p>Wählen Sie den passenden Modus und Modelltest.</p></div><span>A1</span></header>
-        <div class="mode-grid" role="radiogroup" aria-label="Prüfungsmodus">
-          <button class="mode-choice ${state.mode === 'exam' ? 'active' : ''}" data-mode="exam" role="radio" aria-checked="${state.mode === 'exam'}"><i>01</i><b>Simulation</b><small>Kompletter Ablauf mit echter Zeitbegrenzung</small></button>
-          <button class="mode-choice ${state.mode === 'practice' ? 'active' : ''}" data-mode="practice" role="radio" aria-checked="${state.mode === 'practice'}"><i>02</i><b>Training</b><small>Ohne Zeitdruck, mit direktem Feedback</small></button>
+        <header><div><span class="eyebrow">${esc(tx('configure'))}</span><h3>${esc(tx('choose'))}</h3><p>${esc(tx('chooseDesc'))}</p></div><span>A1</span></header>
+        <div class="mode-grid" role="radiogroup" aria-label="${esc(tx('choose'))}">
+          <button class="mode-choice ${state.mode === 'exam' ? 'active' : ''}" data-mode="exam" role="radio" aria-checked="${state.mode === 'exam'}"><i>01</i><b>${esc(tx('simulation'))}</b><small>${esc(tx('simDesc'))}</small></button>
+          <button class="mode-choice ${state.mode === 'practice' ? 'active' : ''}" data-mode="practice" role="radio" aria-checked="${state.mode === 'practice'}"><i>02</i><b>${esc(tx('training'))}</b><small>${esc(tx('trainingDesc'))}</small></button>
         </div>
-        <div class="field"><label for="test-select">Modelltest</label><select id="test-select">${testOptions}</select></div>
-        <div class="field locale-field"><label for="exam-language">${esc(tx('language'))}</label><select id="exam-language">${languageOptions}</select><small>Die Prüfung bleibt auf Deutsch · Exam stays in German</small></div>
-        ${state.mode === 'practice' ? `<div class="field"><label for="section-select">Trainingsumfang</label><select id="section-select">${sectionOptions}</select></div>` : ''}
+        <div class="field"><label for="test-select">${esc(tx('modelTest'))}</label><select id="test-select">${testOptions}</select></div>
+        <div class="field locale-field"><label for="exam-language">${esc(tx('language'))}</label><select id="exam-language">${languageOptions}</select><small>${esc(tx('germanNote'))}</small></div>
+        ${state.mode === 'practice' ? `<div class="field"><label for="section-select">${esc(tx('scope'))}</label><select id="section-select">${sectionOptions}</select></div>` : ''}
         <div class="setup-actions">
-          <button class="button primary" id="continue">${state.mode === 'exam' ? 'Simulation vorbereiten' : 'Training starten'} <span>→</span></button>
-          <button class="button secondary" id="sound-check" title="Audio prüfen"><span class="sound-icon">♪</span> Ton prüfen</button>
+          <button class="button primary" id="continue">${esc(state.mode === 'exam' ? tx('prepare') : tx('startTraining'))} <span>→</span></button>
+          <button class="button secondary" id="sound-check" title="${esc(tx('soundCheck'))}"><span class="sound-icon">♪</span> ${esc(tx('soundCheck'))}</button>
         </div>
-        <p class="exam-note">DUVELA EXAM orientiert sich am Format Start Deutsch 1 / telc Deutsch A1. Die Aufgaben sind eigenständiges Übungsmaterial und kein offizieller telc-Prüfungssatz.</p>
+        <p class="exam-note">${esc(tx('disclaimer'))}</p>
       </div>
-      ${resumable ? `<div class="resume-banner"><div><span class="eyebrow">Gespeicherter Versuch</span><b>Sie können Ihre unterbrochene Prüfung fortsetzen.</b><small>Modelltest ${esc(String(resumable.examId).replace('mt', ''))} · ${esc(resumable.state.timerBlock || 'Prüfung')}</small></div><button class="button primary" id="resume-session">Fortsetzen →</button><button class="button ghost" id="discard-session">Verwerfen</button></div>` : ''}
-      <div class="blueprint" aria-label="Prüfungsaufbau">
+      ${resumable ? `<div class="resume-banner"><div><span class="eyebrow">${esc(tx('savedAttempt'))}</span><b>${esc(tx('resumeCopy'))}</b><small>${esc(tx('modelTest'))} ${esc(String(resumable.examId).replace('mt', ''))} · ${esc(resumable.state.timerBlock || tx('examWord'))}</small></div><button class="button primary" id="resume-session">${esc(tx('resume'))} →</button><button class="button ghost" id="discard-session">${esc(tx('discard'))}</button></div>` : ''}
+      <div class="blueprint" aria-label="${esc(tx('flow'))}">
         ${blueprintCard('01', 'Hören', '3 Teile · 15 Aufgaben', 'ca. 20 Min.', '15 Punkte')}
         ${blueprintCard('02', 'Lesen', '3 Teile · 15 Aufgaben', 'ca. 25 Min.', '15 Punkte')}
         ${blueprintCard('03', 'Schreiben', 'Formular + Mitteilung', 'ca. 20 Min.', '15 Punkte')}
@@ -358,6 +372,7 @@ function blueprintCard(number, title, description, duration, points) {
 }
 
 function renderPreflight() {
+  syncLocalizedChrome();
   preflight.browser = supportsExamBrowser();
   preflight.online = navigator.onLine;
   if (preflightMicUrl) { URL.revokeObjectURL(preflightMicUrl); preflightMicUrl = ''; }
