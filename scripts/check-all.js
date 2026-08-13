@@ -52,6 +52,10 @@ async function smokePages() {
     '/live.html?app=business&mode=host',
     '/profile.html',
     '/legal.html',
+    '/telc-exam.html',
+    '/web/telc-exam.css',
+    '/web/telc-exam.js',
+    '/web/content/telc-a1-exam-bank.json',
   ];
   for (const target of targets) {
     const response = await fetch(`${webUrl}${target}`);
@@ -88,6 +92,7 @@ async function main() {
   const server = await startServerIfNeeded();
   try {
     await smokePages();
+    await runNodeScript('check-telc-exam.js');
     await runNodeScript('check-web-contracts.js');
     await runNodeScript('check-publish-readiness.js');
     await runNodeScript('check-i18n.js');

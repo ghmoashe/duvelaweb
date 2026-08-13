@@ -5,6 +5,8 @@
       fromProfile: function (profile, fallback) { return (profile && profile.goal_level) || fallback || ''; }
     };
     let currentCourseId = null;
+    const isCanceledSession = (session) => ['canceled', 'cancelled'].includes(String(session?.status || '').toLowerCase());
+    const isEndedSession = (session) => ['ended', 'completed'].includes(String(session?.status || '').toLowerCase());
     const savedCatalogKey = (kind) => 'duvela.saved.' + kind;
     const savedCatalogIds = (kind) => new Set(JSON.parse(localStorage.getItem(savedCatalogKey(kind)) || '[]'));
 
@@ -89,7 +91,7 @@
             const floor = new Date(Date.now() - 6 * 3600 * 1000).toISOString();
             const { data: sess } = await supa.from('class_sessions')
               .select('id,title,starts_at,ends_at,status,duration_min,join_opens_at')
-              .eq('class_id', eventZoomClass.id).neq('status', 'cancelled')
+              .eq('class_id', eventZoomClass.id).neq('status', 'canceled').neq('status', 'cancelled')
               .gte('starts_at', floor).order('starts_at', { ascending: true }).limit(1);
             eventZoomNext = (sess && sess[0]) || null;
           }
@@ -100,7 +102,7 @@
         const now = Date.now();
         const next = eventZoomNext;
         const opensAt = next ? Date.parse(next.join_opens_at || next.starts_at) - (next.join_opens_at ? 0 : 1800000) : 0;
-        const canJoin = !!(next && (isOwner || now >= opensAt) && next.status !== 'cancelled' && next.status !== 'ended');
+        const canJoin = !!(next && (isOwner || now >= opensAt) && !isCanceledSession(next) && !isEndedSession(next));
         const nextLabel = next ? new Date(next.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }) : tr('No upcoming lessons', 'Ближайших уроков нет');
         return '<section class="cd-zoom-classroom" style="margin-top:14px"><div class="cd-zoom-icon">▦</div><div class="cd-zoom-main"><small>ZOOM CLASSROOM</small><h3>' + esc(eventZoomClass.name || item.title) + '</h3><p>' + esc(nextLabel) + (next ? ' · ' + (next.duration_min || 60) + ' ' + esc(tr('min', 'мин')) : '') + '</p>' +
           (next && !canJoin && !isOwner ? '<div class="cd-zoom-warning">' + esc(tr('The entry button opens 30 minutes before the lesson.', 'Кнопка входа откроется за 30 минут до урока.')) + '</div>' : '') +
@@ -338,11 +340,11 @@
       }
       if (zoomClass) {
         const now = Date.now();
-        const upcoming = zoomSessions.filter((session) => session.status !== 'cancelled' && session.status !== 'ended' && Date.parse(session.ends_at || session.starts_at) + 21600000 > now);
+        const upcoming = zoomSessions.filter((session) => !isCanceledSession(session) && !isEndedSession(session) && Date.parse(session.ends_at || session.starts_at) + 21600000 > now);
         const next = upcoming[0];
         const confirmed = owner || ownEnrollmentStatus === 'confirmed';
         const opensAt = next ? Date.parse(next.join_opens_at || next.starts_at) - (next.join_opens_at ? 0 : 1800000) : 0;
-        const canJoin = !!(next && confirmed && (owner || now >= opensAt) && next.status !== 'cancelled');
+        const canJoin = !!(next && confirmed && (owner || now >= opensAt) && !isCanceledSession(next) && !isEndedSession(next));
         const nextLabel = next ? new Date(next.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }) : tr('No upcoming lessons', 'Ближайших уроков нет');
         html += '<section class="cd-zoom-classroom"><div class="cd-zoom-icon">▦</div><div class="cd-zoom-main"><small>ZOOM CLASSROOM</small><h3>' + esc(zoomClass.name || course.title) + '</h3><p>' + esc(nextLabel) + (next ? ' · ' + (next.duration_min || 60) + ' ' + esc(tr('min', 'мин')) : '') + '</p>' +
           (!confirmed && !owner ? '<div class="cd-zoom-warning">' + esc(tr('The teacher must confirm your enrollment before entry.', 'Для входа преподаватель должен подтвердить вашу запись.')) + '</div>' : '') +
@@ -350,7 +352,7 @@
           '</div>' + (next ? '<a class="btn primary' + (canJoin ? '' : ' disabled') + '" ' + (canJoin ? 'href="./classroom.html?s=' + esc(next.id) + '"' : 'aria-disabled="true"') + '>' + esc(owner ? tr('Open classroom', 'Открыть класс') : tr('Enter lesson', 'Войти в урок')) + '</a>' : '') + '</section>';
         if (zoomSessions.length) {
           html += '<div class="cd-sec">' + esc(tr('Class calendar', 'Расписание группы')) + '</div><div class="cd-session-list">' +
-            zoomSessions.map((session) => '<div class="cd-session-row"><span class="n">▦</span><div><b>' + esc(session.title || course.title) + '</b><p>' + esc(new Date(session.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })) + '</p></div><span class="tag ' + (session.status === 'cancelled' ? '' : 'teal') + '">' + esc(session.status) + '</span></div>').join('') +
+            zoomSessions.map((session) => '<div class="cd-session-row"><span class="n">▦</span><div><b>' + esc(session.title || course.title) + '</b><p>' + esc(new Date(session.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })) + '</p></div><span class="tag ' + (isCanceledSession(session) ? '' : 'teal') + '">' + esc(session.status) + '</span></div>').join('') +
           '</div>';
         }
       }
