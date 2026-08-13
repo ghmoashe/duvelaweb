@@ -197,6 +197,51 @@ function showExamNotice(message, urgent = false) {
   setTimeout(() => notice.remove(), 6000);
 }
 
+function showConfirm({ title, message, confirmLabel = 'Bestätigen', cancelLabel = 'Zurück', tone = 'primary' }) {
+  return new Promise((resolve) => {
+    document.querySelector('.confirm-backdrop')?.remove();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'confirm-backdrop';
+    backdrop.innerHTML = `
+      <section class="confirm-dialog ${esc(tone)}" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+        <button class="confirm-close" type="button" aria-label="Dialog schließen">×</button>
+        <div class="confirm-icon" aria-hidden="true">${tone === 'danger' ? '!' : tone === 'warning' ? '?' : '✓'}</div>
+        <span class="eyebrow">DUVELA EXAM</span>
+        <h2 id="confirm-title">${esc(title)}</h2>
+        <p id="confirm-message">${esc(message)}</p>
+        <div class="confirm-actions">
+          <button class="button secondary" type="button" data-confirm="cancel">${esc(cancelLabel)}</button>
+          <button class="button ${tone === 'danger' ? 'danger' : 'primary'}" type="button" data-confirm="accept">${esc(confirmLabel)} <span>→</span></button>
+        </div>
+      </section>`;
+    document.body.append(backdrop);
+    document.body.classList.add('modal-open');
+    const accept = backdrop.querySelector('[data-confirm="accept"]');
+    const cancel = backdrop.querySelector('[data-confirm="cancel"]');
+    const close = (answer) => {
+      document.removeEventListener('keydown', onKeydown);
+      backdrop.classList.add('closing');
+      document.body.classList.remove('modal-open');
+      setTimeout(() => backdrop.remove(), 150);
+      resolve(answer);
+    };
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') close(false);
+      if (event.key !== 'Tab') return;
+      const controls = [cancel, accept];
+      const index = controls.indexOf(document.activeElement);
+      if (event.shiftKey && index <= 0) { event.preventDefault(); accept.focus(); }
+      if (!event.shiftKey && index === controls.length - 1) { event.preventDefault(); cancel.focus(); }
+    };
+    backdrop.addEventListener('click', (event) => { if (event.target === backdrop) close(false); });
+    backdrop.querySelector('.confirm-close').onclick = () => close(false);
+    cancel.onclick = () => close(false);
+    accept.onclick = () => close(true);
+    document.addEventListener('keydown', onKeydown);
+    requestAnimationFrame(() => { backdrop.classList.add('visible'); cancel.focus(); });
+  });
+}
+
 function remainingSeconds() {
   return timerDeadline ? Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000)) : 0;
 }
@@ -1010,7 +1055,7 @@ function wireNavigation(section, part, collect = null) {
         renderPart();
         return;
       }
-      if (state.part + 1 >= section.parts.length && !confirmSectionCompletion(section)) return;
+      if (state.part + 1 >= section.parts.length && !(await confirmSectionCompletion(section))) return;
       await gradeAi(section, part, true);
       nextPart(section);
       return;
@@ -1021,21 +1066,28 @@ function wireNavigation(section, part, collect = null) {
       renderPart();
       return;
     }
-    if (state.part + 1 >= section.parts.length && !confirmSectionCompletion(section)) return;
+    if (state.part + 1 >= section.parts.length && !(await confirmSectionCompletion(section))) return;
     if (section.aiGraded && part.type === 'free-write') await gradeAi(section, part, true);
     nextPart(section);
   };
 }
 
-function submitExamEarly() {
+async function submitExamEarly() {
   if (!state.active || state.mode !== 'exam') return;
-  if (!window.confirm('Prüfung vorzeitig und endgültig abgeben? Leere Antworten werden mit 0 Punkten bewertet.')) return;
+  const confirmed = await showConfirm({
+    title: 'Prüfung vorzeitig abgeben?',
+    message: 'Ihre bisherigen Antworten werden ausgewertet. Alle leeren Aufgaben erhalten 0 Punkte und die Prüfung kann danach nicht fortgesetzt werden.',
+    confirmLabel: 'Prüfung abgeben',
+    cancelLabel: 'Weiterarbeiten',
+    tone: 'danger',
+  });
+  if (!confirmed) return;
   activeCollector?.();
   state.aborted = true;
   results();
 }
 
-function confirmSectionCompletion(section) {
+async function confirmSectionCompletion(section) {
   if (state.mode !== 'exam') return true;
   const missing = section.parts.reduce((sum, task) => {
     if (task.items) return sum + task.items.filter((item) => state.answers[item.id] === undefined).length;
@@ -1043,8 +1095,19 @@ function confirmSectionCompletion(section) {
     if (task.type === 'speak-intro' || task.type === 'speak-cards') return sum + speakingTurns(task).filter((_, index) => !state.answers[`${task.id}:turn:${index}`]).length;
     return sum + (!state.answers[task.id] ? 1 : 0);
   }, 0);
-  const message = missing ? `In diesem Abschnitt sind noch ${missing} Antworten leer. Trotzdem abschließen?` : `${section.title} abschließen? Danach können Sie nicht zurückkehren.`;
-  return window.confirm(message);
+  if (missing) return showConfirm({
+    title: `${missing} ${missing === 1 ? 'Aufgabe ist' : 'Aufgaben sind'} noch leer`,
+    message: `Möchten Sie ${section.title} trotzdem abschließen? Leere Antworten erhalten 0 Punkte. Danach können Sie nicht zu diesem Abschnitt zurückkehren.`,
+    confirmLabel: 'Trotzdem abschließen',
+    cancelLabel: 'Antworten prüfen',
+    tone: 'warning',
+  });
+  return showConfirm({
+    title: `${section.title} abschließen?`,
+    message: 'Alle Aufgaben in diesem Abschnitt sind bearbeitet. Nach dem Abschluss können Sie nicht mehr zurückkehren.',
+    confirmLabel: 'Abschnitt abschließen',
+    cancelLabel: 'Noch einmal prüfen',
+  });
 }
 
 // ---------- scoring ----------
