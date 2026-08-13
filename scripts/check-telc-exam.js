@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const bank = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', 'telc-a1-exam-bank.json'), 'utf8'));
 const examClient = fs.readFileSync(path.join(root, 'web', 'telc-exam.js'), 'utf8');
 const examStyles = fs.readFileSync(path.join(root, 'web', 'telc-exam.css'), 'utf8');
+const examLocaleSource = fs.readFileSync(path.join(root, 'web', 'telc-exam-i18n.js'), 'utf8');
 const errors = [];
 const requiredSections = ['hoeren', 'lesen', 'schreiben', 'sprechen'];
 
@@ -40,14 +41,24 @@ for (const test of bank.tests || []) {
   }
 }
 
-for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation']) {
+for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
 if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
 if (!examStyles.includes('@media print')) errors.push('Missing printable PDF result report styles.');
+const vm = require('vm');
+const localeSandbox = { window: {} };
+vm.runInNewContext(examLocaleSource, localeSandbox);
+const examLocales = localeSandbox.window.DUVELA_EXAM_I18N;
+const requiredLocaleKeys = ['language','before','ready','intro','name','number','browser','connection','sound','microphone','rules','initial','start','back','flow','written','oral','processing','processingLead','wait','stages'];
+if (examLocales?.locales?.length !== 25) errors.push('Exam preparation must support all 25 DUVELA locales.');
+for (const locale of examLocales?.locales || []) {
+  const translation = examLocales.text?.[locale.code];
+  for (const key of requiredLocaleKeys) if (!translation?.[key] || (key === 'stages' && translation[key].length !== 5)) errors.push(`${locale.code}: missing exam locale key ${key}.`);
+}
 
 if (errors.length) {
   errors.forEach((error) => console.error(`[exam] ${error}`));
   process.exit(1);
 }
-console.log('[exam] Five Modelltests, official rubric, 75 verified MP3 files, device check, strict flow and PDF report: OK');
+console.log('[exam] Five Modelltests, 75 verified MP3 files, 25 UI locales, staged result processing, strict flow and PDF report: OK');
