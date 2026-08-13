@@ -26,7 +26,17 @@ for (const test of bank.tests || []) {
     if (ids.has(item.id)) errors.push(`${test.id}: duplicate item id ${item.id}.`);
     ids.add(item.id);
     if (item.answer === undefined) errors.push(`${item.id}: missing answer.`);
-    if (section.id === 'hoeren' && item.audio !== `./web/audio/exam/${test.id}/${item.id}.mp3`) errors.push(`${item.id}: invalid audio path.`);
+    if (section.id === 'hoeren') {
+      if (item.audio !== `./web/audio/exam/${test.id}/${item.id}.mp3`) errors.push(`${item.id}: invalid audio path.`);
+      const audioPath = path.join(root, 'web', 'audio', 'exam', test.id, `${item.id}.mp3`);
+      if (fs.existsSync(audioPath)) {
+        const bytes = fs.readFileSync(audioPath);
+        const isMp3 = bytes.subarray(0, 3).toString('ascii') === 'ID3' || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
+        if (!isMp3 || bytes.length < 10_000) errors.push(`${item.id}: audio file is invalid or empty.`);
+      } else {
+        errors.push(`${item.id}: audio file is missing.`);
+      }
+    }
   }
 }
 
@@ -39,4 +49,4 @@ if (errors.length) {
   errors.forEach((error) => console.error(`[exam] ${error}`));
   process.exit(1);
 }
-console.log('[exam] Five Modelltests, official rubric, 75 audio paths, device check, strict flow and PDF report: OK');
+console.log('[exam] Five Modelltests, official rubric, 75 verified MP3 files, device check, strict flow and PDF report: OK');
