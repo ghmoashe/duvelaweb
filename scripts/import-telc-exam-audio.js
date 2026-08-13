@@ -5,14 +5,17 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const source = path.resolve(process.argv[2] || '');
-const bank = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', 'telc-a1-exam-bank.json'), 'utf8'));
+const level = String(process.argv[3] || 'A1').toUpperCase();
+if (!['A1', 'A2'].includes(level)) throw new Error('Level must be A1 or A2.');
+const bank = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', `telc-${level.toLowerCase()}-exam-bank.json`), 'utf8'));
+const audioFolder = level === 'A2' ? 'exam-a2' : 'exam';
 const destinations = new Map(bank.tests.flatMap((test) => test.sections
   .filter((section) => section.id === 'hoeren')
   .flatMap((section) => section.parts.flatMap((part) => part.items.map((item) => [item.id, test.id])))));
 const expected = new Set(destinations.keys());
 
 if (!process.argv[2] || !fs.existsSync(source)) {
-  console.error('Usage: node scripts/import-telc-exam-audio.js <source-folder>');
+  console.error('Usage: node scripts/import-telc-exam-audio.js <source-folder> [A1|A2]');
   process.exit(1);
 }
 
@@ -39,9 +42,9 @@ for (const { entry, id } of candidates) {
     process.exit(1);
   }
   const testId = destinations.get(id);
-  const destinationDir = path.join(root, 'web', 'audio', 'exam', testId);
+  const destinationDir = path.join(root, 'web', 'audio', audioFolder, testId);
   fs.mkdirSync(destinationDir, { recursive: true });
   fs.copyFileSync(sourceFile, path.join(destinationDir, `${id}.mp3`));
 }
 
-console.log(`Imported ${found.size} verified MP3 files into mt1–mt5. Source files were preserved.`);
+console.log(`Imported ${found.size} verified ${level} MP3 files into ${audioFolder}/mt1–mt5. Source files were preserved.`);
