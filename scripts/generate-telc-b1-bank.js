@@ -6,6 +6,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const audioRoot = './web/audio/exam-b1';
 const labels = 'abcdefghijklmno'.split('');
+const hearingVariants = require('./telc-b1-hearing-data');
 
 const profiles = [
   {
@@ -112,30 +113,12 @@ function rotatedChoice(options, correctIndex, shift) {
 }
 
 function listeningOne(profile, n) {
-  const rows = [
-    [`Ich wohne seit drei Jahren in ${profile.city}. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.`, `Die sprechende Person hat in ${profile.city} durch ein Projekt neue Kontakte gefunden.`, true],
-    [`Mein Arbeitsweg durch ${profile.city} dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die ${profile.transport}, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.`, `Die sprechende Person benutzt heute ${profile.transport}.`, false],
-    [`Für einen Kurs in ${profile.city} musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.`, `Der Arbeitgeber bezahlte einen Teil des Kurses in ${profile.city}.`, true],
-    [`${profile.person} bestellt nur selten im Internet. Kleidung probiert ${profile.person} lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.`, `${profile.person} kauft technische Geräte am liebsten online.`, false],
-    [`Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich ${profile.person} gefragt, ob ich beim ${profile.event} helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.`, `Die sprechende Person hilft am Wochenende beim ${profile.event}.`, true],
-  ];
+  const rows = hearingVariants[n - 1].h1;
   return rows.map((row, index) => ({ id: `b1m${n}-h1-${index + 1}`, transcript: row[0], statement: row[1], answer: row[2], explain: row[2] ? 'Die Aussage entspricht dem Hörtext.' : 'Ein wichtiges Detail ist im Hörtext anders.', points: 5, audio: `${audioRoot}/mt${n}/b1m${n}-h1-${index + 1}.mp3` }));
 }
 
 function listeningConversation(profile, n) {
-  const transcript = `Moderatorin: Guten Abend, ${profile.contact}. Sie organisieren in ${profile.city} ${profile.eventObject}. Wann findet die Veranstaltung statt? ${profile.contact}: Am ${profile.date}. Wir beginnen um ${profile.time}. Moderatorin: Wo treffen sich die Gäste? ${profile.contact}: ${profile.place}. Die Anreise ist am einfachsten mit ${profile.transportDative}. Moderatorin: Muss man Eintritt bezahlen? ${profile.contact}: Der Eintritt ist ${profile.cost}. Eine Anmeldung ist trotzdem nötig, und zwar bis zum ${profile.deadline}. Moderatorin: Wer kann teilnehmen? ${profile.contact}: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? ${profile.contact}: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: ${profile.food}. Moderatorin: Werden noch Helfer gesucht? ${profile.contact}: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? ${profile.contact}: Dann nutzen wir ${profile.weatherPlan}. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.`;
-  const statements = [
-    [`Die Veranstaltung findet am ${profile.date} statt.`, true],
-    [`Beginn ist um ${profile.time}.`, true],
-    [`Veranstaltungsort ist ${profile.place}.`, true],
-    [`Alle Besucher des ${profile.event} müssen mit dem Auto anreisen.`, false],
-    [`Der Eintritt für das Angebot in ${profile.city} ist ${profile.cost}.`, true],
-    [`Anmeldeschluss ist der ${profile.deadline}.`, true],
-    [`Kinder unter zwölf Jahren dürfen beim ${profile.event} immer allein teilnehmen.`, false],
-    [`Als Verpflegung gibt es ${profile.food}.`, true],
-    [`Für den Aufbau des ${profile.event} werden keine Helfer mehr benötigt.`, false],
-    [`Bei schlechtem Wetter wird das Angebot in ${profile.city} abgesagt.`, false],
-  ];
+  const { transcript, statements } = hearingVariants[n - 1].h2;
   return {
     id: 'h2', title: 'Teil 2 – Ein Gespräch verstehen', type: 'audio-group-truefalse', grouped: true, plays: 2,
     instructions: 'Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.',
@@ -145,13 +128,7 @@ function listeningConversation(profile, n) {
 }
 
 function listeningThree(profile, n) {
-  const rows = [
-    [`Achtung am Hauptbahnhof ${profile.city}: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.`, `Der Zug in ${profile.city} fährt heute von Gleis zwölf.`, true],
-    [`Das Bürgerbüro ${profile.city} öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.`, `Das Bürgerbüro ${profile.city} öffnet morgen zur normalen Zeit.`, false],
-    [`Und nun das Wetter für ${profile.city}: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.`, `In ${profile.city} wird am späten Nachmittag Regen erwartet.`, true],
-    [`Sie hören eine Nachricht der Praxis ${profile.person}. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.`, `Der neue Termin in der Praxis ${profile.person} ist am Donnerstag.`, false],
-    [`Im Kulturzentrum ${profile.city} beginnt gleich der Informationsabend zum Thema ${profile.event}. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.`, `Auch ohne Anmeldung kann man den Informationsabend in ${profile.city} besuchen.`, true],
-  ];
+  const rows = hearingVariants[n - 1].h3;
   return rows.map((row, index) => ({ id: `b1m${n}-h3-${index + 1}`, transcript: row[0], statement: row[1], answer: row[2], explain: row[2] ? 'Die Aussage stimmt mit der Ansage überein.' : 'Die Ansage enthält ein abweichendes Detail.', points: 5, audio: `${audioRoot}/mt${n}/b1m${n}-h3-${index + 1}.mp3` }));
 }
 
@@ -239,7 +216,7 @@ function makeTest(profile, index) {
 const bank = {
   exam: 'telc-deutsch-b1', level: 'B1',
   note: 'Eigenständige DUVELA-Übungsinhalte im Format Zertifikat Deutsch / telc Deutsch B1. Kein offizieller telc-Prüfungssatz.',
-  quality: { version: 2, reviewed: '2026-08-14', audioScripts: 55, modelTests: 5, review: 'B1 format, grammar, ambiguity, answer validity and cross-test duplication checked.' },
+  quality: { version: 3, reviewed: '2026-08-14', audioScripts: 55, modelTests: 5, review: 'All 55 listening scripts are independently authored; B1 format, grammar, ambiguity, answer validity and cross-test duplication checked.' },
   passMark: 60,
   passRules: { written: { sections: ['lesen', 'hoeren', 'schreiben'], maxPoints: 225, minPoints: 135 }, oral: { sections: ['sprechen'], maxPoints: 75, minPoints: 45 } },
   weights: { lesen: 105, hoeren: 75, schreiben: 45, sprechen: 75 },

@@ -3,11 +3,11 @@
   "level": "B1",
   "note": "Eigenständige DUVELA-Übungsinhalte im Format Zertifikat Deutsch / telc Deutsch B1. Kein offizieller telc-Prüfungssatz.",
   "quality": {
-    "version": 2,
+    "version": 3,
     "reviewed": "2026-08-14",
     "audioScripts": 55,
     "modelTests": 5,
-    "review": "B1 format, grammar, ambiguity, answer validity and cross-test duplication checked."
+    "review": "All 55 listening scripts are independently authored; B1 format, grammar, ambiguity, answer validity and cross-test duplication checked."
   },
   "passMark": 60,
   "passRules": {
@@ -56,8 +56,8 @@
               "items": [
                 {
                   "id": "b1m1-h1-1",
-                  "transcript": "Ich wohne seit drei Jahren in Leipzig. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat in Leipzig durch ein Projekt neue Kontakte gefunden.",
+                  "transcript": "Seit unser Haus ein Reparaturcafé organisiert, kenne ich endlich meine Nachbarn. Letzten Samstag habe ich dort mit einem Elektriker meinen alten Toaster repariert. Wegwerfen wollte ich ihn auf keinen Fall.",
+                  "statement": "Die Sprecherin hat im Reparaturcafé einen alten Toaster repariert.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -65,8 +65,8 @@
                 },
                 {
                   "id": "b1m1-h1-2",
-                  "transcript": "Mein Arbeitsweg durch Leipzig dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Straßenbahnlinie 4, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person benutzt heute Straßenbahnlinie 4.",
+                  "transcript": "Eigentlich fahre ich morgens mit der Straßenbahn zur Arbeit. Wegen der Baustelle hält sie diese Woche aber nicht an meiner Haltestelle. Deshalb gehe ich zehn Minuten zu Fuß zum Bus.",
+                  "statement": "Der Sprecher fährt diese Woche wie gewohnt mit der Straßenbahn.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -74,8 +74,8 @@
                 },
                 {
                   "id": "b1m1-h1-3",
-                  "transcript": "Für einen Kurs in Leipzig musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Leipzig.",
+                  "transcript": "In der Stadtbibliothek lese ich Kindern jeden Dienstag Geschichten vor. Dafür bekomme ich kein Geld, aber die Bibliothek bezahlt mir eine Fortbildung zum Vorlesen.",
+                  "statement": "Die Bibliothek finanziert dem Sprecher eine Fortbildung.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -83,8 +83,8 @@
                 },
                 {
                   "id": "b1m1-h1-4",
-                  "transcript": "Nora bestellt nur selten im Internet. Kleidung probiert Nora lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
-                  "statement": "Nora kauft technische Geräte am liebsten online.",
+                  "transcript": "Meine Nebenkostenabrechnung war ungewöhnlich hoch. Eine Mitarbeiterin der Mieterberatung hat sie kostenlos geprüft und einen Fehler gefunden. Einen Rechtsanwalt brauchte ich deshalb nicht.",
+                  "statement": "Die Sprecherin musste für die Prüfung der Abrechnung einen Anwalt bezahlen.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -92,8 +92,8 @@
                 },
                 {
                   "id": "b1m1-h1-5",
-                  "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Nora gefragt, ob ich beim Nachbarschaftsfest helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende beim Nachbarschaftsfest.",
+                  "transcript": "Beim Straßenfest wollte ich zuerst Getränke verkaufen. Nun betreue ich die Spiele für Kinder, weil dort noch jemand fehlte. Meine Schicht beginnt um drei Uhr.",
+                  "statement": "Der Sprecher hilft beim Straßenfest im Kinderbereich.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -108,77 +108,77 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Frau Berger. Sie organisieren in Leipzig das Nachbarschaftsfest. Wann findet die Veranstaltung statt? Frau Berger: Am Samstag, 21. September. Wir beginnen um 14 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Berger: Innenhof des Bürgerhauses. Die Anreise ist am einfachsten mit der Straßenbahnlinie 4. Moderatorin: Muss man Eintritt bezahlen? Frau Berger: Der Eintritt ist kostenlos. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 15. September. Moderatorin: Wer kann teilnehmen? Frau Berger: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Berger: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Kuchen und internationale Salate. Moderatorin: Werden noch Helfer gesucht? Frau Berger: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Berger: Dann nutzen wir großer Saal im Bürgerhaus. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Frau Koch: Guten Abend, Herr Seidel. Viele Bewohner haben gehört, dass unser Bürgerhaus renoviert wird. Wann beginnen die Arbeiten? Herr Seidel: Am 4. November. Zuerst wird das Dach repariert, danach kommen neue Fenster. Frau Koch: Bleibt das Haus während dieser Zeit geöffnet? Herr Seidel: Teilweise. Der große Saal ist sechs Wochen geschlossen, aber die Beratungsstelle im Erdgeschoss bleibt erreichbar. Sie hat nur mittwochs statt donnerstags geöffnet. Frau Koch: Was passiert mit den Sprachkursen? Herr Seidel: Die Abendkurse ziehen in die Grundschule am Park um. Die Vormittagskurse fallen zwei Wochen aus und starten dann ebenfalls dort. Frau Koch: Können Vereine weiterhin Räume buchen? Herr Seidel: Bis Januar leider nicht. Bereits bezahlte Gebühren werden automatisch zurücküberwiesen. Frau Koch: Die Nachbarschaft wollte bei den Arbeiten helfen. Ist das möglich? Herr Seidel: Bei den Bauarbeiten nicht, das wäre zu gefährlich. Für den Umzug der Möbel am 2. November suchen wir aber noch zwölf Helfer. Beginn ist um neun Uhr, und wir stellen Handschuhe sowie Mittagessen bereit. Frau Koch: Wann soll alles fertig sein? Herr Seidel: Wenn das Wetter mitspielt, öffnen wir das gesamte Haus am 20. Januar wieder. Das Eröffnungsfest ist eine Woche später. Frau Koch: Wo findet man aktuelle Informationen? Herr Seidel: Auf unserer Internetseite und im Schaukasten vor dem Bürgerhaus. Telefonisch sind wir montags bis freitags von zehn bis zwölf Uhr erreichbar.",
               "audio": "./web/audio/exam-b1/mt1/b1m1-h2.mp3",
               "items": [
                 {
                   "id": "b1m1-h2-1",
-                  "statement": "Die Veranstaltung findet am Samstag, 21. September statt.",
+                  "statement": "Die Renovierung beginnt am 4. November.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-2",
-                  "statement": "Beginn ist um 14 Uhr.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "statement": "Zuerst werden die Fenster ausgetauscht.",
+                  "answer": false,
+                  "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-3",
-                  "statement": "Veranstaltungsort ist Innenhof des Bürgerhauses.",
+                  "statement": "Die Beratungsstelle bleibt im Erdgeschoss geöffnet.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-4",
-                  "statement": "Alle Besucher des Nachbarschaftsfest müssen mit dem Auto anreisen.",
+                  "statement": "Alle Sprachkurse fallen sechs Wochen lang aus.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-5",
-                  "statement": "Der Eintritt für das Angebot in Leipzig ist kostenlos.",
+                  "statement": "Die Abendkurse finden vorübergehend in einer Schule statt.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-6",
-                  "statement": "Anmeldeschluss ist der 15. September.",
+                  "statement": "Vereine können bis Januar keine Räume buchen.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen beim Nachbarschaftsfest immer allein teilnehmen.",
+                  "statement": "Bezahlte Raumgebühren werden nur auf Antrag erstattet.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-8",
-                  "statement": "Als Verpflegung gibt es Kuchen und internationale Salate.",
+                  "statement": "Für den Möbelumzug werden zwölf Helfer gesucht.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-9",
-                  "statement": "Für den Aufbau des Nachbarschaftsfest werden keine Helfer mehr benötigt.",
+                  "statement": "Das Eröffnungsfest ist für den 20. Januar geplant.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-10",
-                  "statement": "Bei schlechtem Wetter wird das Angebot in Leipzig abgesagt.",
-                  "answer": false,
-                  "explain": "Das Gespräch nennt eine andere Information.",
+                  "statement": "Aktuelle Informationen stehen auch im Schaukasten.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 }
               ]
@@ -192,8 +192,8 @@
               "items": [
                 {
                   "id": "b1m1-h3-1",
-                  "transcript": "Achtung am Hauptbahnhof Leipzig: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug in Leipzig fährt heute von Gleis zwölf.",
+                  "transcript": "Wegen des Feiertags wird die Biotonne in der Südstraße nicht am Dienstag, sondern erst am Mittwoch geleert. Bitte stellen Sie die Tonnen bis sieben Uhr an den Straßenrand.",
+                  "statement": "Die Biotonnen werden in der Südstraße einen Tag später geleert.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -201,8 +201,8 @@
                 },
                 {
                   "id": "b1m1-h3-2",
-                  "transcript": "Das Bürgerbüro Leipzig öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro Leipzig öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Hallenbad bleibt heute wegen einer technischen Störung geschlossen. Der Schwimmkurs für Erwachsene wird nicht abgesagt, sondern beginnt um achtzehn Uhr im Westbad.",
+                  "statement": "Der Schwimmkurs für Erwachsene fällt heute aus.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -210,8 +210,8 @@
                 },
                 {
                   "id": "b1m1-h3-3",
-                  "transcript": "Und nun das Wetter für Leipzig: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "In Leipzig wird am späten Nachmittag Regen erwartet.",
+                  "transcript": "Die Straßenbahnlinie vier fährt bis Sonntag nur bis zum Rathaus. Fahrgäste zum Messegelände steigen dort in den kostenlosen Ersatzbus um.",
+                  "statement": "Zum Messegelände gibt es einen kostenlosen Ersatzbus.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -219,8 +219,8 @@
                 },
                 {
                   "id": "b1m1-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Praxis Nora. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Termin in der Praxis Nora ist am Donnerstag.",
+                  "transcript": "Ihre vorbestellten Bücher liegen noch bis Freitag in der Stadtbibliothek bereit. Danach werden sie wieder in die Regale gestellt. Eine Abholung am Samstag ist nicht mehr möglich.",
+                  "statement": "Die reservierten Bücher können noch am Samstag abgeholt werden.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -228,8 +228,8 @@
                 },
                 {
                   "id": "b1m1-h3-5",
-                  "transcript": "Im Kulturzentrum Leipzig beginnt gleich der Informationsabend zum Thema Nachbarschaftsfest. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Leipzig besuchen.",
+                  "transcript": "Der Wochenmarkt findet wegen des Stadtlaufs ausnahmsweise auf dem Theaterplatz statt. Die Verkaufszeiten von acht bis dreizehn Uhr bleiben unverändert.",
+                  "statement": "Der Wochenmarkt wird an einen anderen Platz verlegt.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -1384,8 +1384,8 @@
               "items": [
                 {
                   "id": "b1m2-h1-1",
-                  "transcript": "Ich wohne seit drei Jahren in Dortmund. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat in Dortmund durch ein Projekt neue Kontakte gefunden.",
+                  "transcript": "An meinem ersten Arbeitstag zeigte mir meine Kollegin alle Räume und stellte mich dem Team vor. Mit dem Computerprogramm musste ich mich allerdings allein beschäftigen, weil der IT-Trainer krank war.",
+                  "statement": "Die neue Mitarbeiterin erhielt am ersten Tag keine Schulung für das Computerprogramm.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -1393,8 +1393,8 @@
                 },
                 {
                   "id": "b1m2-h1-2",
-                  "transcript": "Mein Arbeitsweg durch Dortmund dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Buslinie 52, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person benutzt heute Buslinie 52.",
+                  "transcript": "Ich möchte einen Buchhaltungskurs besuchen. Meine Firma übernimmt die gesamten Kosten, wenn ich den Kurs erfolgreich abschließe. Nur die Fahrkarte zum Bildungszentrum muss ich selbst bezahlen.",
+                  "statement": "Der Sprecher muss die Kursgebühr selbst bezahlen.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -1402,26 +1402,26 @@
                 },
                 {
                   "id": "b1m2-h1-3",
-                  "transcript": "Für einen Kurs in Dortmund musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Dortmund.",
-                  "answer": true,
-                  "explain": "Die Aussage entspricht dem Hörtext.",
+                  "transcript": "Ab nächsten Monat arbeite ich nicht mehr jeden Freitag spät. Im neuen Dienstplan wechseln wir uns im Team ab, sodass ich nur noch zweimal im Monat die Abendschicht habe.",
+                  "statement": "Die Sprecherin arbeitet künftig jeden Freitagabend.",
+                  "answer": false,
+                  "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
                   "audio": "./web/audio/exam-b1/mt2/b1m2-h1-3.mp3"
                 },
                 {
                   "id": "b1m2-h1-4",
-                  "transcript": "Emre bestellt nur selten im Internet. Kleidung probiert Emre lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
-                  "statement": "Emre kauft technische Geräte am liebsten online.",
-                  "answer": false,
-                  "explain": "Ein wichtiges Detail ist im Hörtext anders.",
+                  "transcript": "Der Onlinekurs ist praktisch, weil ich die Videos ansehen kann, wann ich möchte. Einmal pro Woche gibt es trotzdem ein festes digitales Treffen mit der Kursleiterin.",
+                  "statement": "Zum Onlinekurs gehört ein wöchentliches Treffen zu einer festen Zeit.",
+                  "answer": true,
+                  "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
                   "audio": "./web/audio/exam-b1/mt2/b1m2-h1-4.mp3"
                 },
                 {
                   "id": "b1m2-h1-5",
-                  "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Emre gefragt, ob ich beim Tag der offenen Tür im Bildungszentrum helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende beim Tag der offenen Tür im Bildungszentrum.",
+                  "transcript": "Auf der Jobmesse führte ich drei kurze Gespräche mit Firmen. Zwei davon haben mich inzwischen zu einem längeren Vorstellungsgespräch eingeladen.",
+                  "statement": "Der Sprecher bekam nach der Jobmesse zwei Einladungen.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -1436,77 +1436,77 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Herr Yilmaz. Sie organisieren in Dortmund den Tag der offenen Tür im Bildungszentrum. Wann findet die Veranstaltung statt? Herr Yilmaz: Am Freitag, 11. Oktober. Wir beginnen um 16 Uhr. Moderatorin: Wo treffen sich die Gäste? Herr Yilmaz: Bildungszentrum Nord. Die Anreise ist am einfachsten mit der Buslinie 52. Moderatorin: Muss man Eintritt bezahlen? Herr Yilmaz: Der Eintritt ist drei Euro für Material. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 7. Oktober. Moderatorin: Wer kann teilnehmen? Herr Yilmaz: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Herr Yilmaz: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Kaffee, Tee und belegte Brötchen. Moderatorin: Werden noch Helfer gesucht? Herr Yilmaz: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Herr Yilmaz: Dann nutzen wir alle Angebote finden im Gebäude statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Frau Nguyen: Herr Brandt, unsere Firma führt im Herbst ein neues Weiterbildungsprogramm ein. Wer darf daran teilnehmen? Herr Brandt: Alle Beschäftigten nach der Probezeit. Auszubildende können ebenfalls teilnehmen, brauchen aber die Zustimmung ihrer Abteilungsleitung. Frau Nguyen: Welche Kurse werden angeboten? Herr Brandt: Kommunikation, Tabellenkalkulation und Projektplanung. Der Englischkurs startet erst im Frühjahr, obwohl er schon im alten Programmheft steht. Frau Nguyen: Finden die Kurse während der Arbeitszeit statt? Herr Brandt: Die kurzen Workshops ja. Sie dauern jeweils einen Vormittag. Der Projektplanungskurs läuft dagegen an vier Dienstagabenden von achtzehn bis zwanzig Uhr. Dafür erhalten die Teilnehmenden einen freien halben Tag. Frau Nguyen: Was kostet die Teilnahme? Herr Brandt: Die Firma bezahlt Kurs und Lernmaterial. Fahrtkosten können wir nur erstatten, wenn der Kurs an einem anderen Standort stattfindet. Frau Nguyen: Wie meldet man sich an? Herr Brandt: Über das Personalportal, spätestens drei Wochen vor Kursbeginn. Die Unterschrift der direkten Führungskraft ist nicht mehr nötig. Frau Nguyen: Gibt es eine Prüfung? Herr Brandt: Nur im Tabellenkurs. Wer mindestens siebzig Prozent erreicht, bekommt ein Zertifikat. Bei den anderen Kursen genügt regelmäßige Teilnahme. Frau Nguyen: Und wenn ein Kurs schon voll ist? Herr Brandt: Dann kommt man automatisch auf eine Warteliste und erhält per E-Mail Bescheid, sobald ein Platz frei wird.",
               "audio": "./web/audio/exam-b1/mt2/b1m2-h2.mp3",
               "items": [
                 {
                   "id": "b1m2-h2-1",
-                  "statement": "Die Veranstaltung findet am Freitag, 11. Oktober statt.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "statement": "Beschäftigte in der Probezeit können bereits teilnehmen.",
+                  "answer": false,
+                  "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-2",
-                  "statement": "Beginn ist um 16 Uhr.",
+                  "statement": "Auszubildende brauchen die Zustimmung ihrer Abteilung.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-3",
-                  "statement": "Veranstaltungsort ist Bildungszentrum Nord.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
-                  "points": 2.5
-                },
-                {
-                  "id": "b1m2-h2-4",
-                  "statement": "Alle Besucher des Tag der offenen Tür im Bildungszentrum müssen mit dem Auto anreisen.",
+                  "statement": "Der Englischkurs beginnt im Herbst.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
+                  "id": "b1m2-h2-4",
+                  "statement": "Die kurzen Workshops dauern jeweils einen Vormittag.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "points": 2.5
+                },
+                {
                   "id": "b1m2-h2-5",
-                  "statement": "Der Eintritt für das Angebot in Dortmund ist drei Euro für Material.",
+                  "statement": "Der Projektplanungskurs findet an vier Abenden statt.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-6",
-                  "statement": "Anmeldeschluss ist der 7. Oktober.",
+                  "statement": "Für den Abendkurs gibt es einen freien halben Tag.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen beim Tag der offenen Tür im Bildungszentrum immer allein teilnehmen.",
+                  "statement": "Die Beschäftigten müssen das Lernmaterial selbst bezahlen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-8",
-                  "statement": "Als Verpflegung gibt es Kaffee, Tee und belegte Brötchen.",
+                  "statement": "Die Anmeldung erfolgt über das Personalportal.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-9",
-                  "statement": "Für den Aufbau des Tag der offenen Tür im Bildungszentrum werden keine Helfer mehr benötigt.",
+                  "statement": "In jedem Kurs gibt es am Ende eine Prüfung.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-10",
-                  "statement": "Bei schlechtem Wetter wird das Angebot in Dortmund abgesagt.",
-                  "answer": false,
-                  "explain": "Das Gespräch nennt eine andere Information.",
+                  "statement": "Für volle Kurse wird automatisch eine Warteliste geführt.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 }
               ]
@@ -1520,8 +1520,8 @@
               "items": [
                 {
                   "id": "b1m2-h3-1",
-                  "transcript": "Achtung am Hauptbahnhof Dortmund: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug in Dortmund fährt heute von Gleis zwölf.",
+                  "transcript": "Achtung, liebe Kolleginnen und Kollegen: Der Probealarm beginnt heute um elf Uhr. Verlassen Sie das Gebäude über die markierten Treppen und treffen Sie sich auf Parkplatz zwei.",
+                  "statement": "Beim Probealarm sollen sich alle auf Parkplatz zwei sammeln.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -1529,8 +1529,8 @@
                 },
                 {
                   "id": "b1m2-h3-2",
-                  "transcript": "Das Bürgerbüro Dortmund öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro Dortmund öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Seminar Kundenkommunikation findet morgen nicht in Raum 204 statt. Wegen der größeren Teilnehmerzahl wechseln wir in den Konferenzsaal im Erdgeschoss. Die Anfangszeit bleibt neun Uhr.",
+                  "statement": "Das Seminar beginnt wegen des Raumwechsels später.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -1538,8 +1538,8 @@
                 },
                 {
                   "id": "b1m2-h3-3",
-                  "transcript": "Und nun das Wetter für Dortmund: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "In Dortmund wird am späten Nachmittag Regen erwartet.",
+                  "transcript": "Bitte reichen Sie Änderungen Ihrer Bankverbindung bis zum zwanzigsten dieses Monats bei der Personalabteilung ein. Nur dann können sie bei der nächsten Gehaltszahlung berücksichtigt werden.",
+                  "statement": "Eine neue Bankverbindung muss bis zum zwanzigsten gemeldet werden.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -1547,8 +1547,8 @@
                 },
                 {
                   "id": "b1m2-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Praxis Emre. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Termin in der Praxis Emre ist am Donnerstag.",
+                  "transcript": "Wegen Wartungsarbeiten sind E-Mail und Firmennetzwerk heute von neunzehn bis ungefähr zweiundzwanzig Uhr nicht erreichbar. Das Zeiterfassungssystem funktioniert in diesem Zeitraum weiterhin.",
+                  "statement": "Während der Wartung fällt auch die Zeiterfassung aus.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -1556,8 +1556,8 @@
                 },
                 {
                   "id": "b1m2-h3-5",
-                  "transcript": "Im Kulturzentrum Dortmund beginnt gleich der Informationsabend zum Thema Tag der offenen Tür im Bildungszentrum. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Dortmund besuchen.",
+                  "transcript": "Die Kantine schließt am Freitag bereits um dreizehn Uhr. Warme Gerichte werden bis zwölf Uhr dreißig ausgegeben; danach gibt es noch belegte Brötchen zum Mitnehmen.",
+                  "statement": "Am Freitag kann man bis halb eins ein warmes Gericht bekommen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -2712,8 +2712,8 @@
               "items": [
                 {
                   "id": "b1m3-h1-1",
-                  "transcript": "Ich wohne seit drei Jahren in Freiburg. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat in Freiburg durch ein Projekt neue Kontakte gefunden.",
+                  "transcript": "Für die Fahrt nach Wien habe ich ein Bett im Nachtzug reserviert. Das war teurer als ein Sitzplatz, aber ich kam ausgeschlafen an und sparte eine Hotelübernachtung.",
+                  "statement": "Der Sprecher reiste im Nachtzug in einem Schlafabteil.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -2721,8 +2721,8 @@
                 },
                 {
                   "id": "b1m3-h1-2",
-                  "transcript": "Mein Arbeitsweg durch Freiburg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Regionalzug R7, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person benutzt heute Regionalzug R7.",
+                  "transcript": "Auf Regionalzügen darf ich mein Fahrrad meistens mitnehmen. Für den Schnellzug am Sonntag musste ich aber zusätzlich einen Stellplatz reservieren.",
+                  "statement": "Für die Fahrt am Sonntag war keine Fahrradreservierung nötig.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -2730,26 +2730,26 @@
                 },
                 {
                   "id": "b1m3-h1-3",
-                  "transcript": "Für einen Kurs in Freiburg musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Freiburg.",
-                  "answer": true,
-                  "explain": "Die Aussage entspricht dem Hörtext.",
+                  "transcript": "Mein Flug wurde am Morgen gestrichen. Die Gesellschaft bot mir einen Platz am nächsten Tag an, doch ich nahm stattdessen den Zug und erhielt den Flugpreis zurück.",
+                  "statement": "Die Sprecherin wartete bis zum nächsten Tag auf einen Ersatzflug.",
+                  "answer": false,
+                  "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
                   "audio": "./web/audio/exam-b1/mt3/b1m3-h1-3.mp3"
                 },
                 {
                   "id": "b1m3-h1-4",
-                  "transcript": "Sofia bestellt nur selten im Internet. Kleidung probiert Sofia lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
-                  "statement": "Sofia kauft technische Geräte am liebsten online.",
-                  "answer": false,
-                  "explain": "Ein wichtiges Detail ist im Hörtext anders.",
+                  "transcript": "Vor der Reise habe ich eine Versicherung abgeschlossen. Als mein Koffer verloren ging, bezahlte sie Kleidung und notwendige Hygieneartikel für die ersten Tage.",
+                  "statement": "Die Versicherung übernahm Kosten nach dem Verlust des Koffers.",
+                  "answer": true,
+                  "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
                   "audio": "./web/audio/exam-b1/mt3/b1m3-h1-4.mp3"
                 },
                 {
                   "id": "b1m3-h1-5",
-                  "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Sofia gefragt, ob ich beim Informationsabend für eine Gruppenreise helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende beim Informationsabend für eine Gruppenreise.",
+                  "transcript": "Die Jugendherberge liegt nicht direkt im Zentrum, aber der Bus hält vor der Tür. Frühstück und Bettwäsche sind bereits im Übernachtungspreis enthalten.",
+                  "statement": "Für das Frühstück in der Jugendherberge muss man nicht extra bezahlen.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -2764,77 +2764,77 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Frau Keller. Sie organisieren in Freiburg den Informationsabend für eine Gruppenreise. Wann findet die Veranstaltung statt? Frau Keller: Am Dienstag, 6. Mai. Wir beginnen um 18:30 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Keller: Reisezentrum am Hauptbahnhof. Die Anreise ist am einfachsten mit dem Regionalzug R7. Moderatorin: Muss man Eintritt bezahlen? Frau Keller: Der Eintritt ist fünf Euro Eintritt. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 30. April. Moderatorin: Wer kann teilnehmen? Frau Keller: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Keller: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Getränke und kleine Snacks. Moderatorin: Werden noch Helfer gesucht? Frau Keller: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Keller: Dann nutzen wir der Termin findet unabhängig vom Wetter statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Reiseberaterin: Guten Tag, Frau Alves. Sie interessieren sich für unsere achttägige Gruppenreise an die Ostsee? Frau Alves: Ja, aber ich kann erst am zweiten Reisetag ankommen. Reiseberaterin: Das ist möglich. Die Gruppe fährt am Samstagmorgen mit dem Bus ab. Sie könnten am Sonntag mit dem Zug nach Lübeck kommen und dort zur Gruppe stoßen. Die zusätzliche Zugfahrt zahlen Sie selbst. Frau Alves: Welche Unterkunft ist vorgesehen? Reiseberaterin: Ein kleines Hotel außerhalb der Altstadt. Alle Zimmer haben ein eigenes Bad. Einzelzimmer kosten allerdings hundertzwanzig Euro zusätzlich. Frau Alves: Was ist im Reisepreis enthalten? Reiseberaterin: Sieben Übernachtungen, Frühstück, Busfahrten und drei geführte Ausflüge. Abendessen und Eintrittskarten für Museen sind nicht enthalten. Frau Alves: Gibt es auch freie Zeit? Reiseberaterin: Natürlich. Der Montag- und der Donnerstagnachmittag stehen zur freien Verfügung. Die Radtour am Mittwoch ist freiwillig; alternativ können Sie eine Hafenrundfahrt machen. Frau Alves: Ich kann wegen meines Knies nicht lange Rad fahren. Reiseberaterin: Dann ist das Schiff sicher besser. Bitte sagen Sie uns das bei der Buchung. Frau Alves: Bis wann muss ich mich entscheiden? Reiseberaterin: Die Anmeldung endet am 12. März. Mit der Anmeldung zahlen Sie zwanzig Prozent, den Rest vier Wochen vor Abfahrt. Bis sechs Wochen vorher können Sie kostenlos stornieren. Frau Alves: Dann nehme ich die Unterlagen mit und melde mich nächste Woche.",
               "audio": "./web/audio/exam-b1/mt3/b1m3-h2.mp3",
               "items": [
                 {
                   "id": "b1m3-h2-1",
-                  "statement": "Die Veranstaltung findet am Dienstag, 6. Mai statt.",
+                  "statement": "Frau Alves möchte erst am zweiten Reisetag ankommen.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-2",
-                  "statement": "Beginn ist um 18:30 Uhr.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "statement": "Die Gruppe beginnt die Reise am Sonntag.",
+                  "answer": false,
+                  "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-3",
-                  "statement": "Veranstaltungsort ist Reisezentrum am Hauptbahnhof.",
+                  "statement": "Die zusätzliche Zugfahrt muss Frau Alves bezahlen.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-4",
-                  "statement": "Alle Besucher des Informationsabend für eine Gruppenreise müssen mit dem Auto anreisen.",
+                  "statement": "Alle Reisenden wohnen in Einzelzimmern.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-5",
-                  "statement": "Der Eintritt für das Angebot in Freiburg ist fünf Euro Eintritt.",
+                  "statement": "Das Frühstück ist im Reisepreis enthalten.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-6",
-                  "statement": "Anmeldeschluss ist der 30. April.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "statement": "Eintrittskarten für Museen sind inklusive.",
+                  "answer": false,
+                  "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen beim Informationsabend für eine Gruppenreise immer allein teilnehmen.",
-                  "answer": false,
-                  "explain": "Das Gespräch nennt eine andere Information.",
-                  "points": 2.5
-                },
-                {
-                  "id": "b1m3-h2-8",
-                  "statement": "Als Verpflegung gibt es Getränke und kleine Snacks.",
+                  "statement": "An zwei Nachmittagen gibt es kein festes Programm.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
-                  "id": "b1m3-h2-9",
-                  "statement": "Für den Aufbau des Informationsabend für eine Gruppenreise werden keine Helfer mehr benötigt.",
+                  "id": "b1m3-h2-8",
+                  "statement": "Die Radtour am Mittwoch ist verpflichtend.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
+                  "id": "b1m3-h2-9",
+                  "statement": "Bei der Anmeldung werden zwanzig Prozent fällig.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "points": 2.5
+                },
+                {
                   "id": "b1m3-h2-10",
-                  "statement": "Bei schlechtem Wetter wird das Angebot in Freiburg abgesagt.",
-                  "answer": false,
-                  "explain": "Das Gespräch nennt eine andere Information.",
+                  "statement": "Bis sechs Wochen vor Abfahrt ist eine kostenlose Stornierung möglich.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 }
               ]
@@ -2848,8 +2848,8 @@
               "items": [
                 {
                   "id": "b1m3-h3-1",
-                  "transcript": "Achtung am Hauptbahnhof Freiburg: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug in Freiburg fährt heute von Gleis zwölf.",
+                  "transcript": "Der Intercity nach Basel ist heute etwa fünfundzwanzig Minuten verspätet. Reisende mit Anschluss nach Zürich benutzen bitte in Basel den Zug um sechzehn Uhr vierzig auf Gleis sieben.",
+                  "statement": "Für Reisende nach Zürich wird eine spätere Verbindung genannt.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -2857,8 +2857,8 @@
                 },
                 {
                   "id": "b1m3-h3-2",
-                  "transcript": "Das Bürgerbüro Freiburg öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro Freiburg öffnet morgen zur normalen Zeit.",
+                  "transcript": "Der Flughafenshuttle fährt wegen der Baustelle nicht vor dem Terminal ab. Die Ersatzhaltestelle befindet sich am Busbahnhof neben Parkhaus drei. Die Abfahrtszeiten bleiben gleich.",
+                  "statement": "Der Flughafenshuttle fährt heute direkt vor dem Terminal ab.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -2866,8 +2866,8 @@
                 },
                 {
                   "id": "b1m3-h3-3",
-                  "transcript": "Und nun das Wetter für Freiburg: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "In Freiburg wird am späten Nachmittag Regen erwartet.",
+                  "transcript": "Wegen starken Windes fällt die Fähre um vierzehn Uhr nach Helgoland aus. Fahrkarten gelten automatisch für die nächste Abfahrt morgen früh oder können am Schalter zurückgegeben werden.",
+                  "statement": "Die Fahrkarte kann für die Fahrt am nächsten Morgen genutzt werden.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -2875,8 +2875,8 @@
                 },
                 {
                   "id": "b1m3-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Praxis Sofia. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Termin in der Praxis Sofia ist am Donnerstag.",
+                  "transcript": "Willkommen im Hotel Seeblick. Ihr Zimmer ist ab fünfzehn Uhr fertig. Gepäck können Sie schon vorher kostenlos an der Rezeption abgeben; ein frühes Einchecken ist heute leider nicht möglich.",
+                  "statement": "Die Gäste können heute schon vor fünfzehn Uhr einchecken.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -2884,8 +2884,8 @@
                 },
                 {
                   "id": "b1m3-h3-5",
-                  "transcript": "Im Kulturzentrum Freiburg beginnt gleich der Informationsabend zum Thema Informationsabend für eine Gruppenreise. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Freiburg besuchen.",
+                  "transcript": "Die Bundesstraße 31 ist zwischen Kirchzarten und Hinterzarten nach einem Unfall gesperrt. Die Umleitung über Sankt Märgen ist ausgeschildert und dauert ungefähr zwanzig Minuten länger.",
+                  "statement": "Auf der ausgeschilderten Umleitung braucht man etwa zwanzig Minuten mehr.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -4040,8 +4040,8 @@
               "items": [
                 {
                   "id": "b1m4-h1-1",
-                  "transcript": "Ich wohne seit drei Jahren in Hannover. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat in Hannover durch ein Projekt neue Kontakte gefunden.",
+                  "transcript": "Ich wollte wieder mehr Sport machen und meldete mich für einen Laufkurs an. Nach zwei Wochen merkte ich, dass mein Knie schmerzte. Jetzt besuche ich stattdessen einen schonenden Aquafitnesskurs.",
+                  "statement": "Die Sprecherin wechselte wegen Knieproblemen zu Aquafitness.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -4049,8 +4049,8 @@
                 },
                 {
                   "id": "b1m4-h1-2",
-                  "transcript": "Mein Arbeitsweg durch Hannover dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die U-Bahnlinie 6, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person benutzt heute U-Bahnlinie 6.",
+                  "transcript": "Die Ernährungsberaterin empfahl mir nicht, völlig auf Süßes zu verzichten. Ich soll kleinere Portionen essen und regelmäßiger selbst kochen.",
+                  "statement": "Der Sprecher darf nach dem Rat der Beraterin überhaupt keine Süßigkeiten mehr essen.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -4058,8 +4058,8 @@
                 },
                 {
                   "id": "b1m4-h1-3",
-                  "transcript": "Für einen Kurs in Hannover musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Hannover.",
+                  "transcript": "Für die Untersuchung beim Facharzt hätte ich drei Monate warten müssen. Über die Terminservicestelle bekam ich schon nächste Woche einen Termin in einer Nachbarstadt.",
+                  "statement": "Die Terminservicestelle vermittelte einen früheren Facharzttermin.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -4067,8 +4067,8 @@
                 },
                 {
                   "id": "b1m4-h1-4",
-                  "transcript": "Mila bestellt nur selten im Internet. Kleidung probiert Mila lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
-                  "statement": "Mila kauft technische Geräte am liebsten online.",
+                  "transcript": "In unserem Gemeinschaftsgarten gieße ich mittwochs die Pflanzen. Am Wochenende kann ich dieses Mal nicht helfen, weil ich meine Eltern besuche. Meine Nachbarin übernimmt meine Schicht.",
+                  "statement": "Die Sprecherin übernimmt am Wochenende selbst die Gartenschicht.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -4076,8 +4076,8 @@
                 },
                 {
                   "id": "b1m4-h1-5",
-                  "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Mila gefragt, ob ich beim Gesundheits- und Umwelttag helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende beim Gesundheits- und Umwelttag.",
+                  "transcript": "Im Unverpacktladen leihe ich Gläser gegen Pfand aus. Ich bringe sie beim nächsten Einkauf zurück und muss deshalb keine eigenen Behälter von zu Hause tragen.",
+                  "statement": "Der Laden bietet Behälter gegen Pfand an.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -4092,77 +4092,77 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Herr Baumann. Sie organisieren in Hannover den Gesundheits- und Umwelttag. Wann findet die Veranstaltung statt? Herr Baumann: Am Sonntag, 18. August. Wir beginnen um 10 Uhr. Moderatorin: Wo treffen sich die Gäste? Herr Baumann: Stadtpark am See. Die Anreise ist am einfachsten mit der U-Bahnlinie 6. Moderatorin: Muss man Eintritt bezahlen? Herr Baumann: Der Eintritt ist kostenlos. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 10. August. Moderatorin: Wer kann teilnehmen? Herr Baumann: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Herr Baumann: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: vegetarische Suppe und Obst. Moderatorin: Werden noch Helfer gesucht? Herr Baumann: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Herr Baumann: Dann nutzen wir Sporthalle der Gesamtschule. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Moderator: Frau Dr. Peters, am 18. August findet der Gesundheits- und Umwelttag statt. Was ist neu? Frau Peters: In diesem Jahr verbinden wir Bewegung mit Klimaschutz. Es gibt einen Fahrradcheck, Kochkurse und kurze Gesundheitsberatungen. Moderator: Wo findet das Programm statt? Frau Peters: Im Stadtpark. Nur die Vorträge sind im benachbarten Umweltzentrum. Bei starkem Regen ziehen auch die Kochkurse dorthin um; der Lauf und der Fahrradcheck fallen dann aus. Moderator: Muss man sich anmelden? Frau Peters: Für die offenen Informationsstände nicht. Für Kochkurse und Rückenberatung ist eine Anmeldung bis zum 10. August nötig, weil die Plätze begrenzt sind. Moderator: Kostet das etwas? Frau Peters: Der Eintritt ist frei. Beim Kochkurs sammeln wir fünf Euro für Lebensmittel. Wer ein eigenes Messer und eine Dose mitbringt, erhält einen Euro zurück. Moderator: Was gibt es für Familien? Frau Peters: Kinder ab sechs Jahren können mit ihren Eltern an einer Natur-Rallye teilnehmen. Eine Betreuung ohne Eltern bieten wir nicht an. Moderator: Werden noch Freiwillige gesucht? Frau Peters: Ja, für den Aufbau ab acht Uhr und für die Fahrradstation am Nachmittag. Medizinische Aufgaben übernehmen ausschließlich Fachkräfte. Moderator: Wie reisen Besucher am besten an? Frau Peters: Mit der U-Bahnlinie sechs oder mit dem Fahrrad. Vor dem Park gibt es zweihundert neue Fahrradplätze, aber nur wenige Autoparkplätze.",
               "audio": "./web/audio/exam-b1/mt4/b1m4-h2.mp3",
               "items": [
                 {
                   "id": "b1m4-h2-1",
-                  "statement": "Die Veranstaltung findet am Sonntag, 18. August statt.",
+                  "statement": "Die Veranstaltung verbindet Gesundheit und Klimaschutz.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-2",
-                  "statement": "Beginn ist um 10 Uhr.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "statement": "Alle Programmpunkte finden im Umweltzentrum statt.",
+                  "answer": false,
+                  "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-3",
-                  "statement": "Veranstaltungsort ist Stadtpark am See.",
+                  "statement": "Bei starkem Regen wird der Lauf abgesagt.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-4",
-                  "statement": "Alle Besucher des Gesundheits- und Umwelttag müssen mit dem Auto anreisen.",
+                  "statement": "Für die Informationsstände muss man sich anmelden.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-5",
-                  "statement": "Der Eintritt für das Angebot in Hannover ist kostenlos.",
+                  "statement": "Die Anmeldung für Kochkurse endet am 10. August.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-6",
-                  "statement": "Anmeldeschluss ist der 10. August.",
+                  "statement": "Der Kochkurs kostet fünf Euro für Lebensmittel.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen beim Gesundheits- und Umwelttag immer allein teilnehmen.",
+                  "statement": "Kinder können ohne ihre Eltern betreut werden.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-8",
-                  "statement": "Als Verpflegung gibt es vegetarische Suppe und Obst.",
+                  "statement": "Freiwillige werden für die Fahrradstation gesucht.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-9",
-                  "statement": "Für den Aufbau des Gesundheits- und Umwelttag werden keine Helfer mehr benötigt.",
+                  "statement": "Freiwillige dürfen medizinische Beratungen übernehmen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-10",
-                  "statement": "Bei schlechtem Wetter wird das Angebot in Hannover abgesagt.",
-                  "answer": false,
-                  "explain": "Das Gespräch nennt eine andere Information.",
+                  "statement": "Vor dem Park gibt es neue Fahrradplätze.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 }
               ]
@@ -4176,8 +4176,8 @@
               "items": [
                 {
                   "id": "b1m4-h3-1",
-                  "transcript": "Achtung am Hauptbahnhof Hannover: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug in Hannover fährt heute von Gleis zwölf.",
+                  "transcript": "Die Sonnen-Apotheke hat heute Notdienst und ist bis morgen früh um acht Uhr geöffnet. Benutzen Sie nachts bitte die Klingel links neben dem Haupteingang.",
+                  "statement": "Die Sonnen-Apotheke ist die ganze Nacht erreichbar.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -4185,8 +4185,8 @@
                 },
                 {
                   "id": "b1m4-h3-2",
-                  "transcript": "Das Bürgerbüro Hannover öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro Hannover öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Gesundheitsamt informiert: Das Leitungswasser kann wieder ohne Einschränkung getrunken werden. Abkochen ist seit heute Mittag nicht mehr notwendig.",
+                  "statement": "Das Leitungswasser muss weiterhin abgekocht werden.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -4194,8 +4194,8 @@
                 },
                 {
                   "id": "b1m4-h3-3",
-                  "transcript": "Und nun das Wetter für Hannover: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "In Hannover wird am späten Nachmittag Regen erwartet.",
+                  "transcript": "Der Parklauf startet am Sonntag nicht am See, sondern vor der Sporthalle. Die Strecke ist wegen Bauarbeiten einen Kilometer kürzer als ursprünglich geplant.",
+                  "statement": "Der Start des Parklaufs wurde zur Sporthalle verlegt.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -4203,8 +4203,8 @@
                 },
                 {
                   "id": "b1m4-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Praxis Mila. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Termin in der Praxis Mila ist am Donnerstag.",
+                  "transcript": "Die Abholung von Papier und Verpackungen findet diese Woche wie geplant statt. Nur der Termin für Restmüll verschiebt sich von Donnerstag auf Freitag.",
+                  "statement": "Auch Papier wird in dieser Woche einen Tag später abgeholt.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -4212,8 +4212,8 @@
                 },
                 {
                   "id": "b1m4-h3-5",
-                  "transcript": "Im Kulturzentrum Hannover beginnt gleich der Informationsabend zum Thema Gesundheits- und Umwelttag. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Hannover besuchen.",
+                  "transcript": "Sie hören die Praxis am Markt. Heute Nachmittag ist die Praxis geschlossen. In dringenden Fällen wenden Sie sich bitte an die Bereitschaftspraxis im Klinikum, Eingang Nord.",
+                  "statement": "Bei dringenden Problemen sollen Patienten zum Klinikum gehen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -5368,8 +5368,8 @@
               "items": [
                 {
                   "id": "b1m5-h1-1",
-                  "transcript": "Ich wohne seit drei Jahren in Bremen. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat in Bremen durch ein Projekt neue Kontakte gefunden.",
+                  "transcript": "Für den neuen Stadtteil-Podcast sammle ich Geschichten von älteren Bewohnern. Die Interviews führe ich selbst, aber eine Studentin hilft mir später beim Schneiden der Aufnahmen.",
+                  "statement": "Der Sprecher bekommt beim Bearbeiten der Interviews Unterstützung.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -5377,8 +5377,8 @@
                 },
                 {
                   "id": "b1m5-h1-2",
-                  "transcript": "Mein Arbeitsweg durch Bremen dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Buslinie 24, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person benutzt heute Buslinie 24.",
+                  "transcript": "Unser Verein veröffentlicht Fotos nur, wenn alle erkennbaren Personen zugestimmt haben. Bei Kindern brauchen wir zusätzlich die Erlaubnis der Eltern.",
+                  "statement": "Fotos von Kindern darf der Verein ohne Zustimmung der Eltern veröffentlichen.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -5386,8 +5386,8 @@
                 },
                 {
                   "id": "b1m5-h1-3",
-                  "transcript": "Für einen Kurs in Bremen musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Bremen.",
+                  "transcript": "Mein Tablet funktionierte nicht mehr. Im Repair-Labor stellte sich heraus, dass nur der Akku kaputt war. Nach einer Stunde konnte ich das Gerät wieder mitnehmen.",
+                  "statement": "Das Tablet konnte noch am selben Tag repariert werden.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -5395,8 +5395,8 @@
                 },
                 {
                   "id": "b1m5-h1-4",
-                  "transcript": "David bestellt nur selten im Internet. Kleidung probiert David lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
-                  "statement": "David kauft technische Geräte am liebsten online.",
+                  "transcript": "Den Newsletter verschicken wir künftig nicht mehr jeden Monat, sondern alle zwei Wochen. So können wir kurzfristige Termine besser ankündigen.",
+                  "statement": "Der Newsletter erscheint künftig seltener als bisher.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -5404,8 +5404,8 @@
                 },
                 {
                   "id": "b1m5-h1-5",
-                  "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich David gefragt, ob ich beim Medienworkshop für Vereine helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende beim Medienworkshop für Vereine.",
+                  "transcript": "Für den Videoworkshop hatte ich mich als Teilnehmer angemeldet. Weil der Kursleiter Unterstützung braucht, kümmere ich mich nun zusätzlich um Mikrofone und Licht.",
+                  "statement": "Der Sprecher hilft im Workshop auch bei der Technik.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -5420,77 +5420,77 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Frau Özdemir. Sie organisieren in Bremen den Medienworkshop für Vereine. Wann findet die Veranstaltung statt? Frau Özdemir: Am Mittwoch, 27. November. Wir beginnen um 17 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Özdemir: Kulturzentrum Hafen. Die Anreise ist am einfachsten mit der Buslinie 24. Moderatorin: Muss man Eintritt bezahlen? Frau Özdemir: Der Eintritt ist zehn Euro pro Person. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 20. November. Moderatorin: Wer kann teilnehmen? Frau Özdemir: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Özdemir: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Wasser und belegte Brote. Moderatorin: Werden noch Helfer gesucht? Frau Özdemir: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Özdemir: Dann nutzen wir der Workshop findet vollständig drinnen statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Lea: David, unser Verein möchte im November einen Medienworkshop anbieten. Für wen ist er gedacht? David: Vor allem für kleine Vereine, die ihre Projekte im Internet bekannter machen wollen. Privatpersonen können teilnehmen, wenn noch Plätze frei sind. Lea: Welche Themen behandeln wir? David: Am Vormittag geht es um gute Fotos und kurze Texte. Nach der Mittagspause erstellen die Gruppen ein einfaches Video. Den geplanten Teil über Podcasts verschieben wir auf einen späteren Termin. Lea: Welche Technik müssen die Teilnehmer mitbringen? David: Ein Smartphone reicht. Laptops und zwei Kameras können sie bei uns ausleihen. Eigene Kopfhörer wären hilfreich, sind aber nicht Pflicht. Lea: Wie viele Plätze gibt es? David: Zwanzig. Jeder Verein darf zunächst zwei Personen anmelden. Ab dem 21. November vergeben wir freie Plätze unabhängig vom Verein. Lea: Und die Teilnahmegebühr? David: Zehn Euro pro Person, Mittagessen ist darin enthalten. Getränke müssen nicht bezahlt werden. Lea: Wir brauchen noch Helfer, oder? David: Ja, zwei Personen für die Anmeldung und eine für die Technik. Fotografieren dürfen die Helfer nur, wenn die Gäste vorher schriftlich zustimmen. Lea: Wann endet die Anmeldung? David: Am 20. November. Absagen sind bis drei Tage vor dem Workshop kostenlos. Danach können wir die Gebühr nur erstatten, wenn jemand von der Warteliste nachrückt.",
               "audio": "./web/audio/exam-b1/mt5/b1m5-h2.mp3",
               "items": [
                 {
                   "id": "b1m5-h2-1",
-                  "statement": "Die Veranstaltung findet am Mittwoch, 27. November statt.",
+                  "statement": "Der Workshop richtet sich vor allem an kleine Vereine.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-2",
-                  "statement": "Beginn ist um 17 Uhr.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "statement": "Privatpersonen sind grundsätzlich ausgeschlossen.",
+                  "answer": false,
+                  "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-3",
-                  "statement": "Veranstaltungsort ist Kulturzentrum Hafen.",
+                  "statement": "Am Nachmittag produzieren die Gruppen ein Video.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-4",
-                  "statement": "Alle Besucher des Medienworkshop für Vereine müssen mit dem Auto anreisen.",
+                  "statement": "Das Thema Podcasts gehört zum Novemberprogramm.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-5",
-                  "statement": "Der Eintritt für das Angebot in Bremen ist zehn Euro pro Person.",
+                  "statement": "Ein Smartphone genügt für die Teilnahme.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-6",
-                  "statement": "Anmeldeschluss ist der 20. November.",
-                  "answer": true,
-                  "explain": "Diese Information wird im Gespräch bestätigt.",
-                  "points": 2.5
-                },
-                {
-                  "id": "b1m5-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen beim Medienworkshop für Vereine immer allein teilnehmen.",
+                  "statement": "Jeder Verein kann sofort beliebig viele Personen anmelden.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
+                  "id": "b1m5-h2-7",
+                  "statement": "Im Preis von zehn Euro ist das Mittagessen enthalten.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
+                  "points": 2.5
+                },
+                {
                   "id": "b1m5-h2-8",
-                  "statement": "Als Verpflegung gibt es Wasser und belegte Brote.",
+                  "statement": "Für Anmeldung und Technik werden Helfer gesucht.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-9",
-                  "statement": "Für den Aufbau des Medienworkshop für Vereine werden keine Helfer mehr benötigt.",
+                  "statement": "Helfer dürfen Gäste ohne schriftliche Zustimmung fotografieren.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-10",
-                  "statement": "Bei schlechtem Wetter wird das Angebot in Bremen abgesagt.",
-                  "answer": false,
-                  "explain": "Das Gespräch nennt eine andere Information.",
+                  "statement": "Die Anmeldung endet am 20. November.",
+                  "answer": true,
+                  "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
                 }
               ]
@@ -5504,8 +5504,8 @@
               "items": [
                 {
                   "id": "b1m5-h3-1",
-                  "transcript": "Achtung am Hauptbahnhof Bremen: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug in Bremen fährt heute von Gleis zwölf.",
+                  "transcript": "Im Anschluss an die Nachrichten hören Sie heute nicht das Reisemagazin. Wegen einer aktuellen Sondersendung beginnt das Kulturgespräch bereits um zwanzig Uhr zehn.",
+                  "statement": "Das Kulturgespräch beginnt heute früher als üblich.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -5513,8 +5513,8 @@
                 },
                 {
                   "id": "b1m5-h3-2",
-                  "transcript": "Das Bürgerbüro Bremen öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro Bremen öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Medienlabor der Stadtbibliothek ist am Samstag von zehn bis sechzehn Uhr geöffnet. Die Tonkabine ist bereits ausgebucht, Computerarbeitsplätze sind noch frei.",
+                  "statement": "Am Samstag kann man noch eine Tonkabine reservieren.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -5522,8 +5522,8 @@
                 },
                 {
                   "id": "b1m5-h3-3",
-                  "transcript": "Und nun das Wetter für Bremen: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "In Bremen wird am späten Nachmittag Regen erwartet.",
+                  "transcript": "Unser Vereinsserver wird am Montag zwischen sechs und acht Uhr morgens gewartet. Die Internetseite ist dann nicht erreichbar; bereits heruntergeladene Dokumente können weiter bearbeitet werden.",
+                  "statement": "Während der Wartung ist die Vereinswebsite nicht verfügbar.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -5531,8 +5531,8 @@
                 },
                 {
                   "id": "b1m5-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Praxis David. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Termin in der Praxis David ist am Donnerstag.",
+                  "transcript": "Beim Kurzfilmabend beginnt der Einlass um neunzehn Uhr. Die erste Vorstellung startet erst um zwanzig Uhr, nicht wie auf einigen Plakaten angegeben um halb acht.",
+                  "statement": "Der erste Film beginnt um neunzehn Uhr dreißig.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -5540,8 +5540,8 @@
                 },
                 {
                   "id": "b1m5-h3-5",
-                  "transcript": "Im Kulturzentrum Bremen beginnt gleich der Informationsabend zum Thema Medienworkshop für Vereine. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Bremen besuchen.",
+                  "transcript": "Für unsere Winterspendenaktion benötigen wir keine Kleidung mehr. Besonders gebraucht werden haltbare Lebensmittel und Hygieneartikel; Abgabe ist bis Freitag im Gemeindehaus.",
+                  "statement": "Für die Spendenaktion werden Lebensmittel und Hygieneartikel gesucht.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,

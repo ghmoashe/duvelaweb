@@ -1,0 +1,161 @@
+'use strict';
+
+// Every model test has independently authored listening situations. Keep the
+// audio filenames stable: learners can replace recordings without changing UI data.
+module.exports = [
+  {
+    h1: [
+      ['Seit unser Haus ein Reparaturcafé organisiert, kenne ich endlich meine Nachbarn. Letzten Samstag habe ich dort mit einem Elektriker meinen alten Toaster repariert. Wegwerfen wollte ich ihn auf keinen Fall.', 'Die Sprecherin hat im Reparaturcafé einen alten Toaster repariert.', true],
+      ['Eigentlich fahre ich morgens mit der Straßenbahn zur Arbeit. Wegen der Baustelle hält sie diese Woche aber nicht an meiner Haltestelle. Deshalb gehe ich zehn Minuten zu Fuß zum Bus.', 'Der Sprecher fährt diese Woche wie gewohnt mit der Straßenbahn.', false],
+      ['In der Stadtbibliothek lese ich Kindern jeden Dienstag Geschichten vor. Dafür bekomme ich kein Geld, aber die Bibliothek bezahlt mir eine Fortbildung zum Vorlesen.', 'Die Bibliothek finanziert dem Sprecher eine Fortbildung.', true],
+      ['Meine Nebenkostenabrechnung war ungewöhnlich hoch. Eine Mitarbeiterin der Mieterberatung hat sie kostenlos geprüft und einen Fehler gefunden. Einen Rechtsanwalt brauchte ich deshalb nicht.', 'Die Sprecherin musste für die Prüfung der Abrechnung einen Anwalt bezahlen.', false],
+      ['Beim Straßenfest wollte ich zuerst Getränke verkaufen. Nun betreue ich die Spiele für Kinder, weil dort noch jemand fehlte. Meine Schicht beginnt um drei Uhr.', 'Der Sprecher hilft beim Straßenfest im Kinderbereich.', true],
+    ],
+    h2: {
+      transcript: 'Frau Koch: Guten Abend, Herr Seidel. Viele Bewohner haben gehört, dass unser Bürgerhaus renoviert wird. Wann beginnen die Arbeiten? Herr Seidel: Am 4. November. Zuerst wird das Dach repariert, danach kommen neue Fenster. Frau Koch: Bleibt das Haus während dieser Zeit geöffnet? Herr Seidel: Teilweise. Der große Saal ist sechs Wochen geschlossen, aber die Beratungsstelle im Erdgeschoss bleibt erreichbar. Sie hat nur mittwochs statt donnerstags geöffnet. Frau Koch: Was passiert mit den Sprachkursen? Herr Seidel: Die Abendkurse ziehen in die Grundschule am Park um. Die Vormittagskurse fallen zwei Wochen aus und starten dann ebenfalls dort. Frau Koch: Können Vereine weiterhin Räume buchen? Herr Seidel: Bis Januar leider nicht. Bereits bezahlte Gebühren werden automatisch zurücküberwiesen. Frau Koch: Die Nachbarschaft wollte bei den Arbeiten helfen. Ist das möglich? Herr Seidel: Bei den Bauarbeiten nicht, das wäre zu gefährlich. Für den Umzug der Möbel am 2. November suchen wir aber noch zwölf Helfer. Beginn ist um neun Uhr, und wir stellen Handschuhe sowie Mittagessen bereit. Frau Koch: Wann soll alles fertig sein? Herr Seidel: Wenn das Wetter mitspielt, öffnen wir das gesamte Haus am 20. Januar wieder. Das Eröffnungsfest ist eine Woche später. Frau Koch: Wo findet man aktuelle Informationen? Herr Seidel: Auf unserer Internetseite und im Schaukasten vor dem Bürgerhaus. Telefonisch sind wir montags bis freitags von zehn bis zwölf Uhr erreichbar.',
+      statements: [
+        ['Die Renovierung beginnt am 4. November.', true],
+        ['Zuerst werden die Fenster ausgetauscht.', false],
+        ['Die Beratungsstelle bleibt im Erdgeschoss geöffnet.', true],
+        ['Alle Sprachkurse fallen sechs Wochen lang aus.', false],
+        ['Die Abendkurse finden vorübergehend in einer Schule statt.', true],
+        ['Vereine können bis Januar keine Räume buchen.', true],
+        ['Bezahlte Raumgebühren werden nur auf Antrag erstattet.', false],
+        ['Für den Möbelumzug werden zwölf Helfer gesucht.', true],
+        ['Das Eröffnungsfest ist für den 20. Januar geplant.', false],
+        ['Aktuelle Informationen stehen auch im Schaukasten.', true],
+      ],
+    },
+    h3: [
+      ['Wegen des Feiertags wird die Biotonne in der Südstraße nicht am Dienstag, sondern erst am Mittwoch geleert. Bitte stellen Sie die Tonnen bis sieben Uhr an den Straßenrand.', 'Die Biotonnen werden in der Südstraße einen Tag später geleert.', true],
+      ['Das Hallenbad bleibt heute wegen einer technischen Störung geschlossen. Der Schwimmkurs für Erwachsene wird nicht abgesagt, sondern beginnt um achtzehn Uhr im Westbad.', 'Der Schwimmkurs für Erwachsene fällt heute aus.', false],
+      ['Die Straßenbahnlinie vier fährt bis Sonntag nur bis zum Rathaus. Fahrgäste zum Messegelände steigen dort in den kostenlosen Ersatzbus um.', 'Zum Messegelände gibt es einen kostenlosen Ersatzbus.', true],
+      ['Ihre vorbestellten Bücher liegen noch bis Freitag in der Stadtbibliothek bereit. Danach werden sie wieder in die Regale gestellt. Eine Abholung am Samstag ist nicht mehr möglich.', 'Die reservierten Bücher können noch am Samstag abgeholt werden.', false],
+      ['Der Wochenmarkt findet wegen des Stadtlaufs ausnahmsweise auf dem Theaterplatz statt. Die Verkaufszeiten von acht bis dreizehn Uhr bleiben unverändert.', 'Der Wochenmarkt wird an einen anderen Platz verlegt.', true],
+    ],
+  },
+  {
+    h1: [
+      ['An meinem ersten Arbeitstag zeigte mir meine Kollegin alle Räume und stellte mich dem Team vor. Mit dem Computerprogramm musste ich mich allerdings allein beschäftigen, weil der IT-Trainer krank war.', 'Die neue Mitarbeiterin erhielt am ersten Tag keine Schulung für das Computerprogramm.', true],
+      ['Ich möchte einen Buchhaltungskurs besuchen. Meine Firma übernimmt die gesamten Kosten, wenn ich den Kurs erfolgreich abschließe. Nur die Fahrkarte zum Bildungszentrum muss ich selbst bezahlen.', 'Der Sprecher muss die Kursgebühr selbst bezahlen.', false],
+      ['Ab nächsten Monat arbeite ich nicht mehr jeden Freitag spät. Im neuen Dienstplan wechseln wir uns im Team ab, sodass ich nur noch zweimal im Monat die Abendschicht habe.', 'Die Sprecherin arbeitet künftig jeden Freitagabend.', false],
+      ['Der Onlinekurs ist praktisch, weil ich die Videos ansehen kann, wann ich möchte. Einmal pro Woche gibt es trotzdem ein festes digitales Treffen mit der Kursleiterin.', 'Zum Onlinekurs gehört ein wöchentliches Treffen zu einer festen Zeit.', true],
+      ['Auf der Jobmesse führte ich drei kurze Gespräche mit Firmen. Zwei davon haben mich inzwischen zu einem längeren Vorstellungsgespräch eingeladen.', 'Der Sprecher bekam nach der Jobmesse zwei Einladungen.', true],
+    ],
+    h2: {
+      transcript: 'Frau Nguyen: Herr Brandt, unsere Firma führt im Herbst ein neues Weiterbildungsprogramm ein. Wer darf daran teilnehmen? Herr Brandt: Alle Beschäftigten nach der Probezeit. Auszubildende können ebenfalls teilnehmen, brauchen aber die Zustimmung ihrer Abteilungsleitung. Frau Nguyen: Welche Kurse werden angeboten? Herr Brandt: Kommunikation, Tabellenkalkulation und Projektplanung. Der Englischkurs startet erst im Frühjahr, obwohl er schon im alten Programmheft steht. Frau Nguyen: Finden die Kurse während der Arbeitszeit statt? Herr Brandt: Die kurzen Workshops ja. Sie dauern jeweils einen Vormittag. Der Projektplanungskurs läuft dagegen an vier Dienstagabenden von achtzehn bis zwanzig Uhr. Dafür erhalten die Teilnehmenden einen freien halben Tag. Frau Nguyen: Was kostet die Teilnahme? Herr Brandt: Die Firma bezahlt Kurs und Lernmaterial. Fahrtkosten können wir nur erstatten, wenn der Kurs an einem anderen Standort stattfindet. Frau Nguyen: Wie meldet man sich an? Herr Brandt: Über das Personalportal, spätestens drei Wochen vor Kursbeginn. Die Unterschrift der direkten Führungskraft ist nicht mehr nötig. Frau Nguyen: Gibt es eine Prüfung? Herr Brandt: Nur im Tabellenkurs. Wer mindestens siebzig Prozent erreicht, bekommt ein Zertifikat. Bei den anderen Kursen genügt regelmäßige Teilnahme. Frau Nguyen: Und wenn ein Kurs schon voll ist? Herr Brandt: Dann kommt man automatisch auf eine Warteliste und erhält per E-Mail Bescheid, sobald ein Platz frei wird.',
+      statements: [
+        ['Beschäftigte in der Probezeit können bereits teilnehmen.', false],
+        ['Auszubildende brauchen die Zustimmung ihrer Abteilung.', true],
+        ['Der Englischkurs beginnt im Herbst.', false],
+        ['Die kurzen Workshops dauern jeweils einen Vormittag.', true],
+        ['Der Projektplanungskurs findet an vier Abenden statt.', true],
+        ['Für den Abendkurs gibt es einen freien halben Tag.', true],
+        ['Die Beschäftigten müssen das Lernmaterial selbst bezahlen.', false],
+        ['Die Anmeldung erfolgt über das Personalportal.', true],
+        ['In jedem Kurs gibt es am Ende eine Prüfung.', false],
+        ['Für volle Kurse wird automatisch eine Warteliste geführt.', true],
+      ],
+    },
+    h3: [
+      ['Achtung, liebe Kolleginnen und Kollegen: Der Probealarm beginnt heute um elf Uhr. Verlassen Sie das Gebäude über die markierten Treppen und treffen Sie sich auf Parkplatz zwei.', 'Beim Probealarm sollen sich alle auf Parkplatz zwei sammeln.', true],
+      ['Das Seminar Kundenkommunikation findet morgen nicht in Raum 204 statt. Wegen der größeren Teilnehmerzahl wechseln wir in den Konferenzsaal im Erdgeschoss. Die Anfangszeit bleibt neun Uhr.', 'Das Seminar beginnt wegen des Raumwechsels später.', false],
+      ['Bitte reichen Sie Änderungen Ihrer Bankverbindung bis zum zwanzigsten dieses Monats bei der Personalabteilung ein. Nur dann können sie bei der nächsten Gehaltszahlung berücksichtigt werden.', 'Eine neue Bankverbindung muss bis zum zwanzigsten gemeldet werden.', true],
+      ['Wegen Wartungsarbeiten sind E-Mail und Firmennetzwerk heute von neunzehn bis ungefähr zweiundzwanzig Uhr nicht erreichbar. Das Zeiterfassungssystem funktioniert in diesem Zeitraum weiterhin.', 'Während der Wartung fällt auch die Zeiterfassung aus.', false],
+      ['Die Kantine schließt am Freitag bereits um dreizehn Uhr. Warme Gerichte werden bis zwölf Uhr dreißig ausgegeben; danach gibt es noch belegte Brötchen zum Mitnehmen.', 'Am Freitag kann man bis halb eins ein warmes Gericht bekommen.', true],
+    ],
+  },
+  {
+    h1: [
+      ['Für die Fahrt nach Wien habe ich ein Bett im Nachtzug reserviert. Das war teurer als ein Sitzplatz, aber ich kam ausgeschlafen an und sparte eine Hotelübernachtung.', 'Der Sprecher reiste im Nachtzug in einem Schlafabteil.', true],
+      ['Auf Regionalzügen darf ich mein Fahrrad meistens mitnehmen. Für den Schnellzug am Sonntag musste ich aber zusätzlich einen Stellplatz reservieren.', 'Für die Fahrt am Sonntag war keine Fahrradreservierung nötig.', false],
+      ['Mein Flug wurde am Morgen gestrichen. Die Gesellschaft bot mir einen Platz am nächsten Tag an, doch ich nahm stattdessen den Zug und erhielt den Flugpreis zurück.', 'Die Sprecherin wartete bis zum nächsten Tag auf einen Ersatzflug.', false],
+      ['Vor der Reise habe ich eine Versicherung abgeschlossen. Als mein Koffer verloren ging, bezahlte sie Kleidung und notwendige Hygieneartikel für die ersten Tage.', 'Die Versicherung übernahm Kosten nach dem Verlust des Koffers.', true],
+      ['Die Jugendherberge liegt nicht direkt im Zentrum, aber der Bus hält vor der Tür. Frühstück und Bettwäsche sind bereits im Übernachtungspreis enthalten.', 'Für das Frühstück in der Jugendherberge muss man nicht extra bezahlen.', true],
+    ],
+    h2: {
+      transcript: 'Reiseberaterin: Guten Tag, Frau Alves. Sie interessieren sich für unsere achttägige Gruppenreise an die Ostsee? Frau Alves: Ja, aber ich kann erst am zweiten Reisetag ankommen. Reiseberaterin: Das ist möglich. Die Gruppe fährt am Samstagmorgen mit dem Bus ab. Sie könnten am Sonntag mit dem Zug nach Lübeck kommen und dort zur Gruppe stoßen. Die zusätzliche Zugfahrt zahlen Sie selbst. Frau Alves: Welche Unterkunft ist vorgesehen? Reiseberaterin: Ein kleines Hotel außerhalb der Altstadt. Alle Zimmer haben ein eigenes Bad. Einzelzimmer kosten allerdings hundertzwanzig Euro zusätzlich. Frau Alves: Was ist im Reisepreis enthalten? Reiseberaterin: Sieben Übernachtungen, Frühstück, Busfahrten und drei geführte Ausflüge. Abendessen und Eintrittskarten für Museen sind nicht enthalten. Frau Alves: Gibt es auch freie Zeit? Reiseberaterin: Natürlich. Der Montag- und der Donnerstagnachmittag stehen zur freien Verfügung. Die Radtour am Mittwoch ist freiwillig; alternativ können Sie eine Hafenrundfahrt machen. Frau Alves: Ich kann wegen meines Knies nicht lange Rad fahren. Reiseberaterin: Dann ist das Schiff sicher besser. Bitte sagen Sie uns das bei der Buchung. Frau Alves: Bis wann muss ich mich entscheiden? Reiseberaterin: Die Anmeldung endet am 12. März. Mit der Anmeldung zahlen Sie zwanzig Prozent, den Rest vier Wochen vor Abfahrt. Bis sechs Wochen vorher können Sie kostenlos stornieren. Frau Alves: Dann nehme ich die Unterlagen mit und melde mich nächste Woche.',
+      statements: [
+        ['Frau Alves möchte erst am zweiten Reisetag ankommen.', true],
+        ['Die Gruppe beginnt die Reise am Sonntag.', false],
+        ['Die zusätzliche Zugfahrt muss Frau Alves bezahlen.', true],
+        ['Alle Reisenden wohnen in Einzelzimmern.', false],
+        ['Das Frühstück ist im Reisepreis enthalten.', true],
+        ['Eintrittskarten für Museen sind inklusive.', false],
+        ['An zwei Nachmittagen gibt es kein festes Programm.', true],
+        ['Die Radtour am Mittwoch ist verpflichtend.', false],
+        ['Bei der Anmeldung werden zwanzig Prozent fällig.', true],
+        ['Bis sechs Wochen vor Abfahrt ist eine kostenlose Stornierung möglich.', true],
+      ],
+    },
+    h3: [
+      ['Der Intercity nach Basel ist heute etwa fünfundzwanzig Minuten verspätet. Reisende mit Anschluss nach Zürich benutzen bitte in Basel den Zug um sechzehn Uhr vierzig auf Gleis sieben.', 'Für Reisende nach Zürich wird eine spätere Verbindung genannt.', true],
+      ['Der Flughafenshuttle fährt wegen der Baustelle nicht vor dem Terminal ab. Die Ersatzhaltestelle befindet sich am Busbahnhof neben Parkhaus drei. Die Abfahrtszeiten bleiben gleich.', 'Der Flughafenshuttle fährt heute direkt vor dem Terminal ab.', false],
+      ['Wegen starken Windes fällt die Fähre um vierzehn Uhr nach Helgoland aus. Fahrkarten gelten automatisch für die nächste Abfahrt morgen früh oder können am Schalter zurückgegeben werden.', 'Die Fahrkarte kann für die Fahrt am nächsten Morgen genutzt werden.', true],
+      ['Willkommen im Hotel Seeblick. Ihr Zimmer ist ab fünfzehn Uhr fertig. Gepäck können Sie schon vorher kostenlos an der Rezeption abgeben; ein frühes Einchecken ist heute leider nicht möglich.', 'Die Gäste können heute schon vor fünfzehn Uhr einchecken.', false],
+      ['Die Bundesstraße 31 ist zwischen Kirchzarten und Hinterzarten nach einem Unfall gesperrt. Die Umleitung über Sankt Märgen ist ausgeschildert und dauert ungefähr zwanzig Minuten länger.', 'Auf der ausgeschilderten Umleitung braucht man etwa zwanzig Minuten mehr.', true],
+    ],
+  },
+  {
+    h1: [
+      ['Ich wollte wieder mehr Sport machen und meldete mich für einen Laufkurs an. Nach zwei Wochen merkte ich, dass mein Knie schmerzte. Jetzt besuche ich stattdessen einen schonenden Aquafitnesskurs.', 'Die Sprecherin wechselte wegen Knieproblemen zu Aquafitness.', true],
+      ['Die Ernährungsberaterin empfahl mir nicht, völlig auf Süßes zu verzichten. Ich soll kleinere Portionen essen und regelmäßiger selbst kochen.', 'Der Sprecher darf nach dem Rat der Beraterin überhaupt keine Süßigkeiten mehr essen.', false],
+      ['Für die Untersuchung beim Facharzt hätte ich drei Monate warten müssen. Über die Terminservicestelle bekam ich schon nächste Woche einen Termin in einer Nachbarstadt.', 'Die Terminservicestelle vermittelte einen früheren Facharzttermin.', true],
+      ['In unserem Gemeinschaftsgarten gieße ich mittwochs die Pflanzen. Am Wochenende kann ich dieses Mal nicht helfen, weil ich meine Eltern besuche. Meine Nachbarin übernimmt meine Schicht.', 'Die Sprecherin übernimmt am Wochenende selbst die Gartenschicht.', false],
+      ['Im Unverpacktladen leihe ich Gläser gegen Pfand aus. Ich bringe sie beim nächsten Einkauf zurück und muss deshalb keine eigenen Behälter von zu Hause tragen.', 'Der Laden bietet Behälter gegen Pfand an.', true],
+    ],
+    h2: {
+      transcript: 'Moderator: Frau Dr. Peters, am 18. August findet der Gesundheits- und Umwelttag statt. Was ist neu? Frau Peters: In diesem Jahr verbinden wir Bewegung mit Klimaschutz. Es gibt einen Fahrradcheck, Kochkurse und kurze Gesundheitsberatungen. Moderator: Wo findet das Programm statt? Frau Peters: Im Stadtpark. Nur die Vorträge sind im benachbarten Umweltzentrum. Bei starkem Regen ziehen auch die Kochkurse dorthin um; der Lauf und der Fahrradcheck fallen dann aus. Moderator: Muss man sich anmelden? Frau Peters: Für die offenen Informationsstände nicht. Für Kochkurse und Rückenberatung ist eine Anmeldung bis zum 10. August nötig, weil die Plätze begrenzt sind. Moderator: Kostet das etwas? Frau Peters: Der Eintritt ist frei. Beim Kochkurs sammeln wir fünf Euro für Lebensmittel. Wer ein eigenes Messer und eine Dose mitbringt, erhält einen Euro zurück. Moderator: Was gibt es für Familien? Frau Peters: Kinder ab sechs Jahren können mit ihren Eltern an einer Natur-Rallye teilnehmen. Eine Betreuung ohne Eltern bieten wir nicht an. Moderator: Werden noch Freiwillige gesucht? Frau Peters: Ja, für den Aufbau ab acht Uhr und für die Fahrradstation am Nachmittag. Medizinische Aufgaben übernehmen ausschließlich Fachkräfte. Moderator: Wie reisen Besucher am besten an? Frau Peters: Mit der U-Bahnlinie sechs oder mit dem Fahrrad. Vor dem Park gibt es zweihundert neue Fahrradplätze, aber nur wenige Autoparkplätze.',
+      statements: [
+        ['Die Veranstaltung verbindet Gesundheit und Klimaschutz.', true],
+        ['Alle Programmpunkte finden im Umweltzentrum statt.', false],
+        ['Bei starkem Regen wird der Lauf abgesagt.', true],
+        ['Für die Informationsstände muss man sich anmelden.', false],
+        ['Die Anmeldung für Kochkurse endet am 10. August.', true],
+        ['Der Kochkurs kostet fünf Euro für Lebensmittel.', true],
+        ['Kinder können ohne ihre Eltern betreut werden.', false],
+        ['Freiwillige werden für die Fahrradstation gesucht.', true],
+        ['Freiwillige dürfen medizinische Beratungen übernehmen.', false],
+        ['Vor dem Park gibt es neue Fahrradplätze.', true],
+      ],
+    },
+    h3: [
+      ['Die Sonnen-Apotheke hat heute Notdienst und ist bis morgen früh um acht Uhr geöffnet. Benutzen Sie nachts bitte die Klingel links neben dem Haupteingang.', 'Die Sonnen-Apotheke ist die ganze Nacht erreichbar.', true],
+      ['Das Gesundheitsamt informiert: Das Leitungswasser kann wieder ohne Einschränkung getrunken werden. Abkochen ist seit heute Mittag nicht mehr notwendig.', 'Das Leitungswasser muss weiterhin abgekocht werden.', false],
+      ['Der Parklauf startet am Sonntag nicht am See, sondern vor der Sporthalle. Die Strecke ist wegen Bauarbeiten einen Kilometer kürzer als ursprünglich geplant.', 'Der Start des Parklaufs wurde zur Sporthalle verlegt.', true],
+      ['Die Abholung von Papier und Verpackungen findet diese Woche wie geplant statt. Nur der Termin für Restmüll verschiebt sich von Donnerstag auf Freitag.', 'Auch Papier wird in dieser Woche einen Tag später abgeholt.', false],
+      ['Sie hören die Praxis am Markt. Heute Nachmittag ist die Praxis geschlossen. In dringenden Fällen wenden Sie sich bitte an die Bereitschaftspraxis im Klinikum, Eingang Nord.', 'Bei dringenden Problemen sollen Patienten zum Klinikum gehen.', true],
+    ],
+  },
+  {
+    h1: [
+      ['Für den neuen Stadtteil-Podcast sammle ich Geschichten von älteren Bewohnern. Die Interviews führe ich selbst, aber eine Studentin hilft mir später beim Schneiden der Aufnahmen.', 'Der Sprecher bekommt beim Bearbeiten der Interviews Unterstützung.', true],
+      ['Unser Verein veröffentlicht Fotos nur, wenn alle erkennbaren Personen zugestimmt haben. Bei Kindern brauchen wir zusätzlich die Erlaubnis der Eltern.', 'Fotos von Kindern darf der Verein ohne Zustimmung der Eltern veröffentlichen.', false],
+      ['Mein Tablet funktionierte nicht mehr. Im Repair-Labor stellte sich heraus, dass nur der Akku kaputt war. Nach einer Stunde konnte ich das Gerät wieder mitnehmen.', 'Das Tablet konnte noch am selben Tag repariert werden.', true],
+      ['Den Newsletter verschicken wir künftig nicht mehr jeden Monat, sondern alle zwei Wochen. So können wir kurzfristige Termine besser ankündigen.', 'Der Newsletter erscheint künftig seltener als bisher.', false],
+      ['Für den Videoworkshop hatte ich mich als Teilnehmer angemeldet. Weil der Kursleiter Unterstützung braucht, kümmere ich mich nun zusätzlich um Mikrofone und Licht.', 'Der Sprecher hilft im Workshop auch bei der Technik.', true],
+    ],
+    h2: {
+      transcript: 'Lea: David, unser Verein möchte im November einen Medienworkshop anbieten. Für wen ist er gedacht? David: Vor allem für kleine Vereine, die ihre Projekte im Internet bekannter machen wollen. Privatpersonen können teilnehmen, wenn noch Plätze frei sind. Lea: Welche Themen behandeln wir? David: Am Vormittag geht es um gute Fotos und kurze Texte. Nach der Mittagspause erstellen die Gruppen ein einfaches Video. Den geplanten Teil über Podcasts verschieben wir auf einen späteren Termin. Lea: Welche Technik müssen die Teilnehmer mitbringen? David: Ein Smartphone reicht. Laptops und zwei Kameras können sie bei uns ausleihen. Eigene Kopfhörer wären hilfreich, sind aber nicht Pflicht. Lea: Wie viele Plätze gibt es? David: Zwanzig. Jeder Verein darf zunächst zwei Personen anmelden. Ab dem 21. November vergeben wir freie Plätze unabhängig vom Verein. Lea: Und die Teilnahmegebühr? David: Zehn Euro pro Person, Mittagessen ist darin enthalten. Getränke müssen nicht bezahlt werden. Lea: Wir brauchen noch Helfer, oder? David: Ja, zwei Personen für die Anmeldung und eine für die Technik. Fotografieren dürfen die Helfer nur, wenn die Gäste vorher schriftlich zustimmen. Lea: Wann endet die Anmeldung? David: Am 20. November. Absagen sind bis drei Tage vor dem Workshop kostenlos. Danach können wir die Gebühr nur erstatten, wenn jemand von der Warteliste nachrückt.',
+      statements: [
+        ['Der Workshop richtet sich vor allem an kleine Vereine.', true],
+        ['Privatpersonen sind grundsätzlich ausgeschlossen.', false],
+        ['Am Nachmittag produzieren die Gruppen ein Video.', true],
+        ['Das Thema Podcasts gehört zum Novemberprogramm.', false],
+        ['Ein Smartphone genügt für die Teilnahme.', true],
+        ['Jeder Verein kann sofort beliebig viele Personen anmelden.', false],
+        ['Im Preis von zehn Euro ist das Mittagessen enthalten.', true],
+        ['Für Anmeldung und Technik werden Helfer gesucht.', true],
+        ['Helfer dürfen Gäste ohne schriftliche Zustimmung fotografieren.', false],
+        ['Die Anmeldung endet am 20. November.', true],
+      ],
+    },
+    h3: [
+      ['Im Anschluss an die Nachrichten hören Sie heute nicht das Reisemagazin. Wegen einer aktuellen Sondersendung beginnt das Kulturgespräch bereits um zwanzig Uhr zehn.', 'Das Kulturgespräch beginnt heute früher als üblich.', true],
+      ['Das Medienlabor der Stadtbibliothek ist am Samstag von zehn bis sechzehn Uhr geöffnet. Die Tonkabine ist bereits ausgebucht, Computerarbeitsplätze sind noch frei.', 'Am Samstag kann man noch eine Tonkabine reservieren.', false],
+      ['Unser Vereinsserver wird am Montag zwischen sechs und acht Uhr morgens gewartet. Die Internetseite ist dann nicht erreichbar; bereits heruntergeladene Dokumente können weiter bearbeitet werden.', 'Während der Wartung ist die Vereinswebsite nicht verfügbar.', true],
+      ['Beim Kurzfilmabend beginnt der Einlass um neunzehn Uhr. Die erste Vorstellung startet erst um zwanzig Uhr, nicht wie auf einigen Plakaten angegeben um halb acht.', 'Der erste Film beginnt um neunzehn Uhr dreißig.', false],
+      ['Für unsere Winterspendenaktion benötigen wir keine Kleidung mehr. Besonders gebraucht werden haltbare Lebensmittel und Hygieneartikel; Abgabe ist bis Freitag im Gemeindehaus.', 'Für die Spendenaktion werden Lebensmittel und Hygieneartikel gesucht.', true],
+    ],
+  },
+];
