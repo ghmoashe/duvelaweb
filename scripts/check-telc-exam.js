@@ -94,7 +94,7 @@ const b1Bank = banks.find((bank) => bank.level === 'B1');
 const b1HearingItems = b1Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
 if (b1HearingItems.length !== 100) errors.push('B1 must contain exactly 100 listening tasks across five tests.');
 if (b1Bank.passRules?.written?.minPoints !== 135 || b1Bank.passRules?.oral?.minPoints !== 45) errors.push('B1 must require 135 written and 45 oral points.');
-if (Number(b1Bank.quality?.version || 0) < 2 || !b1Bank.quality?.review) errors.push('B1 content bank must include the completed quality review metadata.');
+if (Number(b1Bank.quality?.version || 0) < 3 || !b1Bank.quality?.review) errors.push('B1 content bank must include the independent-listening quality review metadata.');
 const b1SeenTaskTexts = new Map();
 for (const test of b1Bank.tests) {
   const writing = test.sections.find((section) => section.id === 'schreiben').parts[0];
@@ -106,6 +106,8 @@ for (const test of b1Bank.tests) {
   for (const part of hearing.parts.filter((entry) => entry.type.includes('truefalse'))) {
     const truthValues = part.items.map((item) => item.answer);
     if (!truthValues.includes(true) || !truthValues.includes(false)) errors.push(`${test.id} ${part.id}: B1 true/false tasks need both correct and incorrect statements.`);
+    const expectedTrue = part.id === 'h2' ? 6 : 3;
+    if (truthValues.filter(Boolean).length !== expectedTrue) errors.push(`${test.id} ${part.id}: expected ${expectedTrue} true and ${truthValues.length - expectedTrue} false answers.`);
   }
   const headingPart = reading.parts.find((part) => part.id === 'l1');
   if (new Set(headingPart.items.map((item) => item.answer)).size !== headingPart.items.length) errors.push(`${test.id}: B1 reading headings must be used only once.`);
@@ -131,6 +133,22 @@ const b1AudioEntries = b1Bank.tests.flatMap((test) => {
   return [...parts[0].items.map((item) => ({ audio: item.audio, transcript: item.transcript })), { audio: parts[1].audio, transcript: parts[1].transcript }, ...parts[2].items.map((item) => ({ audio: item.audio, transcript: item.transcript }))];
 });
 if (b1AudioEntries.length !== 55) errors.push('B1 must provide exactly 55 ElevenLabs scripts.');
+const normalizedB1Scripts = b1AudioEntries.map((entry) => String(entry.transcript || '').toLocaleLowerCase('de-DE')
+  .replace(/[^a-zäöüß\s]/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim());
+if (new Set(normalizedB1Scripts).size !== b1AudioEntries.length) errors.push('B1 listening scripts must be unique.');
+const wordShingles = (text) => {
+  const words = text.split(' ');
+  return new Set(words.slice(0, -2).map((word, index) => `${word} ${words[index + 1]} ${words[index + 2]}`));
+};
+const b1Shingles = normalizedB1Scripts.map(wordShingles);
+for (let left = 0; left < b1Shingles.length; left += 1) for (let right = left + 1; right < b1Shingles.length; right += 1) {
+  const intersection = [...b1Shingles[left]].filter((value) => b1Shingles[right].has(value)).length;
+  const union = new Set([...b1Shingles[left], ...b1Shingles[right]]).size;
+  const similarity = union ? intersection / union : 0;
+  if (similarity > 0.5) errors.push(`B1 listening scripts ${left + 1} and ${right + 1} are suspiciously similar (${Math.round(similarity * 100)}%).`);
+}
 for (const entry of b1AudioEntries) {
   const relative = entry.audio.replace('./web/audio/exam-b1/', '');
   if (!b1Manifest.includes(relative) || !b1Manifest.includes(entry.transcript)) errors.push(`${relative}: missing from B1 ElevenLabs manifest.`);
