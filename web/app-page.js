@@ -8,7 +8,6 @@
   const roleAccessApi = window.DuvelaAppRoleAccess;
   const staticUiApi = window.DuvelaAppStaticUi;
   const publicDataApi = window.DuvelaAppPublicData;
-  const profileWritesApi = window.DuvelaWebProfileWrites;
   const onboardingApi = window.DuvelaAppOnboarding;
   const localeCatalog = window.DUVELA_WEB_I18N;
   const ROLE_KEY = config.storageKeys.role;
@@ -21,7 +20,6 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const params = new URLSearchParams(window.location.search);
-  const hasPinnedWebRole = Boolean(params.get('role') || localStorage.getItem(ROLE_KEY));
   const appI18n = window.DuvelaAppI18n?.create({ localeCatalog, storageKeys: config.storageKeys });
   const supportedLocales = appI18n?.locales || [
     { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
@@ -44,7 +42,6 @@
   let role = 'learner';
   let user = null;
   let profile = null;
-  let requestedBusinessRole = null;
 
   const roleLabels = {
     learner: tr('Learner', 'Ученик'),
@@ -62,22 +59,14 @@
     set user(value) { user = value; },
     get profile() { return profile; },
     set profile(value) { profile = value; },
-    get requestedBusinessRole() { return requestedBusinessRole; },
-    set requestedBusinessRole(value) { requestedBusinessRole = value; }
   };
   const businessRoles = rolesApi.businessRoles;
   const roleAccessFeature = roleAccessApi.create({
     $,
     $$,
-    tr,
-    esc,
-    alert,
     supa,
     rolesApi,
-    profileWritesApi,
-    businessRoles,
     roleLabels,
-    hasPinnedRole: hasPinnedWebRole,
     session: sessionState
   });
   const staticUiFeature = staticUiApi.create({ $, $$, tr, isRu, roleLabels, appLang, supportedLocales });

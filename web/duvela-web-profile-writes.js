@@ -23,53 +23,8 @@
     return { now, patch };
   }
 
-  async function persistBusinessRoleSelection(supa, rolesApi, params) {
-    const targetRole = rolesApi.normalizeRole(params.targetRole);
-    const now = params.now || new Date().toISOString();
-
-    if (!rolesApi.isRoleRequestable(targetRole)) {
-      return {
-        approved: rolesApi.isApprovedForRole(targetRole, params.profile),
-        requested: false,
-        now,
-        patch: null,
-        profile: params.profile || null,
-      };
-    }
-
-    const roleProfile = params.profile || await rolesApi.loadRoleProfile(supa, params.userId);
-    if (!roleProfile) {
-      return {
-        approved: false,
-        requested: false,
-        now,
-        patch: null,
-        profile: null,
-      };
-    }
-
-    const patch = {
-      last_web_role: targetRole,
-      requested_role: targetRole,
-      role_request_status: 'pending',
-      requested_role_at: now,
-      updated_at: now,
-    };
-
-    const result = await supa.from('profiles').update(patch).eq('id', params.userId);
-    if (result.error) throw result.error;
-    return {
-      approved: false,
-      requested: true,
-      now,
-      patch,
-      profile: { ...roleProfile, ...patch },
-    };
-  }
-
   global.DuvelaWebProfileWrites = Object.freeze({
     buildIdentityPatch,
     upsertProfileIdentity,
-    persistBusinessRoleSelection,
   });
 })(window);

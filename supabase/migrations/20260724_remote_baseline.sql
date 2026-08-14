@@ -1,0 +1,2 @@
+-- Baseline marker for the schema version that was already applied remotely.
+-- The original SQL predates this repository's local migration directory.

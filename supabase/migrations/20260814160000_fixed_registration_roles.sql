@@ -1,4 +1,4 @@
--- Duvela roles are selected once, during registration. There is no role-request flow.
+-- Roles are chosen once at registration and cannot be switched in the web app.
 
 alter table public.profiles
   add column if not exists requested_role text,
@@ -6,8 +6,6 @@ alter table public.profiles
   add column if not exists requested_role_at timestamptz,
   add column if not exists last_web_role text;
 
--- Repair existing accounts from the role they actually chose at registration.
--- A stale URL, localStorage value or later browser request is never trusted.
 update public.profiles as profile
 set is_teacher = registered.role = 'teacher',
     is_organizer = registered.role in ('organizer', 'organization'),
@@ -43,29 +41,12 @@ begin
   end if;
 
   insert into public.profiles (
-    id,
-    email,
-    locale,
-    is_teacher,
-    is_organizer,
-    is_admin,
-    last_web_role,
-    requested_role,
-    role_request_status,
-    requested_role_at,
-    updated_at
+    id, email, locale, is_teacher, is_organizer, is_admin, last_web_role,
+    requested_role, role_request_status, requested_role_at, updated_at
   ) values (
-    new.id,
-    new.email,
-    nullif(new.raw_user_meta_data ->> 'locale', ''),
-    selected_role = 'teacher',
-    selected_role in ('organizer', 'organization'),
-    false,
-    selected_role,
-    null,
-    null,
-    null,
-    now()
+    new.id, new.email, nullif(new.raw_user_meta_data ->> 'locale', ''),
+    selected_role = 'teacher', selected_role in ('organizer', 'organization'), false,
+    selected_role, null, null, null, now()
   )
   on conflict (id) do update set
     email = excluded.email,
@@ -88,8 +69,6 @@ create trigger zz_on_auth_user_assign_initial_web_role
   after insert on auth.users
   for each row execute function public.assign_initial_web_role();
 
--- The registered role is immutable from the browser. Only trusted backend
--- maintenance (service role, where auth.uid() is null) can repair it.
 create or replace function public.lock_registered_web_role()
 returns trigger
 language plpgsql
