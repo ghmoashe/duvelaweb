@@ -43,7 +43,7 @@ for (const test of bank.tests || []) {
         const bytes = fs.readFileSync(audioPath);
         const isMp3 = bytes.subarray(0, 3).toString('ascii') === 'ID3' || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
         if (!isMp3 || bytes.length < 10_000) errors.push(`${item.id}: audio file is invalid or empty.`);
-      } else if (bank.level === 'A1') {
+      } else {
         errors.push(`${item.id}: audio file is missing.`);
       }
     }
@@ -58,6 +58,10 @@ for (const test of bank.tests || []) {
 const a2Bank = banks.find((bank) => bank.level === 'A2');
 const a2AudioItems = a2Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
 if (a2AudioItems.length !== 75) errors.push('A2 must contain exactly 75 audio scripts.');
+const a2AudioRoot = path.join(root, 'web', 'audio', 'exam-a2');
+const a2AudioFiles = fs.readdirSync(a2AudioRoot, { recursive: true, withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.mp3'));
+if (a2AudioFiles.length !== a2AudioItems.length) errors.push(`A2 audio folder must contain exactly ${a2AudioItems.length} MP3 files, found ${a2AudioFiles.length}.`);
 if (!a2Bank.tests.every((test) => test.sections.find((section) => section.id === 'schreiben').parts.find((part) => part.type === 'free-write')?.minWords === 40)) errors.push('A2 writing tasks must recommend 40 words.');
 for (const test of a2Bank.tests) {
   const writing = test.sections.find((section) => section.id === 'schreiben').parts.find((part) => part.type === 'free-write');
