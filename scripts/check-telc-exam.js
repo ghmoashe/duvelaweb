@@ -59,12 +59,17 @@ const a2Bank = banks.find((bank) => bank.level === 'A2');
 const a2AudioItems = a2Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
 if (a2AudioItems.length !== 75) errors.push('A2 must contain exactly 75 audio scripts.');
 if (!a2Bank.tests.every((test) => test.sections.find((section) => section.id === 'schreiben').parts.find((part) => part.type === 'free-write')?.minWords === 40)) errors.push('A2 writing tasks must recommend 40 words.');
+for (const test of a2Bank.tests) {
+  const writing = test.sections.find((section) => section.id === 'schreiben').parts.find((part) => part.type === 'free-write');
+  const sampleWords = String(writing?.sample || '').trim().split(/\s+/).filter(Boolean).length;
+  if (sampleWords < 35 || !/\b(hallo|liebe[rn]?|sehr geehrte)\b/i.test(writing?.sample || '') || !/\b(grüß|dank)/i.test(writing?.sample || '')) errors.push(`${test.id}: A2 writing sample must be a complete model answer of at least 35 words.`);
+}
 if (new Set(a2Bank.tests.map((test) => test.topic)).size !== 5) errors.push('A2 model tests must use five distinct speaking topics.');
 if (!fs.existsSync(path.join(root, 'web', 'images', 'exam-a2-topics.png'))) errors.push('Missing A2 topic illustration sprite.');
 const a2Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-a2', 'elevenlabs-scripts.txt'), 'utf8');
 for (const item of a2AudioItems) if (!a2Manifest.includes(item.id) || !a2Manifest.includes(item.transcript)) errors.push(`${item.id}: missing from A2 ElevenLabs manifest.`);
 
-for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult']) {
+for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
 if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
