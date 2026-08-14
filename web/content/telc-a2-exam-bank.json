@@ -550,6 +550,7 @@
                 "nach einem Geschenk fragen",
                 "jemanden mitbringen"
               ],
+              "sample": "Liebe Nina, vielen Dank für deine Einladung. Ich komme am Samstag sehr gern zu deiner Feier. Was wünschst du dir zum Geburtstag? Darf ich meine Freundin Sara mitbringen? Wir können auch einen Salat vorbereiten. Viele Grüße, Anna",
               "rubric": {
                 "level": "A2",
                 "maxPoints": 10,
@@ -1208,6 +1209,7 @@
                 "um Reparatur bitten",
                 "möglicher Termin"
               ],
+              "sample": "Sehr geehrte Damen und Herren, seit gestern funktioniert die Heizung in meiner Wohnung nicht. Es ist besonders nachts sehr kalt. Bitte schicken Sie möglichst schnell einen Techniker. Am Donnerstag bin ich ab 14 Uhr zu Hause. Bitte bestätigen Sie mir den Termin kurz per E-Mail. Vielen Dank. Mit freundlichen Grüßen, Marta Nowak",
               "rubric": {
                 "level": "A2",
                 "maxPoints": 10,
@@ -1866,6 +1868,7 @@
                 "wichtige Aufgabe erwähnen",
                 "Vertretung vorschlagen"
               ],
+              "sample": "Liebe Frau Stein, ich bin leider krank und kann morgen nicht zur Arbeit kommen. Wahrscheinlich bleibe ich zwei Tage zu Hause. Die Kundenliste liegt auf meinem Schreibtisch. Vielleicht kann Ben meinen Termin übernehmen. Ich melde mich morgen noch einmal. Viele Grüße, Diego Ruiz",
               "rubric": {
                 "level": "A2",
                 "maxPoints": 10,
@@ -2524,6 +2527,7 @@
                 "Fundort vermuten",
                 "um Zusendung bitten"
               ],
+              "sample": "Sehr geehrte Damen und Herren, ich war vom 12. bis 14. Oktober in Ihrem Hotel. Leider habe ich eine blaue Jacke vergessen. Sie liegt vielleicht im Schrank von Zimmer 24. Können Sie mir die Jacke bitte zuschicken? Meine Adresse finden Sie in der letzten Buchung. Die Kosten übernehme ich. Mit freundlichen Grüßen, Hana Kim",
               "rubric": {
                 "level": "A2",
                 "maxPoints": 10,
@@ -3182,6 +3186,7 @@
                 "nach Aufgaben fragen",
                 "um Rückmeldung bitten"
               ],
+              "sample": "Liebe Frau Berger, meine Tochter Lina hat Fieber und kann morgen nicht zur Schule kommen. Wahrscheinlich bleibt sie bis Mittwoch zu Hause. Können Sie mir bitte die Hausaufgaben schicken? Geben Sie mir kurz Bescheid, wenn es neue Informationen gibt. Vielen Dank und viele Grüße, Paulo Costa",
               "rubric": {
                 "level": "A2",
                 "maxPoints": 10,

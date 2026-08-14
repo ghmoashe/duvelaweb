@@ -760,6 +760,7 @@ function renderAudioChoice(section, part) {
   const used = state.plays[item.id] || 0;
   const options = item.options.map((option, index) => `<button class="option ${answerClass(item, selected, index)}" data-answer="${index}"><span class="option-letter">${String.fromCharCode(65 + index)}</span><span>${esc(option)}</span></button>`).join('');
   app.innerHTML = questionShell(section, part, `
+    ${trainingHintHtml(part, item)}
     <div class="listen-box"><button class="listen-button" id="play-audio" ${used >= limit ? 'disabled' : ''} aria-label="Hörtext abspielen">▶</button><div><b>Hörtext abspielen</b><small id="play-status">${audioStatus(used, limit)}</small></div></div>
     <div class="question">${esc(item.question)}</div>
     <div class="options">${options}</div>
@@ -775,6 +776,7 @@ function renderAudioFill(section, part) {
   const limit = audioLimit(part);
   const used = state.plays[item.id] || 0;
   app.innerHTML = questionShell(section, part, `
+    ${trainingHintHtml(part, item)}
     <div class="listen-box"><button class="listen-button" id="play-audio" ${used >= limit ? 'disabled' : ''} aria-label="Hörtext abspielen">▶</button><div><b>Hörtext abspielen</b><small id="play-status">${audioStatus(used, limit)}</small></div></div>
     <div class="question">${esc(item.question)}</div>
     <div class="field"><label for="audio-fill-answer">Telefonnotiz ergänzen</label><input id="audio-fill-answer" autocomplete="off" value="${esc(state.answers[item.id] || '')}" placeholder="Kurze Antwort"></div>
@@ -790,7 +792,7 @@ function renderReadChoice(section, part) {
   const item = part.items[state.idx];
   const selected = state.answers[item.id];
   const options = item.options.map((option, index) => `<button class="option ${answerClass(item, selected, index)}" data-answer="${index}"><span class="option-letter">${String.fromCharCode(65 + index)}</span><span>${esc(option)}</span></button>`).join('');
-  app.innerHTML = questionShell(section, part, `${passageFor(part, item)}<div class="question">${esc(item.question)}</div><div class="options">${options}</div>${feedbackHtml(item, part, selected)}`);
+  app.innerHTML = questionShell(section, part, `${readingToolsHtml(part, item)}${passageFor(part, item)}<div class="question">${esc(item.question)}</div><div class="options">${options}</div>${feedbackHtml(item, part, selected)}`);
   wireChoices(item, part, '[data-answer]');
   wireNavigation(section, part);
   wireChoiceKeys(item.options.length);
@@ -805,6 +807,7 @@ function renderTrueFalse(section, part, isAudio) {
     ? `<div class="listen-box"><button class="listen-button" id="play-audio" ${used >= limit ? 'disabled' : ''} aria-label="Durchsage abspielen">▶</button><div><b>Durchsage abspielen</b><small id="play-status">${audioStatus(used, limit)}</small></div></div>`
     : (item.sign ? `<div class="passage"><span class="passage-label">Hinweis</span>${esc(item.sign)}</div>` : passageFor(part, item));
   app.innerHTML = questionShell(section, part, `
+    ${isAudio ? trainingHintHtml(part, item) : readingToolsHtml(part, item)}
     ${context}
     <div class="question">${esc(item.statement)}</div>
     <div class="true-false">
@@ -829,7 +832,7 @@ function renderMatch(section, part) {
   const selected = state.answers[item.id];
   const ads = (part.ads || []).map((ad) => `<div class="passage"><span class="passage-label">Anzeige ${esc(ad.label)}</span>${esc(ad.body)}</div>`).join('');
   const options = item.options.map((option, index) => `<button class="option ${answerClass(item, selected, index)}" data-answer="${index}"><span class="option-letter">${String(option).toUpperCase()}</span><span>Anzeige ${esc(option)}</span></button>`).join('');
-  app.innerHTML = questionShell(section, part, `${ads}<div class="question">${esc(item.situation)}</div><div class="options">${options}</div>${feedbackHtml(item, part, selected)}`);
+  app.innerHTML = questionShell(section, part, `${readingToolsHtml(part, item)}${ads}<div class="question">${esc(item.situation)}</div><div class="options">${options}</div>${feedbackHtml(item, part, selected)}`);
   wireChoices(item, part, '[data-answer]');
   wireNavigation(section, part);
   wireChoiceKeys(item.options.length);
@@ -838,6 +841,40 @@ function renderMatch(section, part) {
 function passageFor(part, item) {
   const text = (part.texts || []).find((entry) => entry.id === item.textRef);
   return text ? `<div class="passage"><span class="passage-label">${esc(text.label || 'Text')}</span>${esc(text.body)}</div>` : '';
+}
+
+function readingToolsHtml(part, item) {
+  if (state.mode !== 'practice') return '';
+  const keywords = readingKeywords(item);
+  return `<aside class="reading-tools">
+    <header><span><small>LESESTRATEGIE</small><b>Erst Aufgabe, dann Text</b></span><strong>3 Schritte</strong></header>
+    <div class="reading-keywords"><small>SCHLÜSSELWÖRTER</small>${keywords.map((word) => `<i>${esc(word)}</i>`).join('')}</div>
+    <ol><li><b>1</b> Schlüsselwörter in der Aufgabe lesen</li><li><b>2</b> Passende Textstelle suchen</li><li><b>3</b> Negationen und Zeiten vergleichen</li></ol>
+    ${trainingHintHtml(part, item)}
+  </aside>`;
+}
+
+function readingKeywords(item) {
+  const task = item.question || item.statement || item.situation || '';
+  const stop = new Set(['aber','alle','auch','dann','dass','eine','einen','einer','einem','eines','haben','kann','können','möchte','möchten','nicht','oder','sich','sind','über','welche','welcher','werden','wird','wollen','wurde','zum','zur','ihnen','ihre','ihrer','ihrem','ihren','man','was','wann','wer','wie','wo']);
+  const words = String(task).match(/[\p{L}\p{N}€–-]+/gu) || [];
+  return [...new Set(words.filter((word) => (word.length >= 4 || /\d/.test(word)) && !stop.has(word.toLowerCase())))].slice(0, 5);
+}
+
+function trainingHintHtml(part) {
+  if (state.mode !== 'practice') return '';
+  const tips = {
+    'audio-choice': 'Lesen Sie vor dem Hören alle drei Antworten. Achten Sie besonders auf Zahlen, Uhrzeiten, Orte und Korrekturen mit „nicht … sondern“.',
+    'audio-fill': 'Notieren Sie nur die verlangte Information. Ein kurzes Wort, eine Zahl oder eine Uhrzeit reicht.',
+    'audio-truefalse': 'Vergleichen Sie die Aussage genau mit der Ansage. Ein einziges anderes Detail kann die Aussage falsch machen.',
+    'read-choice': 'Suchen Sie nicht jedes Wort. Finden Sie zuerst die Textstelle mit demselben Thema und prüfen Sie dann die Details.',
+    'read-truefalse': 'Prüfen Sie Subjekt, Zeit und Negation. „Immer“, „nur“ oder „kein“ verändern oft die ganze Aussage.',
+    'read-match': 'Streichen Sie zuerst Anzeigen, die beim wichtigsten Wunsch nicht passen. Eine Anzeige darf auch unbenutzt bleiben.',
+    'form-fill': 'Übernehmen Sie die Angaben exakt aus der Situation. Bei Namen, Datum und Zahlen zählt die richtige Schreibweise.',
+    'free-write': 'Planen Sie zuerst drei Inhaltspunkte. Schreiben Sie danach Anrede, vier bis fünf kurze Sätze und eine Schlussformel.',
+  };
+  const tip = tips[part.type];
+  return tip ? `<details class="training-hint"><summary>Tipp anzeigen</summary><p>${esc(tip)}</p></details>` : '';
 }
 
 function wireChoices(item, part, selector) {
@@ -905,6 +942,7 @@ function feedbackHtml(item, part, selected) {
 // ---------- productive tasks ----------
 function renderForm(section, part) {
   app.innerHTML = questionShell(section, part, `
+    ${trainingHintHtml(part)}
     <div class="passage"><span class="passage-label">Situation</span>${esc(part.instructions)}</div>
     <div class="form-grid">${part.fields.map((field) => `<div class="field"><label for="field-${esc(field.id)}">${esc(field.label)}</label><input id="field-${esc(field.id)}" value="${esc(state.answers[field.id] || '')}" autocomplete="off"></div>`).join('')}</div>`);
   activeCollector = () => part.fields.forEach((field) => { state.answers[field.id] = document.getElementById(`field-${field.id}`)?.value.trim() || ''; });
@@ -913,17 +951,69 @@ function renderForm(section, part) {
 }
 
 function renderWrite(section, part) {
+  const training = state.mode === 'practice';
+  const phraseBank = ['Hallo …,', 'Sehr geehrte Damen und Herren,', 'leider', 'weil', 'deshalb', 'Können Sie bitte …?', 'Vielen Dank.', 'Viele Grüße'];
   app.innerHTML = questionShell(section, part, `
+    ${trainingHintHtml(part)}
     <div class="passage"><span class="passage-label">Aufgabe</span>${esc(part.instructions)}</div>
     <ul class="leit">${part.leitpunkte.map((point) => `<li>${esc(point)}</li>`).join('')}</ul>
+    ${training ? `<section class="writing-tools"><header><span><small>SCHREIBWERKSTATT</small><b>Nützliche Bausteine</b></span><em>Zum Einfügen anklicken</em></header><div>${phraseBank.map((phrase) => `<button type="button" data-writing-phrase="${esc(phrase)}">+ ${esc(phrase)}</button>`).join('')}</div></section>` : ''}
     <textarea class="exam-textarea" id="write-answer" placeholder="Schreiben Sie zu jedem Punkt ein bis zwei Sätze. Denken Sie an Anrede und Gruß.">${esc(state.answers[part.id] || '')}</textarea>
-    <div class="word-count" id="word-count">0 Wörter</div>`);
+    <div class="word-count" id="word-count">0 Wörter</div>
+    ${training ? writingChecklistHtml(part) : ''}
+    ${training && part.sample ? `<section class="model-answer"><button class="button secondary compact" id="show-model-answer" type="button" disabled>Beispielantwort nach eigener Lösung</button><small id="model-answer-lock">Schreiben Sie zuerst mindestens 20 Wörter.</small><div id="model-answer-text" hidden><span class="passage-label">Beispielantwort</span><p>${esc(part.sample)}</p><small>Es gibt viele richtige Lösungen. Nutzen Sie dieses Beispiel nur zum Vergleichen.</small></div></section>` : ''}`);
   const textarea = document.getElementById('write-answer');
-  const updateCount = () => { document.getElementById('word-count').textContent = `${wordCount(textarea.value)} Wörter · Empfehlung: ca. ${part.minWords || 30}`; };
+  const updateCount = () => {
+    document.getElementById('word-count').textContent = `${wordCount(textarea.value)} Wörter · Empfehlung: ca. ${part.minWords || 30}`;
+    updateWritingChecklist(part, textarea.value);
+  };
   textarea.oninput = () => { updateCount(); state.answers[part.id] = textarea.value.trim(); persistSession(); };
+  app.querySelectorAll('[data-writing-phrase]').forEach((button) => {
+    button.onclick = () => {
+      const phrase = button.dataset.writingPhrase || '';
+      const prefix = textarea.value && !/\s$/.test(textarea.value.slice(0, textarea.selectionStart)) ? ' ' : '';
+      textarea.setRangeText(`${prefix}${phrase} `, textarea.selectionStart, textarea.selectionEnd, 'end');
+      textarea.focus();
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+  });
+  document.getElementById('show-model-answer')?.addEventListener('click', (event) => {
+    const answer = document.getElementById('model-answer-text');
+    const visible = !answer.hidden;
+    answer.hidden = visible;
+    event.currentTarget.textContent = visible ? 'Beispielantwort anzeigen' : 'Beispielantwort schließen';
+  });
   updateCount();
   activeCollector = () => { state.answers[part.id] = textarea.value.trim(); };
   wireNavigation(section, part, activeCollector);
+}
+
+function writingChecklistHtml(part) {
+  const labels = ['Passende Anrede', 'Mindestens drei Inhaltspunkte', 'Sätze mit Verbindung', `Etwa ${part.minWords || 30} Wörter`, 'Passende Schlussformel'];
+  return `<aside class="writing-checklist"><header><small>A2-CHECK</small><b>Ist Ihre Nachricht vollständig?</b></header><ul>${labels.map((label, index) => `<li data-write-check="${index}"><i>✓</i>${esc(label)}</li>`).join('')}</ul></aside>`;
+}
+
+function updateWritingChecklist(part, value) {
+  const text = String(value || '').trim();
+  const words = wordCount(text);
+  const sentenceCount = text.split(/[.!?]+/).filter((sentence) => wordCount(sentence) >= 3).length;
+  const checks = [
+    /^(hallo|liebe[rn]?|sehr geehrte)/i.test(text),
+    sentenceCount >= 3 && words >= 25,
+    /\b(und|aber|weil|deshalb|dann|leider|auch|denn)\b/i.test(text),
+    words >= Math.max(30, Number(part.minWords || 30) - 5),
+    /\b(viele grüß|freundlich\w*\s+grüß|liebe grüß|bis bald|dank)/i.test(text),
+  ];
+  document.querySelectorAll('[data-write-check]').forEach((item, index) => item.classList.toggle('done', checks[index]));
+  const modelButton = document.getElementById('show-model-answer');
+  const lock = document.getElementById('model-answer-lock');
+  if (modelButton) modelButton.disabled = words < 20;
+  if (words < 20) {
+    const model = document.getElementById('model-answer-text');
+    if (model) model.hidden = true;
+    if (modelButton) modelButton.textContent = 'Beispielantwort nach eigener Lösung';
+  }
+  if (lock) lock.textContent = words < 20 ? `Noch ${20 - words} Wörter bis zur Beispielantwort.` : 'Jetzt können Sie Ihre Lösung vergleichen.';
 }
 
 function renderSpeak(section, part) {
