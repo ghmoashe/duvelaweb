@@ -1,5 +1,5 @@
 (function () {
-  const PROFILE_COLUMNS = 'id,full_name,avatar_url,cover_url,city,country,language,language_level,learning_languages,learning_targets,teaches_languages,bio,interests,profile_interests,qualifications,specialization,teaching_experience,telegram,instagram,tiktok,facebook,linkedin,youtube,website,is_teacher,is_organizer,is_admin,is_verified,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level';
+  const PROFILE_COLUMNS = 'id,full_name,avatar_url,cover_url,city,country,language,language_level,learning_languages,learning_targets,teaches_languages,bio,interests,profile_interests,qualifications,specialization,teaching_experience,telegram,instagram,tiktok,facebook,linkedin,youtube,website,registered_web_role,is_teacher,is_organizer,is_admin,is_verified,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level';
 
   function createRoleAccessFeature(ctx) {
     const {
@@ -46,7 +46,8 @@
 
       const roleProfile = await rolesApi.loadRoleProfile(supa, session.user.id);
       if (roleProfile) {
-        session.profile = { ...(session.profile || {}), ...roleProfile };
+        const confirmedRoleProfile = await rolesApi.confirmLegacyRoleIfNeeded(supa, roleProfile);
+        session.profile = { ...(session.profile || {}), ...confirmedRoleProfile };
       }
 
       if (!session.profile) {

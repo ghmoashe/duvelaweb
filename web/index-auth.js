@@ -145,12 +145,18 @@
         }
         authUi.setSignupRole(savedSignupRole);
         authUi.setCurrentRole(savedSignupRole);
+        const roleUpdate = await supa.auth.updateUser({
+          data: { web_role: savedSignupRole }
+        });
+        if (roleUpdate.error) {
+          console.warn('registration role update failed', roleUpdate.error);
+        }
         await upsertWebProfile(
           sessionUser.id,
           sessionUser.email,
           document.documentElement.getAttribute('lang') || 'en'
         );
-        goToWebApp(savedSignupRole, defaultHashForRole(savedSignupRole));
+        await goToDetectedWebApp(roleUpdate.data?.user || sessionUser);
         return;
       }
 
