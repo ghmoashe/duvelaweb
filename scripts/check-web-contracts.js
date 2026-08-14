@@ -29,7 +29,10 @@ function checkRegistrationRoleContract() {
   const roleAccessCode = read('web/app-role-access.js');
   const onboardingCode = read('web/app-onboarding.js');
   const fixedRoleSql = read('scripts/fixed-registration-roles.sql');
-  const migrationSql = read('supabase/migrations/20260814160000_fixed_registration_roles.sql');
+  const migrationSql = read('supabase/migrations/20260814173000_registered_web_role_repair.sql');
+  const legacyMigrationSql = read('supabase/migrations/20260814181500_confirm_legacy_registration_role.sql');
+  const roleFlagMigrationSql = read('supabase/migrations/20260814183000_sync_registered_role_flags.sql');
+  const roleSecurityMigrationSql = read('supabase/migrations/20260814184500_secure_legacy_role_confirmation.sql');
   const sandbox = { window: {}, console };
   vm.createContext(sandbox);
   vm.runInContext(rolesCode, sandbox, { filename: 'web/duvela-web-roles.js' });
@@ -38,16 +41,30 @@ function checkRegistrationRoleContract() {
   const rolesApi = sandbox.window.DuvelaWebRoles;
   const profileWritesApi = sandbox.window.DuvelaWebProfileWrites;
   if (!rolesApi?.pickWebRole || !profileWritesApi?.upsertProfileIdentity) fail('Role APIs were not attached to window.');
+  if (!rolesApi?.confirmLegacyRoleIfNeeded) fail('Legacy registration role confirmation API is missing.');
+  if (rolesApi.pickWebRole({ registered_web_role: 'teacher', is_teacher: false, is_organizer: false, is_admin: false, last_web_role: 'learner' }, false) !== 'teacher') fail('The immutable registered role must be authoritative.');
   if (rolesApi.pickWebRole({ is_teacher: true, is_organizer: false, is_admin: false, last_web_role: 'learner' }, false) !== 'teacher') fail('Registered teacher must always open Teacher Dashboard.');
   if (rolesApi.pickWebRole({ is_teacher: false, is_organizer: false, is_admin: false, last_web_role: 'teacher' }, false) !== 'learner') fail('Learner must not become a teacher from a stale browser role.');
   if (profileWritesApi.persistBusinessRoleSelection || /submitRoleRequest|request:teacher/.test(roleAccessCode)) fail('The old role-request flow must not be available.');
   expectIncludes('web/index-auth.js', authCode, 'web_role: currentRole');
+  expectIncludes('web/index-auth.js', authCode, 'data: { web_role: savedSignupRole }');
   if (/is_teacher:\s*role\s*===|is_organizer:\s*role\s*===/.test(onboardingCode)) fail('Onboarding must not change the immutable account role.');
-  for (const [file, sql] of [['scripts/fixed-registration-roles.sql', fixedRoleSql], ['registration migration', migrationSql]]) {
-    expectIncludes(file, sql, "lower(raw_user_meta_data ->> 'web_role')");
+  for (const [file, sql] of [['scripts/fixed-registration-roles.sql', fixedRoleSql], ['registration repair migration', migrationSql]]) {
+    expectIncludes(file, sql, "raw_user_meta_data ->> 'web_role'");
     expectIncludes(file, sql, 'create or replace function public.assign_initial_web_role()');
     expectIncludes(file, sql, 'create or replace function public.lock_registered_web_role()');
   }
+  expectIncludes('registration repair migration', migrationSql, 'registered_web_role');
+  expectIncludes('registration repair migration', migrationSql, 'create or replace function public.lock_auth_web_role()');
+  expectIncludes('registration repair migration', migrationSql, 'after insert or update of raw_user_meta_data');
+  expectIncludes('registration repair migration', migrationSql, 'Duvela users can read own profile');
+  expectIncludes('legacy role migration', legacyMigrationSql, 'registered_web_role_confirmed');
+  expectIncludes('legacy role migration', legacyMigrationSql, 'public.confirm_legacy_web_role');
+  expectIncludes('legacy role migration', legacyMigrationSql, "set_config('duvela.role_assignment', '1', true)");
+  expectIncludes('role flag migration', roleFlagMigrationSql, "current_setting('duvela.role_assignment', true)");
+  expectIncludes('role flag migration', roleFlagMigrationSql, "is_teacher = registered_web_role = 'teacher'");
+  expectIncludes('role security migration', roleSecurityMigrationSql, 'from public');
+  expectIncludes('role security migration', roleSecurityMigrationSql, 'to authenticated');
   log('immutable registration role contract: OK');
 }
 

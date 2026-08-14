@@ -20,6 +20,9 @@
   function isApprovedForRole(role, profile) {
     if (!profile) return role === 'learner';
     if (role === 'admin') return Boolean(profile.is_admin);
+    if (SIGNUP_ROLES.includes(profile.registered_web_role)) {
+      return role === profile.registered_web_role;
+    }
     if (role === 'teacher') return Boolean(profile.is_teacher);
     if (role === 'organizer' || role === 'organization') return Boolean(profile.is_organizer);
     return role === 'learner';
@@ -27,6 +30,7 @@
 
   function fallbackApprovedRole(profile) {
     if (profile && profile.is_admin) return 'admin';
+    if (profile && SIGNUP_ROLES.includes(profile.registered_web_role)) return profile.registered_web_role;
     if (profile && profile.is_teacher) return 'teacher';
     if (profile && profile.is_organizer) return 'organizer';
     return 'learner';
@@ -51,9 +55,10 @@
   }
 
   function pickWebRole(profile, hasOrganization) {
+    if (profile && profile.is_admin) return 'admin';
+    if (profile && SIGNUP_ROLES.includes(profile.registered_web_role)) return profile.registered_web_role;
     const preferredRole = normalizeRole((profile && profile.last_web_role) || '');
     if (preferredRole !== 'learner' && isApprovedForRole(preferredRole, profile)) return preferredRole;
-    if (profile && profile.is_admin) return 'admin';
     if (profile && profile.is_teacher) return 'teacher';
     if (profile && profile.is_organizer) return hasOrganization ? 'organization' : 'organizer';
     return 'learner';
@@ -63,7 +68,7 @@
     try {
       const result = await supa
         .from('profiles')
-        .select('is_teacher,is_organizer,is_admin,last_web_role')
+        .select('registered_web_role,registered_web_role_confirmed,is_teacher,is_organizer,is_admin,last_web_role')
         .eq('id', userId)
         .maybeSingle();
       if (!result.error && result.data) return result.data;
@@ -86,6 +91,35 @@
     return null;
   }
 
+  async function confirmLegacyRoleIfNeeded(supa, profile) {
+    if (!profile || profile.registered_web_role_confirmed !== false) return profile;
+    let savedRole = null;
+    try {
+      savedRole = global.localStorage && global.localStorage.getItem('duvela.webSignupRole');
+    } catch (error) {
+      console.warn('saved registration role unavailable', error);
+    }
+    if (!SIGNUP_ROLES.includes(savedRole)) return profile;
+    try {
+      const result = await supa.rpc('confirm_legacy_web_role', { chosen_role: savedRole });
+      if (result.error) {
+        console.warn('legacy registration role confirmation failed', result.error);
+        return profile;
+      }
+      return {
+        ...profile,
+        registered_web_role: normalizeSignupRole(result.data || savedRole),
+        registered_web_role_confirmed: true,
+        is_teacher: (result.data || savedRole) === 'teacher',
+        is_organizer: ['organizer', 'organization'].includes(result.data || savedRole),
+        last_web_role: normalizeSignupRole(result.data || savedRole),
+      };
+    } catch (error) {
+      console.warn('legacy registration role confirmation skipped', error);
+      return profile;
+    }
+  }
+
   async function hasActiveOrganization(supa, userId) {
     try {
       const result = await supa
@@ -102,8 +136,9 @@
   }
 
   async function detectWebRole(supa, userId, user) {
-    const profile = await loadRoleProfile(supa, userId);
+    let profile = await loadRoleProfile(supa, userId);
     if (!profile) return pickAuthRole(user);
+    profile = await confirmLegacyRoleIfNeeded(supa, profile);
     const hasOrganization = profile && profile.is_organizer
       ? await hasActiveOrganization(supa, userId)
       : false;
@@ -122,6 +157,7 @@
     pickAuthRole,
     pickWebRole,
     loadRoleProfile,
+    confirmLegacyRoleIfNeeded,
     hasActiveOrganization,
     detectWebRole,
   });
