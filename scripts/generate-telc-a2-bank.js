@@ -202,6 +202,8 @@ function makeTest(source, index) {
   return {
     id,
     title: source.title,
+    visualPanel: n,
+    topic: source.speak.topic,
     sections: [
       { id:'hoeren', title:'Hören', durationMin:20, maxPoints:15, instructions:'Sie hören 15 Aufgaben in drei Teilen.', parts:[hearingPart('h1','Teil 1 – Telefonnotizen',2),hearingPart('h2','Teil 2 – Informationen im Radio',1),hearingPart('h3','Teil 3 – Gespräch zuordnen',2)] },
       { id:'lesen', title:'Lesen', durationMin:30, maxPoints:15, instructions:'Lesen Sie Informationen, einen längeren Text und Anzeigen.', parts:[
@@ -215,8 +217,8 @@ function makeTest(source, index) {
       ]},
       { id:'sprechen', title:'Sprechen', durationMin:15, maxPoints:15, aiGraded:true, instructions:'Sprechen Sie mit der Prüferin und Ihrer virtuellen Prüfungspartnerin. Es gibt keine Vorbereitungszeit.', parts:[
         { id:'sp1', title:'Teil 1 – Sich vorstellen', type:'speak-intro', instructions:'Stellen Sie sich vor und beantworten Sie eine Nachfrage.', prompts:['Name','Herkunft und Wohnort','Familie','Beruf oder Ausbildung','Sprachen','Freizeit'], rubric:{level:'A2',maxPoints:3,criteria:['Zusammenhängende Vorstellung','Verständliche Aussprache','Passende Antwort auf Nachfrage']} },
-        { id:'sp2', title:'Teil 2 – Ein Alltagsgespräch führen', type:'speak-cards', instructions:`Thema „${source.speak.topic}“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.`, cards:source.speak.cards.map((keyword,i)=>({id:`sp2-${i+1}`,keyword,example:`Können wir über „${keyword}“ sprechen?`})), rubric:{level:'A2',maxPoints:6,criteria:['Passende Fragen','Angemessene Antworten','Verständlichkeit','Interaktion']} },
-        { id:'sp3', title:'Teil 3 – Etwas aushandeln', type:'speak-cards', instructions:`Planen Sie gemeinsam: ${source.speak.topic}. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.`, cards:source.speak.cards.map((keyword,i)=>({id:`sp3-${i+1}`,keyword,example:`Ich schlage vor: ${keyword}`})), rubric:{level:'A2',maxPoints:6,criteria:['Vorschläge machen','Zustimmen oder widersprechen','Begründung geben','Gemeinsame Entscheidung']} }
+        { id:'sp2', title:'Teil 2 – Ein Alltagsgespräch führen', type:'speak-cards', instructions:`Thema „${source.speak.topic}“. Stellen Sie Fragen und reagieren Sie auf Ihre Partnerin.`, cards:source.speak.cards.map((keyword,i)=>({id:`sp2-${i+1}`,keyword,example:keyword})), rubric:{level:'A2',maxPoints:6,criteria:['Passende Fragen','Angemessene Antworten','Verständlichkeit','Interaktion']} },
+        { id:'sp3', title:'Teil 3 – Etwas aushandeln', type:'speak-cards', instructions:`Planen Sie gemeinsam: ${source.speak.topic}. Machen Sie Vorschläge, reagieren Sie und einigen Sie sich.`, cards:source.speak.cards.map((keyword,i)=>({id:`sp3-${i+1}`,keyword,example:`Mein Vorschlag zu „${keyword.replace(/\?$/, '')}“: Wir entscheiden gemeinsam. Was meinen Sie?`})), rubric:{level:'A2',maxPoints:6,criteria:['Vorschläge machen','Zustimmen oder widersprechen','Begründung geben','Gemeinsame Entscheidung']} }
       ]}
     ]
   };
@@ -225,6 +227,7 @@ function makeTest(source, index) {
 const bank = {
   exam:'telc-deutsch-a2', level:'A2',
   note:'Originalinhalte im Format Start Deutsch 2 / telc Deutsch A2. Kein offizielles telc-Prüfungsmaterial.',
+  quality:{version:2,reviewed:'2026-08-14',audioScripts:75,visualPanels:5},
   passMark:60, weights:{hoeren:25,lesen:25,schreiben:25,sprechen:25},
   tests:tests.map(makeTest)
 };

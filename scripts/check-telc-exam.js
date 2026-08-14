@@ -24,12 +24,18 @@ for (const test of bank.tests || []) {
   if (hearing.parts.map((part) => part.items.length).join('/') !== expectedHearing) errors.push(`${bank.level} ${test.id}: Hören must contain ${expectedHearing} tasks.`);
   if (reading.parts.map((part) => part.items.length).join('/') !== '5/5/5') errors.push(`${test.id}: Lesen must contain 5/5/5 tasks.`);
   if (speaking.parts.map((part) => part.rubric?.maxPoints).join('/') !== '3/6/6') errors.push(`${test.id}: Sprechen rubric must be 3/6/6.`);
+  if (bank.level === 'A2' && (!Number.isInteger(test.visualPanel) || test.visualPanel < 1 || test.visualPanel > 5 || !test.topic)) errors.push(`${test.id}: missing A2 visual topic metadata.`);
   const ids = new Set();
   for (const section of test.sections) for (const part of section.parts) for (const item of part.items || []) {
     if (ids.has(item.id)) errors.push(`${test.id}: duplicate item id ${item.id}.`);
     ids.add(item.id);
     if (item.answer === undefined) errors.push(`${item.id}: missing answer.`);
+    if (Array.isArray(item.options) && (!Number.isInteger(item.answer) || item.answer < 0 || item.answer >= item.options.length)) errors.push(`${item.id}: answer is outside option range.`);
+    if (Array.isArray(item.options) && new Set(item.options.map(String)).size !== item.options.length) errors.push(`${item.id}: duplicate answer options.`);
+    if (!item.explain) errors.push(`${item.id}: missing answer explanation.`);
     if (section.id === 'hoeren') {
+      if (String(item.transcript || '').trim().split(/\s+/).length < 8) errors.push(`${item.id}: listening script is too short for a realistic A2 task.`);
+      if (bank.level === 'A2' && !item.question) errors.push(`${item.id}: missing listening question.`);
       const audioFolder = bank.level === 'A2' ? 'exam-a2' : 'exam';
       if (item.audio !== `./web/audio/${audioFolder}/${test.id}/${item.id}.mp3`) errors.push(`${item.id}: invalid audio path.`);
       const audioPath = path.join(root, 'web', 'audio', audioFolder, test.id, `${item.id}.mp3`);
@@ -42,6 +48,10 @@ for (const test of bank.tests || []) {
       }
     }
   }
+  if (bank.level === 'A2') for (const part of speaking.parts.filter((entry) => entry.type === 'speak-cards')) {
+    if (part.cards?.length !== 4) errors.push(`${test.id} ${part.id}: expected four speaking cards.`);
+    if (part.cards?.some((card) => !card.keyword || !card.example || /Können wir über.+sprechen/i.test(card.example))) errors.push(`${test.id} ${part.id}: speaking examples must be natural and complete.`);
+  }
 }
 }
 
@@ -49,10 +59,12 @@ const a2Bank = banks.find((bank) => bank.level === 'A2');
 const a2AudioItems = a2Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
 if (a2AudioItems.length !== 75) errors.push('A2 must contain exactly 75 audio scripts.');
 if (!a2Bank.tests.every((test) => test.sections.find((section) => section.id === 'schreiben').parts.find((part) => part.type === 'free-write')?.minWords === 40)) errors.push('A2 writing tasks must recommend 40 words.');
+if (new Set(a2Bank.tests.map((test) => test.topic)).size !== 5) errors.push('A2 model tests must use five distinct speaking topics.');
+if (!fs.existsSync(path.join(root, 'web', 'images', 'exam-a2-topics.png'))) errors.push('Missing A2 topic illustration sprite.');
 const a2Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-a2', 'elevenlabs-scripts.txt'), 'utf8');
 for (const item of a2AudioItems) if (!a2Manifest.includes(item.id) || !a2Manifest.includes(item.transcript)) errors.push(`${item.id}: missing from A2 ElevenLabs manifest.`);
 
-for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale']) {
+for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
 if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
