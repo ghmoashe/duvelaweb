@@ -326,6 +326,22 @@ function progressHubHtml() {
   return `<section class="progress-hub"><header><span class="eyebrow">DUVELA EXAM</span><h2>A1 + A2</h2></header><div>${cards}</div></section>`;
 }
 
+function historyDashboardHtml() {
+  const attempts = readExamHistory().filter((entry) => entry.mode === 'exam').slice(0, 8);
+  if (!attempts.length) return '';
+  const chronological = [...attempts].reverse();
+  const best = Math.max(...attempts.map((entry) => Number(entry.percent) || 0));
+  const latest = attempts[0];
+  const date = (value) => {
+    try { return new Intl.DateTimeFormat(state.uiLocale || 'de', { day: '2-digit', month: '2-digit' }).format(new Date(value)); }
+    catch { return '—'; }
+  };
+  return `<section class="history-dashboard">
+    <header><div><span class="eyebrow">DUVELA EXAM</span><h2>${esc(tx('flow'))}</h2></div><div class="history-summary"><span><small>★</small><b>${best}%</b></span><span><small>${latest.level}</small><b>${latest.percent}%</b></span></div></header>
+    <div class="history-chart" role="img" aria-label="A1 und A2 Ergebnisverlauf">${chronological.map((entry) => `<article title="Deutsch ${esc(entry.level)} · ${Number(entry.percent) || 0}%"><span>${Number(entry.percent) || 0}%</span><i style="--bar:${Math.max(5, Number(entry.percent) || 0)}%"><b></b></i><small>${esc(entry.level)}<br>${esc(date(entry.date))}</small></article>`).join('')}</div>
+  </section>`;
+}
+
 // ---------- setup ----------
 function syncLocalizedChrome() {
   const locale = uiLocaleMeta();
@@ -394,6 +410,7 @@ function renderSetup() {
         ${blueprintCard('04', 'Sprechen', EXAM_LEVEL === 'A2' ? 'Vorstellen · Gespräch · Aushandeln' : 'Vorstellen · Fragen · Bitten', 'ca. 15 Min.', '15 Punkte')}
       </div>
       ${progressHubHtml()}
+      ${historyDashboardHtml()}
     </section>`;
 
   app.querySelectorAll('[data-mode]').forEach((button) => {
@@ -1415,14 +1432,80 @@ async function gradeAi(section, part, showLoading = false) {
   }
   const maxPoints = part.rubric?.maxPoints || section.maxPoints;
   const points = officialProductivePoints(result, answer, part, maxPoints);
+  const rubricBreakdown = buildProductiveRubric(part, result, points, maxPoints);
   const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints };
   state.scores[section.id] = { pts: Math.min(section.maxPoints, (previous.pts || 0) + points), max: section.maxPoints };
-  state.ai[part.id] = result;
+  state.ai[part.id] = { ...(result || {}), duvelaBreakdown: rubricBreakdown, evaluationSource: result ? 'KI + A2-Raster' : 'DUVELA A2-Raster' };
   state.graded[gradeKey] = true;
-  const breakdown = Array.isArray(result?.officialBreakdown)
-    ? result.officialBreakdown.map((entry) => `${entry.criterion}: ${entry.points}/${entry.maxPoints}`).join(' · ')
-    : '';
+  const breakdown = rubricBreakdown.map((entry) => `${entry.criterion}: ${entry.points}/${entry.maxPoints}`).join(' · ');
   state.review.push({ sectionId: section.id, sec: section.title, part: part.title, q: part.instructions, your: answer || '—', correct: '', ok: points >= maxPoints * .6, explain: `${points} / ${maxPoints} Punkte${breakdown ? ` · ${breakdown}` : ''} · ${result?.summary || result?.nextStep || (answer ? 'Vorläufige regelbasierte Bewertung; für eine vollständige KI-Auswertung bitte anmelden.' : 'Keine Antwort abgegeben.')}` });
+}
+
+function buildProductiveRubric(part, result, points, maxPoints) {
+  if (Array.isArray(result?.officialBreakdown) && result.officialBreakdown.length) {
+    return result.officialBreakdown.map((entry) => ({
+      criterion: String(entry.criterion || 'Kriterium'),
+      points: Math.max(0, Number(entry.points) || 0),
+      maxPoints: Math.max(0.5, Number(entry.maxPoints) || 1),
+    }));
+  }
+  const answers = part.type === 'free-write'
+    ? [String(state.answers[part.id] || '')]
+    : speakingTurns(part).map((_, index) => String(state.answers[`${part.id}:turn:${index}`] || ''));
+  const text = answers.join(' ').trim();
+  const words = wordCount(text);
+  const sentences = text.split(/[.!?]+/).filter((sentence) => wordCount(sentence) >= 3).length;
+  let entries;
+  if (part.type === 'free-write') {
+    const greeting = /^(hallo|liebe[rn]?|sehr geehrte)/i.test(text);
+    const closing = /\b(viele grüß|freundlich\w*\s+grüß|liebe grüß|bis bald|dank)/i.test(text);
+    entries = [
+      [part.rubric?.criteria?.[0] || 'Inhaltspunkte', sentences >= 3 && words >= 30 ? 4 : words >= 15 ? 2 : words ? 1 : 0, 4],
+      [part.rubric?.criteria?.[1] || 'Anrede und Schluss', greeting && closing ? 2 : greeting || closing ? 1 : 0, 2],
+      [part.rubric?.criteria?.[2] || 'Zusammenhang', /\b(und|aber|weil|deshalb|dann|leider|auch|denn)\b/i.test(text) ? 2 : words >= 15 ? 1 : 0, 2],
+      [part.rubric?.criteria?.[3] || 'Umfang', words >= 35 ? 2 : words >= 20 ? 1 : 0, 2],
+    ];
+  } else if (part.id === 'sp1') {
+    entries = [
+      [part.rubric?.criteria?.[0] || 'Vorstellung', wordCount(answers[0]) >= 8 ? 1 : wordCount(answers[0]) ? .5 : 0, 1],
+      [part.rubric?.criteria?.[1] || 'Verständlichkeit', answers.filter((value) => wordCount(value) >= 3).length >= 2 ? 1 : words ? .5 : 0, 1],
+      [part.rubric?.criteria?.[2] || 'Nachfragen', answers.slice(1).filter((value) => wordCount(value) >= 2).length >= 2 ? 1 : answers.slice(1).some(Boolean) ? .5 : 0, 1],
+    ];
+  } else if (part.id === 'sp2') {
+    entries = [
+      [part.rubric?.criteria?.[0] || 'Passende Fragen', answers.filter((value) => /\?|\b(wer|wie|was|wann|wo|warum|welche|können|möchten)\b/i.test(value)).length >= 2 ? 2 : answers.some((value) => /\?|\b(wie|was|wann|wo)\b/i.test(value)) ? 1 : 0, 2],
+      [part.rubric?.criteria?.[1] || 'Angemessene Antworten', answers.filter((value) => wordCount(value) >= 5).length >= 2 ? 2 : words ? 1 : 0, 2],
+      [part.rubric?.criteria?.[2] || 'Verständlichkeit', answers.filter((value) => wordCount(value) >= 3).length >= 3 ? 1 : words ? .5 : 0, 1],
+      [part.rubric?.criteria?.[3] || 'Interaktion', /\b(ja|nein|gern|aber|auch|finde|denke)\b/i.test(text) ? 1 : words ? .5 : 0, 1],
+    ];
+  } else {
+    entries = [
+      [part.rubric?.criteria?.[0] || 'Vorschläge', /\b(vorschlag|schlage|können|sollten|würde|möchte)\b/i.test(text) ? 2 : words ? 1 : 0, 2],
+      [part.rubric?.criteria?.[1] || 'Reagieren', /\b(ja|einverstanden|leider|aber|lieber|stimmt)\b/i.test(text) ? 2 : words ? 1 : 0, 2],
+      [part.rubric?.criteria?.[2] || 'Begründung', /\b(weil|deshalb|denn|darum)\b/i.test(text) ? 1 : words >= 8 ? .5 : 0, 1],
+      [part.rubric?.criteria?.[3] || 'Entscheidung', /\b(einig|entscheiden|kompromiss|machen wir|also)\b/i.test(text) ? 1 : words >= 8 ? .5 : 0, 1],
+    ];
+  }
+  return scaleRubricEntries(entries, Number(points) || 0, Number(maxPoints) || 1);
+}
+
+function scaleRubricEntries(entries, targetPoints, targetMax) {
+  const rawTotal = entries.reduce((sum, entry) => sum + Number(entry[1] || 0), 0);
+  const maxTotal = entries.reduce((sum, entry) => sum + Number(entry[2] || 0), 0) || targetMax;
+  const target = Math.max(0, Math.min(targetMax, targetPoints));
+  const rows = entries.map((entry) => {
+    const criterionMax = Math.round((Number(entry[2] || 1) * (targetMax / maxTotal)) * 2) / 2;
+    const proportional = rawTotal ? (Number(entry[1] || 0) / rawTotal) * target : target / entries.length;
+    return { criterion: String(entry[0]), points: Math.min(criterionMax, Math.max(0, Math.floor(proportional * 2) / 2)), maxPoints: criterionMax, raw: Number(entry[1] || 0) };
+  });
+  let delta = Math.round((target - rows.reduce((sum, row) => sum + row.points, 0)) * 2) / 2;
+  while (delta >= .5) {
+    const candidate = rows.filter((row) => row.points + .5 <= row.maxPoints).sort((a, b) => (b.raw / b.maxPoints) - (a.raw / a.maxPoints))[0];
+    if (!candidate) break;
+    candidate.points += .5;
+    delta -= .5;
+  }
+  return rows.map(({ raw, ...row }) => row);
 }
 
 function officialRubricPrompt(part) {
@@ -1608,6 +1691,7 @@ async function results() {
         <div><small>DATUM</small><b>${esc(reportDate)}</b></div>
       </section>
       <section class="paper-card question-card"><span class="eyebrow">Leistungsprofil</span><h2>Ergebnis nach Fertigkeit</h2><div class="score-grid">${rows.map(scoreBox).join('')}</div></section>
+      ${productiveRubricHtml(sections)}
       <section class="paper-card question-card result-guidance"><span class="eyebrow">Nächster Schwerpunkt</span><h2>${esc(weakest?.title || 'Weiterlernen')}</h2><p class="lead">${esc(resultRecommendation(weakest?.id, weakest?.pct || 0))}</p>${state.mode === 'exam' ? `<div class="integrity-strip"><span><small>NEUSTARTS</small><b>${integrity.reloads}</b></span><span><small>FENSTER VERLASSEN</small><b>${integrity.focusLeaves}</b></span><span><small>VERBINDUNG WIEDERHERGESTELLT</small><b>${integrity.reconnects}</b></span></div>` : ''}</section>
       <section class="paper-card question-card improvement-plan"><span class="eyebrow">Ihr 7-Tage-Plan</span><h2>Die nächsten zwei Schritte</h2><div>${focusRows.map((row, index) => `<article><i>${index + 1}</i><span><b>${esc(row.title)}</b><small>${esc(resultRecommendation(row.id, row.pct))}</small></span><strong>${row.pct}%</strong></article>`).join('')}</div></section>
       <section class="paper-card question-card report-table-wrap"><span class="eyebrow">Punkteübersicht</span><table class="report-table"><thead><tr><th>Fertigkeit</th><th>Punkte</th><th>Maximum</th><th>Ergebnis</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${esc(row.title)}</td><td>${row.pts}</td><td>${row.max}</td><td>${row.pct}%</td></tr>`).join('')}</tbody><tfoot><tr><th>Gesamt</th><th>${points}</th><th>${maxPoints}</th><th>${percent}%</th></tr></tfoot></table></section>
@@ -1620,6 +1704,37 @@ async function results() {
   document.getElementById('share-result').onclick = () => shareResult(points, maxPoints, percent, passed);
   document.getElementById('again').onclick = renderSetup;
   document.getElementById('home').onclick = () => { location.href = './app.html?role=learner#study'; };
+}
+
+function productiveRubricHtml(sections) {
+  const cards = [];
+  for (const section of sections) for (const part of section.parts || []) {
+    const evaluation = state.ai[part.id];
+    const breakdown = evaluation?.duvelaBreakdown;
+    if (!Array.isArray(breakdown) || !breakdown.length) continue;
+    const points = breakdown.reduce((sum, entry) => sum + Number(entry.points || 0), 0);
+    const maximum = breakdown.reduce((sum, entry) => sum + Number(entry.maxPoints || 0), 0);
+    cards.push(`<article class="rubric-card">
+      <header><div><small>${esc(section.title)} · ${esc(part.title)}</small><b>${esc(evaluation.evaluationSource || 'A2-Raster')}</b></div><strong>${formatRubricPoint(points)} / ${formatRubricPoint(maximum)}</strong></header>
+      <div>${breakdown.map((entry) => {
+        const ratio = Math.round((Number(entry.points || 0) / Math.max(.5, Number(entry.maxPoints || 1))) * 100);
+        return `<div class="rubric-row"><span><b>${esc(entry.criterion)}</b><small>${rubricStatus(ratio)}</small></span><i><b style="width:${Math.max(0, Math.min(100, ratio))}%"></b></i><strong>${formatRubricPoint(entry.points)} / ${formatRubricPoint(entry.maxPoints)}</strong></div>`;
+      }).join('')}</div>
+    </article>`);
+  }
+  if (!cards.length) return '';
+  return `<section class="paper-card question-card rubric-report"><span class="eyebrow">${EXAM_LEVEL}-Bewertungsraster</span><h2>Schreiben und Sprechen im Detail</h2><p class="muted">Jedes Kriterium wird getrennt ausgewiesen. So sehen Sie genau, was bereits sicher ist und was Sie als Nächstes üben sollten.</p><div class="rubric-grid">${cards.join('')}</div></section>`;
+}
+
+function formatRubricPoint(value) {
+  const number = Number(value) || 0;
+  return Number.isInteger(number) ? String(number) : number.toFixed(1).replace('.', ',');
+}
+
+function rubricStatus(percent) {
+  if (percent >= 75) return 'sicher erfüllt';
+  if (percent >= 40) return 'teilweise erfüllt';
+  return 'gezielt üben';
 }
 
 async function shareResult(points, maxPoints, percent, passed) {
