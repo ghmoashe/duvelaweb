@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const banks = ['a1', 'a2'].map((level) => JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', `telc-${level}-exam-bank.json`), 'utf8')));
+const banks = ['a1', 'a2', 'b1'].map((level) => JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', `telc-${level}-exam-bank.json`), 'utf8')));
 const examClient = fs.readFileSync(path.join(root, 'web', 'telc-exam.js'), 'utf8');
 const examStyles = fs.readFileSync(path.join(root, 'web', 'telc-exam.css'), 'utf8');
 const examLocaleSource = fs.readFileSync(path.join(root, 'web', 'telc-exam-i18n.js'), 'utf8');
@@ -16,14 +16,17 @@ if (bank.tests?.length !== 5) errors.push(`${bank.level}: expected exactly five 
 for (const test of bank.tests || []) {
   const sectionIds = test.sections.map((section) => section.id);
   if (sectionIds.join(',') !== requiredSections.join(',')) errors.push(`${test.id}: section order must be Hören, Lesen, Schreiben, Sprechen.`);
-  if (test.sections.reduce((sum, section) => sum + section.maxPoints, 0) !== 60) errors.push(`${test.id}: maximum must be 60 points.`);
+  const expectedMaximum = bank.level === 'B1' ? 300 : 60;
+  if (test.sections.reduce((sum, section) => sum + section.maxPoints, 0) !== expectedMaximum) errors.push(`${bank.level} ${test.id}: maximum must be ${expectedMaximum} points.`);
   const hearing = test.sections.find((section) => section.id === 'hoeren');
   const reading = test.sections.find((section) => section.id === 'lesen');
   const speaking = test.sections.find((section) => section.id === 'sprechen');
-  const expectedHearing = bank.level === 'A2' ? '5/5/5' : '6/4/5';
+  const expectedHearing = bank.level === 'B1' ? '5/10/5' : bank.level === 'A2' ? '5/5/5' : '6/4/5';
   if (hearing.parts.map((part) => part.items.length).join('/') !== expectedHearing) errors.push(`${bank.level} ${test.id}: Hören must contain ${expectedHearing} tasks.`);
-  if (reading.parts.map((part) => part.items.length).join('/') !== '5/5/5') errors.push(`${test.id}: Lesen must contain 5/5/5 tasks.`);
-  if (speaking.parts.map((part) => part.rubric?.maxPoints).join('/') !== '3/6/6') errors.push(`${test.id}: Sprechen rubric must be 3/6/6.`);
+  const expectedReading = bank.level === 'B1' ? '5/5/10/10/10' : '5/5/5';
+  if (reading.parts.map((part) => part.items.length).join('/') !== expectedReading) errors.push(`${bank.level} ${test.id}: Lesen must contain ${expectedReading} tasks.`);
+  const expectedSpeaking = bank.level === 'B1' ? '15/30/30' : '3/6/6';
+  if (speaking.parts.map((part) => part.rubric?.maxPoints).join('/') !== expectedSpeaking) errors.push(`${bank.level} ${test.id}: Sprechen rubric must be ${expectedSpeaking}.`);
   if (bank.level === 'A2' && (!Number.isInteger(test.visualPanel) || test.visualPanel < 1 || test.visualPanel > 5 || !test.topic)) errors.push(`${test.id}: missing A2 visual topic metadata.`);
   const ids = new Set();
   for (const section of test.sections) for (const part of section.parts) for (const item of part.items || []) {
@@ -34,16 +37,17 @@ for (const test of bank.tests || []) {
     if (Array.isArray(item.options) && new Set(item.options.map(String)).size !== item.options.length) errors.push(`${item.id}: duplicate answer options.`);
     if (!item.explain) errors.push(`${item.id}: missing answer explanation.`);
     if (section.id === 'hoeren') {
-      if (String(item.transcript || '').trim().split(/\s+/).length < 8) errors.push(`${item.id}: listening script is too short for a realistic A2 task.`);
+      if (bank.level === 'B1' && part.type === 'audio-group-truefalse') continue;
+      if (String(item.transcript || '').trim().split(/\s+/).length < 8) errors.push(`${item.id}: listening script is too short for a realistic ${bank.level} task.`);
       if (bank.level === 'A2' && !item.question) errors.push(`${item.id}: missing listening question.`);
-      const audioFolder = bank.level === 'A2' ? 'exam-a2' : 'exam';
+      const audioFolder = bank.level === 'B1' ? 'exam-b1' : bank.level === 'A2' ? 'exam-a2' : 'exam';
       if (item.audio !== `./web/audio/${audioFolder}/${test.id}/${item.id}.mp3`) errors.push(`${item.id}: invalid audio path.`);
       const audioPath = path.join(root, 'web', 'audio', audioFolder, test.id, `${item.id}.mp3`);
       if (fs.existsSync(audioPath)) {
         const bytes = fs.readFileSync(audioPath);
         const isMp3 = bytes.subarray(0, 3).toString('ascii') === 'ID3' || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
         if (!isMp3 || bytes.length < 10_000) errors.push(`${item.id}: audio file is invalid or empty.`);
-      } else {
+      } else if (bank.level !== 'B1') {
         errors.push(`${item.id}: audio file is missing.`);
       }
     }
@@ -51,6 +55,19 @@ for (const test of bank.tests || []) {
   if (bank.level === 'A2') for (const part of speaking.parts.filter((entry) => entry.type === 'speak-cards')) {
     if (part.cards?.length !== 4) errors.push(`${test.id} ${part.id}: expected four speaking cards.`);
     if (part.cards?.some((card) => !card.keyword || !card.example || /Können wir über.+sprechen/i.test(card.example))) errors.push(`${test.id} ${part.id}: speaking examples must be natural and complete.`);
+  }
+  if (bank.level === 'B1') {
+    const grouped = hearing.parts.find((part) => part.type === 'audio-group-truefalse');
+    if (!grouped?.grouped || grouped.plays !== 2 || !grouped.audio || !grouped.transcript) errors.push(`${test.id}: invalid grouped B1 listening conversation.`);
+    if (String(grouped?.transcript || '').trim().split(/\s+/).length < 150) errors.push(`${test.id}: B1 listening conversation is too short.`);
+    const hearingPoints = hearing.parts.flatMap((part) => part.items).reduce((sum, item) => sum + Number(item.points || 0), 0);
+    const readingPoints = reading.parts.flatMap((part) => part.items).reduce((sum, item) => sum + Number(item.points || 0), 0);
+    if (hearingPoints !== 75) errors.push(`${test.id}: B1 Hören weights must total 75 points.`);
+    if (readingPoints !== 105) errors.push(`${test.id}: B1 Lesen + Sprachbausteine weights must total 105 points.`);
+    for (const part of reading.parts.filter((entry) => entry.id === 'sb1' || entry.id === 'sb2')) {
+      const gaps = (part.texts?.[0]?.body?.match(/___/g) || []).length;
+      if (gaps !== 10) errors.push(`${test.id} ${part.id}: expected ten language gaps.`);
+    }
   }
 }
 }
@@ -73,12 +90,48 @@ if (!fs.existsSync(path.join(root, 'web', 'images', 'exam-a2-topics.png'))) erro
 const a2Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-a2', 'elevenlabs-scripts.txt'), 'utf8');
 for (const item of a2AudioItems) if (!a2Manifest.includes(item.id) || !a2Manifest.includes(item.transcript)) errors.push(`${item.id}: missing from A2 ElevenLabs manifest.`);
 
-for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'historyDashboardHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist', 'buildProductiveRubric', 'productiveRubricHtml', 'rubricStatus']) {
+const b1Bank = banks.find((bank) => bank.level === 'B1');
+const b1HearingItems = b1Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
+if (b1HearingItems.length !== 100) errors.push('B1 must contain exactly 100 listening tasks across five tests.');
+if (b1Bank.passRules?.written?.minPoints !== 135 || b1Bank.passRules?.oral?.minPoints !== 45) errors.push('B1 must require 135 written and 45 oral points.');
+for (const test of b1Bank.tests) {
+  const writing = test.sections.find((section) => section.id === 'schreiben').parts[0];
+  const sampleWords = String(writing.sample || '').trim().split(/\s+/).filter(Boolean).length;
+  if (writing.minWords !== 100 || writing.leitpunkte?.length !== 4 || sampleWords < 85) errors.push(`${test.id}: B1 writing must include four points and a substantial model answer.`);
+  const reading = test.sections.find((section) => section.id === 'lesen');
+  if (reading.durationMin !== 90 || reading.parts.length !== 5) errors.push(`${test.id}: B1 reading/language block must contain five parts and 90 minutes.`);
+}
+const b1Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-b1', 'elevenlabs-scripts.txt'), 'utf8');
+const b1AudioEntries = b1Bank.tests.flatMap((test) => {
+  const parts = test.sections.find((section) => section.id === 'hoeren').parts;
+  return [...parts[0].items.map((item) => ({ audio: item.audio, transcript: item.transcript })), { audio: parts[1].audio, transcript: parts[1].transcript }, ...parts[2].items.map((item) => ({ audio: item.audio, transcript: item.transcript }))];
+});
+if (b1AudioEntries.length !== 55) errors.push('B1 must provide exactly 55 ElevenLabs scripts.');
+for (const entry of b1AudioEntries) {
+  const relative = entry.audio.replace('./web/audio/exam-b1/', '');
+  if (!b1Manifest.includes(relative) || !b1Manifest.includes(entry.transcript)) errors.push(`${relative}: missing from B1 ElevenLabs manifest.`);
+}
+if (!fs.existsSync(path.join(root, 'telc-b1-exam.html'))) errors.push('Missing B1 exam page.');
+
+for (const marker of ['LEVEL_FORMAT', 'audio-group-truefalse', 'renderAudioGroupTrueFalse', 'examPassDetails', 'testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'historyDashboardHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist', 'buildProductiveRubric', 'productiveRubricHtml', 'rubricStatus']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
 if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
 if (!examStyles.includes('@media print')) errors.push('Missing printable PDF result report styles.');
 const vm = require('vm');
+const passStart = examClient.indexOf('function examPassDetails');
+const passEnd = examClient.indexOf('function scoreBox', passStart);
+if (passStart < 0 || passEnd < 0) errors.push('Missing executable B1 pass rules.');
+else {
+  const passSandbox = {};
+  vm.runInNewContext(`const EXAM_LEVEL='B1'; const LEVEL_FORMAT={writtenMin:135,oralMin:45,passPoints:180,totalPoints:300};\n${examClient.slice(passStart, passEnd)}`, passSandbox);
+  const row = (lesen, hoeren, schreiben, sprechen) => [
+    { id: 'lesen', pts: lesen, max: 105 }, { id: 'hoeren', pts: hoeren, max: 75 }, { id: 'schreiben', pts: schreiben, max: 45 }, { id: 'sprechen', pts: sprechen, max: 75 },
+  ];
+  if (!passSandbox.examPassDetails(row(70, 45, 20, 45), true).passed) errors.push('B1 pass rules reject a valid written/oral result.');
+  if (passSandbox.examPassDetails(row(60, 40, 34, 75), true).passed) errors.push('B1 pass rules accept an insufficient written result.');
+  if (passSandbox.examPassDetails(row(105, 75, 45, 44), true).passed) errors.push('B1 pass rules accept an insufficient oral result.');
+}
 const rubricStart = examClient.indexOf('function scaleRubricEntries');
 const rubricEnd = examClient.indexOf('function officialRubricPrompt', rubricStart);
 if (rubricStart < 0 || rubricEnd < 0) errors.push('Missing executable productive rubric allocator.');
@@ -105,4 +158,4 @@ if (errors.length) {
   errors.forEach((error) => console.error(`[exam] ${error}`));
   process.exit(1);
 }
-console.log('[exam] A1 + A2: ten Modelltests, 150 listening tasks/scripts, 25 UI locales, strict flow and PDF reports: OK');
+console.log('[exam] A1 + A2 + B1: fifteen Modelltests, 250 listening tasks, 55 B1 audio scripts, 25 UI locales, strict scoring and PDF reports: OK');
