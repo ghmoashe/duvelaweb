@@ -3,10 +3,11 @@
   "level": "B1",
   "note": "Eigenständige DUVELA-Übungsinhalte im Format Zertifikat Deutsch / telc Deutsch B1. Kein offizieller telc-Prüfungssatz.",
   "quality": {
-    "version": 1,
+    "version": 2,
     "reviewed": "2026-08-14",
     "audioScripts": 55,
-    "modelTests": 5
+    "modelTests": 5,
+    "review": "B1 format, grammar, ambiguity, answer validity and cross-test duplication checked."
   },
   "passMark": 60,
   "passRules": {
@@ -56,7 +57,7 @@
                 {
                   "id": "b1m1-h1-1",
                   "transcript": "Ich wohne seit drei Jahren in Leipzig. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat durch ein Projekt neue Kontakte gefunden.",
+                  "statement": "Die sprechende Person hat in Leipzig durch ein Projekt neue Kontakte gefunden.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -64,8 +65,8 @@
                 },
                 {
                   "id": "b1m1-h1-2",
-                  "transcript": "Mein Arbeitsweg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht den Bus, weil die Linie umgeleitet wird. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person fährt heute mit dem Bus zur Arbeit.",
+                  "transcript": "Mein Arbeitsweg durch Leipzig dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Straßenbahnlinie 4, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
+                  "statement": "Die sprechende Person benutzt heute Straßenbahnlinie 4.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -73,8 +74,8 @@
                 },
                 {
                   "id": "b1m1-h1-3",
-                  "transcript": "Für die Weiterbildung musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil der Weiterbildung.",
+                  "transcript": "Für einen Kurs in Leipzig musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
+                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Leipzig.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -82,8 +83,8 @@
                 },
                 {
                   "id": "b1m1-h1-4",
-                  "transcript": "Ich bestelle nur selten im Internet. Kleidung probiere ich lieber im Geschäft an, und bei technischen Geräten möchte ich mich persönlich beraten lassen. Das ist mir wichtiger als der niedrigste Preis.",
-                  "statement": "Die sprechende Person kauft technische Geräte am liebsten online.",
+                  "transcript": "Nora bestellt nur selten im Internet. Kleidung probiert Nora lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
+                  "statement": "Nora kauft technische Geräte am liebsten online.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -92,7 +93,7 @@
                 {
                   "id": "b1m1-h1-5",
                   "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Nora gefragt, ob ich beim Nachbarschaftsfest helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende bei einer Veranstaltung.",
+                  "statement": "Die sprechende Person hilft am Wochenende beim Nachbarschaftsfest.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -107,7 +108,7 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Frau Berger. Sie organisieren in Leipzig das Nachbarschaftsfest. Wann findet es statt? Frau Berger: Am Samstag, 21. September. Wir beginnen um 14 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Berger: Innenhof des Bürgerhauses. Die Anreise ist am einfachsten mit der Straßenbahnlinie 4. Moderatorin: Muss man Eintritt bezahlen? Frau Berger: Der Eintritt ist kostenlos. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 15. September. Moderatorin: Wer kann teilnehmen? Frau Berger: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Berger: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Kuchen und internationale Salate. Moderatorin: Werden noch Helfer gesucht? Frau Berger: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Berger: Dann nutzen wir großer Saal im Bürgerhaus. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Moderatorin: Guten Abend, Frau Berger. Sie organisieren in Leipzig das Nachbarschaftsfest. Wann findet die Veranstaltung statt? Frau Berger: Am Samstag, 21. September. Wir beginnen um 14 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Berger: Innenhof des Bürgerhauses. Die Anreise ist am einfachsten mit der Straßenbahnlinie 4. Moderatorin: Muss man Eintritt bezahlen? Frau Berger: Der Eintritt ist kostenlos. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 15. September. Moderatorin: Wer kann teilnehmen? Frau Berger: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Berger: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Kuchen und internationale Salate. Moderatorin: Werden noch Helfer gesucht? Frau Berger: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Berger: Dann nutzen wir großer Saal im Bürgerhaus. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
               "audio": "./web/audio/exam-b1/mt1/b1m1-h2.mp3",
               "items": [
                 {
@@ -133,14 +134,14 @@
                 },
                 {
                   "id": "b1m1-h2-4",
-                  "statement": "Alle Besucher müssen mit dem Auto anreisen.",
+                  "statement": "Alle Besucher des Nachbarschaftsfest müssen mit dem Auto anreisen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-5",
-                  "statement": "Der Eintritt ist kostenlos.",
+                  "statement": "Der Eintritt für das Angebot in Leipzig ist kostenlos.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
@@ -154,7 +155,7 @@
                 },
                 {
                   "id": "b1m1-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen immer allein teilnehmen.",
+                  "statement": "Kinder unter zwölf Jahren dürfen beim Nachbarschaftsfest immer allein teilnehmen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -168,14 +169,14 @@
                 },
                 {
                   "id": "b1m1-h2-9",
-                  "statement": "Für den Aufbau werden keine Helfer mehr benötigt.",
+                  "statement": "Für den Aufbau des Nachbarschaftsfest werden keine Helfer mehr benötigt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m1-h2-10",
-                  "statement": "Bei schlechtem Wetter wird die Veranstaltung abgesagt.",
+                  "statement": "Bei schlechtem Wetter wird das Angebot in Leipzig abgesagt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -192,7 +193,7 @@
                 {
                   "id": "b1m1-h3-1",
                   "transcript": "Achtung am Hauptbahnhof Leipzig: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug fährt heute von Gleis zwölf.",
+                  "statement": "Der Zug in Leipzig fährt heute von Gleis zwölf.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -200,8 +201,8 @@
                 },
                 {
                   "id": "b1m1-h3-2",
-                  "transcript": "Wegen einer internen Schulung öffnet das Bürgerbüro morgen erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Bürgerbüro Leipzig öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
+                  "statement": "Das Bürgerbüro Leipzig öffnet morgen zur normalen Zeit.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -209,8 +210,8 @@
                 },
                 {
                   "id": "b1m1-h3-3",
-                  "transcript": "Und nun das Wetter: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "Am späten Nachmittag wird Regen erwartet.",
+                  "transcript": "Und nun das Wetter für Leipzig: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
+                  "statement": "In Leipzig wird am späten Nachmittag Regen erwartet.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -218,8 +219,8 @@
                 },
                 {
                   "id": "b1m1-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Arztpraxis. Ihr Termin bei Frau Dr. Kern wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Arzttermin ist am Donnerstag.",
+                  "transcript": "Sie hören eine Nachricht der Praxis Nora. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
+                  "statement": "Der neue Termin in der Praxis Nora ist am Donnerstag.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -227,8 +228,8 @@
                 },
                 {
                   "id": "b1m1-h3-5",
-                  "transcript": "Im Kulturzentrum beginnt gleich der Filmabend. Eintrittskarten gibt es noch an der Abendkasse. Mitglieder zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Mitgliedschaft kann man noch eine Karte kaufen.",
+                  "transcript": "Im Kulturzentrum Leipzig beginnt gleich der Informationsabend zum Thema Nachbarschaftsfest. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
+                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Leipzig besuchen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -315,7 +316,7 @@
                 },
                 {
                   "id": "b1m1-l1-2",
-                  "situation": "Eine neue Online-Plattform bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
+                  "situation": "Eine neue Online-Plattform aus Leipzig bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
                   "options": [
                     "a",
                     "b",
@@ -334,7 +335,7 @@
                 },
                 {
                   "id": "b1m1-l1-3",
-                  "situation": "Im monatlichen Reparaturcafé helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
+                  "situation": "Im monatlichen Reparaturcafé von Leipzig helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
                   "options": [
                     "a",
                     "b",
@@ -372,7 +373,7 @@
                 },
                 {
                   "id": "b1m1-l1-5",
-                  "situation": "Mehrere Theater führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
+                  "situation": "Mehrere Theater in Leipzig führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
                   "options": [
                     "a",
                     "b",
@@ -480,57 +481,57 @@
               "ads": [
                 {
                   "label": "a",
-                  "body": "Sprachcafé Leipzig: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, ohne Anmeldung."
+                  "body": "Sprachcafé Leipzig: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, kostenlos und ohne Anmeldung."
                 },
                 {
                   "label": "b",
-                  "body": "Fahrradwerkstatt Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
+                  "body": "Fahrradwerkstatt Leipzig Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
                 },
                 {
                   "label": "c",
-                  "body": "Kurszentrum Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
+                  "body": "Kurszentrum Leipzig Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
                 },
                 {
                   "label": "d",
-                  "body": "Tierschutzverein: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
+                  "body": "Tierschutzverein Leipzig: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
                 },
                 {
                   "label": "e",
-                  "body": "Wohnberatung: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
+                  "body": "Wohnberatung Leipzig: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
                 },
                 {
                   "label": "f",
-                  "body": "Computerhilfe 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
+                  "body": "Computerhilfe Leipzig 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
                 },
                 {
                   "label": "g",
-                  "body": "Familienzentrum: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
+                  "body": "Familienzentrum Leipzig: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
                 },
                 {
                   "label": "h",
-                  "body": "Reisegruppe Natur: geführte Wochenendwanderungen, mittleres Tempo, Bahnanreise."
+                  "body": "Reisegruppe Natur Leipzig: geführte Wochenendwanderungen, mittleres Tempo, Anreise mit der Straßenbahnlinie 4."
                 },
                 {
                   "label": "i",
-                  "body": "Möbelbörse: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
+                  "body": "Möbelbörse Leipzig: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
                 },
                 {
                   "label": "j",
-                  "body": "Bewerbungswerkstatt: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
+                  "body": "Bewerbungswerkstatt Leipzig: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
                 },
                 {
                   "label": "k",
-                  "body": "Musikschule Klang: Klavierunterricht nur für Fortgeschrittene, vormittags."
+                  "body": "Musikschule Leipzig: Klavierunterricht nur für Fortgeschrittene, vormittags."
                 },
                 {
                   "label": "l",
-                  "body": "Gartenservice Schnell: professionelle Gartenpflege für Firmenflächen."
+                  "body": "Gartenservice Leipzig: professionelle Gartenpflege ausschließlich für Firmenflächen."
                 }
               ],
               "items": [
                 {
                   "id": "b1m1-l3-1",
-                  "situation": "Sie möchten regelmäßig kostenlos Deutsch sprechen.",
+                  "situation": "Sie wohnen in Leipzig und möchten regelmäßig kostenlos Deutsch sprechen.",
                   "options": [
                     "a",
                     "b",
@@ -552,7 +553,7 @@
                 },
                 {
                   "id": "b1m1-l3-2",
-                  "situation": "Ihr Fahrrad ist kaputt und Sie brauchen vorübergehend ein anderes.",
+                  "situation": "Ihr Fahrrad ist in Leipzig kaputt und Sie brauchen vorübergehend ein Ersatzrad.",
                   "options": [
                     "a",
                     "b",
@@ -574,7 +575,7 @@
                 },
                 {
                   "id": "b1m1-l3-3",
-                  "situation": "Sie suchen nach der Arbeit einen Gesundheitskurs.",
+                  "situation": "Sie suchen in Leipzig nach der Arbeit einen Gesundheitskurs.",
                   "options": [
                     "a",
                     "b",
@@ -596,7 +597,7 @@
                 },
                 {
                   "id": "b1m1-l3-4",
-                  "situation": "Sie möchten samstags freiwillig mit Tieren arbeiten.",
+                  "situation": "Sie möchten in Leipzig samstags freiwillig mit Tieren arbeiten.",
                   "options": [
                     "a",
                     "b",
@@ -618,7 +619,7 @@
                 },
                 {
                   "id": "b1m1-l3-5",
-                  "situation": "Sie verstehen eine hohe Nebenkostenabrechnung nicht.",
+                  "situation": "Sie verstehen Ihre hohe Nebenkostenabrechnung in Leipzig nicht.",
                   "options": [
                     "a",
                     "b",
@@ -640,7 +641,7 @@
                 },
                 {
                   "id": "b1m1-l3-6",
-                  "situation": "Ihre ältere Nachbarin möchte den Umgang mit ihrem Smartphone lernen.",
+                  "situation": "Nora möchte einer älteren Person in Leipzig einen Smartphone-Kurs empfehlen.",
                   "options": [
                     "a",
                     "b",
@@ -662,7 +663,7 @@
                 },
                 {
                   "id": "b1m1-l3-7",
-                  "situation": "Sie brauchen in den Schulferien eine Betreuung für Ihr zehnjähriges Kind.",
+                  "situation": "Sie brauchen in Leipzig eine Ferienbetreuung für Ihr zehnjähriges Kind.",
                   "options": [
                     "a",
                     "b",
@@ -684,7 +685,7 @@
                 },
                 {
                   "id": "b1m1-l3-8",
-                  "situation": "Sie möchten ohne Auto an einer organisierten Wanderung teilnehmen.",
+                  "situation": "Sie möchten ab Leipzig ohne Auto an einer organisierten Wanderung teilnehmen.",
                   "options": [
                     "a",
                     "b",
@@ -706,7 +707,7 @@
                 },
                 {
                   "id": "b1m1-l3-9",
-                  "situation": "Sie suchen preiswerte Möbel und können sie nicht selbst transportieren.",
+                  "situation": "Sie suchen in Leipzig preiswerte Möbel und benötigen eine Lieferung.",
                   "options": [
                     "a",
                     "b",
@@ -728,7 +729,7 @@
                 },
                 {
                   "id": "b1m1-l3-10",
-                  "situation": "Sie möchten sich auf ein Bewerbungsgespräch vorbereiten.",
+                  "situation": "Nora möchte sich in Leipzig auf ein Bewerbungsgespräch vorbereiten.",
                   "options": [
                     "a",
                     "b",
@@ -1245,7 +1246,7 @@
                 "welche Verkehrsmittel praktisch sind",
                 "wobei Sie persönlich helfen können"
               ],
-              "sample": "Liebe Lara, ich freue mich sehr, dass du nach Leipzig ziehen möchtest. Für dich wäre der Westen besonders geeignet, weil es dort viele Cafés, Parks und gute Einkaufsmöglichkeiten gibt. Wohnungen findest du am besten über regionale Internetportale und Wohnungsgenossenschaften. Ich empfehle dir außerdem, schnell einen Besichtigungstermin zu vereinbaren. Im Alltag sind Straßenbahn und Fahrrad sehr praktisch, ein Auto brauchst du kaum. Wenn du möchtest, kann ich passende Anzeigen sammeln und dich zu zwei Besichtigungen begleiten. Am ersten Wochenende helfe ich dir natürlich auch beim Umzug. Schreib mir bitte, wann du ungefähr kommen willst. Viele Grüße, Nora",
+              "sample": "Liebe Lara, ich freue mich sehr, dass du nach Leipzig ziehen möchtest. Für dich wäre der Westen besonders geeignet, weil es dort viele Cafés, Parks und gute Einkaufsmöglichkeiten gibt. Wohnungen findest du am besten über regionale Internetportale und Wohnungsgenossenschaften. Ich empfehle dir außerdem, schnell einen Besichtigungstermin zu vereinbaren. Im Alltag sind Straßenbahn und Fahrrad sehr praktisch, ein Auto brauchst du kaum. Wenn du möchtest, kann ich passende Anzeigen sammeln und dich zu zwei Besichtigungen begleiten. Ich kenne dort außerdem eine freundliche Maklerin, die uns beraten könnte. Am ersten Wochenende helfe ich dir natürlich auch beim Umzug. Schreib mir bitte, wann du ungefähr kommen willst. Viele Grüße, Nora",
               "rubric": {
                 "level": "B1",
                 "maxPoints": 45,
@@ -1384,7 +1385,7 @@
                 {
                   "id": "b1m2-h1-1",
                   "transcript": "Ich wohne seit drei Jahren in Dortmund. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat durch ein Projekt neue Kontakte gefunden.",
+                  "statement": "Die sprechende Person hat in Dortmund durch ein Projekt neue Kontakte gefunden.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -1392,8 +1393,8 @@
                 },
                 {
                   "id": "b1m2-h1-2",
-                  "transcript": "Mein Arbeitsweg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht den Bus, weil die Linie umgeleitet wird. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person fährt heute mit dem Bus zur Arbeit.",
+                  "transcript": "Mein Arbeitsweg durch Dortmund dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Buslinie 52, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
+                  "statement": "Die sprechende Person benutzt heute Buslinie 52.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -1401,8 +1402,8 @@
                 },
                 {
                   "id": "b1m2-h1-3",
-                  "transcript": "Für die Weiterbildung musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil der Weiterbildung.",
+                  "transcript": "Für einen Kurs in Dortmund musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
+                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Dortmund.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -1410,8 +1411,8 @@
                 },
                 {
                   "id": "b1m2-h1-4",
-                  "transcript": "Ich bestelle nur selten im Internet. Kleidung probiere ich lieber im Geschäft an, und bei technischen Geräten möchte ich mich persönlich beraten lassen. Das ist mir wichtiger als der niedrigste Preis.",
-                  "statement": "Die sprechende Person kauft technische Geräte am liebsten online.",
+                  "transcript": "Emre bestellt nur selten im Internet. Kleidung probiert Emre lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
+                  "statement": "Emre kauft technische Geräte am liebsten online.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -1420,7 +1421,7 @@
                 {
                   "id": "b1m2-h1-5",
                   "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Emre gefragt, ob ich beim Tag der offenen Tür im Bildungszentrum helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende bei einer Veranstaltung.",
+                  "statement": "Die sprechende Person hilft am Wochenende beim Tag der offenen Tür im Bildungszentrum.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -1435,7 +1436,7 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Herr Yilmaz. Sie organisieren in Dortmund das Tag der offenen Tür im Bildungszentrum. Wann findet es statt? Herr Yilmaz: Am Freitag, 11. Oktober. Wir beginnen um 16 Uhr. Moderatorin: Wo treffen sich die Gäste? Herr Yilmaz: Bildungszentrum Nord. Die Anreise ist am einfachsten mit der Buslinie 52. Moderatorin: Muss man Eintritt bezahlen? Herr Yilmaz: Der Eintritt ist drei Euro für Material. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 7. Oktober. Moderatorin: Wer kann teilnehmen? Herr Yilmaz: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Herr Yilmaz: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Kaffee, Tee und belegte Brötchen. Moderatorin: Werden noch Helfer gesucht? Herr Yilmaz: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Herr Yilmaz: Dann nutzen wir alle Angebote finden im Gebäude statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Moderatorin: Guten Abend, Herr Yilmaz. Sie organisieren in Dortmund den Tag der offenen Tür im Bildungszentrum. Wann findet die Veranstaltung statt? Herr Yilmaz: Am Freitag, 11. Oktober. Wir beginnen um 16 Uhr. Moderatorin: Wo treffen sich die Gäste? Herr Yilmaz: Bildungszentrum Nord. Die Anreise ist am einfachsten mit der Buslinie 52. Moderatorin: Muss man Eintritt bezahlen? Herr Yilmaz: Der Eintritt ist drei Euro für Material. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 7. Oktober. Moderatorin: Wer kann teilnehmen? Herr Yilmaz: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Herr Yilmaz: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Kaffee, Tee und belegte Brötchen. Moderatorin: Werden noch Helfer gesucht? Herr Yilmaz: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Herr Yilmaz: Dann nutzen wir alle Angebote finden im Gebäude statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
               "audio": "./web/audio/exam-b1/mt2/b1m2-h2.mp3",
               "items": [
                 {
@@ -1461,14 +1462,14 @@
                 },
                 {
                   "id": "b1m2-h2-4",
-                  "statement": "Alle Besucher müssen mit dem Auto anreisen.",
+                  "statement": "Alle Besucher des Tag der offenen Tür im Bildungszentrum müssen mit dem Auto anreisen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-5",
-                  "statement": "Der Eintritt ist drei Euro für Material.",
+                  "statement": "Der Eintritt für das Angebot in Dortmund ist drei Euro für Material.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
@@ -1482,7 +1483,7 @@
                 },
                 {
                   "id": "b1m2-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen immer allein teilnehmen.",
+                  "statement": "Kinder unter zwölf Jahren dürfen beim Tag der offenen Tür im Bildungszentrum immer allein teilnehmen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -1496,14 +1497,14 @@
                 },
                 {
                   "id": "b1m2-h2-9",
-                  "statement": "Für den Aufbau werden keine Helfer mehr benötigt.",
+                  "statement": "Für den Aufbau des Tag der offenen Tür im Bildungszentrum werden keine Helfer mehr benötigt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m2-h2-10",
-                  "statement": "Bei schlechtem Wetter wird die Veranstaltung abgesagt.",
+                  "statement": "Bei schlechtem Wetter wird das Angebot in Dortmund abgesagt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -1520,7 +1521,7 @@
                 {
                   "id": "b1m2-h3-1",
                   "transcript": "Achtung am Hauptbahnhof Dortmund: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug fährt heute von Gleis zwölf.",
+                  "statement": "Der Zug in Dortmund fährt heute von Gleis zwölf.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -1528,8 +1529,8 @@
                 },
                 {
                   "id": "b1m2-h3-2",
-                  "transcript": "Wegen einer internen Schulung öffnet das Bürgerbüro morgen erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Bürgerbüro Dortmund öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
+                  "statement": "Das Bürgerbüro Dortmund öffnet morgen zur normalen Zeit.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -1537,8 +1538,8 @@
                 },
                 {
                   "id": "b1m2-h3-3",
-                  "transcript": "Und nun das Wetter: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "Am späten Nachmittag wird Regen erwartet.",
+                  "transcript": "Und nun das Wetter für Dortmund: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
+                  "statement": "In Dortmund wird am späten Nachmittag Regen erwartet.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -1546,8 +1547,8 @@
                 },
                 {
                   "id": "b1m2-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Arztpraxis. Ihr Termin bei Frau Dr. Kern wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Arzttermin ist am Donnerstag.",
+                  "transcript": "Sie hören eine Nachricht der Praxis Emre. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
+                  "statement": "Der neue Termin in der Praxis Emre ist am Donnerstag.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -1555,8 +1556,8 @@
                 },
                 {
                   "id": "b1m2-h3-5",
-                  "transcript": "Im Kulturzentrum beginnt gleich der Filmabend. Eintrittskarten gibt es noch an der Abendkasse. Mitglieder zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Mitgliedschaft kann man noch eine Karte kaufen.",
+                  "transcript": "Im Kulturzentrum Dortmund beginnt gleich der Informationsabend zum Thema Tag der offenen Tür im Bildungszentrum. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
+                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Dortmund besuchen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -1643,7 +1644,7 @@
                 },
                 {
                   "id": "b1m2-l1-2",
-                  "situation": "Eine neue Online-Plattform bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
+                  "situation": "Eine neue Online-Plattform aus Dortmund bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
                   "options": [
                     "a",
                     "b",
@@ -1662,7 +1663,7 @@
                 },
                 {
                   "id": "b1m2-l1-3",
-                  "situation": "Im monatlichen Reparaturcafé helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
+                  "situation": "Im monatlichen Reparaturcafé von Dortmund helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
                   "options": [
                     "a",
                     "b",
@@ -1700,7 +1701,7 @@
                 },
                 {
                   "id": "b1m2-l1-5",
-                  "situation": "Mehrere Theater führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
+                  "situation": "Mehrere Theater in Dortmund führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
                   "options": [
                     "a",
                     "b",
@@ -1808,57 +1809,57 @@
               "ads": [
                 {
                   "label": "a",
-                  "body": "Sprachcafé Dortmund: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, ohne Anmeldung."
+                  "body": "Sprachcafé Dortmund: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, kostenlos und ohne Anmeldung."
                 },
                 {
                   "label": "b",
-                  "body": "Fahrradwerkstatt Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
+                  "body": "Fahrradwerkstatt Dortmund Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
                 },
                 {
                   "label": "c",
-                  "body": "Kurszentrum Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
+                  "body": "Kurszentrum Dortmund Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
                 },
                 {
                   "label": "d",
-                  "body": "Tierschutzverein: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
+                  "body": "Tierschutzverein Dortmund: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
                 },
                 {
                   "label": "e",
-                  "body": "Wohnberatung: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
+                  "body": "Wohnberatung Dortmund: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
                 },
                 {
                   "label": "f",
-                  "body": "Computerhilfe 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
+                  "body": "Computerhilfe Dortmund 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
                 },
                 {
                   "label": "g",
-                  "body": "Familienzentrum: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
+                  "body": "Familienzentrum Dortmund: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
                 },
                 {
                   "label": "h",
-                  "body": "Reisegruppe Natur: geführte Wochenendwanderungen, mittleres Tempo, Bahnanreise."
+                  "body": "Reisegruppe Natur Dortmund: geführte Wochenendwanderungen, mittleres Tempo, Anreise mit der Buslinie 52."
                 },
                 {
                   "label": "i",
-                  "body": "Möbelbörse: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
+                  "body": "Möbelbörse Dortmund: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
                 },
                 {
                   "label": "j",
-                  "body": "Bewerbungswerkstatt: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
+                  "body": "Bewerbungswerkstatt Dortmund: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
                 },
                 {
                   "label": "k",
-                  "body": "Musikschule Klang: Klavierunterricht nur für Fortgeschrittene, vormittags."
+                  "body": "Musikschule Dortmund: Klavierunterricht nur für Fortgeschrittene, vormittags."
                 },
                 {
                   "label": "l",
-                  "body": "Gartenservice Schnell: professionelle Gartenpflege für Firmenflächen."
+                  "body": "Gartenservice Dortmund: professionelle Gartenpflege ausschließlich für Firmenflächen."
                 }
               ],
               "items": [
                 {
                   "id": "b1m2-l3-1",
-                  "situation": "Sie möchten regelmäßig kostenlos Deutsch sprechen.",
+                  "situation": "Sie wohnen in Dortmund und möchten regelmäßig kostenlos Deutsch sprechen.",
                   "options": [
                     "a",
                     "b",
@@ -1880,7 +1881,7 @@
                 },
                 {
                   "id": "b1m2-l3-2",
-                  "situation": "Ihr Fahrrad ist kaputt und Sie brauchen vorübergehend ein anderes.",
+                  "situation": "Ihr Fahrrad ist in Dortmund kaputt und Sie brauchen vorübergehend ein Ersatzrad.",
                   "options": [
                     "a",
                     "b",
@@ -1902,7 +1903,7 @@
                 },
                 {
                   "id": "b1m2-l3-3",
-                  "situation": "Sie suchen nach der Arbeit einen Gesundheitskurs.",
+                  "situation": "Sie suchen in Dortmund nach der Arbeit einen Gesundheitskurs.",
                   "options": [
                     "a",
                     "b",
@@ -1924,7 +1925,7 @@
                 },
                 {
                   "id": "b1m2-l3-4",
-                  "situation": "Sie möchten samstags freiwillig mit Tieren arbeiten.",
+                  "situation": "Sie möchten in Dortmund samstags freiwillig mit Tieren arbeiten.",
                   "options": [
                     "a",
                     "b",
@@ -1946,7 +1947,7 @@
                 },
                 {
                   "id": "b1m2-l3-5",
-                  "situation": "Sie verstehen eine hohe Nebenkostenabrechnung nicht.",
+                  "situation": "Sie verstehen Ihre hohe Nebenkostenabrechnung in Dortmund nicht.",
                   "options": [
                     "a",
                     "b",
@@ -1968,7 +1969,7 @@
                 },
                 {
                   "id": "b1m2-l3-6",
-                  "situation": "Ihre ältere Nachbarin möchte den Umgang mit ihrem Smartphone lernen.",
+                  "situation": "Emre möchte einer älteren Person in Dortmund einen Smartphone-Kurs empfehlen.",
                   "options": [
                     "a",
                     "b",
@@ -1990,7 +1991,7 @@
                 },
                 {
                   "id": "b1m2-l3-7",
-                  "situation": "Sie brauchen in den Schulferien eine Betreuung für Ihr zehnjähriges Kind.",
+                  "situation": "Sie brauchen in Dortmund eine Ferienbetreuung für Ihr zehnjähriges Kind.",
                   "options": [
                     "a",
                     "b",
@@ -2012,7 +2013,7 @@
                 },
                 {
                   "id": "b1m2-l3-8",
-                  "situation": "Sie möchten ohne Auto an einer organisierten Wanderung teilnehmen.",
+                  "situation": "Sie möchten ab Dortmund ohne Auto an einer organisierten Wanderung teilnehmen.",
                   "options": [
                     "a",
                     "b",
@@ -2034,7 +2035,7 @@
                 },
                 {
                   "id": "b1m2-l3-9",
-                  "situation": "Sie suchen preiswerte Möbel und können sie nicht selbst transportieren.",
+                  "situation": "Sie suchen in Dortmund preiswerte Möbel und benötigen eine Lieferung.",
                   "options": [
                     "a",
                     "b",
@@ -2056,7 +2057,7 @@
                 },
                 {
                   "id": "b1m2-l3-10",
-                  "situation": "Sie möchten sich auf ein Bewerbungsgespräch vorbereiten.",
+                  "situation": "Emre möchte sich in Dortmund auf ein Bewerbungsgespräch vorbereiten.",
                   "options": [
                     "a",
                     "b",
@@ -2233,7 +2234,7 @@
                 {
                   "id": "b1m2-sb2-text",
                   "label": "Anfrage mit zehn Lücken",
-                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ das Tag der offenen Tür im Bildungszentrum informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Freitag, 11. Oktober noch Plätze frei sind? Außerdem ___ wir erst gegen 16 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der Buslinie 52 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
+                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ den Tag der offenen Tür im Bildungszentrum informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Freitag, 11. Oktober noch Plätze frei sind? Außerdem ___ wir erst gegen 16 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der Buslinie 52 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
                 }
               ],
               "ads": [
@@ -2712,7 +2713,7 @@
                 {
                   "id": "b1m3-h1-1",
                   "transcript": "Ich wohne seit drei Jahren in Freiburg. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat durch ein Projekt neue Kontakte gefunden.",
+                  "statement": "Die sprechende Person hat in Freiburg durch ein Projekt neue Kontakte gefunden.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -2720,8 +2721,8 @@
                 },
                 {
                   "id": "b1m3-h1-2",
-                  "transcript": "Mein Arbeitsweg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht den Bus, weil die Linie umgeleitet wird. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person fährt heute mit dem Bus zur Arbeit.",
+                  "transcript": "Mein Arbeitsweg durch Freiburg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Regionalzug R7, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
+                  "statement": "Die sprechende Person benutzt heute Regionalzug R7.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -2729,8 +2730,8 @@
                 },
                 {
                   "id": "b1m3-h1-3",
-                  "transcript": "Für die Weiterbildung musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil der Weiterbildung.",
+                  "transcript": "Für einen Kurs in Freiburg musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
+                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Freiburg.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -2738,8 +2739,8 @@
                 },
                 {
                   "id": "b1m3-h1-4",
-                  "transcript": "Ich bestelle nur selten im Internet. Kleidung probiere ich lieber im Geschäft an, und bei technischen Geräten möchte ich mich persönlich beraten lassen. Das ist mir wichtiger als der niedrigste Preis.",
-                  "statement": "Die sprechende Person kauft technische Geräte am liebsten online.",
+                  "transcript": "Sofia bestellt nur selten im Internet. Kleidung probiert Sofia lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
+                  "statement": "Sofia kauft technische Geräte am liebsten online.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -2748,7 +2749,7 @@
                 {
                   "id": "b1m3-h1-5",
                   "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Sofia gefragt, ob ich beim Informationsabend für eine Gruppenreise helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende bei einer Veranstaltung.",
+                  "statement": "Die sprechende Person hilft am Wochenende beim Informationsabend für eine Gruppenreise.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -2763,7 +2764,7 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Frau Keller. Sie organisieren in Freiburg das Informationsabend für eine Gruppenreise. Wann findet es statt? Frau Keller: Am Dienstag, 6. Mai. Wir beginnen um 18:30 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Keller: Reisezentrum am Hauptbahnhof. Die Anreise ist am einfachsten mit der Regionalzug R7. Moderatorin: Muss man Eintritt bezahlen? Frau Keller: Der Eintritt ist fünf Euro Eintritt. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 30. April. Moderatorin: Wer kann teilnehmen? Frau Keller: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Keller: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Getränke und kleine Snacks. Moderatorin: Werden noch Helfer gesucht? Frau Keller: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Keller: Dann nutzen wir der Termin findet unabhängig vom Wetter statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Moderatorin: Guten Abend, Frau Keller. Sie organisieren in Freiburg den Informationsabend für eine Gruppenreise. Wann findet die Veranstaltung statt? Frau Keller: Am Dienstag, 6. Mai. Wir beginnen um 18:30 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Keller: Reisezentrum am Hauptbahnhof. Die Anreise ist am einfachsten mit dem Regionalzug R7. Moderatorin: Muss man Eintritt bezahlen? Frau Keller: Der Eintritt ist fünf Euro Eintritt. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 30. April. Moderatorin: Wer kann teilnehmen? Frau Keller: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Keller: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Getränke und kleine Snacks. Moderatorin: Werden noch Helfer gesucht? Frau Keller: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Keller: Dann nutzen wir der Termin findet unabhängig vom Wetter statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
               "audio": "./web/audio/exam-b1/mt3/b1m3-h2.mp3",
               "items": [
                 {
@@ -2789,14 +2790,14 @@
                 },
                 {
                   "id": "b1m3-h2-4",
-                  "statement": "Alle Besucher müssen mit dem Auto anreisen.",
+                  "statement": "Alle Besucher des Informationsabend für eine Gruppenreise müssen mit dem Auto anreisen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-5",
-                  "statement": "Der Eintritt ist fünf Euro Eintritt.",
+                  "statement": "Der Eintritt für das Angebot in Freiburg ist fünf Euro Eintritt.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
@@ -2810,7 +2811,7 @@
                 },
                 {
                   "id": "b1m3-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen immer allein teilnehmen.",
+                  "statement": "Kinder unter zwölf Jahren dürfen beim Informationsabend für eine Gruppenreise immer allein teilnehmen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -2824,14 +2825,14 @@
                 },
                 {
                   "id": "b1m3-h2-9",
-                  "statement": "Für den Aufbau werden keine Helfer mehr benötigt.",
+                  "statement": "Für den Aufbau des Informationsabend für eine Gruppenreise werden keine Helfer mehr benötigt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m3-h2-10",
-                  "statement": "Bei schlechtem Wetter wird die Veranstaltung abgesagt.",
+                  "statement": "Bei schlechtem Wetter wird das Angebot in Freiburg abgesagt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -2848,7 +2849,7 @@
                 {
                   "id": "b1m3-h3-1",
                   "transcript": "Achtung am Hauptbahnhof Freiburg: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug fährt heute von Gleis zwölf.",
+                  "statement": "Der Zug in Freiburg fährt heute von Gleis zwölf.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -2856,8 +2857,8 @@
                 },
                 {
                   "id": "b1m3-h3-2",
-                  "transcript": "Wegen einer internen Schulung öffnet das Bürgerbüro morgen erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Bürgerbüro Freiburg öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
+                  "statement": "Das Bürgerbüro Freiburg öffnet morgen zur normalen Zeit.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -2865,8 +2866,8 @@
                 },
                 {
                   "id": "b1m3-h3-3",
-                  "transcript": "Und nun das Wetter: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "Am späten Nachmittag wird Regen erwartet.",
+                  "transcript": "Und nun das Wetter für Freiburg: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
+                  "statement": "In Freiburg wird am späten Nachmittag Regen erwartet.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -2874,8 +2875,8 @@
                 },
                 {
                   "id": "b1m3-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Arztpraxis. Ihr Termin bei Frau Dr. Kern wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Arzttermin ist am Donnerstag.",
+                  "transcript": "Sie hören eine Nachricht der Praxis Sofia. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
+                  "statement": "Der neue Termin in der Praxis Sofia ist am Donnerstag.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -2883,8 +2884,8 @@
                 },
                 {
                   "id": "b1m3-h3-5",
-                  "transcript": "Im Kulturzentrum beginnt gleich der Filmabend. Eintrittskarten gibt es noch an der Abendkasse. Mitglieder zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Mitgliedschaft kann man noch eine Karte kaufen.",
+                  "transcript": "Im Kulturzentrum Freiburg beginnt gleich der Informationsabend zum Thema Informationsabend für eine Gruppenreise. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
+                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Freiburg besuchen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -2971,7 +2972,7 @@
                 },
                 {
                   "id": "b1m3-l1-2",
-                  "situation": "Eine neue Online-Plattform bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
+                  "situation": "Eine neue Online-Plattform aus Freiburg bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
                   "options": [
                     "a",
                     "b",
@@ -2990,7 +2991,7 @@
                 },
                 {
                   "id": "b1m3-l1-3",
-                  "situation": "Im monatlichen Reparaturcafé helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
+                  "situation": "Im monatlichen Reparaturcafé von Freiburg helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
                   "options": [
                     "a",
                     "b",
@@ -3028,7 +3029,7 @@
                 },
                 {
                   "id": "b1m3-l1-5",
-                  "situation": "Mehrere Theater führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
+                  "situation": "Mehrere Theater in Freiburg führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
                   "options": [
                     "a",
                     "b",
@@ -3136,57 +3137,57 @@
               "ads": [
                 {
                   "label": "a",
-                  "body": "Sprachcafé Freiburg: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, ohne Anmeldung."
+                  "body": "Sprachcafé Freiburg: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, kostenlos und ohne Anmeldung."
                 },
                 {
                   "label": "b",
-                  "body": "Fahrradwerkstatt Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
+                  "body": "Fahrradwerkstatt Freiburg Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
                 },
                 {
                   "label": "c",
-                  "body": "Kurszentrum Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
+                  "body": "Kurszentrum Freiburg Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
                 },
                 {
                   "label": "d",
-                  "body": "Tierschutzverein: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
+                  "body": "Tierschutzverein Freiburg: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
                 },
                 {
                   "label": "e",
-                  "body": "Wohnberatung: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
+                  "body": "Wohnberatung Freiburg: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
                 },
                 {
                   "label": "f",
-                  "body": "Computerhilfe 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
+                  "body": "Computerhilfe Freiburg 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
                 },
                 {
                   "label": "g",
-                  "body": "Familienzentrum: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
+                  "body": "Familienzentrum Freiburg: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
                 },
                 {
                   "label": "h",
-                  "body": "Reisegruppe Natur: geführte Wochenendwanderungen, mittleres Tempo, Bahnanreise."
+                  "body": "Reisegruppe Natur Freiburg: geführte Wochenendwanderungen, mittleres Tempo, Anreise mit dem Regionalzug R7."
                 },
                 {
                   "label": "i",
-                  "body": "Möbelbörse: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
+                  "body": "Möbelbörse Freiburg: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
                 },
                 {
                   "label": "j",
-                  "body": "Bewerbungswerkstatt: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
+                  "body": "Bewerbungswerkstatt Freiburg: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
                 },
                 {
                   "label": "k",
-                  "body": "Musikschule Klang: Klavierunterricht nur für Fortgeschrittene, vormittags."
+                  "body": "Musikschule Freiburg: Klavierunterricht nur für Fortgeschrittene, vormittags."
                 },
                 {
                   "label": "l",
-                  "body": "Gartenservice Schnell: professionelle Gartenpflege für Firmenflächen."
+                  "body": "Gartenservice Freiburg: professionelle Gartenpflege ausschließlich für Firmenflächen."
                 }
               ],
               "items": [
                 {
                   "id": "b1m3-l3-1",
-                  "situation": "Sie möchten regelmäßig kostenlos Deutsch sprechen.",
+                  "situation": "Sie wohnen in Freiburg und möchten regelmäßig kostenlos Deutsch sprechen.",
                   "options": [
                     "a",
                     "b",
@@ -3208,7 +3209,7 @@
                 },
                 {
                   "id": "b1m3-l3-2",
-                  "situation": "Ihr Fahrrad ist kaputt und Sie brauchen vorübergehend ein anderes.",
+                  "situation": "Ihr Fahrrad ist in Freiburg kaputt und Sie brauchen vorübergehend ein Ersatzrad.",
                   "options": [
                     "a",
                     "b",
@@ -3230,7 +3231,7 @@
                 },
                 {
                   "id": "b1m3-l3-3",
-                  "situation": "Sie suchen nach der Arbeit einen Gesundheitskurs.",
+                  "situation": "Sie suchen in Freiburg nach der Arbeit einen Gesundheitskurs.",
                   "options": [
                     "a",
                     "b",
@@ -3252,7 +3253,7 @@
                 },
                 {
                   "id": "b1m3-l3-4",
-                  "situation": "Sie möchten samstags freiwillig mit Tieren arbeiten.",
+                  "situation": "Sie möchten in Freiburg samstags freiwillig mit Tieren arbeiten.",
                   "options": [
                     "a",
                     "b",
@@ -3274,7 +3275,7 @@
                 },
                 {
                   "id": "b1m3-l3-5",
-                  "situation": "Sie verstehen eine hohe Nebenkostenabrechnung nicht.",
+                  "situation": "Sie verstehen Ihre hohe Nebenkostenabrechnung in Freiburg nicht.",
                   "options": [
                     "a",
                     "b",
@@ -3296,7 +3297,7 @@
                 },
                 {
                   "id": "b1m3-l3-6",
-                  "situation": "Ihre ältere Nachbarin möchte den Umgang mit ihrem Smartphone lernen.",
+                  "situation": "Sofia möchte einer älteren Person in Freiburg einen Smartphone-Kurs empfehlen.",
                   "options": [
                     "a",
                     "b",
@@ -3318,7 +3319,7 @@
                 },
                 {
                   "id": "b1m3-l3-7",
-                  "situation": "Sie brauchen in den Schulferien eine Betreuung für Ihr zehnjähriges Kind.",
+                  "situation": "Sie brauchen in Freiburg eine Ferienbetreuung für Ihr zehnjähriges Kind.",
                   "options": [
                     "a",
                     "b",
@@ -3340,7 +3341,7 @@
                 },
                 {
                   "id": "b1m3-l3-8",
-                  "situation": "Sie möchten ohne Auto an einer organisierten Wanderung teilnehmen.",
+                  "situation": "Sie möchten ab Freiburg ohne Auto an einer organisierten Wanderung teilnehmen.",
                   "options": [
                     "a",
                     "b",
@@ -3362,7 +3363,7 @@
                 },
                 {
                   "id": "b1m3-l3-9",
-                  "situation": "Sie suchen preiswerte Möbel und können sie nicht selbst transportieren.",
+                  "situation": "Sie suchen in Freiburg preiswerte Möbel und benötigen eine Lieferung.",
                   "options": [
                     "a",
                     "b",
@@ -3384,7 +3385,7 @@
                 },
                 {
                   "id": "b1m3-l3-10",
-                  "situation": "Sie möchten sich auf ein Bewerbungsgespräch vorbereiten.",
+                  "situation": "Sofia möchte sich in Freiburg auf ein Bewerbungsgespräch vorbereiten.",
                   "options": [
                     "a",
                     "b",
@@ -3561,7 +3562,7 @@
                 {
                   "id": "b1m3-sb2-text",
                   "label": "Anfrage mit zehn Lücken",
-                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ das Informationsabend für eine Gruppenreise informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Dienstag, 6. Mai noch Plätze frei sind? Außerdem ___ wir erst gegen 18:30 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der Regionalzug R7 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
+                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ den Informationsabend für eine Gruppenreise informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Dienstag, 6. Mai noch Plätze frei sind? Außerdem ___ wir erst gegen 18:30 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit dem Regionalzug R7 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
                 }
               ],
               "ads": [
@@ -3901,7 +3902,7 @@
                 "was er mitnehmen sollte",
                 "ob Sie ihn auf einem Teil der Reise begleiten"
               ],
-              "sample": "Lieber Daniel, für deine erste Zugreise empfehle ich dir die Strecke von Freiburg über Heidelberg nach Hamburg. So siehst du sowohl kleinere historische Städte als auch den Norden. Buche die Fahrkarten möglichst vier bis sechs Wochen vorher über die Bahn-App, denn dann findest du meistens günstige Sparpreise. Für lange Fahrten solltest du Wasser, etwas zu essen, Kopfhörer und eine leichte Jacke mitnehmen. Reserviere am besten auch einen Sitzplatz. Ich könnte dich am zweiten Wochenende von Heidelberg bis Köln begleiten, weil ich dort Freunde besuchen möchte. Wenn der Termin für dich passt, planen wir die Übernachtungen gemeinsam. Liebe Grüße, Sofia",
+              "sample": "Lieber Daniel, für deine erste Zugreise empfehle ich dir die Strecke von Freiburg über Heidelberg nach Hamburg. So siehst du sowohl kleinere historische Städte als auch den Norden. Buche die Fahrkarten möglichst vier bis sechs Wochen vorher über die Bahn-App, denn dann findest du meistens günstige Sparpreise. Für lange Fahrten solltest du Wasser, etwas zu essen, Kopfhörer und eine leichte Jacke mitnehmen. Reserviere am besten auch einen Sitzplatz, damit die Fahrt entspannt bleibt. Ich könnte dich am zweiten Wochenende von Heidelberg bis Köln begleiten, weil ich dort Freunde besuchen möchte. Wenn der Termin für dich passt, planen wir die Übernachtungen gemeinsam. Liebe Grüße, Sofia",
               "rubric": {
                 "level": "B1",
                 "maxPoints": 45,
@@ -4040,7 +4041,7 @@
                 {
                   "id": "b1m4-h1-1",
                   "transcript": "Ich wohne seit drei Jahren in Hannover. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat durch ein Projekt neue Kontakte gefunden.",
+                  "statement": "Die sprechende Person hat in Hannover durch ein Projekt neue Kontakte gefunden.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -4048,8 +4049,8 @@
                 },
                 {
                   "id": "b1m4-h1-2",
-                  "transcript": "Mein Arbeitsweg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht den Bus, weil die Linie umgeleitet wird. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person fährt heute mit dem Bus zur Arbeit.",
+                  "transcript": "Mein Arbeitsweg durch Hannover dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die U-Bahnlinie 6, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
+                  "statement": "Die sprechende Person benutzt heute U-Bahnlinie 6.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -4057,8 +4058,8 @@
                 },
                 {
                   "id": "b1m4-h1-3",
-                  "transcript": "Für die Weiterbildung musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil der Weiterbildung.",
+                  "transcript": "Für einen Kurs in Hannover musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
+                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Hannover.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -4066,8 +4067,8 @@
                 },
                 {
                   "id": "b1m4-h1-4",
-                  "transcript": "Ich bestelle nur selten im Internet. Kleidung probiere ich lieber im Geschäft an, und bei technischen Geräten möchte ich mich persönlich beraten lassen. Das ist mir wichtiger als der niedrigste Preis.",
-                  "statement": "Die sprechende Person kauft technische Geräte am liebsten online.",
+                  "transcript": "Mila bestellt nur selten im Internet. Kleidung probiert Mila lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
+                  "statement": "Mila kauft technische Geräte am liebsten online.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -4076,7 +4077,7 @@
                 {
                   "id": "b1m4-h1-5",
                   "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich Mila gefragt, ob ich beim Gesundheits- und Umwelttag helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende bei einer Veranstaltung.",
+                  "statement": "Die sprechende Person hilft am Wochenende beim Gesundheits- und Umwelttag.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -4091,7 +4092,7 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Herr Baumann. Sie organisieren in Hannover das Gesundheits- und Umwelttag. Wann findet es statt? Herr Baumann: Am Sonntag, 18. August. Wir beginnen um 10 Uhr. Moderatorin: Wo treffen sich die Gäste? Herr Baumann: Stadtpark am See. Die Anreise ist am einfachsten mit der U-Bahnlinie 6. Moderatorin: Muss man Eintritt bezahlen? Herr Baumann: Der Eintritt ist kostenlos. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 10. August. Moderatorin: Wer kann teilnehmen? Herr Baumann: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Herr Baumann: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: vegetarische Suppe und Obst. Moderatorin: Werden noch Helfer gesucht? Herr Baumann: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Herr Baumann: Dann nutzen wir Sporthalle der Gesamtschule. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Moderatorin: Guten Abend, Herr Baumann. Sie organisieren in Hannover den Gesundheits- und Umwelttag. Wann findet die Veranstaltung statt? Herr Baumann: Am Sonntag, 18. August. Wir beginnen um 10 Uhr. Moderatorin: Wo treffen sich die Gäste? Herr Baumann: Stadtpark am See. Die Anreise ist am einfachsten mit der U-Bahnlinie 6. Moderatorin: Muss man Eintritt bezahlen? Herr Baumann: Der Eintritt ist kostenlos. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 10. August. Moderatorin: Wer kann teilnehmen? Herr Baumann: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Herr Baumann: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: vegetarische Suppe und Obst. Moderatorin: Werden noch Helfer gesucht? Herr Baumann: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Herr Baumann: Dann nutzen wir Sporthalle der Gesamtschule. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
               "audio": "./web/audio/exam-b1/mt4/b1m4-h2.mp3",
               "items": [
                 {
@@ -4117,14 +4118,14 @@
                 },
                 {
                   "id": "b1m4-h2-4",
-                  "statement": "Alle Besucher müssen mit dem Auto anreisen.",
+                  "statement": "Alle Besucher des Gesundheits- und Umwelttag müssen mit dem Auto anreisen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-5",
-                  "statement": "Der Eintritt ist kostenlos.",
+                  "statement": "Der Eintritt für das Angebot in Hannover ist kostenlos.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
@@ -4138,7 +4139,7 @@
                 },
                 {
                   "id": "b1m4-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen immer allein teilnehmen.",
+                  "statement": "Kinder unter zwölf Jahren dürfen beim Gesundheits- und Umwelttag immer allein teilnehmen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -4152,14 +4153,14 @@
                 },
                 {
                   "id": "b1m4-h2-9",
-                  "statement": "Für den Aufbau werden keine Helfer mehr benötigt.",
+                  "statement": "Für den Aufbau des Gesundheits- und Umwelttag werden keine Helfer mehr benötigt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m4-h2-10",
-                  "statement": "Bei schlechtem Wetter wird die Veranstaltung abgesagt.",
+                  "statement": "Bei schlechtem Wetter wird das Angebot in Hannover abgesagt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -4176,7 +4177,7 @@
                 {
                   "id": "b1m4-h3-1",
                   "transcript": "Achtung am Hauptbahnhof Hannover: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug fährt heute von Gleis zwölf.",
+                  "statement": "Der Zug in Hannover fährt heute von Gleis zwölf.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -4184,8 +4185,8 @@
                 },
                 {
                   "id": "b1m4-h3-2",
-                  "transcript": "Wegen einer internen Schulung öffnet das Bürgerbüro morgen erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Bürgerbüro Hannover öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
+                  "statement": "Das Bürgerbüro Hannover öffnet morgen zur normalen Zeit.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -4193,8 +4194,8 @@
                 },
                 {
                   "id": "b1m4-h3-3",
-                  "transcript": "Und nun das Wetter: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "Am späten Nachmittag wird Regen erwartet.",
+                  "transcript": "Und nun das Wetter für Hannover: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
+                  "statement": "In Hannover wird am späten Nachmittag Regen erwartet.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -4202,8 +4203,8 @@
                 },
                 {
                   "id": "b1m4-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Arztpraxis. Ihr Termin bei Frau Dr. Kern wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Arzttermin ist am Donnerstag.",
+                  "transcript": "Sie hören eine Nachricht der Praxis Mila. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
+                  "statement": "Der neue Termin in der Praxis Mila ist am Donnerstag.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -4211,8 +4212,8 @@
                 },
                 {
                   "id": "b1m4-h3-5",
-                  "transcript": "Im Kulturzentrum beginnt gleich der Filmabend. Eintrittskarten gibt es noch an der Abendkasse. Mitglieder zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Mitgliedschaft kann man noch eine Karte kaufen.",
+                  "transcript": "Im Kulturzentrum Hannover beginnt gleich der Informationsabend zum Thema Gesundheits- und Umwelttag. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
+                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Hannover besuchen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -4299,7 +4300,7 @@
                 },
                 {
                   "id": "b1m4-l1-2",
-                  "situation": "Eine neue Online-Plattform bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
+                  "situation": "Eine neue Online-Plattform aus Hannover bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
                   "options": [
                     "a",
                     "b",
@@ -4318,7 +4319,7 @@
                 },
                 {
                   "id": "b1m4-l1-3",
-                  "situation": "Im monatlichen Reparaturcafé helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
+                  "situation": "Im monatlichen Reparaturcafé von Hannover helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
                   "options": [
                     "a",
                     "b",
@@ -4356,7 +4357,7 @@
                 },
                 {
                   "id": "b1m4-l1-5",
-                  "situation": "Mehrere Theater führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
+                  "situation": "Mehrere Theater in Hannover führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
                   "options": [
                     "a",
                     "b",
@@ -4464,57 +4465,57 @@
               "ads": [
                 {
                   "label": "a",
-                  "body": "Sprachcafé Hannover: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, ohne Anmeldung."
+                  "body": "Sprachcafé Hannover: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, kostenlos und ohne Anmeldung."
                 },
                 {
                   "label": "b",
-                  "body": "Fahrradwerkstatt Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
+                  "body": "Fahrradwerkstatt Hannover Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
                 },
                 {
                   "label": "c",
-                  "body": "Kurszentrum Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
+                  "body": "Kurszentrum Hannover Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
                 },
                 {
                   "label": "d",
-                  "body": "Tierschutzverein: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
+                  "body": "Tierschutzverein Hannover: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
                 },
                 {
                   "label": "e",
-                  "body": "Wohnberatung: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
+                  "body": "Wohnberatung Hannover: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
                 },
                 {
                   "label": "f",
-                  "body": "Computerhilfe 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
+                  "body": "Computerhilfe Hannover 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
                 },
                 {
                   "label": "g",
-                  "body": "Familienzentrum: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
+                  "body": "Familienzentrum Hannover: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
                 },
                 {
                   "label": "h",
-                  "body": "Reisegruppe Natur: geführte Wochenendwanderungen, mittleres Tempo, Bahnanreise."
+                  "body": "Reisegruppe Natur Hannover: geführte Wochenendwanderungen, mittleres Tempo, Anreise mit der U-Bahnlinie 6."
                 },
                 {
                   "label": "i",
-                  "body": "Möbelbörse: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
+                  "body": "Möbelbörse Hannover: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
                 },
                 {
                   "label": "j",
-                  "body": "Bewerbungswerkstatt: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
+                  "body": "Bewerbungswerkstatt Hannover: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
                 },
                 {
                   "label": "k",
-                  "body": "Musikschule Klang: Klavierunterricht nur für Fortgeschrittene, vormittags."
+                  "body": "Musikschule Hannover: Klavierunterricht nur für Fortgeschrittene, vormittags."
                 },
                 {
                   "label": "l",
-                  "body": "Gartenservice Schnell: professionelle Gartenpflege für Firmenflächen."
+                  "body": "Gartenservice Hannover: professionelle Gartenpflege ausschließlich für Firmenflächen."
                 }
               ],
               "items": [
                 {
                   "id": "b1m4-l3-1",
-                  "situation": "Sie möchten regelmäßig kostenlos Deutsch sprechen.",
+                  "situation": "Sie wohnen in Hannover und möchten regelmäßig kostenlos Deutsch sprechen.",
                   "options": [
                     "a",
                     "b",
@@ -4536,7 +4537,7 @@
                 },
                 {
                   "id": "b1m4-l3-2",
-                  "situation": "Ihr Fahrrad ist kaputt und Sie brauchen vorübergehend ein anderes.",
+                  "situation": "Ihr Fahrrad ist in Hannover kaputt und Sie brauchen vorübergehend ein Ersatzrad.",
                   "options": [
                     "a",
                     "b",
@@ -4558,7 +4559,7 @@
                 },
                 {
                   "id": "b1m4-l3-3",
-                  "situation": "Sie suchen nach der Arbeit einen Gesundheitskurs.",
+                  "situation": "Sie suchen in Hannover nach der Arbeit einen Gesundheitskurs.",
                   "options": [
                     "a",
                     "b",
@@ -4580,7 +4581,7 @@
                 },
                 {
                   "id": "b1m4-l3-4",
-                  "situation": "Sie möchten samstags freiwillig mit Tieren arbeiten.",
+                  "situation": "Sie möchten in Hannover samstags freiwillig mit Tieren arbeiten.",
                   "options": [
                     "a",
                     "b",
@@ -4602,7 +4603,7 @@
                 },
                 {
                   "id": "b1m4-l3-5",
-                  "situation": "Sie verstehen eine hohe Nebenkostenabrechnung nicht.",
+                  "situation": "Sie verstehen Ihre hohe Nebenkostenabrechnung in Hannover nicht.",
                   "options": [
                     "a",
                     "b",
@@ -4624,7 +4625,7 @@
                 },
                 {
                   "id": "b1m4-l3-6",
-                  "situation": "Ihre ältere Nachbarin möchte den Umgang mit ihrem Smartphone lernen.",
+                  "situation": "Mila möchte einer älteren Person in Hannover einen Smartphone-Kurs empfehlen.",
                   "options": [
                     "a",
                     "b",
@@ -4646,7 +4647,7 @@
                 },
                 {
                   "id": "b1m4-l3-7",
-                  "situation": "Sie brauchen in den Schulferien eine Betreuung für Ihr zehnjähriges Kind.",
+                  "situation": "Sie brauchen in Hannover eine Ferienbetreuung für Ihr zehnjähriges Kind.",
                   "options": [
                     "a",
                     "b",
@@ -4668,7 +4669,7 @@
                 },
                 {
                   "id": "b1m4-l3-8",
-                  "situation": "Sie möchten ohne Auto an einer organisierten Wanderung teilnehmen.",
+                  "situation": "Sie möchten ab Hannover ohne Auto an einer organisierten Wanderung teilnehmen.",
                   "options": [
                     "a",
                     "b",
@@ -4690,7 +4691,7 @@
                 },
                 {
                   "id": "b1m4-l3-9",
-                  "situation": "Sie suchen preiswerte Möbel und können sie nicht selbst transportieren.",
+                  "situation": "Sie suchen in Hannover preiswerte Möbel und benötigen eine Lieferung.",
                   "options": [
                     "a",
                     "b",
@@ -4712,7 +4713,7 @@
                 },
                 {
                   "id": "b1m4-l3-10",
-                  "situation": "Sie möchten sich auf ein Bewerbungsgespräch vorbereiten.",
+                  "situation": "Mila möchte sich in Hannover auf ein Bewerbungsgespräch vorbereiten.",
                   "options": [
                     "a",
                     "b",
@@ -4889,7 +4890,7 @@
                 {
                   "id": "b1m4-sb2-text",
                   "label": "Anfrage mit zehn Lücken",
-                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ das Gesundheits- und Umwelttag informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Sonntag, 18. August noch Plätze frei sind? Außerdem ___ wir erst gegen 10 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der U-Bahnlinie 6 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
+                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ den Gesundheits- und Umwelttag informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Sonntag, 18. August noch Plätze frei sind? Außerdem ___ wir erst gegen 10 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der U-Bahnlinie 6 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
                 }
               ],
               "ads": [
@@ -5368,7 +5369,7 @@
                 {
                   "id": "b1m5-h1-1",
                   "transcript": "Ich wohne seit drei Jahren in Bremen. Am Anfang kannte ich kaum jemanden. Seit ich bei einem Projekt im Stadtteil mitmache, treffe ich regelmäßig Menschen aus der Nachbarschaft und fühle mich hier wirklich zu Hause.",
-                  "statement": "Die sprechende Person hat durch ein Projekt neue Kontakte gefunden.",
+                  "statement": "Die sprechende Person hat in Bremen durch ein Projekt neue Kontakte gefunden.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -5376,8 +5377,8 @@
                 },
                 {
                   "id": "b1m5-h1-2",
-                  "transcript": "Mein Arbeitsweg dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht den Bus, weil die Linie umgeleitet wird. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
-                  "statement": "Die sprechende Person fährt heute mit dem Bus zur Arbeit.",
+                  "transcript": "Mein Arbeitsweg durch Bremen dauert normalerweise zwanzig Minuten. Heute nehme ich jedoch nicht die Buslinie 24, weil es eine Umleitung gibt. Ich fahre mit dem Fahrrad und bin wahrscheinlich sogar etwas früher im Büro.",
+                  "statement": "Die sprechende Person benutzt heute Buslinie 24.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -5385,8 +5386,8 @@
                 },
                 {
                   "id": "b1m5-h1-3",
-                  "transcript": "Für die Weiterbildung musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
-                  "statement": "Der Arbeitgeber bezahlte einen Teil der Weiterbildung.",
+                  "transcript": "Für einen Kurs in Bremen musste ich zunächst selbst bezahlen. Nach dem erfolgreichen Abschluss hat mein Arbeitgeber aber die Hälfte der Kursgebühr übernommen. Darüber habe ich mich sehr gefreut.",
+                  "statement": "Der Arbeitgeber bezahlte einen Teil des Kurses in Bremen.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -5394,8 +5395,8 @@
                 },
                 {
                   "id": "b1m5-h1-4",
-                  "transcript": "Ich bestelle nur selten im Internet. Kleidung probiere ich lieber im Geschäft an, und bei technischen Geräten möchte ich mich persönlich beraten lassen. Das ist mir wichtiger als der niedrigste Preis.",
-                  "statement": "Die sprechende Person kauft technische Geräte am liebsten online.",
+                  "transcript": "David bestellt nur selten im Internet. Kleidung probiert David lieber im Geschäft an, und bei technischen Geräten ist eine persönliche Beratung wichtiger als der niedrigste Preis.",
+                  "statement": "David kauft technische Geräte am liebsten online.",
                   "answer": false,
                   "explain": "Ein wichtiges Detail ist im Hörtext anders.",
                   "points": 5,
@@ -5404,7 +5405,7 @@
                 {
                   "id": "b1m5-h1-5",
                   "transcript": "Am Wochenende wollte ich eigentlich ausruhen. Dann hat mich David gefragt, ob ich beim Medienworkshop für Vereine helfen kann. Jetzt übernehme ich zwei Stunden am Informationsstand und freue mich schon darauf.",
-                  "statement": "Die sprechende Person hilft am Wochenende bei einer Veranstaltung.",
+                  "statement": "Die sprechende Person hilft am Wochenende beim Medienworkshop für Vereine.",
                   "answer": true,
                   "explain": "Die Aussage entspricht dem Hörtext.",
                   "points": 5,
@@ -5419,7 +5420,7 @@
               "grouped": true,
               "plays": 2,
               "instructions": "Lesen Sie zuerst alle zehn Aussagen. Hören Sie danach das Gespräch zweimal und markieren Sie richtig oder falsch.",
-              "transcript": "Moderatorin: Guten Abend, Frau Özdemir. Sie organisieren in Bremen das Medienworkshop für Vereine. Wann findet es statt? Frau Özdemir: Am Mittwoch, 27. November. Wir beginnen um 17 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Özdemir: Kulturzentrum Hafen. Die Anreise ist am einfachsten mit der Buslinie 24. Moderatorin: Muss man Eintritt bezahlen? Frau Özdemir: Der Eintritt ist zehn Euro pro Person. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 20. November. Moderatorin: Wer kann teilnehmen? Frau Özdemir: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Özdemir: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Wasser und belegte Brote. Moderatorin: Werden noch Helfer gesucht? Frau Özdemir: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Özdemir: Dann nutzen wir der Workshop findet vollständig drinnen statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
+              "transcript": "Moderatorin: Guten Abend, Frau Özdemir. Sie organisieren in Bremen den Medienworkshop für Vereine. Wann findet die Veranstaltung statt? Frau Özdemir: Am Mittwoch, 27. November. Wir beginnen um 17 Uhr. Moderatorin: Wo treffen sich die Gäste? Frau Özdemir: Kulturzentrum Hafen. Die Anreise ist am einfachsten mit der Buslinie 24. Moderatorin: Muss man Eintritt bezahlen? Frau Özdemir: Der Eintritt ist zehn Euro pro Person. Eine Anmeldung ist trotzdem nötig, und zwar bis zum 20. November. Moderatorin: Wer kann teilnehmen? Frau Özdemir: Erwachsene, Jugendliche und Familien sind willkommen. Kinder unter zwölf Jahren müssen von einer erwachsenen Person begleitet werden. Moderatorin: Was erwartet die Besucher? Frau Özdemir: Es gibt Informationen, praktische Aktionen und ein kleines Kulturprogramm. Für Essen sorgen wir auch: Wasser und belegte Brote. Moderatorin: Werden noch Helfer gesucht? Frau Özdemir: Ja, besonders für den Aufbau am Vormittag und das Aufräumen am Abend. Interessierte melden sich direkt bei mir. Moderatorin: Und falls das Wetter schlecht ist? Frau Özdemir: Dann nutzen wir der Workshop findet vollständig drinnen statt. Die Veranstaltung fällt also nicht aus. Moderatorin: Vielen Dank für die Informationen.",
               "audio": "./web/audio/exam-b1/mt5/b1m5-h2.mp3",
               "items": [
                 {
@@ -5445,14 +5446,14 @@
                 },
                 {
                   "id": "b1m5-h2-4",
-                  "statement": "Alle Besucher müssen mit dem Auto anreisen.",
+                  "statement": "Alle Besucher des Medienworkshop für Vereine müssen mit dem Auto anreisen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-5",
-                  "statement": "Der Eintritt ist zehn Euro pro Person.",
+                  "statement": "Der Eintritt für das Angebot in Bremen ist zehn Euro pro Person.",
                   "answer": true,
                   "explain": "Diese Information wird im Gespräch bestätigt.",
                   "points": 2.5
@@ -5466,7 +5467,7 @@
                 },
                 {
                   "id": "b1m5-h2-7",
-                  "statement": "Kinder unter zwölf Jahren dürfen immer allein teilnehmen.",
+                  "statement": "Kinder unter zwölf Jahren dürfen beim Medienworkshop für Vereine immer allein teilnehmen.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -5480,14 +5481,14 @@
                 },
                 {
                   "id": "b1m5-h2-9",
-                  "statement": "Für den Aufbau werden keine Helfer mehr benötigt.",
+                  "statement": "Für den Aufbau des Medienworkshop für Vereine werden keine Helfer mehr benötigt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
                 },
                 {
                   "id": "b1m5-h2-10",
-                  "statement": "Bei schlechtem Wetter wird die Veranstaltung abgesagt.",
+                  "statement": "Bei schlechtem Wetter wird das Angebot in Bremen abgesagt.",
                   "answer": false,
                   "explain": "Das Gespräch nennt eine andere Information.",
                   "points": 2.5
@@ -5504,7 +5505,7 @@
                 {
                   "id": "b1m5-h3-1",
                   "transcript": "Achtung am Hauptbahnhof Bremen: Der Regionalexpress nach Berlin fährt heute nicht von Gleis acht, sondern von Gleis zwölf. Die Abfahrtszeit ändert sich nicht.",
-                  "statement": "Der Zug fährt heute von Gleis zwölf.",
+                  "statement": "Der Zug in Bremen fährt heute von Gleis zwölf.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -5512,8 +5513,8 @@
                 },
                 {
                   "id": "b1m5-h3-2",
-                  "transcript": "Wegen einer internen Schulung öffnet das Bürgerbüro morgen erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
-                  "statement": "Das Bürgerbüro öffnet morgen zur normalen Zeit.",
+                  "transcript": "Das Bürgerbüro Bremen öffnet morgen wegen einer internen Schulung erst um elf Uhr. Bereits vereinbarte Termine am Vormittag werden telefonisch neu vergeben.",
+                  "statement": "Das Bürgerbüro Bremen öffnet morgen zur normalen Zeit.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -5521,8 +5522,8 @@
                 },
                 {
                   "id": "b1m5-h3-3",
-                  "transcript": "Und nun das Wetter: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
-                  "statement": "Am späten Nachmittag wird Regen erwartet.",
+                  "transcript": "Und nun das Wetter für Bremen: Am Morgen bleibt es trocken. Gegen Mittag ziehen Wolken auf, ab dem späten Nachmittag muss mit kräftigem Regen gerechnet werden.",
+                  "statement": "In Bremen wird am späten Nachmittag Regen erwartet.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -5530,8 +5531,8 @@
                 },
                 {
                   "id": "b1m5-h3-4",
-                  "transcript": "Sie hören eine Nachricht der Arztpraxis. Ihr Termin bei Frau Dr. Kern wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
-                  "statement": "Der neue Arzttermin ist am Donnerstag.",
+                  "transcript": "Sie hören eine Nachricht der Praxis David. Ihr Termin wurde von Donnerstag auf Freitag, neun Uhr fünfzehn verschoben. Bitte bestätigen Sie den neuen Termin.",
+                  "statement": "Der neue Termin in der Praxis David ist am Donnerstag.",
                   "answer": false,
                   "explain": "Die Ansage enthält ein abweichendes Detail.",
                   "points": 5,
@@ -5539,8 +5540,8 @@
                 },
                 {
                   "id": "b1m5-h3-5",
-                  "transcript": "Im Kulturzentrum beginnt gleich der Filmabend. Eintrittskarten gibt es noch an der Abendkasse. Mitglieder zahlen sechs Euro, alle anderen neun Euro.",
-                  "statement": "Auch ohne Mitgliedschaft kann man noch eine Karte kaufen.",
+                  "transcript": "Im Kulturzentrum Bremen beginnt gleich der Informationsabend zum Thema Medienworkshop für Vereine. Eintrittskarten gibt es noch an der Abendkasse. Angemeldete zahlen sechs Euro, alle anderen neun Euro.",
+                  "statement": "Auch ohne Anmeldung kann man den Informationsabend in Bremen besuchen.",
                   "answer": true,
                   "explain": "Die Aussage stimmt mit der Ansage überein.",
                   "points": 5,
@@ -5627,7 +5628,7 @@
                 },
                 {
                   "id": "b1m5-l1-2",
-                  "situation": "Eine neue Online-Plattform bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
+                  "situation": "Eine neue Online-Plattform aus Bremen bietet kurze Kurse, die man flexibel am Abend oder am Wochenende bearbeiten kann. Nach jeder Einheit gibt es eine praktische Aufgabe und eine persönliche Rückmeldung. Besonders Berufstätige nutzen das Angebot, weil sie keine festen Unterrichtszeiten einhalten müssen.",
                   "options": [
                     "a",
                     "b",
@@ -5646,7 +5647,7 @@
                 },
                 {
                   "id": "b1m5-l1-3",
-                  "situation": "Im monatlichen Reparaturcafé helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
+                  "situation": "Im monatlichen Reparaturcafé von Bremen helfen Fachleute ehrenamtlich dabei, kaputte Haushaltsgeräte, Fahrräder und Kleidung wieder nutzbar zu machen. Ersatzteile müssen selbst bezahlt werden, die Beratung ist kostenlos. Viele Gegenstände können dadurch weiterverwendet werden.",
                   "options": [
                     "a",
                     "b",
@@ -5684,7 +5685,7 @@
                 },
                 {
                   "id": "b1m5-l1-5",
-                  "situation": "Mehrere Theater führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
+                  "situation": "Mehrere Theater in Bremen führen einmal im Monat ein neues Preismodell ein. Besucher entscheiden innerhalb eines festgelegten Rahmens selbst, wie viel sie bezahlen. Damit sollen auch Menschen mit geringem Einkommen regelmäßig Vorstellungen besuchen können.",
                   "options": [
                     "a",
                     "b",
@@ -5792,57 +5793,57 @@
               "ads": [
                 {
                   "label": "a",
-                  "body": "Sprachcafé Bremen: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, ohne Anmeldung."
+                  "body": "Sprachcafé Bremen: lockere Gespräche auf Deutsch, donnerstags 18 Uhr, kostenlos und ohne Anmeldung."
                 },
                 {
                   "label": "b",
-                  "body": "Fahrradwerkstatt Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
+                  "body": "Fahrradwerkstatt Bremen Mobil: Reparaturen, Sicherheitscheck und Ersatzräder während der Reparatur."
                 },
                 {
                   "label": "c",
-                  "body": "Kurszentrum Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
+                  "body": "Kurszentrum Bremen Aktiv: Rückentraining am Abend, Krankenkassenzuschuss möglich."
                 },
                 {
                   "label": "d",
-                  "body": "Tierschutzverein: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
+                  "body": "Tierschutzverein Bremen: Ehrenamtliche für Spaziergänge mit Hunden am Wochenende gesucht."
                 },
                 {
                   "label": "e",
-                  "body": "Wohnberatung: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
+                  "body": "Wohnberatung Bremen: kostenlose Prüfung von Mietvertrag und Nebenkostenabrechnung."
                 },
                 {
                   "label": "f",
-                  "body": "Computerhilfe 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
+                  "body": "Computerhilfe Bremen 60+: persönliche Unterstützung bei Smartphone, E-Mail und Videotelefonie."
                 },
                 {
                   "label": "g",
-                  "body": "Familienzentrum: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
+                  "body": "Familienzentrum Bremen: Ferienprogramm für Kinder von 7 bis 12 Jahren, inklusive Mittagessen."
                 },
                 {
                   "label": "h",
-                  "body": "Reisegruppe Natur: geführte Wochenendwanderungen, mittleres Tempo, Bahnanreise."
+                  "body": "Reisegruppe Natur Bremen: geführte Wochenendwanderungen, mittleres Tempo, Anreise mit der Buslinie 24."
                 },
                 {
                   "label": "i",
-                  "body": "Möbelbörse: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
+                  "body": "Möbelbörse Bremen: gebrauchte Tische, Schränke und Stühle, Lieferung gegen Aufpreis."
                 },
                 {
                   "label": "j",
-                  "body": "Bewerbungswerkstatt: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
+                  "body": "Bewerbungswerkstatt Bremen: Lebenslauf-Check und Vorbereitung auf Vorstellungsgespräche."
                 },
                 {
                   "label": "k",
-                  "body": "Musikschule Klang: Klavierunterricht nur für Fortgeschrittene, vormittags."
+                  "body": "Musikschule Bremen: Klavierunterricht nur für Fortgeschrittene, vormittags."
                 },
                 {
                   "label": "l",
-                  "body": "Gartenservice Schnell: professionelle Gartenpflege für Firmenflächen."
+                  "body": "Gartenservice Bremen: professionelle Gartenpflege ausschließlich für Firmenflächen."
                 }
               ],
               "items": [
                 {
                   "id": "b1m5-l3-1",
-                  "situation": "Sie möchten regelmäßig kostenlos Deutsch sprechen.",
+                  "situation": "Sie wohnen in Bremen und möchten regelmäßig kostenlos Deutsch sprechen.",
                   "options": [
                     "a",
                     "b",
@@ -5864,7 +5865,7 @@
                 },
                 {
                   "id": "b1m5-l3-2",
-                  "situation": "Ihr Fahrrad ist kaputt und Sie brauchen vorübergehend ein anderes.",
+                  "situation": "Ihr Fahrrad ist in Bremen kaputt und Sie brauchen vorübergehend ein Ersatzrad.",
                   "options": [
                     "a",
                     "b",
@@ -5886,7 +5887,7 @@
                 },
                 {
                   "id": "b1m5-l3-3",
-                  "situation": "Sie suchen nach der Arbeit einen Gesundheitskurs.",
+                  "situation": "Sie suchen in Bremen nach der Arbeit einen Gesundheitskurs.",
                   "options": [
                     "a",
                     "b",
@@ -5908,7 +5909,7 @@
                 },
                 {
                   "id": "b1m5-l3-4",
-                  "situation": "Sie möchten samstags freiwillig mit Tieren arbeiten.",
+                  "situation": "Sie möchten in Bremen samstags freiwillig mit Tieren arbeiten.",
                   "options": [
                     "a",
                     "b",
@@ -5930,7 +5931,7 @@
                 },
                 {
                   "id": "b1m5-l3-5",
-                  "situation": "Sie verstehen eine hohe Nebenkostenabrechnung nicht.",
+                  "situation": "Sie verstehen Ihre hohe Nebenkostenabrechnung in Bremen nicht.",
                   "options": [
                     "a",
                     "b",
@@ -5952,7 +5953,7 @@
                 },
                 {
                   "id": "b1m5-l3-6",
-                  "situation": "Ihre ältere Nachbarin möchte den Umgang mit ihrem Smartphone lernen.",
+                  "situation": "David möchte einer älteren Person in Bremen einen Smartphone-Kurs empfehlen.",
                   "options": [
                     "a",
                     "b",
@@ -5974,7 +5975,7 @@
                 },
                 {
                   "id": "b1m5-l3-7",
-                  "situation": "Sie brauchen in den Schulferien eine Betreuung für Ihr zehnjähriges Kind.",
+                  "situation": "Sie brauchen in Bremen eine Ferienbetreuung für Ihr zehnjähriges Kind.",
                   "options": [
                     "a",
                     "b",
@@ -5996,7 +5997,7 @@
                 },
                 {
                   "id": "b1m5-l3-8",
-                  "situation": "Sie möchten ohne Auto an einer organisierten Wanderung teilnehmen.",
+                  "situation": "Sie möchten ab Bremen ohne Auto an einer organisierten Wanderung teilnehmen.",
                   "options": [
                     "a",
                     "b",
@@ -6018,7 +6019,7 @@
                 },
                 {
                   "id": "b1m5-l3-9",
-                  "situation": "Sie suchen preiswerte Möbel und können sie nicht selbst transportieren.",
+                  "situation": "Sie suchen in Bremen preiswerte Möbel und benötigen eine Lieferung.",
                   "options": [
                     "a",
                     "b",
@@ -6040,7 +6041,7 @@
                 },
                 {
                   "id": "b1m5-l3-10",
-                  "situation": "Sie möchten sich auf ein Bewerbungsgespräch vorbereiten.",
+                  "situation": "David möchte sich in Bremen auf ein Bewerbungsgespräch vorbereiten.",
                   "options": [
                     "a",
                     "b",
@@ -6217,7 +6218,7 @@
                 {
                   "id": "b1m5-sb2-text",
                   "label": "Anfrage mit zehn Lücken",
-                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ das Medienworkshop für Vereine informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Mittwoch, 27. November noch Plätze frei sind? Außerdem ___ wir erst gegen 17 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der Buslinie 24 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
+                  "body": "Sehr geehrte Damen und Herren, auf Ihrer Internetseite habe ich mich ___ den Medienworkshop für Vereine informiert. Ich ___ mit zwei Freunden teilnehmen, habe aber ___ einige Fragen. Können Sie mir sagen, ___ am Mittwoch, 27. November noch Plätze frei sind? Außerdem ___ wir erst gegen 17 Uhr ankommen. Ist eine spätere Ankunft möglich? Wir interessieren uns besonders ___ das Programm und möchten uns möglichst bald ___. Bitte teilen Sie mir mit, ___ wir die Gebühr vorab überweisen müssen. Ich ___ mich außerdem über Hinweise zur Anreise mit der Buslinie 24 freuen. Vielen Dank. Ich höre ___ von Ihnen. Mit freundlichen Grüßen"
                 }
               ],
               "ads": [

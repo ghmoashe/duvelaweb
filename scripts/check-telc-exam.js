@@ -94,12 +94,36 @@ const b1Bank = banks.find((bank) => bank.level === 'B1');
 const b1HearingItems = b1Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
 if (b1HearingItems.length !== 100) errors.push('B1 must contain exactly 100 listening tasks across five tests.');
 if (b1Bank.passRules?.written?.minPoints !== 135 || b1Bank.passRules?.oral?.minPoints !== 45) errors.push('B1 must require 135 written and 45 oral points.');
+if (Number(b1Bank.quality?.version || 0) < 2 || !b1Bank.quality?.review) errors.push('B1 content bank must include the completed quality review metadata.');
+const b1SeenTaskTexts = new Map();
 for (const test of b1Bank.tests) {
   const writing = test.sections.find((section) => section.id === 'schreiben').parts[0];
   const sampleWords = String(writing.sample || '').trim().split(/\s+/).filter(Boolean).length;
-  if (writing.minWords !== 100 || writing.leitpunkte?.length !== 4 || sampleWords < 85) errors.push(`${test.id}: B1 writing must include four points and a substantial model answer.`);
+  if (writing.minWords !== 100 || writing.leitpunkte?.length !== 4 || sampleWords < 100) errors.push(`${test.id}: B1 writing must include four points and a complete model answer of at least 100 words.`);
   const reading = test.sections.find((section) => section.id === 'lesen');
   if (reading.durationMin !== 90 || reading.parts.length !== 5) errors.push(`${test.id}: B1 reading/language block must contain five parts and 90 minutes.`);
+  const hearing = test.sections.find((section) => section.id === 'hoeren');
+  for (const part of hearing.parts.filter((entry) => entry.type.includes('truefalse'))) {
+    const truthValues = part.items.map((item) => item.answer);
+    if (!truthValues.includes(true) || !truthValues.includes(false)) errors.push(`${test.id} ${part.id}: B1 true/false tasks need both correct and incorrect statements.`);
+  }
+  const headingPart = reading.parts.find((part) => part.id === 'l1');
+  if (new Set(headingPart.items.map((item) => item.answer)).size !== headingPart.items.length) errors.push(`${test.id}: B1 reading headings must be used only once.`);
+  if (headingPart.items.some((item) => String(item.situation || '').trim().split(/\s+/).length < 28)) errors.push(`${test.id}: B1 heading texts are too short.`);
+  const articlePart = reading.parts.find((part) => part.id === 'l2');
+  if (String(articlePart.texts?.[0]?.body || '').trim().split(/\s+/).length < 95) errors.push(`${test.id}: B1 article is too short for the target level.`);
+  const adsPart = reading.parts.find((part) => part.id === 'l3');
+  if (adsPart.ads?.length !== 12 || adsPart.items?.length !== 10 || !adsPart.items.every((item) => item.options?.includes('x'))) errors.push(`${test.id}: B1 advertisements must contain twelve ads, ten situations and option x.`);
+  for (const part of [...hearing.parts, ...reading.parts.filter((entry) => !entry.id.startsWith('sb'))]) for (const item of part.items || []) {
+    const taskText = String(item.statement || item.question || item.situation || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!taskText) continue;
+    if (b1SeenTaskTexts.has(taskText)) errors.push(`${test.id} ${item.id}: duplicates task text from ${b1SeenTaskTexts.get(taskText)}.`);
+    else b1SeenTaskTexts.set(taskText, `${test.id} ${item.id}`);
+  }
+  const speaking = test.sections.find((section) => section.id === 'sprechen');
+  if (speaking.parts.find((part) => part.id === 'sp2')?.cards?.length !== 2 || speaking.parts.find((part) => part.id === 'sp3')?.cards?.length !== 4) errors.push(`${test.id}: B1 speaking must provide two opinions and four planning points.`);
+  const serialized = JSON.stringify(test);
+  if (/\b(?:das Tag|das Informationsabend|das Gesundheits-|das Medienworkshop|mit der Regionalzug)\b/i.test(serialized)) errors.push(`${test.id}: B1 content contains an article/case error.`);
 }
 const b1Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-b1', 'elevenlabs-scripts.txt'), 'utf8');
 const b1AudioEntries = b1Bank.tests.flatMap((test) => {
@@ -113,11 +137,12 @@ for (const entry of b1AudioEntries) {
 }
 if (!fs.existsSync(path.join(root, 'telc-b1-exam.html'))) errors.push('Missing B1 exam page.');
 
-for (const marker of ['LEVEL_FORMAT', 'audio-group-truefalse', 'renderAudioGroupTrueFalse', 'examPassDetails', 'testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'historyDashboardHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist', 'buildProductiveRubric', 'productiveRubricHtml', 'rubricStatus']) {
+for (const marker of ['LEVEL_FORMAT', 'audio-group-truefalse', 'renderAudioGroupTrueFalse', 'examPassDetails', 'testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'printTrainingCertificate', 'trainingCertificateHtml', 'resultDetailRows', 'b1StartGuideHtml', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'historyDashboardHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingStrategy', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist', 'buildProductiveRubric', 'productiveRubricHtml', 'rubricStatus']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
 if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
 if (!examStyles.includes('@media print')) errors.push('Missing printable PDF result report styles.');
+for (const marker of ['exam-day-guide', 'training-strategy', 'b1-pass-gates', 'detail-report-table', 'training-certificate', 'certificate-print']) if (!examStyles.includes(marker)) errors.push(`Missing B1 interface style: ${marker}.`);
 const vm = require('vm');
 const passStart = examClient.indexOf('function examPassDetails');
 const passEnd = examClient.indexOf('function scoreBox', passStart);
@@ -143,6 +168,15 @@ else {
     const total = rows.reduce((sum, row) => sum + row.points, 0);
     if (total !== target || rows.some((row) => row.points < 0 || row.points > row.maxPoints)) errors.push(`Productive rubric allocator failed for ${target} points.`);
   }
+}
+const detailStart = examClient.indexOf('function resultDetailRows');
+const detailEnd = examClient.indexOf('function trainingCertificateHtml', detailStart);
+if (detailStart < 0 || detailEnd < 0) errors.push('Missing executable detailed result rows.');
+else {
+  const detailSandbox = { state: { scores: { hoeren: { pts: 50, max: 75, details: [{ id: 'h1', title: 'Teil 1', pts: 20, max: 25, got: 4, items: 5 }] } } } };
+  vm.runInNewContext(examClient.slice(detailStart, detailEnd), detailSandbox);
+  const detailRows = detailSandbox.resultDetailRows([{ id: 'hoeren', title: 'Hören', maxPoints: 75 }]);
+  if (detailRows.length !== 2 || detailRows[0].pct !== 67 || detailRows[1].pct !== 80) errors.push('Detailed B1 result calculation is invalid.');
 }
 const localeSandbox = { window: {} };
 vm.runInNewContext(examLocaleSource, localeSandbox);

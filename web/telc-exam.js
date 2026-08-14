@@ -467,6 +467,20 @@ function examBlueprintHtml() {
   ].join('');
 }
 
+function b1StartGuideHtml() {
+  if (EXAM_LEVEL !== 'B1') return '';
+  return `<section class="exam-day-guide" aria-labelledby="exam-day-guide-title">
+    <header><span><small>PRÜFUNGSTAG</small><b id="exam-day-guide-title">Ablauf auf einen Blick</b></span><strong>165 Min. + Sprechen</strong></header>
+    <ol>
+      <li><i>01</i><span><b>Lesen + Sprachbausteine</b><small>90 Minuten · freie Zeiteinteilung in fünf Teilen</small></span></li>
+      <li><i>02</i><span><b>Hören</b><small>ca. 30 Minuten · Teil 1 einmal, Teil 2 und 3 zweimal</small></span></li>
+      <li><i>03</i><span><b>Schreiben</b><small>30 Minuten · E-Mail mit allen vier Leitpunkten</small></span></li>
+      <li><i>04</i><span><b>Sprechen</b><small>20 Minuten Vorbereitung · danach ca. 15 Minuten zu zweit</small></span></li>
+    </ol>
+    <div><b>Wichtig</b><span>Nach einem abgeschlossenen Abschnitt können Sie nicht zurück. Zum Bestehen brauchen Sie mindestens 135 / 225 schriftlich und 45 / 75 mündlich.</span></div>
+  </section>`;
+}
+
 function renderPreflight() {
   syncLocalizedChrome();
   preflight.browser = supportsExamBrowser();
@@ -494,6 +508,7 @@ function renderPreflight() {
           ${equipmentCard('sound', tx('sound'), preflight.sound ? tx('heard') : tx('unchecked'), tx('soundDesc'), preflight.sound, `<div class="equipment-actions"><button class="button secondary compact" id="test-sound">${esc(tx('testSound'))}</button><button class="button primary compact" id="confirm-sound" hidden>${esc(tx('heard'))} ✓</button></div>`)}
           ${equipmentCard('microphone', tx('microphone'), preflight.microphone ? tx('compatible') : tx('unchecked'), tx('micDesc'), preflight.microphone, `<button class="button secondary compact" id="test-mic">${esc(tx('testMic'))}</button><audio id="preflight-playback" controls hidden></audio>`)}
         </div>
+        ${b1StartGuideHtml()}
         <label class="rules-confirm"><input type="checkbox" id="rules-confirm"><span>${esc(levelText(tx('rules')))}</span></label>
         <p class="preflight-status" id="preflight-status" aria-live="polite">${esc(tx('initial'))}</p>
         <div class="result-actions">
@@ -946,10 +961,11 @@ function passageFor(part, item) {
 function readingToolsHtml(part, item) {
   if (state.mode !== 'practice') return '';
   const keywords = readingKeywords(item);
+  const strategy = trainingStrategy(part);
   return `<aside class="reading-tools">
-    <header><span><small>LESESTRATEGIE</small><b>Erst Aufgabe, dann Text</b></span><strong>3 Schritte</strong></header>
+    <header><span><small>${part.id?.startsWith('sb') ? 'SPRACHSTRATEGIE' : 'LESESTRATEGIE'}</small><b>${esc(strategy.headline)}</b></span><strong>3 Schritte</strong></header>
     <div class="reading-keywords"><small>SCHLÜSSELWÖRTER</small>${keywords.map((word) => `<i>${esc(word)}</i>`).join('')}</div>
-    <ol><li><b>1</b> Schlüsselwörter in der Aufgabe lesen</li><li><b>2</b> Passende Textstelle suchen</li><li><b>3</b> Negationen und Zeiten vergleichen</li></ol>
+    <ol>${strategy.steps.map((step, index) => `<li><b>${index + 1}</b>${esc(step)}</li>`).join('')}</ol>
     ${trainingHintHtml(part, item)}
   </aside>`;
 }
@@ -961,8 +977,31 @@ function readingKeywords(item) {
   return [...new Set(words.filter((word) => (word.length >= 4 || /\d/.test(word)) && !stop.has(word.toLowerCase())))].slice(0, 5);
 }
 
+function trainingStrategy(part) {
+  const b1 = {
+    h1: { headline: 'Globalverstehen: Haltung statt jedes Wort', steps: ['Aussage vor dem Hören markieren', 'Beim ersten Signal entscheiden', 'Nicht auf Einzelwörter hereinfallen'], tip: 'Konzentrieren Sie sich auf die Hauptaussage und die Meinung der Person. Dieser Teil wird nur einmal gespielt.', trap: 'Ein bekanntes Wort aus der Aussage kommt vor, aber die Person sagt inhaltlich das Gegenteil.' },
+    h2: { headline: 'Gespräch systematisch entschlüsseln', steps: ['Alle zehn Aussagen zuerst lesen', 'Beim ersten Hören sicher zuordnen', 'Beim zweiten Hören Zahlen und Details prüfen'], tip: 'Nutzen Sie die Reihenfolge: Die Aussagen folgen meistens dem Verlauf des Gesprächs.', trap: 'Eine Information wird zuerst genannt und direkt danach korrigiert.' },
+    h3: { headline: 'Selektiv hören: Wer, wann, wo?', steps: ['Kerninformation der Aussage markieren', 'Auf Zahlen, Orte und Einschränkungen achten', 'Beim zweiten Hören kontrollieren'], tip: 'Entscheidend ist nur, ob die konkrete Aussage stimmt - nicht ob das Thema allgemein passt.', trap: 'Tag, Uhrzeit, Gleis oder Ziel unterscheiden sich nur in einem Detail.' },
+    l1: { headline: 'Hauptaussage statt Einzelbeispiel', steps: ['Kernaussage jedes Textes bestimmen', 'Überschriften nach Thema gruppieren', 'Ähnliche Überschriften durch Absicht trennen'], tip: 'Eine passende Überschrift beschreibt den ganzen Text, nicht nur einen Satz daraus.', trap: 'Die Überschrift wiederholt ein auffälliges Wort, verfehlt aber die Hauptaussage.' },
+    l2: { headline: 'Antwort immer mit Textbeleg', steps: ['Frage und Antwortoptionen zuerst lesen', 'Belegstelle im Artikel finden', 'Optionen sinngemäß mit dem Beleg vergleichen'], tip: 'Suchen Sie auch nach Paraphrasen: In der richtigen Antwort stehen oft andere Wörter als im Artikel.', trap: 'Eine Option klingt plausibel, wird im Text aber nicht gesagt.' },
+    l3: { headline: 'Muss-Kriterien zuerst abgleichen', steps: ['Wichtigste Bedingung der Situation markieren', 'Unpassende Anzeigen sofort streichen', 'Nur bei vollständiger Passung zuordnen'], tip: 'Ort, Zeit, Preis und Zielgruppe sind Ausschlusskriterien. Wenn keine Anzeige vollständig passt, wählen Sie x.', trap: 'Eine Anzeige erfüllt fast alles, aber genau die wichtigste Bedingung fehlt.' },
+    sb1: { headline: 'Grammatik aus dem Satzbau ableiten', steps: ['Satz vor und nach der Lücke lesen', 'Verbposition und Kasus prüfen', 'Bedeutung des ganzen Abschnitts kontrollieren'], tip: 'Prüfen Sie zuerst die grammatische Funktion, danach die Bedeutung. So fallen attraktive Ablenkungen schneller weg.', trap: 'Alle drei Wörter passen thematisch, aber nur eines verlangt die vorhandene Satzstellung.' },
+    sb2: { headline: 'Feste Verbindungen erkennen', steps: ['Wortart der Lücke bestimmen', 'Präposition oder Kollokation prüfen', 'Verwendete Wörter aus der Liste streichen'], tip: 'Lesen Sie am Ende den ganzen Brief noch einmal. Eine grammatisch mögliche Lösung kann stilistisch falsch sein.', trap: 'Ein Wort passt allein, aber nicht zur festen Verbindung, etwa „sich über etwas informieren“.' },
+    s1: { headline: 'Vier Leitpunkte klar verbinden', steps: ['Zu jedem Leitpunkt eine Notiz schreiben', 'Sinnvolle Reihenfolge und Absätze planen', 'Anrede, Verbindungen und Schluss prüfen'], tip: 'Bearbeiten Sie jeden Leitpunkt erkennbar und begründen Sie wichtige Aussagen mit Beispielen oder Erfahrungen.', trap: 'Ein langer Text kann trotzdem Punkte verlieren, wenn ein Leitpunkt fehlt oder die Textsorte unpassend ist.' },
+    sp1: { headline: 'Natürlich vorstellen und nachfragen', steps: ['Mehrere persönliche Angaben verbinden', 'Auf Rückfragen konkret antworten', 'Der Partnerin selbst eine Frage stellen'], tip: 'Sprechen Sie in zusammenhängenden Sätzen und greifen Sie Informationen Ihrer Partnerin auf.', trap: 'Eine Liste einzelner Wörter wirkt auswendig gelernt und zeigt kaum Interaktion.' },
+    sp2: { headline: 'Zusammenfassen, Stellung nehmen, begründen', steps: ['Fremde Meinung neutral wiedergeben', 'Eigene Meinung mit Grund nennen', 'Erfahrung oder Beispiel ergänzen'], tip: 'Reagieren Sie direkt auf die andere Meinung. Zustimmen und widersprechen Sie höflich und begründet.', trap: 'Nur die Karte vorzulesen erfüllt die Diskussionsaufgabe nicht.' },
+    sp3: { headline: 'Gemeinsam zu einer Entscheidung kommen', steps: ['Konkreten Vorschlag machen', 'Auf Gegenvorschläge reagieren', 'Kompromiss und Zuständigkeit festhalten'], tip: 'Ein gutes Gespräch enthält Vorschläge, Gründe, Rückfragen und am Ende eine klare gemeinsame Lösung.', trap: 'Nur eigene Ideen aufzuzählen, ohne auf die Partnerin zu reagieren, kostet Aufgabenpunkte.' },
+  };
+  if (EXAM_LEVEL === 'B1' && b1[part.id]) return b1[part.id];
+  return { headline: 'Erst Aufgabe, dann Lösung', steps: ['Schlüsselwörter lesen', 'Passende Information suchen', 'Details und Negationen prüfen'], tip: 'Arbeiten Sie Schritt für Schritt und vergleichen Sie die Antwort direkt mit der Aufgabe.', trap: 'Ein einzelnes gleiches Wort beweist noch nicht, dass die Antwort stimmt.' };
+}
+
 function trainingHintHtml(part) {
   if (state.mode !== 'practice') return '';
+  if (EXAM_LEVEL === 'B1') {
+    const strategy = trainingStrategy(part);
+    return `<details class="training-hint training-strategy"><summary><span>Prüfungsstrategie</span><b>${esc(strategy.headline)}</b></summary><div><p>${esc(strategy.tip)}</p><p><strong>Typische Falle:</strong> ${esc(strategy.trap)}</p></div></details>`;
+  }
   const tips = {
     'audio-choice': 'Lesen Sie vor dem Hören alle drei Antworten. Achten Sie besonders auf Zahlen, Uhrzeiten, Orte und Korrekturen mit „nicht … sondern“.',
     'audio-fill': 'Notieren Sie nur die verlangte Information. Ein kurzes Wort, eine Zahl oder eine Uhrzeit reicht.',
@@ -1053,7 +1092,9 @@ function renderForm(section, part) {
 
 function renderWrite(section, part) {
   const training = state.mode === 'practice';
-  const phraseBank = ['Hallo …,', 'Sehr geehrte Damen und Herren,', 'leider', 'weil', 'deshalb', 'Können Sie bitte …?', 'Vielen Dank.', 'Viele Grüße'];
+  const phraseBank = EXAM_LEVEL === 'B1'
+    ? ['Liebe / Lieber …,', 'Sehr geehrte …,', 'vielen Dank für …', 'meiner Meinung nach', 'weil', 'deshalb', 'außerdem', 'allerdings', 'Könnten Sie bitte …?', 'Ich schlage vor, dass …', 'Ich freue mich auf …', 'Viele Grüße']
+    : ['Hallo …,', 'Sehr geehrte Damen und Herren,', 'leider', 'weil', 'deshalb', 'Können Sie bitte …?', 'Vielen Dank.', 'Viele Grüße'];
   app.innerHTML = questionShell(section, part, `
     ${trainingHintHtml(part)}
     <div class="passage"><span class="passage-label">Aufgabe</span>${esc(part.instructions)}</div>
@@ -1146,12 +1187,18 @@ function renderSpeak(section, part) {
 }
 
 function speakingCoachHtml(part) {
-  const checks = part.id === 'sp1'
-    ? ['Mindestens zwei Informationen', 'Vollständige Sätze', 'Deutliches Ende']
-    : part.id === 'sp2'
-      ? ['Passende Frage oder Antwort', 'Direkte Reaktion auf Mia', 'Mindestens ein vollständiger Satz']
-      : ['Konkreter Vorschlag', 'Zustimmen oder widersprechen', 'Grund oder Kompromiss nennen'];
-  return `<aside class="speaking-coach" id="speaking-coach"><header><span>TRAININGSCOACH</span><b>So klingt eine starke ${EXAM_LEVEL}-Antwort</b></header><ul>${checks.map((label, index) => `<li data-check="${index}"><i>✓</i>${label}</li>`).join('')}</ul></aside>`;
+  const checks = EXAM_LEVEL === 'B1'
+    ? part.id === 'sp1'
+      ? ['Mehrere Angaben verbunden', 'Auf die Partnerin reagiert', 'Selbst nachgefragt']
+      : part.id === 'sp2'
+        ? ['Meinung zusammengefasst', 'Eigene Position begründet', 'Erfahrung oder Beispiel genannt']
+        : ['Konkreten Vorschlag gemacht', 'Auf Gegenvorschlag reagiert', 'Kompromiss oder Entscheidung erreicht']
+    : part.id === 'sp1'
+      ? ['Mindestens zwei Informationen', 'Vollständige Sätze', 'Deutliches Ende']
+      : part.id === 'sp2'
+        ? ['Passende Frage oder Antwort', 'Direkte Reaktion auf Mia', 'Mindestens ein vollständiger Satz']
+        : ['Konkreter Vorschlag', 'Zustimmen oder widersprechen', 'Grund oder Kompromiss nennen'];
+  return `<aside class="speaking-coach" id="speaking-coach"><header><span>TRAININGSCOACH</span><b>So klingt eine starke ${EXAM_LEVEL}-Antwort</b></header><ul>${checks.map((label, index) => `<li data-check="${index}"><i>✓</i>${label}</li>`).join('')}</ul>${EXAM_LEVEL === 'B1' ? trainingHintHtml(part) : ''}</aside>`;
 }
 
 function updateSpeakingCoach(part, value) {
@@ -1164,7 +1211,9 @@ function updateSpeakingCoach(part, value) {
   if (bar) bar.style.width = `${percent}%`;
   const text = String(value || '').toLowerCase();
   let checks;
-  if (part.id === 'sp1') checks = [words >= 5, /\b(ich|mein|meine|aus|wohne|arbeite|lerne)\b/i.test(text) && words >= 8, words >= 12];
+  if (EXAM_LEVEL === 'B1' && part.id === 'sp1') checks = [words >= 18 && /\b(ich|mein|meine|aus|wohne|arbeite|lerne)\b/i.test(text), /\b(du|sie|ihnen|auch|interessant|verstehe)\b/i.test(text), /\?|\b(und du|und sie|wie ist|was machen)\b/i.test(text)];
+  else if (EXAM_LEVEL === 'B1' && part.id === 'sp2') checks = [/\b(er|sie|person|meinung|standpunkt|findet|meint|glaubt)\b/i.test(text), /\b(ich finde|ich denke|meiner meinung|stimme|sehe das)\b/i.test(text) && /\b(weil|denn|deshalb|darum)\b/i.test(text), /\b(erfahrung|zum beispiel|bei mir|einmal|in meinem|ich habe)\b/i.test(text)];
+  else if (part.id === 'sp1') checks = [words >= 5, /\b(ich|mein|meine|aus|wohne|arbeite|lerne)\b/i.test(text) && words >= 8, words >= 12];
   else if (part.id === 'sp2') checks = [/\?|\b(wer|wie|was|wann|wo|warum|welche|können|möchten)\b/i.test(text), /\b(ja|nein|gern|auch|aber|mia|finde|denke)\b/i.test(text), words >= 8];
   else checks = [/\b(vorschlag|schlage|können|sollten|würde|möchte)\b/i.test(text), /\b(ja|einverstanden|leider|aber|lieber|stimmt)\b/i.test(text), /\b(weil|deshalb|dann|kompromiss|also)\b/i.test(text) || words >= 12];
   document.querySelectorAll('#speaking-coach [data-check]').forEach((item, index) => item.classList.toggle('done', !!checks[index]));
@@ -1509,18 +1558,27 @@ function scoreAuto(section) {
   let max = 0;
   let correctItems = 0;
   let totalItems = 0;
+  const details = [];
   const weighted = section.parts.some((part) => (part.items || []).some((item) => Number.isFinite(Number(item.points))));
-  section.parts.forEach((part) => (part.items || []).forEach((item) => {
-    const itemPoints = weighted ? Number(item.points || 0) : 1;
-    max += itemPoints;
-    totalItems++;
-    const answer = state.answers[item.id];
-    const ok = item.answer !== undefined && answer !== undefined && (part.type === 'audio-fill' ? textAnswerCorrect(answer, item.answer) : answer === item.answer);
-    if (ok) { got += itemPoints; correctItems++; }
-    state.review.push({ sectionId: section.id, sec: section.title, part: part.title, q: item.question || item.statement || item.situation, your: labelChoice(item, part, answer), correct: labelChoice(item, part, item.answer), ok, explain: item.explain || '' });
-  }));
+  section.parts.forEach((part) => {
+    let partPoints = 0;
+    let partMaximum = 0;
+    let partCorrect = 0;
+    for (const item of part.items || []) {
+      const itemPoints = weighted ? Number(item.points || 0) : 1;
+      max += itemPoints;
+      partMaximum += itemPoints;
+      totalItems++;
+      const answer = state.answers[item.id];
+      const ok = item.answer !== undefined && answer !== undefined && (part.type === 'audio-fill' ? textAnswerCorrect(answer, item.answer) : answer === item.answer);
+      if (ok) { got += itemPoints; partPoints += itemPoints; correctItems++; partCorrect++; }
+      state.review.push({ sectionId: section.id, sec: section.title, part: part.title, q: item.question || item.statement || item.situation, your: labelChoice(item, part, answer), correct: labelChoice(item, part, item.answer), ok, explain: item.explain || '' });
+    }
+    if (partMaximum) details.push({ id: part.id, title: part.title, pts: partPoints, max: partMaximum, got: partCorrect, items: (part.items || []).length });
+  });
   const points = weighted ? got : Math.round((got / Math.max(1, max)) * section.maxPoints);
-  state.scores[section.id] = { pts: points, max: section.maxPoints, got: correctItems, items: totalItems };
+  if (!weighted && max) details.forEach((detail) => { detail.pts = Math.round((detail.pts / max) * section.maxPoints); detail.max = Math.round((detail.max / max) * section.maxPoints); });
+  state.scores[section.id] = { pts: points, max: section.maxPoints, got: correctItems, items: totalItems, details };
   state.autoScored[section.id] = true;
 }
 
@@ -1545,8 +1603,10 @@ async function gradeAi(section, part, showLoading = false) {
   const maxPoints = part.rubric?.maxPoints || section.maxPoints;
   const points = officialProductivePoints(result, answer, part, maxPoints);
   const rubricBreakdown = buildProductiveRubric(part, result, points, maxPoints);
-  const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints };
-  state.scores[section.id] = { pts: Math.min(section.maxPoints, (previous.pts || 0) + points), max: section.maxPoints };
+  const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints, details: [] };
+  const details = Array.isArray(previous.details) ? previous.details.filter((entry) => entry.id !== part.id) : [];
+  details.push({ id: part.id, title: part.title, pts: points, max: maxPoints });
+  state.scores[section.id] = { ...previous, pts: Math.min(section.maxPoints, (previous.pts || 0) + points), max: section.maxPoints, details };
   state.ai[part.id] = { ...(result || {}), duvelaBreakdown: rubricBreakdown, evaluationSource: result ? `KI + ${EXAM_LEVEL}-Raster` : `DUVELA ${EXAM_LEVEL}-Raster` };
   state.graded[gradeKey] = true;
   const breakdown = rubricBreakdown.map((entry) => `${entry.criterion}: ${entry.points}/${entry.maxPoints}`).join(' · ');
@@ -1705,8 +1765,11 @@ function scoreForm(section) {
     if (ok) correct++;
     state.review.push({ sectionId: section.id, sec: section.title, part: form.title, q: field.label, your: state.answers[field.id] || '—', correct: field.expected, ok, explain: '' });
   });
-  const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints };
-  state.scores[section.id] = { pts: Math.min(section.maxPoints, (previous.pts || 0) + Math.round((correct / Math.max(1, form.fields.length)) * 5)), max: section.maxPoints };
+  const previous = state.scores[section.id] || { pts: 0, max: section.maxPoints, details: [] };
+  const partPoints = Math.round((correct / Math.max(1, form.fields.length)) * 5);
+  const details = Array.isArray(previous.details) ? previous.details.filter((entry) => entry.id !== form.id) : [];
+  details.push({ id: form.id, title: form.title, pts: partPoints, max: 5, got: correct, items: form.fields.length });
+  state.scores[section.id] = { ...previous, pts: Math.min(section.maxPoints, (previous.pts || 0) + partPoints), max: section.maxPoints, details };
   state.formScored = true;
 }
 
@@ -1808,7 +1871,7 @@ async function results() {
   const isFull = sections.length === exam.sections.length;
   const passDetails = examPassDetails(rows, isFull);
   const passed = !state.aborted && passDetails.passed;
-  const predicate = state.aborted ? 'Vorzeitig beendet' : isFull ? resultPredicate(percent) : 'Training abgeschlossen';
+  const predicate = state.aborted ? 'Vorzeitig beendet' : isFull ? (EXAM_LEVEL === 'B1' && !passed ? 'Teilprüfung noch nicht bestanden' : resultPredicate(percent)) : 'Training abgeschlossen';
   const sectionScores = rows.reduce((result, row) => { result[row.id] = { pts: row.pts, max: row.max, pct: row.pct }; return result; }, {});
   const previousAttempt = readExamHistory().find((entry) => entry.level === EXAM_LEVEL && entry.mode === 'exam');
   const saved = state.mode === 'exam' && isFull ? await saveAttempt(percent, passed, sectionScores) : false;
@@ -1821,6 +1884,9 @@ async function results() {
   const focusRows = [...rows].sort((a, b) => a.pct - b.pct).slice(0, 2);
   const reportDate = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.finishedAt));
   const integrity = state.integrity || { focusLeaves: 0, reconnects: 0, reloads: 0 };
+  const detailRows = resultDetailRows(sections);
+  const writtenPoints = rows.filter((row) => ['lesen', 'hoeren', 'schreiben'].includes(row.id)).reduce((sum, row) => sum + Number(row.pts || 0), 0);
+  const oralPoints = Number(rows.find((row) => row.id === 'sprechen')?.pts || 0);
 
   app.innerHTML = `
     <div class="result-wrap">
@@ -1841,20 +1907,51 @@ async function results() {
         <div><small>BERICHTSNUMMER</small><b>${esc(state.reportId || '—')}</b></div>
         <div><small>DATUM</small><b>${esc(reportDate)}</b></div>
       </section>
+      ${EXAM_LEVEL === 'B1' && isFull ? `<section class="b1-pass-gates" aria-label="Bestehensgrenzen"><article class="${writtenPoints >= 135 ? 'passed' : 'failed'}"><span><small>SCHRIFTLICHE PRÜFUNG</small><b>${writtenPoints >= 135 ? 'Grenze erreicht' : 'Grenze noch nicht erreicht'}</b></span><strong>${writtenPoints} / 225</strong><i><b style="width:${Math.min(100, Math.round(writtenPoints / 225 * 100))}%"></b></i><small>mindestens 135 Punkte</small></article><article class="${oralPoints >= 45 ? 'passed' : 'failed'}"><span><small>MÜNDLICHE PRÜFUNG</small><b>${oralPoints >= 45 ? 'Grenze erreicht' : 'Grenze noch nicht erreicht'}</b></span><strong>${oralPoints} / 75</strong><i><b style="width:${Math.min(100, Math.round(oralPoints / 75 * 100))}%"></b></i><small>mindestens 45 Punkte</small></article></section>` : ''}
       <section class="paper-card question-card"><span class="eyebrow">Leistungsprofil</span><h2>Ergebnis nach Fertigkeit</h2><div class="score-grid">${rows.map(scoreBox).join('')}</div></section>
       ${productiveRubricHtml(sections)}
       <section class="paper-card question-card result-guidance"><span class="eyebrow">Nächster Schwerpunkt</span><h2>${esc(weakest?.title || 'Weiterlernen')}</h2><p class="lead">${esc(resultRecommendation(weakest?.id, weakest?.pct || 0))}</p>${state.mode === 'exam' ? `<div class="integrity-strip"><span><small>NEUSTARTS</small><b>${integrity.reloads}</b></span><span><small>FENSTER VERLASSEN</small><b>${integrity.focusLeaves}</b></span><span><small>VERBINDUNG WIEDERHERGESTELLT</small><b>${integrity.reconnects}</b></span></div>` : ''}</section>
       <section class="paper-card question-card improvement-plan"><span class="eyebrow">Ihr 7-Tage-Plan</span><h2>Die nächsten zwei Schritte</h2><div>${focusRows.map((row, index) => `<article><i>${index + 1}</i><span><b>${esc(row.title)}</b><small>${esc(resultRecommendation(row.id, row.pct))}</small></span><strong>${row.pct}%</strong></article>`).join('')}</div></section>
-      <section class="paper-card question-card report-table-wrap"><span class="eyebrow">Punkteübersicht</span><table class="report-table"><thead><tr><th>Fertigkeit</th><th>Punkte</th><th>Maximum</th><th>Ergebnis</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${esc(row.title)}</td><td>${row.pts}</td><td>${row.max}</td><td>${row.pct}%</td></tr>`).join('')}</tbody><tfoot><tr><th>Gesamt</th><th>${points}</th><th>${maxPoints}</th><th>${percent}%</th></tr></tfoot></table></section>
+      <section class="paper-card question-card report-table-wrap"><span class="eyebrow">Detaillierte Punkteübersicht</span><h2>Jeder Prüfungsteil einzeln</h2><table class="report-table detail-report-table"><thead><tr><th>Fertigkeit / Teil</th><th>Punkte</th><th>Maximum</th><th>Ergebnis</th></tr></thead><tbody>${detailRows.map((row) => row.group ? `<tr class="detail-group"><th>${esc(row.title)}</th><th>${formatRubricPoint(row.pts)}</th><th>${formatRubricPoint(row.max)}</th><th>${row.pct}%</th></tr>` : `<tr><td><span>${esc(row.title)}</span>${row.items ? `<small>${row.got ?? 0} / ${row.items} Aufgaben richtig</small>` : ''}</td><td>${formatRubricPoint(row.pts)}</td><td>${formatRubricPoint(row.max)}</td><td>${row.pct}%</td></tr>`).join('')}</tbody><tfoot><tr><th>Gesamt</th><th>${points}</th><th>${maxPoints}</th><th>${percent}%</th></tr></tfoot></table></section>
+      ${EXAM_LEVEL === 'B1' && isFull ? trainingCertificateHtml({ points, maxPoints, percent, passed, writtenPoints, oralPoints, reportDate }) : ''}
       <section class="paper-card question-card"><span class="eyebrow">Auswertung</span><h2>Antworten und Erklärungen</h2><p class="muted">Nutzen Sie die Hinweise, um Ihren nächsten Trainingsschwerpunkt zu wählen.</p><div class="review-list">${reviewHtml(sections)}</div></section>
-      <div class="result-actions no-print"><button class="button primary" id="download-report">PDF speichern / drucken</button><button class="button secondary" id="share-result">Ergebnis kopieren</button><button class="button secondary" id="again">Neuen Modelltest starten</button><button class="button secondary" id="home">Zum Lernbereich</button></div>
+      <div class="result-actions no-print"><button class="button primary" id="download-report">Ausführlichen PDF-Bericht speichern</button>${EXAM_LEVEL === 'B1' && isFull ? '<button class="button secondary certificate-button" id="download-certificate">Trainingsnachweis als PDF</button>' : ''}<button class="button secondary" id="share-result">Ergebnis kopieren</button><button class="button secondary" id="again">Neuen Modelltest starten</button><button class="button secondary" id="home">Zum Lernbereich</button></div>
       <footer class="report-footer print-only"><span>DUVELA EXAM · ${esc(state.reportId)}</span><span>Übungsauswertung · kein offizielles Zertifikat</span></footer>
       <p class="small muted">Der DUVELA-Ergebnisbericht ist eine Übungsauswertung und kein offizielles Sprachzertifikat.</p>
     </div>`;
   document.getElementById('download-report').onclick = printResultReport;
+  document.getElementById('download-certificate')?.addEventListener('click', printTrainingCertificate);
   document.getElementById('share-result').onclick = () => shareResult(points, maxPoints, percent, passed);
   document.getElementById('again').onclick = renderSetup;
   document.getElementById('home').onclick = () => { location.href = './app.html?role=learner#study'; };
+}
+
+function resultDetailRows(sections) {
+  const rows = [];
+  for (const section of sections) {
+    const score = state.scores[section.id] || { pts: 0, max: section.maxPoints, details: [] };
+    rows.push({ group: true, title: section.title, pts: score.pts || 0, max: score.max || section.maxPoints, pct: Math.round(((score.pts || 0) / Math.max(1, score.max || section.maxPoints)) * 100) });
+    for (const detail of score.details || []) rows.push({ ...detail, pct: Math.round((Number(detail.pts || 0) / Math.max(.5, Number(detail.max || 0))) * 100) });
+  }
+  return rows;
+}
+
+function trainingCertificateHtml({ points, maxPoints, percent, passed, writtenPoints, oralPoints, reportDate }) {
+  const candidate = state.candidateName || 'Trainingsteilnehmer/in';
+  return `<section class="training-certificate" aria-label="DUVELA B1 Trainingsnachweis">
+    <div class="certificate-frame">
+      <header><div class="certificate-brand"><b>DUVELA</b><strong>EXAM</strong></div><span>DEUTSCH · B1</span></header>
+      <div class="certificate-kicker">PERSÖNLICHER TRAININGSNACHWEIS</div>
+      <h2>Prüfungssimulation<br><strong>${passed ? 'erfolgreich abgeschlossen' : 'vollständig bearbeitet'}</strong></h2>
+      <p>Dieser Trainingsnachweis bestätigt, dass</p>
+      <h3>${esc(candidate)}</h3>
+      <p>den DUVELA Modelltest „${esc(exam.title)}“ im Format Zertifikat Deutsch / telc Deutsch B1 bearbeitet hat.</p>
+      <div class="certificate-score"><span><small>GESAMTERGEBNIS</small><b>${points} / ${maxPoints}</b><strong>${percent}%</strong></span><i>${passed ? 'ZIEL<br>ERREICHT' : 'WEITER<br>TRAINIEREN'}</i></div>
+      <div class="certificate-parts"><span><small>SCHRIFTLICH</small><b>${writtenPoints} / 225</b></span><span><small>MÜNDLICH</small><b>${oralPoints} / 75</b></span><span><small>STATUS</small><b>${passed ? 'Bestanden' : 'Noch nicht bestanden'}</b></span></div>
+      <footer><span><b>${esc(reportDate)}</b><small>Datum</small></span><span><b>${esc(state.reportId || '—')}</b><small>Berichtsnummer</small></span><strong>DUVELA</strong></footer>
+      <p class="certificate-disclaimer">Persönlicher Übungs- und Trainingsnachweis. Kein offizielles telc-Zertifikat und kein behördlicher Sprachnachweis.</p>
+    </div>
+  </section>`;
 }
 
 function productiveRubricHtml(sections) {
@@ -1909,13 +2006,27 @@ function printResultReport() {
   setTimeout(() => { document.title = oldTitle; }, 500);
 }
 
+function printTrainingCertificate() {
+  const oldTitle = document.title;
+  document.body.classList.add('certificate-print');
+  document.title = `DUVELA_${EXAM_LEVEL}_Trainingsnachweis_${state.candidateNumber || state.reportId}`;
+  const cleanup = () => {
+    document.body.classList.remove('certificate-print');
+    document.title = oldTitle;
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  window.print();
+  setTimeout(cleanup, 1500);
+}
+
 function resultRecommendation(sectionId, percent) {
   const level = percent < 40 ? `Beginnen Sie mit kurzen, klaren ${EXAM_LEVEL}-Aufgaben und wiederholen Sie sie täglich.` : 'Festigen Sie diesen Bereich mit einem weiteren Modelltest und prüfen Sie danach Ihre Fehler.';
   const advice = {
     hoeren: 'Trainieren Sie Uhrzeiten, Zahlen und kurze Ansagen. Hören Sie zuerst auf Schlüsselwörter und erst danach auf Details.',
     lesen: 'Markieren Sie Namen, Zeiten, Orte und Negationen. Vergleichen Sie anschließend jede Aussage direkt mit dem Text.',
-    schreiben: 'Üben Sie Formularfelder und kurze Mitteilungen mit Anrede, drei Leitpunkten und Schlussformel.',
-    sprechen: EXAM_LEVEL === 'A2' ? 'Üben Sie vollständige Sätze, Rückfragen, Vorschläge, Reaktionen und gemeinsame Entscheidungen laut.' : 'Antworten Sie in vollständigen, einfachen Sätzen und üben Sie Fragen, Bitten, Buchstabieren und Zahlen laut.',
+    schreiben: EXAM_LEVEL === 'B1' ? 'Planen Sie vier Leitpunkte, verbinden Sie Ihre Gedanken mit passenden Konnektoren und prüfen Sie Textsorte, Anrede sowie Schluss.' : 'Üben Sie Formularfelder und kurze Mitteilungen mit Anrede, drei Leitpunkten und Schlussformel.',
+    sprechen: EXAM_LEVEL === 'B1' ? 'Üben Sie, Meinungen zusammenzufassen, Ihre Position zu begründen, Erfahrungen zu nennen und mit einer Partnerin eine Entscheidung auszuhandeln.' : EXAM_LEVEL === 'A2' ? 'Üben Sie vollständige Sätze, Rückfragen, Vorschläge, Reaktionen und gemeinsame Entscheidungen laut.' : 'Antworten Sie in vollständigen, einfachen Sätzen und üben Sie Fragen, Bitten, Buchstabieren und Zahlen laut.',
   };
   return `${advice[sectionId] || 'Wiederholen Sie die Aufgaben, bei denen Sie Punkte verloren haben.'} ${level}`;
 }
