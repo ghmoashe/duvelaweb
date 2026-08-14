@@ -13,6 +13,7 @@ const files = [
   'legal.html',
   'telc-exam.html',
   'telc-a2-exam.html',
+  'telc-b1-exam.html',
   'sw.js',
   'logo.webp',
   'logo2.png',
