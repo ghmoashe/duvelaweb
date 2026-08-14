@@ -35,6 +35,7 @@ let activeRecorderCleanup = null;
 let activeExamAudio = null;
 let preflightMicUrl = '';
 const SESSION_KEY = `duvela_exam_session_${EXAM_LEVEL.toLowerCase()}_v2`;
+const HISTORY_KEY = 'duvela_exam_history_v1';
 const preflight = { sound: false, microphone: false, browser: false, online: navigator.onLine, recording: false };
 
 const state = {
@@ -288,6 +289,43 @@ function savedSession() {
   } catch { return null; }
 }
 
+function readExamHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    return Array.isArray(history) ? history.filter((entry) => entry && ['A1', 'A2'].includes(entry.level)) : [];
+  } catch { return []; }
+}
+
+function saveLocalAttempt(attempt) {
+  try {
+    const history = readExamHistory();
+    history.unshift({ id: state.reportId, date: new Date(state.finishedAt).toISOString(), ...attempt });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 60)));
+    return true;
+  } catch { return false; }
+}
+
+function levelProgress(level) {
+  const attempts = readExamHistory().filter((entry) => entry.level === level && entry.mode === 'exam');
+  const completed = new Set(attempts.map((entry) => entry.testId)).size;
+  const best = attempts.length ? Math.max(...attempts.map((entry) => Number(entry.percent) || 0)) : null;
+  return { attempts, completed, best };
+}
+
+function progressHubHtml() {
+  const cards = ['A1', 'A2'].map((level) => {
+    const progress = levelProgress(level);
+    const href = level === 'A1' ? './telc-exam.html' : './telc-a2-exam.html';
+    const current = level === EXAM_LEVEL;
+    return `<a class="level-progress ${current ? 'current' : ''}" href="${href}" ${current ? 'aria-current="page"' : ''}>
+      <span class="level-progress-mark">${level}</span>
+      <span><small>Deutsch ${level}</small><b>✓ ${progress.completed} / 5</b></span>
+      <strong>${progress.best == null ? '—' : `★ ${progress.best}%`}</strong>
+    </a>`;
+  }).join('');
+  return `<section class="progress-hub"><header><span class="eyebrow">DUVELA EXAM</span><h2>A1 + A2</h2></header><div>${cards}</div></section>`;
+}
+
 // ---------- setup ----------
 function syncLocalizedChrome() {
   const locale = uiLocaleMeta();
@@ -355,6 +393,7 @@ function renderSetup() {
         ${blueprintCard('03', 'Schreiben', 'Formular + Mitteilung', 'ca. 20 Min.', '15 Punkte')}
         ${blueprintCard('04', 'Sprechen', EXAM_LEVEL === 'A2' ? 'Vorstellen · Gespräch · Aushandeln' : 'Vorstellen · Fragen · Bitten', 'ca. 15 Min.', '15 Punkte')}
       </div>
+      ${progressHubHtml()}
     </section>`;
 
   app.querySelectorAll('[data-mode]').forEach((button) => {
@@ -894,20 +933,50 @@ function renderSpeak(section, part) {
   const canRecord = !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   app.innerHTML = questionShell(section, part, `
+    ${EXAM_LEVEL === 'A2' && part.type === 'speak-cards' ? `<div class="speaking-topic-visual topic-${Number(exam.visualPanel) || 1}" role="img" aria-label="Thema: ${esc(exam.topic || part.instructions)}"><span><small>THEMA</small><b>${esc(exam.topic || part.instructions)}</b></span></div>` : ''}
     <div class="speaking-room">
       <div class="examiner-row"><span class="examiner-avatar">D</span><div class="examiner-bubble"><small>${esc(turn.role)}</small><b>${esc(turn.prompt)}</b>${turn.spoken ? `<button class="speaker-mini" id="speak-prompt" aria-label="Ansage wiederholen">▶ Ansage</button>` : ''}</div></div>
       ${turn.partner ? `<div class="partner-row"><span class="partner-avatar">M</span><div><small>Prüfungspartnerin Mia</small><p>${esc(turn.partner)}</p></div></div>` : ''}
       ${turn.keyword ? `<div class="speaking-card"><small>IHRE KARTE</small><b>${esc(turn.keyword)}</b>${state.mode === 'practice' && turn.example ? `<p>Beispiel: ${esc(turn.example)}</p>` : ''}</div>` : ''}
     </div>
-    ${(canRecord || Recognition) ? `<div class="recording-box"><button class="record-button" id="record" aria-label="Aufnahme starten">●</button><div><b id="record-title">Antwort aufnehmen</b><small id="record-status">Drücken Sie auf den roten Knopf und sprechen Sie deutlich.</small></div><audio class="audio-playback" id="playback" controls hidden></audio></div>` : '<p class="exam-note">Ihr Browser unterstützt keine Audioaufnahme. Schreiben Sie ersatzweise ein Transkript Ihrer Antwort.</p>'}
-    <div class="field"><label for="speak-answer">Transkript dieser Antwort</label><textarea id="speak-answer" placeholder="Das erkannte Gesprochene erscheint hier. Sie können den Text korrigieren.">${esc(state.answers[answerKey] || '')}</textarea></div>`);
+    ${(canRecord || Recognition) ? `<div class="recording-box"><button class="record-button" id="record" aria-label="Aufnahme starten">●</button><div><b id="record-title">Antwort aufnehmen <span class="record-time" id="record-time">00:00</span></b><small id="record-status">Drücken Sie auf den roten Knopf und sprechen Sie deutlich.</small></div><audio class="audio-playback" id="playback" controls hidden></audio></div>` : '<p class="exam-note">Ihr Browser unterstützt keine Audioaufnahme. Schreiben Sie ersatzweise ein Transkript Ihrer Antwort.</p>'}
+    <div class="field"><label for="speak-answer">Transkript dieser Antwort</label><textarea id="speak-answer" placeholder="Das erkannte Gesprochene erscheint hier. Sie können den Text korrigieren.">${esc(state.answers[answerKey] || '')}</textarea></div>
+    <div class="speech-readiness"><span><b id="speech-word-count">0 Wörter</b><small>A2-Ziel: klar, vollständig und verbunden</small></span><i><b id="speech-readiness-bar"></b></i></div>
+    ${state.mode === 'practice' ? speakingCoachHtml(part) : ''}`);
   const textarea = document.getElementById('speak-answer');
   activeCollector = () => { state.answers[answerKey] = textarea.value.trim(); persistSession(); };
-  textarea.addEventListener('input', activeCollector);
+  const updateCoach = () => updateSpeakingCoach(part, textarea.value);
+  textarea.addEventListener('input', () => { activeCollector(); updateCoach(); });
+  updateCoach();
   setupRecorder(part, answerKey, textarea, Recognition, canRecord);
   wireNavigation(section, part, activeCollector);
   document.getElementById('speak-prompt')?.addEventListener('click', () => speak(turn.spoken));
   if (state.mode === 'exam' && turn.spoken) setTimeout(() => speak(turn.spoken), 500);
+}
+
+function speakingCoachHtml(part) {
+  const checks = part.id === 'sp1'
+    ? ['Mindestens zwei Informationen', 'Vollständige Sätze', 'Deutliches Ende']
+    : part.id === 'sp2'
+      ? ['Passende Frage oder Antwort', 'Direkte Reaktion auf Mia', 'Mindestens ein vollständiger Satz']
+      : ['Konkreter Vorschlag', 'Zustimmen oder widersprechen', 'Grund oder Kompromiss nennen'];
+  return `<aside class="speaking-coach" id="speaking-coach"><header><span>TRAININGSCOACH</span><b>So klingt eine starke A2-Antwort</b></header><ul>${checks.map((label, index) => `<li data-check="${index}"><i>✓</i>${label}</li>`).join('')}</ul></aside>`;
+}
+
+function updateSpeakingCoach(part, value) {
+  const words = wordCount(value);
+  const wordTarget = part.id === 'sp1' ? 12 : 8;
+  const percent = Math.min(100, Math.round((words / wordTarget) * 100));
+  const count = document.getElementById('speech-word-count');
+  const bar = document.getElementById('speech-readiness-bar');
+  if (count) count.textContent = `${words} Wörter`;
+  if (bar) bar.style.width = `${percent}%`;
+  const text = String(value || '').toLowerCase();
+  let checks;
+  if (part.id === 'sp1') checks = [words >= 5, /\b(ich|mein|meine|aus|wohne|arbeite|lerne)\b/i.test(text) && words >= 8, words >= 12];
+  else if (part.id === 'sp2') checks = [/\?|\b(wer|wie|was|wann|wo|warum|welche|können|möchten)\b/i.test(text), /\b(ja|nein|gern|auch|aber|mia|finde|denke)\b/i.test(text), words >= 8];
+  else checks = [/\b(vorschlag|schlage|können|sollten|würde|möchte)\b/i.test(text), /\b(ja|einverstanden|leider|aber|lieber|stimmt)\b/i.test(text), /\b(weil|deshalb|dann|kompromiss|also)\b/i.test(text) || words >= 12];
+  document.querySelectorAll('#speaking-coach [data-check]').forEach((item, index) => item.classList.toggle('done', !!checks[index]));
 }
 
 function speakingTurns(part) {
@@ -954,6 +1023,8 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
   let stream = null;
   let chunks = [];
   let recording = false;
+  let recordTimer = null;
+  let recordStartedAt = 0;
   let finalText = textarea.value ? `${textarea.value} ` : '';
   const status = document.getElementById('record-status');
   const title = document.getElementById('record-title');
@@ -962,6 +1033,8 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
     try { if (mediaRecorder?.state === 'recording') mediaRecorder.stop(); } catch {}
     stream?.getTracks().forEach((track) => track.stop());
     recording = false;
+    if (recordTimer) clearInterval(recordTimer);
+    recordTimer = null;
     button.classList.remove('active');
     button.textContent = '●';
     title.textContent = 'Antwort aufnehmen';
@@ -995,6 +1068,7 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
               if (error || data?.error) throw error || new Error(data.error);
               textarea.value = String(data?.text || '').trim();
               activeCollector?.();
+              updateSpeakingCoach(part, textarea.value);
               status.textContent = textarea.value
                 ? 'Transkript erstellt. Bitte kurz prüfen und bei Bedarf korrigieren.'
                 : 'Keine Sprache erkannt. Bitte noch einmal aufnehmen oder den Text eingeben.';
@@ -1019,11 +1093,22 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
         let current = '';
         for (let index = event.resultIndex; index < event.results.length; index++) current += event.results[index][0].transcript;
         textarea.value = finalText + current;
+        activeCollector?.();
+        updateSpeakingCoach(part, textarea.value);
       };
       recognition.onend = () => { finalText = textarea.value ? `${textarea.value} ` : finalText; };
       try { recognition.start(); } catch {}
     }
     recording = true;
+    recordStartedAt = Date.now();
+    const timer = document.getElementById('record-time');
+    const tickRecordTime = () => {
+      if (!timer) return;
+      const seconds = Math.max(0, Math.floor((Date.now() - recordStartedAt) / 1000));
+      timer.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+    };
+    tickRecordTime();
+    recordTimer = setInterval(tickRecordTime, 1000);
     button.classList.add('active');
     button.textContent = '■';
     title.textContent = 'Aufnahme läuft';
@@ -1401,19 +1486,30 @@ async function results() {
   const passed = isFull && !state.aborted && points >= 36;
   const predicate = state.aborted ? 'Vorzeitig beendet' : isFull ? resultPredicate(points) : 'Training abgeschlossen';
   const sectionScores = rows.reduce((result, row) => { result[row.id] = { pts: row.pts, max: row.max, pct: row.pct }; return result; }, {});
+  const previousAttempt = readExamHistory().find((entry) => entry.level === EXAM_LEVEL && entry.mode === 'exam');
   const saved = state.mode === 'exam' && isFull ? await saveAttempt(percent, passed, sectionScores) : false;
   const durationMinutes = Math.max(1, Math.round((Date.now() - state.startTime) / 60000));
+  const localSaved = state.mode === 'exam' && isFull ? saveLocalAttempt({ level: EXAM_LEVEL, mode: state.mode, testId: exam.id, percent, points, passed, durationMinutes, sectionScores }) : false;
   const statusLabel = state.aborted ? 'ABGEBROCHEN' : isFull ? (passed ? 'BESTANDEN' : 'NOCH NICHT BESTANDEN') : 'ABGESCHLOSSEN';
   const weakest = rows.reduce((lowest, row) => !lowest || row.pct < lowest.pct ? row : lowest, null);
+  const strongest = rows.reduce((highest, row) => !highest || row.pct > highest.pct ? row : highest, null);
+  const delta = previousAttempt ? percent - Number(previousAttempt.percent || 0) : null;
+  const focusRows = [...rows].sort((a, b) => a.pct - b.pct).slice(0, 2);
   const reportDate = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(state.finishedAt));
   const integrity = state.integrity || { focusLeaves: 0, reconnects: 0, reloads: 0 };
 
   app.innerHTML = `
     <div class="result-wrap">
       <section class="report-heading print-only"><div><b>DUVELA</b><strong>EXAM</strong></div><span>Ergebnisbericht · Deutsch ${EXAM_LEVEL}</span></section>
-      <section class="result-card result-hero">
-        <div><span class="eyebrow">${state.mode === 'exam' ? 'Prüfungsergebnis' : 'Trainingsergebnis'} · ${esc(exam.title)}</span><span class="result-status ${isFull && !passed ? 'fail' : ''}">${statusLabel}</span><h2 style="margin-top:14px">${esc(predicate)}</h2><p class="lead">${isFull ? `Sie haben ${points} von 60 Punkten erreicht. Zum Bestehen benötigen Sie mindestens 36 Punkte.` : `Sie haben ${points} von ${maxPoints} Punkten in diesem Training erreicht.`}</p><p class="small muted">Bearbeitungszeit: ${durationMinutes} Min.${saved ? ' · Ergebnis im Profil gespeichert' : ''}</p></div>
-        <div class="score-ring"><div><b>${points} / ${maxPoints}</b><small>${percent}%</small></div></div>
+      <section class="result-card result-hero ${passed ? 'passed' : ''}">
+        ${passed ? '<div class="result-confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>' : ''}
+        <div><span class="eyebrow">${state.mode === 'exam' ? 'Prüfungsergebnis' : 'Trainingsergebnis'} · ${esc(exam.title)}</span><span class="result-status ${isFull && !passed ? 'fail' : ''}">${statusLabel}</span><h2 style="margin-top:14px">${esc(predicate)}</h2><p class="lead">${isFull ? `Sie haben ${points} von 60 Punkten erreicht. Zum Bestehen benötigen Sie mindestens 36 Punkte.` : `Sie haben ${points} von ${maxPoints} Punkten in diesem Training erreicht.`}</p><p class="small muted">Bearbeitungszeit: ${durationMinutes} Min.${saved || localSaved ? ' · Ergebnis gespeichert' : ''}</p></div>
+        <div class="score-ring" style="--score:${percent}"><div><b>${points} / ${maxPoints}</b><small>${percent}%</small></div></div>
+      </section>
+      <section class="result-summary">
+        <article><small>STÄRKSTE FERTIGKEIT</small><b>${esc(strongest?.title || '—')}</b><span>${strongest?.pct ?? 0}%</span></article>
+        <article><small>ENTWICKLUNG</small><b>${delta == null ? 'Erste vollständige Prüfung' : delta > 0 ? `+${delta}% verbessert` : delta === 0 ? 'Ergebnis gehalten' : `${Math.abs(delta)}% unter dem letzten Ergebnis`}</b><span>${previousAttempt ? 'gegenüber der letzten Prüfung' : 'Ausgangspunkt gespeichert'}</span></article>
+        <article><small>PRÜFUNGSBEREITSCHAFT</small><b>${passed ? `${EXAM_LEVEL}-Ziel erreicht` : percent >= 50 ? 'Fast am Ziel' : 'Weiter gezielt trainieren'}</b><span>${passed ? 'mindestens 36 / 60' : `${Math.max(0, 36 - points)} Punkte fehlen bis 36 / 60`}</span></article>
       </section>
       <section class="paper-card report-data">
         <div><small>TEILNEHMER/IN</small><b>${esc(state.candidateName || 'Trainingsteilnehmer/in')}</b></div>
@@ -1423,14 +1519,27 @@ async function results() {
       </section>
       <section class="paper-card question-card"><span class="eyebrow">Leistungsprofil</span><h2>Ergebnis nach Fertigkeit</h2><div class="score-grid">${rows.map(scoreBox).join('')}</div></section>
       <section class="paper-card question-card result-guidance"><span class="eyebrow">Nächster Schwerpunkt</span><h2>${esc(weakest?.title || 'Weiterlernen')}</h2><p class="lead">${esc(resultRecommendation(weakest?.id, weakest?.pct || 0))}</p>${state.mode === 'exam' ? `<div class="integrity-strip"><span><small>NEUSTARTS</small><b>${integrity.reloads}</b></span><span><small>FENSTER VERLASSEN</small><b>${integrity.focusLeaves}</b></span><span><small>VERBINDUNG WIEDERHERGESTELLT</small><b>${integrity.reconnects}</b></span></div>` : ''}</section>
+      <section class="paper-card question-card improvement-plan"><span class="eyebrow">Ihr 7-Tage-Plan</span><h2>Die nächsten zwei Schritte</h2><div>${focusRows.map((row, index) => `<article><i>${index + 1}</i><span><b>${esc(row.title)}</b><small>${esc(resultRecommendation(row.id, row.pct))}</small></span><strong>${row.pct}%</strong></article>`).join('')}</div></section>
       <section class="paper-card question-card report-table-wrap"><span class="eyebrow">Punkteübersicht</span><table class="report-table"><thead><tr><th>Fertigkeit</th><th>Punkte</th><th>Maximum</th><th>Ergebnis</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${esc(row.title)}</td><td>${row.pts}</td><td>${row.max}</td><td>${row.pct}%</td></tr>`).join('')}</tbody><tfoot><tr><th>Gesamt</th><th>${points}</th><th>${maxPoints}</th><th>${percent}%</th></tr></tfoot></table></section>
       <section class="paper-card question-card"><span class="eyebrow">Auswertung</span><h2>Antworten und Erklärungen</h2><p class="muted">Nutzen Sie die Hinweise, um Ihren nächsten Trainingsschwerpunkt zu wählen.</p><div class="review-list">${reviewHtml(sections)}</div></section>
-      <div class="result-actions no-print"><button class="button primary" id="download-report">PDF speichern / drucken</button><button class="button secondary" id="again">Neuen Modelltest starten</button><button class="button secondary" id="home">Zum Lernbereich</button></div>
+      <div class="result-actions no-print"><button class="button primary" id="download-report">PDF speichern / drucken</button><button class="button secondary" id="share-result">Ergebnis kopieren</button><button class="button secondary" id="again">Neuen Modelltest starten</button><button class="button secondary" id="home">Zum Lernbereich</button></div>
+      <footer class="report-footer print-only"><span>DUVELA EXAM · ${esc(state.reportId)}</span><span>Übungsauswertung · kein offizielles Zertifikat</span></footer>
       <p class="small muted">Der DUVELA-Ergebnisbericht ist eine Übungsauswertung und kein offizielles Sprachzertifikat.</p>
     </div>`;
   document.getElementById('download-report').onclick = printResultReport;
+  document.getElementById('share-result').onclick = () => shareResult(points, maxPoints, percent, passed);
   document.getElementById('again').onclick = renderSetup;
   document.getElementById('home').onclick = () => { location.href = './app.html?role=learner#study'; };
+}
+
+async function shareResult(points, maxPoints, percent, passed) {
+  const message = `DUVELA EXAM Deutsch ${EXAM_LEVEL}: ${points}/${maxPoints} Punkte (${percent}%) – ${passed ? 'bestanden' : 'weiter im Training'}.`;
+  try {
+    await navigator.clipboard.writeText(message);
+    showExamNotice('Ergebnis wurde kopiert.');
+  } catch {
+    showExamNotice(message);
+  }
 }
 
 function createReportId() {

@@ -2,6 +2,12 @@
   "exam": "telc-deutsch-a2",
   "level": "A2",
   "note": "Originalinhalte im Format Start Deutsch 2 / telc Deutsch A2. Kein offizielles telc-Prüfungsmaterial.",
+  "quality": {
+    "version": 2,
+    "reviewed": "2026-08-14",
+    "audioScripts": 75,
+    "visualPanels": 5
+  },
   "passMark": 60,
   "weights": {
     "hoeren": 25,
@@ -13,6 +19,8 @@
     {
       "id": "mt1",
       "title": "Modelltest 1 – Alltag und Termine",
+      "visualPanel": 1,
+      "topic": "Freizeit planen",
       "sections": [
         {
           "id": "hoeren",
@@ -595,22 +603,22 @@
                 {
                   "id": "sp2-1",
                   "keyword": "Wann haben Sie Zeit?",
-                  "example": "Können wir über „Wann haben Sie Zeit?“ sprechen?"
+                  "example": "Wann haben Sie Zeit?"
                 },
                 {
                   "id": "sp2-2",
                   "keyword": "Was möchten Sie machen?",
-                  "example": "Können wir über „Was möchten Sie machen?“ sprechen?"
+                  "example": "Was möchten Sie machen?"
                 },
                 {
                   "id": "sp2-3",
                   "keyword": "Wo treffen wir uns?",
-                  "example": "Können wir über „Wo treffen wir uns?“ sprechen?"
+                  "example": "Wo treffen wir uns?"
                 },
                 {
                   "id": "sp2-4",
                   "keyword": "Wie kommen wir dorthin?",
-                  "example": "Können wir über „Wie kommen wir dorthin?“ sprechen?"
+                  "example": "Wie kommen wir dorthin?"
                 }
               ],
               "rubric": {
@@ -633,22 +641,22 @@
                 {
                   "id": "sp3-1",
                   "keyword": "Wann haben Sie Zeit?",
-                  "example": "Ich schlage vor: Wann haben Sie Zeit?"
+                  "example": "Mein Vorschlag zu „Wann haben Sie Zeit“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-2",
                   "keyword": "Was möchten Sie machen?",
-                  "example": "Ich schlage vor: Was möchten Sie machen?"
+                  "example": "Mein Vorschlag zu „Was möchten Sie machen“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-3",
                   "keyword": "Wo treffen wir uns?",
-                  "example": "Ich schlage vor: Wo treffen wir uns?"
+                  "example": "Mein Vorschlag zu „Wo treffen wir uns“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-4",
                   "keyword": "Wie kommen wir dorthin?",
-                  "example": "Ich schlage vor: Wie kommen wir dorthin?"
+                  "example": "Mein Vorschlag zu „Wie kommen wir dorthin“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 }
               ],
               "rubric": {
@@ -669,6 +677,8 @@
     {
       "id": "mt2",
       "title": "Modelltest 2 – Wohnen und Nachbarschaft",
+      "visualPanel": 2,
+      "topic": "Eine Wohnung gemeinsam einrichten",
       "sections": [
         {
           "id": "hoeren",
@@ -1251,22 +1261,22 @@
                 {
                   "id": "sp2-1",
                   "keyword": "Welches Zimmer zuerst?",
-                  "example": "Können wir über „Welches Zimmer zuerst?“ sprechen?"
+                  "example": "Welches Zimmer zuerst?"
                 },
                 {
                   "id": "sp2-2",
                   "keyword": "Welche Möbel brauchen wir?",
-                  "example": "Können wir über „Welche Möbel brauchen wir?“ sprechen?"
+                  "example": "Welche Möbel brauchen wir?"
                 },
                 {
                   "id": "sp2-3",
                   "keyword": "Wo kaufen wir ein?",
-                  "example": "Können wir über „Wo kaufen wir ein?“ sprechen?"
+                  "example": "Wo kaufen wir ein?"
                 },
                 {
                   "id": "sp2-4",
                   "keyword": "Wie viel darf es kosten?",
-                  "example": "Können wir über „Wie viel darf es kosten?“ sprechen?"
+                  "example": "Wie viel darf es kosten?"
                 }
               ],
               "rubric": {
@@ -1289,22 +1299,22 @@
                 {
                   "id": "sp3-1",
                   "keyword": "Welches Zimmer zuerst?",
-                  "example": "Ich schlage vor: Welches Zimmer zuerst?"
+                  "example": "Mein Vorschlag zu „Welches Zimmer zuerst“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-2",
                   "keyword": "Welche Möbel brauchen wir?",
-                  "example": "Ich schlage vor: Welche Möbel brauchen wir?"
+                  "example": "Mein Vorschlag zu „Welche Möbel brauchen wir“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-3",
                   "keyword": "Wo kaufen wir ein?",
-                  "example": "Ich schlage vor: Wo kaufen wir ein?"
+                  "example": "Mein Vorschlag zu „Wo kaufen wir ein“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-4",
                   "keyword": "Wie viel darf es kosten?",
-                  "example": "Ich schlage vor: Wie viel darf es kosten?"
+                  "example": "Mein Vorschlag zu „Wie viel darf es kosten“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 }
               ],
               "rubric": {
@@ -1325,6 +1335,8 @@
     {
       "id": "mt3",
       "title": "Modelltest 3 – Arbeit und Lernen",
+      "visualPanel": 3,
+      "topic": "Gemeinsam einen Kurs auswählen",
       "sections": [
         {
           "id": "hoeren",
@@ -1907,22 +1919,22 @@
                 {
                   "id": "sp2-1",
                   "keyword": "Was möchten wir lernen?",
-                  "example": "Können wir über „Was möchten wir lernen?“ sprechen?"
+                  "example": "Was möchten wir lernen?"
                 },
                 {
                   "id": "sp2-2",
                   "keyword": "Wann haben wir Zeit?",
-                  "example": "Können wir über „Wann haben wir Zeit?“ sprechen?"
+                  "example": "Wann haben wir Zeit?"
                 },
                 {
                   "id": "sp2-3",
                   "keyword": "Online oder vor Ort?",
-                  "example": "Können wir über „Online oder vor Ort?“ sprechen?"
+                  "example": "Online oder vor Ort?"
                 },
                 {
                   "id": "sp2-4",
                   "keyword": "Wie viel darf der Kurs kosten?",
-                  "example": "Können wir über „Wie viel darf der Kurs kosten?“ sprechen?"
+                  "example": "Wie viel darf der Kurs kosten?"
                 }
               ],
               "rubric": {
@@ -1945,22 +1957,22 @@
                 {
                   "id": "sp3-1",
                   "keyword": "Was möchten wir lernen?",
-                  "example": "Ich schlage vor: Was möchten wir lernen?"
+                  "example": "Mein Vorschlag zu „Was möchten wir lernen“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-2",
                   "keyword": "Wann haben wir Zeit?",
-                  "example": "Ich schlage vor: Wann haben wir Zeit?"
+                  "example": "Mein Vorschlag zu „Wann haben wir Zeit“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-3",
                   "keyword": "Online oder vor Ort?",
-                  "example": "Ich schlage vor: Online oder vor Ort?"
+                  "example": "Mein Vorschlag zu „Online oder vor Ort“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-4",
                   "keyword": "Wie viel darf der Kurs kosten?",
-                  "example": "Ich schlage vor: Wie viel darf der Kurs kosten?"
+                  "example": "Mein Vorschlag zu „Wie viel darf der Kurs kosten“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 }
               ],
               "rubric": {
@@ -1981,6 +1993,8 @@
     {
       "id": "mt4",
       "title": "Modelltest 4 – Reisen und Freizeit",
+      "visualPanel": 4,
+      "topic": "Einen Wochenendausflug planen",
       "sections": [
         {
           "id": "hoeren",
@@ -2563,22 +2577,22 @@
                 {
                   "id": "sp2-1",
                   "keyword": "Wohin fahren wir?",
-                  "example": "Können wir über „Wohin fahren wir?“ sprechen?"
+                  "example": "Wohin fahren wir?"
                 },
                 {
                   "id": "sp2-2",
                   "keyword": "Wie reisen wir?",
-                  "example": "Können wir über „Wie reisen wir?“ sprechen?"
+                  "example": "Wie reisen wir?"
                 },
                 {
                   "id": "sp2-3",
                   "keyword": "Was machen wir dort?",
-                  "example": "Können wir über „Was machen wir dort?“ sprechen?"
+                  "example": "Was machen wir dort?"
                 },
                 {
                   "id": "sp2-4",
                   "keyword": "Was müssen wir mitnehmen?",
-                  "example": "Können wir über „Was müssen wir mitnehmen?“ sprechen?"
+                  "example": "Was müssen wir mitnehmen?"
                 }
               ],
               "rubric": {
@@ -2601,22 +2615,22 @@
                 {
                   "id": "sp3-1",
                   "keyword": "Wohin fahren wir?",
-                  "example": "Ich schlage vor: Wohin fahren wir?"
+                  "example": "Mein Vorschlag zu „Wohin fahren wir“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-2",
                   "keyword": "Wie reisen wir?",
-                  "example": "Ich schlage vor: Wie reisen wir?"
+                  "example": "Mein Vorschlag zu „Wie reisen wir“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-3",
                   "keyword": "Was machen wir dort?",
-                  "example": "Ich schlage vor: Was machen wir dort?"
+                  "example": "Mein Vorschlag zu „Was machen wir dort“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-4",
                   "keyword": "Was müssen wir mitnehmen?",
-                  "example": "Ich schlage vor: Was müssen wir mitnehmen?"
+                  "example": "Mein Vorschlag zu „Was müssen wir mitnehmen“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 }
               ],
               "rubric": {
@@ -2637,6 +2651,8 @@
     {
       "id": "mt5",
       "title": "Modelltest 5 – Gesundheit und Familie",
+      "visualPanel": 5,
+      "topic": "Ein Familienfest organisieren",
       "sections": [
         {
           "id": "hoeren",
@@ -3219,22 +3235,22 @@
                 {
                   "id": "sp2-1",
                   "keyword": "Wann feiern wir?",
-                  "example": "Können wir über „Wann feiern wir?“ sprechen?"
+                  "example": "Wann feiern wir?"
                 },
                 {
                   "id": "sp2-2",
                   "keyword": "Wo findet das Fest statt?",
-                  "example": "Können wir über „Wo findet das Fest statt?“ sprechen?"
+                  "example": "Wo findet das Fest statt?"
                 },
                 {
                   "id": "sp2-3",
                   "keyword": "Was essen und trinken wir?",
-                  "example": "Können wir über „Was essen und trinken wir?“ sprechen?"
+                  "example": "Was essen und trinken wir?"
                 },
                 {
                   "id": "sp2-4",
                   "keyword": "Wer übernimmt welche Aufgabe?",
-                  "example": "Können wir über „Wer übernimmt welche Aufgabe?“ sprechen?"
+                  "example": "Wer übernimmt welche Aufgabe?"
                 }
               ],
               "rubric": {
@@ -3257,22 +3273,22 @@
                 {
                   "id": "sp3-1",
                   "keyword": "Wann feiern wir?",
-                  "example": "Ich schlage vor: Wann feiern wir?"
+                  "example": "Mein Vorschlag zu „Wann feiern wir“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-2",
                   "keyword": "Wo findet das Fest statt?",
-                  "example": "Ich schlage vor: Wo findet das Fest statt?"
+                  "example": "Mein Vorschlag zu „Wo findet das Fest statt“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-3",
                   "keyword": "Was essen und trinken wir?",
-                  "example": "Ich schlage vor: Was essen und trinken wir?"
+                  "example": "Mein Vorschlag zu „Was essen und trinken wir“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 },
                 {
                   "id": "sp3-4",
                   "keyword": "Wer übernimmt welche Aufgabe?",
-                  "example": "Ich schlage vor: Wer übernimmt welche Aufgabe?"
+                  "example": "Mein Vorschlag zu „Wer übernimmt welche Aufgabe“: Wir entscheiden gemeinsam. Was meinen Sie?"
                 }
               ],
               "rubric": {
