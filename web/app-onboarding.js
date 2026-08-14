@@ -939,9 +939,6 @@
         country: state.country.trim() || null,
         dob: state.dob || null,
         gender: state.gender || null,
-        is_teacher: role === 'teacher',
-        is_organizer: role === 'organizer' || role === 'organization',
-        last_web_role: role,
         website: state.website.trim() || null,
         updated_at: new Date().toISOString()
       };
@@ -1217,7 +1214,7 @@
     window.DuvelaResetOnboarding = function () {
       var u = ctx.getUser && ctx.getUser();
       if (u && u.id) localStorage.removeItem('duvela.onboarding.' + u.id);
-      step = 1;
+      step = 2;
       role = ctx.session.role || 'learner';
       render();
       $('#onboardingOverlay').classList.add('open');

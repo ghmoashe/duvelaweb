@@ -4,15 +4,9 @@
   function createRoleAccessFeature(ctx) {
     const {
       $,
-      tr,
-      esc,
-      alert,
       supa,
       rolesApi,
-      profileWritesApi,
-      businessRoles,
       roleLabels,
-      hasPinnedRole,
       session
     } = ctx;
 
@@ -29,38 +23,9 @@
       return roleLabels[normalized] ? normalized : 'learner';
     }
 
-    function resolveEffectiveRole(targetRole) {
-      session.requestedBusinessRole = null;
-      return fallbackApprovedRole(session.profile);
-    }
-
-    function requestedRoleStatus() {
-      return session.profile?.role_request_status || (session.requestedBusinessRole ? 'pending' : '');
-    }
-
     function syncRoleOptions() {
       const badge = $('#roleBadge');
       if (badge) badge.textContent = roleLabels[session.role] || session.role;
-    }
-
-    async function submitRoleRequest(targetRole) {
-      try {
-        const result = await profileWritesApi.persistBusinessRoleSelection(supa, rolesApi, {
-          userId: session.user.id,
-          targetRole,
-          profile: session.profile,
-        });
-        if (result.profile) session.profile = result.profile;
-        session.requestedBusinessRole = targetRole;
-        return true;
-      } catch (error) {
-        console.warn('role request update failed', error);
-        alert(tr(
-          'Could not save the role request. Apply the duvela web SQL bundle first.',
-          'Не удалось сохранить запрос роли. Сначала примените duvela web SQL bundle.'
-        ));
-        return false;
-      }
     }
 
     function renderAccessNotice() {
@@ -103,7 +68,6 @@
       normalizeRole,
       renderAccessNotice,
       loadProfile,
-      submitRoleRequest,
       syncRoleOptions
     };
   }

@@ -22,9 +22,14 @@ function expectIncludes(file, content, needle) {
   if (!content.includes(needle)) fail(`${file} is missing: ${needle}`);
 }
 
-async function checkRoleRequestContract() {
+function checkRegistrationRoleContract() {
   const rolesCode = read('web/duvela-web-roles.js');
   const writesCode = read('web/duvela-web-profile-writes.js');
+  const authCode = read('web/index-auth.js');
+  const roleAccessCode = read('web/app-role-access.js');
+  const onboardingCode = read('web/app-onboarding.js');
+  const fixedRoleSql = read('scripts/fixed-registration-roles.sql');
+  const migrationSql = read('supabase/migrations/20260814160000_fixed_registration_roles.sql');
   const sandbox = { window: {}, console };
   vm.createContext(sandbox);
   vm.runInContext(rolesCode, sandbox, { filename: 'web/duvela-web-roles.js' });
@@ -32,56 +37,18 @@ async function checkRoleRequestContract() {
 
   const rolesApi = sandbox.window.DuvelaWebRoles;
   const profileWritesApi = sandbox.window.DuvelaWebProfileWrites;
-  if (!rolesApi?.isRoleRequestable || !profileWritesApi?.persistBusinessRoleSelection) {
-    fail('Role APIs were not attached to window.');
+  if (!rolesApi?.pickWebRole || !profileWritesApi?.upsertProfileIdentity) fail('Role APIs were not attached to window.');
+  if (rolesApi.pickWebRole({ is_teacher: true, is_organizer: false, is_admin: false, last_web_role: 'learner' }, false) !== 'teacher') fail('Registered teacher must always open Teacher Dashboard.');
+  if (rolesApi.pickWebRole({ is_teacher: false, is_organizer: false, is_admin: false, last_web_role: 'teacher' }, false) !== 'learner') fail('Learner must not become a teacher from a stale browser role.');
+  if (profileWritesApi.persistBusinessRoleSelection || /submitRoleRequest|request:teacher/.test(roleAccessCode)) fail('The old role-request flow must not be available.');
+  expectIncludes('web/index-auth.js', authCode, 'web_role: currentRole');
+  if (/is_teacher:\s*role\s*===|is_organizer:\s*role\s*===/.test(onboardingCode)) fail('Onboarding must not change the immutable account role.');
+  for (const [file, sql] of [['scripts/fixed-registration-roles.sql', fixedRoleSql], ['registration migration', migrationSql]]) {
+    expectIncludes(file, sql, "lower(raw_user_meta_data ->> 'web_role')");
+    expectIncludes(file, sql, 'create or replace function public.assign_initial_web_role()');
+    expectIncludes(file, sql, 'create or replace function public.lock_registered_web_role()');
   }
-
-  const writes = [];
-  const supa = {
-    from(table) {
-      if (table !== 'profiles') fail(`Unexpected table write: ${table}`);
-      return {
-        update(patch) {
-          writes.push(patch);
-          return {
-            eq(column, value) {
-              if (column !== 'id' || value !== 'user-1') fail('Role request update did not target the current user.');
-              return Promise.resolve({ error: null });
-            },
-          };
-        },
-      };
-    },
-  };
-
-  const teacherResult = await profileWritesApi.persistBusinessRoleSelection(supa, rolesApi, {
-    userId: 'user-1',
-    targetRole: 'teacher',
-    profile: {
-      is_admin: false,
-      is_teacher: false,
-      is_organizer: false,
-    },
-    now: '2026-07-13T00:00:00.000Z',
-  });
-  const patch = writes[0];
-  if (!teacherResult.requested || teacherResult.approved) fail('Teacher role selection must create a pending request, not approval.');
-  if (patch.requested_role !== 'teacher') fail('Teacher request did not persist requested_role.');
-  if (patch.role_request_status !== 'pending') fail('Teacher request did not persist pending status.');
-  if (patch.requested_role_at !== '2026-07-13T00:00:00.000Z') fail('Teacher request did not persist requested_role_at.');
-  if ('is_teacher' in patch || 'is_organizer' in patch || 'is_admin' in patch) {
-    fail('Browser role request attempted to write privileged profile flags.');
-  }
-
-  const adminResult = await profileWritesApi.persistBusinessRoleSelection(supa, rolesApi, {
-    userId: 'user-1',
-    targetRole: 'admin',
-    profile: { is_admin: false },
-    now: '2026-07-13T00:00:00.000Z',
-  });
-  if (adminResult.requested || adminResult.patch) fail('Browser must not create admin role requests.');
-
-  log('role request contract: OK');
+  log('immutable registration role contract: OK');
 }
 
 function checkLiveBackendContract() {
@@ -116,7 +83,7 @@ function checkLiveBackendContract() {
 }
 
 async function main() {
-  await checkRoleRequestContract();
+  checkRegistrationRoleContract();
   checkLiveBackendContract();
   log('All web contracts passed.');
 }

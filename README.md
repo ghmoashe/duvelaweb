@@ -28,7 +28,7 @@ npm run check
 This executes:
 
 - smoke requests for key routes
-- local web contract checks for role requests and LIVE backend wiring
+- local web contract checks for immutable registration roles and LIVE backend wiring
 - publish readiness checks for headers, asset budgets and large local media warnings
 - locale catalog validation
 - backend E2E checks when test credentials are present
@@ -63,7 +63,7 @@ With teacher and learner credentials present, `npm run check:backend` also verif
 
 Before publishing Web/Hub/Business/LIVE:
 
-- Apply `scripts/duvela-web-supabase.sql` and `scripts/web-role-requests.sql` in Supabase.
+- Apply `scripts/duvela-web-supabase.sql` in Supabase.
 - For an existing installation, also apply `scripts/live-setup-controls.sql` to add browser LIVE quality and audience controls.
 - Deploy Edge Functions: `agora-token`, `notify-course-enrollment`, `live-payment`, `live-restream`, `notify-live-start`.
 - Run `scripts/live-audience-notifications.sql` in the Supabase SQL Editor to enable reliable viewer presence and deduplicated LIVE-start notifications.
