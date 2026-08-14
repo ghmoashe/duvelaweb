@@ -69,12 +69,24 @@ if (!fs.existsSync(path.join(root, 'web', 'images', 'exam-a2-topics.png'))) erro
 const a2Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-a2', 'elevenlabs-scripts.txt'), 'utf8');
 for (const item of a2AudioItems) if (!a2Manifest.includes(item.id) || !a2Manifest.includes(item.transcript)) errors.push(`${item.id}: missing from A2 ElevenLabs manifest.`);
 
-for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist']) {
+for (const marker of ['testPreflightMicrophone', 'updatePreflightReady', 'submitExamEarly', 'printResultReport', 'resultRecommendation', 'renderResultProcessing', 'inline-locale', 'progressHubHtml', 'historyDashboardHtml', 'saveLocalAttempt', 'speakingCoachHtml', 'shareResult', 'readingToolsHtml', 'trainingHintHtml', 'writingChecklistHtml', 'updateWritingChecklist', 'buildProductiveRubric', 'productiveRubricHtml', 'rubricStatus']) {
   if (!examClient.includes(marker)) errors.push(`Missing exam workflow capability: ${marker}.`);
 }
 if (!examClient.includes('showConfirm') || examClient.includes('window.confirm(')) errors.push('Exam confirmations must use the branded accessible dialog.');
 if (!examStyles.includes('@media print')) errors.push('Missing printable PDF result report styles.');
 const vm = require('vm');
+const rubricStart = examClient.indexOf('function scaleRubricEntries');
+const rubricEnd = examClient.indexOf('function officialRubricPrompt', rubricStart);
+if (rubricStart < 0 || rubricEnd < 0) errors.push('Missing executable productive rubric allocator.');
+else {
+  const rubricSandbox = {};
+  vm.runInNewContext(examClient.slice(rubricStart, rubricEnd), rubricSandbox);
+  for (const target of [0, 3, 5, 10]) {
+    const rows = rubricSandbox.scaleRubricEntries([['Inhalt',4,4],['Form',0,2],['Zusammenhang',0,2],['Umfang',2,2]], target, 10);
+    const total = rows.reduce((sum, row) => sum + row.points, 0);
+    if (total !== target || rows.some((row) => row.points < 0 || row.points > row.maxPoints)) errors.push(`Productive rubric allocator failed for ${target} points.`);
+  }
+}
 const localeSandbox = { window: {} };
 vm.runInNewContext(examLocaleSource, localeSandbox);
 const examLocales = localeSandbox.window.DUVELA_EXAM_I18N;
