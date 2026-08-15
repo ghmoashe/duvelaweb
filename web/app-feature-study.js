@@ -2049,11 +2049,20 @@
     // portrait half); GRAMMI/NOVA/LINA are the DUVI-friends robot mascots (full-body
     // transparent PNGs, crop:'head' → circle frames the head).
     const AI_PARTNERS = [
-      { id: 'sofia', name: 'Sofia', crop: 'banner', accent: '#6D3FE0', avatar: 'https://c.animaapp.com/Do027YtQ/img/chatgpt-image-1-----2026-----11-29-31-1@2x.png', tagline: { en: 'Thoughtful and detailed — ideal for deeper topics', ru: 'Вдумчивая, любит детали — для серьёзных тем' } },
-      { id: 'grammi', name: 'GRAMMI', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png?v=2', tagline: { en: 'Grammar expert — clear rules and quick fixes for your mistakes', ru: 'Эксперт по грамматике — правила и разбор ошибок' } },
-      { id: 'nova', name: 'NOVA', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png?v=2', tagline: { en: 'Pronunciation & listening — repeat after me and sound natural', ru: 'Произношение и аудирование — повторяй за мной' } },
-      { id: 'lina', name: 'LINA', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png?v=2', tagline: { en: 'Speaking buddy — build confidence in real conversation', ru: 'Собеседник для речи — уверенность в живом разговоре' } }
+      { id: 'sofia', name: 'Sofia', role: 'conversation', crop: 'banner', accent: '#6D3FE0', avatar: 'https://c.animaapp.com/Do027YtQ/img/chatgpt-image-1-----2026-----11-29-31-1@2x.png', tagline: { en: 'Free conversation — chat naturally about any topic', ru: 'Свободный разговор — беседа на любые темы' } },
+      { id: 'grammi', name: 'GRAMMI', role: 'grammar', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png?v=2', tagline: { en: 'Grammar — rules, mistakes and quick fixes', ru: 'Грамматика — правила, ошибки и разбор' } },
+      { id: 'nova', name: 'NOVA', role: 'pronunciation', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png?v=2', tagline: { en: 'Pronunciation — repeat after me and sound natural', ru: 'Произношение — повторяй за мной и звучи естественно' } },
+      { id: 'lina', name: 'LINA', role: 'roleplay', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png?v=2', tagline: { en: 'Role-play scenarios — restaurant, doctor, interview', ru: 'Ролевые сценарии — ресторан, врач, интервью' } }
     ];
+
+    function aiRoleMeta(role) {
+      switch (role) {
+        case 'grammar': return { label: tr('Grammar', 'Грамматика'), instruction: 'Act as a GRAMMAR coach. Focus on grammar: give short targeted exercises, correct the learner\'s grammar (word order, cases, articles, verb forms) and briefly explain the rule. One step at a time.' };
+        case 'pronunciation': return { label: tr('Pronunciation', 'Произношение'), instruction: 'Run a PRONUNCIATION drill. Give ONE short, simple sentence at a time to read aloud, then brief friendly pronunciation feedback and the next short sentence.' };
+        case 'roleplay': return { label: tr('Role-play', 'Ролевая игра'), instruction: 'Run a ROLE-PLAY. Pick a realistic everyday scenario (restaurant, doctor, shopping, job interview, etc.) and play the other person. Stay in the scene, keep it interactive, one exchange at a time.' };
+        default: return { label: tr('Conversation', 'Разговор'), instruction: 'Have a natural, free CONVERSATION. Ask questions, react to answers, and keep the chat flowing on everyday and interesting topics.' };
+      }
+    }
 
     function aiAvatarHtml(partner, size, withDot) {
       if (!partner) return '';
@@ -2089,35 +2098,25 @@
 
     function renderAiPractice() {
       if (!aiChatState) {
-        aiChatState = { started: false, lang: studyState.lang, topic: '', partner: null, mode: 'roleplay', voice: true, messages: [], conversationId: null, turns: 0, busy: false, error: null };
+        aiChatState = { started: false, lang: studyState.lang, topic: '', partner: null, voice: true, messages: [], conversationId: null, turns: 0, busy: false, error: null };
       }
       var host = $('#studyToolBody');
 
       if (!aiChatState.started) {
-        var modes = [
-          { id: 'roleplay', icon: '💬', label: tr('Conversation', 'Разговор') },
-          { id: 'pronunciation', icon: '🎙', label: tr('Pronunciation', 'Произношение') }
-        ];
         host.innerHTML =
           '<div class="ai-partner-head">' + esc(tr('Practice with AI', 'Практика с AI')) + '</div>' +
-          '<div class="ai-partner-sub">' + esc(tr('Pick a partner and start talking', 'Выбери собеседника и начни разговор')) + '</div>' +
-          '<div class="ai-mode-tabs">' +
-          modes.map(function (m) { return '<button type="button" data-mode="' + m.id + '" class="' + (aiChatState.mode === m.id ? 'active' : '') + '">' + m.icon + ' ' + esc(m.label) + '</button>'; }).join('') +
-          '</div>' +
+          '<div class="ai-partner-sub">' + esc(tr('Each partner has its own focus — pick one and start', 'У каждого собеседника своя роль — выбери и начни')) + '</div>' +
           '<div class="ai-partner-list">' +
           AI_PARTNERS.map(function (bot) {
             return '<div class="ai-partner-card">' +
               '<div class="ai-partner-row">' +
                 aiAvatarHtml(bot, 'lg', true) +
-                '<div class="ai-partner-copy"><div class="ai-partner-name">' + esc(bot.name) + '</div><div class="ai-partner-tag">' + esc(tr(bot.tagline.en, bot.tagline.ru)) + '</div></div>' +
+                '<div class="ai-partner-copy"><div class="ai-partner-name">' + esc(bot.name) + '<span class="ai-partner-role">' + esc(aiRoleMeta(bot.role).label) + '</span></div><div class="ai-partner-tag">' + esc(tr(bot.tagline.en, bot.tagline.ru)) + '</div></div>' +
               '</div>' +
               '<button type="button" class="ai-partner-start" data-partner="' + esc(bot.id) + '">💬 ' + esc(tr('Start', 'Начать')) + '</button>' +
             '</div>';
           }).join('') +
           '</div>';
-        Array.prototype.forEach.call(host.querySelectorAll('[data-mode]'), function (btn) {
-          btn.addEventListener('click', function () { aiChatState.mode = btn.getAttribute('data-mode'); renderAiPractice(); });
-        });
         Array.prototype.forEach.call(host.querySelectorAll('[data-partner]'), function (btn) {
           btn.addEventListener('click', function () {
             aiChatState.partner = AI_PARTNERS.find(function (b) { return b.id === btn.getAttribute('data-partner'); }) || null;
@@ -2130,12 +2129,13 @@
         return;
       }
 
-      var modePron = aiChatState.mode === 'pronunciation';
-      var modeLabel = modePron ? tr('Pronunciation', 'Произношение') : tr('Conversation', 'Разговор');
+      var partnerRole = aiChatState.partner ? aiChatState.partner.role : 'conversation';
+      var modePron = partnerRole === 'pronunciation';
+      var roleLabel = aiRoleMeta(partnerRole).label;
       host.innerHTML =
         '<div class="ai-chat-head">' +
           aiAvatarHtml(aiChatState.partner, 'md', true) +
-          '<div><b>' + esc(aiChatState.partner ? aiChatState.partner.name : tr('AI tutor', 'ИИ-тренер')) + '</b><small>' + esc(tr('online', 'онлайн')) + ' · ' + esc(modeLabel) + '</small></div>' +
+          '<div><b>' + esc(aiChatState.partner ? aiChatState.partner.name : tr('AI tutor', 'ИИ-тренер')) + '</b><small>' + esc(tr('online', 'онлайн')) + ' · ' + esc(roleLabel) + '</small></div>' +
           '<button type="button" id="aiVoice" class="ai-voice-toggle' + (aiChatState.voice ? ' on' : '') + '" aria-label="Voice" title="' + esc(tr('Voice on/off', 'Голос вкл/выкл')) + '">' + (aiChatState.voice ? '🔊' : '🔇') + '</button>' +
         '</div>' +
         '<div id="aiChatLog" style="max-height:320px;overflow-y:auto;padding:4px 2px;margin-bottom:10px"></div>' +
@@ -2194,12 +2194,9 @@
       try {
         var nativeLocale = ctx.isRu ? 'ru-RU' : 'en-US';
         var partner = aiChatState.partner;
-        var targetName = ({ de: 'German', en: 'English', es: 'Spanish' })[aiChatState.lang] || 'the target language';
-        var pronMode = aiChatState.mode === 'pronunciation';
+        var roleMeta = aiRoleMeta(partner ? partner.role : 'conversation');
         var personaLine = partner ? ('Stay in character as ' + partner.name + ' (' + partner.tagline.en + '). ') : '';
-        var greetingInput = 'Let\'s begin. ' + personaLine + (pronMode
-          ? ('This is a PRONUNCIATION drill in ' + targetName + '. Greet me in one short sentence, then give me ONE short, simple ' + targetName + ' sentence to read aloud. After each answer, give brief friendly pronunciation feedback and then the next short sentence. Keep sentences short.')
-          : 'Greet me briefly and ask one question to start a natural conversation.');
+        var greetingInput = 'Let\'s begin. ' + personaLine + roleMeta.instruction + ' Greet me briefly and start.';
         var { data, error } = await supa.functions.invoke('openai-assistant', {
           body: {
             action: 'respond',
@@ -2211,7 +2208,7 @@
             practiceTopic: aiChatState.topic,
             partnerName: partner ? partner.name : undefined,
             partnerPersona: partner ? partner.tagline.en : undefined,
-            practiceMode: aiChatState.mode,
+            practiceRole: partner ? partner.role : undefined,
             nativeHelp: true
           }
         });

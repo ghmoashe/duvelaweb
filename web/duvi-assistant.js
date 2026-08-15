@@ -131,15 +131,11 @@
     return String(value || '').replace(/\{(\w+)\}/g, (_, key) => String(data?.[key] || ''));
   }
 
+  // New DUVI mascot (green robot) — one consistent avatar for every state. The
+  // CSS crops the tall full-body PNG into the head for the round avatar/launcher.
+  const DUVI_AVATAR = ASSET_ROOT + 'friends/DUVI.png?v=2';
   function assetFor(type) {
-    if (type === 'thinking') return ASSET_ROOT + 'p-think.webp';
-    if (type === 'success') return ASSET_ROOT + 'p-joy.webp';
-    if (type === 'micError' || type === 'teacherFloor') return ASSET_ROOT + 'p-mic.webp';
-    if (type === 'offline') return ASSET_ROOT + 'p-sleep.webp';
-    if (type === 'error' || type === 'locationError') return ASSET_ROOT + 'error.png';
-    if (type === 'classroom' || type === 'handRaised') return ASSET_ROOT + 'classroom.png';
-    if (type === 'start' || type === 'problem') return ASSET_ROOT + 'tip.png';
-    return ASSET_ROOT + 'greeting.png';
+    return DUVI_AVATAR;
   }
 
   function actionTarget(action) {
@@ -352,7 +348,7 @@
           '<button class="duvi-send" type="submit" aria-label="' + ui('send') + '" title="' + ui('send') + '">➤</button>' +
         '</form>' +
       '</section>' +
-      '<button class="duvi-launcher" type="button" aria-label="DUVI" title="DUVI"><img alt="" src="' + ASSET_ROOT + 'greeting.png"></button>';
+      '<button class="duvi-launcher" type="button" aria-label="DUVI" title="DUVI"><img alt="" src="' + DUVI_AVATAR + '"></button>';
     document.body.append(root);
     panel = root.querySelector('.duvi-panel');
     thread = root.querySelector('.duvi-thread');
