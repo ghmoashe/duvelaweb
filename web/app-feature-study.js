@@ -1821,11 +1821,12 @@
       Array.prototype.forEach.call(document.querySelectorAll('[data-result-tool]'),function(button){button.onclick=function(){var tool=button.getAttribute('data-result-tool');openStudyTool(tool==='grammar'?'grammar':tool);};});
     }
     function renderExam() {
-      if (!studyState.progressDirect) return renderProgressHub();
+      // Exam Mode shows only the exams we have (telc A1–B2). No progress hub,
+      // no generic skill modules — just the four model tests.
       if (!studyState.examType) {
-        $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>telc Deutsch · A1–A2–B1–B2</p></div></div>'+[['A1','telc-exam.html','Start Deutsch 1'],['A2','telc-a2-exam.html','Start Deutsch 2'],['B1','telc-b1-exam.html','Zertifikat Deutsch B1'],['B2','telc-b2-exam.html','telc Deutsch B2']].map(function(item){return '<button data-telc-launch="'+item[1]+'" style="width:100%;text-align:left;margin:0 0 10px;padding:14px 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#7138ed,#a536ef);color:#fff;cursor:pointer"><span style="font-size:11px;letter-spacing:.5px;opacity:.85;font-weight:800">ECHTE PRÜFUNG · '+item[0]+'</span><br><b style="font-size:16px">telc Deutsch '+item[0]+' – Modelltest</b><br><small style="opacity:.85">'+item[2]+' · Hören · Lesen · Schreiben · Sprechen →</small></button>';}).join('')+'<div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
+        $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PRÜFUNG</small><h2>' + esc(tr('Choose an exam','Выберите экзамен')) + '</h2><p>telc Deutsch · A1 · A2 · B1 · B2</p></div></div>'+[['A1','telc-exam.html','Start Deutsch 1'],['A2','telc-a2-exam.html','Start Deutsch 2'],['B1','telc-b1-exam.html','Zertifikat Deutsch B1'],['B2','telc-b2-exam.html','telc Deutsch B2']].map(function(item){return '<button data-telc-launch="'+item[1]+'" style="width:100%;text-align:left;margin:0 0 10px;padding:14px 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#7138ed,#a536ef);color:#fff;cursor:pointer"><span style="font-size:11px;letter-spacing:.5px;opacity:.85;font-weight:800">ECHTE PRÜFUNG · '+item[0]+'</span><br><b style="font-size:16px">telc Deutsch '+item[0]+' – Modelltest</b><br><small style="opacity:.85">'+item[2]+' · Hören · Lesen · Schreiben · Sprechen →</small></button>';}).join('');
         Array.prototype.forEach.call(document.querySelectorAll('[data-telc-launch]'),function(button){button.onclick=function(){location.href='./'+button.getAttribute('data-telc-launch');};});
-        Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if(type==='mixed')return startFullMock(); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
+        return;
       }
       if (!studyState.data) {
         if (studyState.examType === 'reading') { var passage=strictBank(READING,studyState.lang,studyState.level)[0];if(!passage)return noLevelContent();studyState.data=passage.questions.slice(); }
@@ -2044,61 +2045,120 @@
       es: ['Charla informal', 'En el restaurante', 'En el médico', 'En el trabajo']
     };
 
-    function aiChatBubble(role, text) {
+    // AI conversation partners. Sofia is a wide banner photo (crop:'banner' → right
+    // portrait half); GRAMMI/NOVA/LINA are the DUVI-friends robot mascots (full-body
+    // transparent PNGs, crop:'head' → circle frames the head).
+    const AI_PARTNERS = [
+      { id: 'sofia', name: 'Sofia', crop: 'banner', accent: '#6D3FE0', avatar: 'https://c.animaapp.com/Do027YtQ/img/chatgpt-image-1-----2026-----11-29-31-1@2x.png', tagline: { en: 'Thoughtful and detailed — ideal for deeper topics', ru: 'Вдумчивая, любит детали — для серьёзных тем' } },
+      { id: 'grammi', name: 'GRAMMI', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png', tagline: { en: 'Grammar expert — clear rules and quick fixes for your mistakes', ru: 'Эксперт по грамматике — правила и разбор ошибок' } },
+      { id: 'nova', name: 'NOVA', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png', tagline: { en: 'Pronunciation & listening — repeat after me and sound natural', ru: 'Произношение и аудирование — повторяй за мной' } },
+      { id: 'lina', name: 'LINA', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png', tagline: { en: 'Speaking buddy — build confidence in real conversation', ru: 'Собеседник для речи — уверенность в живом разговоре' } }
+    ];
+
+    function aiAvatarHtml(partner, size, withDot) {
+      if (!partner) return '';
+      var crop = partner.crop === 'banner' ? ' crop-banner' : '';
+      var style = partner.accent ? ' style="background:' + partner.accent + '1f;border-color:' + partner.accent + '55"' : '';
+      return '<span class="ai-partner-avatar sz-' + size + crop + '"' + style + '><img src="' + esc(partner.avatar) + '" alt="">' +
+        (withDot ? '<i class="ai-partner-online"></i>' : '') + '</span>';
+    }
+
+    function speakAi(text) {
+      try {
+        if (!window.speechSynthesis || !text) return;
+        var utterance = new SpeechSynthesisUtterance(String(text).replace(/^✏️\s*/, ''));
+        utterance.lang = SPEECH_LOCALE[aiChatState.lang] || 'de-DE';
+        utterance.rate = 0.95;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      } catch (e) { /* speech synthesis unavailable */ }
+    }
+
+    function aiChatBubble(role, text, partner, idx) {
       var mine = role === 'user';
-      return '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
-        '<div style="max-width:80%;padding:9px 13px;border-radius:14px;font-weight:600;line-height:1.45;' +
+      var bubble = '<div style="max-width:78%;padding:9px 13px;border-radius:14px;font-weight:600;line-height:1.45;' +
         (mine
           ? 'background:var(--teal);color:#fff;border-bottom-right-radius:4px'
           : 'background:var(--panel-soft);border:1px solid var(--line);border-bottom-left-radius:4px') +
-        '">' + esc(text) + '</div></div>';
+        '">' + esc(text) + '</div>';
+      if (mine) return '<div style="display:flex;justify-content:flex-end;margin-bottom:8px">' + bubble + '</div>';
+      var avatar = aiAvatarHtml(partner, 'sm', false);
+      var say = '<button type="button" class="ai-bubble-say" data-say="' + idx + '" aria-label="Listen">🔊</button>';
+      return '<div style="display:flex;gap:8px;align-items:flex-end;justify-content:flex-start;margin-bottom:8px">' + avatar + bubble + say + '</div>';
     }
 
     function renderAiPractice() {
       if (!aiChatState) {
-        aiChatState = { started: false, lang: studyState.lang, topic: '', messages: [], conversationId: null, turns: 0, busy: false, error: null };
+        aiChatState = { started: false, lang: studyState.lang, topic: '', partner: null, mode: 'roleplay', voice: true, messages: [], conversationId: null, turns: 0, busy: false, error: null };
       }
       var host = $('#studyToolBody');
 
       if (!aiChatState.started) {
-        var presets = AI_TOPIC_PRESETS[aiChatState.lang] || AI_TOPIC_PRESETS.de;
+        var modes = [
+          { id: 'roleplay', icon: '💬', label: tr('Conversation', 'Разговор') },
+          { id: 'pronunciation', icon: '🎙', label: tr('Pronunciation', 'Произношение') }
+        ];
         host.innerHTML =
-          '<div style="font-weight:900;margin-bottom:10px">' + esc(tr('What do you want to practice?', 'Что хотите попрактиковать?')) + '</div>' +
-          '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">' +
-          presets.map(function (p) { return '<button type="button" class="btn opt-btn" data-preset="' + esc(p) + '" style="font-size:13px">' + esc(p) + '</button>'; }).join('') +
+          '<div class="ai-partner-head">' + esc(tr('Practice with AI', 'Практика с AI')) + '</div>' +
+          '<div class="ai-partner-sub">' + esc(tr('Pick a partner and start talking', 'Выбери собеседника и начни разговор')) + '</div>' +
+          '<div class="ai-mode-tabs">' +
+          modes.map(function (m) { return '<button type="button" data-mode="' + m.id + '" class="' + (aiChatState.mode === m.id ? 'active' : '') + '">' + m.icon + ' ' + esc(m.label) + '</button>'; }).join('') +
           '</div>' +
-          '<div class="field"><label>' + esc(tr('Or type a topic', 'Или впишите свою тему')) + '</label>' +
-          '<input id="aiTopic" placeholder="' + esc(tr('e.g. ordering coffee', 'например, заказ кофе')) + '" value="' + esc(aiChatState.topic) + '"></div>' +
-          '<button class="btn primary" id="aiStart" style="width:100%;margin-top:10px">' + esc(tr('Start chatting', 'Начать разговор')) + '</button>';
-        Array.prototype.forEach.call(host.querySelectorAll('[data-preset]'), function (btn) {
-          btn.addEventListener('click', function () { $('#aiTopic').value = btn.getAttribute('data-preset'); });
+          '<div class="ai-partner-list">' +
+          AI_PARTNERS.map(function (bot) {
+            return '<div class="ai-partner-card">' +
+              '<div class="ai-partner-row">' +
+                aiAvatarHtml(bot, 'lg', true) +
+                '<div class="ai-partner-copy"><div class="ai-partner-name">' + esc(bot.name) + '</div><div class="ai-partner-tag">' + esc(tr(bot.tagline.en, bot.tagline.ru)) + '</div></div>' +
+              '</div>' +
+              '<button type="button" class="ai-partner-start" data-partner="' + esc(bot.id) + '">💬 ' + esc(tr('Start', 'Начать')) + '</button>' +
+            '</div>';
+          }).join('') +
+          '</div>';
+        Array.prototype.forEach.call(host.querySelectorAll('[data-mode]'), function (btn) {
+          btn.addEventListener('click', function () { aiChatState.mode = btn.getAttribute('data-mode'); renderAiPractice(); });
         });
-        $('#aiStart').addEventListener('click', function () {
-          aiChatState.topic = $('#aiTopic').value.trim() || presets[0];
-          aiChatState.started = true;
-          renderAiPractice();
-          sendAiTurn('__start__');
+        Array.prototype.forEach.call(host.querySelectorAll('[data-partner]'), function (btn) {
+          btn.addEventListener('click', function () {
+            aiChatState.partner = AI_PARTNERS.find(function (b) { return b.id === btn.getAttribute('data-partner'); }) || null;
+            aiChatState.topic = tr('a friendly everyday conversation', 'дружеская повседневная беседа');
+            aiChatState.started = true;
+            renderAiPractice();
+            sendAiTurn('__start__');
+          });
         });
         return;
       }
 
+      var modePron = aiChatState.mode === 'pronunciation';
+      var modeLabel = modePron ? tr('Pronunciation', 'Произношение') : tr('Conversation', 'Разговор');
       host.innerHTML =
-        '<div style="font-size:12px;color:var(--soft);font-weight:800;margin-bottom:8px">' +
-          esc(tr('Topic: ', 'Тема: ')) + esc(aiChatState.topic) +
+        '<div class="ai-chat-head">' +
+          aiAvatarHtml(aiChatState.partner, 'md', true) +
+          '<div><b>' + esc(aiChatState.partner ? aiChatState.partner.name : tr('AI tutor', 'ИИ-тренер')) + '</b><small>' + esc(tr('online', 'онлайн')) + ' · ' + esc(modeLabel) + '</small></div>' +
+          '<button type="button" id="aiVoice" class="ai-voice-toggle' + (aiChatState.voice ? ' on' : '') + '" aria-label="Voice" title="' + esc(tr('Voice on/off', 'Голос вкл/выкл')) + '">' + (aiChatState.voice ? '🔊' : '🔇') + '</button>' +
         '</div>' +
         '<div id="aiChatLog" style="max-height:320px;overflow-y:auto;padding:4px 2px;margin-bottom:10px"></div>' +
         (aiChatState.error ? '<div style="color:#d64545;font-weight:800;margin-bottom:8px">' + esc(aiChatState.error) + '</div>' : '') +
         '<div style="display:flex;gap:8px">' +
-          '<input id="aiInput" placeholder="' + esc(tr('Type your answer...', 'Напишите ответ...')) + '" style="flex:1" autocomplete="off">' +
+          '<input id="aiInput" placeholder="' + esc(modePron ? tr('Read the sentence aloud...', 'Прочитайте предложение вслух...') : tr('Type your answer...', 'Напишите ответ...')) + '" style="flex:1" autocomplete="off">' +
           '<button class="btn" id="aiMic" type="button" aria-label="Voice answer">🎙</button>' +
           '<button class="btn primary" id="aiSend"' + (aiChatState.busy ? ' disabled' : '') + '>' + (aiChatState.busy ? '…' : esc(tr('Send', 'Отпр.'))) + '</button>' +
         '</div>' +
         '<button class="btn" id="aiEnd" style="width:100%;margin-top:10px">' + esc(tr('End session', 'Завершить сессию')) + '</button>';
 
       var log = $('#aiChatLog');
-      log.innerHTML = aiChatState.messages.map(function (m) { return aiChatBubble(m.role, m.text); }).join('') ||
+      log.innerHTML = aiChatState.messages.map(function (m, i) { return aiChatBubble(m.role, m.text, aiChatState.partner, i); }).join('') ||
         '<div class="empty">' + esc(tr('Say hello to start.', 'Поздоровайтесь, чтобы начать.')) + '</div>';
       log.scrollTop = log.scrollHeight;
+      Array.prototype.forEach.call(log.querySelectorAll('[data-say]'), function (btn) {
+        btn.addEventListener('click', function () { var m = aiChatState.messages[Number(btn.getAttribute('data-say'))]; if (m) speakAi(m.text); });
+      });
+      $('#aiVoice').addEventListener('click', function () {
+        aiChatState.voice = !aiChatState.voice;
+        if (!aiChatState.voice && window.speechSynthesis) window.speechSynthesis.cancel();
+        var b = $('#aiVoice'); b.textContent = aiChatState.voice ? '🔊' : '🔇'; b.classList.toggle('on', aiChatState.voice);
+      });
 
       function send() {
         var input = $('#aiInput');
@@ -2133,15 +2193,25 @@
       renderAiPractice();
       try {
         var nativeLocale = ctx.isRu ? 'ru-RU' : 'en-US';
+        var partner = aiChatState.partner;
+        var targetName = ({ de: 'German', en: 'English', es: 'Spanish' })[aiChatState.lang] || 'the target language';
+        var pronMode = aiChatState.mode === 'pronunciation';
+        var personaLine = partner ? ('Stay in character as ' + partner.name + ' (' + partner.tagline.en + '). ') : '';
+        var greetingInput = 'Let\'s begin. ' + personaLine + (pronMode
+          ? ('This is a PRONUNCIATION drill in ' + targetName + '. Greet me in one short sentence, then give me ONE short, simple ' + targetName + ' sentence to read aloud. After each answer, give brief friendly pronunciation feedback and then the next short sentence. Keep sentences short.')
+          : 'Greet me briefly and ask one question to start a natural conversation.');
         var { data, error } = await supa.functions.invoke('openai-assistant', {
           body: {
             action: 'respond',
-            input: isGreeting ? 'Hello! Let\'s start.' : text,
+            input: isGreeting ? greetingInput : text,
             conversationId: aiChatState.conversationId,
             history: aiChatState.messages.slice(-6).map(function (m) { return { role: m.role, text: m.text }; }),
             locale: SPEECH_LOCALE[aiChatState.lang] || 'de-DE',
             nativeLocale: nativeLocale,
             practiceTopic: aiChatState.topic,
+            partnerName: partner ? partner.name : undefined,
+            partnerPersona: partner ? partner.tagline.en : undefined,
+            practiceMode: aiChatState.mode,
             nativeHelp: true
           }
         });
@@ -2163,6 +2233,7 @@
         if (coach && coach.quickCorrection) {
           aiChatState.messages.push({ role: 'assistant', text: '✏️ ' + coach.quickCorrection });
         }
+        if (aiChatState.voice) speakAi(assistantText);
         aiChatState.turns++;
         bumpProgress('ai', 0);
       } catch (e) {
