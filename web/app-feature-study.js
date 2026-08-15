@@ -719,16 +719,9 @@
         languageTail.push(sourceCard('wQuestion','wquestion','file',false,'W-questions','Question practice','Build German questions with wer, was, wann, wo, wohin and warum.','Continue'));
         languageTail.push(sourceCard('perfekt','perfekt','book',false,'German Perfekt','Spoken past tense','Practice haben/sein and participle forms for everyday German.','Continue'));
       }
-      var telcCards=activeTarget==='de'
-        ? [
-            sourceCard('telcA1','telcA1','flask',false,'telc Deutsch A1 – Prüfung','Start Deutsch 1 · 5 Modelltests','Kompletter A1-Modelltest: Hören, Lesen, Schreiben, Sprechen — mit Timer, KI-Bewertung und Auswertung.','A1 starten'),
-            sourceCard('telcA2','telcA2','flask',false,'telc Deutsch A2 – Prüfung','Start Deutsch 2 · 5 Modelltests','Kompletter A2-Modelltest: 70 Minuten schriftlich, Sprechen, Bewertung und persönlicher Ergebnisbericht.','A2 starten'),
-            sourceCard('telcB1','telcB1','flask',false,'telc Deutsch B1 – Prüfung','Zertifikat Deutsch B1 · 5 Modelltests','Vollständiger B1-Modelltest mit 300 Punkten, Sprachbausteinen, getrennten Bestehensgrenzen und Ergebnisbericht.','B1 starten'),
-            sourceCard('telcB2','telcB2','flask',false,'telc Deutsch B2 – Prüfung','telc Deutsch B2 · 5 Modelltests','Vollständiger B2-Modelltest mit Lesen, Hören, Sprachbausteinen, Schreiben, Sprechen und Ergebnisbericht.','B2 starten')
-          ]
-        : [];
+      // telc A1–B2 model tests live inside Exam Mode (renderExam), so they are
+      // intentionally not listed as separate cards in the All exercises library.
       const bankItems=[
-        ...telcCards,
         sourceCard('adaptive','adaptive','path',true,'Adaptive learning path','Personal daily plan','A personal sequence based on your level, progress, and recurring mistakes.','Open path'),
         sourceCard('duvela','ai','sparkles',true,'DUVELA AI','Conversation practice','Practice conversation, pronunciation, and grammar in one place.','Start AI practice'),
         sourceCard('liveTeacher','liveTeacher','video',true,'Practice LIVE with Teacher','Teacher session','Enter a live practice room with a teacher for speaking, questions, and real-time feedback.','Join LIVE'),
