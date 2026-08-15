@@ -91,6 +91,14 @@ h1,h2,h3,p{margin-top:0}h1{margin-bottom:20px;font-size:clamp(42px,5.1vw,68px);f
 .grouped-statements{display:grid;gap:10px;margin:20px 0}.grouped-statement{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px;border:1px solid var(--line);border-radius:14px;background:#fff}.grouped-statement>span{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--purple-soft);color:var(--purple);font-size:11px;font-weight:900}.grouped-statement>p{margin:0;font-size:13px;line-height:1.55}.true-false.compact{grid-template-columns:repeat(2,minmax(92px,1fr));margin:0}.true-false.compact .tf-btn{min-height:45px;padding:6px 10px}
 @media(max-width:760px){.grouped-statement{grid-template-columns:32px 1fr}.grouped-statement .true-false{grid-column:1/-1}.progress-hub>div{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+.speaking-topic-visual{background-image:linear-gradient(90deg,rgba(16,11,27,.04),transparent),var(--topic-image);background-size:cover;background-position:center}
+.speaking-topic-visual[class*="topic-"]{background-position:center}
+.speaking-topic-visual.topic-1{--topic-image:url('./images/exam-a2-topic-1.png')}
+.speaking-topic-visual.topic-2{--topic-image:url('./images/exam-a2-topic-2.png')}
+.speaking-topic-visual.topic-3{--topic-image:url('./images/exam-a2-topic-3.png')}
+.speaking-topic-visual.topic-4{--topic-image:url('./images/exam-a2-topic-4.png')}
+.speaking-topic-visual.topic-5{--topic-image:url('./images/exam-a2-topic-5.png')}
+.speaking-topic-visual.topic-6{--topic-image:url('./images/exam-a2-topic-6.png')}
 .speaking-brief{display:grid;gap:5px;margin:0 0 16px;padding:15px 16px;border:1px solid #ded7e8;border-left:4px solid var(--purple);border-radius:14px;background:#fff}
 .speaking-brief span{color:var(--purple);font-size:10px;font-weight:900;letter-spacing:0;text-transform:uppercase}
 .speaking-brief b{font-size:16px;line-height:1.35}
