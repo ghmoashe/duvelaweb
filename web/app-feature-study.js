@@ -723,7 +723,8 @@
         ? [
             sourceCard('telcA1','telcA1','flask',false,'telc Deutsch A1 – Prüfung','Start Deutsch 1 · 5 Modelltests','Kompletter A1-Modelltest: Hören, Lesen, Schreiben, Sprechen — mit Timer, KI-Bewertung und Auswertung.','A1 starten'),
             sourceCard('telcA2','telcA2','flask',false,'telc Deutsch A2 – Prüfung','Start Deutsch 2 · 5 Modelltests','Kompletter A2-Modelltest: 70 Minuten schriftlich, Sprechen, Bewertung und persönlicher Ergebnisbericht.','A2 starten'),
-            sourceCard('telcB1','telcB1','flask',false,'telc Deutsch B1 – Prüfung','Zertifikat Deutsch B1 · 5 Modelltests','Vollständiger B1-Modelltest mit 300 Punkten, Sprachbausteinen, getrennten Bestehensgrenzen und Ergebnisbericht.','B1 starten')
+            sourceCard('telcB1','telcB1','flask',false,'telc Deutsch B1 – Prüfung','Zertifikat Deutsch B1 · 5 Modelltests','Vollständiger B1-Modelltest mit 300 Punkten, Sprachbausteinen, getrennten Bestehensgrenzen und Ergebnisbericht.','B1 starten'),
+            sourceCard('telcB2','telcB2','flask',false,'telc Deutsch B2 – Prüfung','telc Deutsch B2 · 5 Modelltests','Vollständiger B2-Modelltest mit Lesen, Hören, Sprachbausteinen, Schreiben, Sprechen und Ergebnisbericht.','B2 starten')
           ]
         : [];
       const bankItems=[
@@ -962,6 +963,7 @@
       if (id === 'telcA1') { location.href = './telc-exam.html'; return; }
       if (id === 'telcA2') { location.href = './telc-a2-exam.html'; return; }
       if (id === 'telcB1') { location.href = './telc-b1-exam.html'; return; }
+      if (id === 'telcB2') { location.href = './telc-b2-exam.html'; return; }
       var tool = TOOLS.find(function (t) { return t.id === id; });
       if (!tool) return;
       ensureOverlay();
@@ -1828,7 +1830,7 @@
     function renderExam() {
       if (!studyState.progressDirect) return renderProgressHub();
       if (!studyState.examType) {
-        $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>telc Deutsch · A1–A2–B1</p></div></div>'+[['A1','telc-exam.html','Start Deutsch 1'],['A2','telc-a2-exam.html','Start Deutsch 2'],['B1','telc-b1-exam.html','Zertifikat Deutsch B1']].map(function(item){return '<button data-telc-launch="'+item[1]+'" style="width:100%;text-align:left;margin:0 0 10px;padding:14px 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#7138ed,#a536ef);color:#fff;cursor:pointer"><span style="font-size:11px;letter-spacing:.5px;opacity:.85;font-weight:800">ECHTE PRÜFUNG · '+item[0]+'</span><br><b style="font-size:16px">telc Deutsch '+item[0]+' – Modelltest</b><br><small style="opacity:.85">'+item[2]+' · Hören · Lesen · Schreiben · Sprechen →</small></button>';}).join('')+'<div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
+        $('#studyToolBody').innerHTML = '<div class="exam-hub-head"><span>⏱</span><div><small>PREMIUM EXAM</small><h2>' + esc(tr('Choose an exam module','Выберите модуль экзамена')) + '</h2><p>telc Deutsch · A1–A2–B1–B2</p></div></div>'+[['A1','telc-exam.html','Start Deutsch 1'],['A2','telc-a2-exam.html','Start Deutsch 2'],['B1','telc-b1-exam.html','Zertifikat Deutsch B1'],['B2','telc-b2-exam.html','telc Deutsch B2']].map(function(item){return '<button data-telc-launch="'+item[1]+'" style="width:100%;text-align:left;margin:0 0 10px;padding:14px 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#7138ed,#a536ef);color:#fff;cursor:pointer"><span style="font-size:11px;letter-spacing:.5px;opacity:.85;font-weight:800">ECHTE PRÜFUNG · '+item[0]+'</span><br><b style="font-size:16px">telc Deutsch '+item[0]+' – Modelltest</b><br><small style="opacity:.85">'+item[2]+' · Hören · Lesen · Schreiben · Sprechen →</small></button>';}).join('')+'<div class="exam-modules">' + [['listening','🎧','Hören / Listening'],['reading','📖','Lesen / Reading'],['writing','📝','Schreiben / Writing'],['speaking','🎙','Sprechen / Speaking'],['mixed','✦',tr('Full mixed test','Полный смешанный тест')]].map(function (item) { return '<button data-exam-module="' + item[0] + '"><span>' + item[1] + '</span><b>' + esc(item[2]) + '</b><small>10–30 min →</small></button>'; }).join('') + '</div>';
         Array.prototype.forEach.call(document.querySelectorAll('[data-telc-launch]'),function(button){button.onclick=function(){location.href='./'+button.getAttribute('data-telc-launch');};});
         Array.prototype.forEach.call(document.querySelectorAll('[data-exam-module]'),function (button) { button.onclick = function () { var type = button.getAttribute('data-exam-module'); if(type==='mixed')return startFullMock(); if (type === 'writing') { studyState.tool='writing';studyState.data=null;return renderWriting(); } if (type === 'speaking') { studyState.tool='speaking';studyState.data=null;return renderSpeaking(); } studyState.examType=type; renderExam(); }; }); return;
       }

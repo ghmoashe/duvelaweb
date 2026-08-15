@@ -7,10 +7,10 @@ const root = path.resolve(__dirname, '..');
 const source = path.resolve(process.argv[2] || '');
 const level = String(process.argv[3] || 'A1').toUpperCase();
 
-if (!['A1', 'A2', 'B1'].includes(level)) throw new Error('Level must be A1, A2 or B1.');
+if (!['A1', 'A2', 'B1', 'B2'].includes(level)) throw new Error('Level must be A1, A2, B1 or B2.');
 
 const bank = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', `telc-${level.toLowerCase()}-exam-bank.json`), 'utf8'));
-const audioFolder = level === 'B1' ? 'exam-b1' : level === 'A2' ? 'exam-a2' : 'exam';
+const audioFolder = level === 'B2' ? 'exam-b2' : level === 'B1' ? 'exam-b1' : level === 'A2' ? 'exam-a2' : 'exam';
 const destinations = new Map();
 
 for (const test of bank.tests || []) {
@@ -33,7 +33,7 @@ for (const test of bank.tests || []) {
 const expected = new Set(destinations.keys());
 
 if (!process.argv[2] || !fs.existsSync(source)) {
-  console.error('Usage: node scripts/import-telc-exam-audio.js <source-folder> [A1|A2|B1]');
+  console.error('Usage: node scripts/import-telc-exam-audio.js <source-folder> [A1|A2|B1|B2]');
   process.exit(1);
 }
 
