@@ -51,10 +51,10 @@
 
     var categoryIcons = { languages: '🌐', art: '🎨', education: '🧠', digital: '💻', career: '💼', life: '🏠', sportFitness: '🏃', personalDevelopment: '✨' };
     var subcategoryIcons = { Drawing:'✏️', Painting:'🖌️', Sculpture:'🗿', Animation:'🎞️', 'Graphic design':'🖥️', Crafts:'🧶', 'Art history':'🏛️', 'Interview preparation':'💬', 'AI interview':'🤖', Programming:'💻', 'Web development':'🌐', 'Mobile development':'📱', 'UI/UX':'🎨', Figma:'🎨', 'Video editing':'🎬', 'Content creation':'✍️', Math:'➗', Physics:'⚛️', Chemistry:'🧪', Biology:'🧬', Logic:'🧩', Cooking:'🍳', 'Personal finance':'💰', Mindfulness:'🧘', Communication:'💬', Productivity:'⚡', Confidence:'💪', Running:'🏃', Fitness:'💪', Yoga:'🧘', Cycling:'🚴', Chess:'♟️' };
-    var role = ctx.session.role || ctx.session.selectedRole || 'learner';
+    var role = '';
     var step = 1;
     var minStep = 1;
-    var roleLocked = true;
+    var roleLocked = false;
     // Structured state (not just FormData) so chips/levels survive re-renders.
     var state = {
       firstName: '', lastName: '', orgName: '', bio: '', city: '', country: '', gender: '',
@@ -130,9 +130,9 @@
 
     function title() {
       var c = copy[role] || copy.learner;
-      $('#onboardingRoleBadge').textContent = c[0];
+      $('#onboardingRoleBadge').textContent = role ? c[0] : 'Choose role';
       var who = (state.firstName || state.orgName || (ctx.getUser() && ctx.getUser().email ? ctx.getUser().email.split('@')[0] : 'there'));
-      $('#onboardingLead').textContent = step === 1 ? (roleLocked ? 'Your registration role is selected. Continue to set up your profile.' : 'Choose your starting role. Duvela will tailor the setup and Hub for you.')
+      $('#onboardingLead').textContent = step === 1 ? 'Choose your starting role. Duvela will tailor the setup and Hub for you.'
         : step === 2 ? ('Nice to meet you, ' + who + '. Let’s build your profile.')
         : step === 3 ? c[2] : 'Your Duvela profile is ready to go.';
       $('#onboardingSubmit').textContent = step < 4 ? 'Continue →' : (role === 'learner' ? 'Open my Duvela →' : 'Open my workspace →');
@@ -560,7 +560,11 @@
     }
 
     function stepOneHtml() {
-      var summary = roleSummary[role] || roleSummary.learner;
+      var summary = role ? (roleSummary[role] || roleSummary.learner) : {
+        title: 'Choose your role',
+        body: 'Select how you want to use Duvela. The next steps will match this choice.',
+        best: ['Learner Hub', 'Teacher workspace', 'Organizer tools', 'Organization profile']
+      };
       var next = role === 'organization'
         ? ['Business details', 'Learning directions', 'Preview and save']
         : role === 'organizer'
@@ -571,7 +575,7 @@
       return '<div class="ob-role-info wide">' +
         '<section class="ob-role-summary"><div class="ob-role-summary-icon">' + esc(icon[role]) + '</div><h3>' + esc(summary.title) + '</h3><p>' + esc(summary.body) + '</p><ul>' +
           summary.best.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
-        '</ul><small>' + esc(roleLocked ? 'Role is fixed from registration.' : 'You can still switch before continuing.') + '</small></section>' +
+        '</ul><small>' + esc('Choose once, then continue to your matching setup.') + '</small></section>' +
         '<section class="ob-next-steps"><h3>What happens next</h3><ol>' +
           next.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
         '</ol><p class="ob-account-note">One account can later access multiple spaces.</p></section>' +
@@ -869,6 +873,7 @@
     }
 
     function validate() {
+      if (step === 1 && roles.indexOf(role) === -1) return { message: 'Choose your role first.', target: '' };
       if (step === 2) {
         if (role === 'organization' ? !state.orgName.trim() : !state.firstName.trim()) return { message: role === 'organization' ? 'Enter your organization name.' : 'Enter your first name.', target: role === 'organization' ? 'orgName' : 'firstName' };
         if (state.country.trim() && D.isKnownCountry && !D.isKnownCountry(state.country)) return { message: 'Choose a country from the list.', target: 'country' };
@@ -1133,6 +1138,22 @@
       }
     }
 
+    async function confirmRegistrationRole(userId) {
+      if (roles.indexOf(role) === -1) throw new Error('Choose your role first.');
+      var result = await supa.rpc('confirm_legacy_web_role', { chosen_role: role });
+      if (result.error) throw result.error;
+      var confirmedRole = roles.indexOf(result.data) !== -1 ? result.data : role;
+      role = confirmedRole;
+      if (ctx.session) {
+        ctx.session.role = confirmedRole;
+        ctx.session.selectedRole = confirmedRole;
+      }
+      try {
+        localStorage.setItem('duvela.webRole', confirmedRole);
+        history.replaceState(null, '', './app.html?role=' + encodeURIComponent(confirmedRole) + (window.location.hash || (confirmedRole === 'learner' ? '#home' : '#workspace')));
+      } catch (ignore) {}
+    }
+
     async function submit(e) {
       e.preventDefault();
       collect();
@@ -1144,6 +1165,8 @@
       var u = ctx.getUser();
       var patch = buildPatch();
       try {
+        await confirmRegistrationRole(u.id);
+        patch = buildPatch();
         if (state.avatarFile && state.avatarFile.size && ctx.uploadToBucket) {
           patch.avatar_url = await ctx.uploadToBucket('posts', state.avatarFile);
         }
@@ -1156,7 +1179,11 @@
         if (res.error) throw res.error;
         await saveLearnerLanguages(u.id);
         await saveBusinessOrganization(u.id, u.email || '');
-        ctx.setProfile(Object.assign({}, ctx.getProfile(), patch));
+        ctx.setProfile(Object.assign({}, ctx.getProfile(), patch, {
+          registered_web_role: role,
+          registered_web_role_confirmed: true,
+          last_web_role: role
+        }));
         localStorage.setItem('duvela.onboarding.' + u.id, '1');
         $('#onboardingOverlay').classList.remove('open');
         $('#onboardingOverlay').setAttribute('aria-hidden', 'true');
@@ -1211,7 +1238,7 @@
       }
       minStep = 1;
       step = 1;
-      role = ctx.session.role || ctx.session.selectedRole || 'learner';
+      role = '';
       render();
       $('#onboardingOverlay').classList.add('open');
       $('#onboardingOverlay').setAttribute('aria-hidden', 'false');
@@ -1221,7 +1248,7 @@
       if (u && u.id) localStorage.removeItem('duvela.onboarding.' + u.id);
       minStep = 1;
       step = 1;
-      role = ctx.session.role || ctx.session.selectedRole || 'learner';
+      role = '';
       render();
       $('#onboardingOverlay').classList.add('open');
       $('#onboardingOverlay').setAttribute('aria-hidden', 'false');

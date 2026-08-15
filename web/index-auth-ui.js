@@ -68,8 +68,7 @@
 
     function refreshLoginSubmit() {
       if (authMode === 'signup') {
-        const roleName = getCopy(roleKeys[signupRole], signupRole);
-        loginSubmit.textContent = getCopy('signUpAs', 'Create account as {role}', { role: roleName });
+        loginSubmit.textContent = getCopy('tabSignup', 'Create account');
       } else {
         loginSubmit.textContent = getCopy('tabSignin', 'Sign in');
       }
@@ -99,7 +98,7 @@
       tabSignin.setAttribute('style', authMode === 'signin' ? activeStyle : idleStyle);
       tabSignup.setAttribute('style', authMode === 'signup' ? activeStyle : idleStyle);
       confirmWrap.style.display = authMode === 'signup' ? 'block' : 'none';
-      signupRoleWrap.style.display = authMode === 'signup' ? 'block' : 'none';
+      signupRoleWrap.style.display = 'none';
       loginConfirmInput.required = authMode === 'signup';
       forgotPassLink.style.display = authMode === 'signup' ? 'none' : 'block';
       loginFootWrap.style.display = authMode === 'signup' ? 'none' : 'block';

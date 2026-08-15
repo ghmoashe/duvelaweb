@@ -93,6 +93,7 @@
 
   async function confirmLegacyRoleIfNeeded(supa, profile) {
     if (!profile || profile.registered_web_role_confirmed !== false) return profile;
+    if (profile.registered_web_role === 'learner') return profile;
     let savedRole = null;
     try {
       savedRole = global.localStorage && global.localStorage.getItem('duvela.webSignupRole');

@@ -46,13 +46,15 @@ function checkRegistrationRoleContract() {
   if (rolesApi.pickWebRole({ is_teacher: true, is_organizer: false, is_admin: false, last_web_role: 'learner' }, false) !== 'teacher') fail('Registered teacher must always open Teacher Dashboard.');
   if (rolesApi.pickWebRole({ is_teacher: false, is_organizer: false, is_admin: false, last_web_role: 'teacher' }, false) !== 'learner') fail('Learner must not become a teacher from a stale browser role.');
   if (profileWritesApi.persistBusinessRoleSelection || /submitRoleRequest|request:teacher/.test(roleAccessCode)) fail('The old role-request flow must not be available.');
-  expectIncludes('web/index-auth.js', authCode, 'web_role: currentRole');
-  expectIncludes('web/index-auth.js', authCode, 'data: { web_role: savedSignupRole }');
+  expectIncludes('web/index-auth.js', authCode, 'data: { locale }');
+  expectIncludes('web/index-auth.js', authCode, "goToWebApp('learner', '#home')");
+  if (authCode.includes('data: { web_role: savedSignupRole }') || authCode.includes('web_role: currentRole')) fail('Signup must not preselect the account role before onboarding Step 1.');
+  expectIncludes('web/index-auth-ui.js', read('web/index-auth-ui.js'), "signupRoleWrap.style.display = 'none'");
   expectIncludes('web/app-onboarding.js', onboardingCode, 'var minStep = 1');
-  expectIncludes('web/app-onboarding.js', onboardingCode, 'var roleLocked = true');
+  expectIncludes('web/app-onboarding.js', onboardingCode, 'var roleLocked = false');
   expectIncludes('web/app-onboarding.js', onboardingCode, 'step > minStep');
   expectIncludes('web/app-onboarding.js', onboardingCode, 'step = 1');
-  expectIncludes('web/app-onboarding.js', onboardingCode, 'Role is fixed from registration.');
+  expectIncludes('web/app-onboarding.js', onboardingCode, "supa.rpc('confirm_legacy_web_role'");
   if (/is_teacher:\s*role\s*===|is_organizer:\s*role\s*===/.test(onboardingCode)) fail('Onboarding must not change the immutable account role.');
   for (const [file, sql] of [['scripts/fixed-registration-roles.sql', fixedRoleSql], ['registration repair migration', migrationSql]]) {
     expectIncludes(file, sql, "raw_user_meta_data ->> 'web_role'");

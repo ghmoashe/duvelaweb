@@ -121,12 +121,6 @@
 
     async function finishOAuthFlow(sessionUser) {
       const flowMode = sessionStorage.getItem(AUTH_MODE_KEY) || 'signin';
-      const savedSignupRole = rolesApi.normalizeSignupRole(
-        sessionStorage.getItem(SIGNUP_ROLE_KEY)
-          || localStorage.getItem(SIGNUP_ROLE_KEY)
-          || authUi.getSignupRole()
-      );
-
       sessionStorage.removeItem(AUTH_FLOW_KEY);
       sessionStorage.removeItem(AUTH_MODE_KEY);
       sessionStorage.removeItem(SIGNUP_ROLE_KEY);
@@ -143,20 +137,12 @@
           await goToDetectedWebApp(sessionUser);
           return;
         }
-        authUi.setSignupRole(savedSignupRole);
-        authUi.setCurrentRole(savedSignupRole);
-        const roleUpdate = await supa.auth.updateUser({
-          data: { web_role: savedSignupRole }
-        });
-        if (roleUpdate.error) {
-          console.warn('registration role update failed', roleUpdate.error);
-        }
         await upsertWebProfile(
           sessionUser.id,
           sessionUser.email,
           document.documentElement.getAttribute('lang') || 'en'
         );
-        await goToDetectedWebApp(roleUpdate.data?.user || sessionUser);
+        goToWebApp('learner', '#home');
         return;
       }
 
@@ -205,7 +191,8 @@
       authUi.clearNote();
 
       if (authMode === 'signup') {
-        localStorage.setItem(WEB_ROLE_KEY, currentRole);
+        localStorage.removeItem(WEB_ROLE_KEY);
+        localStorage.removeItem(SIGNUP_ROLE_KEY);
         const confirm = loginConfirmInput.value;
         if (password.length < 6) {
           authUi.showNote(authUi.getCopy('pwTooShort', 'Password must be at least 6 characters.'));
@@ -220,7 +207,7 @@
         const { data, error } = await supa.auth.signUp({
           email,
           password,
-          options: { data: { locale, web_role: currentRole }, emailRedirectTo: authCallbackUrl() }
+          options: { data: { locale }, emailRedirectTo: authCallbackUrl() }
         });
         authUi.setSubmitIdle();
 
@@ -237,7 +224,7 @@
           authUi.setAuthMode('signin');
           return;
         }
-        goToWebApp(currentRole, defaultHashForRole(currentRole));
+        goToWebApp('learner', '#home');
         return;
       }
 
@@ -321,7 +308,7 @@
         authUi.clearNote();
         sessionStorage.setItem(AUTH_FLOW_KEY, '1');
         sessionStorage.setItem(AUTH_MODE_KEY, authUi.getAuthMode());
-        sessionStorage.setItem(SIGNUP_ROLE_KEY, authUi.getSignupRole());
+        sessionStorage.removeItem(SIGNUP_ROLE_KEY);
 
         const { error } = await supa.auth.signInWithOAuth({
           provider: 'google',
