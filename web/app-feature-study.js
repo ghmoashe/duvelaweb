@@ -2050,9 +2050,9 @@
     // transparent PNGs, crop:'head' → circle frames the head).
     const AI_PARTNERS = [
       { id: 'sofia', name: 'Sofia', crop: 'banner', accent: '#6D3FE0', avatar: 'https://c.animaapp.com/Do027YtQ/img/chatgpt-image-1-----2026-----11-29-31-1@2x.png', tagline: { en: 'Thoughtful and detailed — ideal for deeper topics', ru: 'Вдумчивая, любит детали — для серьёзных тем' } },
-      { id: 'grammi', name: 'GRAMMI', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png', tagline: { en: 'Grammar expert — clear rules and quick fixes for your mistakes', ru: 'Эксперт по грамматике — правила и разбор ошибок' } },
-      { id: 'nova', name: 'NOVA', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png', tagline: { en: 'Pronunciation & listening — repeat after me and sound natural', ru: 'Произношение и аудирование — повторяй за мной' } },
-      { id: 'lina', name: 'LINA', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png', tagline: { en: 'Speaking buddy — build confidence in real conversation', ru: 'Собеседник для речи — уверенность в живом разговоре' } }
+      { id: 'grammi', name: 'GRAMMI', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png?v=2', tagline: { en: 'Grammar expert — clear rules and quick fixes for your mistakes', ru: 'Эксперт по грамматике — правила и разбор ошибок' } },
+      { id: 'nova', name: 'NOVA', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png?v=2', tagline: { en: 'Pronunciation & listening — repeat after me and sound natural', ru: 'Произношение и аудирование — повторяй за мной' } },
+      { id: 'lina', name: 'LINA', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png?v=2', tagline: { en: 'Speaking buddy — build confidence in real conversation', ru: 'Собеседник для речи — уверенность в живом разговоре' } }
     ];
 
     function aiAvatarHtml(partner, size, withDot) {
