@@ -1164,16 +1164,25 @@ function renderSpeak(section, part) {
   const answerKey = `${part.id}:turn:${state.speakTurn}`;
   const canRecord = !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const roleMeta = speakingRoleMeta(turn.role);
+  const isFinalSpeakingTurn = state.speakTurn + 1 >= turns.length && state.part + 1 >= section.parts.length;
   app.innerHTML = questionShell(section, part, `
     ${EXAM_LEVEL === 'A2' && part.type === 'speak-cards' ? `<div class="speaking-topic-visual topic-${Number(exam.visualPanel) || 1}" role="img" aria-label="Thema: ${esc(exam.topic || part.instructions)}"><span><small>THEMA</small><b>${esc(exam.topic || part.instructions)}</b></span></div>` : ''}
+    <section class="speaking-brief" aria-label="Prüfungsauftrag">
+      <span>Prüfungsauftrag</span>
+      <b>${esc(speakingTaskTitle(part))}</b>
+      <p>${esc(speakingTaskLead(part))}</p>
+    </section>
     <div class="speaking-room">
-      <div class="examiner-row"><span class="examiner-avatar">D</span><div class="examiner-bubble"><small>${esc(turn.role)}</small><b>${esc(turn.prompt)}</b>${turn.spoken ? `<button class="speaker-mini" id="speak-prompt" aria-label="Ansage wiederholen">▶ Ansage</button>` : ''}</div></div>
+      <div class="speaking-role-strip"><span><i>1</i><b>${esc(roleMeta.speaker)}</b><small>${esc(roleMeta.action)}</small></span><span><i>2</i><b>Sie</b><small>Antwort aufnehmen</small></span></div>
+      <div class="examiner-row ${roleMeta.kind}"><span class="examiner-avatar">${esc(roleMeta.initial)}</span><div class="examiner-bubble"><small>${esc(turn.role)}</small><b>${esc(turn.prompt)}</b>${turn.spoken ? `<button class="speaker-mini" id="speak-prompt" aria-label="Ansage wiederholen">▶ Ansage</button>` : ''}</div></div>
       ${turn.partner ? `<div class="partner-row"><span class="partner-avatar">M</span><div><small>Prüfungspartnerin Mia</small><p>${esc(turn.partner)}</p></div></div>` : ''}
       ${turn.keyword ? `<div class="speaking-card"><small>IHRE KARTE</small><b>${esc(turn.keyword)}</b>${state.mode === 'practice' && turn.example ? `<p>Beispiel: ${esc(turn.example)}</p>` : ''}</div>` : ''}
     </div>
-    ${(canRecord || Recognition) ? `<div class="recording-box"><button class="record-button" id="record" aria-label="Aufnahme starten">●</button><div><b id="record-title">Antwort aufnehmen <span class="record-time" id="record-time">00:00</span></b><small id="record-status">Drücken Sie auf den roten Knopf und sprechen Sie deutlich.</small></div><audio class="audio-playback" id="playback" controls hidden></audio></div>` : '<p class="exam-note">Ihr Browser unterstützt keine Audioaufnahme. Schreiben Sie ersatzweise ein Transkript Ihrer Antwort.</p>'}
+    ${(canRecord || Recognition) ? `<div class="recording-box speaking-recorder"><button class="record-button" id="record" aria-label="Aufnahme starten"><span id="record-icon">●</span><b id="record-button-label">Start</b></button><div><b id="record-title">Antwort aufnehmen <span class="record-time" id="record-time">00:00</span></b><small id="record-status">Klicken Sie auf Start, sprechen Sie deutlich und stoppen Sie danach die Aufnahme.</small></div><audio class="audio-playback" id="playback" controls hidden></audio></div>` : '<p class="exam-note">Ihr Browser unterstützt keine Audioaufnahme. Schreiben Sie ersatzweise ein Transkript Ihrer Antwort.</p>'}
     <div class="field"><label for="speak-answer">Transkript dieser Antwort</label><textarea id="speak-answer" placeholder="Das erkannte Gesprochene erscheint hier. Sie können den Text korrigieren.">${esc(state.answers[answerKey] || '')}</textarea></div>
     <div class="speech-readiness"><span><b id="speech-word-count">0 Wörter</b><small>${EXAM_LEVEL}-Ziel: klar, vollständig und verbunden</small></span><i><b id="speech-readiness-bar"></b></i></div>
+    ${isFinalSpeakingTurn ? '<section class="speaking-finish-panel"><small>Letzte Gesprächsrunde</small><b>Nach dieser Antwort ist Sprechen abgeschlossen.</b><p>Prüfen Sie kurz Aufnahme und Transkript. Danach gehen Sie zum Ergebnisbericht.</p></section>' : ''}
     ${state.mode === 'practice' ? speakingCoachHtml(part) : ''}`);
   const textarea = document.getElementById('speak-answer');
   activeCollector = () => { state.answers[answerKey] = textarea.value.trim(); persistSession(); };
@@ -1184,6 +1193,29 @@ function renderSpeak(section, part) {
   wireNavigation(section, part, activeCollector);
   document.getElementById('speak-prompt')?.addEventListener('click', () => speak(turn.spoken));
   if (state.mode === 'exam' && turn.spoken) setTimeout(() => speak(turn.spoken), 500);
+}
+
+function speakingTaskTitle(part) {
+  if (EXAM_LEVEL === 'B1' && part.id === 'sp1') return 'Vorstellen und nachfragen';
+  if (EXAM_LEVEL === 'B1' && part.id === 'sp2') return 'Meinung zusammenfassen und reagieren';
+  if (EXAM_LEVEL === 'B1') return 'Gemeinsam planen und entscheiden';
+  if (part.id === 'sp1') return 'Kurz vorstellen';
+  if (part.id === 'sp2') return 'Fragen stellen und reagieren';
+  return EXAM_LEVEL === 'A2' ? 'Vorschlagen und sich einigen' : 'Bitten formulieren und reagieren';
+}
+
+function speakingTaskLead(part) {
+  if (state.mode === 'practice') return 'Nutzen Sie die Karte und den Trainingscoach. Im echten Ablauf sprechen Sie ohne Hilfe.';
+  if (part.id === 'sp1') return 'Antworten Sie in ganzen Sätzen. Der Prüfer oder die Partnerin führt das Gespräch.';
+  if (part.id === 'sp2') return 'Sprechen Sie direkt mit Mia. Stellen Sie eine passende Frage oder reagieren Sie auf ihre Aussage.';
+  return 'Bleiben Sie im Dialog: Vorschlag machen, reagieren, kurz begründen und zu einer Entscheidung kommen.';
+}
+
+function speakingRoleMeta(role) {
+  const isPartner = /Mia|Partner/i.test(String(role || ''));
+  return isPartner
+    ? { kind: 'partner-speaks', initial: 'M', speaker: 'Mia', action: 'Partnerin spricht' }
+    : { kind: 'examiner-speaks', initial: 'D', speaker: 'DUVI', action: 'Prüferin gibt Aufgabe' };
 }
 
 function speakingCoachHtml(part) {
@@ -1290,6 +1322,8 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
   let finalText = textarea.value ? `${textarea.value} ` : '';
   const status = document.getElementById('record-status');
   const title = document.getElementById('record-title');
+  const icon = document.getElementById('record-icon');
+  const label = document.getElementById('record-button-label');
   const stop = () => {
     try { recognition?.stop(); } catch {}
     try { if (mediaRecorder?.state === 'recording') mediaRecorder.stop(); } catch {}
@@ -1298,9 +1332,10 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
     if (recordTimer) clearInterval(recordTimer);
     recordTimer = null;
     button.classList.remove('active');
-    button.textContent = '●';
+    if (icon) icon.textContent = '●';
+    if (label) label.textContent = 'Start';
     title.textContent = 'Antwort aufnehmen';
-    status.textContent = 'Aufnahme beendet. Sie können Ihre Antwort anhören oder neu aufnehmen.';
+    status.textContent = 'Antwort gespeichert. Sie können die Aufnahme anhören, neu aufnehmen oder weitergehen.';
   };
   button.onclick = async () => {
     if (recording) return stop();
@@ -1372,7 +1407,8 @@ function setupRecorder(part, answerKey, textarea, Recognition, canRecord) {
     tickRecordTime();
     recordTimer = setInterval(tickRecordTime, 1000);
     button.classList.add('active');
-    button.textContent = '■';
+    if (icon) icon.textContent = '■';
+    if (label) label.textContent = 'Stop';
     title.textContent = 'Aufnahme läuft';
     status.textContent = 'Sprechen Sie jetzt. Drücken Sie zum Beenden erneut auf den Knopf.';
   };
@@ -1535,6 +1571,12 @@ async function confirmSectionCompletion(section) {
     confirmLabel: 'Trotzdem abschließen',
     cancelLabel: 'Antworten prüfen',
     tone: 'warning',
+  });
+  if (section.id === 'sprechen') return showConfirm({
+    title: 'Sprechen abschließen?',
+    message: 'Alle Antworten sind gespeichert. Nach dem Abschluss wird die mündliche Prüfung ausgewertet und Sie kommen zum Ergebnisbericht.',
+    confirmLabel: 'Weiter zum Ergebnis',
+    cancelLabel: 'Noch einmal prüfen',
   });
   return showConfirm({
     title: `${section.title} abschließen?`,
