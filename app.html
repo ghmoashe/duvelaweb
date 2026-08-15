@@ -1611,6 +1611,7 @@
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
   .ob-location{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:34px;margin-top:8px;border:1px solid #e1d9ef;border-radius:11px;background:#faf8ff;color:var(--purple);font:inherit;font-size:12px;font-weight:850;cursor:pointer;padding:7px 12px;box-sizing:border-box;transition:background .18s,border-color .18s,transform .18s}.ob-location:hover{background:var(--purple-soft);border-color:#cdb8f8;transform:translateY(-1px)}.ob-location:disabled{opacity:.55;cursor:wait;transform:none}
+  .ob-upload-card{align-content:start;border:1px solid #ece5f7;border-radius:22px;background:linear-gradient(180deg,#fff,#fcfaff);padding:16px;box-shadow:0 14px 34px rgba(22,10,54,.06)}.ob-upload-title{display:block;color:var(--soft);font-size:12px;font-weight:900}.ob-file-picker{position:relative;display:flex;align-items:center;gap:10px;min-height:48px;margin-top:8px;border:1px dashed #d9ccfb;border-radius:16px;background:#fff;padding:7px 12px;box-sizing:border-box;overflow:hidden;transition:.18s}.ob-file-picker:hover{border-color:var(--purple);background:#faf7ff}.ob-file-picker input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.ob-file-button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:linear-gradient(135deg,#6732dd,#a536ef);color:#fff;padding:0 13px;font-size:12px;font-weight:900;box-shadow:0 8px 18px rgba(109,63,224,.2)}.ob-file-picker b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-size:12px;font-weight:850}.ob-file-picker:focus-within{border-color:var(--purple);box-shadow:0 0 0 4px rgba(109,63,224,.1)}
   .ob-option-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:8px 0 18px}.ob-option-card{min-height:78px;border:1px solid #e1d9ef;background:#fff;border-radius:16px;padding:12px;text-align:left;color:var(--ink);font:inherit;font-weight:850;cursor:pointer;transition:.18s}.ob-option-card span{display:block;font-size:21px;margin-bottom:6px}.ob-option-card b{display:block;font-size:13px}.ob-option-card small{display:block;margin-top:4px;color:var(--muted);font-size:10px;line-height:1.2}.ob-option-card.active{border-color:var(--purple);background:var(--purple-soft);color:var(--purple);box-shadow:0 8px 22px rgba(109,63,224,.13)}.ob-invalid input,.ob-invalid select,.ob-invalid textarea,.ob-invalid.ob-chip-list,.ob-invalid.ob-lang-scroll,.ob-invalid.ob-category-grid,.ob-invalid.ob-option-grid{border-color:#d94f72!important;box-shadow:0 0 0 4px rgba(217,79,114,.1)}.ob-field-error{margin:-6px 0 4px;color:#c33;font-size:12px;font-weight:800}@media(max-width:700px){.ob-option-grid{display:flex;overflow-x:auto;gap:10px;padding:2px 2px 12px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.ob-option-card{flex:0 0 132px;scroll-snap-align:start}}
   .ob-extra-title{font-size:16px;font-weight:900;margin:4px 0 12px;color:var(--ink)}.ob-extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}.ob-chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ob-chip-list button{border:1px solid #e1d9ef;background:#fff;border-radius:999px;padding:9px 12px;color:var(--soft);font:inherit;font-size:12px;font-weight:800;cursor:pointer}.ob-chip-list button.active{border-color:var(--purple);background:var(--purple-soft);color:var(--purple)}.onboarding-form label small{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-top:3px}@media(max-width:700px){.ob-extra-grid{grid-template-columns:1fr}}
   .ob-language-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}.ob-language-grid button{display:grid;gap:7px;justify-items:center;padding:13px 8px;border:1px solid #e1d9ef;border-radius:17px;background:#fff;color:var(--ink);cursor:pointer;font:inherit}.ob-language-grid button span{font-size:27px;line-height:1}.ob-language-grid button b{font-size:12px}.ob-language-grid button.active{border-color:var(--purple);background:var(--purple-soft);color:var(--purple);box-shadow:0 7px 18px rgba(109,63,224,.12)}@media(max-width:700px){.ob-extra-grid{grid-template-columns:1fr}.ob-language-grid{grid-template-columns:repeat(3,1fr)}}
@@ -1851,7 +1852,7 @@
             <div class="field"><label data-t="country">Country</label><input id="pfCountry" maxlength="80"></div>
             <div class="field"><label id="pfNativeLanguageLabel">Native language</label><input id="pfLanguage" maxlength="60"></div>
             <div class="field"><label data-t="level">Language level</label><select id="pfLevel" class="role-select"><option value="">Select level</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
-            <div class="field" id="pfGoalField"><label id="pfGoalLabel">Student Goal</label><select id="pfGoal" class="role-select"><option value="">Select goal</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
+            <div class="field" id="pfGoalField"><label id="pfGoalLabel">Student Goal</label><select id="pfGoal" class="role-select"><option value="">Select goal</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
             <input id="pfAvatar" type="hidden">
           </div>
           </div>
@@ -2039,7 +2040,7 @@
 <script src="./web/app-i18n.js?v=20260805-i18n2"></script>
 <script src="./web/app-management-i18n.js?v=20260805-management-i18n1"></script>
 <script src="./web/app-messages-i18n.js?v=20260805-messages-i18n1"></script>
-<script src="./web/app-student-goal.js"></script>
+<script src="./web/app-student-goal.js?v=20260815-goal1"></script>
 <script src="./web/duvela-web-roles.js?v=20260815-role5"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js?v=20260814-role1"></script>
@@ -2051,7 +2052,7 @@
 <script src="./web/app-public-data.js"></script>
 <script src="./web/app-feature-media.js?v=20260722-3"></script>
 <script src="./web/app-feature-media-platform.js?v=20260722-6"></script>
-<script src="./web/app-feature-profile.js"></script>
+<script src="./web/app-feature-profile.js?v=20260815-goal1"></script>
 <script src="./web/app-feature-leaderboard.js"></script>
 <script src="./web/app-feature-practice-builder.js"></script>
 <script src="./web/app-feature-workspace-shell.js?v=20260730practice1"></script>
@@ -2069,10 +2070,10 @@
 <script src="./web/app-feature-messages.js?v=20260805-messages1"></script>
 <script src="./web/app-feature-notifications.js"></script>
 <script src="./web/app-feature-practice.js?v=20260730practice1"></script>
-<script src="./web/app-feature-study.js?v=20260730practice6"></script>
+<script src="./web/app-feature-study.js?v=20260815-goal1"></script>
 <script src="./web/app-feature-games.js"></script>
 <script src="./web/app-onboarding-data.js?v=20260728organization3"></script>
-<script src="./web/app-onboarding.js?v=20260815-role5"></script>
+<script src="./web/app-onboarding.js?v=20260815-goal1"></script>
 <script src="./web/app-onboarding-location.js?v=20260805ioslocation2"></script>
 <script src="./web/app-remove-age-confirmation.js"></script>
 <script src="./web/app-page.js?v=20260814-role1"></script>

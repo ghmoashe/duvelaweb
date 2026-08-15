@@ -1,9 +1,12 @@
 (function () {
-  var LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  var LEVELS = ['A2', 'B1', 'B2', 'C1'];
 
   function normalize(value, fallback) {
     var raw = String(value || '').trim().toUpperCase();
-    return LEVELS.indexOf(raw) >= 0 ? raw : (fallback || '');
+    var safeFallback = String(fallback || '').trim().toUpperCase();
+    if (LEVELS.indexOf(raw) >= 0) return raw;
+    if (LEVELS.indexOf(safeFallback) >= 0) return safeFallback;
+    return 'A2';
   }
 
   function fromProfile(profile, fallback) {
@@ -11,7 +14,7 @@
   }
 
   function legacyPatch(level) {
-    var value = normalize(level, 'A1');
+    var value = normalize(level, 'A2');
     return { goal_level: value, learning_goal: value };
   }
 

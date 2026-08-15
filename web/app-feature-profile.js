@@ -2,11 +2,15 @@
   function createProfileFeature(ctx) {
     const { $, tr, esc, alert, supa, state, avatarHtml, avatarInner, timeAgo, roleLabels } = ctx;
     const studentGoal = window.DuvelaStudentGoal || {
-      LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
-      normalize: (value, fallback) => String(value || fallback || 'A1').toUpperCase(),
-      fromProfile: (profile, fallback) => (profile && profile.goal_level) || fallback || '',
-      legacyPatch: (value) => {
-        const level = String(value || 'A1').toUpperCase();
+      LEVELS: ['A2', 'B1', 'B2', 'C1'],
+      normalize: (value, fallback) => {
+        const raw = String(value || '').trim().toUpperCase();
+        const safeFallback = String(fallback || '').trim().toUpperCase();
+        return ['A2', 'B1', 'B2', 'C1'].includes(raw) ? raw : (['A2', 'B1', 'B2', 'C1'].includes(safeFallback) ? safeFallback : 'A2');
+      },
+      fromProfile: function (profile, fallback) { return this.normalize(profile && profile.goal_level, fallback); },
+      legacyPatch: function (value) {
+        const level = this.normalize(value, 'A2');
         return { goal_level: level, learning_goal: level };
       }
     };
@@ -252,15 +256,18 @@
         const individual = targets.find((item) => item && typeof item === 'object' && String(item.language || '') === String(language)) || {};
         const currentLevel = levels[language] || individual.level || profile.language_level || 'A1';
         const targetLevel = goalLevels[language] || individual.goalLevel || profile.goal_level || currentLevel;
-        const goal = goals[language] || individual.goal || '';
+        const rawGoal = goals[language] || individual.goal || '';
+        const goal = String(rawGoal || '').toUpperCase() === String(targetLevel || '').toUpperCase() ? '' : rawGoal;
         return { language, currentLevel, targetLevel, goal };
       });
       if (!items.length && profile.language) {
+        const targetLevel = profile.goal_level || profile.language_level || 'A1';
+        const rawGoal = profile.learning_goal || '';
         items.push({
           language: profile.language,
           currentLevel: profile.language_level || 'A1',
-          targetLevel: profile.goal_level || profile.language_level || 'A1',
-          goal: profile.learning_goal || ''
+          targetLevel: targetLevel,
+          goal: String(rawGoal || '').toUpperCase() === String(targetLevel || '').toUpperCase() ? '' : rawGoal
         });
       }
       return items;
@@ -297,7 +304,7 @@
     async function saveProfile(event) {
       event.preventDefault();
       const avatarFile = $('#pfAvatarFile')?.files?.[0] || null;
-      const goalPatch = ctx.isBusiness() ? {} : studentGoal.legacyPatch($('#pfGoal')?.value || ctx.profile?.goal_level || 'A1');
+      const goalPatch = ctx.isBusiness() ? {} : studentGoal.legacyPatch($('#pfGoal')?.value || ctx.profile?.goal_level || 'A2');
       const patch = {
         full_name: $('#pfName').value.trim() || null,
         city: $('#pfCity').value.trim() || null,
