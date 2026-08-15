@@ -48,6 +48,11 @@ function checkRegistrationRoleContract() {
   if (profileWritesApi.persistBusinessRoleSelection || /submitRoleRequest|request:teacher/.test(roleAccessCode)) fail('The old role-request flow must not be available.');
   expectIncludes('web/index-auth.js', authCode, 'web_role: currentRole');
   expectIncludes('web/index-auth.js', authCode, 'data: { web_role: savedSignupRole }');
+  expectIncludes('web/app-onboarding.js', onboardingCode, 'var minStep = 1');
+  expectIncludes('web/app-onboarding.js', onboardingCode, 'var roleLocked = true');
+  expectIncludes('web/app-onboarding.js', onboardingCode, 'step > minStep');
+  expectIncludes('web/app-onboarding.js', onboardingCode, 'step = 1');
+  expectIncludes('web/app-onboarding.js', onboardingCode, 'Role is fixed from registration.');
   if (/is_teacher:\s*role\s*===|is_organizer:\s*role\s*===/.test(onboardingCode)) fail('Onboarding must not change the immutable account role.');
   for (const [file, sql] of [['scripts/fixed-registration-roles.sql', fixedRoleSql], ['registration repair migration', migrationSql]]) {
     expectIncludes(file, sql, "raw_user_meta_data ->> 'web_role'");

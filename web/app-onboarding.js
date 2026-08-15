@@ -51,8 +51,10 @@
 
     var categoryIcons = { languages: '🌐', art: '🎨', education: '🧠', digital: '💻', career: '💼', life: '🏠', sportFitness: '🏃', personalDevelopment: '✨' };
     var subcategoryIcons = { Drawing:'✏️', Painting:'🖌️', Sculpture:'🗿', Animation:'🎞️', 'Graphic design':'🖥️', Crafts:'🧶', 'Art history':'🏛️', 'Interview preparation':'💬', 'AI interview':'🤖', Programming:'💻', 'Web development':'🌐', 'Mobile development':'📱', 'UI/UX':'🎨', Figma:'🎨', 'Video editing':'🎬', 'Content creation':'✍️', Math:'➗', Physics:'⚛️', Chemistry:'🧪', Biology:'🧬', Logic:'🧩', Cooking:'🍳', 'Personal finance':'💰', Mindfulness:'🧘', Communication:'💬', Productivity:'⚡', Confidence:'💪', Running:'🏃', Fitness:'💪', Yoga:'🧘', Cycling:'🚴', Chess:'♟️' };
-    var role = ctx.session.role || 'learner';
+    var role = ctx.session.role || ctx.session.selectedRole || 'learner';
     var step = 1;
+    var minStep = 1;
+    var roleLocked = true;
     // Structured state (not just FormData) so chips/levels survive re-renders.
     var state = {
       firstName: '', lastName: '', orgName: '', bio: '', city: '', country: '', gender: '',
@@ -130,7 +132,7 @@
       var c = copy[role] || copy.learner;
       $('#onboardingRoleBadge').textContent = c[0];
       var who = (state.firstName || state.orgName || (ctx.getUser() && ctx.getUser().email ? ctx.getUser().email.split('@')[0] : 'there'));
-      $('#onboardingLead').textContent = step === 1 ? 'Choose your starting role. Duvela will tailor the setup and Hub for you.'
+      $('#onboardingLead').textContent = step === 1 ? (roleLocked ? 'Your registration role is selected. Continue to set up your profile.' : 'Choose your starting role. Duvela will tailor the setup and Hub for you.')
         : step === 2 ? ('Nice to meet you, ' + who + '. Let’s build your profile.')
         : step === 3 ? c[2] : 'Your Duvela profile is ready to go.';
       $('#onboardingSubmit').textContent = step < 4 ? 'Continue →' : (role === 'learner' ? 'Open my Duvela →' : 'Open my workspace →');
@@ -569,7 +571,7 @@
       return '<div class="ob-role-info wide">' +
         '<section class="ob-role-summary"><div class="ob-role-summary-icon">' + esc(icon[role]) + '</div><h3>' + esc(summary.title) + '</h3><p>' + esc(summary.body) + '</p><ul>' +
           summary.best.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
-        '</ul><small>You can still switch before continuing.</small></section>' +
+        '</ul><small>' + esc(roleLocked ? 'Role is fixed from registration.' : 'You can still switch before continuing.') + '</small></section>' +
         '<section class="ob-next-steps"><h3>What happens next</h3><ol>' +
           next.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
         '</ol><p class="ob-account-note">One account can later access multiple spaces.</p></section>' +
@@ -616,10 +618,11 @@
         x.className = 'onboarding-step ' + (i + 1 <= step ? 'active' : '');
       });
       var rolesBox = $('#onboardingRoles');
-      rolesBox.style.display = step === 1 ? 'grid' : 'none';
+      rolesBox.style.display = step === 1 && minStep <= 1 ? 'grid' : 'none';
       rolesBox.innerHTML = roles.map(function (r) {
         var benefits = (roleBenefits[r] || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('');
-        return '<button type="button" class="' + (r === role ? 'active' : '') + '" data-ob-role="' + r + '"><span class="role-icon">' + esc(icon[r]) + '</span><b>' + esc(copy[r][0]) + '</b><small>' + esc(copy[r][1]) + '</small><em class="role-selected">Selected</em><ul class="ob-role-benefits">' + benefits + '</ul></button>';
+        var disabled = roleLocked && r !== role ? ' disabled aria-disabled="true"' : '';
+        return '<button type="button" class="' + (r === role ? 'active' : '') + '" data-ob-role="' + r + '"' + disabled + '><span class="role-icon">' + esc(icon[r]) + '</span><b>' + esc(copy[r][0]) + '</b><small>' + esc(copy[r][1]) + '</small><em class="role-selected">Selected</em><ul class="ob-role-benefits">' + benefits + '</ul></button>';
       }).join('');
 
       var html = '';
@@ -633,9 +636,9 @@
       form.innerHTML = html;
 
       rolesBox.querySelectorAll('[data-ob-role]').forEach(function (b) {
-        b.onclick = function () { role = b.dataset.obRole; render(); };
+        b.onclick = function () { if (roleLocked) return; role = b.dataset.obRole; render(); };
       });
-      $('#onboardingBack').style.display = step > 1 ? 'inline-flex' : 'none';
+      $('#onboardingBack').style.display = step > minStep ? 'inline-flex' : 'none';
       $('#onboardingNote').textContent = step === 4 ? 'Welcome to Duvela!' : step === 1 ? 'You can update this later in Profile.' : 'Your progress is saved between steps.';
       bindStep();
     }
@@ -1163,7 +1166,7 @@
       }
     }
 
-    function back() { collect(); if (step > 1) { step--; render(); } }
+    function back() { collect(); if (step > minStep) { step--; render(); } }
 
     async function signOut() {
       var button = $('#onboardingSignOut');
@@ -1206,7 +1209,9 @@
         localStorage.setItem('duvela.onboarding.' + u.id, '1');
         return;
       }
-      step = 2; role = ctx.session.role || 'learner';
+      minStep = 1;
+      step = 1;
+      role = ctx.session.role || ctx.session.selectedRole || 'learner';
       render();
       $('#onboardingOverlay').classList.add('open');
       $('#onboardingOverlay').setAttribute('aria-hidden', 'false');
@@ -1214,8 +1219,9 @@
     window.DuvelaResetOnboarding = function () {
       var u = ctx.getUser && ctx.getUser();
       if (u && u.id) localStorage.removeItem('duvela.onboarding.' + u.id);
-      step = 2;
-      role = ctx.session.role || 'learner';
+      minStep = 1;
+      step = 1;
+      role = ctx.session.role || ctx.session.selectedRole || 'learner';
       render();
       $('#onboardingOverlay').classList.add('open');
       $('#onboardingOverlay').setAttribute('aria-hidden', 'false');
