@@ -185,10 +185,6 @@
           nativeLanguagePickerHtml() +
           '<label class="wide">Learning category<small style="font-weight:600;color:var(--muted)">Choose one direction</small></label>' +
           categoryCardsHtml('category', state.category) +
-          '<div id="ob-subcats-wrap"' + ((D.SUBCATEGORIES || {})[state.category] ? '' : ' hidden') + '>' +
-            '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — pick what fits</small></label>' +
-            '<div id="ob-subcats">' + subcatHtml() + '</div>' +
-          '</div>' +
           ((state.category || 'languages') === 'languages' ?
             '<label class="wide">Languages you want to learn<small id="ob-lang-hint" style="font-weight:600;color:var(--muted)">Choose up to 3</small></label>' +
             langScroll('learnLanguages', state.learnLanguages) +
@@ -563,7 +559,7 @@
         (role === 'organization' && state.organizationLanguages.length ? '<div class="ob-preview-section"><b>Languages / markets</b><div>' + selectedItemsSummary(state.organizationLanguages) + '</div></div>' : '') +
         (role === 'organization' && socialItems.length ? '<div class="ob-preview-section"><b>Social media</b><div>' + selectedItemsSummary(socialItems) + '</div></div>' : '') +
         (role === 'organization' ? '<div class="ob-preview-section"><b>Business contacts</b><div>' + selectedItemsSummary([state.website, state.email, state.phone, state.contactName, state.contactEmail].filter(Boolean)) + '</div></div>' : '') +
-        '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(role === 'organization' ? organizationFocus : state.subcategories) + '</div></div>' +
+        (role !== 'learner' ? '<div class="ob-preview-section"><b>Focus areas</b><div>' + selectedItemsSummary(role === 'organization' ? organizationFocus : state.subcategories) + '</div></div>' : '') +
         (role !== 'organization' ? '<div class="ob-preview-section"><b>Interests</b><div>' + selectedItemsSummary(interestLabels()) + '</div></div>' : '') +
       '</div>';
     }
