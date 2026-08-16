@@ -133,7 +133,7 @@
 
   // New DUVI mascot (green robot) — one consistent avatar for every state. The
   // CSS crops the tall full-body PNG into the head for the round avatar/launcher.
-  const DUVI_AVATAR = ASSET_ROOT + 'friends/DUVI.png?v=2';
+  const DUVI_AVATAR = ASSET_ROOT + 'friends/DUVI.png?v=3';
   function assetFor(type) {
     return DUVI_AVATAR;
   }

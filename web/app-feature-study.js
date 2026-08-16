@@ -2049,10 +2049,10 @@
     // portrait half); GRAMMI/NOVA/LINA are the DUVI-friends robot mascots (full-body
     // transparent PNGs, crop:'head' → circle frames the head).
     const AI_PARTNERS = [
-      { id: 'sofia', name: 'Sofia', role: 'conversation', crop: 'banner', accent: '#6D3FE0', avatar: 'https://c.animaapp.com/Do027YtQ/img/chatgpt-image-1-----2026-----11-29-31-1@2x.png', tagline: { en: 'Free conversation — chat naturally about any topic', ru: 'Свободный разговор — беседа на любые темы' } },
-      { id: 'grammi', name: 'GRAMMI', role: 'grammar', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png?v=2', tagline: { en: 'Grammar — rules, mistakes and quick fixes', ru: 'Грамматика — правила, ошибки и разбор' } },
-      { id: 'nova', name: 'NOVA', role: 'pronunciation', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png?v=2', tagline: { en: 'Pronunciation — repeat after me and sound natural', ru: 'Произношение — повторяй за мной и звучи естественно' } },
-      { id: 'lina', name: 'LINA', role: 'roleplay', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png?v=2', tagline: { en: 'Role-play scenarios — restaurant, doctor, interview', ru: 'Ролевые сценарии — ресторан, врач, интервью' } }
+      { id: 'sofia', name: 'Sofia', role: 'conversation', voiceId: '1a349d6ebed24d27a97c58318ec75df1', crop: 'banner', accent: '#6D3FE0', avatar: 'https://c.animaapp.com/Do027YtQ/img/chatgpt-image-1-----2026-----11-29-31-1@2x.png', tagline: { en: 'Free conversation — chat naturally about any topic', ru: 'Свободный разговор — беседа на любые темы' } },
+      { id: 'grammi', name: 'GRAMMI', role: 'grammar', voiceId: '012bc4b9caf1483fa31531c57ef1adbe', crop: 'head', accent: '#2F6BEE', avatar: './web/assets/duvi/friends/grami.png?v=3', tagline: { en: 'Grammar — rules, mistakes and quick fixes', ru: 'Грамматика — правила, ошибки и разбор' } },
+      { id: 'nova', name: 'NOVA', role: 'pronunciation', voiceId: 'ce6481245d7b481fa9a76df0e4cbb10a', crop: 'head', accent: '#14B8C4', avatar: './web/assets/duvi/friends/nova.png?v=3', tagline: { en: 'Pronunciation — repeat after me and sound natural', ru: 'Произношение — повторяй за мной и звучи естественно' } },
+      { id: 'lina', name: 'LINA', role: 'roleplay', voiceId: 'c103d063793d4262910d6f4b9775f8c3', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png?v=3', tagline: { en: 'Role-play scenarios — restaurant, doctor, interview', ru: 'Ролевые сценарии — ресторан, врач, интервью' } }
     ];
 
     function aiRoleMeta(role) {
@@ -2072,15 +2072,46 @@
         (withDot ? '<i class="ai-partner-online"></i>' : '') + '</span>';
     }
 
-    function speakAi(text) {
+    var aiVoiceAudio = null;
+    function speakAiBrowser(text) {
       try {
         if (!window.speechSynthesis || !text) return;
-        var utterance = new SpeechSynthesisUtterance(String(text).replace(/^✏️\s*/, ''));
+        var utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = SPEECH_LOCALE[aiChatState.lang] || 'de-DE';
         utterance.rate = 0.95;
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
       } catch (e) { /* speech synthesis unavailable */ }
+    }
+    function stopAiVoice() {
+      if (aiVoiceAudio) { try { aiVoiceAudio.pause(); } catch (e) {} aiVoiceAudio = null; }
+      if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+    }
+    // Fish Audio voice per character (edge fn fish-audio-tts), with a graceful
+    // fallback to the browser's built-in speech synthesis if it is unavailable.
+    async function speakAi(text) {
+      var clean = String(text || '').replace(/^✏️\s*/, '').trim();
+      if (!clean) return;
+      stopAiVoice();
+      var partner = aiChatState.partner;
+      try {
+        var { data, error } = await supa.functions.invoke('fish-audio-tts', {
+          body: {
+            action: 'speak',
+            text: clean.slice(0, 1000),
+            voiceId: partner && partner.voiceId ? partner.voiceId : ''
+          }
+        });
+        if (error || !data) throw error || new Error('no audio');
+        var blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' });
+        if (!blob.size) throw new Error('empty audio');
+        var url = URL.createObjectURL(blob);
+        aiVoiceAudio = new Audio(url);
+        aiVoiceAudio.onended = aiVoiceAudio.onerror = function () { URL.revokeObjectURL(url); };
+        await aiVoiceAudio.play();
+      } catch (e) {
+        speakAiBrowser(clean); // Fish Audio unavailable (no key/voice) → browser TTS
+      }
     }
 
     function aiChatBubble(role, text, partner, idx) {
@@ -2156,7 +2187,7 @@
       });
       $('#aiVoice').addEventListener('click', function () {
         aiChatState.voice = !aiChatState.voice;
-        if (!aiChatState.voice && window.speechSynthesis) window.speechSynthesis.cancel();
+        if (!aiChatState.voice) stopAiVoice();
         var b = $('#aiVoice'); b.textContent = aiChatState.voice ? '🔊' : '🔇'; b.classList.toggle('on', aiChatState.voice);
       });
 
@@ -2179,6 +2210,7 @@
         recognition.start();
       });
       $('#aiEnd').addEventListener('click', function () {
+        stopAiVoice();
         var xp = Math.min(30, aiChatState.turns * 5);
         aiChatState = null;
         finishTool(tr('Session ended', 'Сессия завершена'), xp);
@@ -2195,6 +2227,9 @@
         var nativeLocale = ctx.isRu ? 'ru-RU' : 'en-US';
         var partner = aiChatState.partner;
         var roleMeta = aiRoleMeta(partner ? partner.role : 'conversation');
+        // Map the partner role to a practiceMode the edge function understands
+        // (conversation → daily; grammar/pronunciation/roleplay pass through).
+        var practiceMode = partner ? ({ grammar: 'grammar', pronunciation: 'pronunciation', roleplay: 'roleplay', conversation: 'daily' }[partner.role] || 'daily') : 'daily';
         var personaLine = partner ? ('Stay in character as ' + partner.name + ' (' + partner.tagline.en + '). ') : '';
         var greetingInput = 'Let\'s begin. ' + personaLine + roleMeta.instruction + ' Greet me briefly and start.';
         var { data, error } = await supa.functions.invoke('openai-assistant', {
@@ -2206,9 +2241,9 @@
             locale: SPEECH_LOCALE[aiChatState.lang] || 'de-DE',
             nativeLocale: nativeLocale,
             practiceTopic: aiChatState.topic,
+            practiceMode: practiceMode,
             partnerName: partner ? partner.name : undefined,
             partnerPersona: partner ? partner.tagline.en : undefined,
-            practiceRole: partner ? partner.role : undefined,
             nativeHelp: true
           }
         });
