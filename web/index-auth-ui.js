@@ -98,6 +98,10 @@
       tabSignin.setAttribute('style', authMode === 'signin' ? activeStyle : idleStyle);
       tabSignup.setAttribute('style', authMode === 'signup' ? activeStyle : idleStyle);
       confirmWrap.style.display = authMode === 'signup' ? 'block' : 'none';
+      var consentWrap = document.getElementById('signupConsentWrap');
+      if (consentWrap) consentWrap.style.display = authMode === 'signup' ? 'flex' : 'none';
+      var consentBox = document.getElementById('signupConsent');
+      if (consentBox && authMode !== 'signup') consentBox.checked = false;
       signupRoleWrap.style.display = 'none';
       loginConfirmInput.required = authMode === 'signup';
       forgotPassLink.style.display = authMode === 'signup' ? 'none' : 'block';

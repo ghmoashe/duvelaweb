@@ -193,6 +193,11 @@
       if (authMode === 'signup') {
         localStorage.removeItem(WEB_ROLE_KEY);
         localStorage.removeItem(SIGNUP_ROLE_KEY);
+        const consentBox = document.getElementById('signupConsent');
+        if (!consentBox || !consentBox.checked) {
+          authUi.showNote(authUi.getCopy('consentRequired', 'Please accept the Terms of Service and Privacy Policy to continue.'));
+          return;
+        }
         const confirm = loginConfirmInput.value;
         if (password.length < 6) {
           authUi.showNote(authUi.getCopy('pwTooShort', 'Password must be at least 6 characters.'));
