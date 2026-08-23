@@ -17,6 +17,7 @@ const files = [
   'telc-b2-exam.html',
   'business.html',
   'business-admin.html',
+  'admin.html',
   'sw.js',
   'logo.webp',
   'logo2.png',

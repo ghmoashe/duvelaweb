@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duvela — Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<script src="./web/vendor/supabase-js-v2.js"></script>
+<script src="./web/duvela-web-config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F5FA; --card: #FFFFFF; --ink: #17151F; --ink-soft: #6B6478; --ink-muted: #948CA6;
+    --purple: #6D3FE0; --violet: #A855F7; --teal: #0F9F7A; --gold: #F59E0B; --red: #EF4444;
+    --lav-line: #E9E5F1; --lav-soft: #F1ECFF;
+    --grad: linear-gradient(90deg, #5A2FCB 0%, #A855F7 55%, #C026D3 100%);
+    --radius: 16px; --shadow: 0 6px 18px rgba(32, 22, 64, .06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; -webkit-font-smoothing: antialiased; }
+  a { color: var(--purple); text-decoration: none; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 60px; }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--lav-line); margin-bottom: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { height: 30px; mix-blend-mode: multiply; }
+  .brand-title { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
+  .brand-title small { color: var(--red); font-weight: 700; margin-left: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .who { color: var(--ink-soft); font-size: 13px; }
+  .who button { margin-left: 10px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--lav-line); background: #fff; color: var(--purple); font-family: inherit; font-weight: 600; font-size: 12.5px; cursor: pointer; }
+  .who button:hover { border-color: var(--purple); background: var(--lav-soft); }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; overflow-x: auto; }
+  .tab { padding: 10px 16px; border-radius: 999px; background: #fff; border: 1px solid var(--lav-line); color: var(--ink-soft); font-family: inherit; font-weight: 650; font-size: 13.5px; cursor: pointer; white-space: nowrap; transition: .2s; }
+  .tab:hover { border-color: var(--purple); color: var(--purple); }
+  .tab.active { background: var(--grad); color: #fff; border-color: transparent; }
+
+  .card { background: #fff; border: 1px solid var(--lav-line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .card h2 { font-size: 15px; font-weight: 700; text-transform: uppercase; color: var(--purple); letter-spacing: .06em; }
+  .card p.lead { margin-top: 4px; color: var(--ink-soft); font-size: 13px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
+  .kpi { padding: 14px; background: var(--lav-soft); border-radius: 12px; }
+  .kpi-num { font-size: 22px; font-weight: 800; color: var(--ink); }
+  .kpi-label { font-size: 11px; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field select, .field textarea {
+    width: 100%; border: 1px solid var(--lav-line); border-radius: 10px;
+    padding: 10px 12px; font-family: inherit; font-size: 13.5px; font-weight: 500;
+    color: var(--ink); background: #FBFAFD; outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--purple); background: #fff; box-shadow: 0 0 0 3px rgba(109,63,224,.12);
+  }
+  .btn {
+    padding: 10px 16px; border-radius: 10px; border: none;
+    background: var(--grad); color: #fff; font-family: inherit;
+    font-weight: 650; font-size: 13px; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(109,63,224,.24); transition: .2s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(109,63,224,.32); }
+  .btn.small { padding: 6px 12px; font-size: 12px; box-shadow: none; }
+  .btn.ghost { background: #fff; color: var(--purple); border: 1px solid var(--lav-line); box-shadow: none; }
+  .btn.ghost:hover { border-color: var(--purple); background: var(--lav-soft); transform: none; }
+  .btn.danger { background: linear-gradient(90deg, #EF4444, #DC2626); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--lav-line); }
+  th { color: var(--ink-soft); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  td.tight { white-space: nowrap; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .pill.active   { background: rgba(15,159,122,.14); color: var(--teal); }
+  .pill.trial    { background: rgba(245,158,11,.14); color: #B45309; }
+  .pill.paused   { background: rgba(148,140,166,.16); color: var(--ink-muted); }
+  .pill.cancelled{ background: rgba(239,68,68,.14); color: var(--red); }
+  .pill.open     { background: rgba(109,63,224,.12); color: var(--purple); }
+  .pill.handled  { background: rgba(15,159,122,.14); color: var(--teal); }
+
+  .empty { padding: 24px; text-align: center; color: var(--ink-muted); font-size: 13px; }
+  .msg { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 600; }
+  .msg.ok  { display: block; background: rgba(15,159,122,.1); color: var(--teal); }
+  .msg.err { display: block; background: rgba(239,68,68,.1); color: var(--red); }
+
+  .login { max-width: 400px; margin: 100px auto; background: #fff; border: 1px solid var(--lav-line); border-radius: var(--radius); padding: 30px; text-align: center; box-shadow: 0 24px 60px rgba(20,15,38,.1); }
+  .login h2 { font-size: 20px; font-weight: 700; }
+  .login p { margin-top: 8px; color: var(--ink-soft); font-size: 13px; }
+
+  dialog { border: none; border-radius: var(--radius); padding: 0; max-width: 520px; width: 92vw; box-shadow: 0 30px 80px rgba(20,15,38,.25); }
+  dialog::backdrop { background: rgba(20,15,38,.55); backdrop-filter: blur(4px); }
+  .dialog-body { padding: 24px; }
+  .dialog-body h2 { font-size: 17px; font-weight: 700; }
+  .dialog-actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .row { grid-template-columns: 1fr; }
+    table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a href="./index.html" class="brand">
+      <img src="./logo2.png" alt="Duvela">
+      <span class="brand-title">Duvela<small>ADMIN</small></span>
+    </a>
+    <div class="who" id="who"></div>
+  </header>
+
+  <div id="signedOut" class="login" style="display:none;">
+    <h2>Admin sign-in</h2>
+    <p>Only Duvela administrators. Access is granted via the <code>profiles.is_admin</code> flag.</p>
+    <div class="field" style="margin-top: 16px; text-align:left;">
+      <label for="magicEmail">Your admin email</label>
+      <input id="magicEmail" type="email" placeholder="you@vela.cafe" autocomplete="email">
+    </div>
+    <button class="btn" id="magicBtn" style="width: 100%; margin-top: 14px;">Email me a link</button>
+    <div class="msg" id="magicMsg"></div>
+  </div>
+
+  <div id="notAdmin" class="login" style="display:none;">
+    <h2>Not authorised</h2>
+    <p>Your account is signed in but does not have the admin flag. If you need access, ask an existing admin to run:</p>
+    <pre style="text-align:left; background: var(--lav-soft); padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 12px; overflow-x: auto;">select admin_set_profile_flag('&lt;your uuid&gt;', 'is_admin', true);</pre>
+    <button class="btn ghost" id="signOutBtn2" style="margin-top: 14px;">Sign out</button>
+  </div>
+
+  <div id="signedIn" style="display:none;">
+    <div class="tabs">
+      <button class="tab active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="leads">Leads</button>
+      <button class="tab" data-tab="accounts">Corporate accounts</button>
+      <button class="tab" data-tab="users">Users</button>
+      <button class="tab" data-tab="audit">Audit log</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="tab-panel" data-panel="overview">
+      <div class="card">
+        <h2>Platform KPIs</h2>
+        <p class="lead">Real-time snapshot across users, teachers, corporate accounts, and MRR.</p>
+        <div class="kpi-grid" id="kpiGrid"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h2>Recent signups (last 7 days)</h2>
+        <table><thead><tr><th>Name</th><th>Email</th><th class="tight">Joined</th></tr></thead>
+          <tbody id="signupsBody"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADS -->
+    <div class="tab-panel" data-panel="leads" hidden>
+      <div class="card">
+        <h2>Inbound corporate leads</h2>
+        <p class="lead">Fresh contact-form submissions from <a href="./business.html">business.html</a>. Click "Convert" to spin up a corporate account.</p>
+        <table>
+          <thead><tr><th>Company</th><th>Contact</th><th>Team</th><th>Plan</th><th class="tight">Received</th><th></th><th></th></tr></thead>
+          <tbody id="leadsBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+        <div style="margin-top: 12px;">
+          <button class="btn ghost small" id="toggleAllLeads">Show handled too</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div class="tab-panel" data-panel="accounts" hidden>
+      <div class="card">
+        <h2>Corporate accounts</h2>
+        <p class="lead">All active + trial accounts. Edit any (bypasses HR RLS via admin RPCs — every change goes to the audit log).</p>
+        <div class="row" style="margin-bottom: 8px;">
+          <div class="field">
+            <label>Filter by status</label>
+            <select id="accountStatusFilter">
+              <option value="">All</option>
+              <option value="trial">Trial</option>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <button class="btn" id="newAccountBtn" style="margin-top: 24px; width: fit-content;">+ Create account manually</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Company</th><th>HR</th><th>Plan</th><th>Seats</th><th>€/seat</th><th>Status</th><th class="tight">Created</th><th></th></tr></thead>
+          <tbody id="accountsBody"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-panel" data-panel="users" hidden>
+      <div class="card">
+        <h2>User search</h2>
+        <p class="lead">Search by name or email. Toggle flags directly (is_teacher, is_verified, is_admin, is_organizer).</p>
+        <div class="row" style="grid-template-columns: 2fr auto;">
+          <div class="field">
+            <label>Query</label>
+            <input id="userQuery" placeholder="name or email">
+          </div>
+          <div class="field" style="justify-content: flex-end;">
+            <button class="btn" id="searchUsersBtn" style="margin-top: 24px;">Search</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Flags</th><th>Audience</th><th></th></tr></thead>
+          <tbody id="usersBody"><tr><td colspan="6" class="empty">Type a query and hit Search.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="tab-panel" data-panel="audit" hidden>
+      <div class="card">
+        <h2>Recent admin actions</h2>
+        <p class="lead">Every write via the admin RPCs is logged here.</p>
+        <table>
+          <thead><tr><th class="tight">When</th><th>Admin</th><th>Action</th><th>Target</th><th>Payload</th></tr></thead>
+          <tbody id="auditBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Convert lead / create account dialog -->
+<dialog id="convertDialog">
+  <div class="dialog-body">
+    <h2 id="convertTitle">Create corporate account</h2>
+    <p class="lead" style="margin-top: 6px;" id="convertLead"></p>
+    <div class="row"><div class="field"><label>Company name</label><input id="cvCompany"></div>
+      <div class="field"><label>HR email</label><input id="cvHrEmail" type="email"></div></div>
+    <div class="row"><div class="field"><label>Seats</label><input id="cvSeats" type="number" min="1" value="5"></div>
+      <div class="field"><label>Plan</label>
+        <select id="cvPlan">
+          <option value="full_package">Full package</option>
+          <option value="lessons_only">Lessons only</option>
+          <option value="ai_only">AI only</option>
+          <option value="sprachcafe_only">Sprachcafé only</option>
+        </select>
+      </div></div>
+    <div class="row"><div class="field"><label>€ per seat / month</label><input id="cvPrice" type="number" step="0.01" value="119"></div>
+      <div class="field"><label>Languages (comma)</label><input id="cvLangs" value="de,en"></div></div>
+    <div class="field"><label>Cities (comma, optional)</label><input id="cvCities"></div>
+    <input type="hidden" id="cvLeadId">
+    <div class="dialog-actions">
+      <button class="btn ghost" id="cvCancel">Cancel</button>
+      <button class="btn" id="cvSubmit">Create account</button>
+    </div>
+    <div class="msg" id="cvMsg"></div>
+  </div>
+</dialog>
+
+<!-- Edit account dialog -->
+<dialog id="editDialog">
+  <div class="dialog-body">
+    <h2>Edit corporate account</h2>
+    <div class="row"><div class="field"><label>Seats</label><input id="edSeats" type="number" min="0"></div>
+      <div class="field"><label>Plan</label>
+        <select id="edPlan">
+          <option value="full_package">Full package</option>
+          <option value="lessons_only">Lessons only</option>
+          <option value="ai_only">AI only</option>
+          <option value="sprachcafe_only">Sprachcafé only</option>
+        </select>
+      </div></div>
+    <div class="row"><div class="field"><label>€ per seat / month</label><input id="edPrice" type="number" step="0.01"></div>
+      <div class="field"><label>Status</label>
+        <select id="edStatus">
+          <option value="trial">Trial</option>
+          <option value="active">Active</option>
+          <option value="paused">Paused</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div></div>
+    <div class="field"><label>Reassign HR (email, leave blank to keep)</label><input id="edHrEmail" type="email"></div>
+    <input type="hidden" id="edAccountId">
+    <div class="dialog-actions">
+      <button class="btn ghost" id="edCancel">Cancel</button>
+      <button class="btn" id="edSubmit">Save</button>
+    </div>
+    <div class="msg" id="edMsg"></div>
+  </div>
+</dialog>
+
+<script>
+  if (!window.DuvelaWebConfig) {
+    document.body.innerHTML = '<div class="wrap"><div class="card"><h2>Config missing</h2><p class="lead">duvela-web-config.js failed to load.</p></div></div>';
+    throw new Error('Missing DuvelaWebConfig');
+  }
+  var client = window.DuvelaWebConfig.createSupabaseClient();
+  var currentUser = null;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  }); }
+  function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '—'; }
+  function fmtDateTime(d) { return d ? new Date(d).toLocaleString() : '—'; }
+  function msg(id, text, kind) {
+    var el = document.getElementById(id);
+    el.className = 'msg ' + (kind || 'ok'); el.textContent = text;
+    if (kind === 'ok') setTimeout(function () { el.className = 'msg'; }, 3500);
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      var name = t.dataset.tab;
+      document.querySelectorAll('.tab-panel').forEach(function (p) {
+        p.hidden = p.dataset.panel !== name;
+      });
+      if (name === 'overview')  { loadKpis(); loadSignups(); }
+      if (name === 'leads')     { loadLeads(); }
+      if (name === 'accounts')  { loadAccounts(); }
+      if (name === 'audit')     { loadAudit(); }
+    });
+  });
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  async function refresh() {
+    var s = await client.auth.getSession();
+    currentUser = s.data.session ? s.data.session.user : null;
+    if (!currentUser) {
+      document.getElementById('signedOut').style.display = 'block';
+      document.getElementById('signedIn').style.display = 'none';
+      document.getElementById('notAdmin').style.display = 'none';
+      return;
+    }
+    var check = await client.rpc('is_admin');
+    if (check.error || !check.data) {
+      document.getElementById('signedOut').style.display = 'none';
+      document.getElementById('signedIn').style.display = 'none';
+      document.getElementById('notAdmin').style.display = 'block';
+      document.getElementById('signOutBtn2').onclick = async function () {
+        await client.auth.signOut(); location.reload();
+      };
+      return;
+    }
+    document.getElementById('signedOut').style.display = 'none';
+    document.getElementById('notAdmin').style.display = 'none';
+    document.getElementById('signedIn').style.display = 'block';
+    document.getElementById('who').innerHTML =
+      esc(currentUser.email) + ' · <strong>admin</strong>' +
+      '<button id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = async function () {
+      await client.auth.signOut(); location.reload();
+    };
+    loadKpis(); loadSignups();
+  }
+
+  document.getElementById('magicBtn').addEventListener('click', async function () {
+    var email = document.getElementById('magicEmail').value.trim();
+    if (!email) return;
+    var r = await client.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.href } });
+    if (r.error) msg('magicMsg', r.error.message, 'err');
+    else msg('magicMsg', '✓ Check your inbox for the sign-in link.', 'ok');
+  });
+
+  // ── Overview ──────────────────────────────────────────────────────────────
+  async function loadKpis() {
+    var r = await client.rpc('admin_platform_kpis');
+    var grid = document.getElementById('kpiGrid');
+    if (r.error) { grid.innerHTML = '<div class="empty">' + esc(r.error.message) + '</div>'; return; }
+    var k = (r.data && r.data[0]) || {};
+    grid.innerHTML = [
+      ['Total users', k.total_users],
+      ['New (7d)', k.new_users_7d],
+      ['Teachers', k.teachers + ' <span style="color: var(--purple); font-size: 12px;">(' + k.teachers_b2b + ' b2b)</span>'],
+      ['Corp accounts', k.live_corporate_accounts],
+      ['Seats sold / active', (k.seats_sold_total || 0) + ' / ' + (k.seats_active_total || 0)],
+      ['Open leads', k.open_leads],
+      ['MRR', '€' + Number(k.mrr_eur || 0).toLocaleString()],
+    ].map(function (row) {
+      return '<div class="kpi"><div class="kpi-num">' + row[1] + '</div><div class="kpi-label">' + row[0] + '</div></div>';
+    }).join('');
+  }
+
+  async function loadSignups() {
+    var r = await client.rpc('admin_list_recent_signups', { days_back: 7 });
+    var body = document.getElementById('signupsBody');
+    if (r.error || !r.data || r.data.length === 0) {
+      body.innerHTML = '<tr><td colspan="3" class="empty">No signups in the last 7 days.</td></tr>'; return;
+    }
+    body.innerHTML = r.data.map(function (u) {
+      return '<tr><td><strong>' + esc(u.full_name || '(no name)') + '</strong></td>' +
+             '<td>' + esc(u.email || '') + '</td>' +
+             '<td class="tight">' + fmtDate(u.created_at) + '</td></tr>';
+    }).join('');
+  }
+
+  // ── Leads ────────────────────────────────────────────────────────────────
+  var showHandled = false;
+  document.getElementById('toggleAllLeads').addEventListener('click', function () {
+    showHandled = !showHandled;
+    this.textContent = showHandled ? 'Show only open' : 'Show handled too';
+    loadLeads();
+  });
+
+  async function loadLeads() {
+    var r = await client.rpc('admin_list_corporate_leads', { only_open: !showHandled });
+    var body = document.getElementById('leadsBody');
+    if (r.error || !r.data || r.data.length === 0) {
+      body.innerHTML = '<tr><td colspan="7" class="empty">No leads.</td></tr>'; return;
+    }
+    body.innerHTML = r.data.map(function (l) {
+      return '<tr>' +
+        '<td><strong>' + esc(l.company_name) + '</strong></td>' +
+        '<td>' + esc(l.contact_name) + '<br><span style="color:var(--ink-soft); font-size:11.5px;">' + esc(l.contact_email) + '</span></td>' +
+        '<td>' + esc(l.team_size || '—') + '</td>' +
+        '<td>' + esc(l.plan || '—') + '</td>' +
+        '<td class="tight">' + fmtDate(l.created_at) + '</td>' +
+        '<td>' + (l.handled ? '<span class="pill handled">handled</span>' : '<span class="pill open">open</span>') + '</td>' +
+        '<td>' + (l.handled
+          ? ''
+          : '<button class="btn small" data-convert="' + l.id + '">Convert →</button>') + '</td>' +
+      '</tr>';
+    }).join('');
+    body.querySelectorAll('[data-convert]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var lead = r.data.find(function (x) { return x.id === btn.dataset.convert; });
+        openConvertDialog(lead);
+      });
+    });
+  }
+
+  function openConvertDialog(lead) {
+    document.getElementById('cvLeadId').value = lead ? lead.id : '';
+    document.getElementById('cvCompany').value = lead ? lead.company_name : '';
+    document.getElementById('cvHrEmail').value = lead ? lead.contact_email : '';
+    document.getElementById('cvPlan').value = (lead && lead.plan) || 'full_package';
+    document.getElementById('convertTitle').textContent = lead ? 'Convert lead to account' : 'Create corporate account';
+    document.getElementById('convertLead').textContent = lead ? ('Lead: ' + lead.company_name + ' · ' + lead.contact_email) : '';
+    document.getElementById('convertDialog').showModal();
+  }
+  document.getElementById('cvCancel').addEventListener('click', function () {
+    document.getElementById('convertDialog').close();
+  });
+  document.getElementById('newAccountBtn').addEventListener('click', function () { openConvertDialog(null); });
+  document.getElementById('cvSubmit').addEventListener('click', async function () {
+    var body = {
+      lead_id: document.getElementById('cvLeadId').value || null,
+      target_company: document.getElementById('cvCompany').value.trim(),
+      target_hr_email: document.getElementById('cvHrEmail').value.trim(),
+      target_seats: parseInt(document.getElementById('cvSeats').value, 10) || 0,
+      target_plan: document.getElementById('cvPlan').value,
+      target_price_per_seat: parseFloat(document.getElementById('cvPrice').value) || null,
+      target_languages: document.getElementById('cvLangs').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+      target_cities: document.getElementById('cvCities').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+    };
+    if (!body.target_company || !body.target_hr_email || body.target_seats < 1) {
+      msg('cvMsg', 'Company, HR email and seats are required.', 'err'); return;
+    }
+    var r = await client.rpc('admin_convert_lead_to_account', body);
+    if (r.error) { msg('cvMsg', r.error.message, 'err'); return; }
+    msg('cvMsg', '✓ Account created: ' + r.data, 'ok');
+    setTimeout(function () {
+      document.getElementById('convertDialog').close();
+      loadLeads(); loadKpis();
+    }, 800);
+  });
+
+  // ── Accounts ─────────────────────────────────────────────────────────────
+  document.getElementById('accountStatusFilter').addEventListener('change', loadAccounts);
+  async function loadAccounts() {
+    var status = document.getElementById('accountStatusFilter').value || null;
+    var r = await client.rpc('admin_list_corporate_accounts', { status_filter: status });
+    var body = document.getElementById('accountsBody');
+    if (r.error || !r.data || r.data.length === 0) {
+      body.innerHTML = '<tr><td colspan="8" class="empty">No accounts.</td></tr>'; return;
+    }
+    body.innerHTML = r.data.map(function (a) {
+      return '<tr>' +
+        '<td><strong>' + esc(a.company_name) + '</strong></td>' +
+        '<td>' + esc(a.hr_email || '—') + '</td>' +
+        '<td>' + esc((a.plan || '').replace('_', ' ')) + '</td>' +
+        '<td>' + esc(a.seats_used + ' / ' + a.seats_purchased) + '</td>' +
+        '<td>€' + esc(a.monthly_price_per_seat || 0) + '</td>' +
+        '<td><span class="pill ' + a.status + '">' + a.status + '</span></td>' +
+        '<td class="tight">' + fmtDate(a.created_at) + '</td>' +
+        '<td>' +
+          '<button class="btn ghost small" data-edit="' + a.id + '">Edit</button> ' +
+          (a.status === 'cancelled' ? '' :
+            '<button class="btn small danger" data-cancel="' + a.id + '">Cancel</button>') +
+        '</td>' +
+      '</tr>';
+    }).join('');
+    body.querySelectorAll('[data-edit]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var a = r.data.find(function (x) { return x.id === btn.dataset.edit; });
+        openEditDialog(a);
+      });
+    });
+    body.querySelectorAll('[data-cancel]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (!confirm('Cancel this corporate account?')) return;
+        var res = await client.rpc('admin_cancel_corporate_account', { target_account: btn.dataset.cancel });
+        if (res.error) alert(res.error.message); else { loadAccounts(); loadKpis(); }
+      });
+    });
+  }
+
+  function openEditDialog(a) {
+    document.getElementById('edAccountId').value = a.id;
+    document.getElementById('edSeats').value = a.seats_purchased;
+    document.getElementById('edPlan').value = a.plan;
+    document.getElementById('edPrice').value = a.monthly_price_per_seat || '';
+    document.getElementById('edStatus').value = a.status;
+    document.getElementById('edHrEmail').value = '';
+    document.getElementById('editDialog').showModal();
+  }
+  document.getElementById('edCancel').addEventListener('click', function () {
+    document.getElementById('editDialog').close();
+  });
+  document.getElementById('edSubmit').addEventListener('click', async function () {
+    var payload = {
+      target_account: document.getElementById('edAccountId').value,
+      new_seats:  parseInt(document.getElementById('edSeats').value, 10) || null,
+      new_plan:   document.getElementById('edPlan').value || null,
+      new_price:  parseFloat(document.getElementById('edPrice').value) || null,
+      new_status: document.getElementById('edStatus').value || null,
+      new_hr_email: document.getElementById('edHrEmail').value.trim() || null,
+    };
+    var r = await client.rpc('admin_update_corporate_account', payload);
+    if (r.error) { msg('edMsg', r.error.message, 'err'); return; }
+    msg('edMsg', '✓ Saved.', 'ok');
+    setTimeout(function () { document.getElementById('editDialog').close(); loadAccounts(); }, 700);
+  });
+
+  // ── Users ────────────────────────────────────────────────────────────────
+  document.getElementById('searchUsersBtn').addEventListener('click', loadUsers);
+  document.getElementById('userQuery').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); loadUsers(); }
+  });
+  async function loadUsers() {
+    var q = document.getElementById('userQuery').value.trim();
+    var body = document.getElementById('usersBody');
+    body.innerHTML = '<tr><td colspan="6" class="empty">Searching…</td></tr>';
+    var r = await client.rpc('admin_search_users', { query: q, page_size: 30 });
+    if (r.error) { body.innerHTML = '<tr><td colspan="6" class="empty">' + esc(r.error.message) + '</td></tr>'; return; }
+    if (!r.data || r.data.length === 0) {
+      body.innerHTML = '<tr><td colspan="6" class="empty">No matches.</td></tr>'; return;
+    }
+    body.innerHTML = r.data.map(function (u) {
+      function chk(f, v) {
+        return '<label style="display:inline-flex; align-items:center; gap:4px; margin-right: 8px; font-size:12px;">' +
+          '<input type="checkbox" data-flag="' + f + '" data-user="' + u.id + '"' + (v ? ' checked' : '') + '> ' + f.replace('is_','') +
+        '</label>';
+      }
+      return '<tr>' +
+        '<td><strong>' + esc(u.full_name || '(no name)') + '</strong></td>' +
+        '<td>' + esc(u.email || '—') + '</td>' +
+        '<td>' + esc([u.city, u.country].filter(Boolean).join(', ') || '—') + '</td>' +
+        '<td>' + chk('is_teacher', u.is_teacher) + chk('is_verified', u.is_verified) +
+                 chk('is_admin', u.is_admin)   + chk('is_organizer', u.is_organizer) + '</td>' +
+        '<td>' + esc(u.teacher_audience || '—') + '</td>' +
+        '<td class="tight">' + fmtDate(u.created_at) + '</td>' +
+      '</tr>';
+    }).join('');
+    body.querySelectorAll('input[data-flag]').forEach(function (chk) {
+      chk.addEventListener('change', async function () {
+        var res = await client.rpc('admin_set_profile_flag', {
+          target_user: chk.dataset.user, flag: chk.dataset.flag, value: chk.checked,
+        });
+        if (res.error) { alert(res.error.message); chk.checked = !chk.checked; }
+      });
+    });
+  }
+
+  // ── Audit ────────────────────────────────────────────────────────────────
+  async function loadAudit() {
+    var r = await client.rpc('admin_recent_audit', { limit_rows: 100 });
+    var body = document.getElementById('auditBody');
+    if (r.error || !r.data || r.data.length === 0) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">No entries yet.</td></tr>'; return;
+    }
+    body.innerHTML = r.data.map(function (l) {
+      var payload = l.payload ? JSON.stringify(l.payload) : '';
+      return '<tr>' +
+        '<td class="tight">' + fmtDateTime(l.created_at) + '</td>' +
+        '<td>' + esc(l.admin_email || '—') + '</td>' +
+        '<td><strong>' + esc(l.action) + '</strong></td>' +
+        '<td>' + esc(l.target_table || '') +
+          (l.target_id ? '<br><span style="color:var(--ink-muted); font-size:11px;">' + esc(l.target_id) + '</span>' : '') + '</td>' +
+        '<td style="font-family: ui-monospace, monospace; font-size:11.5px; color:var(--ink-soft); max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + esc(payload) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  client.auth.onAuthStateChange(function () { refresh(); });
+  refresh();
+</script>
+</body>
+</html>
