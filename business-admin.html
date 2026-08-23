@@ -136,14 +136,22 @@
 
   <div id="signedOut" class="login" style="display:none;">
     <h2>HR sign-in</h2>
-    <p>Enter the email you used when contacting sales. We'll send you a one-time link.</p>
+    <p>Sign in with the Duvela account you used when contacting sales.</p>
     <div class="field" style="margin-top: 16px; text-align: left;">
-      <label for="magicEmail">Work email</label>
-      <input id="magicEmail" type="email" placeholder="you@company.com" autocomplete="email">
+      <label for="loginEmail">Work email</label>
+      <input id="loginEmail" type="email" placeholder="you@company.com" autocomplete="email">
     </div>
-    <button class="btn" id="magicBtn" style="width: 100%; margin-top: 14px;">Email me a link</button>
+    <div class="field" style="text-align: left;">
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" placeholder="password" autocomplete="current-password">
+    </div>
+    <button class="btn" id="loginBtn" style="width: 100%; margin-top: 14px;">Sign in</button>
+    <div class="msg" id="loginMsg"></div>
+    <p style="margin-top: 14px; font-size: 12px; color: var(--ink-muted); text-align: center;">
+      Magic-link fallback: <a href="#" id="magicFallback">email me a link instead</a>.
+    </p>
     <div class="msg" id="magicMsg"></div>
-    <p style="margin-top: 18px; font-size: 12px;">
+    <p style="margin-top: 18px; font-size: 12px; text-align: center;">
       Not signed up yet? <a href="./business.html#contact">Book a demo →</a>
     </p>
   </div>
@@ -447,13 +455,25 @@
     else loadSeats();
   }
 
-  // Magic-link sign-in
-  document.getElementById('magicBtn').addEventListener('click', async function () {
-    var email = document.getElementById('magicEmail').value.trim();
-    if (!email) return;
+  // Password sign-in (primary) + magic-link fallback
+  document.getElementById('loginBtn').addEventListener('click', doPasswordLogin);
+  document.getElementById('loginPassword').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); doPasswordLogin(); }
+  });
+  async function doPasswordLogin() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var pwd   = document.getElementById('loginPassword').value;
+    if (!email || !pwd) return;
+    var r = await client.auth.signInWithPassword({ email: email, password: pwd });
+    if (r.error) showMsg('loginMsg', r.error.message, 'err');
+    else refresh();
+  }
+  document.getElementById('magicFallback').addEventListener('click', async function (e) {
+    e.preventDefault();
+    var email = document.getElementById('loginEmail').value.trim();
+    if (!email) { showMsg('magicMsg', 'Type your email first.', 'err'); return; }
     var r = await client.auth.signInWithOtp({
-      email: email,
-      options: { emailRedirectTo: location.href }
+      email: email, options: { emailRedirectTo: location.href },
     });
     if (r.error) showMsg('magicMsg', r.error.message, 'err');
     else showMsg('magicMsg', '✓ Check your inbox for the sign-in link.', 'ok');
