@@ -337,7 +337,9 @@
           authUi.showNote(authUi.getCopy('enterEmailFirst', 'Enter your email above first.'));
           return;
         }
-        const { error } = await supa.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+        const { error } = await supa.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/reset-password.html',
+        });
         authUi.showNote(
           error
             ? error.message
