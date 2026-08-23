@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>document.documentElement.classList.add('js');</script>
+<script>
+document.documentElement.classList.add('js');
+// If Supabase redirected us here with a password-recovery hash (the reset
+// email lands on Site URL by default), forward to the dedicated page.
+if (location.hash && /type=recovery/.test(location.hash)) {
+  location.replace('/reset-password.html' + location.hash);
+}
+</script>
 <title>Duvela — Learn with Real Teachers</title>
 <meta name="description" content="Duvela Academy — languages, arts, school subjects & more. Watch level-matched videos, join live lessons and events with real teachers.">
 <meta name="robots" content="index,follow,max-image-preview:large">
