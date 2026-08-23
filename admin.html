@@ -137,6 +137,9 @@
       <button class="tab" data-tab="leads">Leads</button>
       <button class="tab" data-tab="accounts">Corporate accounts</button>
       <button class="tab" data-tab="users">Users</button>
+      <button class="tab" data-tab="moderation">Moderation</button>
+      <button class="tab" data-tab="finance">Finance</button>
+      <button class="tab" data-tab="bulk">Bulk ops</button>
       <button class="tab" data-tab="audit">Audit log</button>
     </div>
 
@@ -215,6 +218,115 @@
           <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Flags</th><th>Audience</th><th></th></tr></thead>
           <tbody id="usersBody"><tr><td colspan="6" class="empty">Type a query and hit Search.</td></tr></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- MODERATION -->
+    <div class="tab-panel" data-panel="moderation" hidden>
+      <div class="card">
+        <h2>Content reports</h2>
+        <p class="lead">Resolve reports on posts, chats, and live sessions. Hide the offending content or ban the user; every action is audited.</p>
+        <div class="row" style="grid-template-columns: auto auto 1fr;">
+          <div class="field"><label>Kind</label>
+            <select id="modKind">
+              <option value="media">Media (posts)</option>
+              <option value="chat">Chat</option>
+              <option value="live">Live</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px;">
+              <input type="checkbox" id="modOnlyOpen" checked> only open
+            </label>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th class="tight">When</th><th>Reporter</th><th>Target user</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+          <tbody id="modBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Manual moderation actions</h2>
+        <p class="lead">Hide a post by id, or ban/unban a user by id.</p>
+        <div class="row">
+          <div class="field"><label>Post id</label><input id="modPostId" placeholder="uuid"></div>
+          <div class="field"><label>Reason (optional)</label><input id="modHideReason"></div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn danger" id="modHideBtn">Hide post</button>
+          <button class="btn ghost" id="modUnhideBtn">Unhide post</button>
+        </div>
+        <hr style="border:none; border-top:1px solid var(--lav-line); margin: 18px 0;">
+        <div class="row">
+          <div class="field"><label>User id (uuid)</label><input id="modUserId"></div>
+          <div class="field"><label>Reason</label><input id="modBanReason"></div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn danger" id="modBanBtn">Ban user</button>
+          <button class="btn ghost" id="modUnbanBtn">Unban user</button>
+        </div>
+        <div class="msg" id="modMsg"></div>
+      </div>
+    </div>
+
+    <!-- FINANCE -->
+    <div class="tab-panel" data-panel="finance" hidden>
+      <div class="card">
+        <h2>Financial summary</h2>
+        <p class="lead">Corporate MRR + coin-shop revenue over a rolling window.</p>
+        <div class="row" style="grid-template-columns:auto 1fr;">
+          <div class="field"><label>Window</label>
+            <select id="finDays">
+              <option value="7">7 days</option>
+              <option value="30" selected>30 days</option>
+              <option value="90">90 days</option>
+              <option value="365">365 days</option>
+            </select>
+          </div>
+        </div>
+        <div class="kpi-grid" id="finKpi" style="margin-top:12px;"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h2>Revenue by corporate account</h2>
+        <p class="lead">Seats × price per seat, ranked. Contract length isn't tracked yet, so this is billed-per-month potential.</p>
+        <table>
+          <thead><tr><th>Company</th><th>Plan</th><th>Seats</th><th>€/seat</th><th>Monthly</th><th>Status</th></tr></thead>
+          <tbody id="finAccountsBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Coin transactions (last 30 days)</h2>
+        <table>
+          <thead><tr><th class="tight">When</th><th>User</th><th>Δ</th><th>Balance</th><th>Source</th><th>Label</th></tr></thead>
+          <tbody id="finTxBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BULK OPS -->
+    <div class="tab-panel" data-panel="bulk" hidden>
+      <div class="card">
+        <h2>Bulk invite seats</h2>
+        <p class="lead">Paste emails (one per line or comma-separated) to invite in bulk for a chosen corporate account. Existing Duvela users become active seats immediately; others land in pending invites and activate on signup.</p>
+        <div class="row">
+          <div class="field"><label>Corporate account</label>
+            <select id="bulkAccount"><option value="">Loading…</option></select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Emails</label>
+          <textarea id="bulkEmails" rows="7" placeholder="alice@example.com&#10;bob@example.com"></textarea>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button class="btn" id="bulkSubmitBtn">Invite all</button>
+          <span id="bulkCount" style="align-self:center; color:var(--ink-soft); font-size:12.5px;"></span>
+        </div>
+        <table style="margin-top:14px;" id="bulkResults" hidden>
+          <thead><tr><th>Email</th><th>Outcome</th><th>Detail</th></tr></thead>
+          <tbody id="bulkResultsBody"></tbody>
+        </table>
+        <div class="msg" id="bulkMsg"></div>
       </div>
     </div>
 
@@ -320,11 +432,187 @@
       document.querySelectorAll('.tab-panel').forEach(function (p) {
         p.hidden = p.dataset.panel !== name;
       });
-      if (name === 'overview')  { loadKpis(); loadSignups(); }
-      if (name === 'leads')     { loadLeads(); }
-      if (name === 'accounts')  { loadAccounts(); }
-      if (name === 'audit')     { loadAudit(); }
+      if (name === 'overview')   { loadKpis(); loadSignups(); }
+      if (name === 'leads')      { loadLeads(); }
+      if (name === 'accounts')   { loadAccounts(); }
+      if (name === 'moderation') { loadReports(); }
+      if (name === 'finance')    { loadFinance(); }
+      if (name === 'bulk')       { loadBulkAccounts(); }
+      if (name === 'audit')      { loadAudit(); }
     });
+  });
+
+  // ── Moderation ───────────────────────────────────────────────────────────
+  document.getElementById('modKind').addEventListener('change', loadReports);
+  document.getElementById('modOnlyOpen').addEventListener('change', loadReports);
+  async function loadReports() {
+    var body = document.getElementById('modBody');
+    var r = await client.rpc('admin_list_reports', {
+      report_kind: document.getElementById('modKind').value,
+      only_open: document.getElementById('modOnlyOpen').checked,
+      limit_rows: 100,
+    });
+    if (r.error) { body.innerHTML = '<tr><td colspan="6" class="empty">' + esc(r.error.message) + '</td></tr>'; return; }
+    if (!r.data || r.data.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">No reports.</td></tr>'; return; }
+    body.innerHTML = r.data.map(function (rr) {
+      var actionBtn = '';
+      if (rr.kind === 'media') {
+        actionBtn = (rr.status === 'open')
+          ? '<button class="btn small" data-resolve="' + rr.id + '">Resolve</button> '
+            + '<button class="btn small danger" data-hide="' + rr.target_id + '">Hide post</button>'
+          : '<span class="pill handled">' + esc(rr.status) + '</span>';
+      } else {
+        actionBtn = '<button class="btn small danger" data-ban="' + rr.reported_user_id + '">Ban user</button>';
+      }
+      return '<tr>' +
+        '<td class="tight">' + fmtDateTime(rr.created_at) + '</td>' +
+        '<td>' + esc(rr.reporter_email || '—') + '</td>' +
+        '<td>' + esc(rr.reported_user_email || '—') +
+          '<br><span style="color:var(--ink-muted); font-size:11px;">' + esc(rr.reported_user_id || '') + '</span></td>' +
+        '<td>' + esc(rr.reason || '—') + '</td>' +
+        '<td>' + (rr.status === 'open' ? '<span class="pill open">' + esc(rr.status) + '</span>' :
+                                          '<span class="pill handled">' + esc(rr.status) + '</span>') + '</td>' +
+        '<td>' + actionBtn + '</td>' +
+      '</tr>';
+    }).join('');
+    body.querySelectorAll('[data-resolve]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var note = prompt('Resolution note (optional):') || null;
+        var res = await client.rpc('admin_resolve_media_report', { report_id: b.dataset.resolve, note: note });
+        if (res.error) alert(res.error.message); else loadReports();
+      });
+    });
+    body.querySelectorAll('[data-hide]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        if (!confirm('Hide this post?')) return;
+        var res = await client.rpc('admin_hide_post', { post_id: b.dataset.hide, reason: 'from moderation queue' });
+        if (res.error) alert(res.error.message); else msg('modMsg', '✓ Post hidden', 'ok');
+      });
+    });
+    body.querySelectorAll('[data-ban]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var reason = prompt('Ban reason:') || 'abuse';
+        var res = await client.rpc('admin_ban_user', { target_user: b.dataset.ban, reason: reason });
+        if (res.error) alert(res.error.message); else msg('modMsg', '✓ User banned', 'ok');
+      });
+    });
+  }
+
+  document.getElementById('modHideBtn').addEventListener('click', async function () {
+    var id = document.getElementById('modPostId').value.trim();
+    if (!id) return;
+    var r = await client.rpc('admin_hide_post', { post_id: id, reason: document.getElementById('modHideReason').value.trim() || null });
+    msg('modMsg', r.error ? r.error.message : '✓ Post hidden', r.error ? 'err' : 'ok');
+  });
+  document.getElementById('modUnhideBtn').addEventListener('click', async function () {
+    var id = document.getElementById('modPostId').value.trim();
+    if (!id) return;
+    var r = await client.rpc('admin_unhide_post', { post_id: id });
+    msg('modMsg', r.error ? r.error.message : '✓ Post unhidden', r.error ? 'err' : 'ok');
+  });
+  document.getElementById('modBanBtn').addEventListener('click', async function () {
+    var id = document.getElementById('modUserId').value.trim();
+    var reason = document.getElementById('modBanReason').value.trim() || 'abuse';
+    if (!id) return;
+    var r = await client.rpc('admin_ban_user', { target_user: id, reason: reason });
+    msg('modMsg', r.error ? r.error.message : '✓ User banned', r.error ? 'err' : 'ok');
+  });
+  document.getElementById('modUnbanBtn').addEventListener('click', async function () {
+    var id = document.getElementById('modUserId').value.trim();
+    if (!id) return;
+    var r = await client.rpc('admin_unban_user', { target_user: id });
+    msg('modMsg', r.error ? r.error.message : '✓ User unbanned', r.error ? 'err' : 'ok');
+  });
+
+  // ── Finance ──────────────────────────────────────────────────────────────
+  document.getElementById('finDays').addEventListener('change', loadFinance);
+  async function loadFinance() {
+    var days = parseInt(document.getElementById('finDays').value, 10);
+    var summary = await client.rpc('admin_financial_summary', { days: days });
+    var kpi = document.getElementById('finKpi');
+    if (summary.error) { kpi.innerHTML = '<div class="empty">' + esc(summary.error.message) + '</div>'; }
+    else {
+      var s = (summary.data && summary.data[0]) || {};
+      kpi.innerHTML = [
+        ['MRR', '€' + Number(s.mrr_eur || 0).toLocaleString()],
+        ['Active accounts', s.active_accounts || 0],
+        ['Trials', s.trial_accounts || 0],
+        ['Coin revenue (' + days + 'd)', (s.coin_revenue_period || 0) + ' coins'],
+        ['Coin purchases (' + days + 'd)', s.coin_purchases_count || 0],
+        ['Top account', esc(s.top_account_name || '—') + ' <span style="color:var(--purple); font-size:12px;">€' + Number(s.top_account_mrr || 0).toLocaleString() + '</span>'],
+      ].map(function (row) {
+        return '<div class="kpi"><div class="kpi-num">' + row[1] + '</div><div class="kpi-label">' + row[0] + '</div></div>';
+      }).join('');
+    }
+
+    var accRes = await client.rpc('admin_revenue_by_account');
+    var accBody = document.getElementById('finAccountsBody');
+    if (accRes.error || !accRes.data || accRes.data.length === 0) {
+      accBody.innerHTML = '<tr><td colspan="6" class="empty">No revenue data.</td></tr>';
+    } else {
+      accBody.innerHTML = accRes.data.map(function (a) {
+        return '<tr>' +
+          '<td><strong>' + esc(a.company_name) + '</strong></td>' +
+          '<td>' + esc((a.plan || '').replace('_',' ')) + '</td>' +
+          '<td>' + a.seats_purchased + '</td>' +
+          '<td>€' + a.monthly_price_per_seat + '</td>' +
+          '<td><strong>€' + Number(a.monthly_revenue).toLocaleString() + '</strong></td>' +
+          '<td><span class="pill ' + a.status + '">' + a.status + '</span></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    var txRes = await client.rpc('admin_list_coin_transactions', { days: 30, limit_rows: 100 });
+    var txBody = document.getElementById('finTxBody');
+    if (txRes.error || !txRes.data || txRes.data.length === 0) {
+      txBody.innerHTML = '<tr><td colspan="6" class="empty">No coin transactions.</td></tr>';
+    } else {
+      txBody.innerHTML = txRes.data.map(function (t) {
+        var sign = t.amount >= 0 ? '+' : '';
+        var color = t.amount >= 0 ? 'var(--teal)' : 'var(--red)';
+        return '<tr>' +
+          '<td class="tight">' + fmtDateTime(t.created_at) + '</td>' +
+          '<td>' + esc(t.user_email || '') + '</td>' +
+          '<td style="color:' + color + '; font-weight:700;">' + sign + t.amount + '</td>' +
+          '<td>' + (t.balance_after || 0) + '</td>' +
+          '<td>' + esc(t.source || '') + '</td>' +
+          '<td>' + esc(t.label || '') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+  }
+
+  // ── Bulk ops ─────────────────────────────────────────────────────────────
+  async function loadBulkAccounts() {
+    var sel = document.getElementById('bulkAccount');
+    var r = await client.rpc('admin_list_corporate_accounts', { status_filter: null });
+    if (r.error) { sel.innerHTML = '<option>' + esc(r.error.message) + '</option>'; return; }
+    sel.innerHTML = '<option value="">— choose account —</option>' + (r.data || []).map(function (a) {
+      return '<option value="' + a.id + '">' + esc(a.company_name) + ' · ' + a.seats_used + '/' + a.seats_purchased + '</option>';
+    }).join('');
+  }
+  document.getElementById('bulkEmails').addEventListener('input', function () {
+    var count = (this.value.split(/[\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean)).length;
+    document.getElementById('bulkCount').textContent = count ? count + ' email(s)' : '';
+  });
+  document.getElementById('bulkSubmitBtn').addEventListener('click', async function () {
+    var accId = document.getElementById('bulkAccount').value;
+    if (!accId) { msg('bulkMsg', 'Choose an account first.', 'err'); return; }
+    var emails = document.getElementById('bulkEmails').value.split(/[\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!emails.length) return;
+    var r = await client.rpc('admin_bulk_invite_seats', { target_account: accId, emails: emails });
+    if (r.error) { msg('bulkMsg', r.error.message, 'err'); return; }
+    var tbl = document.getElementById('bulkResults');
+    var body = document.getElementById('bulkResultsBody');
+    tbl.hidden = false;
+    body.innerHTML = (r.data || []).map(function (row) {
+      var pill = row.outcome === 'activated' ? 'active' :
+                 row.outcome === 'pending'   ? 'trial'  :
+                 row.outcome === 'skipped'   ? 'paused' : 'cancelled';
+      return '<tr><td>' + esc(row.email) + '</td><td><span class="pill ' + pill + '">' + esc(row.outcome) + '</span></td><td>' + esc(row.detail || '') + '</td></tr>';
+    }).join('');
+    var ok = (r.data || []).filter(function (x) { return x.outcome === 'activated' || x.outcome === 'pending'; }).length;
+    msg('bulkMsg', '✓ Processed ' + (r.data || []).length + ' emails, ' + ok + ' successful.', 'ok');
   });
 
   // ── Auth ──────────────────────────────────────────────────────────────────

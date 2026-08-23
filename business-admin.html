@@ -225,6 +225,34 @@
       </table>
     </div>
 
+    <!-- Team access (co-admins / billing / observers) -->
+    <div class="card" style="margin-top: 20px;">
+      <h2>Team access</h2>
+      <p class="lead">People who can log in to this dashboard. Only <strong>admins</strong> can edit seats and invite users; <strong>billing</strong> can also see Stripe details; <strong>observers</strong> read only.</p>
+      <div class="row" style="grid-template-columns: 2fr 1fr auto;">
+        <div class="field">
+          <label>Invite email (must already have a Duvela account)</label>
+          <input id="teamInviteEmail" type="email" placeholder="colleague@company.com">
+        </div>
+        <div class="field">
+          <label>Role</label>
+          <select id="teamInviteRole">
+            <option value="observer">Observer</option>
+            <option value="billing">Billing</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="field" style="justify-content:flex-end;">
+          <button class="btn" id="teamInviteBtn" style="margin-top: 24px;">Invite</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+        <tbody id="teamBody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+      <div class="msg" id="teamMsg"></div>
+    </div>
+
     <!-- Suggested teachers matched to account languages / cities -->
     <div class="card" style="margin-top: 20px;">
       <h2>Suggested teachers</h2>
@@ -346,6 +374,33 @@
 
     // Suggested teachers matched to account languages/cities.
     loadSuggestedTeachers();
+
+    // Team roster (co-admins / billing / observers)
+    loadTeam();
+  }
+
+  async function loadTeam() {
+    var body = document.getElementById('teamBody');
+    var r = await client.rpc('list_corporate_admins', { target_account: currentAccount.id });
+    if (r.error) { body.innerHTML = '<tr><td colspan="4" class="empty">' + escapeHtml(r.error.message) + '</td></tr>'; return; }
+    if (!r.data || r.data.length === 0) { body.innerHTML = '<tr><td colspan="4" class="empty">Just you.</td></tr>'; return; }
+    body.innerHTML = r.data.map(function (m) {
+      var isSelf = m.user_id === currentUser.id;
+      var pill = m.role === 'admin' ? 'active' : m.role === 'billing' ? 'invited' : 'removed';
+      return '<tr>' +
+        '<td><strong>' + escapeHtml(m.full_name || '(no name)') + '</strong>' + (isSelf ? ' <span style="color:var(--purple); font-size:11px; font-weight:700;">YOU</span>' : '') + '</td>' +
+        '<td>' + escapeHtml(m.email || '') + '</td>' +
+        '<td><span class="pill ' + pill + '">' + escapeHtml(m.role) + '</span></td>' +
+        '<td>' + (isSelf ? '' : '<button class="btn ghost small" data-remove-admin="' + m.user_id + '">Remove</button>') + '</td>' +
+      '</tr>';
+    }).join('');
+    body.querySelectorAll('[data-remove-admin]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (!confirm('Remove this person from the team?')) return;
+        var res = await client.rpc('corporate_admin_remove', { target_account: currentAccount.id, target_user: btn.dataset.removeAdmin });
+        if (res.error) alert(res.error.message); else loadTeam();
+      });
+    });
   }
 
   async function loadSuggestedTeachers() {
@@ -437,6 +492,21 @@
     showMsg('inviteMsg', text, err ? 'err' : 'ok');
     document.getElementById('inviteBox').value = '';
     loadSeats();
+  });
+
+  document.getElementById('teamInviteBtn').addEventListener('click', async function () {
+    var email = document.getElementById('teamInviteEmail').value.trim();
+    var role  = document.getElementById('teamInviteRole').value;
+    if (!email) return;
+    var r = await client.rpc('corporate_admin_invite', {
+      target_account: currentAccount.id, target_email: email, target_role: role,
+    });
+    if (r.error) showMsg('teamMsg', r.error.message, 'err');
+    else {
+      showMsg('teamMsg', '✓ Invited', 'ok');
+      document.getElementById('teamInviteEmail').value = '';
+      loadTeam();
+    }
   });
 
   client.auth.onAuthStateChange(function () { refresh(); });
