@@ -742,7 +742,21 @@ async function join() {
     media = client.getMediaStream();
     joined = true;
     if (roomRole === 'host') {
-      void supa.from('class_sessions').update({ status: 'live' }).eq('id', sessionId).eq('created_by', me.id);
+      // Mark the class live via the edge function (service-role update) instead
+      // of a direct table UPDATE. The direct update was scoped by
+      // .eq('created_by', me.id) and RLS silently dropped the row when the
+      // course belonged to an organization (created_by !== teacher), leaving
+      // learners stuck on "Учитель ещё не открыл комнату".
+      try {
+        const startResult = await supa.functions.invoke('zoom-video-token', {
+          body: { action: 'start', sessionId },
+        });
+        if (startResult.error) {
+          console.warn('Failed to mark Zoom class session live.', startResult.error);
+        }
+      } catch (startInvokeError) {
+        console.warn('Failed to invoke zoom-video-token start action.', startInvokeError);
+      }
       await renderWaitingRoom();
       waitingTimer = setInterval(renderWaitingRoom, 3000);
       $('addMaterialBtn').hidden = false;
