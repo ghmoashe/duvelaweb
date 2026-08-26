@@ -149,6 +149,7 @@
       <button class="tab" data-tab="moderation">Moderation</button>
       <button class="tab" data-tab="finance">Finance</button>
       <button class="tab" data-tab="bulk">Bulk ops</button>
+      <button class="tab" data-tab="media">Media (Bunny)</button>
       <button class="tab" data-tab="audit">Audit log</button>
     </div>
 
@@ -339,6 +340,40 @@
       </div>
     </div>
 
+    <!-- MEDIA (Bunny Stream) -->
+    <div class="tab-panel" data-panel="media" hidden>
+      <div class="card">
+        <h2>Bunny Stream · overview</h2>
+        <p class="lead">Aggregated stats across every post with a bunny_video_guid. Refreshed hourly by the bunny-analytics-sync edge function.</p>
+        <div class="kpi-grid" id="bunnyKpi"><div class="empty">Loading…</div></div>
+        <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+          <button class="btn" id="bunnySyncNowBtn">Sync analytics now</button>
+          <button class="btn ghost" id="bunnyCleanupDryBtn">Cleanup dry-run</button>
+          <button class="btn danger" id="bunnyCleanupRunBtn">Run cleanup now</button>
+        </div>
+        <div class="msg" id="bunnyOpsMsg"></div>
+      </div>
+      <div class="card">
+        <h2>Top videos by views</h2>
+        <p class="lead">Top 25 shorts by total plays. Tap a row to open the CDN thumbnail.</p>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Author</th>
+              <th>Caption</th>
+              <th>Views</th>
+              <th>Watch time</th>
+              <th>Length</th>
+              <th>Status</th>
+              <th class="tight">Last sync</th>
+            </tr>
+          </thead>
+          <tbody id="bunnyTopBody"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- AUDIT -->
     <div class="tab-panel" data-panel="audit" hidden>
       <div class="card">
@@ -447,8 +482,98 @@
       if (name === 'moderation') { loadReports(); }
       if (name === 'finance')    { loadFinance(); }
       if (name === 'bulk')       { loadBulkAccounts(); }
+      if (name === 'media')      { loadBunny(); }
       if (name === 'audit')      { loadAudit(); }
     });
+  });
+
+  // ── Media (Bunny Stream) ─────────────────────────────────────────────────
+  async function loadBunny() {
+    var kpi = document.getElementById('bunnyKpi');
+    var body = document.getElementById('bunnyTopBody');
+    kpi.innerHTML = '<div class="empty">Loading…</div>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+
+    var statsRes = await client.rpc('admin_bunny_stats');
+    if (statsRes.error) {
+      kpi.innerHTML = '<div class="empty">' + esc(statsRes.error.message) + '</div>';
+    } else {
+      var s = (statsRes.data && statsRes.data[0]) || {};
+      var mb = (s.total_storage_bytes || 0) / (1024 * 1024);
+      var storageLabel = mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : mb.toFixed(1) + ' MB';
+      var hours = Math.round((s.total_watch_time_seconds || 0) / 36) / 100;
+      kpi.innerHTML = [
+        ['Total posts',        s.posts_total || 0],
+        ['Finished',           s.posts_finished || 0],
+        ['Processing',         s.posts_processing || 0],
+        ['Deleted at CDN',     s.posts_deleted_at_cdn || 0],
+        ['Never synced',       s.posts_never_synced || 0],
+        ['Total views',        Number(s.total_views || 0).toLocaleString()],
+        ['Watch time',         hours.toLocaleString() + ' h'],
+        ['CDN storage',        storageLabel],
+        ['Synced <2h',         s.synced_recently || 0],
+        ['Stale >2h',          s.synced_stale || 0],
+      ].map(function (row) {
+        return '<div class="kpi"><div class="kpi-num">' + row[1] + '</div><div class="kpi-label">' + row[0] + '</div></div>';
+      }).join('');
+    }
+
+    var topRes = await client.rpc('admin_bunny_top_posts', { limit_rows: 25 });
+    if (topRes.error || !topRes.data || topRes.data.length === 0) {
+      body.innerHTML = '<tr><td colspan="8" class="empty">' + (topRes.error ? esc(topRes.error.message) : 'No Bunny videos yet.') + '</td></tr>';
+      return;
+    }
+    body.innerHTML = topRes.data.map(function (p) {
+      var thumb = p.bunny_thumbnail_url || '';
+      var statusPill = p.bunny_status === 'finished' ? 'active' :
+                       p.bunny_status === 'deleted'  ? 'cancelled' :
+                       p.bunny_status === 'error' || p.bunny_status === 'upload_failed' ? 'cancelled' :
+                       'trial';
+      return '<tr>' +
+        '<td><a href="' + esc(thumb) + '" target="_blank">' +
+          (thumb
+            ? '<img src="' + esc(thumb) + '" style="width:56px;height:32px;object-fit:cover;border-radius:6px;" alt="">'
+            : '<span style="display:inline-block;width:56px;height:32px;background:#F1ECFF;border-radius:6px;"></span>') +
+        '</a></td>' +
+        '<td>' + esc(p.author_name || '') + '<br><span style="color:var(--ink-muted);font-size:11px;">' + esc(p.author_email || '') + '</span></td>' +
+        '<td>' + esc((p.caption || '').slice(0, 60)) + (p.caption && p.caption.length > 60 ? '…' : '') + '</td>' +
+        '<td><strong>' + Number(p.bunny_view_count || 0).toLocaleString() + '</strong></td>' +
+        '<td>' + Math.round((p.bunny_watch_time_seconds || 0) / 60) + ' min</td>' +
+        '<td>' + (p.bunny_length_seconds ? p.bunny_length_seconds + 's' : '—') + '</td>' +
+        '<td><span class="pill ' + statusPill + '">' + esc(p.bunny_status) + '</span></td>' +
+        '<td class="tight">' + (p.bunny_last_synced_at ? fmtDateTime(p.bunny_last_synced_at) : '—') + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  async function invokeBunnyOp(fnName, dry) {
+    var url = 'https://ohtkryanqcnwghcnipsr.supabase.co/functions/v1/' + fnName + (dry ? '?dry=1' : '');
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    var text = await res.text();
+    return { ok: res.ok, status: res.status, text: text };
+  }
+
+  document.getElementById('bunnySyncNowBtn').addEventListener('click', async function () {
+    msg('bunnyOpsMsg', 'Running analytics sync…', 'ok');
+    var r = await invokeBunnyOp('bunny-analytics-sync', false);
+    msg('bunnyOpsMsg', r.ok ? '✓ Sync: ' + r.text : 'FAIL ' + r.status + ': ' + r.text, r.ok ? 'ok' : 'err');
+    if (r.ok) loadBunny();
+  });
+  document.getElementById('bunnyCleanupDryBtn').addEventListener('click', async function () {
+    msg('bunnyOpsMsg', 'Running dry-run cleanup…', 'ok');
+    var r = await invokeBunnyOp('bunny-cleanup-orphans', true);
+    msg('bunnyOpsMsg', r.ok ? '✓ Dry-run: ' + r.text : 'FAIL ' + r.status + ': ' + r.text, r.ok ? 'ok' : 'err');
+  });
+  document.getElementById('bunnyCleanupRunBtn').addEventListener('click', async function () {
+    if (!confirm('Delete all orphaned Bunny videos (>24h old, not referenced by any post)? This is irreversible.')) return;
+    msg('bunnyOpsMsg', 'Running cleanup…', 'ok');
+    var r = await invokeBunnyOp('bunny-cleanup-orphans', false);
+    msg('bunnyOpsMsg', r.ok ? '✓ Cleanup: ' + r.text : 'FAIL ' + r.status + ': ' + r.text, r.ok ? 'ok' : 'err');
+    if (r.ok) loadBunny();
   });
 
   // ── Moderation ───────────────────────────────────────────────────────────

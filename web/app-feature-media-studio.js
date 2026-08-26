@@ -26,19 +26,27 @@
 
     async function loadPosts(uid) {
       const r = await safe(supa.from('posts')
-        .select('id,media_url,media_type,caption,cover_url,mux_playback_id,mux_thumbnail_url,language_level,shorts_hidden,shorts_deleted_at,created_at')
+        .select('id,media_url,media_type,caption,cover_url,bunny_video_guid,bunny_thumbnail_url,mux_playback_id,mux_thumbnail_url,language_level,shorts_hidden,shorts_deleted_at,created_at')
         .eq('user_id', uid).order('created_at', { ascending: false }).limit(100));
       posts = ((r && r.data) || []).filter(function (p) { return !p.shorts_deleted_at; });
     }
 
     // Map a stored post to the shape the shared player (ctx.openVideoItem) expects.
+    // Thumbnail priority: bunny_thumbnail_url → cover_url → mux_thumbnail_url →
+    // derived from bunny_video_guid → derived from mux_playback_id → image src.
     function toPlayerItem(p) {
-      const thumb = p.mux_thumbnail_url || p.cover_url ||
-        (p.mux_playback_id ? 'https://image.mux.com/' + p.mux_playback_id + '/thumbnail.jpg?width=640' : (p.media_type === 'image' ? p.media_url : null));
+      var cdn = window.DuvelaWebConfig && window.DuvelaWebConfig.bunnyCdnHostname;
+      var bunnyThumb = p.bunny_thumbnail_url ||
+        (p.bunny_video_guid && cdn ? 'https://' + cdn + '/' + p.bunny_video_guid + '/thumbnail.jpg' : null);
+      var muxThumb = p.mux_thumbnail_url ||
+        (p.mux_playback_id ? 'https://image.mux.com/' + p.mux_playback_id + '/thumbnail.jpg?width=640' : null);
+      var thumb = bunnyThumb || p.cover_url || muxThumb || (p.media_type === 'image' ? p.media_url : null);
       return {
         id: p.id, title: p.caption || '', level: p.language_level || '',
         media_type: p.media_type, media_url: p.media_url,
-        playback_id: p.mux_playback_id || null, caption: p.caption || null, image: thumb
+        playback_id: p.mux_playback_id || null,
+        bunny_video_guid: p.bunny_video_guid || null,
+        caption: p.caption || null, image: thumb
       };
     }
 
@@ -71,7 +79,7 @@
         '<div class="ms-levels">' + LEVELS.map(function (l) {
           return '<button type="button" class="ms-level' + (ytLevel === l ? ' active' : '') + '" data-ms-level="' + l + '">' + esc(l) + '</button>';
         }).join('') + '</div>' +
-        (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') +
+        (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (uploadProgress !== null ? renderProgressBar(uploadProgress) : '') +
         '<button type="button" id="msAddVideo" class="ms-add-btn"' + (busy ? ' disabled' : '') + '>' + IC.yt +
         '<span>' + esc(busy ? tr('Saving…', 'Сохранение…') : tr('Add Video', 'Добавить видео')) + '</span></button>' +
         '</div>';
@@ -83,7 +91,12 @@
         if (kind === 'videos') thumb = '<img src="https://img.youtube.com/vi/' + esc(p.media_url) + '/mqdefault.jpg" alt="">';
         else if (kind === 'photos') thumb = p.media_url ? '<img src="' + esc(p.media_url) + '" alt="">' : '';
         else {
-          var t = p.mux_thumbnail_url || p.cover_url || (p.mux_playback_id ? 'https://image.mux.com/' + p.mux_playback_id + '/thumbnail.jpg?width=640' : '');
+          var cdn = window.DuvelaWebConfig && window.DuvelaWebConfig.bunnyCdnHostname;
+          var t = p.bunny_thumbnail_url
+            || (p.bunny_video_guid && cdn ? 'https://' + cdn + '/' + p.bunny_video_guid + '/thumbnail.jpg' : '')
+            || p.cover_url
+            || p.mux_thumbnail_url
+            || (p.mux_playback_id ? 'https://image.mux.com/' + p.mux_playback_id + '/thumbnail.jpg?width=640' : '');
           thumb = t ? '<img src="' + esc(t) + '" alt="">' : '<span class="ms-thumb-ph">' + IC.play + '</span>';
         }
         return '<div class="ms-item">' +
@@ -119,12 +132,12 @@
       }
       if (activeTab === 'shorts') {
         var sh = posts.filter(function (p) { return p.media_type === 'video'; });
-        return uploadCard('shorts') + (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (sh.length
+        return uploadCard('shorts') + (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (uploadProgress !== null ? renderProgressBar(uploadProgress) : '') + (sh.length
           ? grid(sh, 'shorts')
           : emptyCard(IC.play, tr('No shorts yet', 'Пока нет Shorts'), tr('Upload a short video to show on your profile.', 'Загрузите короткое видео для профиля.')));
       }
       var ph = posts.filter(function (p) { return p.media_type === 'image'; });
-      return uploadCard('photos') + (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (ph.length
+      return uploadCard('photos') + (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (uploadProgress !== null ? renderProgressBar(uploadProgress) : '') + (ph.length
         ? grid(ph, 'photos')
         : emptyCard(IC.photo, tr('No photos yet', 'Пока нет фото'), tr('Add photos to build your gallery.', 'Добавьте фото, чтобы собрать галерею.')));
     }
@@ -169,19 +182,54 @@
       input.click();
     }
 
+    // Progress fraction for the current upload (video → Bunny only; image
+    // uploads go through Supabase Storage in one request and don't emit
+    // progress events).
+    var uploadProgress = null;
+
     async function uploadFile(file, kind) {
-      busy = true; notice = ''; paint();
+      busy = true; notice = ''; uploadProgress = null; paint();
       try {
-        const url = await ctx.uploadToBucket('posts', file);
-        const payload = {
-          user_id: ctx.user.id, media_url: url,
+        var payload = {
+          user_id: ctx.user.id,
           media_type: kind === 'photos' ? 'image' : 'video',
           media_kind: kind === 'shorts' || kind === 'photos' ? 'short' : 'video',
-          shorts_visibility: 'public', caption: null
+          shorts_visibility: 'public', caption: null,
         };
-        let r = await supa.from('posts').insert(payload);
+
+        if (kind === 'photos') {
+          // Images stay on Supabase Storage.
+          payload.media_url = await ctx.uploadToBucket('posts', file);
+        } else {
+          // Videos go straight to Bunny Stream via the shared uploader —
+          // AccessKey never touches the browser bundle; the edge function
+          // hands it back for this one upload only.
+          if (!window.DuvelaBunnyUpload) {
+            throw new Error('Bunny uploader not loaded');
+          }
+          var result = await window.DuvelaBunnyUpload.uploadShortToBunny(supa, file, {
+            title: file.name || 'Duvela short',
+            onProgress: function (fraction) {
+              uploadProgress = fraction;
+              // Repaint at most every ~5% to avoid thrashing the DOM.
+              if (Math.round(fraction * 20) !== Math.round((uploadProgress || 0) * 20)) paint();
+            },
+          });
+          payload.media_url = result.playbackUrl;
+          payload.bunny_video_guid = result.videoGuid;
+          payload.bunny_thumbnail_url = result.thumbnailUrl;
+          payload.cover_url = result.thumbnailUrl;
+        }
+
+        var r = await supa.from('posts').insert(payload);
         if (r.error && /media_kind/i.test(r.error.message || '')) {
           delete payload.media_kind;
+          r = await supa.from('posts').insert(payload);
+        }
+        // Older DBs may not yet have the bunny_* columns — drop them and retry.
+        if (r.error && /bunny_video_guid|bunny_thumbnail_url/i.test(r.error.message || '')) {
+          delete payload.bunny_video_guid;
+          delete payload.bunny_thumbnail_url;
           r = await supa.from('posts').insert(payload);
         }
         if (r.error) throw r.error;
@@ -190,8 +238,23 @@
       } catch (e) {
         notice = (e && e.message) || tr('Upload failed.', 'Не удалось загрузить.');
       } finally {
-        busy = false; paint();
+        busy = false; uploadProgress = null; paint();
       }
+    }
+
+    // Expose progress to the render body so it can show a progress bar.
+    function progressFraction() { return uploadProgress; }
+
+    function renderProgressBar(fraction) {
+      var pct = Math.max(4, Math.round(fraction * 100));
+      return '<div style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#F0ECFF;">' +
+        '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#5A2FCB;margin-bottom:6px;">' +
+        '<span>' + esc(tr('Uploading video to Bunny…', 'Загрузка видео в Bunny…')) + '</span>' +
+        '<span>' + Math.round(fraction * 100) + '%</span>' +
+        '</div>' +
+        '<div style="height:6px;border-radius:999px;background:rgba(90,47,203,0.18);overflow:hidden;">' +
+        '<div style="height:100%;width:' + pct + '%;background:#5A2FCB;border-radius:999px;transition:width 0.15s;"></div>' +
+        '</div></div>';
     }
 
     function bind(host) {
