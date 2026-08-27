@@ -955,12 +955,20 @@
       if (!body) return;
       var today = new Date().toISOString().slice(0, 10);
       var in30 = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+      var examOptions = [
+        ['', tr('General practice', 'Общая практика')],
+        ['telc', 'TELC'],
+        ['goethe', 'Goethe'],
+        ['dtz', 'DTZ']
+      ].map(function (item) {
+        return '<option value="' + esc(item[0]) + '">' + esc(item[1]) + '</option>';
+      }).join('');
       body.innerHTML =
         '<div class="pv-field"><label>' + esc(tr('Title', 'Название')) + ' *</label>' +
           '<input id="chTitleInput" type="text" placeholder="' + esc(tr('e.g. 30-day speaking challenge', 'напр. 30 дней разговорной практики')) + '"></div>' +
         '<div class="pv-field-grid">' +
           field('chLevelInput', tr('Target level', 'Целевой уровень'), 'text', 'B1') +
-          field('chExamInput', tr('Exam type', 'Тип экзамена'), 'text', 'IELTS') +
+          '<div class="pv-field"><label>' + esc(tr('Exam type', 'Тип экзамена')) + '</label><select id="chExamInput">' + examOptions + '</select></div>' +
         '</div>' +
         '<div class="pv-field-grid">' +
           '<div class="pv-field"><label>' + esc(tr('Start date', 'Дата начала')) + '</label><input id="chStartInput" type="date" value="' + today + '"></div>' +
@@ -990,14 +998,20 @@
       var row = {
         created_by: ctx.user.id, title: title,
         target_level: val('chLevelInput') || null,
-        exam_type: val('chExamInput') || null,
+        exam_type: ['telc', 'goethe', 'dtz'].indexOf(val('chExamInput')) >= 0 ? val('chExamInput') : null,
         started_at: start, ends_at: end,
         daily_min_dialogs: num('chDialogsInput'), daily_min_words: num('chWordsInput')
       };
       challengeSaving = true; challengeNotice = ''; paintChallengeModal();
-      var res = await safe(supa.from('challenges').insert(row));
+      var res;
+      try { res = await supa.from('challenges').insert(row); }
+      catch (e) { res = { error: e }; }
       challengeSaving = false;
-      if (!res) { challengeNotice = tr('Could not create the challenge.', 'Не удалось создать челлендж.'); paintChallengeModal(); return; }
+      if (!res || res.error) {
+        challengeNotice = (res && res.error && res.error.message) || tr('Could not create the challenge.', 'Не удалось создать челлендж.');
+        paintChallengeModal();
+        return;
+      }
       await afterCreate();
       activeTab = 'challenges';
       paint();

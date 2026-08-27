@@ -4,7 +4,7 @@
 
 The catalog contains:
 
-- metadata for all 25 interface languages;
+- metadata for all 34 interface languages;
 - base translations maintained by hand;
 - supplemental translations and fallback content;
 - text direction metadata for RTL locales.

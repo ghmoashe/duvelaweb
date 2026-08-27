@@ -1,4 +1,5 @@
 import './style.css';
+import '../web/duvi-assistant.css';
 
 function loadScriptOnce(src, isReady) {
   return new Promise((resolve, reject) => {
@@ -20,6 +21,7 @@ function loadScriptOnce(src, isReady) {
 await loadScriptOnce('/locales/web-locales.js', () => Boolean(window.DUVELA_WEB_I18N));
 await loadScriptOnce('/web/app-i18n.js?v=20260805-classroom2', () => Boolean(window.DuvelaAppI18n));
 await loadScriptOnce('/web/duvi-assistant.js?v=20260806duvi9', () => Boolean(window.DuvelaDUVI));
+await loadScriptOnce('./web/vendor/supabase-js-v2.js', () => Boolean(window.supabase?.createClient));
 await new Promise((resolve, reject) => {
   if (window.DuvelaWebConfig) return resolve();
   const script = document.createElement('script');

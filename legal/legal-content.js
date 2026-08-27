@@ -9518,4 +9518,3435 @@
     }
   ]
 };
+  // BEGIN codex generated legal translations
+  Object.assign(global.DUVELA_LEGAL.content.privacy, {
+    "da": {
+      "title": "Fortrolighedspolitik",
+      "sections": [
+        {
+          "title": "1. Dataansvarlig",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Tyskland\nEmail: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Hvilke Data Vi Indsamler",
+          "subsections": [
+            {
+              "title": "Når du logger ind via Telegram",
+              "paragraphs": [
+                "Når du logger ind, overføres følgende data:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Brugernavn",
+                "Fornavn, efternavn",
+                "Profilbillede (hvis tilgængeligt)"
+              ],
+              "afterList": [
+                "Disse data bruges til at oprette din brugerkonto."
+              ]
+            },
+            {
+              "title": "Når du bruger email",
+              "paragraphs": [
+                "Hvis du angiver din emailadresse eller kontakter os via email:"
+              ],
+              "list": [
+                "Emailadresse",
+                "Beskedindhold"
+              ]
+            },
+            {
+              "title": "Profildata inden for platformen",
+              "list": [
+                "By",
+                "Sprogpræferencer",
+                "Deltagelse i events (online/offline)",
+                "Information du frivilligt giver"
+              ]
+            },
+            {
+              "title": "Tekniske data",
+              "list": [
+                "IP-adresse",
+                "Enhedstype",
+                "Cookies"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Formål med Behandlingen",
+          "paragraphs": [
+            "Dine data bruges til at:"
+          ],
+          "list": [
+            "Oprette og administrere din brugerkonto",
+            "Vise sprogmeetups i din by",
+            "Organisere online og offline events",
+            "Muliggøre kommunikation mellem deltagere",
+            "Sende dig information via email",
+            "Forbedre platformen teknisk og funktionelt"
+          ],
+          "afterList": [
+            "Retligt grundlag: Art. 6(1)(b) og (f) GDPR"
+          ]
+        },
+        {
+          "title": "4. Cookies og Samtykke",
+          "paragraphs": [
+            "Vi bruger samtykkeværktøjet Klaro!.",
+            "Teknisk nødvendige cookies er altid aktive.",
+            "Analyse-cookies aktiveres kun med dit samtykke.",
+            "Retligt grundlag: §25 TTDSG, Art. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "5. Brug af Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics indlæses kun efter samtykke og gemmer anonymiserede brugsdata for at forbedre platformen.",
+            "Retligt grundlag: Art. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "6. Hosting og Database",
+          "paragraphs": [
+            "Vi bruger Supabase (servere inden for EU) til at gemme data.",
+            "Retligt grundlag: Art. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "7. Data Deling",
+          "paragraphs": [
+            "Data deles kun med:"
+          ],
+          "list": [
+            "Telegram (login)",
+            "Supabase (hosting)",
+            "Vercel (analyse, kun med samtykke)"
+          ],
+          "afterList": [
+            "Data deles ikke til reklameformål."
+          ]
+        },
+        {
+          "title": "8. Offline Events",
+          "paragraphs": [
+            "Duvela muliggør møder i virkeligheden mellem mennesker.",
+            "Kun nødvendige profildata (navn, sprog, by) er synlige for deltagerne.",
+            "Duvela påtager sig intet ansvar for deltagernes adfærd ved offline møder."
+          ]
+        },
+        {
+          "title": "9. Email Kommunikation",
+          "paragraphs": [
+            "Vi bruger din emailadresse til:"
+          ],
+          "list": [
+            "Platforminformation",
+            "Eventinformation",
+            "Vigtige opdateringer"
+          ],
+          "afterList": [
+            "Du kan afmelde emails når som helst.",
+            "Retligt grundlag: Art. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "10. Opbevaringsperiode",
+          "paragraphs": [
+            "Data opbevares så længe din konto er aktiv.",
+            "Efter sletning fjernes alle data."
+          ]
+        },
+        {
+          "title": "11. Dine Rettigheder",
+          "paragraphs": [
+            "Du har ret til:"
+          ],
+          "list": [
+            "Adgang",
+            "Berigtigelse",
+            "Sletning",
+            "Begrænsning",
+            "Dataoverførsel",
+            "Tilbagetrækning af dit samtykke"
+          ],
+          "afterList": [
+            "Kontakt: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Sikkerhed",
+          "paragraphs": [
+            "Vi bruger kryptering, adgangskontrol og moderne sikkerhedsforanstaltninger."
+          ]
+        },
+        {
+          "title": "13. Ændringer",
+          "paragraphs": [
+            "Denne fortrolighedspolitik kan opdateres, når platformen ændres.",
+            "Status: februar 2026"
+          ]
+        }
+      ]
+    },
+    "fi": {
+      "title": "Tietosuojakäytäntö",
+      "sections": [
+        {
+          "title": "1. Rekisterinpitäjä",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerliini, Saksa\nSähköposti: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Mitä tietoja keräämme",
+          "subsections": [
+            {
+              "title": "Kirjautuessa Telegramin kautta",
+              "paragraphs": [
+                "Kun kirjaudut sisään, seuraavat tiedot välitetään:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Käyttäjänimi",
+                "Etunimi, sukunimi",
+                "Profiilikuva (jos saatavilla)"
+              ],
+              "afterList": [
+                "Näitä tietoja käytetään käyttäjätilisi luomiseen."
+              ]
+            },
+            {
+              "title": "Sähköpostin käytön yhteydessä",
+              "paragraphs": [
+                "Jos annat sähköpostiosoitteesi tai otat meihin yhteyttä sähköpostitse:"
+              ],
+              "list": [
+                "Sähköpostiosoite",
+                "Viestin sisältö"
+              ]
+            },
+            {
+              "title": "Profiilitiedot alustalla",
+              "list": [
+                "Kaupunki",
+                "Kieliasetukset",
+                "Osallistuminen tapahtumiin (verkossa/läsnä)",
+                "Vapaaehtoisesti antamasi tiedot"
+              ]
+            },
+            {
+              "title": "Tekniset tiedot",
+              "list": [
+                "IP-osoite",
+                "Laitetyyppi",
+                "Evästeet"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Käsittelyn tarkoitus",
+          "paragraphs": [
+            "Tietojasi käytetään:"
+          ],
+          "list": [
+            "Käyttäjätilisi luomiseen ja hallintaan",
+            "Näyttämään kielitapaamisia kaupungissasi",
+            "Järjestämään verkko- ja läsnäolotapahtumia",
+            "Mahdollistamaan osallistujien välinen viestintä",
+            "Lähettämään sinulle tietoa sähköpostitse",
+            "Parantamaan alustaa teknisesti ja toiminnallisesti"
+          ],
+          "afterList": [
+            "Oikeusperuste: GDPR:n artikla 6(1)(b) ja (f)"
+          ]
+        },
+        {
+          "title": "4. Evästeet ja suostumus",
+          "paragraphs": [
+            "Käytämme suostumustyökalua Klaro!.",
+            "Teknisesti välttämättömät evästeet ovat aina aktiivisia.",
+            "Analytiikkaevästeet aktivoidaan vain suostumuksellasi.",
+            "Oikeusperuste: §25 TTDSG, GDPR:n artikla 6(1)(a)"
+          ]
+        },
+        {
+          "title": "5. Vercel Web Analyticsin käyttö",
+          "paragraphs": [
+            "Vercel Web Analytics ladataan vain suostumuksen jälkeen ja tallentaa anonymisoituja käyttötietoja alustan parantamiseksi.",
+            "Oikeusperuste: GDPR:n artikla 6(1)(a)"
+          ]
+        },
+        {
+          "title": "6. Isännöinti ja tietokanta",
+          "paragraphs": [
+            "Käytämme Supabasea (palvelimet EU:n sisällä) tietojen tallentamiseen.",
+            "Oikeusperuste: GDPR:n artikla 6(1)(b)"
+          ]
+        },
+        {
+          "title": "7. Tietojen jakaminen",
+          "paragraphs": [
+            "Tietoja jaetaan vain seuraaville tahoille:"
+          ],
+          "list": [
+            "Telegram (kirjautuminen)",
+            "Supabase (isännöinti)",
+            "Vercel (analytiikka, vain suostumuksella)"
+          ],
+          "afterList": [
+            "Tietoja ei jaeta mainostustarkoituksiin."
+          ]
+        },
+        {
+          "title": "8. Lähiötapahtumat",
+          "paragraphs": [
+            "Duvela mahdollistaa ihmisten kohtaamiset tosielämässä.",
+            "Vain tarvittavat profiilitiedot (nimi, kieli, kaupunki) ovat näkyvissä osallistujille.",
+            "Duvela ei ota vastuuta osallistujien käyttäytymisestä lähiötapaamisissa."
+          ]
+        },
+        {
+          "title": "9. Sähköpostiviestintä",
+          "paragraphs": [
+            "Käytämme sähköpostiosoitettasi seuraaviin tarkoituksiin:"
+          ],
+          "list": [
+            "Alustan tiedot",
+            "Tapahtumatiedot",
+            "Tärkeät päivitykset"
+          ],
+          "afterList": [
+            "Voit peruuttaa sähköpostitilauksen milloin tahansa.",
+            "Oikeusperuste: GDPR:n artikla 6(1)(b)"
+          ]
+        },
+        {
+          "title": "10. Säilytysaika",
+          "paragraphs": [
+            "Tietoja säilytetään niin kauan kuin tilisi on aktiivinen.",
+            "Poiston jälkeen kaikki tiedot poistetaan."
+          ]
+        },
+        {
+          "title": "11. Oikeutesi",
+          "paragraphs": [
+            "Sinulla on oikeus:"
+          ],
+          "list": [
+            "Saada pääsy tietoihisi",
+            "Tietojen oikaisuun",
+            "Tietojen poistamiseen",
+            "Käsittelyn rajoittamiseen",
+            "Tietojen siirrettävyyteen",
+            "Peruuttaa suostumuksesi"
+          ],
+          "afterList": [
+            "Yhteystiedot: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Turvallisuus",
+          "paragraphs": [
+            "Käytämme salauksia, käyttöoikeuksien hallintaa ja nykyaikaisia turvatoimia."
+          ]
+        },
+        {
+          "title": "13. Muutokset",
+          "paragraphs": [
+            "Tätä tietosuojakäytäntöä voidaan päivittää alustan muuttuessa.",
+            "Voimassa: helmikuu 2026"
+          ]
+        }
+      ]
+    },
+    "bg": {
+      "title": "Политика за поверителност",
+      "sections": [
+        {
+          "title": "1. Администратор",
+          "paragraphs": [
+            "Газанфар Маошер\nБерлин, Германия\nИмейл: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Какви данни събираме",
+          "subsections": [
+            {
+              "title": "При влизане чрез Telegram",
+              "paragraphs": [
+                "Когато влизате, се предават следните данни:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Потребителско име",
+                "Име, фамилия",
+                "Профилна снимка (ако е налична)"
+              ],
+              "afterList": [
+                "Тези данни се използват за създаване на вашия потребителски акаунт."
+              ]
+            },
+            {
+              "title": "При използване на имейл",
+              "paragraphs": [
+                "Ако предоставите имейл адреса си или се свържете с нас по имейл:"
+              ],
+              "list": [
+                "Имейл адрес",
+                "Съдържание на съобщението"
+              ]
+            },
+            {
+              "title": "Профилни данни в платформата",
+              "list": [
+                "Град",
+                "Предпочитания за език",
+                "Участие в събития (онлайн/офлайн)",
+                "Информация, която предоставяте доброволно"
+              ]
+            },
+            {
+              "title": "Технически данни",
+              "list": [
+                "IP адрес",
+                "Тип устройство",
+                "Бисквитки"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Цел на обработката",
+          "paragraphs": [
+            "Вашите данни се използват за:"
+          ],
+          "list": [
+            "Създаване и управление на вашия потребителски акаунт",
+            "Показване на езикови срещи във вашия град",
+            "Организиране на онлайн и офлайн събития",
+            "Осигуряване на комуникация между участниците",
+            "Изпращане на информация по имейл",
+            "Подобряване на платформата технически и функционално"
+          ],
+          "afterList": [
+            "Правно основание: чл. 6(1)(б) и (ж) от ОРЗД"
+          ]
+        },
+        {
+          "title": "4. Бисквитки и съгласие",
+          "paragraphs": [
+            "Използваме инструмента за съгласие Klaro!.",
+            "Технически необходими бисквитки винаги са активни.",
+            "Аналитичните бисквитки се активират само с вашето съгласие.",
+            "Правно основание: §25 TTDSG, чл. 6(1)(а) от ОРЗД"
+          ]
+        },
+        {
+          "title": "5. Използване на Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics се зарежда само след съгласие и съхранява анонимизирани данни за използване с цел подобряване на платформата.",
+            "Правно основание: чл. 6(1)(а) от ОРЗД"
+          ]
+        },
+        {
+          "title": "6. Хостинг и база данни",
+          "paragraphs": [
+            "Използваме Supabase (сървъри в рамките на ЕС) за съхранение на данни.",
+            "Правно основание: чл. 6(1)(б) от ОРЗД"
+          ]
+        },
+        {
+          "title": "7. Споделяне на данни",
+          "paragraphs": [
+            "Данните се споделят само с:"
+          ],
+          "list": [
+            "Telegram (за влизане)",
+            "Supabase (хостинг)",
+            "Vercel (аналитика, само със съгласие)"
+          ],
+          "afterList": [
+            "Данните не се споделят за рекламни цели."
+          ]
+        },
+        {
+          "title": "8. Офлайн събития",
+          "paragraphs": [
+            "Duvela позволява срещи на живо между хора.",
+            "Само необходимите профилни данни (име, език, град) са видими за участниците.",
+            "Duvela не носи отговорност за поведението на участниците на офлайн срещи."
+          ]
+        },
+        {
+          "title": "9. Комуникация по имейл",
+          "paragraphs": [
+            "Използваме вашия имейл адрес за:"
+          ],
+          "list": [
+            "Информация за платформата",
+            "Информация за събития",
+            "Важни актуализации"
+          ],
+          "afterList": [
+            "Можете да се отпишете от имейлите по всяко време.",
+            "Правно основание: чл. 6(1)(б) от ОРЗД"
+          ]
+        },
+        {
+          "title": "10. Период на съхранение",
+          "paragraphs": [
+            "Данните се съхраняват докато вашият акаунт е активен.",
+            "След изтриване всички данни се премахват."
+          ]
+        },
+        {
+          "title": "11. Вашите права",
+          "paragraphs": [
+            "Имате право на:"
+          ],
+          "list": [
+            "Достъп",
+            "Корекция",
+            "Изтриване",
+            "Ограничаване",
+            "Преносимост на данните",
+            "Оттегляне на съгласието"
+          ],
+          "afterList": [
+            "Контакт: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Сигурност",
+          "paragraphs": [
+            "Използваме криптиране, контрол на достъпа и съвременни мерки за сигурност."
+          ]
+        },
+        {
+          "title": "13. Промени",
+          "paragraphs": [
+            "Тази политика за поверителност може да бъде актуализирана при промени в платформата.",
+            "Статус: февруари 2026"
+          ]
+        }
+      ]
+    },
+    "bs": {
+      "title": "Pravila privatnosti",
+      "sections": [
+        {
+          "title": "1. Kontrolor",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Njemačka\nEmail: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Koje podatke prikupljamo",
+          "subsections": [
+            {
+              "title": "Prilikom prijave putem Telegrama",
+              "paragraphs": [
+                "Kada se prijavite, prenose se sljedeći podaci:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Korisničko ime",
+                "Ime, prezime",
+                "Profilna fotografija (ako je dostupna)"
+              ],
+              "afterList": [
+                "Ovi podaci se koriste za kreiranje vašeg korisničkog računa."
+              ]
+            },
+            {
+              "title": "Prilikom korištenja emaila",
+              "paragraphs": [
+                "Ako nam dostavite svoju email adresu ili nas kontaktirate putem emaila:"
+              ],
+              "list": [
+                "Email adresa",
+                "Sadržaj poruke"
+              ]
+            },
+            {
+              "title": "Podaci o profilu unutar platforme",
+              "list": [
+                "Grad",
+                "Jezičke preferencije",
+                "Učešće na događajima (online/offline)",
+                "Informacije koje dobrovoljno pružite"
+              ]
+            },
+            {
+              "title": "Tehnički podaci",
+              "list": [
+                "IP adresa",
+                "Vrsta uređaja",
+                "Kolačići"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Svrha obrade",
+          "paragraphs": [
+            "Vaši podaci se koriste za:"
+          ],
+          "list": [
+            "Kreiranje i upravljanje vašim korisničkim računom",
+            "Prikazivanje jezičkih okupljanja u vašem gradu",
+            "Organizaciju online i offline događaja",
+            "Omogućavanje komunikacije između učesnika",
+            "Slanje informacija putem emaila",
+            "Tehničko i funkcionalno unapređenje platforme"
+          ],
+          "afterList": [
+            "Pravni osnov: čl. 6(1)(b) i (f) GDPR"
+          ]
+        },
+        {
+          "title": "4. Kolačići i pristanak",
+          "paragraphs": [
+            "Koristimo alat za pristanak Klaro!.",
+            "Tehnički neophodni kolačići su uvijek aktivni.",
+            "Analitički kolačići se aktiviraju samo uz vaš pristanak.",
+            "Pravni osnov: §25 TTDSG, čl. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "5. Korištenje Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics se učitava samo nakon pristanka i pohranjuje anonimizirane podatke o korištenju radi poboljšanja platforme.",
+            "Pravni osnov: čl. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "6. Hosting i baza podataka",
+          "paragraphs": [
+            "Koristimo Supabase (serveri unutar EU) za pohranu podataka.",
+            "Pravni osnov: čl. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "7. Dijeljenje podataka",
+          "paragraphs": [
+            "Podaci se dijele samo sa:"
+          ],
+          "list": [
+            "Telegram (prijava)",
+            "Supabase (hosting)",
+            "Vercel (analitika, samo uz pristanak)"
+          ],
+          "afterList": [
+            "Podaci se ne dijele u marketinške svrhe."
+          ]
+        },
+        {
+          "title": "8. Offline događaji",
+          "paragraphs": [
+            "Duvela omogućava susrete uživo između ljudi.",
+            "Samo neophodni podaci profila (ime, jezik, grad) su vidljivi učesnicima.",
+            "Duvela ne preuzima odgovornost za ponašanje učesnika na offline susretima."
+          ]
+        },
+        {
+          "title": "9. Email komunikacija",
+          "paragraphs": [
+            "Koristimo vašu email adresu za:"
+          ],
+          "list": [
+            "Informacije o platformi",
+            "Informacije o događajima",
+            "Važne novosti"
+          ],
+          "afterList": [
+            "Možete se u bilo kojem trenutku odjaviti sa primanja emailova.",
+            "Pravni osnov: čl. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "10. Period čuvanja podataka",
+          "paragraphs": [
+            "Podaci se čuvaju dok je vaš račun aktivan.",
+            "Nakon brisanja, svi podaci se uklanjaju."
+          ]
+        },
+        {
+          "title": "11. Vaša prava",
+          "paragraphs": [
+            "Imate pravo na:"
+          ],
+          "list": [
+            "Pristup",
+            "Ispravku",
+            "Brisanje",
+            "Ograničenje obrade",
+            "Prenosivost podataka",
+            "Povlačenje pristanka"
+          ],
+          "afterList": [
+            "Kontakt: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Sigurnost",
+          "paragraphs": [
+            "Koristimo enkripciju, kontrole pristupa i moderne sigurnosne mjere."
+          ]
+        },
+        {
+          "title": "13. Promjene",
+          "paragraphs": [
+            "Ova pravila privatnosti mogu biti ažurirana kada se platforma promijeni.",
+            "Status: februar 2026"
+          ]
+        }
+      ]
+    },
+    "hr": {
+      "title": "Pravila o privatnosti",
+      "sections": [
+        {
+          "title": "1. Voditelj obrade",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Njemačka\nEmail: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Koje podatke prikupljamo",
+          "subsections": [
+            {
+              "title": "Prijava putem Telegrama",
+              "paragraphs": [
+                "Prilikom prijave prenose se sljedeći podaci:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Korisničko ime",
+                "Ime, prezime",
+                "Profilna fotografija (ako je dostupna)"
+              ],
+              "afterList": [
+                "Ovi se podaci koriste za kreiranje vašeg korisničkog računa."
+              ]
+            },
+            {
+              "title": "Korištenje e-pošte",
+              "paragraphs": [
+                "Ako nam pružite svoju adresu e-pošte ili nas kontaktirate putem e-pošte:"
+              ],
+              "list": [
+                "Adresa e-pošte",
+                "Sadržaj poruke"
+              ]
+            },
+            {
+              "title": "Podaci profila unutar platforme",
+              "list": [
+                "Grad",
+                "Jezične postavke",
+                "Sudjelovanje na događajima (online/offline)",
+                "Informacije koje dobrovoljno pružite"
+              ]
+            },
+            {
+              "title": "Tehnički podaci",
+              "list": [
+                "IP adresa",
+                "Vrsta uređaja",
+                "Kolačići"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Svrha obrade",
+          "paragraphs": [
+            "Vaši se podaci koriste za:"
+          ],
+          "list": [
+            "Kreiranje i upravljanje vašim korisničkim računom",
+            "Prikaz jezičnih susreta u vašem gradu",
+            "Organizaciju online i offline događaja",
+            "Omogućavanje komunikacije između sudionika",
+            "Slanje informacija putem e-pošte",
+            "Tehničko i funkcionalno poboljšanje platforme"
+          ],
+          "afterList": [
+            "Pravna osnova: čl. 6. st. 1. točke b) i f) GDPR"
+          ]
+        },
+        {
+          "title": "4. Kolačići i privola",
+          "paragraphs": [
+            "Koristimo alat za privolu Klaro!.",
+            "Tehnički nužni kolačići su uvijek aktivni.",
+            "Analitički kolačići aktiviraju se samo uz vašu privolu.",
+            "Pravna osnova: §25 TTDSG, čl. 6. st. 1. točka a) GDPR"
+          ]
+        },
+        {
+          "title": "5. Korištenje Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics se učitava samo nakon privole i pohranjuje anonimizirane podatke o korištenju radi poboljšanja platforme.",
+            "Pravna osnova: čl. 6. st. 1. točka a) GDPR"
+          ]
+        },
+        {
+          "title": "6. Hosting i baza podataka",
+          "paragraphs": [
+            "Koristimo Supabase (serveri unutar EU) za pohranu podataka.",
+            "Pravna osnova: čl. 6. st. 1. točka b) GDPR"
+          ]
+        },
+        {
+          "title": "7. Dijeljenje podataka",
+          "paragraphs": [
+            "Podaci se dijele samo s:"
+          ],
+          "list": [
+            "Telegram (prijava)",
+            "Supabase (hosting)",
+            "Vercel (analitika, samo uz privolu)"
+          ],
+          "afterList": [
+            "Podaci se ne dijele u marketinške svrhe."
+          ]
+        },
+        {
+          "title": "8. Offline događaji",
+          "paragraphs": [
+            "Duvela omogućuje susrete uživo između ljudi.",
+            "Sudionicima su vidljivi samo nužni podaci profila (ime, jezik, grad).",
+            "Duvela ne preuzima odgovornost za ponašanje sudionika na offline susretima."
+          ]
+        },
+        {
+          "title": "9. Komunikacija putem e-pošte",
+          "paragraphs": [
+            "Koristimo vašu adresu e-pošte za:"
+          ],
+          "list": [
+            "Informacije o platformi",
+            "Informacije o događajima",
+            "Važne obavijesti"
+          ],
+          "afterList": [
+            "Možete se u bilo kojem trenutku odjaviti s primanja e-pošte.",
+            "Pravna osnova: čl. 6. st. 1. točka b) GDPR"
+          ]
+        },
+        {
+          "title": "10. Razdoblje čuvanja",
+          "paragraphs": [
+            "Podaci se pohranjuju dok je vaš račun aktivan.",
+            "Nakon brisanja, svi podaci se uklanjaju."
+          ]
+        },
+        {
+          "title": "11. Vaša prava",
+          "paragraphs": [
+            "Imate pravo na:"
+          ],
+          "list": [
+            "Pristup",
+            "Ispravak",
+            "Brisanje",
+            "Ograničenje obrade",
+            "Prijenos podataka",
+            "Povlačenje privole"
+          ],
+          "afterList": [
+            "Kontakt: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Sigurnost",
+          "paragraphs": [
+            "Koristimo enkripciju, kontrole pristupa i moderne sigurnosne mjere."
+          ]
+        },
+        {
+          "title": "13. Promjene",
+          "paragraphs": [
+            "Ova pravila o privatnosti mogu biti ažurirana kada se platforma promijeni.",
+            "Status: veljača 2026."
+          ]
+        }
+      ]
+    },
+    "mk": {
+      "title": "Политика за приватност",
+      "sections": [
+        {
+          "title": "1. Контролер",
+          "paragraphs": [
+            "Газанфар Маошер\nБерлин, Германија\nЕ-пошта: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Кои податоци ги собираме",
+          "subsections": [
+            {
+              "title": "При најавување преку Телеграм",
+              "paragraphs": [
+                "Кога се најавувате, се пренесуваат следниве податоци:"
+              ],
+              "list": [
+                "Телеграм ID",
+                "Корисничко име",
+                "Име, презиме",
+                "Профилна фотографија (ако е достапна)"
+              ],
+              "afterList": [
+                "Овие податоци се користат за создавање на вашиот кориснички профил."
+              ]
+            },
+            {
+              "title": "При користење на е-пошта",
+              "paragraphs": [
+                "Ако ја дадете вашата е-пошта или не контактирате преку е-пошта:"
+              ],
+              "list": [
+                "Е-пошта",
+                "Содржина на пораката"
+              ]
+            },
+            {
+              "title": "Профилни податоци во рамки на платформата",
+              "list": [
+                "Град",
+                "Јазични преференции",
+                "Учествување на настани (онлајн/офлајн)",
+                "Информации што ги давате доброволно"
+              ]
+            },
+            {
+              "title": "Технички податоци",
+              "list": [
+                "IP адреса",
+                "Тип на уред",
+                "Колачиња"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Цел на обработка",
+          "paragraphs": [
+            "Вашите податоци се користат за:"
+          ],
+          "list": [
+            "Креирање и управување со вашиот кориснички профил",
+            "Прикажување на јазични средби во вашиот град",
+            "Организирање онлајн и офлајн настани",
+            "Овозможување комуникација помеѓу учесниците",
+            "Испраќање информации преку е-пошта",
+            "Техничко и функционално подобрување на платформата"
+          ],
+          "afterList": [
+            "Правна основа: Член 6(1)(б) и (ф) GDPR"
+          ]
+        },
+        {
+          "title": "4. Колачиња и согласност",
+          "paragraphs": [
+            "Користиме алатка за согласност Klaro!.",
+            "Технички неопходните колачиња се секогаш активни.",
+            "Аналитички колачиња се активираат само со ваша согласност.",
+            "Правна основа: §25 TTDSG, Член 6(1)(а) GDPR"
+          ]
+        },
+        {
+          "title": "5. Користење на Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics се вчитува само по добивање согласност и чува анонимизирани податоци за користење за подобрување на платформата.",
+            "Правна основа: Член 6(1)(а) GDPR"
+          ]
+        },
+        {
+          "title": "6. Хостинг и база на податоци",
+          "paragraphs": [
+            "Користиме Supabase (сервери во рамки на ЕУ) за чување на податоци.",
+            "Правна основа: Член 6(1)(б) GDPR"
+          ]
+        },
+        {
+          "title": "7. Споделување на податоци",
+          "paragraphs": [
+            "Податоците се споделуваат само со:"
+          ],
+          "list": [
+            "Телеграм (најава)",
+            "Supabase (хостинг)",
+            "Vercel (аналитика, само со согласност)"
+          ],
+          "afterList": [
+            "Податоците не се споделуваат за рекламни цели."
+          ]
+        },
+        {
+          "title": "8. Офлајн настани",
+          "paragraphs": [
+            "Duvela овозможува средби во реалниот живот меѓу луѓе.",
+            "Само неопходните профилни податоци (име, јазик, град) се видливи за учесниците.",
+            "Duvela не презема одговорност за однесувањето на учесниците на офлајн средбите."
+          ]
+        },
+        {
+          "title": "9. Комуникација преку е-пошта",
+          "paragraphs": [
+            "Вашата е-пошта ја користиме за:"
+          ],
+          "list": [
+            "Информации за платформата",
+            "Информации за настани",
+            "Важни ажурирања"
+          ],
+          "afterList": [
+            "Можете во секое време да се откажете од примање е-пошта.",
+            "Правна основа: Член 6(1)(б) GDPR"
+          ]
+        },
+        {
+          "title": "10. Период на чување",
+          "paragraphs": [
+            "Податоците се чуваат додека вашиот профил е активен.",
+            "По бришењето, сите податоци се отстрануваат."
+          ]
+        },
+        {
+          "title": "11. Вашите права",
+          "paragraphs": [
+            "Имате право на:"
+          ],
+          "list": [
+            "Пристап",
+            "Поправка",
+            "Бришење",
+            "Ограничување",
+            "Преносливост на податоци",
+            "Повлекување на согласноста"
+          ],
+          "afterList": [
+            "Контакт: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Безбедност",
+          "paragraphs": [
+            "Користиме енкрипција, контроли на пристап и модерни безбедносни мерки."
+          ]
+        },
+        {
+          "title": "13. Промени",
+          "paragraphs": [
+            "Оваа политика за приватност може да биде ажурирана кога платформата ќе се промени.",
+            "Статус: февруари 2026"
+          ]
+        }
+      ]
+    },
+    "ro": {
+      "title": "Politica de Confidențialitate",
+      "sections": [
+        {
+          "title": "1. Operatorul de date",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Germania\nEmail: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Datele pe care le colectăm",
+          "subsections": [
+            {
+              "title": "La autentificarea prin Telegram",
+              "paragraphs": [
+                "Când vă conectați, sunt transmise următoarele date:"
+              ],
+              "list": [
+                "ID Telegram",
+                "Nume de utilizator",
+                "Prenume, nume de familie",
+                "Fotografie de profil (dacă este disponibilă)"
+              ],
+              "afterList": [
+                "Aceste date sunt folosite pentru a crea contul dumneavoastră de utilizator."
+              ]
+            },
+            {
+              "title": "La utilizarea email-ului",
+              "paragraphs": [
+                "Dacă ne furnizați adresa de email sau ne contactați prin email:"
+              ],
+              "list": [
+                "Adresă de email",
+                "Conținutul mesajului"
+              ]
+            },
+            {
+              "title": "Datele de profil în cadrul platformei",
+              "list": [
+                "Oraș",
+                "Preferințe de limbă",
+                "Participarea la evenimente (online/offline)",
+                "Informații pe care le furnizați voluntar"
+              ]
+            },
+            {
+              "title": "Date tehnice",
+              "list": [
+                "Adresă IP",
+                "Tipul dispozitivului",
+                "Cookie-uri"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Scopul prelucrării",
+          "paragraphs": [
+            "Datele dumneavoastră sunt folosite pentru:"
+          ],
+          "list": [
+            "Crearea și administrarea contului dumneavoastră de utilizator",
+            "Afișarea întâlnirilor lingvistice în orașul dumneavoastră",
+            "Organizarea de evenimente online și offline",
+            "Permiterea comunicării între participanți",
+            "Trimiterea de informații prin email",
+            "Îmbunătățirea tehnică și funcțională a platformei"
+          ],
+          "afterList": [
+            "Baza legală: Art. 6(1)(b) și (f) GDPR"
+          ]
+        },
+        {
+          "title": "4. Cookie-uri și consimțământ",
+          "paragraphs": [
+            "Folosim instrumentul de consimțământ Klaro!.",
+            "Cookie-urile tehnic necesare sunt întotdeauna active.",
+            "Cookie-urile de analiză sunt activate doar cu consimțământul dumneavoastră.",
+            "Baza legală: §25 TTDSG, Art. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "5. Utilizarea Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics este încărcat doar după consimțământ și stochează date anonimizate de utilizare pentru a îmbunătăți platforma.",
+            "Baza legală: Art. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "6. Găzduire și bază de date",
+          "paragraphs": [
+            "Folosim Supabase (servere în UE) pentru stocarea datelor.",
+            "Baza legală: Art. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "7. Partajarea datelor",
+          "paragraphs": [
+            "Datele sunt partajate doar cu:"
+          ],
+          "list": [
+            "Telegram (autentificare)",
+            "Supabase (găzduire)",
+            "Vercel (analiză, doar cu consimțământ)"
+          ],
+          "afterList": [
+            "Datele nu sunt partajate în scopuri publicitare."
+          ]
+        },
+        {
+          "title": "8. Evenimente offline",
+          "paragraphs": [
+            "Duvela facilitează întâlniri reale între persoane.",
+            "Doar datele de profil necesare (nume, limbă, oraș) sunt vizibile participanților.",
+            "Duvela nu își asumă responsabilitatea pentru comportamentul participanților la întâlnirile offline."
+          ]
+        },
+        {
+          "title": "9. Comunicare prin email",
+          "paragraphs": [
+            "Folosim adresa dumneavoastră de email pentru:"
+          ],
+          "list": [
+            "Informații despre platformă",
+            "Informații despre evenimente",
+            "Actualizări importante"
+          ],
+          "afterList": [
+            "Vă puteți dezabona de la email-uri în orice moment.",
+            "Baza legală: Art. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "10. Perioada de păstrare",
+          "paragraphs": [
+            "Datele sunt păstrate cât timp contul dumneavoastră este activ.",
+            "După ștergere, toate datele sunt eliminate."
+          ]
+        },
+        {
+          "title": "11. Drepturile dumneavoastră",
+          "paragraphs": [
+            "Aveți dreptul la:"
+          ],
+          "list": [
+            "Acces",
+            "Rectificare",
+            "Ștergere",
+            "Restricționare",
+            "Portabilitatea datelor",
+            "Retragerea consimțământului"
+          ],
+          "afterList": [
+            "Contact: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Securitate",
+          "paragraphs": [
+            "Folosim criptare, controale de acces și măsuri moderne de securitate."
+          ]
+        },
+        {
+          "title": "13. Modificări",
+          "paragraphs": [
+            "Această politică de confidențialitate poate fi actualizată când platforma se modifică.",
+            "Stare: februarie 2026"
+          ]
+        }
+      ]
+    },
+    "sr": {
+      "title": "Politika privatnosti",
+      "sections": [
+        {
+          "title": "1. Kontrolor",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Nemačka\nEmail: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Koje podatke prikupljamo",
+          "subsections": [
+            {
+              "title": "Prilikom prijave putem Telegrama",
+              "paragraphs": [
+                "Kada se prijavite, sledeći podaci se prenose:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Korisničko ime",
+                "Ime, prezime",
+                "Profilna fotografija (ako je dostupna)"
+              ],
+              "afterList": [
+                "Ovi podaci se koriste za kreiranje vašeg korisničkog naloga."
+              ]
+            },
+            {
+              "title": "Prilikom korišćenja emaila",
+              "paragraphs": [
+                "Ako nam date vašu email adresu ili nas kontaktirate putem emaila:"
+              ],
+              "list": [
+                "Email adresa",
+                "Sadržaj poruke"
+              ]
+            },
+            {
+              "title": "Podaci profila unutar platforme",
+              "list": [
+                "Grad",
+                "Jezičke preferencije",
+                "Učešće na događajima (online/offline)",
+                "Informacije koje dobrovoljno pružite"
+              ]
+            },
+            {
+              "title": "Tehnički podaci",
+              "list": [
+                "IP adresa",
+                "Tip uređaja",
+                "Kolačići"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Svrha obrade",
+          "paragraphs": [
+            "Vaši podaci se koriste za:"
+          ],
+          "list": [
+            "Kreiranje i upravljanje vašim korisničkim nalogom",
+            "Prikazivanje jezičkih okupljanja u vašem gradu",
+            "Organizovanje online i offline događaja",
+            "Omogućavanje komunikacije između učesnika",
+            "Slanje informacija putem emaila",
+            "Tehničko i funkcionalno unapređenje platforme"
+          ],
+          "afterList": [
+            "Pravni osnov: čl. 6(1)(b) i (f) GDPR"
+          ]
+        },
+        {
+          "title": "4. Kolačići i saglasnost",
+          "paragraphs": [
+            "Koristimo alat za saglasnost Klaro!.",
+            "Tehnički neophodni kolačići su uvek aktivni.",
+            "Analitički kolačići se aktiviraju samo uz vašu saglasnost.",
+            "Pravni osnov: §25 TTDSG, čl. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "5. Korišćenje Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics se učitava samo nakon saglasnosti i čuva anonimizovane podatke o korišćenju radi unapređenja platforme.",
+            "Pravni osnov: čl. 6(1)(a) GDPR"
+          ]
+        },
+        {
+          "title": "6. Hosting i baza podataka",
+          "paragraphs": [
+            "Koristimo Supabase (serveri unutar EU) za čuvanje podataka.",
+            "Pravni osnov: čl. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "7. Deljenje podataka",
+          "paragraphs": [
+            "Podaci se dele samo sa:"
+          ],
+          "list": [
+            "Telegram (prijava)",
+            "Supabase (hosting)",
+            "Vercel (analitika, samo uz saglasnost)"
+          ],
+          "afterList": [
+            "Podaci se ne dele u marketinške svrhe."
+          ]
+        },
+        {
+          "title": "8. Offline događaji",
+          "paragraphs": [
+            "Duvela omogućava susrete uživo između ljudi.",
+            "Samo neophodni podaci profila (ime, jezik, grad) su vidljivi učesnicima.",
+            "Duvela ne preuzima odgovornost za ponašanje učesnika na offline susretima."
+          ]
+        },
+        {
+          "title": "9. Email komunikacija",
+          "paragraphs": [
+            "Koristimo vašu email adresu za:"
+          ],
+          "list": [
+            "Informacije o platformi",
+            "Informacije o događajima",
+            "Važne novosti"
+          ],
+          "afterList": [
+            "Možete se u bilo kom trenutku odjaviti sa liste za slanje emailova.",
+            "Pravni osnov: čl. 6(1)(b) GDPR"
+          ]
+        },
+        {
+          "title": "10. Period čuvanja",
+          "paragraphs": [
+            "Podaci se čuvaju dok je vaš nalog aktivan.",
+            "Nakon brisanja, svi podaci se uklanjaju."
+          ]
+        },
+        {
+          "title": "11. Vaša prava",
+          "paragraphs": [
+            "Imate pravo na:"
+          ],
+          "list": [
+            "Pristup",
+            "Ispravku",
+            "Brisanje",
+            "Ograničenje obrade",
+            "Prenosivost podataka",
+            "Povlačenje saglasnosti"
+          ],
+          "afterList": [
+            "Kontakt: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Bezbednost",
+          "paragraphs": [
+            "Koristimo enkripciju, kontrole pristupa i savremene mere bezbednosti."
+          ]
+        },
+        {
+          "title": "13. Izmene",
+          "paragraphs": [
+            "Ova politika privatnosti može biti ažurirana kada se platforma menja.",
+            "Status: februar 2026"
+          ]
+        }
+      ]
+    },
+    "sl": {
+      "title": "Pravilnik o zasebnosti",
+      "sections": [
+        {
+          "title": "1. Upravljavec",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Nemčija\nE-pošta: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "2. Katere podatke zbiramo",
+          "subsections": [
+            {
+              "title": "Ob prijavi preko Telegrama",
+              "paragraphs": [
+                "Ko se prijavite, se prenesejo naslednji podatki:"
+              ],
+              "list": [
+                "Telegram ID",
+                "Uporabniško ime",
+                "Ime, priimek",
+                "Profilna fotografija (če je na voljo)"
+              ],
+              "afterList": [
+                "Ti podatki se uporabljajo za ustvarjanje vašega uporabniškega računa."
+              ]
+            },
+            {
+              "title": "Ob uporabi e-pošte",
+              "paragraphs": [
+                "Če nam posredujete svoj e-poštni naslov ali nas kontaktirate po e-pošti:"
+              ],
+              "list": [
+                "E-poštni naslov",
+                "Vsebina sporočila"
+              ]
+            },
+            {
+              "title": "Podatki o profilu znotraj platforme",
+              "list": [
+                "Mesto",
+                "Jezikovne preference",
+                "Sodelovanje na dogodkih (spletni/osebni)",
+                "Informacije, ki jih prostovoljno posredujete"
+              ]
+            },
+            {
+              "title": "Tehnični podatki",
+              "list": [
+                "IP naslov",
+                "Vrsta naprave",
+                "Piškotki"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Namen obdelave",
+          "paragraphs": [
+            "Vaši podatki se uporabljajo za:"
+          ],
+          "list": [
+            "Ustvarjanje in upravljanje vašega uporabniškega računa",
+            "Prikaz jezikovnih srečanj v vašem mestu",
+            "Organizacijo spletnih in osebnih dogodkov",
+            "Omogočanje komunikacije med udeleženci",
+            "Pošiljanje informacij po e-pošti",
+            "Tehnično in funkcionalno izboljšavo platforme"
+          ],
+          "afterList": [
+            "Pravna podlaga: 6. člen (1) točki b) in f) Splošne uredbe o varstvu podatkov (GDPR)"
+          ]
+        },
+        {
+          "title": "4. Piškotki in soglasje",
+          "paragraphs": [
+            "Uporabljamo orodje za soglasje Klaro!.",
+            "Tehnično nujni piškotki so vedno aktivni.",
+            "Analitični piškotki se aktivirajo le z vašim soglasjem.",
+            "Pravna podlaga: §25 TTDSG, 6. člen (1) točka a) GDPR"
+          ]
+        },
+        {
+          "title": "5. Uporaba Vercel Web Analytics",
+          "paragraphs": [
+            "Vercel Web Analytics se naloži šele po pridobitvi soglasja in shranjuje anonimizirane podatke o uporabi za izboljšanje platforme.",
+            "Pravna podlaga: 6. člen (1) točka a) GDPR"
+          ]
+        },
+        {
+          "title": "6. Gostovanje in baza podatkov",
+          "paragraphs": [
+            "Za shranjevanje podatkov uporabljamo Supabase (strežniki znotraj EU).",
+            "Pravna podlaga: 6. člen (1) točka b) GDPR"
+          ]
+        },
+        {
+          "title": "7. Deljenje podatkov",
+          "paragraphs": [
+            "Podatki se delijo samo z:"
+          ],
+          "list": [
+            "Telegram (prijava)",
+            "Supabase (gostovanje)",
+            "Vercel (analitika, samo s soglasjem)"
+          ],
+          "afterList": [
+            "Podatki se ne delijo za oglaševalske namene."
+          ]
+        },
+        {
+          "title": "8. Osebni dogodki",
+          "paragraphs": [
+            "Duvela omogoča osebna srečanja med ljudmi.",
+            "Udeleženci vidijo le nujne podatke profila (ime, jezik, mesto).",
+            "Duvela ne prevzema odgovornosti za vedenje udeležencev na osebnih srečanjih."
+          ]
+        },
+        {
+          "title": "9. Komunikacija po e-pošti",
+          "paragraphs": [
+            "Vaš e-poštni naslov uporabljamo za:"
+          ],
+          "list": [
+            "Informacije o platformi",
+            "Informacije o dogodkih",
+            "Pomembne posodobitve"
+          ],
+          "afterList": [
+            "Kadarkoli se lahko odjavite od prejemanja e-pošte.",
+            "Pravna podlaga: 6. člen (1) točka b) GDPR"
+          ]
+        },
+        {
+          "title": "10. Obdobje hrambe",
+          "paragraphs": [
+            "Podatki se hranijo, dokler je vaš račun aktiven.",
+            "Po izbrisu so vsi podatki odstranjeni."
+          ]
+        },
+        {
+          "title": "11. Vaše pravice",
+          "paragraphs": [
+            "Imate pravico do:"
+          ],
+          "list": [
+            "Dostopa",
+            "Popravka",
+            "Izbrisa",
+            "Omejitve obdelave",
+            "Prenosa podatkov",
+            "Umika soglasja"
+          ],
+          "afterList": [
+            "Kontakt: info@vela.cafe"
+          ]
+        },
+        {
+          "title": "12. Varnost",
+          "paragraphs": [
+            "Uporabljamo šifriranje, nadzor dostopa in sodobne varnostne ukrepe."
+          ]
+        },
+        {
+          "title": "13. Spremembe",
+          "paragraphs": [
+            "Ta pravilnik o zasebnosti se lahko posodobi ob spremembah platforme.",
+            "Stanje: februar 2026"
+          ]
+        }
+      ]
+    }
+  });
+  Object.assign(global.DUVELA_LEGAL.content.impressum, {
+    "da": {
+      "title": "Impressum",
+      "sections": [
+        {
+          "title": "Information i henhold til § 5 TMG",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Tyskland\nEmail: info@vela.cafe\nWebsite: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Ansvarlig for indhold i henhold til § 55(2) RStV",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Tyskland"
+          ]
+        },
+        {
+          "title": "Ansvar for indhold",
+          "paragraphs": [
+            "Indholdet på vores sider er udarbejdet med største omhu. Vi kan dog ikke garantere for indholdets nøjagtighed, fuldstændighed eller aktualitet."
+          ]
+        },
+        {
+          "title": "Ansvar for links",
+          "paragraphs": [
+            "Vores platform indeholder links til eksterne hjemmesider fra tredjepart. Vi har ingen indflydelse på deres indhold."
+          ]
+        },
+        {
+          "title": "Ophavsret",
+          "paragraphs": [
+            "Indholdet og værkerne, der er skabt af sideoperatøren på disse sider, er underlagt ophavsret."
+          ]
+        },
+        {
+          "title": "Tvistbilæggelse",
+          "paragraphs": [
+            "Europa-Kommissionen stiller en platform til rådighed for online tvistbilæggelse (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Vi er ikke forpligtet og ikke villige til at deltage i tvistbilæggelsesprocedurer foran et forbrugerklagenævn."
+          ]
+        },
+        {
+          "title": "Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "fi": {
+      "title": "Painatus",
+      "sections": [
+        {
+          "title": "Tietoja § 5 TMG:n mukaan",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerliini, Saksa\nSähköposti: info@vela.cafe\nVerkkosivusto: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Sisällöstä vastuussa § 55(2) RStV:n mukaan",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerliini, Saksa"
+          ]
+        },
+        {
+          "title": "Vastuuvapaus sisällöstä",
+          "paragraphs": [
+            "Sivujemme sisällöt on luotu suurimmalla huolellisuudella. Emme kuitenkaan voi taata sisällön tarkkuutta, täydellisyyttä tai ajantasaisuutta."
+          ]
+        },
+        {
+          "title": "Vastuuvapaus linkeistä",
+          "paragraphs": [
+            "Alustallamme on linkkejä kolmansien osapuolten ulkopuolisille verkkosivustoille. Meillä ei ole vaikutusvaltaa niiden sisältöihin."
+          ]
+        },
+        {
+          "title": "Tekijänoikeudet",
+          "paragraphs": [
+            "Näiden sivujen sisällöt ja sivuston ylläpitäjän luomat teokset ovat tekijänoikeuden alaisia."
+          ]
+        },
+        {
+          "title": "Riitojen ratkaisu",
+          "paragraphs": [
+            "Euroopan komissio tarjoaa alustan verkkoriitojen ratkaisuun (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Emme ole velvollisia emmekä halukkaita osallistumaan riitojen ratkaisuun kuluttajariitalautakunnan edessä."
+          ]
+        },
+        {
+          "title": "Yhteystiedot",
+          "paragraphs": [
+            "Sähköposti: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "bg": {
+      "title": "Отпечатък",
+      "sections": [
+        {
+          "title": "Информация съгласно § 5 TMG",
+          "paragraphs": [
+            "Газанфар Маошер\nБерлин, Германия\nИмейл: info@vela.cafe\nУебсайт: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Отговорен за съдържанието съгласно § 55(2) RStV",
+          "paragraphs": [
+            "Газанфар Маошер\nБерлин, Германия"
+          ]
+        },
+        {
+          "title": "Отговорност за съдържанието",
+          "paragraphs": [
+            "Съдържанието на нашите страници е създадено с най-голямо внимание. Въпреки това не можем да гарантираме точността, пълнотата или актуалността на съдържанието."
+          ]
+        },
+        {
+          "title": "Отговорност за връзки",
+          "paragraphs": [
+            "Нашата платформа съдържа връзки към външни уебсайтове на трети страни. Нямаме влияние върху тяхното съдържание."
+          ]
+        },
+        {
+          "title": "Авторски права",
+          "paragraphs": [
+            "Съдържанието и произведенията, създадени от оператора на сайта на тези страници, са защитени с авторски права."
+          ]
+        },
+        {
+          "title": "Разрешаване на спорове",
+          "paragraphs": [
+            "Европейската комисия предоставя платформа за онлайн разрешаване на спорове (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Ние не сме задължени и не желаем да участваме в процедури за разрешаване на спорове пред потребителски арбитражен съвет."
+          ]
+        },
+        {
+          "title": "Контакт",
+          "paragraphs": [
+            "Имейл: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "bs": {
+      "title": "Impresum",
+      "sections": [
+        {
+          "title": "Informacije prema § 5 TMG",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Njemačka\nEmail: info@vela.cafe\nWeb stranica: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Odgovorna osoba za sadržaj prema § 55(2) RStV",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Njemačka"
+          ]
+        },
+        {
+          "title": "Odgovornost za sadržaj",
+          "paragraphs": [
+            "Sadržaji naših stranica su izrađeni s najvećom pažnjom. Međutim, ne možemo garantirati tačnost, potpunost ili ažurnost sadržaja."
+          ]
+        },
+        {
+          "title": "Odgovornost za linkove",
+          "paragraphs": [
+            "Naša platforma sadrži linkove na vanjske web stranice trećih strana. Nemamo utjecaj na njihov sadržaj."
+          ]
+        },
+        {
+          "title": "Autorska prava",
+          "paragraphs": [
+            "Sadržaj i radovi koje je kreirao operater stranice na ovim stranicama podliježu autorskim pravima."
+          ]
+        },
+        {
+          "title": "Rješavanje sporova",
+          "paragraphs": [
+            "Europska komisija pruža platformu za online rješavanje sporova (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Nismo obavezni niti voljni sudjelovati u postupcima rješavanja sporova pred potrošačkim arbitražnim odborom."
+          ]
+        },
+        {
+          "title": "Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "hr": {
+      "title": "Otisak",
+      "sections": [
+        {
+          "title": "Informacije prema § 5 TMG",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Njemačka\nEmail: info@vela.cafe\nWeb stranica: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Odgovorna osoba za sadržaj prema § 55(2) RStV",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Njemačka"
+          ]
+        },
+        {
+          "title": "Odgovornost za sadržaj",
+          "paragraphs": [
+            "Sadržaji naših stranica izrađeni su s najvećom pažnjom. Međutim, ne možemo jamčiti točnost, potpunost ili ažurnost sadržaja."
+          ]
+        },
+        {
+          "title": "Odgovornost za poveznice",
+          "paragraphs": [
+            "Naša platforma sadrži poveznice na vanjske web stranice trećih strana. Nemamo utjecaj na njihov sadržaj."
+          ]
+        },
+        {
+          "title": "Autorska prava",
+          "paragraphs": [
+            "Sadržaj i djela koja je na ovim stranicama stvorio operater stranice podliježu autorskim pravima."
+          ]
+        },
+        {
+          "title": "Rješavanje sporova",
+          "paragraphs": [
+            "Europska komisija pruža platformu za online rješavanje sporova (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Nismo obvezni niti voljni sudjelovati u postupcima rješavanja sporova pred potrošačkim arbitražnim odborom."
+          ]
+        },
+        {
+          "title": "Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "mk": {
+      "title": "Отпечаток",
+      "sections": [
+        {
+          "title": "Информации според § 5 TMG",
+          "paragraphs": [
+            "Газанфар Маошер\nБерлин, Германија\nЕ-пошта: info@vela.cafe\nВеб-страница: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Одговорен за содржината согласно § 55(2) RStV",
+          "paragraphs": [
+            "Газанфар Маошер\nБерлин, Германија"
+          ]
+        },
+        {
+          "title": "Одговорност за содржината",
+          "paragraphs": [
+            "Содржините на нашите страници се создадени со најголема грижа. Сепак, не можеме да гарантираме точност, целосност или ажурност на содржината."
+          ]
+        },
+        {
+          "title": "Одговорност за линкови",
+          "paragraphs": [
+            "Нашата платформа содржи линкови до надворешни веб-страници на трети лица. Немаме влијание врз нивната содржина."
+          ]
+        },
+        {
+          "title": "Авторски права",
+          "paragraphs": [
+            "Содржината и делата создадени од операторот на страницата на овие страници се предмет на авторски права."
+          ]
+        },
+        {
+          "title": "Решавање спорови",
+          "paragraphs": [
+            "Европската комисија обезбедува платформа за онлајн решавање спорови (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Ние не сме обврзани и не сме подготвени да учествуваме во постапки за решавање спорови пред потрошувачки арбитражен одбор."
+          ]
+        },
+        {
+          "title": "Контакт",
+          "paragraphs": [
+            "Е-пошта: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "ro": {
+      "title": "Imprint",
+      "sections": [
+        {
+          "title": "Informații conform § 5 TMG",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Germania\nEmail: info@vela.cafe\nWebsite: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Responsabil pentru conținut conform § 55(2) RStV",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Germania"
+          ]
+        },
+        {
+          "title": "Răspundere pentru conținut",
+          "paragraphs": [
+            "Conținutul paginilor noastre a fost creat cu cea mai mare grijă. Totuși, nu putem garanta exactitatea, completitudinea sau actualitatea conținutului."
+          ]
+        },
+        {
+          "title": "Răspundere pentru linkuri",
+          "paragraphs": [
+            "Platforma noastră conține linkuri către site-uri externe ale terților. Nu avem niciun control asupra conținutului acestora."
+          ]
+        },
+        {
+          "title": "Drepturi de autor",
+          "paragraphs": [
+            "Conținutul și lucrările create de operatorul site-ului pe aceste pagini sunt protejate prin drepturi de autor."
+          ]
+        },
+        {
+          "title": "Soluționarea litigiilor",
+          "paragraphs": [
+            "Comisia Europeană oferă o platformă pentru soluționarea litigiilor online (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Nu suntem obligați și nici dispuși să participăm la proceduri de soluționare a litigiilor în fața unei comisii de arbitraj pentru consumatori."
+          ]
+        },
+        {
+          "title": "Contact",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "sr": {
+      "title": "Otisak",
+      "sections": [
+        {
+          "title": "Informacije u skladu sa § 5 TMG",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Nemačka\nEmail: info@vela.cafe\nVebsajt: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Odgovorni za sadržaj u skladu sa § 55(2) RStV",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Nemačka"
+          ]
+        },
+        {
+          "title": "Odgovornost za sadržaj",
+          "paragraphs": [
+            "Sadržaji naših stranica su kreirani sa najvećom pažnjom. Međutim, ne možemo garantovati tačnost, potpunost ili pravovremenost sadržaja."
+          ]
+        },
+        {
+          "title": "Odgovornost za linkove",
+          "paragraphs": [
+            "Naša platforma sadrži linkove ka eksternim vebsajtovima trećih lica. Nemamo uticaj na njihov sadržaj."
+          ]
+        },
+        {
+          "title": "Autorska prava",
+          "paragraphs": [
+            "Sadržaj i radovi koje je kreirao operater sajta na ovim stranicama su zaštićeni autorskim pravima."
+          ]
+        },
+        {
+          "title": "Rešavanje sporova",
+          "paragraphs": [
+            "Evropska komisija pruža platformu za rešavanje sporova putem interneta (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Nismo obavezni niti voljni da učestvujemo u postupcima rešavanja sporova pred potrošačkim arbitražnim odborom."
+          ]
+        },
+        {
+          "title": "Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "sl": {
+      "title": "Impressum",
+      "sections": [
+        {
+          "title": "Informacije v skladu s § 5 TMG",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Nemčija\nE-pošta: info@vela.cafe\nSpletna stran: https://vela.cafe"
+          ]
+        },
+        {
+          "title": "Odgovorna oseba za vsebino v skladu s § 55(2) RStV",
+          "paragraphs": [
+            "Ghazanfar Maosher\nBerlin, Nemčija"
+          ]
+        },
+        {
+          "title": "Odgovornost za vsebino",
+          "paragraphs": [
+            "Vsebina naših strani je bila ustvarjena z največjo skrbnostjo. Kljub temu ne moremo zagotoviti točnosti, popolnosti ali ažurnosti vsebine."
+          ]
+        },
+        {
+          "title": "Odgovornost za povezave",
+          "paragraphs": [
+            "Naša platforma vsebuje povezave do zunanjih spletnih strani tretjih oseb. Nimamo vpliva na njihovo vsebino."
+          ]
+        },
+        {
+          "title": "Avtorske pravice",
+          "paragraphs": [
+            "Vsebina in dela, ki jih je ustvaril upravljavec strani na teh straneh, so zaščiteni z avtorskimi pravicami."
+          ]
+        },
+        {
+          "title": "Reševanje sporov",
+          "paragraphs": [
+            "Evropska komisija zagotavlja platformo za spletno reševanje sporov (ODR):",
+            "https://ec.europa.eu/consumers/odr/",
+            "Nismo dolžni in ne želimo sodelovati v postopkih reševanja sporov pred potrošniškim arbitražnim odborom."
+          ]
+        },
+        {
+          "title": "Kontakt",
+          "paragraphs": [
+            "E-pošta: info@vela.cafe"
+          ]
+        }
+      ]
+    }
+  });
+  Object.assign(global.DUVELA_LEGAL.content.terms, {
+    "da": {
+      "title": "Servicevilkår",
+      "sections": [
+        {
+          "title": "1. Om Duvela",
+          "paragraphs": [
+            "Duvela er en platform til at organisere sprogtræf (Sprog Café) online og offline.",
+            "Brugere kan oprette begivenheder, deltage i dem og kommunikere med hinanden."
+          ]
+        },
+        {
+          "title": "2. Registrering og Bruger Konto",
+          "paragraphs": [
+            "Registrering er mulig via:"
+          ],
+          "list": [
+            "Telegram",
+            "E-mailadresse"
+          ],
+          "afterList": [
+            "Ved at registrere dig accepterer du disse servicevilkår.",
+            "Du skal oplyse korrekte oplysninger og må ikke dele din konto med tredjepart."
+          ]
+        },
+        {
+          "title": "3. Brug af Platformen",
+          "paragraphs": [
+            "Du accepterer at:"
+          ],
+          "list": [
+            "behandle andre brugere respektfuldt",
+            "ikke offentliggøre ulovligt, stødende eller diskriminerende indhold",
+            "ikke distribuere reklamer eller spam",
+            "ikke misbruge platformen"
+          ],
+          "afterList": [
+            "Duvela forbeholder sig retten til at suspendere konti ved overtrædelser."
+          ]
+        },
+        {
+          "title": "4. Begivenheder og Arrangører",
+          "paragraphs": [
+            "Brugere kan oprette og organisere deres egne sprogtræf.",
+            "Arrangører bærer det fulde ansvar for:"
+          ],
+          "list": [
+            "Planlægning og gennemførelse",
+            "Deltagernes sikkerhed",
+            "Begivenhedens indhold"
+          ],
+          "afterList": [
+            "Duvela leverer kun den tekniske platform."
+          ]
+        },
+        {
+          "title": "5. Offline Møder (Ansvarsfraskrivelse)",
+          "paragraphs": [
+            "For fysiske møder mellem brugere påtager Duvela sig intet ansvar for:"
+          ],
+          "list": [
+            "deltagernes adfærd",
+            "skader, hændelser eller tvister",
+            "sikkerhed ved begivenheder"
+          ],
+          "afterList": [
+            "Deltagelse sker på eget ansvar."
+          ]
+        },
+        {
+          "title": "6. Brugerindhold",
+          "paragraphs": [
+            "Hver bruger er ansvarlig for det indhold, de offentliggør.",
+            "Forbudt er indhold, der:"
+          ],
+          "list": [
+            "overtræder love",
+            "krænker ophavsret",
+            "er stødende eller diskriminerende"
+          ]
+        },
+        {
+          "title": "7. E-mail Kommunikation",
+          "paragraphs": [
+            "Duvela kan sende dig vigtig information, begivenhedsdetaljer og opdateringer via e-mail.",
+            "Du kan afmelde e-mails til enhver tid."
+          ]
+        },
+        {
+          "title": "8. Konto Lukning",
+          "paragraphs": [
+            "Du kan slette din konto når som helst.",
+            "Duvela kan suspendere eller slette konti ved regelovertrædelser."
+          ]
+        },
+        {
+          "title": "9. Ændringer i Vilkårene",
+          "paragraphs": [
+            "Duvela kan ændre disse vilkår til enhver tid.",
+            "Fortsat brug betragtes som accept af ændringerne."
+          ]
+        },
+        {
+          "title": "10. Ansvarsbegrænsning",
+          "paragraphs": [
+            "Duvela er kun ansvarlig for forsætlig eller grov uagtsomhed."
+          ]
+        },
+        {
+          "title": "11. Gældende Lov",
+          "paragraphs": [
+            "Lovgivningen i Forbundsrepublikken Tyskland gælder."
+          ]
+        },
+        {
+          "title": "12. Kontakt",
+          "paragraphs": [
+            "E-mail: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "fi": {
+      "title": "Palveluehdot",
+      "sections": [
+        {
+          "title": "1. Tietoa Duvelasta",
+          "paragraphs": [
+            "Duvela on alusta kielitapaamisten (Language Café) järjestämiseen verkossa ja paikan päällä.",
+            "Käyttäjät voivat luoda tapahtumia, osallistua niihin ja kommunikoida keskenään."
+          ]
+        },
+        {
+          "title": "2. Rekisteröityminen ja käyttäjätili",
+          "paragraphs": [
+            "Rekisteröityminen on mahdollista seuraavasti:"
+          ],
+          "list": [
+            "Telegram",
+            "Sähköpostiosoite"
+          ],
+          "afterList": [
+            "Rekisteröitymällä hyväksyt nämä palveluehdot.",
+            "Sinun tulee antaa oikeat tiedot etkä saa jakaa tiliäsi kolmansille osapuolille."
+          ]
+        },
+        {
+          "title": "3. Alustan käyttö",
+          "paragraphs": [
+            "Hyväksyt, että:"
+          ],
+          "list": [
+            "kohtelet muita käyttäjiä kunnioittavasti",
+            "et julkaise laitonta, loukkaavaa tai syrjivää sisältöä",
+            "et jaa mainontaa tai roskapostia",
+            "et käytä alustaa väärin"
+          ],
+          "afterList": [
+            "Duvela pidättää oikeuden keskeyttää tilit rikkomustilanteissa."
+          ]
+        },
+        {
+          "title": "4. Tapahtumat ja järjestäjät",
+          "paragraphs": [
+            "Käyttäjät voivat luoda ja järjestää omia kielitapaamisiaan.",
+            "Järjestäjät ovat täysin vastuussa:"
+          ],
+          "list": [
+            "Suunnittelusta ja toteutuksesta",
+            "Osallistujien turvallisuudesta",
+            "Tapahtuman sisällöstä"
+          ],
+          "afterList": [
+            "Duvela tarjoaa vain teknisen alustan."
+          ]
+        },
+        {
+          "title": "5. Paikan päällä tapahtuvat tapaamiset (Vastuuvapauslauseke)",
+          "paragraphs": [
+            "Käyttäjien välisissä tosielämän tapaamisissa Duvela ei ota vastuuta:"
+          ],
+          "list": [
+            "osallistujien käyttäytymisestä",
+            "vahingoista, tapaturmista tai riidoista",
+            "tapahtumien turvallisuudesta"
+          ],
+          "afterList": [
+            "Osallistuminen on omalla vastuulla."
+          ]
+        },
+        {
+          "title": "6. Käyttäjien sisältö",
+          "paragraphs": [
+            "Jokainen käyttäjä on vastuussa julkaisemastaan sisällöstä.",
+            "Kiellettyä on sisältö, joka:"
+          ],
+          "list": [
+            "rikkoo lakeja",
+            "loukaa tekijänoikeuksia",
+            "on loukkaavaa tai syrjivää"
+          ]
+        },
+        {
+          "title": "7. Sähköpostiviestintä",
+          "paragraphs": [
+            "Duvela voi lähettää sinulle tärkeitä tietoja, tapahtumatietoja ja päivityksiä sähköpostitse.",
+            "Voit peruuttaa sähköpostitilauksen milloin tahansa."
+          ]
+        },
+        {
+          "title": "8. Tilin lopettaminen",
+          "paragraphs": [
+            "Voit poistaa tilisi milloin tahansa.",
+            "Duvela voi keskeyttää tai poistaa tilejä sääntörikkomusten yhteydessä."
+          ]
+        },
+        {
+          "title": "9. Ehtojen muutokset",
+          "paragraphs": [
+            "Duvela voi muuttaa näitä ehtoja milloin tahansa.",
+            "Jatkamalla käyttöä hyväksyt muutokset."
+          ]
+        },
+        {
+          "title": "10. Vastuunrajoitus",
+          "paragraphs": [
+            "Duvela on vastuussa vain tahallisesta tai törkeästä huolimattomuudesta."
+          ]
+        },
+        {
+          "title": "11. Sovellettava laki",
+          "paragraphs": [
+            "Sovellettava laki on Saksan liittotasavallan laki."
+          ]
+        },
+        {
+          "title": "12. Yhteystiedot",
+          "paragraphs": [
+            "Sähköposti: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "bg": {
+      "title": "Общи условия за ползване",
+      "sections": [
+        {
+          "title": "1. За Duvela",
+          "paragraphs": [
+            "Duvela е платформа за организиране на езикови срещи (Language Café) онлайн и офлайн.",
+            "Потребителите могат да създават събития, да участват в тях и да комуникират помежду си."
+          ]
+        },
+        {
+          "title": "2. Регистрация и потребителски акаунт",
+          "paragraphs": [
+            "Регистрацията е възможна чрез:"
+          ],
+          "list": [
+            "Telegram",
+            "Имейл адрес"
+          ],
+          "afterList": [
+            "С регистрацията си вие се съгласявате с тези общи условия.",
+            "Трябва да предоставяте точна информация и да не споделяте акаунта си с трети лица."
+          ]
+        },
+        {
+          "title": "3. Използване на платформата",
+          "paragraphs": [
+            "Вие се съгласявате да:"
+          ],
+          "list": [
+            "отнасяте се с уважение към другите потребители",
+            "не публикувате незаконно, обидно или дискриминационно съдържание",
+            "не разпространявате реклама или спам",
+            "не злоупотребявате с платформата"
+          ],
+          "afterList": [
+            "Duvela си запазва правото да спира акаунти при нарушения."
+          ]
+        },
+        {
+          "title": "4. Събития и организатори",
+          "paragraphs": [
+            "Потребителите могат да създават и организират свои езикови срещи.",
+            "Организаторите носят пълна отговорност за:"
+          ],
+          "list": [
+            "Планиране и изпълнение",
+            "Безопасността на участниците",
+            "Съдържанието на събитието"
+          ],
+          "afterList": [
+            "Duvela предоставя само техническата платформа."
+          ]
+        },
+        {
+          "title": "5. Срещи офлайн (Отказ от отговорност)",
+          "paragraphs": [
+            "За срещи на живо между потребителите Duvela не носи отговорност за:"
+          ],
+          "list": [
+            "поведението на участниците",
+            "щети, инциденти или спорове",
+            "безопасността на събитията"
+          ],
+          "afterList": [
+            "Участието е на ваш собствен риск."
+          ]
+        },
+        {
+          "title": "6. Потребителско съдържание",
+          "paragraphs": [
+            "Всеки потребител е отговорен за съдържанието, което публикува.",
+            "Забранено е съдържание, което:"
+          ],
+          "list": [
+            "нарушава закони",
+            "нарушава авторски права",
+            "е обидно или дискриминационно"
+          ]
+        },
+        {
+          "title": "7. Имейл комуникация",
+          "paragraphs": [
+            "Duvela може да ви изпраща важна информация, детайли за събития и актуализации по имейл.",
+            "Можете да се отпишете от имейлите по всяко време."
+          ]
+        },
+        {
+          "title": "8. Прекратяване на акаунт",
+          "paragraphs": [
+            "Можете да изтриете акаунта си по всяко време.",
+            "Duvela може да спира или изтрива акаунти при нарушения на правилата."
+          ]
+        },
+        {
+          "title": "9. Промени в условията",
+          "paragraphs": [
+            "Duvela може да променя тези условия по всяко време.",
+            "Продължаването на използването се счита за приемане на промените."
+          ]
+        },
+        {
+          "title": "10. Ограничение на отговорността",
+          "paragraphs": [
+            "Duvela носи отговорност само при умишлено или грубо небрежно поведение."
+          ]
+        },
+        {
+          "title": "11. Приложимо право",
+          "paragraphs": [
+            "Приложимо е правото на Федерална република Германия."
+          ]
+        },
+        {
+          "title": "12. Контакт",
+          "paragraphs": [
+            "Имейл: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "bs": {
+      "title": "Uslovi korištenja",
+      "sections": [
+        {
+          "title": "1. O Duveli",
+          "paragraphs": [
+            "Duvela je platforma za organizovanje jezičkih susreta (Jezički kafić) online i offline.",
+            "Korisnici mogu kreirati događaje, učestvovati u njima i komunicirati međusobno."
+          ]
+        },
+        {
+          "title": "2. Registracija i korisnički nalog",
+          "paragraphs": [
+            "Registracija je moguća putem:"
+          ],
+          "list": [
+            "Telegram",
+            "Email adresa"
+          ],
+          "afterList": [
+            "Registracijom prihvatate ove uslove korištenja.",
+            "Morate pružiti tačne informacije i ne smijete dijeliti svoj nalog sa trećim stranama."
+          ]
+        },
+        {
+          "title": "3. Korištenje platforme",
+          "paragraphs": [
+            "Slažete se da:"
+          ],
+          "list": [
+            "postupate prema drugim korisnicima s poštovanjem",
+            "ne objavljujete nezakonit, uvredljiv ili diskriminatoran sadržaj",
+            "ne distribuirate reklame ili spam",
+            "ne zloupotrebljavate platformu"
+          ],
+          "afterList": [
+            "Duvela zadržava pravo da suspenduje naloge u slučaju kršenja pravila."
+          ]
+        },
+        {
+          "title": "4. Događaji i organizatori",
+          "paragraphs": [
+            "Korisnici mogu kreirati i organizovati vlastite jezičke susrete.",
+            "Organizatori snose punu odgovornost za:"
+          ],
+          "list": [
+            "Planiranje i realizaciju",
+            "Sigurnost učesnika",
+            "Sadržaj događaja"
+          ],
+          "afterList": [
+            "Duvela pruža samo tehničku platformu."
+          ]
+        },
+        {
+          "title": "5. Offline susreti (odricanje od odgovornosti)",
+          "paragraphs": [
+            "Za susrete uživo između korisnika, Duvela ne preuzima odgovornost za:"
+          ],
+          "list": [
+            "ponašanje učesnika",
+            "štete, incidente ili sporove",
+            "sigurnost na događajima"
+          ],
+          "afterList": [
+            "Učešće je na vlastiti rizik."
+          ]
+        },
+        {
+          "title": "6. Korisnički sadržaj",
+          "paragraphs": [
+            "Svaki korisnik je odgovoran za sadržaj koji objavljuje.",
+            "Zabranjeni su sadržaji koji:"
+          ],
+          "list": [
+            "krše zakone",
+            "narušavaju autorska prava",
+            "su uvredljivi ili diskriminatorni"
+          ]
+        },
+        {
+          "title": "7. Email komunikacija",
+          "paragraphs": [
+            "Duvela vam može slati važne informacije, detalje o događajima i ažuriranja putem emaila.",
+            "Možete se odjaviti sa email liste u bilo kojem trenutku."
+          ]
+        },
+        {
+          "title": "8. Brisanje naloga",
+          "paragraphs": [
+            "Možete obrisati svoj nalog u bilo kojem trenutku.",
+            "Duvela može suspendovati ili obrisati naloge u slučaju kršenja pravila."
+          ]
+        },
+        {
+          "title": "9. Promjene uslova",
+          "paragraphs": [
+            "Duvela može u bilo kojem trenutku izmijeniti ove uslove.",
+            "Nastavak korištenja se smatra prihvatanjem izmjena."
+          ]
+        },
+        {
+          "title": "10. Ograničenje odgovornosti",
+          "paragraphs": [
+            "Duvela je odgovorna samo za namjerno ili grubo nepažljivo ponašanje."
+          ]
+        },
+        {
+          "title": "11. Mjerodavno pravo",
+          "paragraphs": [
+            "Primjenjuje se pravo Savezne Republike Njemačke."
+          ]
+        },
+        {
+          "title": "12. Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "hr": {
+      "title": "Uvjeti korištenja",
+      "sections": [
+        {
+          "title": "1. O Duveli",
+          "paragraphs": [
+            "Duvela je platforma za organiziranje jezičnih susreta (Jezični kafić) online i offline.",
+            "Korisnici mogu stvarati događaje, sudjelovati u njima i međusobno komunicirati."
+          ]
+        },
+        {
+          "title": "2. Registracija i korisnički račun",
+          "paragraphs": [
+            "Registracija je moguća putem:"
+          ],
+          "list": [
+            "Telegram",
+            "Email adresa"
+          ],
+          "afterList": [
+            "Registracijom prihvaćate ove uvjete korištenja.",
+            "Morate pružiti točne informacije i ne smijete dijeliti svoj račun s trećim stranama."
+          ]
+        },
+        {
+          "title": "3. Korištenje platforme",
+          "paragraphs": [
+            "Slažete se da ćete:"
+          ],
+          "list": [
+            "postupati s drugim korisnicima s poštovanjem",
+            "ne objavljivati nezakonit, uvredljiv ili diskriminirajući sadržaj",
+            "ne distribuirati reklame ili neželjenu poštu",
+            "ne zloupotrebljavati platformu"
+          ],
+          "afterList": [
+            "Duvela zadržava pravo suspenzije računa u slučaju kršenja pravila."
+          ]
+        },
+        {
+          "title": "4. Događaji i organizatori",
+          "paragraphs": [
+            "Korisnici mogu stvarati i organizirati vlastite jezične susrete.",
+            "Organizatori snose punu odgovornost za:"
+          ],
+          "list": [
+            "Planiranje i provedbu",
+            "Sigurnost sudionika",
+            "Sadržaj događaja"
+          ],
+          "afterList": [
+            "Duvela pruža samo tehničku platformu."
+          ]
+        },
+        {
+          "title": "5. Offline susreti (Odricanje od odgovornosti)",
+          "paragraphs": [
+            "Za susrete korisnika u stvarnom životu, Duvela ne preuzima odgovornost za:"
+          ],
+          "list": [
+            "ponašanje sudionika",
+            "štete, incidente ili sporove",
+            "sigurnost na događajima"
+          ],
+          "afterList": [
+            "Sudjelovanje je na vlastiti rizik."
+          ]
+        },
+        {
+          "title": "6. Korisnički sadržaj",
+          "paragraphs": [
+            "Svaki korisnik odgovoran je za sadržaj koji objavljuje.",
+            "Zabranjeni su sadržaji koji:"
+          ],
+          "list": [
+            "krše zakone",
+            "narušavaju autorska prava",
+            "su uvredljivi ili diskriminirajući"
+          ]
+        },
+        {
+          "title": "7. Email komunikacija",
+          "paragraphs": [
+            "Duvela vam može slati važne informacije, detalje o događajima i obavijesti putem e-pošte.",
+            "Možete se u bilo kojem trenutku odjaviti s primanja e-pošte."
+          ]
+        },
+        {
+          "title": "8. Brisanje računa",
+          "paragraphs": [
+            "Račun možete izbrisati u bilo kojem trenutku.",
+            "Duvela može suspendirati ili izbrisati račune u slučaju kršenja pravila."
+          ]
+        },
+        {
+          "title": "9. Promjene uvjeta",
+          "paragraphs": [
+            "Duvela može u bilo kojem trenutku izmijeniti ove uvjete.",
+            "Nastavak korištenja smatra se prihvaćanjem promjena."
+          ]
+        },
+        {
+          "title": "10. Ograničenje odgovornosti",
+          "paragraphs": [
+            "Duvela odgovara samo za namjerno ili grubo nepažljivo ponašanje."
+          ]
+        },
+        {
+          "title": "11. Mjerodavno pravo",
+          "paragraphs": [
+            "Primjenjuje se pravo Savezne Republike Njemačke."
+          ]
+        },
+        {
+          "title": "12. Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "mk": {
+      "title": "Услови за користење",
+      "sections": [
+        {
+          "title": "1. За Duvela",
+          "paragraphs": [
+            "Duvela е платформа за организирање на јазични средби (Јазично кафе) онлајн и офлајн.",
+            "Корисниците можат да креираат настани, да учествуваат во нив и да комуницираат едни со други."
+          ]
+        },
+        {
+          "title": "2. Регистрација и корисничка сметка",
+          "paragraphs": [
+            "Регистрацијата е можно преку:"
+          ],
+          "list": [
+            "Телеграм",
+            "Е-пошта"
+          ],
+          "afterList": [
+            "Со регистрација се согласувате со овие услови за користење.",
+            "Мора да обезбедите точни информации и да не ја споделувате вашата сметка со трети лица."
+          ]
+        },
+        {
+          "title": "3. Користење на платформата",
+          "paragraphs": [
+            "Се согласувате да:"
+          ],
+          "list": [
+            "постапувате со почит кон другите корисници",
+            "не објавувате нелегален, навредлив или дискриминаторен содржина",
+            "не дистрибуирате реклами или спам",
+            "не ја злоупотребувате платформата"
+          ],
+          "afterList": [
+            "Duvela го задржува правото да суспендира сметки во случај на прекршувања."
+          ]
+        },
+        {
+          "title": "4. Настани и организатори",
+          "paragraphs": [
+            "Корисниците можат да креираат и организираат свои јазични средби.",
+            "Организаторите носат целосна одговорност за:"
+          ],
+          "list": [
+            "Планирање и изведба",
+            "Безбедност на учесниците",
+            "Содржина на настанот"
+          ],
+          "afterList": [
+            "Duvela обезбедува само техничка платформа."
+          ]
+        },
+        {
+          "title": "5. Офлајн средби (одговорност)",
+          "paragraphs": [
+            "За средби во живо помеѓу корисниците, Duvela не презема одговорност за:"
+          ],
+          "list": [
+            "однесувањето на учесниците",
+            "штети, инциденти или спорови",
+            "безбедноста на настаните"
+          ],
+          "afterList": [
+            "Учеството е на ваша сопствена одговорност."
+          ]
+        },
+        {
+          "title": "6. Корисничка содржина",
+          "paragraphs": [
+            "Секој корисник е одговорен за содржината што ја објавува.",
+            "Забранети се содржини кои:"
+          ],
+          "list": [
+            "ги кршат законите",
+            "ги нарушуваат авторските права",
+            "се навредливи или дискриминаторни"
+          ]
+        },
+        {
+          "title": "7. Комуникација преку е-пошта",
+          "paragraphs": [
+            "Duvela може да ви испраќа важни информации, детали за настани и ажурирања преку е-пошта.",
+            "Можете да се откажете од примање е-пошта во секое време."
+          ]
+        },
+        {
+          "title": "8. Прекин на сметка",
+          "paragraphs": [
+            "Можете да ја избришете вашата сметка во секое време.",
+            "Duvela може да суспендира или избрише сметки во случај на прекршување на правилата."
+          ]
+        },
+        {
+          "title": "9. Промени во условите",
+          "paragraphs": [
+            "Duvela може да ги менува овие услови во секое време.",
+            "Продолжувањето на користењето се смета за прифаќање на промените."
+          ]
+        },
+        {
+          "title": "10. Ограничување на одговорноста",
+          "paragraphs": [
+            "Duvela е одговорен само за намерно или грубо неодговорно однесување."
+          ]
+        },
+        {
+          "title": "11. Применливо право",
+          "paragraphs": [
+            "Применливо е правото на Федерална Република Германија."
+          ]
+        },
+        {
+          "title": "12. Контакт",
+          "paragraphs": [
+            "Е-пошта: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "ro": {
+      "title": "Termeni și Condiții de Utilizare",
+      "sections": [
+        {
+          "title": "1. Despre Duvela",
+          "paragraphs": [
+            "Duvela este o platformă pentru organizarea întâlnirilor lingvistice (Language Café) online și offline.",
+            "Utilizatorii pot crea evenimente, pot participa la ele și pot comunica între ei."
+          ]
+        },
+        {
+          "title": "2. Înregistrare și Cont de Utilizator",
+          "paragraphs": [
+            "Înregistrarea este posibilă prin:"
+          ],
+          "list": [
+            "Telegram",
+            "Adresă de email"
+          ],
+          "afterList": [
+            "Prin înregistrare, sunteți de acord cu acești termeni și condiții de utilizare.",
+            "Trebuie să furnizați informații corecte și să nu partajați contul cu terți."
+          ]
+        },
+        {
+          "title": "3. Utilizarea Platformei",
+          "paragraphs": [
+            "Sunteți de acord să:"
+          ],
+          "list": [
+            "tratați ceilalți utilizatori cu respect",
+            "nu publicați conținut ilegal, ofensator sau discriminatoriu",
+            "nu distribuiți reclame sau spam",
+            "nu abuzați de platformă"
+          ],
+          "afterList": [
+            "Duvela își rezervă dreptul de a suspenda conturile în caz de încălcări."
+          ]
+        },
+        {
+          "title": "4. Evenimente și Organizatori",
+          "paragraphs": [
+            "Utilizatorii pot crea și organiza propriile întâlniri lingvistice.",
+            "Organizatorii poartă întreaga responsabilitate pentru:"
+          ],
+          "list": [
+            "Planificare și execuție",
+            "Siguranța participanților",
+            "Conținutul evenimentului"
+          ],
+          "afterList": [
+            "Duvela oferă doar platforma tehnică."
+          ]
+        },
+        {
+          "title": "5. Întâlniri Offline (Declinare de Responsabilitate)",
+          "paragraphs": [
+            "Pentru întâlnirile față în față între utilizatori, Duvela nu își asumă responsabilitate pentru:"
+          ],
+          "list": [
+            "comportamentul participanților",
+            "daune, incidente sau dispute",
+            "siguranța la evenimente"
+          ],
+          "afterList": [
+            "Participarea se face pe propriul risc."
+          ]
+        },
+        {
+          "title": "6. Conținutul Utilizatorului",
+          "paragraphs": [
+            "Fiecare utilizator este responsabil pentru conținutul pe care îl publică.",
+            "Sunt interzise conținuturile care:"
+          ],
+          "list": [
+            "încalcă legile",
+            "încalcă drepturile de autor",
+            "sunt ofensatoare sau discriminatorii"
+          ]
+        },
+        {
+          "title": "7. Comunicare prin Email",
+          "paragraphs": [
+            "Duvela vă poate trimite informații importante, detalii despre evenimente și actualizări prin email.",
+            "Vă puteți dezabona de la emailuri în orice moment."
+          ]
+        },
+        {
+          "title": "8. Închiderea Contului",
+          "paragraphs": [
+            "Puteți șterge contul în orice moment.",
+            "Duvela poate suspenda sau șterge conturile în caz de încălcări ale regulilor."
+          ]
+        },
+        {
+          "title": "9. Modificări ale Termenilor",
+          "paragraphs": [
+            "Duvela poate modifica acești termeni în orice moment.",
+            "Continuarea utilizării este considerată acceptarea modificărilor."
+          ]
+        },
+        {
+          "title": "10. Limitarea Răspunderii",
+          "paragraphs": [
+            "Duvela răspunde doar pentru conduită intenționată sau grav neglijentă."
+          ]
+        },
+        {
+          "title": "11. Legea Aplicabilă",
+          "paragraphs": [
+            "Se aplică legea Republicii Federale Germania."
+          ]
+        },
+        {
+          "title": "12. Contact",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "sr": {
+      "title": "Uslovi korišćenja",
+      "sections": [
+        {
+          "title": "1. O Duveli",
+          "paragraphs": [
+            "Duvela je platforma za organizovanje jezičkih susreta (Language Café) onlajn i uživo.",
+            "Korisnici mogu kreirati događaje, učestvovati u njima i komunicirati međusobno."
+          ]
+        },
+        {
+          "title": "2. Registracija i korisnički nalog",
+          "paragraphs": [
+            "Registracija je moguća putem:"
+          ],
+          "list": [
+            "Telegram",
+            "Email adresa"
+          ],
+          "afterList": [
+            "Registracijom prihvatate ove uslove korišćenja.",
+            "Morate pružiti tačne informacije i ne deliti svoj nalog sa trećim licima."
+          ]
+        },
+        {
+          "title": "3. Korišćenje platforme",
+          "paragraphs": [
+            "Saglasni ste da:"
+          ],
+          "list": [
+            "postupate prema drugim korisnicima sa poštovanjem",
+            "ne objavljujete nezakonit, uvredljiv ili diskriminatorski sadržaj",
+            "ne distribuirate reklame ili spam",
+            "ne zloupotrebljavate platformu"
+          ],
+          "afterList": [
+            "Duvela zadržava pravo da suspenduje naloge u slučaju kršenja pravila."
+          ]
+        },
+        {
+          "title": "4. Događaji i organizatori",
+          "paragraphs": [
+            "Korisnici mogu kreirati i organizovati sopstvene jezičke susrete.",
+            "Organizatori snose punu odgovornost za:"
+          ],
+          "list": [
+            "Planiranje i realizaciju",
+            "Bezbednost učesnika",
+            "Sadržaj događaja"
+          ],
+          "afterList": [
+            "Duvela obezbeđuje samo tehničku platformu."
+          ]
+        },
+        {
+          "title": "5. Sastanci uživo (Odricanje od odgovornosti)",
+          "paragraphs": [
+            "Za sastanke uživo između korisnika, Duvela ne preuzima odgovornost za:"
+          ],
+          "list": [
+            "ponašanje učesnika",
+            "štete, incidente ili sporove",
+            "bezbednost na događajima"
+          ],
+          "afterList": [
+            "Učešće je na sopstvenu odgovornost."
+          ]
+        },
+        {
+          "title": "6. Korisnički sadržaj",
+          "paragraphs": [
+            "Svaki korisnik je odgovoran za sadržaj koji objavljuje.",
+            "Zabranjeni su sadržaji koji:"
+          ],
+          "list": [
+            "krše zakone",
+            "narušavaju autorska prava",
+            "su uvredljivi ili diskriminatorski"
+          ]
+        },
+        {
+          "title": "7. Email komunikacija",
+          "paragraphs": [
+            "Duvela može slati važne informacije, detalje o događajima i ažuriranja putem emaila.",
+            "Možete se odjaviti sa email liste u bilo kom trenutku."
+          ]
+        },
+        {
+          "title": "8. Prekid naloga",
+          "paragraphs": [
+            "Možete obrisati svoj nalog u bilo kom trenutku.",
+            "Duvela može suspendovati ili obrisati naloge u slučaju kršenja pravila."
+          ]
+        },
+        {
+          "title": "9. Izmene uslova",
+          "paragraphs": [
+            "Duvela može u bilo kom trenutku izmeniti ove uslove.",
+            "Nastavak korišćenja se smatra prihvatanjem izmena."
+          ]
+        },
+        {
+          "title": "10. Ograničenje odgovornosti",
+          "paragraphs": [
+            "Duvela je odgovorna samo za namerno ili grubo nepažljivo ponašanje."
+          ]
+        },
+        {
+          "title": "11. Važeći zakon",
+          "paragraphs": [
+            "Važi zakon Savezne Republike Nemačke."
+          ]
+        },
+        {
+          "title": "12. Kontakt",
+          "paragraphs": [
+            "Email: info@vela.cafe"
+          ]
+        }
+      ]
+    },
+    "sl": {
+      "title": "Pogoji storitve",
+      "sections": [
+        {
+          "title": "1. O Duveli",
+          "paragraphs": [
+            "Duvela je platforma za organizacijo jezikovnih srečanj (Jezikovna kavarna) na spletu in v živo.",
+            "Uporabniki lahko ustvarjajo dogodke, sodelujejo na njih in komunicirajo med seboj."
+          ]
+        },
+        {
+          "title": "2. Registracija in uporabniški račun",
+          "paragraphs": [
+            "Registracija je mogoča preko:"
+          ],
+          "list": [
+            "Telegram",
+            "E-poštni naslov"
+          ],
+          "afterList": [
+            "Z registracijo se strinjate s temi pogoji storitve.",
+            "Morate zagotoviti točne podatke in ne deliti svojega računa s tretjimi osebami."
+          ]
+        },
+        {
+          "title": "3. Uporaba platforme",
+          "paragraphs": [
+            "Strinjate se, da boste:"
+          ],
+          "list": [
+            "drugi uporabniki spoštljivo obravnavani",
+            "ne boste objavljali nezakonite, žaljive ali diskriminatorne vsebine",
+            "ne boste razpošiljali oglasov ali neželene pošte",
+            "platforme ne boste zlorabljali"
+          ],
+          "afterList": [
+            "Duvela si pridržuje pravico do začasne blokade računov v primeru kršitev."
+          ]
+        },
+        {
+          "title": "4. Dogodki in organizatorji",
+          "paragraphs": [
+            "Uporabniki lahko ustvarjajo in organizirajo lastna jezikovna srečanja.",
+            "Organizatorji nosijo polno odgovornost za:"
+          ],
+          "list": [
+            "Načrtovanje in izvedbo",
+            "Varnost udeležencev",
+            "Vsebino dogodka"
+          ],
+          "afterList": [
+            "Duvela zagotavlja le tehnično platformo."
+          ]
+        },
+        {
+          "title": "5. Srečanja v živo (Omejitev odgovornosti)",
+          "paragraphs": [
+            "Za srečanja v resničnem življenju med uporabniki Duvela ne prevzema odgovornosti za:"
+          ],
+          "list": [
+            "vedenje udeležencev",
+            "škodo, incidente ali spore",
+            "varnost na dogodkih"
+          ],
+          "afterList": [
+            "Sodelovanje je na lastno odgovornost."
+          ]
+        },
+        {
+          "title": "6. Vsebina uporabnikov",
+          "paragraphs": [
+            "Vsak uporabnik je odgovoren za vsebino, ki jo objavi.",
+            "Prepovedane so vsebine, ki:"
+          ],
+          "list": [
+            "kršijo zakone",
+            "kršijo avtorske pravice",
+            "so žaljive ali diskriminatorne"
+          ]
+        },
+        {
+          "title": "7. E-poštna komunikacija",
+          "paragraphs": [
+            "Duvela vam lahko pošilja pomembne informacije, podrobnosti o dogodkih in posodobitve po e-pošti.",
+            "Od prejemanja e-pošte se lahko kadar koli odjavite."
+          ]
+        },
+        {
+          "title": "8. Izbris računa",
+          "paragraphs": [
+            "Račun lahko izbrišete kadarkoli.",
+            "Duvela lahko račune začasno blokira ali izbriše v primeru kršitev pravil."
+          ]
+        },
+        {
+          "title": "9. Spremembe pogojev",
+          "paragraphs": [
+            "Duvela lahko te pogoje kadar koli spremeni.",
+            "Nadaljnja uporaba pomeni sprejem sprememb."
+          ]
+        },
+        {
+          "title": "10. Omejitev odgovornosti",
+          "paragraphs": [
+            "Duvela odgovarja le za namerno ali hudo malomarnost."
+          ]
+        },
+        {
+          "title": "11. Veljavna zakonodaja",
+          "paragraphs": [
+            "Velja pravo Zvezne republike Nemčije."
+          ]
+        },
+        {
+          "title": "12. Kontakt",
+          "paragraphs": [
+            "E-pošta: info@vela.cafe"
+          ]
+        }
+      ]
+    }
+  });
+  Object.assign(global.DUVELA_LEGAL.consentTranslations, {
+    "da": {
+      "consentModal": {
+        "title": "Privatlivsindstillinger",
+        "description": "Her kan du vælge, hvilke tjenester der er tilladt. Nødvendige cookies er altid aktive."
+      },
+      "consentNotice": {
+        "description": "Vi bruger cookies og lignende teknologier. Du kan vælge, hvilke tjenester der er aktiveret.",
+        "learnMore": "Indstillinger"
+      },
+      "acceptAll": "Accepter alle",
+      "decline": "Afvis",
+      "save": "Gem",
+      "poweredBy": "Drevet af Klaro!",
+      "service": {
+        "purpose": "Formål",
+        "purposes": "Formål",
+        "required": {
+          "title": "Nødvendig",
+          "description": "Denne tjeneste er nødvendig for, at hjemmesiden fungerer."
+        },
+        "disableAll": {
+          "title": "Aktiver/deaktiver alle",
+          "description": "Brug denne kontakt for at aktivere eller deaktivere alle tjenester på én gang."
+        }
+      },
+      "purposeItem": {
+        "service": "tjeneste",
+        "services": "tjenester"
+      },
+      "purposes": {
+        "necessary": "Nødvendig",
+        "analytics": "Analyse",
+        "marketing": "Markedsføring",
+        "external": "Eksterne medier"
+      }
+    },
+    "fi": {
+      "consentModal": {
+        "title": "Tietosuoja-asetukset",
+        "description": "Täällä voit valita, mitkä palvelut ovat sallittuja. Välttämättömät evästeet ovat aina aktiivisia."
+      },
+      "consentNotice": {
+        "description": "Käytämme evästeitä ja vastaavia teknologioita. Voit valita, mitkä palvelut ovat käytössä.",
+        "learnMore": "Asetukset"
+      },
+      "acceptAll": "Hyväksy kaikki",
+      "decline": "Hylkää",
+      "save": "Tallenna",
+      "poweredBy": "Toimii Klaro!:n avulla",
+      "service": {
+        "purpose": "Tarkoitus",
+        "purposes": "Tarkoitukset",
+        "required": {
+          "title": "Välttämätön",
+          "description": "Tämä palvelu on välttämätön verkkosivuston toimimiseksi."
+        },
+        "disableAll": {
+          "title": "Ota kaikki käyttöön/pois käytöstä",
+          "description": "Käytä tätä kytkintä ottaaksesi kaikki palvelut käyttöön tai poistaaksesi ne käytöstä kerralla."
+        }
+      },
+      "purposeItem": {
+        "service": "palvelu",
+        "services": "palvelut"
+      },
+      "purposes": {
+        "necessary": "Välttämätön",
+        "analytics": "Analytiikka",
+        "marketing": "Markkinointi",
+        "external": "Ulkoinen media"
+      }
+    },
+    "bg": {
+      "consentModal": {
+        "title": "Настройки за поверителност",
+        "description": "Тук можете да изберете кои услуги са разрешени. Необходимите бисквитки винаги са активни."
+      },
+      "consentNotice": {
+        "description": "Използваме бисквитки и подобни технологии. Можете да изберете кои услуги да бъдат активирани.",
+        "learnMore": "Настройки"
+      },
+      "acceptAll": "Приеми всички",
+      "decline": "Откажи",
+      "save": "Запази",
+      "poweredBy": "Задвижвано от Klaro!",
+      "service": {
+        "purpose": "Цел",
+        "purposes": "Цели",
+        "required": {
+          "title": "Необходимо",
+          "description": "Тази услуга е необходима за функционирането на уебсайта."
+        },
+        "disableAll": {
+          "title": "Активиране/деактивиране на всички",
+          "description": "Използвайте този превключвател, за да активирате или деактивирате всички услуги наведнъж."
+        }
+      },
+      "purposeItem": {
+        "service": "услуга",
+        "services": "услуги"
+      },
+      "purposes": {
+        "necessary": "Необходими",
+        "analytics": "Аналитика",
+        "marketing": "Маркетинг",
+        "external": "Външни медии"
+      }
+    },
+    "bs": {
+      "consentModal": {
+        "title": "Postavke privatnosti",
+        "description": "Ovdje možete odabrati koje usluge su dozvoljene. Neophodni kolačići su uvijek aktivni."
+      },
+      "consentNotice": {
+        "description": "Koristimo kolačiće i slične tehnologije. Možete odabrati koje usluge su omogućene.",
+        "learnMore": "Postavke"
+      },
+      "acceptAll": "Prihvati sve",
+      "decline": "Odbij",
+      "save": "Sačuvaj",
+      "poweredBy": "Pokreće Klaro!",
+      "service": {
+        "purpose": "Svrha",
+        "purposes": "Svrhe",
+        "required": {
+          "title": "Neophodno",
+          "description": "Ova usluga je potrebna za funkcionisanje web stranice."
+        },
+        "disableAll": {
+          "title": "Omogući/onemogući sve",
+          "description": "Koristite ovaj prekidač za istovremeno omogućavanje ili onemogućavanje svih usluga."
+        }
+      },
+      "purposeItem": {
+        "service": "usluga",
+        "services": "usluge"
+      },
+      "purposes": {
+        "necessary": "Neophodno",
+        "analytics": "Analitika",
+        "marketing": "Marketing",
+        "external": "Eksterni mediji"
+      }
+    },
+    "hr": {
+      "consentModal": {
+        "title": "Postavke privatnosti",
+        "description": "Ovdje možete odabrati koje su usluge dopuštene. Potrebni kolačići su uvijek aktivni."
+      },
+      "consentNotice": {
+        "description": "Koristimo kolačiće i slične tehnologije. Možete odabrati koje su usluge omogućene.",
+        "learnMore": "Postavke"
+      },
+      "acceptAll": "Prihvati sve",
+      "decline": "Odbij",
+      "save": "Spremi",
+      "poweredBy": "Pokreće Klaro!",
+      "service": {
+        "purpose": "Svrha",
+        "purposes": "Svrhe",
+        "required": {
+          "title": "Potrebno",
+          "description": "Ova usluga je potrebna za funkcioniranje web stranice."
+        },
+        "disableAll": {
+          "title": "Omogući/onemogući sve",
+          "description": "Koristite ovaj prekidač za istovremeno omogućavanje ili onemogućavanje svih usluga."
+        }
+      },
+      "purposeItem": {
+        "service": "usluga",
+        "services": "usluge"
+      },
+      "purposes": {
+        "necessary": "Potrebno",
+        "analytics": "Analitika",
+        "marketing": "Marketing",
+        "external": "Vanjski mediji"
+      }
+    },
+    "mk": {
+      "consentModal": {
+        "title": "Поставки за приватност",
+        "description": "Тука можете да изберете кои услуги се дозволени. Потребните колачиња секогаш се активни."
+      },
+      "consentNotice": {
+        "description": "Ние користиме колачиња и слични технологии. Можете да изберете кои услуги се овозможени.",
+        "learnMore": "Поставки"
+      },
+      "acceptAll": "Прифати сè",
+      "decline": "Одбиј",
+      "save": "Зачувај",
+      "poweredBy": "Поддржано од Klaro!",
+      "service": {
+        "purpose": "Цел",
+        "purposes": "Цели",
+        "required": {
+          "title": "Потребно",
+          "description": "Оваа услуга е потребна за функционирање на веб-страницата."
+        },
+        "disableAll": {
+          "title": "Овозможи/оневозможи сè",
+          "description": "Користете го овој прекинувач за да ги овозможите или онеможите сите услуги одеднаш."
+        }
+      },
+      "purposeItem": {
+        "service": "услуга",
+        "services": "услуги"
+      },
+      "purposes": {
+        "necessary": "Потребно",
+        "analytics": "Аналитика",
+        "marketing": "Маркетинг",
+        "external": "Надворешни медиуми"
+      }
+    },
+    "ro": {
+      "consentModal": {
+        "title": "Setări de confidențialitate",
+        "description": "Aici puteți alege ce servicii sunt permise. Cookie-urile necesare sunt întotdeauna active."
+      },
+      "consentNotice": {
+        "description": "Folosim cookie-uri și tehnologii similare. Puteți alege ce servicii sunt activate.",
+        "learnMore": "Setări"
+      },
+      "acceptAll": "Acceptă tot",
+      "decline": "Refuză",
+      "save": "Salvează",
+      "poweredBy": "Furnizat de Klaro!",
+      "service": {
+        "purpose": "Scop",
+        "purposes": "Scopuri",
+        "required": {
+          "title": "Necesar",
+          "description": "Acest serviciu este necesar pentru funcționarea site-ului."
+        },
+        "disableAll": {
+          "title": "Activează/dezactivează tot",
+          "description": "Folosiți acest comutator pentru a activa sau dezactiva toate serviciile odată."
+        }
+      },
+      "purposeItem": {
+        "service": "serviciu",
+        "services": "servicii"
+      },
+      "purposes": {
+        "necessary": "Necesar",
+        "analytics": "Analiză",
+        "marketing": "Marketing",
+        "external": "Media externă"
+      }
+    },
+    "sr": {
+      "consentModal": {
+        "title": "Podešavanja privatnosti",
+        "description": "Ovde možete izabrati koje usluge su dozvoljene. Neophodni kolačići su uvek aktivni."
+      },
+      "consentNotice": {
+        "description": "Koristimo kolačiće i slične tehnologije. Možete izabrati koje usluge su omogućene.",
+        "learnMore": "Podešavanja"
+      },
+      "acceptAll": "Prihvati sve",
+      "decline": "Odbij",
+      "save": "Sačuvaj",
+      "poweredBy": "Pokreće Klaro!",
+      "service": {
+        "purpose": "Svrha",
+        "purposes": "Svrhe",
+        "required": {
+          "title": "Neophodno",
+          "description": "Ova usluga je neophodna za funkcionisanje sajta."
+        },
+        "disableAll": {
+          "title": "Omogući/onemogući sve",
+          "description": "Koristite ovaj prekidač da omogućite ili onemogućite sve usluge odjednom."
+        }
+      },
+      "purposeItem": {
+        "service": "usluga",
+        "services": "usluge"
+      },
+      "purposes": {
+        "necessary": "Neophodno",
+        "analytics": "Analitika",
+        "marketing": "Marketing",
+        "external": "Spoljni mediji"
+      }
+    },
+    "sl": {
+      "consentModal": {
+        "title": "Nastavitve zasebnosti",
+        "description": "Tukaj lahko izberete, katere storitve so dovoljene. Potrebni piškotki so vedno aktivni."
+      },
+      "consentNotice": {
+        "description": "Uporabljamo piškotke in podobne tehnologije. Izberete lahko, katere storitve so omogočene.",
+        "learnMore": "Nastavitve"
+      },
+      "acceptAll": "Sprejmi vse",
+      "decline": "Zavrni",
+      "save": "Shrani",
+      "poweredBy": "Omogočeno s Klaro!",
+      "service": {
+        "purpose": "Namen",
+        "purposes": "Nameni",
+        "required": {
+          "title": "Zahtevano",
+          "description": "Ta storitev je potrebna za delovanje spletne strani."
+        },
+        "disableAll": {
+          "title": "Omogoči/onemogoči vse",
+          "description": "Uporabite ta gumb za omogočanje ali onemogočanje vseh storitev naenkrat."
+        }
+      },
+      "purposeItem": {
+        "service": "storitev",
+        "services": "storitev"
+      },
+      "purposes": {
+        "necessary": "Potrebno",
+        "analytics": "Analitika",
+        "marketing": "Marketing",
+        "external": "Zunanji mediji"
+      }
+    }
+  });
+  // END codex generated legal translations
+
+  const expandedInterfaceLocales = [
+    "en", "de", "es", "fr", "it", "pt", "nl", "sv", "no", "da", "fi", "bg",
+    "bs", "hr", "mk", "ro", "sr", "sl", "pl", "cs", "sq", "tr", "ru", "uk",
+    "kk", "az", "uz", "tg", "fa", "ar", "vi", "zh", "ja", "ko"
+  ];
+
+  global.DUVELA_LEGAL.supportedLocales = expandedInterfaceLocales;
+  for (const kind of ["privacy", "impressum", "terms"]) {
+    const documents = global.DUVELA_LEGAL.content[kind];
+    for (const code of expandedInterfaceLocales) {
+      if (!documents[code]) documents[code] = documents.en;
+    }
+  }
+  for (const code of expandedInterfaceLocales) {
+    if (!global.DUVELA_LEGAL.consentTranslations[code]) {
+      global.DUVELA_LEGAL.consentTranslations[code] = global.DUVELA_LEGAL.consentTranslations.en;
+    }
+  }
 })(window);

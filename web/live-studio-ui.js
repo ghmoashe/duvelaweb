@@ -117,7 +117,7 @@
       const draw=()=>{analyser.getByteFrequencyData(data); const level=data.reduce((a,b)=>a+b,0)/data.length/255; modal.querySelector('.mic-meter i').style.width=Math.min(100,level*260)+'%'; meterFrame=requestAnimationFrame(draw);}; draw();
     } catch(error){ modal.querySelector('.preflight-status').innerHTML='<span class="bad">'+error.message+'</span>'; }
   }
-  modal.querySelector('#enterStudio').addEventListener('click',async()=>{ const cam=modal.querySelector('#preCamera').value,mic=modal.querySelector('#preMic').value; cancelAnimationFrame(meterFrame); meterStream?.getTracks().forEach(track=>track.stop()); try{await api.setDevices(cam,mic);}catch(_){} modal.classList.remove('open'); });
+  modal.querySelector('#enterStudio').addEventListener('click',async()=>{ const button=modal.querySelector('#enterStudio'),cam=modal.querySelector('#preCamera').value,mic=modal.querySelector('#preMic').value; if(button)button.disabled=true; cancelAnimationFrame(meterFrame); meterStream?.getTracks().forEach(track=>track.stop()); modal.classList.remove('open'); try{await api.setDevices(cam,mic);}catch(error){console.warn('pre-live device setup failed',error);} });
   loadDevices();
 
   const setupGroup=side.querySelector('[data-studio-group="setup"]');

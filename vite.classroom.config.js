@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     outDir: resolve(process.cwd(), '.classroom-build'),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: { input: resolve(process.cwd(), 'classroom-src/classroom.html') }
   }
 });

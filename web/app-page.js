@@ -281,7 +281,6 @@
   function renderLive() { return catalogFeature.renderLive(); }
   function renderCourses() { return catalogFeature.renderCourses(); }
   function renderEvents() { return catalogFeature.renderEvents(); }
-  async function publishEvent(event) { return businessFeature.publishEvent(event); }
   async function loadEnrollments() { return catalogFeature.loadEnrollments(); }
   async function enrollCourse(courseId) { return catalogFeature.enrollCourse(courseId); }
   async function unenrollCourse(courseId) { return catalogFeature.unenrollCourse(courseId); }
@@ -330,7 +329,6 @@
       safeQuery,
       mapEventRow,
       getEventColumns,
-      publishEvent,
       practicesHtml,
       challengesHtml,
       studyToolsHtml,
@@ -550,7 +548,6 @@
     openTeacherSlots,
     openVideo,
     openUpload,
-    publishEvent,
     removeMember,
     renderAll,
     renderCourses,

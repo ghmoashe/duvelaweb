@@ -118,7 +118,9 @@ function walk(dir, result = []) {
 }
 
 function checkLargeLocalMedia() {
-  const largeMedia = walk('.')
+  if (!exists('dist')) return;
+
+  const largeMedia = walk('dist')
     .filter((file) => /\.(mp4|mov|avi|mkv)$/i.test(file))
     .map((file) => ({ file: file.replace(/^\.\//, ''), size: stat(file).size }))
     .filter((item) => item.size > maxLocalMediaBytes);

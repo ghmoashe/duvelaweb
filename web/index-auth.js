@@ -41,6 +41,7 @@
     const loginForm = document.getElementById('loginForm');
     const loginGetApp = document.getElementById('loginGetApp');
     const googleSignInBtn = document.getElementById('googleSignIn');
+    const appleSignInBtn = document.getElementById('appleSignIn');
     const forgotPassBtn = document.getElementById('forgotPass');
 
     let signedInUser = null;
@@ -309,14 +310,14 @@
 
       loginForm.addEventListener('submit', handleLoginSubmit);
 
-      googleSignInBtn.addEventListener('click', async () => {
+      async function startOAuth(provider, fallbackUnavailableCopy) {
         authUi.clearNote();
         sessionStorage.setItem(AUTH_FLOW_KEY, '1');
         sessionStorage.setItem(AUTH_MODE_KEY, authUi.getAuthMode());
         sessionStorage.removeItem(SIGNUP_ROLE_KEY);
 
         const { error } = await supa.auth.signInWithOAuth({
-          provider: 'google',
+          provider,
           options: { redirectTo: authCallbackUrl() }
         });
 
@@ -325,9 +326,19 @@
           sessionStorage.removeItem(AUTH_MODE_KEY);
           sessionStorage.removeItem(SIGNUP_ROLE_KEY);
           authUi.showNote(
-            error.message || authUi.getCopy('googleSignInUnavailable', 'Google sign-in is not available right now.')
+            error.message || authUi.getCopy(fallbackUnavailableCopy, provider === 'apple'
+              ? 'Apple sign-in is not available right now.'
+              : 'Google sign-in is not available right now.')
           );
         }
+      }
+
+      googleSignInBtn.addEventListener('click', async () => {
+        await startOAuth('google', 'googleSignInUnavailable');
+      });
+
+      appleSignInBtn?.addEventListener('click', async () => {
+        await startOAuth('apple', 'appleSignInUnavailable');
       });
 
       forgotPassBtn.addEventListener('click', async (event) => {
@@ -370,6 +381,25 @@
       });
     }
 
+    function handleOAuthRedirectError() {
+      const hash = window.location.hash && window.location.hash.startsWith('#')
+        ? window.location.hash.slice(1)
+        : '';
+      if (!hash) return;
+
+      const params = new URLSearchParams(hash);
+      const error = params.get('error');
+      const description = params.get('error_description');
+      if (!error && !description) return;
+
+      authUi.setAuthMode('signin');
+      authUi.openLogin();
+      authUi.showNote(description || error);
+
+      const cleanedUrl = window.location.pathname + window.location.search;
+      window.history.replaceState({}, document.title, cleanedUrl);
+    }
+
     function syncCopy() {
       authUi.syncCopy();
       if (!signedInUser) setNavGuest();
@@ -381,6 +411,7 @@
       bindSupabase();
       syncCopy();
       authUi.setAuthMode(authUi.getAuthMode());
+      handleOAuthRedirectError();
       if (new URLSearchParams(window.location.search).get('login') === '1') authUi.openLogin();
     }
 

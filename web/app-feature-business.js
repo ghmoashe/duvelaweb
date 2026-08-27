@@ -2,72 +2,6 @@
   function createBusinessFeature(ctx) {
     const { $, $$, tr, esc, alert, supa, state, avatarInner, formatDate } = ctx;
 
-    async function publishEvent(event) {
-      event.preventDefault();
-      const note = $('#evNote');
-      const title = $('#evTitle').value.trim();
-      if (!title) return;
-      const priceRaw = $('#evPrice').value.trim();
-      const isPaid = priceRaw !== '' && Number(priceRaw) > 0;
-      const baseDate = $('#evDate').value || null;
-      const repeat = Math.max(1, Math.min(12, Number($('#evRepeat') && $('#evRepeat').value) || 1));
-      const btn = $('#eventForm button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = tr('Publishing...', 'Публикация...');
-      try {
-        let imageUrl = null;
-        const fileInput = $('#evImage');
-        if (fileInput && fileInput.files && fileInput.files[0]) {
-          imageUrl = await ctx.uploadToBucket('events', fileInput.files[0]);
-        }
-        const base = {
-          organizer_id: ctx.user.id,
-          title,
-          description: $('#evDesc').value.trim() || null,
-          event_time: $('#evTime').value || null,
-          city: $('#evCity').value.trim() || null,
-          format: $('#evFormat').value,
-          language: $('#evLang').value.trim() || null,
-          is_paid: isPaid,
-          price_amount: isPaid ? Number(priceRaw) : null,
-          image_url: imageUrl
-        };
-        let rows;
-        if (repeat > 1 && baseDate) {
-          const groupId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
-          rows = [];
-          for (let i = 0; i < repeat; i++) {
-            const date = new Date(baseDate + 'T00:00:00');
-            date.setDate(date.getDate() + i * 7);
-            rows.push({ ...base, event_date: date.toISOString().slice(0, 10), recurrence_group_id: groupId, recurrence_rule: 'weekly', recurrence_occurrence: i + 1 });
-          }
-        } else {
-          rows = [{ ...base, event_date: baseDate }];
-        }
-        const { error } = await supa.from('events').insert(rows);
-        if (error) throw error;
-        note.style.color = 'var(--teal)';
-        note.textContent = repeat > 1
-          ? tr(repeat + ' events published ✓', repeat + ' событий опубликовано ✓')
-          : tr('Event published ✓ Learners can see it now.', 'Событие опубликовано ✓ Ученики уже видят его.');
-        note.style.display = 'block';
-        $('#eventForm').reset();
-        await ctx.safeQuery(
-          'events',
-          () => supa.from('events').select(ctx.getEventColumns()).order('event_date', { ascending: true }).limit(12),
-          ctx.mapEventRow
-        );
-        ctx.renderEvents();
-      } catch (error) {
-        note.style.color = 'var(--red)';
-        note.textContent = error.message || tr('Could not publish the event.', 'Не удалось опубликовать событие.');
-        note.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = tr('Publish event', 'Опубликовать событие');
-      }
-    }
-
     async function loadBusinessWorkspace() {
       if (!ctx.isBusiness()) return;
       try {
@@ -478,7 +412,6 @@
     return {
       importCoursesExcel,
       loadBusinessWorkspace,
-      publishEvent,
       removeMember,
       renderBusinessWorkspace
     };

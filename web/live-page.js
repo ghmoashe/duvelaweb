@@ -880,7 +880,7 @@
     });
     if (fn.error) throw new Error(fn.error.message || tr('Could not get host token.', 'Не удалось получить токен ведущего.'));
     if (!fn.data?.token) throw new Error(tr('Could not get host token.', 'Не удалось получить токен ведущего.'));
-    return fn.data.token;
+    return { token: fn.data.token, uid: Number(fn.data.uid || uid) || uid };
   }
   async function getSubscriberToken(channelName, uid) {
     var fn = await supa.functions.invoke('agora-token', {
@@ -888,7 +888,7 @@
     });
     if (fn.error) throw new Error(fn.error.message || tr('Could not get stream token.', 'Не удалось получить токен трансляции.'));
     if (!fn.data?.token) throw new Error(tr('Could not get stream token.', 'Не удалось получить токен трансляции.'));
-    return fn.data.token;
+    return { token: fn.data.token, uid: Number(fn.data.uid || uid) || uid };
   }
   async function loadLiveSession(id) {
     var result = await supa.from('live_sessions').select(LIVE_FIELDS).eq('id', id).maybeSingle();
@@ -1102,10 +1102,11 @@
     if (!client) return;
     client.on('user-published', async function (remoteUser, mediaType) {
       await client.subscribe(remoteUser, mediaType);
-      var isTeacher = teacherAgoraUid && String(remoteUser.uid) === String(teacherAgoraUid);
+      var isTeacher = teacherAgoraUid ? String(remoteUser.uid) === String(teacherAgoraUid) : true;
+      if (isTeacher && !teacherAgoraUid) teacherAgoraUid = remoteUser.uid;
       if (mediaType === 'video') {
         showOverlay(false);
-        if (isTeacher || !teacherAgoraUid) {
+        if (isTeacher) {
           remoteUser.videoTrack.play('player', { fit: 'cover' });
           setStatus(tr('Watching LIVE', 'Смотрите эфир'), 'live');
         } else {
@@ -1221,12 +1222,13 @@
       try { guestCam=await window.AgoraRTC.createCameraVideoTrack({encoderConfig:'480p_1'}); } catch(error) {}
       viewerGuestTracks=[guestMic,guestCam].filter(Boolean);
       if(!viewerGuestTracks.length)throw new Error(tr('Allow microphone or camera access to join the lesson.','Разрешите доступ к микрофону или камере, чтобы войти в урок.'));
-      var token = await getPublisherToken(currentSession.channel_name, uid);
+      var tokenResult = await getPublisherToken(currentSession.channel_name, uid);
+      uid = tokenResult.uid;
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       attachActiveSpeaker(client);
       attachViewerClientHandlers();
       await client.setClientRole('host');
-      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      await client.join(AGORA_APP_ID, currentSession.channel_name, tokenResult.token, uid);
       await client.publish(viewerGuestTracks);
       remoteGuestUsers[String(uid)]={uid:uid,displayName:viewerDisplayName(),audioTrack:guestMic,videoTrack:guestCam,isLocal:true};
       renderGuestGrid();
@@ -1538,7 +1540,9 @@
         currentSession = await updateHostSession(currentUser, currentSession, 'live', new Date().toISOString());
       }
 
-      var token = await getPublisherToken(currentSession.channel_name, uid);
+      var tokenResult = await getPublisherToken(currentSession.channel_name, uid);
+      uid = tokenResult.uid;
+      teacherAgoraUid = uid;
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       attachActiveSpeaker(client);
       client.on('connection-state-change', function (current, previous, reason) {
@@ -1547,7 +1551,7 @@
       });
       attachHostGuestHandlers(uid);
       await client.setClientRole('host');
-      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      await client.join(AGORA_APP_ID, currentSession.channel_name, tokenResult.token, uid);
       await createHostTracks();
       micEnabled = true;
       camEnabled = true;
@@ -1907,6 +1911,8 @@
       if (currentSession.status !== 'live') throw new Error(tr('This LIVE has ended.', 'Этот эфир завершён.'));
       if (currentSession.is_private) throw new Error(tr('This is a private lesson. Open the app to request access.', 'Это приватный урок. Откройте приложение, чтобы запросить доступ.'));
       if (currentSession.teacher_name && !teacher) el('title').textContent = teacherWatchTitle(currentSession.teacher_name);
+      var tokenResult = await getSubscriberToken(currentSession.channel_name, uid);
+      uid = tokenResult.uid;
       await joinViewerParticipant(uid);
       await loadViewerBalance();
       await loadViewerMessages();
@@ -1917,7 +1923,6 @@
       void renderFollowUi();
       setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
-      var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       attachActiveSpeaker(client);
       await client.setClientRole('audience');
@@ -1937,7 +1942,7 @@
         showOverlay(true);
         setStage('', tr('The teacher paused the stream.', 'Преподаватель приостановил трансляцию.'));
       });
-      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      await client.join(AGORA_APP_ID, currentSession.channel_name, tokenResult.token, uid);
       setStage('<div class="spinner"></div>', tr('Waiting for the teacher camera...', 'Ожидание камеры преподавателя...'));
       el('mainAction').disabled = false;
       el('mainAction').textContent = tr('Try again', 'Повторить');
@@ -1989,7 +1994,9 @@
       if (currentSession.status !== 'live') throw new Error(tr('This LIVE has ended.', 'Этот эфир завершён.'));
       if (currentSession.is_private) throw new Error(tr('This is a private lesson. Open the app to request access.', 'Это приватный урок. Откройте приложение, чтобы запросить доступ.'));
       if (currentSession.teacher_name && !teacher) el('title').textContent = teacherWatchTitle(currentSession.teacher_name);
-      teacherAgoraUid = currentSession.teacher_id ? createAgoraUid(currentSession.teacher_id) : null;
+      teacherAgoraUid = null;
+      var tokenResult = await getSubscriberToken(currentSession.channel_name, uid);
+      uid = tokenResult.uid;
       await joinViewerParticipant(uid);
       await loadViewerBalance();
       await loadViewerMessages();
@@ -2003,12 +2010,11 @@
       renderViewerGuestRequestUi();
       setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
-      var token = await getSubscriberToken(currentSession.channel_name, uid);
       client = window.AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       attachActiveSpeaker(client);
       await client.setClientRole('audience');
       attachViewerClientHandlers();
-      await client.join(AGORA_APP_ID, currentSession.channel_name, token, uid);
+      await client.join(AGORA_APP_ID, currentSession.channel_name, tokenResult.token, uid);
       setStage('<div class="spinner"></div>', tr('Waiting for the teacher camera...', 'Ожидание камеры преподавателя...'));
       el('mainAction').disabled = false;
       el('mainAction').textContent = tr('Try again', 'Повторить');

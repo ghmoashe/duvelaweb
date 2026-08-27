@@ -12,9 +12,9 @@ const catalogPath = path.join(root, 'locales', 'web-locales.js');
 const legalHtmlPath = path.join(root, 'legal.html');
 const legalCatalogPath = path.join(root, 'legal', 'legal-content.js');
 const expectedLocaleOrder = [
-  'en', 'de', 'es', 'fr', 'it', 'pt', 'nl', 'sv', 'no', 'pl', 'cs', 'sq',
-  'tr', 'ru', 'uk', 'kk', 'az', 'uz', 'tg', 'fa', 'ar', 'vi', 'zh', 'ja',
-  'ko',
+  'en', 'de', 'es', 'fr', 'it', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'bg',
+  'bs', 'hr', 'mk', 'ro', 'sr', 'sl', 'pl', 'cs', 'sq', 'tr', 'ru', 'uk',
+  'kk', 'az', 'uz', 'tg', 'fa', 'ar', 'vi', 'zh', 'ja', 'ko',
 ];
 const expectedLocales = new Set(expectedLocaleOrder);
 const expectedRtlLocales = new Set(['ar', 'fa']);
@@ -101,7 +101,7 @@ function validateCatalog(catalog, source) {
     ...Object.keys(catalog.extra ?? {}),
   ]);
   if (!sameValues(dictionaryCodes, expectedLocales)) {
-    fail('Dictionary locale set does not match the 25 supported locales.');
+    fail('Dictionary locale set does not match the 34 supported locales.');
   }
 
   const english = Object.assign({}, catalog.base.en, catalog.extra.en);
@@ -198,14 +198,14 @@ function validateLegal(legalHtml, legalCatalog, source) {
   }
   if (hasDamagedEncoding(source)) fail('The legal catalog contains damaged encoding.');
   if (!sameValues(legalCatalog.supportedLocales ?? [], expectedLocales)) {
-    fail('Legal catalog locale set does not match the 25 supported locales.');
+    fail('Legal catalog locale set does not match the 34 supported locales.');
   }
 
   const kinds = ['privacy', 'impressum', 'terms'];
   for (const kind of kinds) {
     const localeContent = legalCatalog.content?.[kind];
     if (!localeContent || !sameValues(Object.keys(localeContent), expectedLocales)) {
-      fail(`${kind}: locale set does not match the 25 supported locales.`);
+      fail(`${kind}: locale set does not match the 34 supported locales.`);
       continue;
     }
     for (const code of expectedLocales) {
@@ -217,7 +217,7 @@ function validateLegal(legalHtml, legalCatalog, source) {
   }
 
   if (!sameValues(Object.keys(legalCatalog.consentTranslations ?? {}), expectedLocales)) {
-    fail('Cookie consent locale set does not match the 25 supported locales.');
+    fail('Cookie consent locale set does not match the 34 supported locales.');
   }
 
   const services = legalCatalog.services ?? [];
@@ -271,4 +271,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('i18n check passed: 25 locales, complete keys, valid encoding and RTL metadata.');
+console.log('i18n check passed: 34 locales, complete keys, valid encoding and RTL metadata.');

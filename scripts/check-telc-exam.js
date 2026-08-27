@@ -235,7 +235,7 @@ const localeSandbox = { window: {} };
 vm.runInNewContext(examLocaleSource, localeSandbox);
 const examLocales = localeSandbox.window.DUVELA_EXAM_I18N;
 const requiredLocaleKeys = ['language','before','ready','intro','name','number','browser','connection','sound','microphone','rules','initial','start','back','flow','written','oral','processing','processingLead','wait','stages','nav','timeLabel','heroPrefix','heroAccent','heroDesc','factTests','factTime','factPass','assurance','configure','choose','chooseDesc','simulation','simDesc','training','trainingDesc','modelTest','germanNote','scope','allTraining','prepare','startTraining','soundCheck','disclaimer','savedAttempt','resumeCopy','resume','discard','examWord'];
-if (examLocales?.locales?.length !== 25) errors.push('Exam preparation must support all 25 DUVELA locales.');
+if (examLocales?.locales?.length !== 34) errors.push('Exam preparation must support all 34 DUVELA locales.');
 for (const locale of examLocales?.locales || []) {
   const translation = examLocales.text?.[locale.code];
   for (const key of requiredLocaleKeys) if (!translation?.[key] || (key === 'stages' && translation[key].length !== 5)) errors.push(`${locale.code}: missing exam locale key ${key}.`);
@@ -245,4 +245,4 @@ if (errors.length) {
   errors.forEach((error) => console.error(`[exam] ${error}`));
   process.exit(1);
 }
-console.log('[exam] A1 + A2 + B1 + B2: twenty Modelltests, B1/B2 upper-level flow, audio manifests, 25 UI locales, strict scoring and PDF reports: OK');
+console.log('[exam] A1 + A2 + B1 + B2: twenty Modelltests, B1/B2 upper-level flow, audio manifests, 34 UI locales, strict scoring and PDF reports: OK');
