@@ -251,6 +251,13 @@
         /* optional */
       }
       const owner = !!(meta && meta.created_by === ctx.user.id);
+      if (!owner) {
+        try {
+          const { data: ownEnrollment } = await supa.from('course_enrollments')
+            .select('status').eq('course_id', courseId).eq('user_id', ctx.user.id).maybeSingle();
+          ownEnrollmentStatus = ownEnrollment && ownEnrollment.status;
+        } catch (error) { /* optional enrollment data */ }
+      }
       if (meta && meta.zoom_enabled) {
         try {
           const { data: classRow } = await supa.from('classes').select('id,name').eq('course_id', courseId).maybeSingle();
@@ -260,11 +267,6 @@
               .select('id,title,starts_at,ends_at,status,duration_min,join_opens_at')
               .eq('class_id', zoomClass.id).order('starts_at', { ascending: true });
             zoomSessions = sessionRows || [];
-          }
-          if (!owner) {
-            const { data: ownEnrollment } = await supa.from('course_enrollments')
-              .select('status').eq('course_id', courseId).eq('user_id', ctx.user.id).maybeSingle();
-            ownEnrollmentStatus = ownEnrollment && ownEnrollment.status;
           }
         } catch (error) { /* optional Zoom course data */ }
       }
@@ -300,6 +302,9 @@
 
       function taskHtml(task) {
         const head = '<b style="font-size:13px">' + esc(task.title || tr('Task', 'Задание')) + '</b>' + (task.description ? '<p>' + esc(task.description) + '</p>' : '');
+        if (!owner && !confirmedLearner) {
+          return '<div class="lesson-item" style="grid-template-columns:1fr"><div>' + head + '<p style="color:var(--soft);font-weight:700">' + esc(tr('Available after enrollment confirmation.', 'Доступно после подтверждения записи.')) + '</p></div></div>';
+        }
         if (owner) {
           const subs = subsByTask.get(task.id) || [];
           return '<div class="lesson-item" style="grid-template-columns:1fr"><div>' + head +
@@ -335,8 +340,14 @@
           (course.language ? '<span class="pv-chip">' + esc(course.language) + '</span>' : '') +
         '</div>' +
         '<p class="cd-desc">' + esc(course.description || tr('No description yet.', 'Описания пока нет.')) + '</p>';
-      if (!owner && totalTasks) {
+      const confirmedLearner = owner || ownEnrollmentStatus === 'confirmed';
+      if (!owner && totalTasks && confirmedLearner) {
         html += '<div class="prog-row" style="margin-top:14px"><div class="prog-label"><span>' + esc(tr('Course progress', 'Прогресс курса')) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
+      }
+      if (!owner && !confirmedLearner) {
+        html += '<div class="cd-zoom-warning" style="margin:14px 0">' + esc(ownEnrollmentStatus === 'pending'
+          ? tr('Your enrollment is waiting for teacher confirmation.', 'Ваша запись ожидает подтверждения преподавателя.')
+          : tr('Enroll first to unlock course tasks.', 'Сначала запишитесь на курс, чтобы открыть задания.')) + '</div>';
       }
       if (zoomClass) {
         const now = Date.now();
@@ -374,7 +385,7 @@
         const cta = enrolled
           ? '<button class="btn" data-unenroll="' + esc(courseId) + '">' + esc(tr('Cancel enrollment', 'Отменить запись')) + '</button>'
           : '<button class="btn primary" data-enroll="' + esc(courseId) + '">' + esc(tr('Enroll', 'Записаться')) + '</button>';
-        const certificate = (totalTasks && doneTasks === totalTasks)
+        const certificate = (confirmedLearner && totalTasks && doneTasks === totalTasks)
           ? ' <button class="btn primary" data-cert="' + esc(courseId) + '">' + esc(tr('Get certificate', 'Получить сертификат')) + '</button>'
           : '';
         html += '<div style="margin-top:16px">' + cta + certificate + '</div>';
@@ -409,6 +420,11 @@
     }
 
     async function submitTask(taskId, lessonId) {
+      const { data: enrollment } = await supa.from('course_enrollments').select('status').eq('course_id', currentCourseId).eq('user_id', ctx.user.id).maybeSingle();
+      if (!enrollment || enrollment.status !== 'confirmed') {
+        alert(tr('Your enrollment must be confirmed before submitting work.', 'Сначала дождитесь подтверждения записи преподавателем.'));
+        return;
+      }
       const input = $('#ta-' + taskId);
       const content = ((input && input.value) || '').trim();
       if (!content) {
