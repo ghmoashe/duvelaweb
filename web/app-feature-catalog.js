@@ -212,8 +212,31 @@
     async function toggleRsvp(eventId) {
       const overlayOpen = $('#eventOverlay').classList.contains('open');
       try {
+        const { data: eventRow, error: eventError } = await supa
+          .from('events')
+          .select('id,status,is_paid,max_participants')
+          .eq('id', eventId)
+          .maybeSingle();
+        if (eventError) throw eventError;
+        if (!eventRow || eventRow.status !== 'published') {
+          alert(tr('This event is not available for registration.', 'Это событие недоступно для регистрации.'));
+          return;
+        }
         const { data: mine } = await supa.from('event_rsvps').select('status').eq('event_id', eventId).eq('user_id', ctx.user.id).maybeSingle();
         const going = mine && mine.status === 'going';
+        if (!going && eventRow.is_paid) {
+          alert(tr('Paid event checkout is not connected yet. Ask the organizer to confirm your place manually.', 'Оплата события пока не подключена. Попросите организатора подтвердить место вручную.'));
+          return;
+        }
+        const capacity = Number(eventRow.max_participants) || 0;
+        if (!going && capacity) {
+          const { count, error: countError } = await supa.from('event_rsvps').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'going');
+          if (countError) throw countError;
+          if ((count || 0) >= capacity) {
+            alert(tr('This event is full.', 'На это событие мест больше нет.'));
+            return;
+          }
+        }
         await supa.from('event_rsvps').upsert({ event_id: eventId, user_id: ctx.user.id, status: going ? 'cancelled' : 'going', updated_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' });
         if (overlayOpen) openEventDetail(eventId);
       } catch (error) {
@@ -636,6 +659,21 @@
 
     async function enrollCourse(courseId) {
       try {
+        const { data: courseRow, error: courseError } = await supa.from('courses').select('status').eq('id', courseId).maybeSingle();
+        if (courseError) throw courseError;
+        if (!courseRow || courseRow.status !== 'active') {
+          alert(tr('This course is not available for enrollment.', 'Этот курс недоступен для записи.'));
+          return;
+        }
+        const { data: existing } = await supa.from('course_enrollments').select('status').eq('course_id', courseId).eq('user_id', ctx.user.id).maybeSingle();
+        if (existing && existing.status === 'confirmed') {
+          state.enrolledIds.add(courseId);
+          $('#courseOverlay').classList.remove('open');
+          renderCourses();
+          renderHome();
+          ctx.renderWorkspace();
+          return;
+        }
         const { error } = await supa.from('course_enrollments').upsert({
           course_id: courseId,
           user_id: ctx.user.id,
