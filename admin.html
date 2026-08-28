@@ -225,7 +225,7 @@
           </div>
         </div>
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Flags</th><th>Audience</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Role &amp; flags</th><th>Audience</th><th></th></tr></thead>
           <tbody id="usersBody"><tr><td colspan="6" class="empty">Type a query and hit Search.</td></tr></tbody>
         </table>
       </div>
@@ -992,12 +992,23 @@
           '<input type="checkbox" data-flag="' + f + '" data-user="' + u.id + '"' + (v ? ' checked' : '') + '> ' + f.replace('is_','') +
         '</label>';
       }
+      // Role drives is_teacher / is_organizer now (they're derived by a DB
+      // trigger and can't be toggled directly), so those two show as a role
+      // dropdown. is_verified / is_admin stay as independent checkboxes.
+      function roleSelect(uid, current) {
+        var roles = ['learner', 'teacher', 'organizer', 'organization'];
+        return '<select data-role-user="' + uid + '" style="font-size:12px; padding:3px 6px; border-radius:6px;">' +
+          roles.map(function (rr) {
+            return '<option value="' + rr + '"' + (rr === (current || 'learner') ? ' selected' : '') + '>' + rr + '</option>';
+          }).join('') +
+        '</select>';
+      }
       return '<tr>' +
         '<td><strong>' + esc(u.full_name || '(no name)') + '</strong></td>' +
         '<td>' + esc(u.email || '—') + '</td>' +
         '<td>' + esc([u.city, u.country].filter(Boolean).join(', ') || '—') + '</td>' +
-        '<td>' + chk('is_teacher', u.is_teacher) + chk('is_verified', u.is_verified) +
-                 chk('is_admin', u.is_admin)   + chk('is_organizer', u.is_organizer) + '</td>' +
+        '<td>' + roleSelect(u.id, u.registered_web_role) +
+                 '<div style="margin-top:6px;">' + chk('is_verified', u.is_verified) + chk('is_admin', u.is_admin) + '</div></td>' +
         '<td>' + esc(u.teacher_audience || '—') + '</td>' +
         '<td class="tight">' + fmtDate(u.created_at) + '</td>' +
       '</tr>';
@@ -1008,6 +1019,16 @@
           target_user: chk.dataset.user, flag: chk.dataset.flag, value: chk.checked,
         });
         if (res.error) { alert(res.error.message); chk.checked = !chk.checked; }
+      });
+    });
+    body.querySelectorAll('select[data-role-user]').forEach(function (sel) {
+      var prev = sel.value;
+      sel.addEventListener('change', async function () {
+        var res = await client.rpc('admin_set_account_role', {
+          target_user: sel.dataset.roleUser, new_role: sel.value,
+        });
+        if (res.error) { alert(res.error.message); sel.value = prev; }
+        else { prev = sel.value; }
       });
     });
   }
