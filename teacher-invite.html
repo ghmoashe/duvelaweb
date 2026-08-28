@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.classList.add('js');</script>
+<title>Duvela Teacher Invite</title>
+<meta name="description" content="Invite teachers to join Duvela, publish courses, host LIVE lessons and reach learners from one web workspace.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#6D3FE0">
+<link rel="canonical" href="https://www.vela.cafe/teacher-invite.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Duvela">
+<meta property="og:url" content="https://www.vela.cafe/teacher-invite.html">
+<meta property="og:title" content="Duvela Teacher Invite">
+<meta property="og:description" content="Create a teacher profile, publish courses, host LIVE lessons and manage learners from Duvela.">
+<meta property="og:image" content="https://www.vela.cafe/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<link rel="preload" href="./logo2.png" as="image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F5FA;
+    --card: #FFFFFF;
+    --ink: #17151F;
+    --soft: #625B73;
+    --muted: #918AA3;
+    --line: #E7E2EF;
+    --purple: #6D3FE0;
+    --violet: #A855F7;
+    --teal: #0F9F7A;
+    --gold: #F59E0B;
+    --blue: #2563EB;
+    --dark: #171321;
+    --shadow: 0 18px 48px rgba(32, 22, 64, .10);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+  .nav {
+    position: sticky;
+    top: 14px;
+    z-index: 10;
+    padding-top: 14px;
+  }
+  .nav-inner {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px 10px 20px;
+    background: rgba(255, 255, 255, .88);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(32, 22, 64, .07);
+    backdrop-filter: blur(14px);
+  }
+  .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; }
+  .brand img { width: auto; height: 40px; display: block; mix-blend-mode: multiply; }
+  .nav-actions { display: flex; align-items: center; gap: 8px; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--purple);
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  .pill.primary {
+    border: 0;
+    color: #fff;
+    background: linear-gradient(90deg, #5A2FCB, #A855F7 60%, #0F9F7A);
+    box-shadow: 0 10px 24px rgba(109, 63, 224, .28);
+  }
+  .hero {
+    padding: 72px 0 54px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+    gap: 42px;
+    align-items: center;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 13px;
+    border: 1px solid rgba(15, 159, 122, .22);
+    border-radius: 999px;
+    background: rgba(15, 159, 122, .08);
+    color: #08745A;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .eyebrow i { width: 8px; height: 8px; border-radius: 99px; background: var(--teal); }
+  h1 {
+    max-width: 760px;
+    margin: 18px 0 0;
+    font-size: clamp(40px, 6vw, 74px);
+    line-height: .96;
+    letter-spacing: 0;
+  }
+  .grad { background: linear-gradient(90deg, var(--purple), var(--violet), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead {
+    max-width: 650px;
+    margin: 22px 0 0;
+    color: var(--soft);
+    font-size: 18px;
+    line-height: 1.65;
+    font-weight: 520;
+  }
+  .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .proof {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 34px;
+  }
+  .proof div {
+    min-height: 86px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .72);
+    padding: 16px;
+  }
+  .proof b { display: block; font-size: 22px; }
+  .proof span { display: block; margin-top: 5px; color: var(--soft); font-size: 12.5px; font-weight: 700; line-height: 1.35; }
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .panel-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px;
+    background: var(--dark);
+    color: #fff;
+  }
+  .panel-top span { color: rgba(255,255,255,.66); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .status { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; color: #BFF3E5; }
+  .status i { width: 8px; height: 8px; border-radius: 99px; background: var(--teal); }
+  .teacher-card {
+    margin: 18px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #fff, #FAF8FF);
+  }
+  .teacher-head { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--teal));
+    color: #fff;
+    font-weight: 800;
+    font-size: 20px;
+  }
+  .teacher-head b { display: block; font-size: 17px; }
+  .teacher-head small { color: var(--muted); font-weight: 700; }
+  .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 18px; }
+  .mini {
+    padding: 13px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid var(--line);
+  }
+  .mini b { display: block; font-size: 20px; }
+  .mini span { color: var(--soft); font-size: 12px; font-weight: 700; }
+  .feed { margin: 18px; display: grid; gap: 10px; }
+  .feed-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+  }
+  .feed-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: #F1ECFF;
+    color: var(--purple);
+    font-weight: 900;
+  }
+  .feed-row b { display: block; font-size: 13px; }
+  .feed-row small { color: var(--muted); font-weight: 700; }
+  .tag {
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(15, 159, 122, .10);
+    color: #08745A;
+    font-size: 11px;
+    font-weight: 850;
+    white-space: nowrap;
+  }
+  .section { padding: 64px 0; }
+  .section-head { max-width: 680px; }
+  .section-kicker { color: var(--purple); font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+  h2 { margin: 10px 0 0; font-size: clamp(28px, 4vw, 44px); line-height: 1.08; letter-spacing: 0; }
+  .section-head p { margin: 14px 0 0; color: var(--soft); font-size: 16px; line-height: 1.6; font-weight: 520; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    padding: 22px;
+    box-shadow: 0 8px 20px rgba(32, 22, 64, .05);
+  }
+  .card i {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-style: normal;
+    font-weight: 900;
+    color: #fff;
+    background: var(--purple);
+  }
+  .card:nth-child(2) i { background: var(--teal); }
+  .card:nth-child(3) i { background: var(--gold); }
+  .card h3 { margin: 18px 0 0; font-size: 18px; }
+  .card p { margin: 9px 0 0; color: var(--soft); line-height: 1.6; font-weight: 520; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 30px;
+  }
+  .step {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    padding: 18px;
+  }
+  .step b { display: block; color: var(--purple); font-size: 24px; }
+  .step span { display: block; margin-top: 10px; color: var(--soft); font-weight: 650; line-height: 1.45; }
+  .invite-box {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 28px;
+    border-radius: 8px;
+    background: #16121F;
+    color: #fff;
+  }
+  .invite-box p { margin: 9px 0 0; color: rgba(255,255,255,.72); line-height: 1.6; }
+  .invite-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+  .invite-actions .pill { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); color: #fff; }
+  .invite-actions .primary { background: #fff; color: var(--purple); box-shadow: none; }
+  .note { margin-top: 12px; color: var(--muted); font-size: 12.5px; font-weight: 650; }
+  footer { padding: 34px 0 46px; color: var(--muted); font-size: 13px; font-weight: 650; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 24px; }
+  @media (max-width: 900px) {
+    .hero-grid, .invite-box { grid-template-columns: 1fr; }
+    .cards, .steps { grid-template-columns: repeat(2, 1fr); }
+    .proof { grid-template-columns: 1fr; }
+    .invite-actions { justify-content: flex-start; }
+  }
+  @media (max-width: 620px) {
+    .wrap { width: min(100% - 28px, 1120px); }
+    .nav-inner { border-radius: 18px; align-items: flex-start; }
+    .nav-actions { width: 100%; justify-content: stretch; }
+    .nav-actions .pill { flex: 1; padding: 0 12px; }
+    .brand img { height: 34px; }
+    .hero { padding-top: 46px; }
+    .hero-ctas, .nav-inner { flex-wrap: wrap; }
+    .hero-ctas .pill { width: 100%; }
+    .panel { margin-top: 8px; }
+    .cards, .steps, .mini-grid { grid-template-columns: 1fr; }
+    .feed-row { grid-template-columns: 36px 1fr; }
+    .feed-row .tag { grid-column: 2; width: fit-content; }
+  }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <div class="nav-inner">
+        <a class="brand" href="./index.html" aria-label="Duvela home">
+          <img src="./logo2.png" alt="Duvela">
+        </a>
+        <div class="nav-actions">
+          <a class="pill" href="./index.html">Home</a>
+          <a class="pill primary js-teacher-signup" href="./index.html?login=1">Join as teacher</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><i></i> Teacher invitation</span>
+          <h1>Teach on <span class="grad">Duvela</span> with one clean workspace.</h1>
+          <p class="lead">Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.</p>
+          <div class="hero-ctas">
+            <a class="pill primary js-teacher-signup" href="./index.html?login=1">Accept invite</a>
+            <a class="pill" href="#how">See how it works</a>
+          </div>
+          <div class="proof" aria-label="Teacher workspace highlights">
+            <div><b>LIVE</b><span>Run browser lessons with camera, mic and chat</span></div>
+            <div><b>Courses</b><span>Publish structured offers learners can join</span></div>
+            <div><b>Events</b><span>Create workshops, clubs and online sessions</span></div>
+          </div>
+        </div>
+
+        <aside class="panel" aria-label="Teacher workspace preview">
+          <div class="panel-top">
+            <span>Duvela Business</span>
+            <b class="status"><i></i> Ready</b>
+          </div>
+          <div class="teacher-card">
+            <div class="teacher-head">
+              <div class="avatar">T</div>
+              <div>
+                <b>Your teacher profile</b>
+                <small>German, English, art, school subjects and more</small>
+              </div>
+            </div>
+            <div class="mini-grid">
+              <div class="mini"><b>3</b><span>active offers</span></div>
+              <div class="mini"><b>12</b><span>new learners</span></div>
+              <div class="mini"><b>B1</b><span>popular level</span></div>
+              <div class="mini"><b>LIVE</b><span>studio tools</span></div>
+            </div>
+          </div>
+          <div class="feed">
+            <div class="feed-row"><div class="feed-icon">C</div><div><b>Create course</b><small>Set title, level, price and schedule</small></div><span class="tag">Offer</span></div>
+            <div class="feed-row"><div class="feed-icon">L</div><div><b>Start LIVE</b><small>Open a teacher room from the browser</small></div><span class="tag">Studio</span></div>
+            <div class="feed-row"><div class="feed-icon">E</div><div><b>Add event</b><small>Invite learners to a workshop or club</small></div><span class="tag">Growth</span></div>
+          </div>
+        </aside>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker">What teachers get</span>
+          <h2>A practical workspace for teaching, not just a profile page.</h2>
+          <p>Duvela gives teachers the core tools needed to present offers, teach live and keep learner activity organized.</p>
+        </div>
+        <div class="cards">
+          <article class="card"><i>P</i><h3>Public teacher profile</h3><p>Show your subjects, languages, experience, social links and teaching focus in one place.</p></article>
+          <article class="card"><i>C</i><h3>Course and class offers</h3><p>Create courses with level, language, schedule, pricing and learner enrollment management.</p></article>
+          <article class="card"><i>L</i><h3>LIVE teaching tools</h3><p>Open LIVE rooms, run group lessons, chat with learners and reuse your teaching workflow.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker">How it works</span>
+          <h2>From invite to first offer in four steps.</h2>
+        </div>
+        <div class="steps">
+          <div class="step"><b>1</b><span>Accept the invite and create a teacher account.</span></div>
+          <div class="step"><b>2</b><span>Complete your profile with subjects, language and experience.</span></div>
+          <div class="step"><b>3</b><span>Create a course, event or LIVE session for learners.</span></div>
+          <div class="step"><b>4</b><span>Manage enrollments, messages and learner progress from the workspace.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="invite-box">
+          <div>
+            <h2>Invite another teacher to Duvela</h2>
+            <p>Share this page with a teacher. The signup button prepares the account flow for the teacher role.</p>
+            <div class="note" id="copyNote" aria-live="polite"></div>
+          </div>
+          <div class="invite-actions">
+            <button class="pill" type="button" id="copyInvite">Copy invite link</button>
+            <a class="pill primary js-teacher-signup" href="./index.html?login=1">Create teacher account</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Duvela Teacher Invite</span>
+      <span>For independent teachers, organizers and schools.</span>
+    </div>
+  </footer>
+
+<script>
+  (function () {
+    var signupRoleKey = 'duvela.webSignupRole';
+    var authModeKey = 'duvela.webAuthMode';
+    var inviteParams = new URLSearchParams(window.location.search);
+    var ref = inviteParams.get('ref') || inviteParams.get('org') || '';
+    document.querySelectorAll('.js-teacher-signup').forEach(function (link) {
+      link.addEventListener('click', function () {
+        try {
+          localStorage.setItem(signupRoleKey, 'teacher');
+          localStorage.setItem(authModeKey, 'signup');
+          if (ref) sessionStorage.setItem('duvela.teacherInviteRef', ref);
+        } catch (_) {}
+      });
+    });
+    var copyButton = document.getElementById('copyInvite');
+    var copyNote = document.getElementById('copyNote');
+    if (copyButton) {
+      copyButton.addEventListener('click', async function () {
+        var url = window.location.href;
+        try {
+          await navigator.clipboard.writeText(url);
+          if (copyNote) copyNote.textContent = 'Invite link copied.';
+        } catch (_) {
+          if (copyNote) copyNote.textContent = url;
+        }
+      });
+    }
+  })();
+</script>
+</body>
+</html>

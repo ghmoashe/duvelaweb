@@ -19,6 +19,7 @@ const files = [
   'business-admin.html',
   'admin.html',
   'reset-password.html',
+  'teacher-invite.html',
   'sw.js',
   'logo.webp',
   'logo2.png',
