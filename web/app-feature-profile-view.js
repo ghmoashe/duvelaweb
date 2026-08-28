@@ -8,12 +8,31 @@
   // learner form); "Verification" opens its own request form.
   function createProfileView(ctx) {
     const { tr, esc, supa } = ctx;
-    const TEACH_LANGUAGES = ['english', 'german', 'spanish', 'french', 'italian', 'portuguese', 'russian', 'arabic', 'persian', 'turkish', 'swedish'];
+    // Keys match the shared mobile catalog (shared/teaching-languages.ts) so a
+    // language chosen on the web reads back correctly in the apps. Farsi is
+    // 'farsi', not 'persian' — that mismatch used to make web-set Farsi
+    // invisible in the mobile course/event language filters.
+    const TEACH_LANGUAGES = [
+      'english', 'spanish', 'german', 'french', 'italian', 'russian', 'ukrainian',
+      'turkish', 'azerbaijani', 'uzbek', 'farsi', 'arabic', 'hebrew', 'hindi',
+      'urdu', 'bengali', 'chinese', 'korean', 'japanese', 'vietnamese', 'thai',
+      'indonesian', 'polish', 'czech', 'slovak', 'hungarian', 'romanian',
+      'serbian', 'greek', 'dutch', 'swedish', 'norwegian', 'danish', 'finnish',
+      'estonian', 'portuguese'
+    ];
     const TEACH_LANGUAGE_LABELS = {
-      english: tr('English', 'Английский'), german: tr('German', 'Немецкий'), spanish: tr('Spanish', 'Испанский'),
-      french: tr('French', 'Французский'), italian: tr('Italian', 'Итальянский'), portuguese: tr('Portuguese', 'Португальский'),
-      russian: tr('Russian', 'Русский'), arabic: tr('Arabic', 'Арабский'), persian: tr('Persian', 'Персидский'),
-      turkish: tr('Turkish', 'Турецкий'), swedish: tr('Swedish', 'Шведский')
+      english: tr('English', 'Английский'), spanish: tr('Spanish', 'Испанский'), german: tr('German', 'Немецкий'),
+      french: tr('French', 'Французский'), italian: tr('Italian', 'Итальянский'), russian: tr('Russian', 'Русский'),
+      ukrainian: tr('Ukrainian', 'Украинский'), turkish: tr('Turkish', 'Турецкий'), azerbaijani: tr('Azerbaijani', 'Азербайджанский'),
+      uzbek: tr('Uzbek', 'Узбекский'), farsi: tr('Farsi', 'Фарси'), arabic: tr('Arabic', 'Арабский'),
+      hebrew: tr('Hebrew', 'Иврит'), hindi: tr('Hindi', 'Хинди'), urdu: tr('Urdu', 'Урду'),
+      bengali: tr('Bengali', 'Бенгальский'), chinese: tr('Chinese', 'Китайский'), korean: tr('Korean', 'Корейский'),
+      japanese: tr('Japanese', 'Японский'), vietnamese: tr('Vietnamese', 'Вьетнамский'), thai: tr('Thai', 'Тайский'),
+      indonesian: tr('Indonesian', 'Индонезийский'), polish: tr('Polish', 'Польский'), czech: tr('Czech', 'Чешский'),
+      slovak: tr('Slovak', 'Словацкий'), hungarian: tr('Hungarian', 'Венгерский'), romanian: tr('Romanian', 'Румынский'),
+      serbian: tr('Serbian', 'Сербский'), greek: tr('Greek', 'Греческий'), dutch: tr('Dutch', 'Нидерландский'),
+      swedish: tr('Swedish', 'Шведский'), norwegian: tr('Norwegian', 'Норвежский'), danish: tr('Danish', 'Датский'),
+      finnish: tr('Finnish', 'Финский'), estonian: tr('Estonian', 'Эстонский'), portuguese: tr('Portuguese', 'Португальский')
     };
     const INTEREST_OPTIONS = [
       ['entertainment', '🎥', tr('Entertainment', 'Развлечения')], ['sports', '🏀', tr('Sports', 'Спорт')],
