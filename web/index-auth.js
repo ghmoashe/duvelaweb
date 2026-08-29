@@ -9,6 +9,8 @@
     const AUTH_FLOW_KEY = config.storageKeys.authFlow;
     const AUTH_MODE_KEY = config.storageKeys.authMode;
     const SIGNUP_ROLE_KEY = config.storageKeys.signupRole;
+    const TEACHER_INVITE_REF_KEY = 'duvela.teacherInviteRef';
+    const TEACHER_INVITE_ROLE_KEY = 'duvela.teacherInviteRole';
     const LOGIN_ROLE = 'learner';
     const roleKeys = {
       learner: 'roleLearner',
@@ -49,6 +51,8 @@
     function authCallbackUrl() {
       const url = new URL('./index.html', window.location.href);
       url.searchParams.set('auth', '1');
+      const inviteRef = teacherInviteRef();
+      if (inviteRef) url.searchParams.set('teacher_invite', inviteRef);
       return url.href;
     }
 
@@ -68,6 +72,24 @@
       const targetRole = role || authUi.getCurrentRole() || LOGIN_ROLE;
       localStorage.setItem(WEB_ROLE_KEY, targetRole);
       window.location.href = appUrl(targetRole, hash || defaultHashForRole(targetRole));
+    }
+
+    function teacherInviteRef() {
+      try {
+        const fromQuery = new URLSearchParams(window.location.search).get('teacher_invite');
+        const saved = sessionStorage.getItem(TEACHER_INVITE_REF_KEY) || localStorage.getItem(TEACHER_INVITE_REF_KEY);
+        return String(fromQuery || saved || '').trim().slice(0, 120);
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function teacherInviteTargetRole() {
+      try {
+        return teacherInviteRef() || localStorage.getItem(TEACHER_INVITE_ROLE_KEY) === 'teacher' ? 'teacher' : '';
+      } catch (_) {
+        return '';
+      }
     }
 
     async function detectWebRole(userOrId) {
@@ -122,6 +144,7 @@
 
     async function finishOAuthFlow(sessionUser) {
       const flowMode = sessionStorage.getItem(AUTH_MODE_KEY) || 'signin';
+      const inviteRole = teacherInviteTargetRole();
       sessionStorage.removeItem(AUTH_FLOW_KEY);
       sessionStorage.removeItem(AUTH_MODE_KEY);
       sessionStorage.removeItem(SIGNUP_ROLE_KEY);
@@ -143,7 +166,7 @@
           sessionUser.email,
           document.documentElement.getAttribute('lang') || 'en'
         );
-        goToWebApp('learner', '#home');
+        goToWebApp(inviteRole || 'learner', inviteRole === 'teacher' ? '#workspace' : '#home');
         return;
       }
 
@@ -193,7 +216,7 @@
 
       if (authMode === 'signup') {
         localStorage.removeItem(WEB_ROLE_KEY);
-        localStorage.removeItem(SIGNUP_ROLE_KEY);
+        if (!teacherInviteTargetRole()) localStorage.removeItem(SIGNUP_ROLE_KEY);
         const consentBox = document.getElementById('signupConsent');
         if (!consentBox || !consentBox.checked) {
           authUi.showNote(authUi.getCopy('consentRequired', 'Please accept the Terms of Service and Privacy Policy to continue.'));
@@ -209,11 +232,15 @@
           return;
         }
 
+        const inviteRef = teacherInviteRef();
         authUi.setSubmitBusy(authUi.getCopy('creatingAccount', 'Creating account...'));
         const { data, error } = await supa.auth.signUp({
           email,
           password,
-          options: { data: { locale }, emailRedirectTo: authCallbackUrl() }
+          options: {
+            data: Object.assign({ locale }, inviteRef ? { teacher_invite_ref: inviteRef } : {}),
+            emailRedirectTo: authCallbackUrl()
+          }
         });
         authUi.setSubmitIdle();
 
@@ -230,7 +257,7 @@
           authUi.setAuthMode('signin');
           return;
         }
-        goToWebApp('learner', '#home');
+        goToWebApp(teacherInviteTargetRole() || 'learner', teacherInviteTargetRole() === 'teacher' ? '#workspace' : '#home');
         return;
       }
 
@@ -314,7 +341,7 @@
         authUi.clearNote();
         sessionStorage.setItem(AUTH_FLOW_KEY, '1');
         sessionStorage.setItem(AUTH_MODE_KEY, authUi.getAuthMode());
-        sessionStorage.removeItem(SIGNUP_ROLE_KEY);
+        if (!teacherInviteTargetRole()) sessionStorage.removeItem(SIGNUP_ROLE_KEY);
 
         const { error } = await supa.auth.signInWithOAuth({
           provider,

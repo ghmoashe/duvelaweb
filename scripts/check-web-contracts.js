@@ -46,8 +46,8 @@ function checkRegistrationRoleContract() {
   if (rolesApi.pickWebRole({ is_teacher: true, is_organizer: false, is_admin: false, last_web_role: 'learner' }, false) !== 'teacher') fail('Registered teacher must always open Teacher Dashboard.');
   if (rolesApi.pickWebRole({ is_teacher: false, is_organizer: false, is_admin: false, last_web_role: 'teacher' }, false) !== 'learner') fail('Learner must not become a teacher from a stale browser role.');
   if (profileWritesApi.persistBusinessRoleSelection || /submitRoleRequest|request:teacher/.test(roleAccessCode)) fail('The old role-request flow must not be available.');
-  expectIncludes('web/index-auth.js', authCode, 'data: { locale }');
-  expectIncludes('web/index-auth.js', authCode, "goToWebApp('learner', '#home')");
+  if (!/data:\s*Object\.assign\(\s*\{\s*locale\s*\}/.test(authCode) && !authCode.includes('data: { locale }')) fail('web/index-auth.js must include locale in signup metadata.');
+  if (!authCode.includes("goToWebApp(inviteRole || 'learner'") && !authCode.includes("goToWebApp('learner', '#home')")) fail('web/index-auth.js must keep learner as the default signup destination.');
   if (authCode.includes('data: { web_role: savedSignupRole }') || authCode.includes('web_role: currentRole')) fail('Signup must not preselect the account role before onboarding Step 1.');
   expectIncludes('web/index-auth-ui.js', read('web/index-auth-ui.js'), "signupRoleWrap.style.display = 'none'");
   expectIncludes('web/app-onboarding.js', onboardingCode, 'var minStep = 1');

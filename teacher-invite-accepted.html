@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Invite Accepted</title>
+<meta name="description" content="Your Duvela teacher invite is accepted. Continue to the teacher workspace.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#6D3FE0">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<link rel="preload" href="./logo2.png" as="image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F6F5FA;--card:#fff;--ink:#17151F;--soft:#625B73;--line:#E7E2EF;--purple:#6D3FE0;--teal:#0F9F7A;--shadow:0 18px 48px rgba(32,22,64,.12)}
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:22px}.card{width:min(760px,100%);background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:clamp(24px,5vw,54px);text-align:center}.logo{height:44px;width:auto;mix-blend-mode:multiply}.badge{display:inline-flex;align-items:center;gap:8px;margin-top:26px;padding:8px 13px;border-radius:999px;background:rgba(15,159,122,.1);color:#08745A;font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}.badge i{width:8px;height:8px;border-radius:99px;background:var(--teal)}h1{margin:18px auto 0;max-width:620px;font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:0}p{margin:18px auto 0;max-width:570px;color:var(--soft);font-size:17px;line-height:1.65;font-weight:520}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:30px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--purple);font-weight:800;text-decoration:none}.btn.primary{border:0;color:#fff;background:linear-gradient(90deg,#5A2FCB,#A855F7 60%,#0F9F7A);box-shadow:0 10px 24px rgba(109,63,224,.26)}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:34px;text-align:left}.step{border:1px solid var(--line);border-radius:8px;padding:16px;background:#FAF8FF}.step b{display:block;color:var(--purple);font-size:13px}.step span{display:block;margin-top:7px;color:var(--soft);font-size:13px;line-height:1.45;font-weight:650}@media(max-width:640px){.actions{display:grid}.btn{width:100%}.steps{grid-template-columns:1fr}.card{text-align:left}.logo{display:block;margin:0 auto}h1,p{text-align:left}}
+</style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="./logo2.png" alt="Duvela">
+    <div class="badge"><i></i><span data-i18n="badge">Invite accepted</span></div>
+    <h1 data-i18n="title">Your teacher workspace is ready.</h1>
+    <p data-i18n="body">Continue to Duvela Business to finish your teacher profile, create your first offer and test LIVE tools.</p>
+    <div class="actions">
+      <a class="btn primary" id="workspaceLink" href="./app.html?role=teacher#workspace" data-i18n="primary">Open teacher workspace</a>
+      <a class="btn" href="./teacher-invite.html" data-i18n="secondary">Invite another teacher</a>
+    </div>
+    <div class="steps">
+      <div class="step"><b data-i18n="s1t">Profile</b><span data-i18n="s1b">Add subjects, languages and experience.</span></div>
+      <div class="step"><b data-i18n="s2t">Offer</b><span data-i18n="s2b">Create a course, class or event.</span></div>
+      <div class="step"><b data-i18n="s3t">LIVE</b><span data-i18n="s3b">Open the studio and check camera/mic.</span></div>
+    </div>
+  </main>
+<script>
+  (function(){
+    var dict={
+      en:{badge:'Invite accepted',title:'Your teacher workspace is ready.',body:'Continue to Duvela Business to finish your teacher profile, create your first offer and test LIVE tools.',primary:'Open teacher workspace',secondary:'Invite another teacher',s1t:'Profile',s1b:'Add subjects, languages and experience.',s2t:'Offer',s2b:'Create a course, class or event.',s3t:'LIVE',s3b:'Open the studio and check camera/mic.'},
+      ru:{badge:'Приглашение принято',title:'Кабинет учителя готов.',body:'Перейдите в Duvela Business, чтобы завершить профиль учителя, создать первое предложение и проверить LIVE-инструменты.',primary:'Открыть кабинет учителя',secondary:'Пригласить ещё учителя',s1t:'Профиль',s1b:'Добавьте предметы, языки и опыт.',s2t:'Предложение',s2b:'Создайте курс, класс или событие.',s3t:'LIVE',s3b:'Откройте студию и проверьте камеру/микрофон.'},
+      de:{badge:'Einladung angenommen',title:'Dein Lehrerbereich ist bereit.',body:'Öffne Duvela Business, vervollständige dein Lehrerprofil, erstelle dein erstes Angebot und teste die LIVE-Werkzeuge.',primary:'Lehrerbereich öffnen',secondary:'Weiteren Lehrer einladen',s1t:'Profil',s1b:'Fächer, Sprachen und Erfahrung ergänzen.',s2t:'Angebot',s2b:'Kurs, Klasse oder Event erstellen.',s3t:'LIVE',s3b:'Studio öffnen und Kamera/Mikrofon prüfen.'}
+    };
+    var params=new URLSearchParams(location.search);
+    var raw=(params.get('lang')||localStorage.getItem('duvela.webLang')||navigator.language||'en').toLowerCase();
+    var lang=raw.indexOf('ru')===0?'ru':raw.indexOf('de')===0?'de':'en';
+    document.documentElement.lang=lang;
+    Object.keys(dict[lang]).forEach(function(key){document.querySelectorAll('[data-i18n="'+key+'"]').forEach(function(node){node.textContent=dict[lang][key];});});
+    var ref=params.get('ref')||'';
+    var link=document.getElementById('workspaceLink');
+    if(link&&ref)link.href='./app.html?role=teacher&invite='+encodeURIComponent(ref)+'#workspace';
+  })();
+</script>
+</body>
+</html>

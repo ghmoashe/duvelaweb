@@ -60,6 +60,7 @@
     var step = 1;
     var minStep = 1;
     var roleLocked = false;
+    var teacherInviteRef = '';
     // Structured state (not just FormData) so chips/levels survive re-renders.
     var state = {
       firstName: '', lastName: '', orgName: '', bio: '', city: '', country: '', gender: '',
@@ -144,7 +145,8 @@
       var c = copy[role] || copy.learner;
       $('#onboardingRoleBadge').textContent = role ? c[0] : 'Choose role';
       var who = (state.firstName || state.orgName || (ctx.getUser() && ctx.getUser().email ? ctx.getUser().email.split('@')[0] : 'there'));
-      $('#onboardingLead').textContent = step === 1 ? 'Choose your starting role. Duvela will tailor the setup and Hub for you.'
+      $('#onboardingLead').textContent = step === 1 && teacherInviteRef ? 'Your invite is set for a teacher account. Confirm it here and Duvela will prepare your workspace.'
+        : step === 1 ? 'Choose your starting role. Duvela will tailor the setup and Hub for you.'
         : step === 2 ? ('Nice to meet you, ' + who + '. Let’s build your profile.')
         : step === 3 ? c[2] : 'Your Duvela profile is ready to go.';
       $('#onboardingSubmit').textContent = step < 4 ? 'Continue →' : (role === 'learner' ? 'Open my Duvela →' : 'Open my workspace →');
@@ -1026,7 +1028,9 @@
         patch.learning_targets = [{
           category: state.category || 'languages',
           languages: state.teachLanguages.slice(),
-          subcategories: state.subcategories.slice()
+          subcategories: state.subcategories.slice(),
+          invite_ref: teacherInviteRef || null,
+          invited_role: teacherInviteRef ? 'teacher' : null
         }];
       }
       if (role === 'organizer') {
@@ -1203,6 +1207,15 @@
         localStorage.setItem('duvela.onboarding.' + u.id, '1');
         $('#onboardingOverlay').classList.remove('open');
         $('#onboardingOverlay').setAttribute('aria-hidden', 'true');
+        if (role === 'teacher' && teacherInviteRef) {
+          try {
+            sessionStorage.removeItem('duvela.teacherInviteRef');
+            localStorage.removeItem('duvela.teacherInviteRef');
+            localStorage.removeItem('duvela.teacherInviteRole');
+          } catch (_) {}
+          window.location.href = './teacher-invite-accepted.html?ref=' + encodeURIComponent(teacherInviteRef);
+          return;
+        }
         ctx.renderAll();
       } catch (error) {
         $('#onboardingError').textContent = (error && error.message) || 'Could not save your setup. Please try again.';
@@ -1254,7 +1267,13 @@
       }
       minStep = 1;
       step = 1;
-      role = '';
+      teacherInviteRef = '';
+      try {
+        var params = new URLSearchParams(window.location.search);
+        teacherInviteRef = String(params.get('invite') || sessionStorage.getItem('duvela.teacherInviteRef') || localStorage.getItem('duvela.teacherInviteRef') || '').trim().slice(0, 120);
+      } catch (_) {}
+      roleLocked = !!teacherInviteRef;
+      role = teacherInviteRef ? 'teacher' : '';
       render();
       $('#onboardingOverlay').classList.add('open');
       $('#onboardingOverlay').setAttribute('aria-hidden', 'false');
@@ -1264,6 +1283,8 @@
       if (u && u.id) localStorage.removeItem('duvela.onboarding.' + u.id);
       minStep = 1;
       step = 1;
+      roleLocked = false;
+      teacherInviteRef = '';
       role = '';
       render();
       $('#onboardingOverlay').classList.add('open');

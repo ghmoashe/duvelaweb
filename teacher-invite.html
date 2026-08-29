@@ -70,6 +70,20 @@
   .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; }
   .brand img { width: auto; height: 40px; display: block; mix-blend-mode: multiply; }
   .nav-actions { display: flex; align-items: center; gap: 8px; }
+  .lang-switch { display: flex; align-items: center; gap: 4px; }
+  .lang-switch button {
+    min-width: 38px;
+    min-height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--soft);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 850;
+    cursor: pointer;
+  }
+  .lang-switch button.active { border-color: var(--purple); color: var(--purple); background: #F1ECFF; }
   .pill {
     display: inline-flex;
     align-items: center;
@@ -284,6 +298,25 @@
   .invite-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
   .invite-actions .pill { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); color: #fff; }
   .invite-actions .primary { background: #fff; color: var(--purple); box-shadow: none; }
+  .invite-code {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+    max-width: 520px;
+  }
+  .invite-code label { color: rgba(255,255,255,.74); font-size: 12px; font-weight: 850; }
+  .invite-code input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px;
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    font: inherit;
+    font-weight: 750;
+    padding: 0 13px;
+    outline: none;
+  }
   .note { margin-top: 12px; color: var(--muted); font-size: 12.5px; font-weight: 650; }
   footer { padding: 34px 0 46px; color: var(--muted); font-size: 13px; font-weight: 650; }
   footer .wrap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 24px; }
@@ -296,8 +329,9 @@
   @media (max-width: 620px) {
     .wrap { width: min(100% - 28px, 1120px); }
     .nav-inner { border-radius: 18px; align-items: flex-start; }
-    .nav-actions { width: 100%; justify-content: stretch; }
+    .nav-actions { width: 100%; justify-content: stretch; flex-wrap: wrap; }
     .nav-actions .pill { flex: 1; padding: 0 12px; }
+    .lang-switch { width: 100%; justify-content: flex-end; }
     .brand img { height: 34px; }
     .hero { padding-top: 46px; }
     .hero-ctas, .nav-inner { flex-wrap: wrap; }
@@ -317,8 +351,13 @@
           <img src="./logo2.png" alt="Duvela">
         </a>
         <div class="nav-actions">
-          <a class="pill" href="./index.html">Home</a>
-          <a class="pill primary js-teacher-signup" href="./index.html?login=1">Join as teacher</a>
+          <div class="lang-switch" aria-label="Language">
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="ru">RU</button>
+            <button type="button" data-lang="de">DE</button>
+          </div>
+          <a class="pill" href="./index.html" data-i18n="nav_home">Home</a>
+          <a class="pill primary js-teacher-signup" href="./index.html?login=1" data-i18n="nav_join">Join as teacher</a>
         </div>
       </div>
     </div>
@@ -328,44 +367,44 @@
     <header class="hero">
       <div class="wrap hero-grid">
         <div>
-          <span class="eyebrow"><i></i> Teacher invitation</span>
-          <h1>Teach on <span class="grad">Duvela</span> with one clean workspace.</h1>
-          <p class="lead">Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.</p>
+          <span class="eyebrow"><i></i><span data-i18n="eyebrow">Teacher invitation</span></span>
+          <h1 data-i18n-html="hero_title">Teach on <span class="grad">Duvela</span> with one clean workspace.</h1>
+          <p class="lead" data-i18n="hero_body">Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.</p>
           <div class="hero-ctas">
-            <a class="pill primary js-teacher-signup" href="./index.html?login=1">Accept invite</a>
-            <a class="pill" href="#how">See how it works</a>
+            <a class="pill primary js-teacher-signup" href="./index.html?login=1" data-i18n="accept">Accept invite</a>
+            <a class="pill" href="#how" data-i18n="see_how">See how it works</a>
           </div>
           <div class="proof" aria-label="Teacher workspace highlights">
-            <div><b>LIVE</b><span>Run browser lessons with camera, mic and chat</span></div>
-            <div><b>Courses</b><span>Publish structured offers learners can join</span></div>
-            <div><b>Events</b><span>Create workshops, clubs and online sessions</span></div>
+            <div><b>LIVE</b><span data-i18n="proof_live">Run browser lessons with camera, mic and chat</span></div>
+            <div><b data-i18n="proof_courses_t">Courses</b><span data-i18n="proof_courses">Publish structured offers learners can join</span></div>
+            <div><b data-i18n="proof_events_t">Events</b><span data-i18n="proof_events">Create workshops, clubs and online sessions</span></div>
           </div>
         </div>
 
         <aside class="panel" aria-label="Teacher workspace preview">
           <div class="panel-top">
             <span>Duvela Business</span>
-            <b class="status"><i></i> Ready</b>
+            <b class="status"><i></i><span data-i18n="ready">Ready</span></b>
           </div>
           <div class="teacher-card">
             <div class="teacher-head">
               <div class="avatar">T</div>
               <div>
-                <b>Your teacher profile</b>
-                <small>German, English, art, school subjects and more</small>
+                <b data-i18n="preview_title">Your teacher profile</b>
+                <small data-i18n="preview_body">German, English, art, school subjects and more</small>
               </div>
             </div>
             <div class="mini-grid">
-              <div class="mini"><b>3</b><span>active offers</span></div>
-              <div class="mini"><b>12</b><span>new learners</span></div>
-              <div class="mini"><b>B1</b><span>popular level</span></div>
-              <div class="mini"><b>LIVE</b><span>studio tools</span></div>
+              <div class="mini"><b>3</b><span data-i18n="mini_offers">active offers</span></div>
+              <div class="mini"><b>12</b><span data-i18n="mini_learners">new learners</span></div>
+              <div class="mini"><b>B1</b><span data-i18n="mini_level">popular level</span></div>
+              <div class="mini"><b>LIVE</b><span data-i18n="mini_tools">studio tools</span></div>
             </div>
           </div>
           <div class="feed">
-            <div class="feed-row"><div class="feed-icon">C</div><div><b>Create course</b><small>Set title, level, price and schedule</small></div><span class="tag">Offer</span></div>
-            <div class="feed-row"><div class="feed-icon">L</div><div><b>Start LIVE</b><small>Open a teacher room from the browser</small></div><span class="tag">Studio</span></div>
-            <div class="feed-row"><div class="feed-icon">E</div><div><b>Add event</b><small>Invite learners to a workshop or club</small></div><span class="tag">Growth</span></div>
+            <div class="feed-row"><div class="feed-icon">C</div><div><b data-i18n="feed_course_t">Create course</b><small data-i18n="feed_course_b">Set title, level, price and schedule</small></div><span class="tag" data-i18n="tag_offer">Offer</span></div>
+            <div class="feed-row"><div class="feed-icon">L</div><div><b data-i18n="feed_live_t">Start LIVE</b><small data-i18n="feed_live_b">Open a teacher room from the browser</small></div><span class="tag" data-i18n="tag_studio">Studio</span></div>
+            <div class="feed-row"><div class="feed-icon">E</div><div><b data-i18n="feed_event_t">Add event</b><small data-i18n="feed_event_b">Invite learners to a workshop or club</small></div><span class="tag" data-i18n="tag_growth">Growth</span></div>
           </div>
         </aside>
       </div>
@@ -374,14 +413,14 @@
     <section class="section">
       <div class="wrap">
         <div class="section-head">
-          <span class="section-kicker">What teachers get</span>
-          <h2>A practical workspace for teaching, not just a profile page.</h2>
-          <p>Duvela gives teachers the core tools needed to present offers, teach live and keep learner activity organized.</p>
+          <span class="section-kicker" data-i18n="get_kicker">What teachers get</span>
+          <h2 data-i18n="get_title">A practical workspace for teaching, not just a profile page.</h2>
+          <p data-i18n="get_body">Duvela gives teachers the core tools needed to present offers, teach live and keep learner activity organized.</p>
         </div>
         <div class="cards">
-          <article class="card"><i>P</i><h3>Public teacher profile</h3><p>Show your subjects, languages, experience, social links and teaching focus in one place.</p></article>
-          <article class="card"><i>C</i><h3>Course and class offers</h3><p>Create courses with level, language, schedule, pricing and learner enrollment management.</p></article>
-          <article class="card"><i>L</i><h3>LIVE teaching tools</h3><p>Open LIVE rooms, run group lessons, chat with learners and reuse your teaching workflow.</p></article>
+          <article class="card"><i>P</i><h3 data-i18n="card_profile_t">Public teacher profile</h3><p data-i18n="card_profile_b">Show your subjects, languages, experience, social links and teaching focus in one place.</p></article>
+          <article class="card"><i>C</i><h3 data-i18n="card_course_t">Course and class offers</h3><p data-i18n="card_course_b">Create courses with level, language, schedule, pricing and learner enrollment management.</p></article>
+          <article class="card"><i>L</i><h3 data-i18n="card_live_t">LIVE teaching tools</h3><p data-i18n="card_live_b">Open LIVE rooms, run group lessons, chat with learners and reuse your teaching workflow.</p></article>
         </div>
       </div>
     </section>
@@ -389,14 +428,14 @@
     <section class="section" id="how">
       <div class="wrap">
         <div class="section-head">
-          <span class="section-kicker">How it works</span>
-          <h2>From invite to first offer in four steps.</h2>
+          <span class="section-kicker" data-i18n="how_kicker">How it works</span>
+          <h2 data-i18n="how_title">From invite to first offer in four steps.</h2>
         </div>
         <div class="steps">
-          <div class="step"><b>1</b><span>Accept the invite and create a teacher account.</span></div>
-          <div class="step"><b>2</b><span>Complete your profile with subjects, language and experience.</span></div>
-          <div class="step"><b>3</b><span>Create a course, event or LIVE session for learners.</span></div>
-          <div class="step"><b>4</b><span>Manage enrollments, messages and learner progress from the workspace.</span></div>
+          <div class="step"><b>1</b><span data-i18n="step1">Accept the invite and create a teacher account.</span></div>
+          <div class="step"><b>2</b><span data-i18n="step2">Complete your profile with subjects, language and experience.</span></div>
+          <div class="step"><b>3</b><span data-i18n="step3">Create a course, event or LIVE session for learners.</span></div>
+          <div class="step"><b>4</b><span data-i18n="step4">Manage enrollments, messages and learner progress from the workspace.</span></div>
         </div>
       </div>
     </section>
@@ -405,13 +444,17 @@
       <div class="wrap">
         <div class="invite-box">
           <div>
-            <h2>Invite another teacher to Duvela</h2>
-            <p>Share this page with a teacher. The signup button prepares the account flow for the teacher role.</p>
+            <h2 data-i18n="invite_title">Invite another teacher to Duvela</h2>
+            <p data-i18n="invite_body">Share this page with a teacher. The signup button prepares the account flow for the teacher role.</p>
+            <div class="invite-code">
+              <label for="inviteRef" data-i18n="code_label">Invite code</label>
+              <input id="inviteRef" maxlength="80" autocomplete="off" value="duvela-teacher">
+            </div>
             <div class="note" id="copyNote" aria-live="polite"></div>
           </div>
           <div class="invite-actions">
-            <button class="pill" type="button" id="copyInvite">Copy invite link</button>
-            <a class="pill primary js-teacher-signup" href="./index.html?login=1">Create teacher account</a>
+            <button class="pill" type="button" id="copyInvite" data-i18n="copy">Copy invite link</button>
+            <a class="pill primary js-teacher-signup" href="./index.html?login=1" data-i18n="create">Create teacher account</a>
           </div>
         </div>
       </div>
@@ -421,7 +464,7 @@
   <footer>
     <div class="wrap">
       <span>Duvela Teacher Invite</span>
-      <span>For independent teachers, organizers and schools.</span>
+      <span data-i18n="footer">For independent teachers, organizers and schools.</span>
     </div>
   </footer>
 
@@ -429,14 +472,65 @@
   (function () {
     var signupRoleKey = 'duvela.webSignupRole';
     var authModeKey = 'duvela.webAuthMode';
+    var inviteRefKey = 'duvela.teacherInviteRef';
+    var inviteRoleKey = 'duvela.teacherInviteRole';
+    var langKey = 'duvela.webLang';
     var inviteParams = new URLSearchParams(window.location.search);
-    var ref = inviteParams.get('ref') || inviteParams.get('org') || '';
+    var dict = {
+      en: {
+        nav_home:'Home',nav_join:'Join as teacher',eyebrow:'Teacher invitation',hero_title:'Teach on <span class="grad">Duvela</span> with one clean workspace.',hero_body:'Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.',accept:'Accept invite',see_how:'See how it works',proof_live:'Run browser lessons with camera, mic and chat',proof_courses_t:'Courses',proof_courses:'Publish structured offers learners can join',proof_events_t:'Events',proof_events:'Create workshops, clubs and online sessions',ready:'Ready',preview_title:'Your teacher profile',preview_body:'German, English, art, school subjects and more',mini_offers:'active offers',mini_learners:'new learners',mini_level:'popular level',mini_tools:'studio tools',feed_course_t:'Create course',feed_course_b:'Set title, level, price and schedule',feed_live_t:'Start LIVE',feed_live_b:'Open a teacher room from the browser',feed_event_t:'Add event',feed_event_b:'Invite learners to a workshop or club',tag_offer:'Offer',tag_studio:'Studio',tag_growth:'Growth',get_kicker:'What teachers get',get_title:'A practical workspace for teaching, not just a profile page.',get_body:'Duvela gives teachers the core tools needed to present offers, teach live and keep learner activity organized.',card_profile_t:'Public teacher profile',card_profile_b:'Show your subjects, languages, experience, social links and teaching focus in one place.',card_course_t:'Course and class offers',card_course_b:'Create courses with level, language, schedule, pricing and learner enrollment management.',card_live_t:'LIVE teaching tools',card_live_b:'Open LIVE rooms, run group lessons, chat with learners and reuse your teaching workflow.',how_kicker:'How it works',how_title:'From invite to first offer in four steps.',step1:'Accept the invite and create a teacher account.',step2:'Complete your profile with subjects, language and experience.',step3:'Create a course, event or LIVE session for learners.',step4:'Manage enrollments, messages and learner progress from the workspace.',invite_title:'Invite another teacher to Duvela',invite_body:'Share this page with a teacher. The signup button prepares the account flow for the teacher role.',code_label:'Invite code',copy:'Copy invite link',create:'Create teacher account',copied:'Invite link copied.',footer:'For independent teachers, organizers and schools.'
+      },
+      ru: {
+        nav_home:'Главная',nav_join:'Стать учителем',eyebrow:'Приглашение учителя',hero_title:'Преподавайте в <span class="grad">Duvela</span> из одного удобного кабинета.',hero_body:'Создайте публичный профиль учителя, публикуйте курсы, проводите LIVE-уроки, управляйте учениками и развивайте аудиторию в веб-приложении Duvela.',accept:'Принять приглашение',see_how:'Как это работает',proof_live:'Проводите уроки в браузере с камерой, микрофоном и чатом',proof_courses_t:'Курсы',proof_courses:'Публикуйте понятные программы, куда ученики могут записаться',proof_events_t:'События',proof_events:'Создавайте воркшопы, клубы и онлайн-занятия',ready:'Готово',preview_title:'Ваш профиль учителя',preview_body:'Немецкий, английский, искусство, школьные предметы и другое',mini_offers:'активных предложения',mini_learners:'новых учеников',mini_level:'популярный уровень',mini_tools:'инструменты студии',feed_course_t:'Создать курс',feed_course_b:'Укажите название, уровень, цену и расписание',feed_live_t:'Запустить LIVE',feed_live_b:'Откройте комнату учителя прямо в браузере',feed_event_t:'Добавить событие',feed_event_b:'Пригласите учеников на воркшоп или клуб',tag_offer:'Оффер',tag_studio:'Студия',tag_growth:'Рост',get_kicker:'Что получает учитель',get_title:'Рабочий кабинет для преподавания, а не просто страница профиля.',get_body:'Duvela даёт учителям основные инструменты для предложений, live-уроков и работы с учениками.',card_profile_t:'Публичный профиль учителя',card_profile_b:'Покажите предметы, языки, опыт, ссылки и направление преподавания в одном месте.',card_course_t:'Курсы и классы',card_course_b:'Создавайте курсы с уровнем, языком, расписанием, ценой и управлением записями.',card_live_t:'LIVE-инструменты',card_live_b:'Открывайте LIVE-комнаты, проводите групповые уроки, общайтесь с учениками и повторяйте рабочий процесс.',how_kicker:'Как это работает',how_title:'От приглашения до первого предложения за четыре шага.',step1:'Примите приглашение и создайте аккаунт учителя.',step2:'Заполните профиль: предметы, язык и опыт.',step3:'Создайте курс, событие или LIVE-сессию для учеников.',step4:'Управляйте записями, сообщениями и прогрессом учеников из кабинета.',invite_title:'Пригласить ещё одного учителя в Duvela',invite_body:'Отправьте эту страницу учителю. Кнопка регистрации подготовит flow для роли учителя.',code_label:'Код приглашения',copy:'Скопировать ссылку',create:'Создать аккаунт учителя',copied:'Ссылка приглашения скопирована.',footer:'Для независимых учителей, организаторов и школ.'
+      },
+      de: {
+        nav_home:'Startseite',nav_join:'Als Lehrer starten',eyebrow:'Lehrereinladung',hero_title:'Unterrichten mit <span class="grad">Duvela</span> in einem klaren Arbeitsbereich.',hero_body:'Erstelle ein öffentliches Lehrerprofil, veröffentliche Kurse, halte LIVE-Unterricht, verwalte Lernende und baue deine Reichweite in der Duvela Web-App aus.',accept:'Einladung annehmen',see_how:'Ablauf ansehen',proof_live:'Unterricht im Browser mit Kamera, Mikrofon und Chat durchführen',proof_courses_t:'Kurse',proof_courses:'Strukturierte Angebote veröffentlichen, für die sich Lernende anmelden können',proof_events_t:'Events',proof_events:'Workshops, Clubs und Online-Termine erstellen',ready:'Bereit',preview_title:'Dein Lehrerprofil',preview_body:'Deutsch, Englisch, Kunst, Schulfächer und mehr',mini_offers:'aktive Angebote',mini_learners:'neue Lernende',mini_level:'beliebtes Niveau',mini_tools:'Studio-Werkzeuge',feed_course_t:'Kurs erstellen',feed_course_b:'Titel, Niveau, Preis und Zeitplan festlegen',feed_live_t:'LIVE starten',feed_live_b:'Einen Lehrerraum direkt im Browser öffnen',feed_event_t:'Event hinzufügen',feed_event_b:'Lernende zu Workshop oder Club einladen',tag_offer:'Angebot',tag_studio:'Studio',tag_growth:'Wachstum',get_kicker:'Was Lehrer bekommen',get_title:'Ein praktischer Arbeitsbereich zum Unterrichten, nicht nur eine Profilseite.',get_body:'Duvela gibt Lehrern die wichtigsten Werkzeuge für Angebote, Live-Unterricht und organisierte Lernaktivität.',card_profile_t:'Öffentliches Lehrerprofil',card_profile_b:'Zeige Fächer, Sprachen, Erfahrung, Links und Unterrichtsschwerpunkt an einem Ort.',card_course_t:'Kurs- und Klassenangebote',card_course_b:'Erstelle Kurse mit Niveau, Sprache, Zeitplan, Preis und Anmeldemanagement.',card_live_t:'LIVE-Unterrichtswerkzeuge',card_live_b:'Öffne LIVE-Räume, halte Gruppenunterricht, chatte mit Lernenden und nutze deinen Ablauf erneut.',how_kicker:'So funktioniert es',how_title:'Von der Einladung zum ersten Angebot in vier Schritten.',step1:'Einladung annehmen und Lehreraccount erstellen.',step2:'Profil mit Fächern, Sprache und Erfahrung vervollständigen.',step3:'Kurs, Event oder LIVE-Termin für Lernende erstellen.',step4:'Anmeldungen, Nachrichten und Lernfortschritt im Arbeitsbereich verwalten.',invite_title:'Weiteren Lehrer zu Duvela einladen',invite_body:'Teile diese Seite mit einem Lehrer. Die Registrierung wird für die Lehrerrolle vorbereitet.',code_label:'Einladungscode',copy:'Einladungslink kopieren',create:'Lehreraccount erstellen',copied:'Einladungslink kopiert.',footer:'Für selbstständige Lehrer, Organisatoren und Schulen.'
+      }
+    };
+    var refInput = document.getElementById('inviteRef');
+    var rawLang = (inviteParams.get('lang') || localStorage.getItem(langKey) || navigator.language || 'en').toLowerCase();
+    var lang = rawLang.indexOf('ru') === 0 ? 'ru' : rawLang.indexOf('de') === 0 ? 'de' : 'en';
+    var ref = (inviteParams.get('ref') || inviteParams.get('org') || 'duvela-teacher').trim().slice(0, 80);
+    if (refInput) refInput.value = ref;
+    function inviteUrl() {
+      var url = new URL('./teacher-invite.html', window.location.href);
+      url.searchParams.set('ref', (refInput && refInput.value.trim()) || 'duvela-teacher');
+      url.searchParams.set('lang', lang);
+      return url.href;
+    }
+    function signupUrl() {
+      var url = new URL('./index.html', window.location.href);
+      url.searchParams.set('login', '1');
+      url.searchParams.set('teacher_invite', (refInput && refInput.value.trim()) || 'duvela-teacher');
+      return url.href;
+    }
+    function renderLang() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-lang]').forEach(function (button) {
+        button.classList.toggle('active', button.dataset.lang === lang);
+      });
+      Object.keys(dict[lang]).forEach(function (key) {
+        document.querySelectorAll('[data-i18n="' + key + '"]').forEach(function (node) { node.textContent = dict[lang][key]; });
+        document.querySelectorAll('[data-i18n-html="' + key + '"]').forEach(function (node) { node.innerHTML = dict[lang][key]; });
+      });
+      document.querySelectorAll('.js-teacher-signup').forEach(function (link) { link.href = signupUrl(); });
+    }
+    document.querySelectorAll('[data-lang]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        lang = button.dataset.lang;
+        localStorage.setItem(langKey, lang);
+        renderLang();
+      });
+    });
+    if (refInput) refInput.addEventListener('input', renderLang);
     document.querySelectorAll('.js-teacher-signup').forEach(function (link) {
       link.addEventListener('click', function () {
         try {
           localStorage.setItem(signupRoleKey, 'teacher');
           localStorage.setItem(authModeKey, 'signup');
-          if (ref) sessionStorage.setItem('duvela.teacherInviteRef', ref);
+          localStorage.setItem(inviteRoleKey, 'teacher');
+          localStorage.setItem(inviteRefKey, (refInput && refInput.value.trim()) || 'duvela-teacher');
+          sessionStorage.setItem(inviteRefKey, (refInput && refInput.value.trim()) || 'duvela-teacher');
         } catch (_) {}
       });
     });
@@ -444,15 +538,16 @@
     var copyNote = document.getElementById('copyNote');
     if (copyButton) {
       copyButton.addEventListener('click', async function () {
-        var url = window.location.href;
+        var url = inviteUrl();
         try {
           await navigator.clipboard.writeText(url);
-          if (copyNote) copyNote.textContent = 'Invite link copied.';
+          if (copyNote) copyNote.textContent = dict[lang].copied;
         } catch (_) {
           if (copyNote) copyNote.textContent = url;
         }
       });
     }
+    renderLang();
   })();
 </script>
 </body>

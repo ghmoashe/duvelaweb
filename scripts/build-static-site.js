@@ -20,6 +20,7 @@ const files = [
   'admin.html',
   'reset-password.html',
   'teacher-invite.html',
+  'teacher-invite-accepted.html',
   'sw.js',
   'logo.webp',
   'logo2.png',
@@ -41,14 +42,13 @@ function removeDirRecursive(targetPath) {
   if (!fs.existsSync(targetPath)) return;
   fs.readdirSync(targetPath).forEach((entry) => {
     const entryPath = path.join(targetPath, entry);
-    const stats = fs.lstatSync(entryPath);
-    if (stats.isDirectory()) {
-      removeDirRecursive(entryPath);
-    } else {
-      fs.unlinkSync(entryPath);
-    }
+    fs.rmSync(entryPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 });
   });
-  fs.rmdirSync(targetPath);
+  try {
+    fs.rmdirSync(targetPath);
+  } catch (error) {
+    if (!error || error.code !== 'EBUSY') throw error;
+  }
 }
 
 function copyFile(from, to) {
