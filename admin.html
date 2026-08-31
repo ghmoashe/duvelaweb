@@ -547,7 +547,8 @@
   }
 
   async function invokeBunnyOp(fnName, dry) {
-    var url = 'https://ohtkryanqcnwghcnipsr.supabase.co/functions/v1/' + fnName + (dry ? '?dry=1' : '');
+    var base = (window.DuvelaWebConfig && window.DuvelaWebConfig.supabaseUrl) || '';
+    var url = base + '/functions/v1/' + fnName + (dry ? '?dry=1' : '');
     var res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

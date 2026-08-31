@@ -5,7 +5,19 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const strict = process.env.DUVELA_STRICT_PUBLISH === '1';
-const htmlFiles = ['index.html', 'app.html', 'live.html', 'profile.html', 'legal.html'];
+const htmlFiles = [
+  'index.html',
+  'app.html',
+  'live.html',
+  'profile.html',
+  'legal.html',
+  'admin.html',
+  'business.html',
+  'business-admin.html',
+  'teacher-invite.html',
+  'teacher-invite-accepted.html',
+  'reset-password.html',
+];
 const maxHtmlBytes = 140 * 1024;
 const maxReferencedAssetBytes = 1024 * 1024;
 const maxLocalMediaBytes = 10 * 1024 * 1024;

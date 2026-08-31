@@ -588,8 +588,9 @@
       var originalText = btn.textContent;
       btn.textContent = 'Opening Stripe…';
       try {
+        var checkoutBase = (window.DuvelaWebConfig && window.DuvelaWebConfig.supabaseUrl) || '';
         var res = await fetch(
-          'https://ohtkryanqcnwghcnipsr.supabase.co/functions/v1/stripe-create-checkout',
+          checkoutBase + '/functions/v1/stripe-create-checkout',
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
