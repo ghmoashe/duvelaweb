@@ -557,9 +557,9 @@
       const targets = learnerPracticeTargets(loadPrefs()).targets.filter(isSupportedLanguageTarget);
       const options = targets.length ? targets : SUPPORTED_LANGUAGE_TARGETS;
       const opt = (code) => '<option value="' + code + '"' + (code === cur ? ' selected' : '') + '>' + esc(targetLabel(code)) + '</option>';
-      return '<select id="studyLang" class="role-select" style="width:auto;margin-bottom:12px">' +
+      return '<label class="practice-language-select"><span>' + esc(tr('Practice language', 'Язык тренировки')) + '</span><select id="studyLang" class="role-select">' +
         options.map(opt).join('') +
-        '</select>';
+        '</select></label>';
     }
 
     function buildAdaptiveDailyPlan(progress, prefs, goal) {
@@ -990,7 +990,7 @@
     function renderTool() {
       var body = $('#studyOverlayBody');
       var showPicker = ['mistakes','ai','articles','wquestion','perfekt'].indexOf(studyState.tool) < 0;
-      var pickerRow = showPicker ? '<div style="display:flex;align-items:center;gap:10px">' + langPicker() + '</div>' : '';
+      var pickerRow = showPicker ? '<div class="practice-language-row">' + langPicker() + '</div>' : '';
       var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || (studyState.tool==='examplan'?{icon:'🎯',title:tr('Exam plan','План к экзамену'),desc:tr('A personal route to exam day','Персональный маршрут до экзамена')}:{icon:'⚔️',title:tr('Learner duel','Дуэль учеников'),desc:tr('Answer faster and more accurately','Отвечайте быстрее и точнее')});
       body.innerHTML = '<div class="practice-stage-intro"><span>' + (tool.icon || '✦') + '</span><div><small>' + esc(tr('TRAINING MODE','ТРЕНИРОВОЧНЫЙ РЕЖИМ')) + '</small><h3>' + esc(tool.title || '') + '</h3><p>' + esc(tool.desc || '') + '</p></div></div>' +
         '<div class="practice-session-line"><div><i id="practiceSessionBar"></i></div><span id="practiceSessionStep">1 / 10</span></div>' +
@@ -1045,7 +1045,7 @@
       if (!studyState) return;
       var step = Math.max(0, Number(studyState.idx || 0));
       var total = Math.max(1, Number(studyState.total || 10));
-      var percent = Math.max(4, Math.min(100, Math.round(step / total * 100)));
+      var percent = Math.min(100, Math.round(Math.min(total, step + 1) / total * 100));
       var bar = $('#practiceSessionBar'), label = $('#practiceSessionStep'), xp = $('#studySessionXp');
       if (bar) bar.style.width = percent + '%';
       if (label) label.textContent = Math.min(total, step + 1) + ' / ' + total;
@@ -1787,16 +1787,26 @@
       utterance.rate = rate;
       utterance.onstart = function () {
         if (runId !== listeningPlaybackRun) return;
-        button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+        setListeningButtonState(button, 'playing', tr('Playing', 'Воспроизведение'));
         status.textContent = tr('Device voice is being used.', 'Используется голос устройства.');
       };
       utterance.onend = utterance.onerror = function () {
         if (runId !== listeningPlaybackRun) return;
         button.disabled = false;
-        button.textContent = '▶ ' + tr('Play audio', 'Прослушать');
+        setListeningButtonState(button, 'ready', tr('Play again', 'Прослушать ещё раз'));
+        var input = $('#lsInput');
+        if (input) input.focus();
       };
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
+    }
+
+    function setListeningButtonState(button, state, label) {
+      if (!button) return;
+      button.dataset.state = state;
+      button.innerHTML = '<span class="listening-play-icon" aria-hidden="true">' + (state === 'playing' ? '▮▮' : state === 'loading' ? '•••' : '▶') + '</span><span>' + esc(label) + '</span>';
+      var player = button.closest && button.closest('.listening-player');
+      if (player) player.classList.toggle('is-playing', state === 'playing');
     }
 
     function renderListening() {
@@ -1807,18 +1817,33 @@
       if(!deck.length)return noLevelContent();
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 3);
       var item = deck[studyState.idx];
+      studyState.total = deck.length;
+      updatePracticeChrome();
       if (item.audioClip) prepareListeningRecording(item.audioClip).catch(function () { /* Fish is prepared on demand */ });
       var host = $('#studyToolBody');
-      host.innerHTML = counterHtml(studyState.idx, deck.length) +
-        '<div style="text-align:center;margin:6px 0 12px">' +
-          '<button class="btn primary" id="lsPlay" aria-live="polite" style="min-width:150px">▶ ' + esc(tr('Play audio', 'Прослушать')) + '</button>' +
-          '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-top:8px">' + esc(item.hint) + '</div>' +
-          '<div id="lsAudioStatus" role="status" style="color:var(--soft);font-weight:700;font-size:12px;margin-top:6px;min-height:18px"></div>' +
-        '</div>' +
-        '<div class="field"><label>' + esc(tr('Type what you hear', 'Запишите, что услышали')) + '</label>' +
-        '<input id="lsInput" placeholder="..." autocomplete="off"></div>' +
-        '<button class="btn primary" id="lsCheck" style="width:100%;margin-top:6px">' + esc(tr('Check', 'Проверить')) + '</button>' +
-        '<div id="lsFb" style="font-weight:900;margin-top:12px;min-height:22px"></div>';
+      host.innerHTML = '<div class="listening-lab">' +
+        '<header class="listening-task-head"><div><span>' + esc(tr('STEP 1 · LISTEN', 'ШАГ 1 · СЛУШАЙТЕ')) + '</span><h2>' + esc(tr('Listen to the phrase', 'Прослушайте фразу')) + '</h2><p>' + esc(tr('You can replay it and change the speed before answering.', 'Можно прослушать повторно и изменить скорость перед ответом.')) + '</p></div><b>' + (studyState.idx + 1) + ' / ' + deck.length + '</b></header>' +
+        '<section class="listening-player" aria-labelledby="listeningPlayerTitle">' +
+          '<div class="listening-player-copy"><span id="listeningPlayerTitle">' + esc(tr('AUDIO', 'АУДИО')) + '</span><strong>' + esc(tr('Ready to play', 'Готово к прослушиванию')) + '</strong></div>' +
+          '<div class="listening-wave" aria-hidden="true">' + '<i></i>'.repeat(18) + '</div>' +
+          '<button class="listening-play" id="lsPlay" type="button" aria-live="polite"><span class="listening-play-icon" aria-hidden="true">▶</span><span>' + esc(tr('Play audio', 'Прослушать')) + '</span></button>' +
+          '<div class="listening-player-meta"><div id="lsAudioStatus" role="status">' + esc(tr('Press play when you are ready.', 'Нажмите «Прослушать», когда будете готовы.')) + '</div><button id="lsRate" type="button" aria-label="' + esc(tr('Playback speed', 'Скорость воспроизведения')) + '">' + Number(studyState.speechRate || 1) + '×</button></div>' +
+          '<div class="listening-context"><span>' + esc(tr('CONTEXT HINT', 'ПОДСКАЗКА ПО КОНТЕКСТУ')) + '</span><p>' + esc(item.hint) + '</p></div>' +
+        '</section>' +
+        '<form class="listening-answer" id="lsForm"><label for="lsInput"><span>' + esc(tr('STEP 2 · WRITE', 'ШАГ 2 · ЗАПИШИТЕ')) + '</span><b>' + esc(tr('Type exactly what you hear', 'Запишите точно то, что услышали')) + '</b></label>' +
+          '<input id="lsInput" placeholder="' + esc(tr('Start typing the phrase…', 'Начните вводить фразу…')) + '" autocomplete="off" spellcheck="false">' +
+          '<div class="listening-answer-foot"><small>' + esc(tr('Press Enter to check your answer', 'Нажмите Enter, чтобы проверить ответ')) + '</small><button class="btn primary" id="lsCheck" type="submit" disabled>' + esc(tr('Check answer', 'Проверить ответ')) + '</button></div>' +
+        '</form><div id="lsFb" class="listening-feedback" aria-live="polite"></div></div>';
+      $('#lsInput').addEventListener('input', function () {
+        $('#lsCheck').disabled = !this.value.trim();
+      });
+      $('#lsRate').addEventListener('click', function () {
+        var rates = [1, .75, 1.25];
+        var current = Number(studyState.speechRate || 1);
+        var index = rates.indexOf(current);
+        studyState.speechRate = rates[(index + 1) % rates.length];
+        this.textContent = studyState.speechRate + '×';
+      });
       $('#lsPlay').addEventListener('click', async function () {
         var button = $('#lsPlay');
         var status = $('#lsAudioStatus');
@@ -1835,7 +1860,7 @@
         var countdownComplete = await runListeningCountdown(button, status, runId);
         if (!countdownComplete) return;
         try {
-          button.textContent = '…';
+          setListeningButtonState(button, 'loading', tr('Loading audio', 'Загрузка аудио'));
           status.textContent = item.audioClip
             ? tr('Loading the original recording…', 'Загружаем оригинальную запись…')
             : tr('Preparing Fish Audio…', 'Готовим Fish Audio…');
@@ -1843,25 +1868,33 @@
           if (preparedResult.error || !preparedResult.value) throw preparedResult.error || new Error('audio unavailable');
           var preferred = preparedResult.value;
           await playListeningAudio(preferred, rate, runId, function () {
-            button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+            setListeningButtonState(button, 'playing', tr('Playing', 'Воспроизведение'));
             status.textContent = item.audioClip
               ? tr('Original recording', 'Оригинальная запись')
               : 'Fish Audio';
           }, unlockedAudio);
+          if (runId === listeningPlaybackRun) {
+            button.disabled = false;
+            setListeningButtonState(button, 'ready', tr('Play again', 'Прослушать ещё раз'));
+            var listeningInput = $('#lsInput');
+            if (listeningInput) listeningInput.focus();
+          }
         } catch (recordingError) {
           if (runId !== listeningPlaybackRun) return;
           if (item.audioClip) {
             try {
-              button.textContent = '…';
+              setListeningButtonState(button, 'loading', tr('Loading audio', 'Загрузка аудио'));
               status.textContent = tr('Recording unavailable. Preparing Fish Audio…', 'Запись недоступна. Готовим Fish Audio…');
               var fish = await prepareListeningFish(item.text, studyState.lang, rate);
               await playListeningAudio(fish, rate, runId, function () {
-                button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+                setListeningButtonState(button, 'playing', tr('Playing', 'Воспроизведение'));
                 status.textContent = 'Fish Audio';
               }, unlockedAudio);
               if (runId === listeningPlaybackRun) {
                 button.disabled = false;
-                button.textContent = '▶ ' + tr('Play audio', 'Прослушать');
+                setListeningButtonState(button, 'ready', tr('Play again', 'Прослушать ещё раз'));
+                var fishInput = $('#lsInput');
+                if (fishInput) fishInput.focus();
               }
               return;
             } catch (fishError) {
@@ -1877,12 +1910,15 @@
         }
         if (runId === listeningPlaybackRun) {
           button.disabled = false;
-          button.textContent = '▶ ' + tr('Play audio', 'Прослушать');
+          setListeningButtonState(button, 'ready', tr('Try audio again', 'Попробовать ещё раз'));
         }
       });
       function norm(s) { return String(s || '').toLowerCase().replace(/[.,!?¿¡;:"']/g, '').replace(/\s+/g, ' ').trim(); }
-      $('#lsCheck').addEventListener('click', function () {
+      $('#lsForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        stopListeningPlayback();
         var val = norm($('#lsInput').value);
+        if (!val) return;
         var target = norm(item.text);
         var ok = val === target;
         if (!ok && val.length) {
@@ -1891,11 +1927,17 @@
           ok = hits / tw.length >= 0.8;
         }
         if (ok) studyState.score++;
-        $('#lsFb').innerHTML = ok
-          ? '<span style="color:var(--teal)">' + esc(tr('Correct!', 'Верно!')) + '</span>'
-          : '<span style="color:#d64545">' + esc(item.text) + '</span>';
+        feedback(ok, { kind:'listening', prompt:item.hint, answer:val, expected:item.text });
+        var feedbackHost = $('#lsFb');
+        feedbackHost.className = 'listening-feedback ' + (ok ? 'ok' : 'bad');
+        feedbackHost.innerHTML = '<div><span>' + (ok ? '✓' : '!') + '</span><div><b>' + esc(ok ? tr('Correct — you heard it accurately.', 'Верно — вы точно распознали фразу.') : tr('Compare your answer with the original phrase.', 'Сравните свой ответ с исходной фразой.')) + '</b>' +
+          (ok ? '' : '<p>' + esc(item.text) + '</p>') + '</div></div><button class="btn primary" id="lsContinue" type="button">' + esc(tr('Continue', 'Продолжить')) + '</button>';
         $('#lsCheck').disabled = true;
-        setTimeout(function () { studyState.idx++; renderListening(); }, 1200);
+        $('#lsInput').disabled = true;
+        $('#lsPlay').disabled = true;
+        $('#lsRate').disabled = true;
+        $('#lsContinue').addEventListener('click', function () { studyState.idx++; renderListening(); });
+        $('#lsContinue').focus();
       });
     }
 

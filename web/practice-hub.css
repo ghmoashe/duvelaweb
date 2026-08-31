@@ -963,3 +963,64 @@
   .mph-exercise-copy p{margin-top:24px;margin-left:-77px;font-size:17px}
   .mph-exercise-action{min-height:54px;font-size:19px}
 }
+
+/* Focused listening session: compact, sequential and usable without dead space. */
+#studyOverlay.practice-immersive .overlay-card{height:min(760px,calc(100vh - 36px))}
+#studyOverlay.practice-immersive .overlay-body{padding:20px 26px 28px}
+#studyOverlay.practice-immersive .practice-stage-intro{margin-bottom:11px;padding:14px 17px;border-radius:18px}
+#studyOverlay.practice-immersive .practice-stage-intro>span{width:52px;height:52px;border-radius:16px;font-size:23px}
+#studyOverlay.practice-immersive .practice-stage-intro h3{font-size:19px}
+#studyOverlay.practice-immersive .practice-session-line{margin-bottom:13px}
+#studyOverlay.practice-immersive .practice-gamebar{margin-bottom:11px}
+.practice-language-row{display:flex;justify-content:flex-start;margin-bottom:12px}
+.practice-language-select{display:grid;gap:5px;min-width:190px}
+.practice-language-select>span{color:#755d96;font-size:9px;font-weight:950;letter-spacing:.1em;text-transform:uppercase}
+#studyOverlay .practice-language-select select{width:100%!important;min-height:40px;margin:0!important;padding:0 36px 0 12px;border:1px solid #ded3ef;border-radius:12px;background-color:rgba(255,255,255,.9);font-weight:850}
+#studyOverlay[data-practice-tool=listening] .practice-workspace{min-height:0;padding:0;border:0;background:transparent;box-shadow:none}
+.listening-lab{width:min(820px,100%);display:grid;gap:14px;margin:0 auto}
+.listening-task-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.listening-task-head span,.listening-player-copy span,.listening-context span,.listening-answer label span{display:block;color:#7440d8;font-size:9px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}
+.listening-task-head h2{margin:5px 0 3px;font-size:23px;line-height:1.15}
+.listening-task-head p{margin:0;color:#766b81;font-size:12px;font-weight:650;line-height:1.5}
+.listening-task-head>b{padding:8px 11px;border-radius:999px;background:#eee7ff;color:#7040d8;font-size:11px;white-space:nowrap}
+.listening-player{display:grid;grid-template-columns:minmax(130px,.6fr) minmax(190px,1fr) auto;gap:14px;align-items:center;padding:19px;border:1px solid #ded4f0;border-radius:22px;background:linear-gradient(145deg,#f8f3ff,#fff 55%,#ebfaf5);box-shadow:0 14px 34px rgba(58,33,96,.08)}
+.listening-player-copy{display:grid;gap:5px}
+.listening-player-copy strong{color:#30273b;font-size:15px}
+.listening-wave{height:46px;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 8px}
+.listening-wave i{width:4px;height:12px;border-radius:99px;background:#a184df;opacity:.52;transform-origin:center;transition:height .18s,opacity .18s}
+.listening-wave i:nth-child(3n){height:28px}.listening-wave i:nth-child(4n){height:38px}.listening-wave i:nth-child(5n){height:20px}
+.listening-player.is-playing .listening-wave i{opacity:1;animation:listeningPulse .7s ease-in-out infinite alternate}
+.listening-player.is-playing .listening-wave i:nth-child(2n){animation-delay:-.18s}.listening-player.is-playing .listening-wave i:nth-child(3n){animation-delay:-.36s}
+@keyframes listeningPulse{to{height:42px;background:#18a984}}
+.listening-play{min-width:178px;min-height:52px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:0 18px;border:0;border-radius:15px;background:linear-gradient(100deg,#6735dc,#983de2);color:#fff;font:inherit;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(104,52,217,.24)}
+.listening-play:hover{transform:translateY(-1px)}.listening-play:disabled{cursor:wait;opacity:.78}
+.listening-play-icon{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.18);font-size:10px}
+.listening-player-meta{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:11px;border-top:1px solid rgba(100,70,140,.11);color:#74677f;font-size:11px;font-weight:750}
+.listening-player-meta button{min-width:52px;min-height:34px;border:1px solid #d9cbed;border-radius:10px;background:#fff;color:#6840ad;font-weight:900;cursor:pointer}
+.listening-context{grid-column:1/-1;padding:11px 13px;border-radius:13px;background:rgba(255,255,255,.78)}
+.listening-context p{margin:5px 0 0;color:#554b61;font-size:12.5px;font-weight:750}
+.listening-answer{display:grid;gap:9px;padding:17px;border:1px solid #e5deef;border-radius:20px;background:#fff}
+.listening-answer label{display:grid;gap:4px}.listening-answer label b{font-size:14px}
+#studyOverlay .listening-answer input{width:100%;min-height:50px;padding:0 14px;border:1px solid #ddd3eb;border-radius:13px;background:#fbfaff;font:inherit;font-size:15px;outline:none}
+#studyOverlay .listening-answer input:focus{border-color:#8b64de;box-shadow:0 0 0 4px rgba(113,64,216,.1)}
+.listening-answer-foot{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.listening-answer-foot small{color:#83788d;font-size:10.5px;font-weight:700}
+.listening-answer-foot .btn{min-width:190px;min-height:44px}.listening-answer-foot .btn:disabled{box-shadow:none;cursor:not-allowed;filter:saturate(.35);opacity:.5}
+.listening-feedback:empty{display:none}.listening-feedback{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:16px;font-weight:800}
+.listening-feedback>div{display:flex;align-items:flex-start;gap:11px}.listening-feedback>div>span{width:30px;height:30px;display:grid;place-items:center;flex:none;border-radius:50%;font-weight:950}
+.listening-feedback b{display:block}.listening-feedback p{margin:5px 0 0;font-weight:750}.listening-feedback .btn{min-width:145px}
+.listening-feedback.ok{background:#e7f8f1;color:#08775e}.listening-feedback.ok>div>span{background:#c6efdf}
+.listening-feedback.bad{background:#fff0ef;color:#a53c37}.listening-feedback.bad>div>span{background:#ffd9d6}
+@media(max-width:700px){
+  #studyOverlay.practice-immersive .overlay-card{height:100dvh}
+  #studyOverlay.practice-immersive .overlay-body{padding:14px 12px 24px}
+  #studyOverlay.practice-immersive .practice-stage-intro{padding:12px}
+  .practice-language-row{margin-bottom:10px}.practice-language-select{width:100%}
+  .listening-task-head h2{font-size:20px}.listening-task-head p{font-size:11px}
+  .listening-player{grid-template-columns:1fr;padding:15px}
+  .listening-player-copy{text-align:center}.listening-wave{grid-row:2}.listening-play{width:100%;grid-row:3}
+  .listening-player-meta,.listening-context{grid-column:1}
+  .listening-answer{padding:14px}.listening-answer-foot{align-items:stretch;flex-direction:column}.listening-answer-foot .btn{width:100%}
+  .listening-feedback{align-items:stretch;flex-direction:column}.listening-feedback .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.listening-player.is-playing .listening-wave i{animation:none}.listening-play{transition:none}}
