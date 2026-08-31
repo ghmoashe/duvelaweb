@@ -1850,22 +1850,29 @@
           }, unlockedAudio);
         } catch (recordingError) {
           if (runId !== listeningPlaybackRun) return;
-          try {
-            button.textContent = '…';
-            status.textContent = tr('Recording unavailable. Preparing Fish Audio…', 'Запись недоступна. Готовим Fish Audio…');
-            var fish = await prepareListeningFish(item.text, studyState.lang, rate);
-            await playListeningAudio(fish, rate, runId, function () {
-              button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
-              status.textContent = 'Fish Audio';
-            }, unlockedAudio);
-          } catch (fishError) {
-            if (runId !== listeningPlaybackRun) return;
+          if (item.audioClip) {
             try {
-              playListeningBrowserFallback(item.text, studyState.lang, rate, runId, button, status);
+              button.textContent = '…';
+              status.textContent = tr('Recording unavailable. Preparing Fish Audio…', 'Запись недоступна. Готовим Fish Audio…');
+              var fish = await prepareListeningFish(item.text, studyState.lang, rate);
+              await playListeningAudio(fish, rate, runId, function () {
+                button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+                status.textContent = 'Fish Audio';
+              }, unlockedAudio);
+              if (runId === listeningPlaybackRun) {
+                button.disabled = false;
+                button.textContent = '▶ ' + tr('Play audio', 'Прослушать');
+              }
               return;
-            } catch (fallbackError) {
-              status.textContent = tr('Audio could not be played. Please try again.', 'Аудио не удалось воспроизвести. Повторите попытку.');
+            } catch (fishError) {
+              if (runId !== listeningPlaybackRun) return;
             }
+          }
+          try {
+            playListeningBrowserFallback(item.text, studyState.lang, rate, runId, button, status);
+            return;
+          } catch (fallbackError) {
+            status.textContent = tr('Audio could not be played. Please try again.', 'Аудио не удалось воспроизвести. Повторите попытку.');
           }
         }
         if (runId === listeningPlaybackRun) {
