@@ -825,7 +825,14 @@
   async function loadSignups() {
     var r = await client.rpc('admin_list_recent_signups', { days_back: 7 });
     var body = document.getElementById('signupsBody');
-    if (r.error || !r.data || r.data.length === 0) {
+    // Distinguish "no rows in the window" from "RPC failed" — the previous
+    // check collapsed both into the empty state, hiding real bugs (RLS
+    // rejection, function rename, timeout) behind a misleading message.
+    if (r.error) {
+      body.innerHTML = '<tr><td colspan="3" class="empty">Failed to load: ' + esc(r.error.message || 'unknown error') + '</td></tr>';
+      return;
+    }
+    if (!r.data || r.data.length === 0) {
       body.innerHTML = '<tr><td colspan="3" class="empty">No signups in the last 7 days.</td></tr>'; return;
     }
     body.innerHTML = r.data.map(function (u) {
@@ -846,7 +853,10 @@
   async function loadLeads() {
     var r = await client.rpc('admin_list_corporate_leads', { only_open: !showHandled });
     var body = document.getElementById('leadsBody');
-    if (r.error || !r.data || r.data.length === 0) {
+    if (r.error) {
+      body.innerHTML = '<tr><td colspan="7" class="empty">Failed to load: ' + esc(r.error.message || 'unknown error') + '</td></tr>'; return;
+    }
+    if (!r.data || r.data.length === 0) {
       body.innerHTML = '<tr><td colspan="7" class="empty">No leads.</td></tr>'; return;
     }
     body.innerHTML = r.data.map(function (l) {
@@ -912,7 +922,10 @@
     var status = document.getElementById('accountStatusFilter').value || null;
     var r = await client.rpc('admin_list_corporate_accounts', { status_filter: status });
     var body = document.getElementById('accountsBody');
-    if (r.error || !r.data || r.data.length === 0) {
+    if (r.error) {
+      body.innerHTML = '<tr><td colspan="8" class="empty">Failed to load: ' + esc(r.error.message || 'unknown error') + '</td></tr>'; return;
+    }
+    if (!r.data || r.data.length === 0) {
       body.innerHTML = '<tr><td colspan="8" class="empty">No accounts.</td></tr>'; return;
     }
     body.innerHTML = r.data.map(function (a) {
@@ -1038,7 +1051,10 @@
   async function loadAudit() {
     var r = await client.rpc('admin_recent_audit', { limit_rows: 100 });
     var body = document.getElementById('auditBody');
-    if (r.error || !r.data || r.data.length === 0) {
+    if (r.error) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">Failed to load: ' + esc(r.error.message || 'unknown error') + '</td></tr>'; return;
+    }
+    if (!r.data || r.data.length === 0) {
       body.innerHTML = '<tr><td colspan="5" class="empty">No entries yet.</td></tr>'; return;
     }
     body.innerHTML = r.data.map(function (l) {
