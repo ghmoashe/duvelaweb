@@ -23,7 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F6F5FA;
+    --bg: #F7F7FB;
     --card: #FFFFFF;
     --ink: #17151F;
     --soft: #625B73;
@@ -35,7 +35,7 @@
     --gold: #F59E0B;
     --blue: #2563EB;
     --dark: #171321;
-    --shadow: 0 18px 48px rgba(32, 22, 64, .10);
+    --shadow: 0 24px 64px rgba(32, 22, 64, .12);
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -97,6 +97,12 @@
     font-size: 13px;
     font-weight: 750;
     cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .pill:hover { transform: translateY(-2px); border-color: #D5CCE7; }
+  .pill:focus-visible, .lang-switch button:focus-visible, summary:focus-visible, input:focus-visible {
+    outline: 3px solid rgba(109, 63, 224, .24);
+    outline-offset: 3px;
   }
   .pill.primary {
     border: 0;
@@ -105,13 +111,26 @@
     box-shadow: 0 10px 24px rgba(109, 63, 224, .28);
   }
   .hero {
-    padding: 72px 0 54px;
+    position: relative;
+    overflow: hidden;
+    padding: 64px 0 56px;
     border-bottom: 1px solid var(--line);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    top: -260px;
+    left: calc(50% - 720px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 85, 247, .12), rgba(168, 85, 247, 0) 68%);
+    pointer-events: none;
   }
   .hero-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
-    gap: 42px;
+    gap: 54px;
     align-items: center;
   }
   .eyebrow {
@@ -130,11 +149,11 @@
   }
   .eyebrow i { width: 8px; height: 8px; border-radius: 99px; background: var(--teal); }
   h1 {
-    max-width: 760px;
+    max-width: 700px;
     margin: 18px 0 0;
-    font-size: clamp(40px, 6vw, 74px);
-    line-height: .96;
-    letter-spacing: 0;
+    font-size: clamp(40px, 5.2vw, 66px);
+    line-height: 1.01;
+    letter-spacing: -.035em;
   }
   .grad { background: linear-gradient(90deg, var(--purple), var(--violet), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .lead {
@@ -142,28 +161,50 @@
     margin: 22px 0 0;
     color: var(--soft);
     font-size: 18px;
-    line-height: 1.65;
+    line-height: 1.55;
     font-weight: 520;
   }
   .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .hero-ctas .pill { min-height: 50px; padding: 0 22px; font-size: 14px; }
+  .cta-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: var(--soft);
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .cta-note svg { width: 17px; height: 17px; flex: 0 0 auto; color: var(--teal); }
   .proof {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-top: 34px;
+    margin-top: 30px;
   }
   .proof div {
-    min-height: 86px;
+    min-height: 104px;
     border: 1px solid var(--line);
     border-radius: 8px;
     background: rgba(255, 255, 255, .72);
-    padding: 16px;
+    padding: 16px 15px;
   }
-  .proof b { display: block; font-size: 22px; }
+  .proof-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 10px;
+    border-radius: 9px;
+    background: #F1ECFF;
+    color: var(--purple);
+  }
+  .proof-icon svg { width: 16px; height: 16px; }
+  .proof b { display: block; font-size: 15px; }
   .proof span { display: block; margin-top: 5px; color: var(--soft); font-size: 12.5px; font-weight: 700; line-height: 1.35; }
   .panel {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 22px;
     background: #fff;
     box-shadow: var(--shadow);
     overflow: hidden;
@@ -173,7 +214,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 18px;
+    padding: 18px 20px;
     background: var(--dark);
     color: #fff;
   }
@@ -184,7 +225,7 @@
     margin: 18px;
     padding: 18px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 16px;
     background: linear-gradient(180deg, #fff, #FAF8FF);
   }
   .teacher-head { display: flex; align-items: center; gap: 12px; }
@@ -204,11 +245,11 @@
   .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 18px; }
   .mini {
     padding: 13px;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #fff;
     border: 1px solid var(--line);
   }
-  .mini b { display: block; font-size: 20px; }
+  .mini b { display: block; font-size: 14px; }
   .mini span { color: var(--soft); font-size: 12px; font-weight: 700; }
   .feed { margin: 18px; display: grid; gap: 10px; }
   .feed-row {
@@ -218,7 +259,7 @@
     gap: 10px;
     padding: 12px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 12px;
     background: #fff;
   }
   .feed-icon {
@@ -250,7 +291,7 @@
   .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
   .card {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 16px;
     background: #fff;
     padding: 22px;
     box-shadow: 0 8px 20px rgba(32, 22, 64, .05);
@@ -278,7 +319,7 @@
   }
   .step {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 16px;
     background: #fff;
     padding: 18px;
   }
@@ -290,7 +331,7 @@
     gap: 18px;
     align-items: center;
     padding: 28px;
-    border-radius: 8px;
+    border-radius: 22px;
     background: #16121F;
     color: #fff;
   }
@@ -318,6 +359,40 @@
     outline: none;
   }
   .note { margin-top: 12px; color: var(--muted); font-size: 12.5px; font-weight: 650; }
+  .faq-list { display: grid; gap: 12px; margin-top: 30px; max-width: 820px; }
+  .faq-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(32, 22, 64, .04);
+  }
+  .faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 22px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 780;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #F1ECFF;
+    color: var(--purple);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .faq-item[open] summary::after { content: "−"; }
+  .faq-item p { margin: 0; padding: 0 22px 20px; color: var(--soft); line-height: 1.65; }
+  .mobile-cta { display: none; }
   footer { padding: 34px 0 46px; color: var(--muted); font-size: 13px; font-weight: 650; }
   footer .wrap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 24px; }
   @media (max-width: 900px) {
@@ -334,12 +409,38 @@
     .lang-switch { width: 100%; justify-content: flex-end; }
     .brand img { height: 34px; }
     .hero { padding-top: 46px; }
+    h1 { font-size: clamp(38px, 12vw, 52px); }
     .hero-ctas, .nav-inner { flex-wrap: wrap; }
     .hero-ctas .pill { width: 100%; }
     .panel { margin-top: 8px; }
     .cards, .steps, .mini-grid { grid-template-columns: 1fr; }
     .feed-row { grid-template-columns: 36px 1fr; }
     .feed-row .tag { grid-column: 2; width: fit-content; }
+    body { padding-bottom: 82px; }
+    .mobile-cta {
+      position: fixed;
+      z-index: 20;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 10px 10px 14px;
+      border: 1px solid rgba(255,255,255,.32);
+      border-radius: 18px;
+      background: rgba(23, 19, 33, .94);
+      color: #fff;
+      box-shadow: 0 18px 50px rgba(23, 19, 33, .30);
+      backdrop-filter: blur(14px);
+    }
+    .mobile-cta span { font-size: 12px; font-weight: 750; line-height: 1.25; }
+    .mobile-cta .pill { min-height: 44px; flex: 0 0 auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .pill { transition: none; }
   }
 </style>
 </head>
@@ -357,7 +458,7 @@
             <button type="button" data-lang="de">DE</button>
           </div>
           <a class="pill" href="./index.html" data-i18n="nav_home">Home</a>
-          <a class="pill primary js-teacher-signup" href="./index.html?login=1" data-i18n="nav_join">Join as teacher</a>
+          <a class="pill primary js-teacher-signup" data-cta-place="navigation" href="./index.html?login=1" data-i18n="nav_join">Join as teacher</a>
         </div>
       </div>
     </div>
@@ -371,13 +472,17 @@
           <h1 data-i18n-html="hero_title">Teach on <span class="grad">Duvela</span> with one clean workspace.</h1>
           <p class="lead" data-i18n="hero_body">Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.</p>
           <div class="hero-ctas">
-            <a class="pill primary js-teacher-signup" href="./index.html?login=1" data-i18n="accept">Accept invite</a>
+            <a class="pill primary js-teacher-signup" data-cta-place="hero" href="./index.html?login=1" data-i18n="accept">Accept invite</a>
             <a class="pill" href="#how" data-i18n="see_how">See how it works</a>
           </div>
+          <div class="cta-note">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>
+            <span data-i18n="cta_note">The teacher role is selected automatically</span>
+          </div>
           <div class="proof" aria-label="Teacher workspace highlights">
-            <div><b>LIVE</b><span data-i18n="proof_live">Run browser lessons with camera, mic and chat</span></div>
-            <div><b data-i18n="proof_courses_t">Courses</b><span data-i18n="proof_courses">Publish structured offers learners can join</span></div>
-            <div><b data-i18n="proof_events_t">Events</b><span data-i18n="proof_events">Create workshops, clubs and online sessions</span></div>
+            <div><span class="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 10l4.5-2.5v9L15 14M5 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>LIVE</b><span data-i18n="proof_live">Run browser lessons with camera, mic and chat</span></div>
+            <div><span class="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Zm0 13a2 2 0 0 1 2-2h11M9 8h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b data-i18n="proof_courses_t">Courses</b><span data-i18n="proof_courses">Publish structured offers learners can join</span></div>
+            <div><span class="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3v3m8-3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v12H4V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b data-i18n="proof_events_t">Events</b><span data-i18n="proof_events">Create workshops, clubs and online sessions</span></div>
           </div>
         </div>
 
@@ -395,10 +500,10 @@
               </div>
             </div>
             <div class="mini-grid">
-              <div class="mini"><b>3</b><span data-i18n="mini_offers">active offers</span></div>
-              <div class="mini"><b>12</b><span data-i18n="mini_learners">new learners</span></div>
-              <div class="mini"><b>B1</b><span data-i18n="mini_level">popular level</span></div>
-              <div class="mini"><b>LIVE</b><span data-i18n="mini_tools">studio tools</span></div>
+              <div class="mini"><b data-i18n="mini_profile_t">Public profile</b><span data-i18n="mini_profile">subjects and experience</span></div>
+              <div class="mini"><b data-i18n="mini_courses_t">Courses</b><span data-i18n="mini_courses">price and schedule</span></div>
+              <div class="mini"><b data-i18n="mini_learners_t">Learners</b><span data-i18n="mini_learners">in one list</span></div>
+              <div class="mini"><b>LIVE</b><span data-i18n="mini_tools">browser studio</span></div>
             </div>
           </div>
           <div class="feed">
@@ -440,6 +545,20 @@
       </div>
     </section>
 
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="faq_kicker">Before you start</span>
+          <h2 data-i18n="faq_title">Clear answers to the main questions.</h2>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item" open><summary data-i18n="faq_1_q">What happens after I accept the invite?</summary><p data-i18n="faq_1_a">Duvela opens signup with the teacher role selected. After creating the account, you can complete your profile and publish your first offer.</p></details>
+          <details class="faq-item"><summary data-i18n="faq_2_q">What can I publish?</summary><p data-i18n="faq_2_a">Courses, LIVE lessons and events such as workshops, clubs or online sessions.</p></details>
+          <details class="faq-item"><summary data-i18n="faq_3_q">Do I need to install anything?</summary><p data-i18n="faq_3_a">The teacher workspace and LIVE tools open in the browser.</p></details>
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="wrap">
         <div class="invite-box">
@@ -454,7 +573,7 @@
           </div>
           <div class="invite-actions">
             <button class="pill" type="button" id="copyInvite" data-i18n="copy">Copy invite link</button>
-            <a class="pill primary js-teacher-signup" href="./index.html?login=1" data-i18n="create">Create teacher account</a>
+            <a class="pill primary js-teacher-signup" data-cta-place="final" href="./index.html?login=1" data-i18n="create">Create teacher account</a>
           </div>
         </div>
       </div>
@@ -467,6 +586,11 @@
       <span data-i18n="footer">For independent teachers, organizers and schools.</span>
     </div>
   </footer>
+
+  <div class="mobile-cta" aria-label="Teacher signup">
+    <span data-i18n="mobile_cta_note">Your teacher workspace is one click away</span>
+    <a class="pill primary js-teacher-signup" data-cta-place="mobile_sticky" href="./index.html?login=1" data-i18n="accept_short">Get started</a>
+  </div>
 
 <script>
   (function () {
@@ -487,6 +611,51 @@
         nav_home:'Startseite',nav_join:'Als Lehrer starten',eyebrow:'Lehrereinladung',hero_title:'Unterrichten mit <span class="grad">Duvela</span> in einem klaren Arbeitsbereich.',hero_body:'Erstelle ein öffentliches Lehrerprofil, veröffentliche Kurse, halte LIVE-Unterricht, verwalte Lernende und baue deine Reichweite in der Duvela Web-App aus.',accept:'Einladung annehmen',see_how:'Ablauf ansehen',proof_live:'Unterricht im Browser mit Kamera, Mikrofon und Chat durchführen',proof_courses_t:'Kurse',proof_courses:'Strukturierte Angebote veröffentlichen, für die sich Lernende anmelden können',proof_events_t:'Events',proof_events:'Workshops, Clubs und Online-Termine erstellen',ready:'Bereit',preview_title:'Dein Lehrerprofil',preview_body:'Deutsch, Englisch, Kunst, Schulfächer und mehr',mini_offers:'aktive Angebote',mini_learners:'neue Lernende',mini_level:'beliebtes Niveau',mini_tools:'Studio-Werkzeuge',feed_course_t:'Kurs erstellen',feed_course_b:'Titel, Niveau, Preis und Zeitplan festlegen',feed_live_t:'LIVE starten',feed_live_b:'Einen Lehrerraum direkt im Browser öffnen',feed_event_t:'Event hinzufügen',feed_event_b:'Lernende zu Workshop oder Club einladen',tag_offer:'Angebot',tag_studio:'Studio',tag_growth:'Wachstum',get_kicker:'Was Lehrer bekommen',get_title:'Ein praktischer Arbeitsbereich zum Unterrichten, nicht nur eine Profilseite.',get_body:'Duvela gibt Lehrern die wichtigsten Werkzeuge für Angebote, Live-Unterricht und organisierte Lernaktivität.',card_profile_t:'Öffentliches Lehrerprofil',card_profile_b:'Zeige Fächer, Sprachen, Erfahrung, Links und Unterrichtsschwerpunkt an einem Ort.',card_course_t:'Kurs- und Klassenangebote',card_course_b:'Erstelle Kurse mit Niveau, Sprache, Zeitplan, Preis und Anmeldemanagement.',card_live_t:'LIVE-Unterrichtswerkzeuge',card_live_b:'Öffne LIVE-Räume, halte Gruppenunterricht, chatte mit Lernenden und nutze deinen Ablauf erneut.',how_kicker:'So funktioniert es',how_title:'Von der Einladung zum ersten Angebot in vier Schritten.',step1:'Einladung annehmen und Lehreraccount erstellen.',step2:'Profil mit Fächern, Sprache und Erfahrung vervollständigen.',step3:'Kurs, Event oder LIVE-Termin für Lernende erstellen.',step4:'Anmeldungen, Nachrichten und Lernfortschritt im Arbeitsbereich verwalten.',invite_title:'Weiteren Lehrer zu Duvela einladen',invite_body:'Teile diese Seite mit einem Lehrer. Die Registrierung wird für die Lehrerrolle vorbereitet.',code_label:'Einladungscode',copy:'Einladungslink kopieren',create:'Lehreraccount erstellen',copied:'Einladungslink kopiert.',footer:'Für selbstständige Lehrer, Organisatoren und Schulen.'
       }
     };
+    Object.assign(dict.en, {
+      hero_title:'Everything you need to teach — in one <span class="grad">Duvela</span> workspace.',
+      hero_body:'Create your profile, launch courses and LIVE lessons, welcome learners and manage teaching without switching between services.',
+      accept:'Create teacher workspace',
+      accept_short:'Get started',
+      cta_note:'The teacher role is selected automatically',
+      mini_profile_t:'Public profile',mini_profile:'subjects and experience',
+      mini_courses_t:'Courses',mini_courses:'price and schedule',
+      mini_learners_t:'Learners',mini_learners:'in one list',mini_tools:'browser studio',
+      faq_kicker:'Before you start',faq_title:'Clear answers to the main questions.',
+      faq_1_q:'What happens after I accept the invite?',faq_1_a:'Duvela opens signup with the teacher role selected. After creating the account, you can complete your profile and publish your first offer.',
+      faq_2_q:'What can I publish?',faq_2_a:'Courses, LIVE lessons and events such as workshops, clubs or online sessions.',
+      faq_3_q:'Do I need to install anything?',faq_3_a:'The teacher workspace and LIVE tools open in the browser.',
+      mobile_cta_note:'Your teacher workspace is one click away'
+    });
+    Object.assign(dict.ru, {
+      hero_title:'Всё для преподавания — в одном кабинете <span class="grad">Duvela</span>.',
+      hero_body:'Создайте профиль, запускайте курсы и LIVE-уроки, принимайте учеников и управляйте занятиями без переключения между сервисами.',
+      accept:'Создать кабинет учителя',
+      accept_short:'Начать',
+      cta_note:'Роль учителя будет выбрана автоматически',
+      mini_profile_t:'Публичный профиль',mini_profile:'предметы и опыт',
+      mini_courses_t:'Курсы',mini_courses:'цена и расписание',
+      mini_learners_t:'Ученики',mini_learners:'в одном списке',mini_tools:'студия в браузере',
+      faq_kicker:'Перед началом',faq_title:'Ответы на главные вопросы.',
+      faq_1_q:'Что произойдёт после нажатия на кнопку?',faq_1_a:'Duvela откроет регистрацию с уже выбранной ролью учителя. После создания аккаунта вы сможете заполнить профиль и опубликовать первое предложение.',
+      faq_2_q:'Что можно публиковать?',faq_2_a:'Курсы, LIVE-уроки и события — например, воркшопы, клубы или онлайн-занятия.',
+      faq_3_q:'Нужно ли что-то устанавливать?',faq_3_a:'Кабинет учителя и LIVE-инструменты открываются прямо в браузере.',
+      mobile_cta_note:'Ваш кабинет учителя — в одном клике'
+    });
+    Object.assign(dict.de, {
+      hero_title:'Alles zum Unterrichten — in einem <span class="grad">Duvela</span>-Arbeitsbereich.',
+      hero_body:'Profil erstellen, Kurse und LIVE-Unterricht starten, Lernende aufnehmen und den Unterricht ohne Wechsel zwischen Diensten verwalten.',
+      accept:'Lehrerbereich erstellen',
+      accept_short:'Starten',
+      cta_note:'Die Lehrerrolle wird automatisch ausgewählt',
+      mini_profile_t:'Öffentliches Profil',mini_profile:'Fächer und Erfahrung',
+      mini_courses_t:'Kurse',mini_courses:'Preis und Zeitplan',
+      mini_learners_t:'Lernende',mini_learners:'in einer Liste',mini_tools:'Studio im Browser',
+      faq_kicker:'Vor dem Start',faq_title:'Klare Antworten auf die wichtigsten Fragen.',
+      faq_1_q:'Was passiert nach dem Klick?',faq_1_a:'Duvela öffnet die Registrierung mit vorausgewählter Lehrerrolle. Danach kannst du dein Profil vervollständigen und dein erstes Angebot veröffentlichen.',
+      faq_2_q:'Was kann ich veröffentlichen?',faq_2_a:'Kurse, LIVE-Unterricht und Events wie Workshops, Clubs oder Online-Termine.',
+      faq_3_q:'Muss ich etwas installieren?',faq_3_a:'Der Lehrerbereich und die LIVE-Werkzeuge öffnen sich direkt im Browser.',
+      mobile_cta_note:'Dein Lehrerbereich ist nur einen Klick entfernt'
+    });
     var refInput = document.getElementById('inviteRef');
     var rawLang = (inviteParams.get('lang') || localStorage.getItem(langKey) || navigator.language || 'en').toLowerCase();
     var lang = rawLang.indexOf('ru') === 0 ? 'ru' : rawLang.indexOf('de') === 0 ? 'de' : 'en';
@@ -503,6 +672,18 @@
       url.searchParams.set('login', '1');
       url.searchParams.set('teacher_invite', (refInput && refInput.value.trim()) || 'duvela-teacher');
       return url.href;
+    }
+    function trackInviteAction(action, placement) {
+      var payload = {
+        event: 'teacher_invite_action',
+        action: action,
+        placement: placement || 'unknown',
+        language: lang,
+        invite_ref: (refInput && refInput.value.trim()) || 'duvela-teacher'
+      };
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(payload);
+      try { window.dispatchEvent(new CustomEvent('duvela:teacher-invite-action', { detail: payload })); } catch (_) {}
     }
     function renderLang() {
       document.documentElement.lang = lang;
@@ -525,6 +706,7 @@
     if (refInput) refInput.addEventListener('input', renderLang);
     document.querySelectorAll('.js-teacher-signup').forEach(function (link) {
       link.addEventListener('click', function () {
+        trackInviteAction('signup_click', link.dataset.ctaPlace || 'unknown');
         try {
           localStorage.setItem(signupRoleKey, 'teacher');
           localStorage.setItem(authModeKey, 'signup');
@@ -541,6 +723,7 @@
         var url = inviteUrl();
         try {
           await navigator.clipboard.writeText(url);
+          trackInviteAction('copy_invite', 'final');
           if (copyNote) copyNote.textContent = dict[lang].copied;
         } catch (_) {
           if (copyNote) copyNote.textContent = url;
