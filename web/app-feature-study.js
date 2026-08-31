@@ -10,6 +10,12 @@
     let aiChatState = null;
     let practicePremium = false;
     let practiceHydrated = false;
+    let listeningPlaybackRun = 0;
+    let listeningAudio = null;
+    let finishListeningPlayback = null;
+    const listeningRecordingCache = new Map();
+    const listeningFishCache = new Map();
+    const LISTENING_SILENCE = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAACAgICA';
 
     // ---- content banks (offline, bundled) ----
     const VOCAB = {
@@ -438,16 +444,23 @@
         var response = await fetch('./web/content/listening-lab-bank.json');
         if (!response.ok) return;
         var bank = await response.json();
+        var clipsById = {};
+        (bank.clips || []).forEach(function (clip) { clipsById[clip.id] = clip; });
         (bank.tasks || []).forEach(function (task) {
           var lang = task.target === 'german' ? 'de' : task.target === 'spanish' ? 'es' : 'en';
           var text = task.speechText || task.transcript;
           task._webLevel=normalizePracticeLevel(task.level,'A1');
-          if (text && !(LISTEN[lang] || []).some(function (item) { return item.text === text; })) (LISTEN[lang] || LISTEN.de).push({ text:text,hint:String(task.level || '').toUpperCase() + ' · ' + (task.prompt || '') });
+          task._webAudioClip = task.audioClipId ? clipsById[task.audioClipId] || null : null;
+          if (text && !(LISTEN[lang] || []).some(function (item) { return item.text === text; })) (LISTEN[lang] || LISTEN.de).push({
+            text:text,
+            hint:String(task.level || '').toUpperCase() + ' · ' + (task.prompt || ''),
+            audioClip:task._webAudioClip
+          });
         });
         Object.keys(LISTEN).forEach(function(code){
           (LISTEN[code]||[]).forEach(function(item){
             var source=(bank.tasks||[]).find(function(task){return (task.speechText||task.transcript)===item.text;});
-            if(source)item.level=source._webLevel;
+            if(source){item.level=source._webLevel;item.audioClip=source._webAudioClip;}
           });
         });
       } catch (e) { /* bundled starter bank remains available */ }
@@ -949,6 +962,7 @@
       persistResume();
       studyState = null;
       aiChatState = null;
+      stopListeningPlayback();
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     }
 
@@ -964,7 +978,7 @@
       var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
       var sessionLang=germanOnly?'de':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
       var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
-      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:.9,skillDirect:!!(restored&&restored.skillDirect),progressDirect:!!(restored&&restored.progressDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
+      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:1,skillDirect:!!(restored&&restored.skillDirect),progressDirect:!!(restored&&restored.progressDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
       $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + studyState.level;
       $('#studyOverlay').setAttribute('data-practice-tool', id);
@@ -980,7 +994,7 @@
       var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || (studyState.tool==='examplan'?{icon:'🎯',title:tr('Exam plan','План к экзамену'),desc:tr('A personal route to exam day','Персональный маршрут до экзамена')}:{icon:'⚔️',title:tr('Learner duel','Дуэль учеников'),desc:tr('Answer faster and more accurately','Отвечайте быстрее и точнее')});
       body.innerHTML = '<div class="practice-stage-intro"><span>' + (tool.icon || '✦') + '</span><div><small>' + esc(tr('TRAINING MODE','ТРЕНИРОВОЧНЫЙ РЕЖИМ')) + '</small><h3>' + esc(tool.title || '') + '</h3><p>' + esc(tool.desc || '') + '</p></div></div>' +
         '<div class="practice-session-line"><div><i id="practiceSessionBar"></i></div><span id="practiceSessionStep">1 / 10</span></div>' +
-        '<div class="practice-gamebar"><div class="practice-status"><span id="practiceLives">♥♥♥</span><span id="practiceCombo">🔥 0</span></div><details class="practice-tools"><summary>⚙ '+esc(tr('Help and options','Помощь и настройки'))+'</summary><div><button type="button" data-practice-help="hint">💡 ' + esc(tr('Hint','Подсказка')) + '</button><button type="button" data-practice-help="explain">? ' + esc(tr('Explain','Объяснить')) + '</button><button type="button" data-practice-help="speed">🔊 0.9×</button><button type="button" data-practice-help="timer">⏱ ' + esc(tr('No timer','Без таймера')) + '</button></div></details></div><div id="practiceCoach" class="practice-coach" hidden></div>' +
+        '<div class="practice-gamebar"><div class="practice-status"><span id="practiceLives">♥♥♥</span><span id="practiceCombo">🔥 0</span></div><details class="practice-tools"><summary>⚙ '+esc(tr('Help and options','Помощь и настройки'))+'</summary><div><button type="button" data-practice-help="hint">💡 ' + esc(tr('Hint','Подсказка')) + '</button><button type="button" data-practice-help="explain">? ' + esc(tr('Explain','Объяснить')) + '</button><button type="button" data-practice-help="speed">🔊 1×</button><button type="button" data-practice-help="timer">⏱ ' + esc(tr('No timer','Без таймера')) + '</button></div></details></div><div id="practiceCoach" class="practice-coach" hidden></div>' +
         pickerRow + '<div id="studyToolBody" class="practice-workspace"></div>';
       var sel = $('#studyLang');
       if (sel) sel.addEventListener('change', function () {
@@ -1606,36 +1620,259 @@
       };
     }
 
-    // ---- 6. Listening lab (TTS) ----
+    // ---- 6. Listening lab (Supabase recording -> Fish Audio fallback) ----
+    function waitForListeningStep(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
+
+    function stopListeningPlayback() {
+      listeningPlaybackRun++;
+      if (finishListeningPlayback) {
+        var finish = finishListeningPlayback;
+        finishListeningPlayback = null;
+        finish();
+      }
+      if (listeningAudio) {
+        try { listeningAudio.pause(); } catch (e) { /* already stopped */ }
+        listeningAudio = null;
+      }
+    }
+
+    function listeningStorageUrl(path) {
+      var base = String(window.DuvelaWebConfig && window.DuvelaWebConfig.supabaseUrl || '').replace(/\/+$/, '');
+      var cleanPath = String(path || '').replace(/^\/+/, '');
+      if (!base || !cleanPath) return '';
+      var encodedPath = cleanPath.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+      return base + '/storage/v1/object/public/exams/' + encodedPath;
+    }
+
+    async function prepareListeningRecording(clip) {
+      var source = listeningStorageUrl(clip && clip.file);
+      if (!source) throw new Error('recording unavailable');
+      if (listeningRecordingCache.has(source)) return listeningRecordingCache.get(source);
+      var preparation = (async function () {
+        var response = await fetch(source, { cache: 'force-cache' });
+        if (!response.ok) throw new Error('recording download failed');
+        var blob = await response.blob();
+        if (!blob.size) throw new Error('recording is empty');
+        return {
+          source: URL.createObjectURL(blob),
+          startMs: Math.max(0, Number(clip.startMs || 0)),
+          endMs: Math.max(0, Number(clip.endMs || 0))
+        };
+      })();
+      listeningRecordingCache.set(source, preparation);
+      try {
+        return await preparation;
+      } catch (error) {
+        listeningRecordingCache.delete(source);
+        throw error;
+      }
+    }
+
+    async function prepareListeningFish(text, lang, rate) {
+      var clean = String(text || '').trim();
+      if (!clean) throw new Error('speech text unavailable');
+      var cacheKey = [lang, rate, clean].join('|');
+      if (listeningFishCache.has(cacheKey)) return listeningFishCache.get(cacheKey);
+      var preparation = (async function () {
+        var result = await supa.functions.invoke('fish-audio-tts', {
+          body: {
+            action: 'speak',
+            text: clean.slice(0, 1000),
+            languageCode: lang,
+            rate: rate
+          }
+        });
+        if (result.error || !result.data) throw result.error || new Error('Fish Audio returned no audio');
+        var blob = result.data instanceof Blob ? result.data : new Blob([result.data], { type: 'audio/mpeg' });
+        if (!blob.size) throw new Error('Fish Audio returned empty audio');
+        return { source: URL.createObjectURL(blob), startMs: 0, endMs: 0 };
+      })();
+      listeningFishCache.set(cacheKey, preparation);
+      try {
+        return await preparation;
+      } catch (error) {
+        listeningFishCache.delete(cacheKey);
+        throw error;
+      }
+    }
+
+    function waitForListeningAudio(audio, runId) {
+      if (audio.readyState >= 2) return Promise.resolve();
+      return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () { cleanup(); reject(new Error('audio load timeout')); }, 20000);
+        function cleanup() {
+          clearTimeout(timeout);
+          audio.removeEventListener('canplay', ready);
+          audio.removeEventListener('error', failed);
+        }
+        function ready() {
+          cleanup();
+          if (runId !== listeningPlaybackRun) reject(new Error('playback cancelled'));
+          else resolve();
+        }
+        function failed() { cleanup(); reject(new Error('audio playback failed')); }
+        audio.addEventListener('canplay', ready, { once: true });
+        audio.addEventListener('error', failed, { once: true });
+      });
+    }
+
+    function unlockListeningAudio() {
+      var audio = new Audio(LISTENING_SILENCE);
+      audio.preload = 'auto';
+      listeningAudio = audio;
+      // Reusing an element first played directly inside the click keeps the
+      // post-countdown playback allowed on stricter mobile browsers.
+      audio.play().catch(function () { /* later play() still reports a useful error */ });
+      return audio;
+    }
+
+    async function playListeningAudio(prepared, rate, runId, onPlaying, unlockedAudio) {
+      var audio = unlockedAudio || new Audio();
+      try { audio.pause(); } catch (e) { /* not started yet */ }
+      audio.preload = 'auto';
+      audio.playbackRate = rate;
+      audio.src = prepared.source;
+      listeningAudio = audio;
+      audio.load();
+      await waitForListeningAudio(audio, runId);
+      if (runId !== listeningPlaybackRun) throw new Error('playback cancelled');
+      if (prepared.startMs) audio.currentTime = prepared.startMs / 1000;
+      await audio.play();
+      onPlaying();
+      var completion = new Promise(function (resolve, reject) {
+        var settled = false;
+        function finish(error) {
+          if (settled) return;
+          settled = true;
+          audio.removeEventListener('ended', ended);
+          audio.removeEventListener('error', failed);
+          audio.removeEventListener('timeupdate', checkSegmentEnd);
+          if (finishListeningPlayback === cancelled) finishListeningPlayback = null;
+          if (error) reject(error); else resolve();
+        }
+        function ended() { finish(); }
+        function failed() { finish(new Error('audio playback failed')); }
+        function checkSegmentEnd() {
+          if (prepared.endMs && audio.currentTime * 1000 >= prepared.endMs) {
+            audio.pause();
+            finish();
+          }
+        }
+        function cancelled() { finish(); }
+        finishListeningPlayback = cancelled;
+        audio.addEventListener('ended', ended);
+        audio.addEventListener('error', failed);
+        audio.addEventListener('timeupdate', checkSegmentEnd);
+      });
+      await completion;
+      if (listeningAudio === audio) listeningAudio = null;
+    }
+
+    async function runListeningCountdown(button, status, runId) {
+      status.textContent = tr('Preparing audio…', 'Готовим аудио…');
+      for (var value = 3; value >= 1; value--) {
+        if (runId !== listeningPlaybackRun) return false;
+        button.textContent = String(value);
+        await waitForListeningStep(1000);
+      }
+      return runId === listeningPlaybackRun;
+    }
+
+    function playListeningBrowserFallback(text, lang, rate, runId, button, status) {
+      if (!window.speechSynthesis) throw new Error('speech fallback unavailable');
+      var utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = SPEECH_LOCALE[lang] || 'de-DE';
+      utterance.rate = rate;
+      utterance.onstart = function () {
+        if (runId !== listeningPlaybackRun) return;
+        button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+        status.textContent = tr('Device voice is being used.', 'Используется голос устройства.');
+      };
+      utterance.onend = utterance.onerror = function () {
+        if (runId !== listeningPlaybackRun) return;
+        button.disabled = false;
+        button.textContent = '▶ ' + tr('Play audio', 'Прослушать');
+      };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+
     function renderListening() {
       if (!studyState.skillDirect) return renderSkillsHub();
+      stopListeningPlayback();
       if (!studyState.data) studyState.data=shuffle(strictBank(LISTEN,studyState.lang,studyState.level));
       var deck = studyState.data;
       if(!deck.length)return noLevelContent();
       if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, deck.length * 3);
       var item = deck[studyState.idx];
+      if (item.audioClip) prepareListeningRecording(item.audioClip).catch(function () { /* Fish is prepared on demand */ });
       var host = $('#studyToolBody');
-      var supported = !!window.speechSynthesis;
       host.innerHTML = counterHtml(studyState.idx, deck.length) +
-        (supported ? '' : '<div class="empty">' + esc(tr('Your browser has no speech engine.', 'В браузере нет синтеза речи.')) + '</div>') +
         '<div style="text-align:center;margin:6px 0 12px">' +
-          '<button class="btn primary" id="lsPlay" style="min-width:150px">🔊 ' + esc(tr('Play audio', 'Прослушать')) + '</button>' +
+          '<button class="btn primary" id="lsPlay" aria-live="polite" style="min-width:150px">▶ ' + esc(tr('Play audio', 'Прослушать')) + '</button>' +
           '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-top:8px">' + esc(item.hint) + '</div>' +
+          '<div id="lsAudioStatus" role="status" style="color:var(--soft);font-weight:700;font-size:12px;margin-top:6px;min-height:18px"></div>' +
         '</div>' +
         '<div class="field"><label>' + esc(tr('Type what you hear', 'Запишите, что услышали')) + '</label>' +
         '<input id="lsInput" placeholder="..." autocomplete="off"></div>' +
         '<button class="btn primary" id="lsCheck" style="width:100%;margin-top:6px">' + esc(tr('Check', 'Проверить')) + '</button>' +
         '<div id="lsFb" style="font-weight:900;margin-top:12px;min-height:22px"></div>';
-      function speak() {
-        if (!supported) return;
-        window.speechSynthesis.cancel();
-        var u = new SpeechSynthesisUtterance(item.text);
-        u.lang = SPEECH_LOCALE[studyState.lang] || 'de-DE';
-        u.rate = studyState.speechRate || 0.9;
-        window.speechSynthesis.speak(u);
-      }
-      $('#lsPlay').addEventListener('click', speak);
-      if (supported) setTimeout(speak, 250);
+      $('#lsPlay').addEventListener('click', async function () {
+        var button = $('#lsPlay');
+        var status = $('#lsAudioStatus');
+        var rate = Number(studyState.speechRate || 1);
+        stopListeningPlayback();
+        var runId = listeningPlaybackRun;
+        var unlockedAudio = unlockListeningAudio();
+        button.disabled = true;
+        var preferredPreparation = (item.audioClip
+          ? prepareListeningRecording(item.audioClip)
+          : prepareListeningFish(item.text, studyState.lang, rate))
+          .then(function (value) { return { value: value, error: null }; })
+          .catch(function (error) { return { value: null, error: error }; });
+        var countdownComplete = await runListeningCountdown(button, status, runId);
+        if (!countdownComplete) return;
+        try {
+          button.textContent = '…';
+          status.textContent = item.audioClip
+            ? tr('Loading the original recording…', 'Загружаем оригинальную запись…')
+            : tr('Preparing Fish Audio…', 'Готовим Fish Audio…');
+          var preparedResult = await preferredPreparation;
+          if (preparedResult.error || !preparedResult.value) throw preparedResult.error || new Error('audio unavailable');
+          var preferred = preparedResult.value;
+          await playListeningAudio(preferred, rate, runId, function () {
+            button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+            status.textContent = item.audioClip
+              ? tr('Original recording', 'Оригинальная запись')
+              : 'Fish Audio';
+          }, unlockedAudio);
+        } catch (recordingError) {
+          if (runId !== listeningPlaybackRun) return;
+          try {
+            button.textContent = '…';
+            status.textContent = tr('Recording unavailable. Preparing Fish Audio…', 'Запись недоступна. Готовим Fish Audio…');
+            var fish = await prepareListeningFish(item.text, studyState.lang, rate);
+            await playListeningAudio(fish, rate, runId, function () {
+              button.textContent = '🔊 ' + tr('Playing', 'Воспроизведение');
+              status.textContent = 'Fish Audio';
+            }, unlockedAudio);
+          } catch (fishError) {
+            if (runId !== listeningPlaybackRun) return;
+            try {
+              playListeningBrowserFallback(item.text, studyState.lang, rate, runId, button, status);
+              return;
+            } catch (fallbackError) {
+              status.textContent = tr('Audio could not be played. Please try again.', 'Аудио не удалось воспроизвести. Повторите попытку.');
+            }
+          }
+        }
+        if (runId === listeningPlaybackRun) {
+          button.disabled = false;
+          button.textContent = '▶ ' + tr('Play audio', 'Прослушать');
+        }
+      });
       function norm(s) { return String(s || '').toLowerCase().replace(/[.,!?¿¡;:"']/g, '').replace(/\s+/g, ' ').trim(); }
       $('#lsCheck').addEventListener('click', function () {
         var val = norm($('#lsInput').value);

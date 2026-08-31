@@ -106,9 +106,35 @@ function checkLiveBackendContract() {
   log('LIVE backend contract: OK');
 }
 
+function checkListeningLabAudioContract() {
+  const studyCode = read('web/app-feature-study.js');
+  const bank = JSON.parse(read('web/content/listening-lab-bank.json'));
+  const clips = new Map((bank.clips || []).map((clip) => [clip.id, clip]));
+  const recordedTasks = (bank.tasks || []).filter((task) => task.audioClipId);
+
+  if (!recordedTasks.length) fail('Listening Lab bank must include recorded tasks.');
+  for (const task of recordedTasks) {
+    const clip = clips.get(task.audioClipId);
+    if (!clip) fail(`Listening Lab task ${task.id} references a missing clip ${task.audioClipId}.`);
+    if (!clip.file || Number(clip.endMs || 0) <= Number(clip.startMs || 0)) {
+      fail(`Listening Lab clip ${clip.id} has an invalid storage segment.`);
+    }
+  }
+
+  expectIncludes('web/app-feature-study.js', studyCode, '/storage/v1/object/public/exams/');
+  expectIncludes('web/app-feature-study.js', studyCode, 'for (var value = 3; value >= 1; value--)');
+  expectIncludes('web/app-feature-study.js', studyCode, "supa.functions.invoke('fish-audio-tts'");
+  expectIncludes('web/app-feature-study.js', studyCode, 'prepareListeningRecording(item.audioClip)');
+  expectIncludes('web/app-feature-study.js', studyCode, 'prepareListeningFish(item.text, studyState.lang, rate)');
+  if (studyCode.includes('setTimeout(speak, 250)')) fail('Listening Lab must wait for a user click and the 3-2-1 countdown.');
+
+  log('Listening Lab Supabase/Fish fallback contract: OK');
+}
+
 async function main() {
   checkRegistrationRoleContract();
   checkLiveBackendContract();
+  checkListeningLabAudioContract();
   log('All web contracts passed.');
 }
 
