@@ -100,6 +100,10 @@ function checkLiveBackendContract() {
   expectIncludes('supabase/functions/live-payment/index.ts', paymentFunction, 'send_live_gift');
   expectIncludes('supabase/functions/live-payment/index.ts', paymentFunction, 'SUPABASE_SERVICE_ROLE_KEY');
   expectIncludes('supabase/functions/live-restream/index.ts', restreamFunction, 'live_restream_targets');
+  expectIncludes('supabase/functions/live-restream/index.ts', restreamFunction, 'rtmp-converters');
+  expectIncludes('supabase/functions/live-restream/index.ts', restreamFunction, 'AGORA_CUSTOMER_KEY');
+  expectIncludes('supabase/functions/live-restream/index.ts', restreamFunction, 'converter_id');
+  if (restreamFunction.includes('not_configured')) fail('LIVE restream must use Agora Media Push, not the old stub response.');
   expectIncludes('README.md', readme, 'live-payment');
   expectIncludes('README.md', readme, 'live-restream');
 

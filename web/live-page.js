@@ -317,6 +317,11 @@
     facebook: 'rtmps://live-api-s.facebook.com:443/rtmp',
     tiktok: ''
   };
+  var RESTREAM_LABELS = {
+    youtube: 'YouTube',
+    facebook: 'Facebook',
+    tiktok: 'TikTok'
+  };
   function restreamRow(platform) {
     return document.querySelector('.restream-row[data-platform="' + platform + '"]');
   }
@@ -343,17 +348,26 @@
     btn.disabled = true;
     status.textContent = tr('Saving...', 'Сохранение...');
     try {
+      var invalid = [];
       var payload = RESTREAM_PLATFORMS.map(function (platform) {
         var row = restreamRow(platform);
+        var rtmpUrl = row.querySelector('.restreamUrl').value.trim();
+        var streamKey = row.querySelector('.restreamKey').value.trim();
+        var enabled = row.querySelector('.restreamEnabled').checked;
+        if (enabled && !rtmpUrl) invalid.push(RESTREAM_LABELS[platform] || platform);
         return {
           teacher_id: currentUser.id,
           platform: platform,
-          rtmp_url: row.querySelector('.restreamUrl').value.trim(),
-          stream_key: row.querySelector('.restreamKey').value.trim(),
-          enabled: row.querySelector('.restreamEnabled').checked,
+          rtmp_url: rtmpUrl || null,
+          stream_key: streamKey || null,
+          enabled: enabled,
           updated_at: new Date().toISOString()
         };
-      }).filter(function (row) { return row.enabled ? Boolean(row.rtmp_url) : true; });
+      });
+      if (invalid.length) {
+        status.textContent = tr('Add server URL for: ', 'Добавьте адрес сервера для: ') + invalid.join(', ');
+        return;
+      }
       var res = await supa.from('live_restream_targets').upsert(payload, { onConflict: 'teacher_id,platform' });
       status.textContent = res.error
         ? (tr('Could not save: ', 'Не удалось сохранить: ') + res.error.message)
@@ -373,8 +387,16 @@
       });
       var results = res?.data?.results || {};
       var started = Object.keys(results).filter(function (p) { return results[p] === 'started'; });
-      if (started.length) { setNote(tr('Also live on: ', 'Также в эфире на: ') + started.join(', ')); startRestreamStatusPolling(); }
-    } catch (e) { /* best-effort, LIVE itself keeps running */ }
+      var failed = Object.keys(results).filter(function (p) { return String(results[p] || '').indexOf('error') === 0; });
+      if (started.length) {
+        setNote(tr('Also live on: ', 'Также в эфире на: ') + started.map(function (p) { return RESTREAM_LABELS[p] || p; }).join(', '));
+        startRestreamStatusPolling();
+      } else if (failed.length) {
+        setNote(tr('LIVE is running, but multistream failed: ', 'Эфир идёт, но мультитрансляция не запустилась: ') + failed.map(function (p) { return RESTREAM_LABELS[p] || p; }).join(', '));
+      }
+    } catch (e) {
+      setNote(tr('LIVE is running, but multistream could not start.', 'Эфир идёт, но мультитрансляция не запустилась.'));
+    }
   }
   async function stopRestream() {
     if (restreamStatusTimer) { clearInterval(restreamStatusTimer); restreamStatusTimer = null; }

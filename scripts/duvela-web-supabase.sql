@@ -835,12 +835,18 @@ create table if not exists public.live_restream_targets (
   rtmp_url text,
   stream_key text,
   enabled boolean not null default false,
+  converter_id text,
+  converter_region text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (teacher_id, platform),
   constraint live_restream_targets_platform_check check (platform in ('youtube', 'facebook', 'tiktok')),
   constraint live_restream_targets_url_check check (rtmp_url is null or rtmp_url ~ '^rtmps?://')
 );
+
+alter table public.live_restream_targets
+  add column if not exists converter_id text,
+  add column if not exists converter_region text;
 
 alter table public.live_restream_targets enable row level security;
 

@@ -83,7 +83,7 @@ LIVE also expects these Edge Functions to be deployed:
 - `agora-token`: creates Agora publisher/subscriber tokens
 - `notify-course-enrollment`: handles course enrollment notifications
 - `live-payment`: validates gifts, charges `profiles.vela_coin_balance`, and writes `live_gifts`
-- `live-restream`: currently a safe restream status/stub endpoint; real RTMP restream still needs provider integration and secrets
+- `live-restream`: starts, stops, and checks Agora Media Push RTMP converters for enabled YouTube, Facebook, and TikTok targets
 - `notify-live-start`: sends one in-app notification to every follower when a teacher actually starts a LIVE session
 
 Function source for the LIVE additions lives under `supabase/functions/`.
