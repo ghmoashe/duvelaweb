@@ -894,7 +894,10 @@
       if (step === 1 && roles.indexOf(role) === -1) return { message: 'Choose your role first.', target: '' };
       if (step === 2) {
         if (role === 'organization' ? !state.orgName.trim() : !state.firstName.trim()) return { message: role === 'organization' ? 'Enter your organization name.' : 'Enter your first name.', target: role === 'organization' ? 'orgName' : 'firstName' };
-        if (state.country.trim() && D.isKnownCountry && !D.isKnownCountry(state.country)) return { message: 'Choose a country from the list.', target: 'country' };
+        // Country: only used for city suggestions. Blocking every country not
+        // in our curated list rejected valid answers like Uzbekistan and
+        // stranded learners on this step. Trust whatever the learner typed;
+        // the mismatch check below still catches "wrong country for city".
         // Only block a clear mismatch (city known to belong to a different
         // country). Cities not in our curated list — incl. geolocation results
         // and smaller towns — are allowed through.
