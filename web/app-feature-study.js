@@ -1670,6 +1670,30 @@
       }
     }
 
+    // supabase-js hides the edge-function body behind a generic
+    // "Edge Function returned a non-2xx status code" — the real reason
+    // ({ error: "…" }, e.g. "Sign in", "FISH_AUDIO_API_KEY is missing",
+    // a Fish quota message) sits on error.context (the Response). Pull it out
+    // so the listening player can show what actually failed.
+    async function describeFunctionError(error) {
+      var context = error && error.context;
+      if (context && typeof context.clone === 'function') {
+        try {
+          var body = await context.clone().json();
+          if (body && typeof body.error === 'string' && body.error) {
+            return body.error + (context.status ? ' (' + context.status + ')' : '');
+          }
+        } catch (jsonError) {
+          try {
+            var textBody = (await context.clone().text()).trim();
+            if (textBody) return textBody + (context.status ? ' (' + context.status + ')' : '');
+          } catch (textError) { /* fall through */ }
+        }
+        if (context.status) return 'Fish Audio request failed (' + context.status + ').';
+      }
+      return (error && error.message) || 'Fish Audio failed.';
+    }
+
     async function prepareListeningFish(text, lang, rate) {
       var clean = String(text || '').trim();
       if (!clean) throw new Error('speech text unavailable');
@@ -1684,7 +1708,8 @@
             rate: rate
           }
         });
-        if (result.error || !result.data) throw result.error || new Error('Fish Audio returned no audio');
+        if (result.error) throw new Error(await describeFunctionError(result.error));
+        if (!result.data) throw new Error('Fish Audio returned no audio');
         var blob = result.data instanceof Blob ? result.data : new Blob([result.data], { type: 'audio/mpeg' });
         if (!blob.size) throw new Error('Fish Audio returned empty audio');
         return { source: URL.createObjectURL(blob), startMs: 0, endMs: 0 };
@@ -1905,7 +1930,11 @@
             playListeningBrowserFallback(item.text, studyState.lang, rate, runId, button, status);
             return;
           } catch (fallbackError) {
-            status.textContent = tr('Audio could not be played. Please try again.', 'Аудио не удалось воспроизвести. Повторите попытку.');
+            // Surface the concrete reason instead of a generic retry prompt —
+            // recordingError is the first failure in the chain (clip download
+            // or the Fish edge function), which is what actually needs fixing.
+            var reason = (recordingError && recordingError.message) || tr('unknown error', 'неизвестная ошибка');
+            status.textContent = tr('Audio could not be played: ', 'Аудио не воспроизвелось: ') + reason;
           }
         }
         if (runId === listeningPlaybackRun) {
