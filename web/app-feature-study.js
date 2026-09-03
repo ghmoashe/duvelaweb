@@ -99,7 +99,12 @@
       ['life','C1',[['Medien','media','медийный'],['Internet','internet','интернет'],['Kultur','culture','культурный'],['Gesellschafts','society','общественный']]],
       ['life','C2',[['Infrastruktur','infrastructure','инфраструктурный'],['Datenschutz','data protection','защиты данных'],['Nachhaltigkeits','sustainability','устойчивый']]]
     ];
-    enrichGermanVocabBank();
+    // The earlier build called enrichGermanVocabBank() here, but the helper
+    // itself was never defined in the bundle — every fresh app.html load
+    // threw ReferenceError, aborted createStudyFeature, and left the whole
+    // screen stuck on the loading spinner. Guard the invocation so the
+    // startup path survives even if the helper is added back later.
+    if (typeof enrichGermanVocabBank === 'function') enrichGermanVocabBank();
 
     const ARTICLES = [
       { noun: 'Haus', art: 'das' }, { noun: 'Frau', art: 'die' }, { noun: 'Mann', art: 'der' },
