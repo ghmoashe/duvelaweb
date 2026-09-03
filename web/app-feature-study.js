@@ -1647,7 +1647,12 @@
     }
 
     async function prepareListeningRecording(clip) {
-      var source = listeningStorageUrl(clip && clip.file);
+      // The manifest stores listening-lab clips under `storagePath` (the exact
+      // exams-bucket key) and the few reused exam clips under `file`. Accept
+      // either so every recorded clip resolves — otherwise 356 of 360 clips
+      // fall through to Fish/device voice even though the recording exists.
+      var clipPath = clip && (clip.storagePath || clip.file);
+      var source = listeningStorageUrl(clipPath);
       if (!source) throw new Error('recording unavailable');
       if (listeningRecordingCache.has(source)) return listeningRecordingCache.get(source);
       var preparation = (async function () {

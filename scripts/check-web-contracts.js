@@ -120,14 +120,19 @@ function checkListeningLabAudioContract() {
   for (const task of recordedTasks) {
     const clip = clips.get(task.audioClipId);
     if (!clip) fail(`Listening Lab task ${task.id} references a missing clip ${task.audioClipId}.`);
-    if (!clip.file || Number(clip.endMs || 0) <= Number(clip.startMs || 0)) {
+    // Clips carry their exams-bucket key as either `storagePath` (listening-lab
+    // recordings) or `file` (reused exam tracks) — accept either.
+    const clipPath = clip.storagePath || clip.file;
+    if (!clipPath || Number(clip.endMs || 0) <= Number(clip.startMs || 0)) {
       fail(`Listening Lab clip ${clip.id} has an invalid storage segment.`);
     }
   }
 
   expectIncludes('web/app-feature-study.js', studyCode, '/storage/v1/object/public/exams/');
   expectIncludes('web/app-feature-study.js', studyCode, 'for (var value = 3; value >= 1; value--)');
-  expectIncludes('web/app-feature-study.js', studyCode, "supa.functions.invoke('fish-audio-tts'");
+  // Fish Audio is fetched raw (not via supa.functions.invoke) so supabase-js
+  // does not .text()-decode the audio/mpeg body and corrupt the MP3.
+  expectIncludes('web/app-feature-study.js', studyCode, "fetch(base + '/functions/v1/fish-audio-tts'");
   expectIncludes('web/app-feature-study.js', studyCode, 'prepareListeningRecording(item.audioClip)');
   expectIncludes('web/app-feature-study.js', studyCode, 'prepareListeningFish(item.text, studyState.lang, rate)');
   if (studyCode.includes('setTimeout(speak, 250)')) fail('Listening Lab must wait for a user click and the 3-2-1 countdown.');
