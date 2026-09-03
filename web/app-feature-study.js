@@ -1670,28 +1670,46 @@
       }
     }
 
-    // supabase-js hides the edge-function body behind a generic
-    // "Edge Function returned a non-2xx status code" — the real reason
-    // ({ error: "…" }, e.g. "Sign in", "FISH_AUDIO_API_KEY is missing",
-    // a Fish quota message) sits on error.context (the Response). Pull it out
-    // so the listening player can show what actually failed.
-    async function describeFunctionError(error) {
-      var context = error && error.context;
-      if (context && typeof context.clone === 'function') {
+    // Fetch Fish Audio and keep the bytes BINARY.
+    //
+    // supa.functions.invoke must not be used for audio: supabase-js decodes
+    // the response by Content-Type and only treats application/octet-stream
+    // (or /pdf) as a Blob — everything else, audio/mpeg included, is read with
+    // .text(). That turned the MP3 into a mojibake string, so the <audio>
+    // element could not decode it and both the listening lab and the AI
+    // partners silently fell back to the robotic device voice. Fetch the URL
+    // directly and read response.blob().
+    async function fetchFishAudioBlob(body) {
+      var config = window.DuvelaWebConfig || {};
+      var base = String(config.supabaseUrl || '').replace(/\/+$/, '');
+      if (!base) throw new Error('Supabase is not configured.');
+      var session = await supa.auth.getSession();
+      var accessToken = session && session.data && session.data.session
+        ? session.data.session.access_token
+        : '';
+      if (!accessToken) throw new Error('Sign in to use Fish Audio.');
+      var response = await fetch(base + '/functions/v1/fish-audio-tts', {
+        method: 'POST',
+        headers: {
+          apikey: config.supabaseAnonKey || '',
+          Authorization: 'Bearer ' + accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) {
+        var message = '';
         try {
-          var body = await context.clone().json();
-          if (body && typeof body.error === 'string' && body.error) {
-            return body.error + (context.status ? ' (' + context.status + ')' : '');
-          }
+          var payload = await response.clone().json();
+          message = payload && typeof payload.error === 'string' ? payload.error : '';
         } catch (jsonError) {
-          try {
-            var textBody = (await context.clone().text()).trim();
-            if (textBody) return textBody + (context.status ? ' (' + context.status + ')' : '');
-          } catch (textError) { /* fall through */ }
+          try { message = (await response.clone().text()).trim(); } catch (textError) { message = ''; }
         }
-        if (context.status) return 'Fish Audio request failed (' + context.status + ').';
+        throw new Error((message || 'Fish Audio failed') + ' (' + response.status + ')');
       }
-      return (error && error.message) || 'Fish Audio failed.';
+      var blob = await response.blob();
+      if (!blob.size) throw new Error('Fish Audio returned empty audio');
+      return blob;
     }
 
     async function prepareListeningFish(text, lang, rate) {
@@ -1700,18 +1718,12 @@
       var cacheKey = [lang, rate, clean].join('|');
       if (listeningFishCache.has(cacheKey)) return listeningFishCache.get(cacheKey);
       var preparation = (async function () {
-        var result = await supa.functions.invoke('fish-audio-tts', {
-          body: {
-            action: 'speak',
-            text: clean.slice(0, 1000),
-            languageCode: lang,
-            rate: rate
-          }
+        var blob = await fetchFishAudioBlob({
+          action: 'speak',
+          text: clean.slice(0, 1000),
+          languageCode: lang,
+          rate: rate
         });
-        if (result.error) throw new Error(await describeFunctionError(result.error));
-        if (!result.data) throw new Error('Fish Audio returned no audio');
-        var blob = result.data instanceof Blob ? result.data : new Blob([result.data], { type: 'audio/mpeg' });
-        if (!blob.size) throw new Error('Fish Audio returned empty audio');
         return { source: URL.createObjectURL(blob), startMs: 0, endMs: 0 };
       })();
       listeningFishCache.set(cacheKey, preparation);
@@ -2410,16 +2422,13 @@
       stopAiVoice();
       var partner = aiChatState.partner;
       try {
-        var { data, error } = await supa.functions.invoke('fish-audio-tts', {
-          body: {
-            action: 'speak',
-            text: clean.slice(0, 1000),
-            voiceId: partner && partner.voiceId ? partner.voiceId : ''
-          }
+        // Raw fetch, not supa.functions.invoke — see fetchFishAudioBlob: the
+        // invoke path decodes audio/mpeg with .text() and corrupts the MP3.
+        var blob = await fetchFishAudioBlob({
+          action: 'speak',
+          text: clean.slice(0, 1000),
+          voiceId: partner && partner.voiceId ? partner.voiceId : ''
         });
-        if (error || !data) throw error || new Error('no audio');
-        var blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' });
-        if (!blob.size) throw new Error('empty audio');
         var url = URL.createObjectURL(blob);
         aiVoiceAudio = new Audio(url);
         aiVoiceAudio.onended = aiVoiceAudio.onerror = function () { URL.revokeObjectURL(url); };
