@@ -1076,3 +1076,35 @@
 #studyOverlay.practice-live-mode .duel-final-score b{background:rgba(255,255,255,.1);color:#fff}
 
 @media(max-height:760px){#studyOverlay.practice-live-mode .duel-live-audience{display:none}#studyOverlay.practice-live-mode .duel-live-masthead{margin-bottom:10px;padding-bottom:10px}#studyOverlay.practice-live-mode .duel-question{padding-block:18px}#studyOverlay.practice-live-mode .duel-options button{min-height:54px}}
+
+#studyOverlay.practice-live-mode .duel-live-masthead small,#studyOverlay.practice-live-mode .duel-live-masthead strong,#studyOverlay.practice-live-mode .duel-live-bank{letter-spacing:0}
+#studyOverlay.practice-live-mode .duel-live-bank{display:block;margin-top:3px;color:#72d8f5;font-size:11px;font-style:normal;font-weight:950}
+#studyOverlay.practice-live-mode #duelAnswerFeedback{flex:0 0 auto}
+#studyOverlay.practice-live-mode .inline-answer b{font-size:16px}
+#studyOverlay.practice-live-mode .inline-answer p{margin:5px 0 8px}
+#studyOverlay.practice-live-mode .duel-question h2{overflow-wrap:anywhere}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .duel-live-audience{display:none}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .duel-live-masthead{margin-bottom:8px;padding-bottom:8px}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .duel-match-head{margin-bottom:8px}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .duel-question{margin-bottom:8px;padding-block:14px}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .duel-options{gap:7px}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .duel-options button{min-height:52px}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .inline-answer{margin-top:8px;padding:10px 12px}
+#studyOverlay.practice-live-mode .practice-workspace:has(#duelAnswerFeedback .inline-answer) .inline-answer .btn{min-height:38px;padding:7px 15px}
+
+@media(max-height:1100px){
+  #studyOverlay.practice-live-mode .overlay-body{padding:12px clamp(16px,3vw,34px) 14px}
+  #studyOverlay.practice-live-mode .practice-session-line{margin-bottom:8px}
+  #studyOverlay.practice-live-mode .duel-live-masthead{margin-bottom:9px;padding-bottom:9px}
+  #studyOverlay.practice-live-mode .duel-live-audience{margin-bottom:9px;font-size:14px}
+  #studyOverlay.practice-live-mode .duel-match-head{margin-bottom:9px;padding:11px;border-radius:18px}
+  #studyOverlay.practice-live-mode .duel-match-head b{font-size:34px}
+  #studyOverlay.practice-live-mode .duel-avatar{width:54px;height:54px;border-radius:16px}
+  #studyOverlay.practice-live-mode .duel-question{margin-bottom:9px;padding:16px 14px;border-radius:20px}
+  #studyOverlay.practice-live-mode .duel-question h2{margin-top:7px;font-size:31px;line-height:1.1}
+  #studyOverlay.practice-live-mode .duel-options{gap:8px}
+  #studyOverlay.practice-live-mode .duel-options button{min-height:56px;padding:8px 15px}
+  #studyOverlay.practice-live-mode .duel-options button span{flex-basis:44px;height:44px}
+  #studyOverlay.practice-live-mode .inline-answer{margin-top:8px;padding:10px 12px}
+  #studyOverlay.practice-live-mode .inline-answer .btn{min-height:38px;padding:7px 15px}
+}

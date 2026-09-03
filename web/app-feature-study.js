@@ -58,12 +58,47 @@
 
     const GRAMMAR = {
       de: [
-        { q: 'Ich ___ Student.', opts: ['bin', 'bist', 'ist', 'sind'], a: 0 },
-        { q: 'Wir ___ nach Berlin.', opts: ['fahre', 'fährst', 'fahren', 'fährt'], a: 2 },
-        { q: 'Das ist ___ Buch.', opts: ['ein', 'eine', 'einen', 'einem'], a: 0 },
-        { q: 'Er ___ jeden Tag Deutsch.', opts: ['lerne', 'lernst', 'lernt', 'lernen'], a: 2 },
-        { q: 'Ich gehe ___ Schule.', opts: ['zur', 'zum', 'im', 'am'], a: 0 },
-        { q: 'Sie ___ ein Auto.', opts: ['habe', 'hast', 'hat', 'haben'], a: 2 }
+        { level: 'A1', q: 'Ich ___ Student.', opts: ['bin', 'bist', 'ist', 'sind'], a: 0 },
+        { level: 'A1', q: 'Wir ___ aus Berlin.', opts: ['komme', 'kommst', 'kommen', 'kommt'], a: 2 },
+        { level: 'A1', q: 'Das ist ___ Buch.', opts: ['ein', 'eine', 'einen', 'einem'], a: 0 },
+        { level: 'A1', q: 'Er ___ Deutsch.', opts: ['lerne', 'lernst', 'lernt', 'lernen'], a: 2 },
+        { level: 'A1', q: 'Ich gehe ___ Schule.', opts: ['zur', 'zum', 'im', 'am'], a: 0 },
+        { level: 'A1', q: 'Sie ___ ein Auto.', opts: ['habe', 'hast', 'hat', 'haben'], a: 2 },
+        { level: 'A1', q: '___ du Kaffee?', opts: ['Trinkst', 'Trinkt', 'Trinken', 'Trinke'], a: 0 },
+        { level: 'A1', q: 'Meine Mutter ___ Lehrerin.', opts: ['ist', 'sind', 'bist', 'sein'], a: 0 },
+        { level: 'A1', q: 'Der Hund ist ___ Garten.', opts: ['im', 'am', 'zur', 'zum'], a: 0 },
+        { level: 'A1', q: 'Ich wohne ___ Hamburg.', opts: ['in', 'nach', 'zu', 'bei'], a: 0 },
+        { level: 'A2', q: 'Gestern ___ ich lange gearbeitet.', opts: ['habe', 'bin', 'hat', 'seid'], a: 0 },
+        { level: 'A2', q: 'Am Sonntag ___ wir nach M\u00fcnchen gefahren.', opts: ['sind', 'haben', 'ist', 'hat'], a: 0 },
+        { level: 'A2', q: 'Ich interessiere mich ___ Musik.', opts: ['f\u00fcr', 'mit', 'an', 'bei'], a: 0 },
+        { level: 'A2', q: 'Kannst du ___ bitte helfen?', opts: ['mir', 'mich', 'mein', 'ich'], a: 0 },
+        { level: 'A2', q: 'Der Film war ___ als das Buch.', opts: ['besser', 'gut', 'am besten', 'gute'], a: 0 },
+        { level: 'A2', q: 'Ich habe keine Zeit, ___ ich lernen muss.', opts: ['weil', 'aber', 'oder', 'und'], a: 0 },
+        { level: 'A2', q: 'Nach der Arbeit gehe ich ___ Hause.', opts: ['nach', 'zu', 'in', 'bei'], a: 0 },
+        { level: 'A2', q: 'Wir treffen uns ___ acht Uhr.', opts: ['um', 'am', 'im', 'zu'], a: 0 },
+        { level: 'B1', q: 'Wenn ich mehr Zeit h\u00e4tte, ___ ich mehr lesen.', opts: ['w\u00fcrde', 'werde', 'wurde', 'will'], a: 0 },
+        { level: 'B1', q: 'Obwohl es regnet, ___ wir spazieren.', opts: ['gehen', 'geht', 'ging', 'gehe'], a: 0 },
+        { level: 'B1', q: 'Ich freue mich darauf, dich ___ sehen.', opts: ['zu', 'um', 'bei', 'an'], a: 0 },
+        { level: 'B1', q: 'Das ist der Mann, ___ ich geholfen habe.', opts: ['dem', 'den', 'der', 'dessen'], a: 0 },
+        { level: 'B1', q: 'Sie hat gesagt, dass sie morgen ___.', opts: ['kommt', 'kommen', 'kam', 'komme'], a: 0 },
+        { level: 'B1', q: 'Ich muss das Formular ___, bevor ich es sende.', opts: ['ausf\u00fcllen', 'f\u00fcllen aus', 'ausgef\u00fcllt', 'f\u00fcllt aus'], a: 0 },
+        { level: 'B1', q: 'Wegen ___ Wetters bleiben wir zu Hause.', opts: ['des schlechten', 'dem schlechten', 'der schlechten', 'schlechtes'], a: 0 },
+        { level: 'B2', q: 'Je fr\u00fcher wir anfangen, ___ schneller sind wir fertig.', opts: ['desto', 'weil', 'obwohl', 'damit'], a: 0 },
+        { level: 'B2', q: 'Es handelt sich ___ ein Missverst\u00e4ndnis.', opts: ['um', 'an', 'mit', 'f\u00fcr'], a: 0 },
+        { level: 'B2', q: 'Der Vertrag muss bis Freitag ___ werden.', opts: ['unterschrieben', 'unterschreiben', 'unterschrieb', 'unterschreibt'], a: 0 },
+        { level: 'B2', q: 'An deiner Stelle ___ ich den Termin verschieben.', opts: ['w\u00fcrde', 'werde', 'wurde', 'war'], a: 0 },
+        { level: 'B2', q: 'Die Entscheidung h\u00e4ngt davon ab, ___ die Kosten sinken.', opts: ['ob', 'wenn', 'weil', 'damit'], a: 0 },
+        { level: 'B2', q: 'Trotz ___ Nachfrage bleibt der Preis stabil.', opts: ['hoher', 'hohe', 'hohem', 'hohen'], a: 0 },
+        { level: 'C1', q: 'Die These, ___ Bildung soziale Mobilit\u00e4t f\u00f6rdert, ist plausibel.', opts: ['dass', 'ob', 'wenn', 'damit'], a: 0 },
+        { level: 'C1', q: 'Kaum hatte er angerufen, ___ die Besprechung.', opts: ['begann', 'beginnt', 'begonnen', 'beginne'], a: 0 },
+        { level: 'C1', q: 'Der Vorschlag wurde unter der Bedingung angenommen, ___ alle zustimmen.', opts: ['dass', 'obwohl', 'weil', 'als'], a: 0 },
+        { level: 'C1', q: 'Es fehlt nicht an Ideen, ___ an konsequenter Umsetzung.', opts: ['sondern', 'aber', 'oder', 'denn'], a: 0 },
+        { level: 'C1', q: 'Die Daten lassen darauf schlie\u00dfen, ___ die Strategie wirkt.', opts: ['dass', 'ob', 'wenn', 'als'], a: 0 },
+        { level: 'C2', q: 'H\u00e4tte man fr\u00fcher reagiert, ___ sich der Schaden begrenzen lassen.', opts: ['h\u00e4tte', 'hat', 'wird', 'wurde'], a: 0 },
+        { level: 'C2', q: 'Ungeachtet ___ Kritik wurde das Projekt fortgesetzt.', opts: ['massiver', 'massive', 'massivem', 'massiven'], a: 0 },
+        { level: 'C2', q: 'Der Bericht legt nahe, dass die Annahmen neu ___ werden m\u00fcssen.', opts: ['bewertet', 'bewerten', 'bewertend', 'bewertete'], a: 0 },
+        { level: 'C2', q: 'So sehr ich den Ansatz sch\u00e4tze, ___ er mich nicht ganz.', opts: ['\u00fcberzeugt', '\u00fcberzeugen', '\u00fcberzeugte', '\u00fcberzeugend'], a: 0 },
+        { level: 'C2', q: 'Die Kommission behielt sich vor, die Entscheidung sp\u00e4ter zu ___.', opts: ['revidieren', 'revidiert', 'Revision', 'revidierte'], a: 0 }
       ],
       en: [
         { q: 'She ___ to school every day.', opts: ['go', 'goes', 'going', 'gone'], a: 1 },
@@ -2266,7 +2301,8 @@
           if(studyState.searchTimerId)clearInterval(studyState.searchTimerId);
           studyState.searchTimerId=null;studyState.challengeId=challenge&&challenge.id||null;studyState.duelBot=bot;
           studyState.duelOpponentName=bot?tr('Duvela Bot','Бот Duvela'):tr('Learner online','Ученик онлайн');
-          studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.data=shuffle((GRAMMAR[studyState.lang]||GRAMMAR.de).slice()).slice(0,5);studyState.idx=0;studyState.score=0;studyState.total=5;
+          var duelDeck=buildDuelDeck(studyState.lang,studyState.level);
+          studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.data=duelDeck.slice(0,5);studyState.duelBankTotal=duelDeck.length;studyState.idx=0;studyState.score=0;studyState.total=5;
           $('#studyOverlayTitle').textContent='⚔️ '+tr('Learner duel','Дуэль учеников');renderTool();
         }
         if(foundOpponent)return launch(false);
@@ -2288,6 +2324,24 @@
         async function refresh(){var members=await supa.from('practice_challenge_members').select('user_id,score').eq('challenge_id',challenge.id),list=members.data||[],mine=list.find(function(row){return row.user_id===uid();});var my=$('#myChallengeScore'),all=$('#opponentScore'),label=$('#challengeMembers');if(my)my.textContent=Number(mine&&mine.score||0);if(all)all.textContent=list.reduce(function(sum,row){return sum+Number(row.score||0);},0);if(label)label.textContent=list.length+' '+tr('participants online','участников онлайн');}
         await refresh();studyState.challengeChannel=supa.channel('practice-challenge-'+challenge.id).on('postgres_changes',{event:'*',schema:'public',table:'practice_challenge_members',filter:'challenge_id=eq.'+challenge.id},refresh).subscribe();button.disabled=false;button.textContent=tr('Start team practice','Начать командную практику');button.onclick=function(){studyState.tool='grammar';studyState.data=null;studyState.idx=0;renderTool();};
       }catch(error){button.disabled=false;button.textContent=tr('Try again','Повторить');alert(error.message||tr('Team service is unavailable.','Командный сервис недоступен.'));}
+    }
+
+    function buildDuelDeck(lang, level) {
+      var deck = [];
+      strictBank(GRAMMAR, lang, level).forEach(function (item) {
+        if (item && item.opts && item.opts.length === 4) deck.push({ q:item.q, opts:item.opts, a:item.a, level:item.level });
+      });
+      strictBank(WORD_USAGE, lang, level).forEach(function (item) {
+        var answer = item && item.opts ? item.opts.indexOf(item.a) : -1;
+        if (item && item.opts && item.opts.length === 4) deck.push({ q:item.s, opts:item.opts, a:answer < 0 ? 0 : answer, level:item.level });
+      });
+      var seen = {};
+      return shuffle(deck).filter(function (item) {
+        var key = item.q + '|' + item.opts.join('|');
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
     }
 
     function readDuelLiveMode() {
@@ -2351,6 +2405,8 @@
       var item=deck[studyState.idx];
       host.innerHTML='<div class="duel-live-masthead"><div><small>DUVELA</small><strong>'+esc(tr('LANGUAGE DUEL','\u042f\u0417\u042b\u041a\u041e\u0412\u0410\u042f \u0414\u0423\u042d\u041b\u042c'))+'</strong></div><span><i></i> LIVE</span></div><div class="duel-live-toolbar"><span>'+esc(tr('For TikTok LIVE: capture the vertical game area','\u0414\u043b\u044f TikTok LIVE: \u0437\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u0438\u0433\u0440\u044b'))+'</span><button type="button" id="duelLiveToggle" aria-pressed="false"><span aria-hidden="true">&#9679;</span>LIVE 9:16</button></div><p class="duel-live-audience">'+esc(tr('Choose the answer in chat: A, B, C or D','\u041f\u0438\u0448\u0438\u0442\u0435 \u043e\u0442\u0432\u0435\u0442 \u0432 \u0447\u0430\u0442: A, B, C \u0438\u043b\u0438 D'))+'</p><div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'You').charAt(0).toUpperCase())+'</span><small>'+esc(tr('YOU','ВЫ'))+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👤')+'</span><small>'+esc(studyState.duelOpponentName)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div>'+counterHtml(studyState.idx,deck.length)+'<div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
       bindDuelLiveControls(host);
+      var liveTitle = host.querySelector('.duel-live-masthead strong');
+      if (liveTitle) liveTitle.insertAdjacentHTML('afterend', '<em class="duel-live-bank">LEVEL ' + esc(studyState.level || 'A1') + ' / BANK ' + esc(studyState.duelBankTotal || deck.length) + '</em>');
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(button){button.onclick=function(){
         var selected=Number(button.getAttribute('data-duel-answer')),ok=selected===item.a;
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(node){node.disabled=true;var value=Number(node.getAttribute('data-duel-answer'));if(value===item.a)node.classList.add('correct');else if(value===selected)node.classList.add('wrong');});
