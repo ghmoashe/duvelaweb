@@ -1024,3 +1024,55 @@
   .listening-feedback{align-items:stretch;flex-direction:column}.listening-feedback .btn{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.listening-player.is-playing .listening-wave i{animation:none}.listening-play{transition:none}}
+
+/* TikTok LIVE duel stage: a focused 9:16 capture surface with broadcast-safe type. */
+.duel-live-masthead,.duel-live-audience{display:none}.duel-live-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:0 0 12px}.duel-live-toolbar>span{color:#7b6e88;font-size:11px;font-weight:750}.duel-live-toolbar button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;border:1px solid #e3d7f4;border-radius:999px;background:#fff;color:#6940bc;font:inherit;font-size:12px;font-weight:950;cursor:pointer;box-shadow:0 7px 18px rgba(62,35,105,.09)}.duel-live-toolbar button>span{color:#e21f53;font-size:15px}.duel-live-toolbar button:hover{border-color:#956ce8;background:#f7f2ff}.duel-options button:focus-visible,.duel-live-toolbar button:focus-visible{outline:3px solid rgba(38,210,255,.58);outline-offset:3px}
+
+#studyOverlay.practice-live-mode{padding:0;background:radial-gradient(circle at 50% 0,#43206f 0,transparent 38%),linear-gradient(135deg,#080712,#16102a 52%,#071522);backdrop-filter:none}
+#studyOverlay.practice-live-mode .overlay-card{position:relative;width:min(100vw,calc(100dvh * .5625))!important;height:100dvh!important;max-height:100dvh!important;overflow:hidden;border:0!important;border-radius:0!important;background:radial-gradient(circle at 12% 24%,rgba(139,63,225,.24),transparent 32%),radial-gradient(circle at 92% 70%,rgba(18,185,240,.19),transparent 31%),linear-gradient(180deg,#0d0917 0%,#151020 52%,#07131d 100%)!important;box-shadow:0 0 90px rgba(0,0,0,.68)!important;color:#fff}
+#studyOverlay.practice-live-mode .overlay-card:before{content:"";position:absolute;inset:0;pointer-events:none;border:1px solid rgba(218,182,107,.52);box-shadow:inset 0 0 42px rgba(89,42,155,.34)}
+#studyOverlay.practice-live-mode .overlay-head{display:none}
+#studyOverlay.practice-live-mode .overlay-body{height:100%;overflow:auto;padding:clamp(16px,2.3vh,28px) clamp(17px,3vw,28px) max(34px,env(safe-area-inset-bottom));background:transparent;scrollbar-width:none}
+#studyOverlay.practice-live-mode .overlay-body::-webkit-scrollbar{display:none}
+#studyOverlay.practice-live-mode .practice-stage-intro,#studyOverlay.practice-live-mode .practice-gamebar,#studyOverlay.practice-live-mode .practice-language-row{display:none}
+#studyOverlay.practice-live-mode .practice-session-line{margin:0 0 clamp(13px,2vh,21px);gap:10px}
+#studyOverlay.practice-live-mode .practice-session-line>div{height:7px;background:rgba(255,255,255,.14)}
+#studyOverlay.practice-live-mode .practice-session-line i{background:linear-gradient(90deg,#9b54ff,#d85aea,#29ccf4);box-shadow:0 0 16px rgba(168,78,255,.65)}
+#studyOverlay.practice-live-mode .practice-session-line span{color:#d7cae7;font-size:12px}
+#studyOverlay.practice-live-mode .practice-workspace{min-height:0;padding:0;border:0;background:transparent;box-shadow:none;color:#fff}
+#studyOverlay.practice-live-mode .duel-live-masthead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:clamp(14px,2.2vh,24px);padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.12)}
+#studyOverlay.practice-live-mode .duel-live-masthead>div{display:grid;gap:2px}
+#studyOverlay.practice-live-mode .duel-live-masthead small{color:#d5af68;font-size:clamp(13px,1.8vh,18px);font-weight:950;letter-spacing:.24em}
+#studyOverlay.practice-live-mode .duel-live-masthead strong{font-size:clamp(18px,2.4vh,25px);letter-spacing:.04em}
+#studyOverlay.practice-live-mode .duel-live-masthead>span{display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:#d91f50;color:#fff;font-size:12px;font-weight:950;box-shadow:0 0 22px rgba(226,31,83,.38)}
+#studyOverlay.practice-live-mode .duel-live-masthead i{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.12);animation:duelLiveDot 1.15s ease-in-out infinite}
+@keyframes duelLiveDot{50%{opacity:.42;transform:scale(.76)}}
+#studyOverlay.practice-live-mode .duel-live-toolbar{position:absolute;z-index:4;right:12px;bottom:12px;margin:0}
+#studyOverlay.practice-live-mode .duel-live-toolbar>span{display:none}
+#studyOverlay.practice-live-mode .duel-live-toolbar button{width:40px;height:40px;min-height:0;padding:0;border-color:rgba(255,255,255,.18);background:rgba(9,8,18,.7);color:#fff;font-size:0;box-shadow:none;backdrop-filter:blur(10px)}
+#studyOverlay.practice-live-mode .duel-live-toolbar button>span{color:#fff;font-size:25px;line-height:1}
+#studyOverlay.practice-live-mode .duel-live-audience{display:block;margin:0 0 clamp(12px,1.8vh,20px);color:#d9ccea;font-size:clamp(13px,1.7vh,17px);font-weight:850;text-align:center}
+#studyOverlay.practice-live-mode .duel-match-head{gap:10px;margin-bottom:clamp(13px,2vh,22px);padding:clamp(12px,1.8vh,19px);border-color:rgba(210,180,255,.24);border-radius:22px;background:linear-gradient(120deg,rgba(130,62,221,.24),rgba(255,255,255,.07),rgba(16,180,230,.18));box-shadow:0 14px 34px rgba(0,0,0,.19)}
+#studyOverlay.practice-live-mode .duel-match-head strong{color:#d7aef8;font-size:16px}
+#studyOverlay.practice-live-mode .duel-match-head small{color:#cfc0df;font-size:10px}
+#studyOverlay.practice-live-mode .duel-match-head b{color:#fff;font-size:clamp(27px,4vh,42px);line-height:1}
+#studyOverlay.practice-live-mode .duel-avatar{width:clamp(48px,6.5vh,68px);height:clamp(48px,6.5vh,68px);border:1px solid rgba(255,255,255,.22);border-radius:20px;background:linear-gradient(145deg,#7841ef,#a63de1);font-size:clamp(22px,3vh,30px);box-shadow:0 8px 24px rgba(118,55,229,.34)}
+#studyOverlay.practice-live-mode .duel-avatar.bot{background:linear-gradient(145deg,#ffb13b,#ed4e74)}
+#studyOverlay.practice-live-mode .duel-question{margin-bottom:clamp(13px,2vh,22px);padding:clamp(21px,3.2vh,36px) 17px;border-color:rgba(255,255,255,.16);border-radius:24px;background:rgba(255,255,255,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 15px 34px rgba(0,0,0,.16);backdrop-filter:blur(12px)}
+#studyOverlay.practice-live-mode .duel-question small{color:#d3a5ff;font-size:clamp(10px,1.45vh,14px)}
+#studyOverlay.practice-live-mode .duel-question h2{margin-top:11px;color:#fff;font-size:clamp(26px,4vh,42px);line-height:1.15;text-wrap:balance}
+#studyOverlay.practice-live-mode .duel-options{grid-template-columns:1fr;gap:clamp(9px,1.35vh,14px)}
+#studyOverlay.practice-live-mode .duel-options button{min-height:clamp(58px,7.6vh,78px);padding:10px 15px;border-color:rgba(255,255,255,.15);border-radius:18px;background:rgba(255,255,255,.09);color:#fff;font-size:clamp(17px,2.2vh,23px);box-shadow:0 8px 22px rgba(0,0,0,.15);backdrop-filter:blur(10px)}
+#studyOverlay.practice-live-mode .duel-options button:hover{border-color:#c28aff;background:rgba(160,78,230,.22);transform:translateY(-1px)}
+#studyOverlay.practice-live-mode .duel-options button span{flex-basis:clamp(38px,5vh,50px);height:clamp(38px,5vh,50px);border-radius:13px;background:linear-gradient(145deg,#7d45ea,#b542dd);color:#fff;font-size:clamp(16px,2.2vh,22px);box-shadow:0 5px 15px rgba(111,52,206,.33)}
+#studyOverlay.practice-live-mode .duel-options button.correct{border-color:#28d39f;background:rgba(20,152,112,.28)}
+#studyOverlay.practice-live-mode .duel-options button.wrong{border-color:#ff6d79;background:rgba(190,48,67,.27)}
+#studyOverlay.practice-live-mode .inline-answer{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.15);background:rgba(10,10,18,.72);color:#fff}
+#studyOverlay.practice-live-mode .inline-answer p{color:#dcd1e6}
+#studyOverlay.practice-live-mode .inline-answer .btn{min-height:44px;background:linear-gradient(100deg,#7b3fe1,#cf3bd8);color:#fff}
+#studyOverlay.practice-live-mode .duel-result{min-height:85vh;align-content:center;color:#fff}
+#studyOverlay.practice-live-mode .duel-result p{color:#d3c6de}
+#studyOverlay.practice-live-mode .duel-final-score{background:rgba(255,255,255,.1)}
+#studyOverlay.practice-live-mode .duel-final-score b{background:rgba(255,255,255,.1);color:#fff}
+
+@media(max-height:760px){#studyOverlay.practice-live-mode .duel-live-audience{display:none}#studyOverlay.practice-live-mode .duel-live-masthead{margin-bottom:10px;padding-bottom:10px}#studyOverlay.practice-live-mode .duel-question{padding-block:18px}#studyOverlay.practice-live-mode .duel-options button{min-height:54px}}

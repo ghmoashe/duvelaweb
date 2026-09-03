@@ -6,6 +6,7 @@
     const PREFS_KEY = 'duvela.study.preferences';
     const OFFLINE_QUEUE_KEY = 'duvela.study.offlineQueue';
     const EXAM_GOAL_KEY = 'duvela.study.examGoal';
+    const DUEL_LIVE_KEY = 'duvela.study.duelLiveMode';
     let studyState = null;
     let aiChatState = null;
     let practicePremium = false;
@@ -940,6 +941,10 @@
       overlay.querySelector('#studyClose').addEventListener('click', closeStudy);
       overlay.addEventListener('click', function (e) { if (e.target === overlay) closeStudy(); });
       overlay.addEventListener('input', function () { if (studyState) studyState.dirty = true; });
+      if (!window.__duvelaDuelLiveKeysBound) {
+        window.__duvelaDuelLiveKeysBound = true;
+        window.addEventListener('keydown', handleDuelLiveKeydown);
+      }
       return overlay;
     }
     async function closeStudy() {
@@ -953,7 +958,7 @@
         if (!confirmed) return;
       }
       var overlay = $('#studyOverlay');
-      if (overlay) overlay.classList.remove('open');
+      if (overlay) overlay.classList.remove('open', 'practice-live-mode');
       if (studyState && studyState.examTimerId) clearInterval(studyState.examTimerId);
       if (studyState && studyState.timerId) clearInterval(studyState.timerId);
       if (studyState && studyState.duelTimerId) clearInterval(studyState.duelTimerId);
@@ -983,6 +988,7 @@
       $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + studyState.level;
       $('#studyOverlay').setAttribute('data-practice-tool', id);
       $('#studyOverlay').setAttribute('data-practice-accent', tool.accent || 'purple');
+      $('#studyOverlay').classList.remove('practice-live-mode');
       $('#studyOverlay').classList.add('open', 'practice-immersive');
       renderTool();
     }
@@ -2284,6 +2290,53 @@
       }catch(error){button.disabled=false;button.textContent=tr('Try again','Повторить');alert(error.message||tr('Team service is unavailable.','Командный сервис недоступен.'));}
     }
 
+    function readDuelLiveMode() {
+      try { return localStorage.getItem(DUEL_LIVE_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function setDuelLiveMode(enabled) {
+      if (!studyState) return;
+      studyState.liveMode = !!enabled;
+      var overlay = $('#studyOverlay');
+      if (overlay) overlay.classList.toggle('practice-live-mode', studyState.liveMode);
+      if (studyState.liveMode && overlay) {
+        var body = overlay.querySelector('.overlay-body');
+        if (body) body.scrollTop = 0;
+      }
+      try { localStorage.setItem(DUEL_LIVE_KEY, studyState.liveMode ? '1' : '0'); } catch (e) {}
+      var button = $('#duelLiveToggle');
+      if (button) {
+        button.setAttribute('aria-pressed', String(studyState.liveMode));
+        button.innerHTML = studyState.liveMode
+          ? '<span aria-hidden="true">&times;</span>' + esc(tr('Exit LIVE', '\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 LIVE'))
+          : '<span aria-hidden="true">&#9679;</span>LIVE 9:16';
+      }
+    }
+
+    function bindDuelLiveControls(host) {
+      var toggle = $('#duelLiveToggle');
+      if (toggle) toggle.onclick = function () { setDuelLiveMode(!studyState.liveMode); };
+      setDuelLiveMode(studyState.liveMode == null ? readDuelLiveMode() : studyState.liveMode);
+      Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'), function (button, index) {
+        button.setAttribute('aria-keyshortcuts', String(index + 1));
+      });
+    }
+
+    function handleDuelLiveKeydown(event) {
+      if (!studyState || studyState.tool !== 'duelmatch') return;
+      var target = event.target;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      if (event.key.toLowerCase() === 'l') {
+        event.preventDefault();
+        setDuelLiveMode(!studyState.liveMode);
+        return;
+      }
+      var answerIndex = /^[1-4]$/.test(event.key) ? Number(event.key) - 1 : 'abcd'.indexOf(event.key.toLowerCase());
+      if (answerIndex < 0 || answerIndex > 3) return;
+      var answer = document.querySelector('[data-duel-answer="' + answerIndex + '"]:not(:disabled)');
+      if (answer) { event.preventDefault(); answer.click(); }
+    }
+
     function renderDuelMatch(){
       var host=$('#studyToolBody'),deck=studyState.data||[];
       if(!studyState.duelStartedAt){
@@ -2296,7 +2349,8 @@
       }
       if(studyState.idx>=deck.length)return finishDuelMatch();
       var item=deck[studyState.idx];
-      host.innerHTML='<div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'You').charAt(0).toUpperCase())+'</span><small>'+esc(tr('YOU','ВЫ'))+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👤')+'</span><small>'+esc(studyState.duelOpponentName)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div>'+counterHtml(studyState.idx,deck.length)+'<div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
+      host.innerHTML='<div class="duel-live-masthead"><div><small>DUVELA</small><strong>'+esc(tr('LANGUAGE DUEL','\u042f\u0417\u042b\u041a\u041e\u0412\u0410\u042f \u0414\u0423\u042d\u041b\u042c'))+'</strong></div><span><i></i> LIVE</span></div><div class="duel-live-toolbar"><span>'+esc(tr('For TikTok LIVE: capture the vertical game area','\u0414\u043b\u044f TikTok LIVE: \u0437\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u0438\u0433\u0440\u044b'))+'</span><button type="button" id="duelLiveToggle" aria-pressed="false"><span aria-hidden="true">&#9679;</span>LIVE 9:16</button></div><p class="duel-live-audience">'+esc(tr('Choose the answer in chat: A, B, C or D','\u041f\u0438\u0448\u0438\u0442\u0435 \u043e\u0442\u0432\u0435\u0442 \u0432 \u0447\u0430\u0442: A, B, C \u0438\u043b\u0438 D'))+'</p><div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'You').charAt(0).toUpperCase())+'</span><small>'+esc(tr('YOU','ВЫ'))+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👤')+'</span><small>'+esc(studyState.duelOpponentName)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div>'+counterHtml(studyState.idx,deck.length)+'<div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
+      bindDuelLiveControls(host);
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(button){button.onclick=function(){
         var selected=Number(button.getAttribute('data-duel-answer')),ok=selected===item.a;
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(node){node.disabled=true;var value=Number(node.getAttribute('data-duel-answer'));if(value===item.a)node.classList.add('correct');else if(value===selected)node.classList.add('wrong');});
@@ -2315,6 +2369,7 @@
       var mine=Number(studyState.score||0),rivalScore=Number(studyState.duelOpponentScore||0),won=mine>rivalScore,tie=mine===rivalScore,xp=won?25:tie?15:10;
       studyState.finished=true;bumpProgress('duel',xp);if(!uid())awardXp(xp);clearResume();
       $('#studyToolBody').innerHTML='<div class="duel-result '+(won?'win':tie?'tie':'lose')+'"><span>'+(won?'🏆':tie?'🤝':'💪')+'</span><small>DUVELA DUEL</small><h2>'+esc(won?tr('Victory!','Победа!'):tie?tr('A draw!','Ничья!'):tr('Great fight!','Отличная борьба!'))+'</h2><p>'+esc(won?tr('You were more accurate and earned a duel win.','Вы были точнее и одержали победу в дуэли.'):tie?tr('You finished with the same score.','Вы завершили дуэль с одинаковым счётом.'):tr('Review the mistakes and challenge the rival again.','Повторите ошибки и вызовите соперника снова.'))+'</p><div class="duel-final-score"><b>'+mine+'</b><span>:</span><b>'+rivalScore+'</b></div><strong>+'+xp+' XP</strong><div class="result-actions"><button class="btn" id="duelReview">'+esc(tr('Review mistakes','Повторить ошибки'))+'</button><button class="btn primary" id="duelAgain">'+esc(tr('New duel','Новая дуэль'))+'</button></div></div>';
+      if(studyState.liveMode){$('#studyToolBody').insertAdjacentHTML('afterbegin','<div class="duel-live-toolbar"><button type="button" id="duelLiveToggle" aria-pressed="true"><span aria-hidden="true">&times;</span>'+esc(tr('Exit LIVE','\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 LIVE'))+'</button></div>');bindDuelLiveControls($('#studyToolBody'));}
       $('#duelReview').onclick=function(){openStudyTool('mistakes');};$('#duelAgain').onclick=function(){openStudyTool('duel');};
     }
 
