@@ -1409,3 +1409,40 @@
   background:linear-gradient(145deg,#7d45ea,#ba42db);
   box-shadow:none;
 }
+
+/* Remove the grey veil in real LIVE capture: do not let bright cyan background
+   bleed through the cards. These values keep the same preview lighting but use
+   solid glass surfaces for readable TikTok capture. */
+#studyOverlay.practice-live-mode .overlay-card{
+  background:
+    radial-gradient(circle at 16% 12%, rgba(133,64,236,.38), transparent 30%),
+    radial-gradient(circle at 90% 70%, rgba(30,190,220,.18), transparent 31%),
+    linear-gradient(145deg,#120822 0%,#161024 50%,#071923 100%)!important;
+}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel,
+#studyOverlay.practice-live-mode .duel-chat-poll,
+#studyOverlay.practice-live-mode .duel-question{
+  border-color:rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(45,35,66,.98),rgba(35,31,52,.98));
+  color:#fff;
+}
+#studyOverlay.practice-live-mode .duel-match-head{
+  border-color:rgba(210,180,255,.28);
+  background:linear-gradient(110deg,rgba(63,38,105,.98),rgba(31,29,50,.98),rgba(20,61,74,.96));
+}
+#studyOverlay.practice-live-mode .duel-poll-bars button{
+  border-color:rgba(255,255,255,.14);
+  background:linear-gradient(180deg,rgba(48,43,66,.96),rgba(38,36,54,.96));
+}
+#studyOverlay.practice-live-mode .duel-options button,
+#studyOverlay.practice-live-mode .duel-options button:nth-child(1),
+#studyOverlay.practice-live-mode .duel-options button:nth-child(2),
+#studyOverlay.practice-live-mode .duel-options button:nth-child(3),
+#studyOverlay.practice-live-mode .duel-options button:nth-child(4){
+  border-color:rgba(255,255,255,.14);
+  background:linear-gradient(180deg,#242039 0%,#201b35 100%);
+  color:#fff;
+}
+#studyOverlay.practice-live-mode .duel-options button:hover{
+  background:linear-gradient(180deg,#2d2548 0%,#251f3d 100%);
+}
