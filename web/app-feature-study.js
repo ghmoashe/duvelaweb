@@ -7,6 +7,7 @@
     const OFFLINE_QUEUE_KEY = 'duvela.study.offlineQueue';
     const EXAM_GOAL_KEY = 'duvela.study.examGoal';
     const DUEL_LIVE_KEY = 'duvela.study.duelLiveMode';
+    const DUEL_QUESTION_COUNT = 10;
     let studyState = null;
     let aiChatState = null;
     let practicePremium = false;
@@ -2464,7 +2465,7 @@
       var host=$('#studyToolBody'),team=mode==='team';
       if(!team){
         var duelBankTotal = buildDuelDeck(studyState.lang, studyState.level).length;
-        host.innerHTML='<div class="social-challenge duel-search-card"><div class="duel-search-orbit"><span>⚔️</span><i></i><i></i><i></i></div><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(tr('We search for a learner at your level first. If nobody is online, Duvela Bot starts immediately so the LIVE never waits.','Сначала ищем ученика вашего уровня. Если онлайн никого нет, Duvela Bot стартует сразу, чтобы LIVE не ждал.'))+'</p><div class="duel-search-stats"><span><b>5</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b>'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b>'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span></div><div class="social-score duel-search-score"><b id="myChallengeScore">0</b><span>VS</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Ready to search','Готово к поиску'))+'</div><div class="duel-search-flow"><span>👥 '+esc(tr('Online learner','ученик онлайн'))+'</span><span>🤖 '+esc(tr('Bot fallback','бот если никого нет'))+'</span><span>💬 '+esc(tr('A/B/C/D chat','A/B/C/D в чат'))+'</span></div><button class="btn primary" id="socialStart">'+esc(tr('Find opponent','Найти соперника'))+'</button></div>';
+        host.innerHTML='<div class="social-challenge duel-search-card"><div class="duel-search-orbit"><span>⚔️</span><i></i><i></i><i></i></div><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(tr('We search for a learner at your level first. If nobody is online, Duvela Bot starts immediately so the LIVE never waits.','Сначала ищем ученика вашего уровня. Если онлайн никого нет, Duvela Bot стартует сразу, чтобы LIVE не ждал.'))+'</p><div class="duel-search-stats"><span><b>'+DUEL_QUESTION_COUNT+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b>'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b>'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span></div><div class="social-score duel-search-score"><b id="myChallengeScore">0</b><span>VS</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Ready to search','Готово к поиску'))+'</div><div class="duel-search-flow"><span>👥 '+esc(tr('Online learner','ученик онлайн'))+'</span><span>🤖 '+esc(tr('Bot fallback','бот если никого нет'))+'</span><span>💬 '+esc(tr('A/B/C/D chat','A/B/C/D в чат'))+'</span></div><button class="btn primary" id="socialStart">'+esc(tr('Find opponent','Найти соперника'))+'</button></div>';
       } else
       host.innerHTML='<div class="social-challenge"><span>'+(team?'👥':'⚔️')+'</span><small>DUVELA '+(team?'TEAM':'DUEL')+'</small><h2>'+esc(team?tr('Team challenge','Командное задание'):tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(team?tr('Complete 30 correct answers together this week.','Вместе дайте 30 правильных ответов за неделю.'):tr('First we look for a learner online. If nobody is available, you play immediately against the Duvela Bot.','Сначала ищем ученика онлайн. Если никого нет, вы сразу играете с ботом Duvela.'))+'</p><div class="social-score"><b id="myChallengeScore">0</b><span>'+(team?'TEAM':'VS')+'</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status">'+esc(team?tr('Team matchmaking is ready','Командный подбор готов'):tr('Ready to search','Готово к поиску'))+'</div><button class="btn primary" id="socialStart">'+esc(team?tr('Join a team','Вступить в команду'):tr('Find opponent','Найти соперника'))+'</button></div>';
       $('#socialStart').onclick=async function(){
@@ -2478,7 +2479,7 @@
             var waiting=await supa.from('practice_challenges').select('id,created_by,goal').eq('kind','duel').eq('status','waiting').eq('language',studyState.lang).neq('created_by',uid()).order('created_at',{ascending:true}).limit(1).maybeSingle();
             challenge=waiting.data;
             if(challenge){foundOpponent=true;await supa.from('practice_challenges').update({status:'active',starts_at:new Date().toISOString()}).eq('id',challenge.id);}
-            else {var created=await supa.from('practice_challenges').insert({kind:'duel',created_by:uid(),language:studyState.lang,level:level,goal:5,status:'waiting'}).select().single();if(!created.error)challenge=created.data;}
+            else {var created=await supa.from('practice_challenges').insert({kind:'duel',created_by:uid(),language:studyState.lang,level:level,goal:DUEL_QUESTION_COUNT,status:'waiting'}).select().single();if(!created.error)challenge=created.data;}
             if(challenge)await supa.from('practice_challenge_members').upsert({challenge_id:challenge.id,user_id:uid(),score:0,completed:0});
           }
         }catch(e){challenge=null;}
@@ -2487,7 +2488,7 @@
           studyState.searchTimerId=null;studyState.challengeId=challenge&&challenge.id||null;studyState.duelBot=bot;
           studyState.duelOpponentName=bot?tr('Duvela Bot','Бот Duvela'):tr('Learner online','Ученик онлайн');
           var duelDeck=buildDuelDeck(studyState.lang,studyState.level);
-          studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.data=duelDeck.slice(0,5);studyState.duelBankTotal=duelDeck.length;studyState.idx=0;studyState.score=0;studyState.total=5;
+          studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.data=duelDeck.slice(0,DUEL_QUESTION_COUNT);studyState.duelBankTotal=duelDeck.length;studyState.idx=0;studyState.score=0;studyState.total=DUEL_QUESTION_COUNT;
           $('#studyOverlayTitle').textContent='⚔️ '+tr('Learner duel','Дуэль учеников');renderTool();
         }
         if(foundOpponent)return launch(false);
@@ -2582,7 +2583,7 @@
         studyState.duelStartedAt=Date.now();
         if(studyState.duelBot)studyState.duelTimerId=setInterval(function(){
           if(!studyState||studyState.tool!=='duelmatch'||studyState.finished)return;
-          if(studyState.duelOpponentScore<5&&Math.random()<.72)studyState.duelOpponentScore++;
+          if(studyState.duelOpponentScore<DUEL_QUESTION_COUNT&&Math.random()<.72)studyState.duelOpponentScore++;
           updateDuelScoreboard();
         },4200);
       }

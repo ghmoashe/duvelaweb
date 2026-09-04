@@ -1143,3 +1143,21 @@
 .duel-search-flow span{padding:8px 11px;border:1px solid rgba(123,64,216,.12);border-radius:999px;background:#fff;color:#665b74;font-size:12px;font-weight:850}
 .duel-search-card .btn.primary{position:relative;min-width:min(330px,100%);min-height:54px;border-radius:17px;background:linear-gradient(100deg,#7040d8,#ce3bd8);font-size:16px;box-shadow:0 14px 32px rgba(115,64,216,.24)}
 @media(max-width:640px){.duel-search-card{min-height:0;padding:24px 16px}.duel-search-orbit{width:94px;height:94px;border-radius:30px}.duel-search-orbit span{font-size:44px}.duel-search-stats{grid-template-columns:1fr}.duel-search-flow{display:grid}.duel-search-flow span{text-align:center}}
+.duel-search-orbit{animation:duelSearchFloat 3.8s ease-in-out infinite}
+.duel-search-orbit i{animation:duelSearchDot 1.8s ease-in-out infinite}
+.duel-search-orbit i:nth-child(3){animation-delay:.22s}
+.duel-search-orbit i:nth-child(4){animation-delay:.44s}
+.duel-search-card h2,.duel-search-card p,.duel-search-stats,.duel-search-score,.duel-search-status,.duel-search-flow,.duel-search-card .btn.primary{animation:duelSearchRise .55s ease both}
+.duel-search-card p{animation-delay:.06s}
+.duel-search-stats{animation-delay:.12s}
+.duel-search-score{animation:duelSearchRise .55s ease .18s both,duelScoreGlow 2.4s ease-in-out 1s infinite}
+.duel-search-status{animation-delay:.24s}
+.duel-search-flow{animation-delay:.3s}
+.duel-search-card .btn.primary{overflow:hidden;animation-delay:.36s}
+.duel-search-card .btn.primary:after{content:"";position:absolute;inset:-40% auto -40% -30%;width:28%;transform:skewX(-18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.44),transparent);animation:duelButtonShine 2.8s ease-in-out infinite}
+@keyframes duelSearchFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1.5deg)}}
+@keyframes duelSearchDot{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.45);opacity:.62}}
+@keyframes duelSearchRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes duelScoreGlow{0%,100%{box-shadow:0 10px 26px rgba(115,64,216,.06)}50%{box-shadow:0 18px 44px rgba(115,64,216,.18)}}
+@keyframes duelButtonShine{0%,58%{left:-35%}100%{left:120%}}
+@media(prefers-reduced-motion:reduce){.duel-search-orbit,.duel-search-orbit i,.duel-search-card h2,.duel-search-card p,.duel-search-stats,.duel-search-score,.duel-search-status,.duel-search-flow,.duel-search-card .btn.primary,.duel-search-card .btn.primary:after{animation:none!important}}
