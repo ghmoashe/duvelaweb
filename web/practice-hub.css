@@ -1262,3 +1262,36 @@
 #studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-stats span{padding:8px 10px}
 #studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-stats b{font-size:22px}
 #studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-score,#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-flow{display:none}
+
+/* LIVE Duel fit: remove duplicate progress and keep all answers inside 9:16. */
+#studyOverlay.practice-live-mode .practice-session-line{display:none!important}
+#studyOverlay.practice-live-mode .overlay-body{padding:10px 17px 14px}
+#studyOverlay.practice-live-mode .duel-live-masthead{margin-bottom:8px;padding-bottom:8px}
+#studyOverlay.practice-live-mode .duel-live-masthead small{font-size:12px}
+#studyOverlay.practice-live-mode .duel-live-masthead strong{font-size:20px}
+#studyOverlay.practice-live-mode .duel-live-masthead>span{padding:7px 11px}
+#studyOverlay.practice-live-mode .duel-live-bank{font-size:10px}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel{margin-bottom:7px;padding:7px;border-radius:15px}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel b{font-size:12px}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel>span{font-size:11px}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel button{min-height:30px;padding:0 9px;font-size:10px}
+#studyOverlay.practice-live-mode .duel-live-audience{margin-bottom:7px;font-size:13px}
+#studyOverlay.practice-live-mode .duel-match-head{margin-bottom:8px;padding:9px;border-radius:17px}
+#studyOverlay.practice-live-mode .duel-match-head b{font-size:30px}
+#studyOverlay.practice-live-mode .duel-avatar{width:50px;height:50px;border-radius:15px}
+#studyOverlay.practice-live-mode .duel-question{margin-bottom:8px;padding:14px 13px;border-radius:18px}
+#studyOverlay.practice-live-mode .duel-question small{font-size:10px}
+#studyOverlay.practice-live-mode .duel-question h2{margin-top:6px;font-size:29px;line-height:1.06}
+#studyOverlay.practice-live-mode .duel-chat-poll{margin-bottom:8px;padding:8px;border-radius:16px}
+#studyOverlay.practice-live-mode .duel-poll-head{margin-bottom:6px}
+#studyOverlay.practice-live-mode .duel-poll-head b{font-size:12px}
+#studyOverlay.practice-live-mode .duel-poll-bars{gap:5px}
+#studyOverlay.practice-live-mode .duel-poll-bars button{min-height:28px;padding:4px 6px;border-radius:10px}
+#studyOverlay.practice-live-mode .duel-poll-bars span{width:22px;height:22px;border-radius:7px}
+#studyOverlay.practice-live-mode .duel-poll-actions{margin-top:6px}
+#studyOverlay.practice-live-mode .duel-poll-actions button{min-height:26px;font-size:10px}
+#studyOverlay.practice-live-mode .duel-options{gap:7px}
+#studyOverlay.practice-live-mode .duel-options button{min-height:48px;padding:7px 12px;border-radius:15px;font-size:18px}
+#studyOverlay.practice-live-mode .duel-options button span{flex-basis:38px;height:38px;border-radius:12px}
+@media(max-height:900px){#studyOverlay.practice-live-mode .duel-live-audience{display:none}#studyOverlay.practice-live-mode .duel-chat-poll{padding:7px}#studyOverlay.practice-live-mode .duel-question h2{font-size:27px}#studyOverlay.practice-live-mode .duel-options button{min-height:45px}}
+@media(max-height:760px){#studyOverlay.practice-live-mode .duel-teacher-live-panel button[data-duel-teacher-action=answer]{display:none}#studyOverlay.practice-live-mode .duel-chat-poll{display:none}#studyOverlay.practice-live-mode .duel-options button{min-height:43px}}
