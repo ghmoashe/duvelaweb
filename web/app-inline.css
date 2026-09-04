@@ -1662,6 +1662,95 @@
     background: linear-gradient(100deg, #7845f1, #d63bd8);
     box-shadow: 0 14px 34px rgba(139, 66, 230, .36);
   }
+  /* Learner join-by-code strip + the play surface it swaps in. */
+  .duel-join { display: grid; gap: 8px; margin-top: 18px; max-width: 620px; }
+  .duel-join label { color: #b9aecd; font-size: 13px; font-weight: 800; }
+  .duel-join-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .duel-join-row input {
+    flex: 1 1 150px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 14px;
+    background: rgba(8,5,22,.55);
+    color: #fff;
+    font-weight: 800;
+  }
+  .duel-join-row #duelJoinCode { letter-spacing: .14em; text-transform: uppercase; }
+  .duel-join-row input::placeholder { color: rgba(255,255,255,.38); }
+  .duel-join-row .btn { min-height: 48px; padding: 0 22px; }
+  .duel-join-status { margin: 0; min-height: 18px; color: #b9aecd; font-size: 13px; font-weight: 700; }
+  .duel-join-status.bad { color: #ff9d9d; }
+  .duel-play-card {
+    margin-top: 18px;
+    padding: clamp(16px, 2.4vw, 26px);
+    border: 1px solid rgba(197,99,234,.28);
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1a1636 0%, #251b46 55%, #2b1e4c 100%);
+    color: #fff;
+    box-shadow: 0 24px 60px rgba(0,0,0,.34);
+  }
+  .duel-play-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .duel-play-head > div { display: grid; }
+  .duel-play-head small { color: #b9aecd; font-size: 10px; font-weight: 900; letter-spacing: .2em; }
+  .duel-play-head strong { font-size: 18px; font-weight: 950; letter-spacing: .04em; }
+  .duel-play-head .btn { margin-left: auto; min-height: 40px; padding: 0 16px; }
+  .duel-play-body { display: grid; gap: 14px; padding-top: 16px; }
+  .duel-play-count { color: #b9aecd; font-size: 11px; font-weight: 900; letter-spacing: .18em; }
+  .duel-play-body h3 { margin: 0; font-size: clamp(20px, 2.6vw, 30px); line-height: 1.2; }
+  .duel-play-options { display: grid; gap: 10px; }
+  .duel-play-options button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 16px;
+    border: 1px solid rgba(197,99,234,.28);
+    border-radius: 18px;
+    background: rgba(8,5,22,.42);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+  }
+  .duel-play-options button span {
+    display: grid;
+    place-items: center;
+    flex: 0 0 40px;
+    height: 40px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #7d45ea 0%, #b542dd 100%);
+    font-weight: 950;
+  }
+  .duel-play-options button:disabled { cursor: default; opacity: .82; }
+  .duel-play-options button.chosen { border-color: rgba(255,255,255,.5); }
+  .duel-play-options button.correct { border-color: #25b296; background: rgba(37,178,150,.22); opacity: 1; }
+  .duel-play-options button.wrong { border-color: #d64545; background: rgba(214,69,69,.2); }
+  .duel-play-note { margin: 0; color: #b9aecd; font-size: 13px; font-weight: 700; }
+  .duel-play-board { display: grid; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+  .duel-play-board li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.06);
+    font-weight: 800;
+  }
+  .duel-play-board li.me { background: rgba(197,99,234,.22); }
+  .duel-play-board li b { color: #b9aecd; font-size: 12px; }
+  .duel-play-board li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .duel-play-board li em { font-style: normal; font-weight: 950; }
   .teacher-duel-preview {
     justify-self: center;
     width: min(100%, 330px);

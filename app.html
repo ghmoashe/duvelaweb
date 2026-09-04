@@ -17,7 +17,7 @@
 <link href="web/practice-hub.css?v=20260904-live-duel-zero-grey1" rel="stylesheet">
 <link href="web/app-media-layout.css?v=20260729audit1" rel="stylesheet">
 <link href="web/duvi-assistant.css?v=20260816duvinew2" rel="stylesheet">
-<link href="web/app-inline.css?v=20260904-vocab1000-duel1" rel="stylesheet">
+<link href="web/app-inline.css?v=20260904-duel-rooms" rel="stylesheet">
 <link href="web/app-live.css" rel="stylesheet">
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -274,6 +274,19 @@
               <button class="btn primary" type="button" id="duelStartFromNav" data-t="duelStartFromNav">Start LIVE duel</button>
               <button class="btn" type="button" id="duelOpenPractice" data-t="duelOpenPractice">Preview deck</button>
             </div>
+            <!-- Learners join the teacher's room from the same screen: the
+                 code is read off the stream and typed here. -->
+            <form class="duel-join" id="duelJoinForm">
+              <label for="duelJoinCode" data-t="duelJoinLabel">Joining a teacher's duel? Enter the code</label>
+              <div class="duel-join-row">
+                <input id="duelJoinCode" name="duelJoinCode" maxlength="12" autocomplete="off"
+                       spellcheck="false" placeholder="DUEL4K7P" aria-label="Duel code">
+                <input id="duelJoinName" name="duelJoinName" maxlength="60" autocomplete="name"
+                       placeholder="Your name" aria-label="Your name">
+                <button class="btn" type="submit" id="duelJoinSubmit" data-t="duelJoinSubmit">Join</button>
+              </div>
+              <p class="duel-join-status" id="duelJoinStatus" role="status"></p>
+            </form>
           </div>
           <div class="teacher-duel-preview" aria-hidden="true">
             <div class="tdp-top"><b>DUVELA</b><span><i></i> LIVE</span></div>
@@ -568,7 +581,9 @@
 <script src="./web/app-feature-messages.js?v=20260805-messages1"></script>
 <script src="./web/app-feature-notifications.js"></script>
 <script src="./web/app-feature-practice.js?v=20260730practice1"></script>
-<script src="./web/app-feature-study.js?v=20260904-live-duel-solid"></script>
+<script src="./web/duel-room.js?v=20260904-duel-rooms"></script>
+<script src="./web/duel-player.js?v=20260904-duel-rooms"></script>
+<script src="./web/app-feature-study.js?v=20260904-duel-rooms"></script>
 <script src="./web/app-feature-games.js"></script>
 <script src="./web/app-onboarding-data.js?v=20260728organization3"></script>
 <script src="./web/app-onboarding.js?v=20260815-nofocus"></script>

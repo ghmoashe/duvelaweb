@@ -1507,3 +1507,19 @@
 #studyOverlay.practice-live-mode .practice-workspace{
   background:transparent!important;
 }
+
+/* ── LIVE duel room roster ────────────────────────────────────────────────
+   Shows who actually joined by code and how many each got right, replacing
+   the bot score that used to stand in for a class. */
+.duel-roster{margin:10px 0 12px}
+.duel-roster-empty{padding:12px 14px;border:1px dashed rgba(197,99,234,.35);border-radius:14px;background:rgba(26,22,54,.5);color:#c9bfe4;font-size:12px;font-weight:800;text-align:center}
+.duel-roster-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.duel-roster-head small{color:#b98cf0;font-size:10px;font-weight:950;letter-spacing:.1em}
+.duel-roster-head strong{color:#fff;font-size:16px;font-weight:950}
+.duel-roster-list{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.duel-roster-list li{display:grid;grid-template-columns:24px 1fr auto;gap:9px;align-items:center;padding:7px 11px;border-radius:12px;background:rgba(26,22,54,.62)}
+.duel-roster-list b{color:#b98cf0;font-size:11px;font-weight:950;text-align:center}
+.duel-roster-list span{color:#fff;font-size:13px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duel-roster-list em{color:#28d39f;font-size:14px;font-style:normal;font-weight:950}
+#studyOverlay.practice-live-mode .duel-roster-list li{background:rgba(11,10,32,.72)}
+@media(max-height:760px){.duel-roster{display:none}}

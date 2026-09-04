@@ -2496,6 +2496,10 @@
           var duelDeck=buildDuelDeck(studyState.lang,studyState.level,kit.topic);
           studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.duelTopic=kit.topic;studyState.duelMode=kit.mode;studyState.duelJoinCode=duelJoinCode(studyState.lang,studyState.level);studyState.data=duelDeck.slice(0,DUEL_QUESTION_COUNT);studyState.duelBankTotal=duelDeck.length;studyState.idx=0;studyState.score=0;studyState.total=DUEL_QUESTION_COUNT;studyState.duelPoll=null;studyState.duelPollIndex=-1;
           $('#studyOverlayTitle').textContent='⚔️ '+tr('Learner duel','Дуэль учеников');renderTool();
+          // Teacher-vs-class runs open a real room so learners can join by code
+          // and their taps drive the poll + scoreboard. Anything else (solo vs
+          // bot) stays local — no room needed.
+          if (kit.mode === 'teacher' || kit.mode === 'class') void openDuelRoom();
         }
         if(foundOpponent)return launch(false);
         studyState.searchTimerId=setInterval(async function(){
@@ -2713,7 +2717,17 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'), function (button, index) {
         button.setAttribute('aria-keyshortcuts', String(index + 1));
       });
+      // With a real room open the bars are driven by live_duel_votes over
+      // Realtime, so the manual tap-to-add is disabled — otherwise the teacher
+      // could inflate a tally the class is also writing to. Without a room
+      // (solo / bot practice) the manual bars stay, they're the only input.
+      var hasRoom = !!(studyState && studyState.duelRoomId);
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-vote]'), function (button) {
+        if (hasRoom) {
+          button.disabled = true;
+          button.title = tr('Votes come from students in the room', 'Голоса приходят от учеников в комнате');
+          return;
+        }
         button.onclick = function () {
           var index = Number(button.getAttribute('data-duel-vote'));
           if (!studyState.duelPoll) studyState.duelPoll = [0,0,0,0];
@@ -2722,13 +2736,107 @@
         };
       });
       var burst = host.querySelector('[data-duel-vote-burst]');
-      if (burst) burst.onclick = function () {
-        if (!studyState.duelPoll) studyState.duelPoll = [0,0,0,0];
-        for (var i = 0; i < 8; i++) studyState.duelPoll[Math.floor(Math.random() * 4)]++;
-        updateDuelPoll();
-      };
+      if (burst) {
+        if (hasRoom) burst.remove();
+        else burst.onclick = function () {
+          if (!studyState.duelPoll) studyState.duelPoll = [0,0,0,0];
+          for (var i = 0; i < 8; i++) studyState.duelPoll[Math.floor(Math.random() * 4)]++;
+          updateDuelPoll();
+        };
+      }
       var reset = host.querySelector('[data-duel-vote-reset]');
       if (reset) reset.onclick = function () { studyState.duelPoll = [0,0,0,0]; updateDuelPoll(); };
+    }
+
+    // ── Real duel room (teacher vs class) ──────────────────────────────────
+    // The poll bars and the opponent score used to be theatre: the teacher
+    // tapped the bars by hand and a timer ticked the "Students" number up.
+    // With a room open, both come from live_duel_votes / live_duel_players.
+
+    function duelRoomApi() { return window.DuvelaDuelRoom || null; }
+
+    async function openDuelRoom() {
+      var api = duelRoomApi();
+      if (!api) return;
+      closeDuelRoom();
+      try {
+        var room = await api.createRoom({
+          deck: studyState.data || [],
+          level: studyState.level,
+          mode: studyState.duelMode,
+          target: studyState.lang,
+          topic: studyState.duelTopic
+        });
+        studyState.duelRoomId = room.id;
+        studyState.duelJoinCode = room.join_code;
+        studyState.duelRoomPlayers = [];
+        // Stop the bot: a real room has real opponents.
+        if (studyState.duelTimerId) { clearInterval(studyState.duelTimerId); studyState.duelTimerId = null; }
+        studyState.duelBot = false;
+        studyState.duelOpponentScore = 0;
+        studyState.duelRoomChannel = api.subscribe(room.id, {
+          onVote: function (vote) {
+            if (!studyState || studyState.duelRoomId !== room.id) return;
+            if (Number(vote.question_index) !== studyState.idx) return;
+            if (!studyState.duelPoll) studyState.duelPoll = [0, 0, 0, 0];
+            var option = Number(vote.option_index);
+            if (option >= 0 && option < 4) studyState.duelPoll[option] += 1;
+            updateDuelPoll();
+          },
+          onPlayer: function () {
+            if (!studyState || studyState.duelRoomId !== room.id) return;
+            void refreshDuelRoomPlayers();
+          }
+        });
+        await api.showQuestion(room.id, 0);
+        await refreshDuelRoomPlayers();
+        renderDuelMatch();
+      } catch (error) {
+        console.warn('Could not open duel room.', error);
+        studyState.duelRoomId = null;
+      }
+    }
+
+    async function refreshDuelRoomPlayers() {
+      var api = duelRoomApi();
+      if (!api || !studyState || !studyState.duelRoomId) return;
+      try {
+        var players = await api.fetchPlayers(studyState.duelRoomId);
+        studyState.duelRoomPlayers = players;
+        // Class score = sum of what the room actually got right.
+        studyState.duelOpponentScore = players.reduce(function (sum, player) {
+          return sum + Number(player.correct_count || 0);
+        }, 0);
+        updateDuelScoreboard();
+        renderDuelRoster();
+      } catch (error) { /* roster refresh is best-effort */ }
+    }
+
+    function renderDuelRoster() {
+      var host = document.getElementById('duelRoster');
+      if (!host) return;
+      var players = (studyState && studyState.duelRoomPlayers) || [];
+      if (!players.length) {
+        host.innerHTML = '<div class="duel-roster-empty">' +
+          esc(tr('Waiting for students to join with the code…', 'Ждём учеников по коду…')) + '</div>';
+        return;
+      }
+      host.innerHTML = '<div class="duel-roster-head"><small>' +
+        esc(tr('IN THE ROOM', 'В КОМНАТЕ')) + '</small><strong>' + players.length + '</strong></div>' +
+        '<ol class="duel-roster-list">' + players.slice(0, 8).map(function (player, index) {
+          return '<li><b>' + (index + 1) + '</b><span>' + esc(player.display_name || 'Student') +
+            '</span><em>' + Number(player.correct_count || 0) + '</em></li>';
+        }).join('') + '</ol>';
+    }
+
+    function closeDuelRoom() {
+      var api = duelRoomApi();
+      if (!studyState) return;
+      if (studyState.duelRoomChannel && api) api.unsubscribe(studyState.duelRoomChannel);
+      if (studyState.duelRoomId && api) void api.closeRoom(studyState.duelRoomId).catch(function () {});
+      studyState.duelRoomChannel = null;
+      studyState.duelRoomId = null;
+      studyState.duelRoomPlayers = [];
     }
 
     function handleDuelLiveKeydown(event) {
@@ -2763,15 +2871,16 @@
       var playerLabel=studyState.duelMode==='teacher'?tr('TEACHER','УЧИТЕЛЬ'):studyState.duelMode==='class'?tr('CLASS','КЛАСС'):tr('YOU','ВЫ');
       var opponentLabel=studyState.duelMode==='teacher'?tr('Students','Ученики'):(studyState.duelBot?tr('Duvela Bot','Бот Duvela'):studyState.duelOpponentName);
       var pauseClass=studyState.duelPaused?' class="active"':'',pauseText=studyState.duelPaused?tr('Resume','Продолжить'):tr('Pause','Пауза');
-      host.innerHTML='<div class="duel-live-masthead"><div><small>DUVELA</small><strong>'+esc(tr('LANGUAGE DUEL','\u042f\u0417\u042b\u041a\u041e\u0412\u0410\u042f \u0414\u0423\u042d\u041b\u042c'))+'</strong></div><span><i></i> LIVE</span></div><div class="duel-live-toolbar"><span>'+esc(tr('For TikTok LIVE: capture the vertical game area','\u0414\u043b\u044f TikTok LIVE: \u0437\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u0438\u0433\u0440\u044b'))+'</span><button type="button" id="duelLiveToggle" aria-pressed="false"><span aria-hidden="true">&#9679;</span>LIVE 9:16</button></div><div class="duel-teacher-live-panel"><div><small>'+esc(duelModeLabel(studyState.duelMode))+'</small><b>'+esc(duelTopicLabel(studyState.duelTopic))+'</b></div><span>'+esc(tr('Join','Вход'))+' <b>vela.cafe</b> · <strong>'+esc(studyState.duelJoinCode||duelJoinCode(studyState.lang,studyState.level))+'</strong></span><button type="button" data-duel-teacher-action="pause"'+pauseClass+'>'+esc(pauseText)+'</button><button type="button" data-duel-teacher-action="answer">'+esc(tr('Show answer','Ответ'))+'</button><button type="button" data-duel-teacher-action="next">'+esc(tr('Next','Дальше'))+'</button></div><p class="duel-live-audience">'+esc(tr('Choose the answer in chat: A, B, C or D','\u041f\u0438\u0448\u0438\u0442\u0435 \u043e\u0442\u0432\u0435\u0442 \u0432 \u0447\u0430\u0442: A, B, C \u0438\u043b\u0438 D'))+'</p><div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'D').charAt(0).toUpperCase())+'</span><small>'+esc(playerLabel)+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👥')+'</span><small>'+esc(opponentLabel)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div><div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div>'+duelPollHtml(item)+'<div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
+      host.innerHTML='<div class="duel-live-masthead"><div><small>DUVELA</small><strong>'+esc(tr('LANGUAGE DUEL','\u042f\u0417\u042b\u041a\u041e\u0412\u0410\u042f \u0414\u0423\u042d\u041b\u042c'))+'</strong></div><span><i></i> LIVE</span></div><div class="duel-live-toolbar"><span>'+esc(tr('For TikTok LIVE: capture the vertical game area','\u0414\u043b\u044f TikTok LIVE: \u0437\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u0438\u0433\u0440\u044b'))+'</span><button type="button" id="duelLiveToggle" aria-pressed="false"><span aria-hidden="true">&#9679;</span>LIVE 9:16</button></div><div class="duel-teacher-live-panel"><div><small>'+esc(duelModeLabel(studyState.duelMode))+'</small><b>'+esc(duelTopicLabel(studyState.duelTopic))+'</b></div><span>'+esc(tr('Join','Вход'))+' <b>vela.cafe</b> · <strong>'+esc(studyState.duelJoinCode||duelJoinCode(studyState.lang,studyState.level))+'</strong></span><button type="button" data-duel-teacher-action="pause"'+pauseClass+'>'+esc(pauseText)+'</button><button type="button" data-duel-teacher-action="answer">'+esc(tr('Show answer','Ответ'))+'</button><button type="button" data-duel-teacher-action="next">'+esc(tr('Next','Дальше'))+'</button></div><p class="duel-live-audience">'+esc(tr('Choose the answer in chat: A, B, C or D','\u041f\u0438\u0448\u0438\u0442\u0435 \u043e\u0442\u0432\u0435\u0442 \u0432 \u0447\u0430\u0442: A, B, C \u0438\u043b\u0438 D'))+'</p><div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'D').charAt(0).toUpperCase())+'</span><small>'+esc(playerLabel)+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👥')+'</span><small>'+esc(opponentLabel)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div><div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div>'+duelPollHtml(item)+'<div id="duelRoster" class="duel-roster"></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
       bindDuelLiveControls(host);
+      renderDuelRoster();
       var liveTitle = host.querySelector('.duel-live-masthead strong');
       if (liveTitle) liveTitle.insertAdjacentHTML('afterend', '<em class="duel-live-bank">LEVEL ' + esc(studyState.level || 'A1') + ' / BANK ' + esc(studyState.duelBankTotal || deck.length) + ' / Q ' + esc(String(studyState.idx + 1)) + '/' + esc(String(deck.length)) + '</em>');
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-teacher-action]'),function(button){button.onclick=function(){
         var action=button.getAttribute('data-duel-teacher-action');
         if(action==='pause'){studyState.duelPaused=!studyState.duelPaused;button.classList.toggle('active',studyState.duelPaused);button.textContent=studyState.duelPaused?tr('Resume','Продолжить'):tr('Pause','Пауза');}
         if(action==='answer'){var correct=host.querySelector('[data-duel-answer="'+item.a+'"]');if(correct)correct.classList.add('correct');}
-        if(action==='next'){studyState.idx++;renderDuelMatch();}
+        if(action==='next'){studyState.idx++;if(studyState.duelRoomId&&duelRoomApi())void duelRoomApi().showQuestion(studyState.duelRoomId,studyState.idx).catch(function(){});renderDuelMatch();}
       };});
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(button){button.onclick=function(){
         var selected=Number(button.getAttribute('data-duel-answer')),ok=selected===item.a;
