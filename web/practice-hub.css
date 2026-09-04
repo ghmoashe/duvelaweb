@@ -1240,3 +1240,25 @@
 #studyOverlay.practice-live-mode .duel-result-stats span{background:rgba(255,255,255,.1);color:#d8cae8}#studyOverlay.practice-live-mode .duel-result-stats b{color:#fff}#studyOverlay.practice-live-mode .duel-follow-card{background:linear-gradient(100deg,rgba(255,255,255,.12),rgba(134,70,230,.18));border:1px solid rgba(255,255,255,.12)}
 @media(max-height:760px){#studyOverlay.practice-live-mode .duel-teacher-live-panel{display:grid;grid-template-columns:1fr auto auto auto}#studyOverlay.practice-live-mode .duel-teacher-live-panel>span{display:none}#studyOverlay.practice-live-mode .duel-poll-actions{display:none}#studyOverlay.practice-live-mode .duel-chat-poll{padding:7px}#studyOverlay.practice-live-mode .duel-poll-head{display:none}#studyOverlay.practice-live-mode .duel-poll-bars{gap:5px}#studyOverlay.practice-live-mode .duel-poll-bars button{grid-template-columns:auto 1fr;gap:5px}#studyOverlay.practice-live-mode .duel-poll-bars strong{display:none}}
 @media(max-width:640px){#studyOverlay[data-practice-tool=duel] .duel-search-stats,.duel-poll-bars,.duel-result-stats{grid-template-columns:1fr}.duel-panel-head,.duel-teacher-live-panel{align-items:flex-start;flex-direction:column}.duel-teacher-live-panel>span{text-align:left}.duel-control-row>span{width:100%}}
+
+/* Duel lobby polish: no duplicate progress bar, tighter first screen. */
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .overlay-body{padding:12px 20px 20px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .practice-session-line{display:none}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .practice-language-row{align-items:center;margin:0 0 10px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .practice-language-row:before{content:"LANGUAGE";margin-right:10px;color:#7b5fad;font-size:10px;font-weight:950;letter-spacing:.12em}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) #studyLang{width:220px!important;min-height:38px;padding:8px 36px 8px 12px;border-radius:13px;font-size:14px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .practice-workspace{padding:12px;border-radius:22px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-card{gap:8px;padding:18px clamp(18px,3vw,30px);border-radius:22px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-card:before{inset:10px;border-radius:18px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-orbit{width:70px;height:70px;border-radius:22px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-orbit span{font-size:31px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-card>small{font-size:11px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-card h2{font-size:clamp(30px,3vw,40px)}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-card p{max-width:590px;font-size:13px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-teacher-panel{padding:12px;border-radius:18px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-panel-head{margin-bottom:8px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-control-row{margin-top:6px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-control-row button{min-height:28px;padding:0 9px;font-size:10.5px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-stats span{padding:8px 10px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-stats b{font-size:22px}
+#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-score,#studyOverlay[data-practice-tool=duel]:not(.practice-live-mode) .duel-search-flow{display:none}
