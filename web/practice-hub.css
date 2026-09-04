@@ -1446,3 +1446,46 @@
 #studyOverlay.practice-live-mode .duel-options button:hover{
   background:linear-gradient(180deg,#2d2548 0%,#251f3d 100%);
 }
+
+/* Absolute no-grey LIVE skin: every visible panel is dark, no white veil. */
+#studyOverlay.practice-live-mode .overlay-card{
+  background:
+    radial-gradient(circle at 17% 12%,rgba(124,64,232,.34),transparent 32%),
+    radial-gradient(circle at 88% 76%,rgba(23,169,213,.18),transparent 34%),
+    linear-gradient(145deg,#120822 0%,#161024 48%,#071923 100%)!important;
+}
+#studyOverlay.practice-live-mode .duel-live-masthead{
+  background:transparent!important;
+  border-bottom-color:rgba(255,255,255,.14)!important;
+}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel,
+#studyOverlay.practice-live-mode .duel-chat-poll,
+#studyOverlay.practice-live-mode .duel-question,
+#studyOverlay.practice-live-mode .duel-poll-bars button,
+#studyOverlay.practice-live-mode .duel-options button,
+#studyOverlay.practice-live-mode .duel-options button:nth-child(1),
+#studyOverlay.practice-live-mode .duel-options button:nth-child(2),
+#studyOverlay.practice-live-mode .duel-options button:nth-child(3),
+#studyOverlay.practice-live-mode .duel-options button:nth-child(4){
+  background:#241b37!important;
+  background-image:linear-gradient(180deg,#2b2240 0%,#201930 100%)!important;
+  border-color:rgba(255,255,255,.14)!important;
+  color:#fff!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.26)!important;
+  backdrop-filter:none!important;
+}
+#studyOverlay.practice-live-mode .duel-match-head{
+  background:#211a34!important;
+  background-image:linear-gradient(110deg,#3b2864 0%,#211a34 56%,#123747 100%)!important;
+  border-color:rgba(210,180,255,.24)!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.28)!important;
+}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel button{
+  background:#34284b!important;
+  border-color:rgba(255,255,255,.18)!important;
+}
+#studyOverlay.practice-live-mode .duel-poll-bars i{background:#3b334c!important}
+#studyOverlay.practice-live-mode .duel-options button:hover{
+  background:#302247!important;
+  background-image:linear-gradient(180deg,#362750 0%,#281f3c 100%)!important;
+}
