@@ -499,7 +499,7 @@
       { id:'sentences',icon:'⇄',category:'grammar',accent:'blue',title:tr('Sentence builder','Конструктор предложений'),desc:tr('Put words into the correct order','Соберите слова в правильном порядке') },
       { id:'categories',icon:'▦',category:'vocabulary',accent:'teal',title:tr('Word sorting','Сортировка слов'),desc:tr('Sort vocabulary into categories','Распределите слова по категориям') },
       { id:'scenarios',icon:'☕',category:'skills',accent:'pink',title:tr('Role-play stories','Ролевые ситуации'),desc:tr('Cafe, travel, work and everyday choices','Кафе, путешествия, работа и ежедневные диалоги') },
-      { id:'duel',icon:'⚡',category:'progress',accent:'red',premium:true,title:tr('Duel','Дуэль'),desc:tr('Real-time match with a learner at your level','Матч в реальном времени с учеником вашего уровня') },
+      { id:'duel',icon:'⚡',category:'progress',accent:'red',premium:false,title:tr('Student LIVE Duel','LIVE-дуэль ученика'),desc:tr('Real learner first, Duvela Bot fallback if nobody is online','Сначала настоящий ученик, если никого нет онлайн — бот Duvela') },
       { id:'team',icon:'👥',category:'progress',accent:'purple',title:tr('Team challenge','Командное задание'),desc:tr('Complete a shared language goal','Выполните общую языковую цель') }
     );
     TOOLS.push(
@@ -956,7 +956,7 @@
         sourceCard('liveTeacher','liveTeacher','video',true,'Practice LIVE with Teacher','Teacher session','Enter a live practice room with a teacher for speaking, questions, and real-time feedback.','Join LIVE'),
         examCard,
         ...(essentialsCard?[essentialsCard]:[]),
-        sourceCard('duel','duel','bolt',true,'Duel','Real-time match','Battle a learner at your level - whoever scores more on the clock wins.','Find a rival'),
+        sourceCard('duel','duel','bolt',false,'LIVE Student Duel','10 questions · live matchmaking','Join from Student Hub. Duvela searches a real learner first; if nobody is online, the Bot starts.','Play duel'),
         sourceCard('teacherPractices','teacherPractices','bulb',false,'Teacher practice','From teachers & schools','Practices created by teachers. Higher rated ones rank first.','Open',true),
         grammarCard,
         wordUsageCard
@@ -1010,6 +1010,7 @@
         return '<button type="button" data-readiness-tool="'+key+'"><span><b>'+esc(label)+'</b><strong>'+value+'%</strong></span><i><em style="width:'+value+'%"></em></i></button>';
       }
       var quickStart=[
+        {id:'duel',icon:'bolt',title:'LIVE Duel'},
         {id:'listening',icon:'headphones',title:'Listening Lab'},
         {id:'reading',icon:'book',title:'Reading Lab'},
         {id:'writing',icon:'edit',title:'Writing Lab'}
@@ -1021,7 +1022,7 @@
         '<div class="practice-language-tabs">'+languageTargets.map(miniLanguage).join('')+'</div>' +
         '<section class="practice-goal-progress"><div class="practice-goal-head"><span>'+bankIcon('path')+'</span><div><small>STUDENT GOAL</small><h2>'+esc(activeLabel+' '+goalDisplay)+'</h2></div><strong>'+goalPercent+'%</strong></div><div class="practice-goal-track"><i style="width:'+goalPercent+'%"></i></div><div class="practice-goal-stats"><span><small>CURRENT</small><b>'+esc(String(activeLevel).toUpperCase())+'</b></span><span><small>GOAL</small><b>'+esc(goalDisplay)+'</b></span><span class="wide"><small>SCORE</small><b>'+score+'</b><em>Bronze</em><i><u style="width:'+Math.min(100,Math.round(score/silverTarget*100))+'%"></u></i><small>RANKING</small><strong>'+score+'/'+silverTarget+' to Silver</strong></span></div><p><span>'+bankIcon('bolt')+'</span>'+esc(goalLevel?tr('Next: finish practice paths to reach ','Следующий шаг: пройти практику до ')+goalLevel:tr('Next: set your Student Goal and create an exam plan.','Следующий шаг: укажите Student Goal и создайте план экзамена.'))+'</p></section>' +
         '<section class="practice-exam-journey"><div class="practice-exam-title"><div><small>EXAM JOURNEY</small><h2>'+esc(examName)+'</h2></div><strong>'+readiness.overall+'%</strong></div><p>'+esc(goalLevel?tr('Exam preparation is tuned to Student Goal ','Подготовка к экзамену настроена под Student Goal ')+goalLevel:tr('Set your Student Goal and exam date to get a personal daily plan.','Укажите Student Goal и дату экзамена, чтобы получить личный план на каждый день.'))+'</p><div class="practice-exam-date"><span>'+bankIcon('file')+'</span><div><small>EXAM DATE</small><b>'+esc(examDateText)+'</b></div><em>'+esc(examDayText)+'</em></div><div class="practice-goal-track exam"><i style="width:'+readiness.overall+'%"></i></div><div class="practice-exam-actions"><button type="button" data-exam-plan="1">'+bankIcon('file')+' '+esc(examDate?tr('Change plan','Изменить план'):tr('Create plan','Создать план'))+'</button><button class="study-tile" type="button" data-study="exam">Exam bank <span>-></span></button></div><div class="practice-skill-readiness">'+readinessRow('reading','Reading')+readinessRow('listening','Listening')+readinessRow('grammar','Grammar')+readinessRow('writing','Writing')+readinessRow('speaking','Speaking')+'</div></section>' +
-        '<div class="practice-quick-head"><div><small>QUICK START</small><h2>Core skills</h2></div><span>3</span></div><div class="practice-quick-start">'+quickStart.map(quickCard).join('')+'</div>' +
+        '<div class="practice-quick-head"><div><small>QUICK START</small><h2>Core skills</h2></div><span>'+quickStart.length+'</span></div><div class="practice-quick-start">'+quickStart.map(quickCard).join('')+'</div>' +
         '<div class="practice-library-head"><div><small>PRACTICE LIBRARY</small><h2>All exercises</h2></div><span>'+bankItems.length+'</span></div>' +
         '<div class="practice-exercise-bank">' + bankItems.map(exerciseCard).join('') + '</div></section>';
       const premiumOrder=['adaptive','ai','liveTeacher','exam','essentials','duel'];
@@ -2465,14 +2466,14 @@
       var host=$('#studyToolBody'),team=mode==='team';
       if(!team){
         var duelBankTotal = buildDuelDeck(studyState.lang, studyState.level).length;
-        host.innerHTML='<div class="social-challenge duel-search-card"><div class="duel-search-orbit"><span>⚔️</span><i></i><i></i><i></i></div><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(tr('We search for a learner at your level first. If nobody is online, Duvela Bot starts immediately so the LIVE never waits.','Сначала ищем ученика вашего уровня. Если онлайн никого нет, Duvela Bot стартует сразу, чтобы LIVE не ждал.'))+'</p><div class="duel-search-stats"><span><b>'+DUEL_QUESTION_COUNT+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b>'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b>'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span></div><div class="social-score duel-search-score"><b id="myChallengeScore">0</b><span>VS</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Ready to search','Готово к поиску'))+'</div><div class="duel-search-flow"><span>👥 '+esc(tr('Online learner','ученик онлайн'))+'</span><span>🤖 '+esc(tr('Bot fallback','бот если никого нет'))+'</span><span>💬 '+esc(tr('A/B/C/D chat','A/B/C/D в чат'))+'</span></div><button class="btn primary" id="socialStart">'+esc(tr('Find opponent','Найти соперника'))+'</button></div>';
+        host.innerHTML='<div class="social-challenge duel-search-card"><div class="duel-search-orbit"><span>⚔️</span><i></i><i></i><i></i></div><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(tr('We search for a live opponent at your level first. If nobody is online, Duvela Bot starts immediately so the LIVE never waits.','Сначала ищем живого соперника вашего уровня. Если онлайн никого нет, Duvela Bot стартует сразу, чтобы LIVE не ждал.'))+'</p><div class="duel-search-stats"><span><b>'+DUEL_QUESTION_COUNT+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b>'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b>'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span></div><div class="social-score duel-search-score"><b id="myChallengeScore">0</b><span>VS</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Ready to search','Готово к поиску'))+'</div><div class="duel-search-flow"><span>👥 '+esc(tr('Live opponent','живой соперник'))+'</span><span>🤖 '+esc(tr('Bot fallback','бот если никого нет'))+'</span><span>💬 '+esc(tr('A/B/C/D chat','A/B/C/D в чат'))+'</span></div><button class="btn primary" id="socialStart">'+esc(tr('Find opponent','Найти соперника'))+'</button></div>';
       } else
       host.innerHTML='<div class="social-challenge"><span>'+(team?'👥':'⚔️')+'</span><small>DUVELA '+(team?'TEAM':'DUEL')+'</small><h2>'+esc(team?tr('Team challenge','Командное задание'):tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(team?tr('Complete 30 correct answers together this week.','Вместе дайте 30 правильных ответов за неделю.'):tr('First we look for a learner online. If nobody is available, you play immediately against the Duvela Bot.','Сначала ищем ученика онлайн. Если никого нет, вы сразу играете с ботом Duvela.'))+'</p><div class="social-score"><b id="myChallengeScore">0</b><span>'+(team?'TEAM':'VS')+'</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status">'+esc(team?tr('Team matchmaking is ready','Командный подбор готов'):tr('Ready to search','Готово к поиску'))+'</div><button class="btn primary" id="socialStart">'+esc(team?tr('Join a team','Вступить в команду'):tr('Find opponent','Найти соперника'))+'</button></div>';
       $('#socialStart').onclick=async function(){
         var button=this;if(team)return startLegacyTeam(button);button.disabled=true;
         var seconds=4,status=$('#challengeMembers'),challenge=null,foundOpponent=false;
         button.textContent=tr('Searching online…','Ищем онлайн…');
-        status.innerHTML='<span class="duel-search-dot"></span>'+esc(tr('Looking for a learner at your level','Ищем ученика вашего уровня'))+' · <b id="duelSearchSeconds">'+seconds+'</b>';
+        status.innerHTML='<span class="duel-search-dot"></span>'+esc(tr('Looking for a live opponent at your level','Ищем живого соперника вашего уровня'))+' · <b id="duelSearchSeconds">'+seconds+'</b>';
         try{
           if(uid()){
             var prefs=loadPrefs(),level=(prefs.levels||{})[studyState.lang]||'A1';
@@ -2486,7 +2487,7 @@
         function launch(bot){
           if(studyState.searchTimerId)clearInterval(studyState.searchTimerId);
           studyState.searchTimerId=null;studyState.challengeId=challenge&&challenge.id||null;studyState.duelBot=bot;
-          studyState.duelOpponentName=bot?tr('Duvela Bot','Бот Duvela'):tr('Learner online','Ученик онлайн');
+          studyState.duelOpponentName=bot?tr('Duvela Bot','Бот Duvela'):tr('Live opponent','Соперник онлайн');
           var duelDeck=buildDuelDeck(studyState.lang,studyState.level);
           studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.data=duelDeck.slice(0,DUEL_QUESTION_COUNT);studyState.duelBankTotal=duelDeck.length;studyState.idx=0;studyState.score=0;studyState.total=DUEL_QUESTION_COUNT;
           $('#studyOverlayTitle').textContent='⚔️ '+tr('Learner duel','Дуэль учеников');renderTool();

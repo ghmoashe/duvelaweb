@@ -129,7 +129,7 @@
       workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
-      duel: [tr('Language Duel', 'Языковая дуэль'), tr('Real-time match with a learner at your level — 5 questions, whoever scores more on the clock wins.', 'Матч в реальном времени с учеником вашего уровня — 5 вопросов на скорость, победит тот, кто наберёт больше.')],
+      duel: [tr('Language Duel', 'Языковая дуэль'), tr('Real-time match with a learner at your level — 10 questions, whoever scores more on the clock wins.', 'Матч в реальном времени с учеником вашего уровня — 10 вопросов на скорость, победит тот, кто наберёт больше.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {

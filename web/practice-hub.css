@@ -1161,3 +1161,17 @@
 @keyframes duelScoreGlow{0%,100%{box-shadow:0 10px 26px rgba(115,64,216,.06)}50%{box-shadow:0 18px 44px rgba(115,64,216,.18)}}
 @keyframes duelButtonShine{0%,58%{left:-35%}100%{left:120%}}
 @media(prefers-reduced-motion:reduce){.duel-search-orbit,.duel-search-orbit i,.duel-search-card h2,.duel-search-card p,.duel-search-stats,.duel-search-score,.duel-search-status,.duel-search-flow,.duel-search-card .btn.primary,.duel-search-card .btn.primary:after{animation:none!important}}
+.practice-quick-start{grid-template-columns:repeat(4,minmax(0,1fr))}
+.practice-quick-card[data-study="duel"]{position:relative;overflow:hidden;background:linear-gradient(145deg,#6f37df,#c43ade);color:#fff;box-shadow:0 18px 42px rgba(112,64,216,.22)}
+.practice-quick-card[data-study="duel"]:after{content:"LIVE";position:absolute;right:13px;top:13px;padding:6px 9px;border-radius:999px;background:#ef245b;color:#fff;font-size:10px;font-weight:950;letter-spacing:.08em}
+.practice-quick-card[data-study="duel"] span{background:rgba(255,255,255,.18);color:#fff;animation:studentDuelPulse 1.8s ease-in-out infinite}
+.practice-quick-card[data-study="duel"] b{color:#fff}
+.mph-exercise-card[data-mobile-card="duel"]{overflow:hidden;border:1.5px solid rgba(239,36,91,.24);background:radial-gradient(circle at 92% 20%,rgba(239,36,91,.18),transparent 30%),linear-gradient(145deg,#fff,#f8f1ff 62%,#eefaff);box-shadow:0 16px 38px rgba(112,64,216,.12)}
+.mph-exercise-card[data-mobile-card="duel"] .mph-exercise-icon{background:linear-gradient(145deg,#7440e5,#d33bd9);color:#fff;animation:studentDuelPulse 1.8s ease-in-out infinite}
+.mph-exercise-card[data-mobile-card="duel"] .mph-exercise-copy h3{color:#2a1638}
+.mph-exercise-card[data-mobile-card="duel"] .mph-exercise-copy strong{color:#d72661}
+.mph-exercise-card[data-mobile-card="duel"] .mph-exercise-action{background:linear-gradient(100deg,#7040d8,#ef245b);box-shadow:0 12px 28px rgba(239,36,91,.18)}
+@keyframes studentDuelPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,36,91,.28)}50%{transform:scale(1.04);box-shadow:0 0 0 10px rgba(239,36,91,0)}}
+@media(max-width:980px){.practice-quick-start{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.practice-quick-start{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.practice-quick-card[data-study="duel"] span,.mph-exercise-card[data-mobile-card="duel"] .mph-exercise-icon{animation:none!important}}
