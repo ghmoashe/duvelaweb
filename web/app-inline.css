@@ -545,6 +545,9 @@
   .nav-business-only { display: none; }
   body.business-mode .nav-business-only { display: flex; }
   body:not(.business-mode) .nav .nav-business-only { display:none !important; }
+  /* Practice for LIVE is only meaningful in the teacher/organizer workspace. */
+  body:not(.business-mode) .nav [data-view="livePractice"] { display: none !important; }
+  body:not(.business-mode) .panel.bus-only { display: none !important; }
   .mg-wrap { display: grid; gap: 16px; max-width: 860px; }
   .mg-wrap svg { width: 1em; height: 1em; }
   .mg-loading { padding: 40px; text-align: center; color: var(--soft); font-weight: 700; }

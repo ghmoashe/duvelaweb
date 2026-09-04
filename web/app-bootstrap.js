@@ -65,6 +65,28 @@
         }
       }));
 
+      // Duel + Practice-for-LIVE panels are simple launchers. Both send the
+      // learner into the Practice workspace with a pre-selected tool so we
+      // don't duplicate the duel or studio implementation; the workspace
+      // already renders those.
+      const goToWorkspaceTool = (tool) => {
+        if (tool) window.location.hash = '#workspace/' + tool;
+        else window.location.hash = '#workspace';
+        ctx.setView('workspace');
+        if (ctx.isBusiness()) ctx.renderWorkspace();
+        else ctx.loadPractices().then(ctx.renderWorkspace);
+      };
+      const duelStart = document.getElementById('duelStartFromNav');
+      if (duelStart) duelStart.addEventListener('click', () => goToWorkspaceTool('duelmatch'));
+      const duelOpen = document.getElementById('duelOpenPractice');
+      if (duelOpen) duelOpen.addEventListener('click', () => goToWorkspaceTool());
+      const livePracticeStudio = document.getElementById('livePracticeOpenStudio');
+      if (livePracticeStudio) livePracticeStudio.addEventListener('click', () => {
+        ctx.setView('live');
+      });
+      const livePracticeDuel = document.getElementById('livePracticeOpenDuel');
+      if (livePracticeDuel) livePracticeDuel.addEventListener('click', () => goToWorkspaceTool('duelmatch'));
+
       $('#videoTabs').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-filter]');
         if (!button) return;
