@@ -30,41 +30,120 @@
     return code;
   }
 
+  function joinUrl(joinCode) {
+    const code = String(joinCode || '').trim().toUpperCase();
+    const origin = window.location.origin;
+    const path = window.location.pathname || '/app.html';
+    return origin + path + '?duel=' + encodeURIComponent(code) + '#duel';
+  }
+
   // ── Teacher side ───────────────────────────────────────────────────────────
+
+  async function currentTeacherId() {
+    const supa = client();
+    if (!supa) return null;
+    const auth = await supa.auth.getUser();
+    return auth?.data?.user?.id || null;
+  }
+
+  async function findMyActiveRoom() {
+    const supa = client();
+    if (!supa) throw new Error('Supabase is not configured.');
+    const teacherId = await currentTeacherId();
+    if (!teacherId) throw new Error('Sign in to host a duel.');
+    const { data, error } = await supa
+      .from(ROOM_TABLE)
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .in('status', ['lobby', 'running', 'paused'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
 
   async function createRoom(options) {
     const supa = client();
     if (!supa) throw new Error('Supabase is not configured.');
-    const auth = await supa.auth.getUser();
-    const teacherId = auth?.data?.user?.id;
+    const teacherId = await currentTeacherId();
     if (!teacherId) throw new Error('Sign in to host a duel.');
 
     const deck = Array.isArray(options.deck) ? options.deck : [];
+    const payload = {
+      teacher_id: teacherId,
+      session_id: options.sessionId || null,
+      target: options.target || 'german',
+      level: options.level || 'A1',
+      topic: options.topic || null,
+      duel_mode: options.mode || 'teacher',
+      total_questions: deck.length || 10,
+      deck,
+      status: 'lobby',
+      current_question: -1,
+      reveal_answer: false
+    };
     // Retry on the unique active-code index rather than trusting one draw.
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      const joinCode = generateJoinCode();
       const { data, error } = await supa
         .from(ROOM_TABLE)
-        .insert({
-          join_code: joinCode,
-          teacher_id: teacherId,
-          session_id: options.sessionId || null,
-          target: options.target || 'german',
-          level: options.level || 'A1',
-          topic: options.topic || null,
-          duel_mode: options.mode || 'teacher',
-          total_questions: deck.length || 10,
-          deck,
-          status: 'lobby',
-          current_question: -1
-        })
+        .insert(Object.assign({ join_code: generateJoinCode() }, payload))
         .select()
         .single();
       if (!error) return data;
-      // 23505 = unique violation: that code is taken by another live room.
+      // 23505 = unique violation: code taken, or this teacher already has a live room.
       if (error.code !== '23505') throw error;
+      const existing = await findMyActiveRoom();
+      if (existing) return existing;
     }
     throw new Error('Could not allocate a duel code. Try again.');
+  }
+
+  async function resetLobby(roomId, patch) {
+    const supa = client();
+    if (!supa || !roomId) return null;
+    // Drop votes from a previous run so Q1 is answerable again on the same code.
+    await supa.from(VOTE_TABLE).delete().eq('room_id', roomId);
+    await supa
+      .from(PLAYER_TABLE)
+      .update({ score: 0, correct_count: 0, answered_count: 0 })
+      .eq('room_id', roomId);
+    return setRoomState(roomId, Object.assign({}, patch || {}, {
+      status: 'lobby',
+      current_question: -1,
+      reveal_answer: false
+    }));
+  }
+
+  async function ensureLobbyRoom(options) {
+    const existing = await findMyActiveRoom();
+    const deck = Array.isArray(options.deck) ? options.deck : [];
+    const patch = {
+      target: options.target || 'german',
+      level: options.level || 'A1',
+      topic: options.topic || null,
+      duel_mode: options.mode || 'teacher',
+      total_questions: deck.length || 10,
+      deck
+    };
+    if (!existing) return createRoom(options);
+    if (existing.status === 'running' || existing.status === 'paused') {
+      try {
+        return await resetLobby(existing.id, patch);
+      } catch (error) {
+        // Vote-delete policy may not be applied yet; close and mint a fresh lobby.
+        await setRoomState(existing.id, { status: 'closed' });
+        return createRoom(options);
+      }
+    }
+    return setRoomState(existing.id, patch);
+  }
+
+  async function kickPlayer(playerId) {
+    const supa = client();
+    if (!supa || !playerId) return;
+    const { error } = await supa.from(PLAYER_TABLE).delete().eq('id', playerId);
+    if (error) throw error;
   }
 
   async function setRoomState(roomId, patch) {
@@ -112,6 +191,9 @@
     const room = await findRoomByCode(joinCode);
     const auth = await supa.auth.getUser();
     const userId = auth?.data?.user?.id || null;
+    if (userId && userId === room.teacher_id) {
+      throw new Error('You are hosting this duel.');
+    }
 
     // A signed-in learner rejoining (refresh, dropped connection) must land on
     // the same player row so their score survives.
@@ -238,7 +320,12 @@
 
   window.DuvelaDuelRoom = {
     generateJoinCode,
+    joinUrl,
     createRoom,
+    findMyActiveRoom,
+    ensureLobbyRoom,
+    resetLobby,
+    kickPlayer,
     setRoomState,
     showQuestion,
     revealAnswer,

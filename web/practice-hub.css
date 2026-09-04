@@ -1517,9 +1517,33 @@
 .duel-roster-head small{color:#b98cf0;font-size:10px;font-weight:950;letter-spacing:.1em}
 .duel-roster-head strong{color:#fff;font-size:16px;font-weight:950}
 .duel-roster-list{display:grid;gap:5px;margin:0;padding:0;list-style:none}
-.duel-roster-list li{display:grid;grid-template-columns:24px 1fr auto;gap:9px;align-items:center;padding:7px 11px;border-radius:12px;background:rgba(26,22,54,.62)}
+.duel-roster-list li{display:grid;grid-template-columns:24px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:7px 11px;border-radius:12px;background:rgba(26,22,54,.62)}
 .duel-roster-list b{color:#b98cf0;font-size:11px;font-weight:950;text-align:center}
 .duel-roster-list span{color:#fff;font-size:13px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .duel-roster-list em{color:#28d39f;font-size:14px;font-style:normal;font-weight:950}
+.duel-kick{width:28px;height:28px;border:1px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(255,255,255,.08);color:#ffd0d0;font-size:16px;font-weight:900;line-height:1;cursor:pointer}
+.duel-kick:hover{background:#d64545;border-color:#d64545;color:#fff}
 #studyOverlay.practice-live-mode .duel-roster-list li{background:rgba(11,10,32,.72)}
 @media(max-height:760px){.duel-roster{display:none}}
+
+.duel-code-chip{display:flex;align-items:center;gap:8px}
+.duel-code-chip strong{padding:9px 12px;border-radius:13px;background:#171020;color:#fff;font-size:16px;letter-spacing:.04em}
+.duel-copy-btn{min-height:32px;padding:0 12px;border:1px solid #e0d4f1;border-radius:999px;background:#fff;color:#614c86;font:inherit;font-size:11px;font-weight:950;cursor:pointer}
+.duel-copy-btn:hover{border-color:#7040d8;color:#7040d8}
+.duel-lobby-share{display:grid;grid-template-columns:140px minmax(0,1fr);gap:14px;align-items:center;margin-top:12px;padding:12px;border:1px solid rgba(123,64,216,.12);border-radius:16px;background:#fff}
+.duel-lobby-share img{width:140px;height:140px;border-radius:12px;background:#f7f2ff;object-fit:contain}
+.duel-lobby-url{color:#3d3150;font-size:13px;font-weight:850;word-break:break-all}
+.duel-lobby-share-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.duel-lobby-roster{position:relative;width:min(820px,100%);margin:4px auto 0;text-align:left}
+.duel-lobby-roster .duel-roster-empty{border-color:rgba(123,64,216,.2);background:#f7f2ff;color:#5f536e}
+.duel-lobby-roster .duel-roster-head small{color:#7040d8}
+.duel-lobby-roster .duel-roster-head strong{color:#171020}
+.duel-lobby-roster .duel-roster-list li{background:#fff;border:1px solid #eadff6}
+.duel-lobby-roster .duel-roster-list b{color:#7040d8}
+.duel-lobby-roster .duel-roster-list span{color:#31243e}
+.duel-lobby-roster .duel-roster-list em{color:#0f9d73}
+.duel-lobby-roster .duel-kick{border-color:#eadff6;background:#fff;color:#a15b5b}
+@media(max-width:640px){
+  .duel-lobby-share{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .duel-panel-head .duel-code-chip{width:100%;justify-content:space-between}
+}

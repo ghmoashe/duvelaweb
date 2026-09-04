@@ -79,6 +79,30 @@
     node.className = 'duel-join-status' + (tone ? ' ' + tone : '');
   }
 
+  function codeFromLocation() {
+    try {
+      const query = new URLSearchParams(window.location.search || '');
+      const fromQuery = query.get('duel') || query.get('code') || query.get('join');
+      if (fromQuery) return String(fromQuery).trim().toUpperCase();
+      const hash = String(window.location.hash || '');
+      const q = hash.indexOf('?');
+      if (q >= 0) {
+        const hashQuery = new URLSearchParams(hash.slice(q + 1));
+        const fromHash = hashQuery.get('duel') || hashQuery.get('code') || hashQuery.get('join');
+        if (fromHash) return String(fromHash).trim().toUpperCase();
+      }
+      const path = hash.match(/^#duel\/([A-Z0-9]+)/i);
+      return path ? path[1].toUpperCase() : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function isHostingOverlay() {
+    const overlay = document.getElementById('studyOverlay');
+    return !!(overlay && overlay.classList.contains('open') && overlay.getAttribute('data-practice-tool') === 'duel');
+  }
+
   function currentItem() {
     const room = state.room;
     if (!room) return null;
@@ -122,6 +146,16 @@
       return;
     }
 
+    if (room.status === 'paused') {
+      card.innerHTML = head + '<div class="duel-play-body duel-play-wait"><h3>' +
+        esc(tr('Paused', 'Пауза')) + '</h3><p>' +
+        esc(tr('The teacher paused the duel. Hang tight.',
+          'Учитель поставил дуэль на паузу. Подождите.')) + '</p>' +
+        scoreboardHtml() + '</div>';
+      bind();
+      return;
+    }
+
     const item = currentItem();
     if (!item) {
       card.innerHTML = head + '<div class="duel-play-body duel-play-wait"><h3>' +
@@ -135,25 +169,27 @@
 
     const index = Number(room.current_question);
     const answered = state.answeredIndex === index;
-    // Options only turn green/red once the teacher presses "Show answer" — the
-    // class must not see the key before the reveal.
-    const reveal = answered && !!room.reveal_answer;
+    const reveal = !!room.reveal_answer;
+    const locked = answered || reveal;
     const options = item.opts.slice(0, 4).map(function (option, optionIndex) {
       let className = '';
       if (answered && optionIndex === state.answeredOption) className = ' class="chosen"';
       if (reveal) {
         if (optionIndex === Number(item.a)) className = ' class="correct"';
-        else if (optionIndex === state.answeredOption) className = ' class="wrong"';
+        else if (answered && optionIndex === state.answeredOption) className = ' class="wrong"';
       }
       return '<button type="button" data-duel-play-option="' + optionIndex + '"' + className +
-        (answered ? ' disabled' : '') + '><span>' + String.fromCharCode(65 + optionIndex) + '</span>' +
+        (locked ? ' disabled' : '') + '><span>' + String.fromCharCode(65 + optionIndex) + '</span>' +
         esc(option) + '</button>';
     }).join('');
 
-    const note = answered
-      ? '<p class="duel-play-note">' + esc(tr('Answer locked in. Waiting for the next question…',
-        'Ответ принят. Ждём следующий вопрос…')) + '</p>'
-      : '';
+    const note = reveal
+      ? '<p class="duel-play-note">' + esc(tr('Answer revealed. Waiting for the next question…',
+        'Ответ показан. Ждём следующий вопрос…')) + '</p>'
+      : (answered
+        ? '<p class="duel-play-note">' + esc(tr('Answer locked in. Waiting for the next question…',
+          'Ответ принят. Ждём следующий вопрос…')) + '</p>'
+        : '');
 
     card.innerHTML = head +
       '<div class="duel-play-body">' +
@@ -178,6 +214,7 @@
     const room = state.room;
     const item = currentItem();
     if (!room || !state.player || !item) return;
+    if (room.status === 'paused' || room.reveal_answer) return;
     const index = Number(room.current_question);
     if (state.answeredIndex === index) return;
     const optionIndex = Number(button.getAttribute('data-duel-play-option'));
@@ -200,6 +237,11 @@
       const players = await api().fetchPlayers(state.room.id);
       state.players = players;
       const mine = state.player && players.find(function (player) { return player.id === state.player.id; });
+      if (state.player && !mine) {
+        leaveRoom();
+        setStatus(tr('You were removed from the room.', 'Вас убрали из комнаты.'), 'bad');
+        return;
+      }
       if (mine) state.player = mine;
       render();
     } catch (error) { /* scoreboard refresh is best-effort */ }
@@ -238,7 +280,14 @@
         });
         render();
       },
-      onPlayer: function () { void refreshPlayers(); }
+      onPlayer: function (row, eventType) {
+        if (eventType === 'DELETE' && state.player && row && row.id === state.player.id) {
+          leaveRoom();
+          setStatus(tr('You were removed from the room.', 'Вас убрали из комнаты.'), 'bad');
+          return;
+        }
+        void refreshPlayers();
+      }
     });
     await refreshPlayers();
     render();
@@ -250,12 +299,14 @@
     form.dataset.bound = '1';
 
     const nameField = document.getElementById('duelJoinName');
+    const codeField = document.getElementById('duelJoinCode');
+    const preset = codeFromLocation();
+    if (codeField && preset && !codeField.value) codeField.value = preset;
     if (nameField) void suggestedName().then(function (name) { if (name && !nameField.value) nameField.value = name; });
 
-    form.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      const codeField = document.getElementById('duelJoinCode');
-      const code = String(codeField ? codeField.value : '').trim().toUpperCase();
+    async function submitJoin() {
+      const field = document.getElementById('duelJoinCode');
+      const code = String(field ? field.value : '').trim().toUpperCase();
       if (!code) { setStatus(tr('Enter the duel code.', 'Введите код дуэли.'), 'bad'); return; }
       const submit = document.getElementById('duelJoinSubmit');
       if (submit) submit.disabled = true;
@@ -265,11 +316,26 @@
         form.hidden = true;
         setStatus('', '');
       } catch (error) {
-        setStatus(error && error.message ? error.message : tr('Could not join.', 'Не удалось подключиться.'), 'bad');
+        const message = error && error.message === 'You are hosting this duel.'
+          ? tr('You are hosting this duel.', 'Вы ведёте эту дуэль.')
+          : (error && error.message ? error.message : tr('Could not join.', 'Не удалось подключиться.'));
+        setStatus(message, 'bad');
       } finally {
         if (submit) submit.disabled = false;
       }
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      void submitJoin();
     });
+
+    if (preset && !isHostingOverlay() && !state.room) {
+      void suggestedName().then(function (name) {
+        if (nameField && name && !nameField.value) nameField.value = name;
+        void submitJoin();
+      });
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);

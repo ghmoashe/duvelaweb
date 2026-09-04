@@ -1181,6 +1181,11 @@
       if (studyState && studyState.duelTimerId) clearInterval(studyState.duelTimerId);
       if (studyState && studyState.searchTimerId) clearInterval(studyState.searchTimerId);
       if (studyState && studyState.challengeChannel) supa.removeChannel(studyState.challengeChannel);
+      // Keep the lobby/running room so a reopen (or a student already holding
+      // the code) does not mint a new join code. Only detach the realtime channel.
+      if (studyState && studyState.duelRoomChannel && duelRoomApi()) {
+        duelRoomApi().unsubscribe(studyState.duelRoomChannel);
+      }
       persistResume();
       studyState = null;
       aiChatState = null;
@@ -1195,6 +1200,10 @@
       if (id === 'telcB2') { location.href = './telc-b2-exam.html'; return; }
       var tool = TOOLS.find(function (t) { return t.id === id; });
       if (!tool) return;
+      if (studyState && studyState.duelRoomChannel && duelRoomApi()) {
+        duelRoomApi().unsubscribe(studyState.duelRoomChannel);
+        studyState.duelRoomChannel = null;
+      }
       ensureOverlay();
       if (id !== 'ai') aiChatState = null;
       var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
@@ -2468,45 +2477,18 @@
       if(!team){
         var kit = duelTeacherKit(), selectedTopic = studyState.duelTopic || kit.topic || 'all', selectedMode = studyState.duelMode || kit.mode || 'students';
         studyState.duelTopic = selectedTopic;studyState.duelMode = selectedMode;
-        var duelBankTotal = buildDuelDeck(studyState.lang, studyState.level, selectedTopic).length, joinCode = duelJoinCode(studyState.lang, studyState.level);
-        host.innerHTML='<div class="social-challenge duel-search-card"><div class="duel-search-orbit"><span>⚔️</span><i></i><i></i><i></i></div><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(tr('We search for a live opponent at your level first. If nobody is online, Duvela Bot starts immediately so the LIVE never waits.','Сначала ищем живого соперника вашего уровня. Если онлайн никого нет, Duvela Bot стартует сразу, чтобы LIVE не ждал.'))+'</p><div class="duel-teacher-panel"><div class="duel-panel-head"><div><small>TEACHER CONTROL</small><b>'+esc(tr('Run the room from one screen','Управляйте эфиром с одного экрана'))+'</b></div><strong id="duelJoinCode">'+esc(joinCode)+'</strong></div><div class="duel-control-row"><span>'+esc(tr('Mode','Режим'))+'</span>'+duelModeList().map(function(item){return '<button type="button" data-duel-mode="'+esc(item[0])+'" class="'+(item[0]===selectedMode?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div><div class="duel-control-row"><span>'+esc(tr('Topic','Тема'))+'</span>'+duelTopicList().map(function(item){return '<button type="button" data-duel-topic="'+esc(item[0])+'" class="'+(item[0]===selectedTopic?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div><div class="duel-control-row compact"><span>'+esc(tr('Level','Уровень'))+'</span>'+['A1','A2','B1','B2','C1','C2'].map(function(level){return '<button type="button" data-duel-level="'+level+'" class="'+(level===String(studyState.level||'A1').toUpperCase()?'active':'')+'">'+level+'</button>';}).join('')+'<button type="button" data-duel-topic-random="1">'+esc(tr('Generate lesson','Сгенерировать урок'))+'</button></div></div><div class="duel-search-stats"><span><b>'+DUEL_QUESTION_COUNT+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b id="duelLobbyLevel">'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b id="duelLobbyBank">'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span><span><b>'+esc(String(kit.streak||0))+'</b><small>'+esc(tr('teacher streak','серия учителя'))+'</small></span></div><div class="duel-join-strip"><span>'+esc(tr('Students join','Ученики заходят'))+': <b>vela.cafe</b></span><span>'+esc(tr('Code','Код'))+': <b id="duelJoinCodeInline">'+esc(joinCode)+'</b></span><span>'+esc(duelModeLabel(selectedMode))+' · '+esc(duelTopicLabel(selectedTopic))+'</span></div><div class="social-score duel-search-score"><b id="myChallengeScore">0</b><span>VS</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Ready to search','Готово к поиску'))+'</div><div class="duel-search-flow"><span>👥 '+esc(tr('Live opponent','живой соперник'))+'</span><span>🤖 '+esc(tr('Bot fallback','бот если никого нет'))+'</span><span>💬 '+esc(tr('A/B/C/D chat','A/B/C/D в чат'))+'</span><span>🏁 '+esc(tr('Winner screen','экран победителя'))+'</span></div><button class="btn primary" id="socialStart">'+esc(tr('Start LIVE duel','Запустить LIVE-дуэль'))+'</button></div>';
+        var duelBankTotal = buildDuelDeck(studyState.lang, studyState.level, selectedTopic).length;
+        var joinCode = studyState.duelJoinCode || '••••';
+        host.innerHTML='<div class="social-challenge duel-search-card"><div class="duel-search-orbit"><span>⚔️</span><i></i><i></i><i></i></div><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Students join now','Ученики заходят сейчас'))+'</h2><p>'+esc(tr('The room is live. Share the code or QR — Start does not change the code.','Комната уже открыта. Покажите код или QR — Start код не меняет.'))+'</p><div class="duel-teacher-panel"><div class="duel-panel-head"><div><small>TEACHER CONTROL</small><b>'+esc(tr('Run the room from one screen','Управляйте эфиром с одного экрана'))+'</b></div><div class="duel-code-chip"><strong id="duelJoinCode">'+esc(joinCode)+'</strong><button type="button" class="duel-copy-btn" data-duel-copy="code">'+esc(tr('Copy','Копировать'))+'</button></div></div><div class="duel-control-row"><span>'+esc(tr('Mode','Режим'))+'</span>'+duelModeList().map(function(item){return '<button type="button" data-duel-mode="'+esc(item[0])+'" class="'+(item[0]===selectedMode?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div><div class="duel-control-row"><span>'+esc(tr('Topic','Тема'))+'</span>'+duelTopicList().map(function(item){return '<button type="button" data-duel-topic="'+esc(item[0])+'" class="'+(item[0]===selectedTopic?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div><div class="duel-control-row compact"><span>'+esc(tr('Level','Уровень'))+'</span>'+['A1','A2','B1','B2','C1','C2'].map(function(level){return '<button type="button" data-duel-level="'+level+'" class="'+(level===String(studyState.level||'A1').toUpperCase()?'active':'')+'">'+level+'</button>';}).join('')+'<button type="button" data-duel-topic-random="1">'+esc(tr('Generate lesson','Сгенерировать урок'))+'</button></div><div class="duel-lobby-share"><img id="duelLobbyQr" alt="QR" width="140" height="140" hidden><div><div class="duel-lobby-url" id="duelLobbyUrl">'+esc(tr('Opening room…','Открываем комнату…'))+'</div><div class="duel-lobby-share-actions"><button type="button" class="duel-copy-btn" data-duel-copy="url">'+esc(tr('Copy link','Скопировать ссылку'))+'</button></div></div></div></div><div class="duel-search-stats"><span><b>'+DUEL_QUESTION_COUNT+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b id="duelLobbyLevel">'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b id="duelLobbyBank">'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span><span><b>'+esc(String(kit.streak||0))+'</b><small>'+esc(tr('teacher streak','серия учителя'))+'</small></span></div><div class="duel-join-strip"><span>'+esc(tr('Students join','Ученики заходят'))+': <b>vela.cafe</b></span><span>'+esc(tr('Code','Код'))+': <b id="duelJoinCodeInline">'+esc(joinCode)+'</b></span><span id="duelLobbyModeLabel">'+esc(duelModeLabel(selectedMode))+' · '+esc(duelTopicLabel(selectedTopic))+'</span></div><div id="duelLobbyRoster" class="duel-lobby-roster"></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Opening the room…','Открываем комнату…'))+'</div><div class="duel-search-flow"><span>📱 '+esc(tr('Join code + QR','код и QR'))+'</span><span>👥 '+esc(tr('Live roster','кто в комнате'))+'</span><span>💬 '+esc(tr('A/B/C/D votes','голоса A/B/C/D'))+'</span><span>🏁 '+esc(tr('Winner screen','экран победителя'))+'</span></div><button class="btn primary" id="socialStart">'+esc(tr('Start LIVE duel','Запустить LIVE-дуэль'))+'</button></div>';
         bindDuelLobbyControls(host);
+        void ensureDuelLobbyRoom();
       } else
       host.innerHTML='<div class="social-challenge"><span>'+(team?'👥':'⚔️')+'</span><small>DUVELA '+(team?'TEAM':'DUEL')+'</small><h2>'+esc(team?tr('Team challenge','Командное задание'):tr('Find an opponent','Найти соперника'))+'</h2><p>'+esc(team?tr('Complete 30 correct answers together this week.','Вместе дайте 30 правильных ответов за неделю.'):tr('First we look for a learner online. If nobody is available, you play immediately against the Duvela Bot.','Сначала ищем ученика онлайн. Если никого нет, вы сразу играете с ботом Duvela.'))+'</p><div class="social-score"><b id="myChallengeScore">0</b><span>'+(team?'TEAM':'VS')+'</span><b id="opponentScore">—</b></div><div id="challengeMembers" class="duel-status">'+esc(team?tr('Team matchmaking is ready','Командный подбор готов'):tr('Ready to search','Готово к поиску'))+'</div><button class="btn primary" id="socialStart">'+esc(team?tr('Join a team','Вступить в команду'):tr('Find opponent','Найти соперника'))+'</button></div>';
-      $('#socialStart').onclick=async function(){
-        var button=this;if(team)return startLegacyTeam(button);button.disabled=true;
-        var seconds=4,status=$('#challengeMembers'),challenge=null,foundOpponent=false;
-        button.textContent=tr('Searching online…','Ищем онлайн…');
-        status.innerHTML='<span class="duel-search-dot"></span>'+esc(tr('Looking for a live opponent at your level','Ищем живого соперника вашего уровня'))+' · <b id="duelSearchSeconds">'+seconds+'</b>';
-        try{
-          if(uid()){
-            var prefs=loadPrefs(),level=(prefs.levels||{})[studyState.lang]||'A1';
-            var waiting=await supa.from('practice_challenges').select('id,created_by,goal').eq('kind','duel').eq('status','waiting').eq('language',studyState.lang).neq('created_by',uid()).order('created_at',{ascending:true}).limit(1).maybeSingle();
-            challenge=waiting.data;
-            if(challenge){foundOpponent=true;await supa.from('practice_challenges').update({status:'active',starts_at:new Date().toISOString()}).eq('id',challenge.id);}
-            else {var created=await supa.from('practice_challenges').insert({kind:'duel',created_by:uid(),language:studyState.lang,level:level,goal:DUEL_QUESTION_COUNT,status:'waiting'}).select().single();if(!created.error)challenge=created.data;}
-            if(challenge)await supa.from('practice_challenge_members').upsert({challenge_id:challenge.id,user_id:uid(),score:0,completed:0});
-          }
-        }catch(e){challenge=null;}
-        function launch(bot){
-          if(studyState.searchTimerId)clearInterval(studyState.searchTimerId);
-          studyState.searchTimerId=null;studyState.challengeId=challenge&&challenge.id||null;studyState.duelBot=bot;
-          studyState.duelOpponentName=bot?tr('Duvela Bot','Бот Duvela'):tr('Live opponent','Соперник онлайн');
-          var kit=duelTeacherKit();kit.topic=studyState.duelTopic||kit.topic||'all';kit.mode=studyState.duelMode||kit.mode||'students';saveDuelTeacherKit(kit);
-          var duelDeck=buildDuelDeck(studyState.lang,studyState.level,kit.topic);
-          studyState.duelOpponentScore=0;studyState.tool='duelmatch';studyState.duelTopic=kit.topic;studyState.duelMode=kit.mode;studyState.duelJoinCode=duelJoinCode(studyState.lang,studyState.level);studyState.data=duelDeck.slice(0,DUEL_QUESTION_COUNT);studyState.duelBankTotal=duelDeck.length;studyState.idx=0;studyState.score=0;studyState.total=DUEL_QUESTION_COUNT;studyState.duelPoll=null;studyState.duelPollIndex=-1;
-          $('#studyOverlayTitle').textContent='⚔️ '+tr('Learner duel','Дуэль учеников');renderTool();
-          // Teacher-vs-class runs open a real room so learners can join by code
-          // and their taps drive the poll + scoreboard. Anything else (solo vs
-          // bot) stays local — no room needed.
-          if (kit.mode === 'teacher' || kit.mode === 'class') void openDuelRoom();
-        }
-        if(foundOpponent)return launch(false);
-        studyState.searchTimerId=setInterval(async function(){
-          seconds--;var counter=$('#duelSearchSeconds');if(counter)counter.textContent=Math.max(0,seconds);
-          if(challenge&&uid())try{var members=await supa.from('practice_challenge_members').select('user_id').eq('challenge_id',challenge.id);if((members.data||[]).some(function(row){return row.user_id!==uid();})){foundOpponent=true;launch(false);return;}}catch(e){}
-          if(seconds<=0){if(challenge)try{await supa.from('practice_challenges').update({status:'completed'}).eq('id',challenge.id);}catch(e){}launch(true);}
-        },1000);
+      $('#socialStart').onclick=function(){
+        var button=this;
+        if(team)return startLegacyTeam(button);
+        button.disabled=true;
+        void startLiveDuel(button);
       };
     }
 
@@ -2551,6 +2533,177 @@
       var hash = 0;
       for (var i = 0; i < seed.length; i++) hash = ((hash << 5) - hash + seed.charCodeAt(i)) >>> 0;
       return 'DUEL' + String(100 + (hash % 900));
+    }
+
+    function duelJoinUrl(code) {
+      var api = duelRoomApi();
+      if (api && typeof api.joinUrl === 'function' && code) return api.joinUrl(code);
+      var origin = window.location.origin;
+      var path = window.location.pathname || '/app.html';
+      return origin + path + '?duel=' + encodeURIComponent(code || '') + '#duel';
+    }
+
+    function duelQrSrc(url) {
+      return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=' + encodeURIComponent(url);
+    }
+
+    function currentDuelDeck() {
+      var topic = studyState.duelTopic || 'all';
+      var full = buildDuelDeck(studyState.lang, studyState.level, topic);
+      studyState.duelBankTotal = full.length;
+      return full.slice(0, DUEL_QUESTION_COUNT);
+    }
+
+    function applyDuelCodeToLobby(code) {
+      if (!code || !studyState) return;
+      studyState.duelJoinCode = code;
+      var url = duelJoinUrl(code);
+      var codeNode = $('#duelJoinCode');
+      var inline = $('#duelJoinCodeInline');
+      var urlNode = $('#duelLobbyUrl');
+      var qr = $('#duelLobbyQr');
+      if (codeNode) codeNode.textContent = code;
+      if (inline) inline.textContent = code;
+      if (urlNode) urlNode.textContent = url.replace(/^https?:\/\//, '');
+      if (qr) { qr.src = duelQrSrc(url); qr.hidden = false; }
+    }
+
+    function copyDuelValue(kind, button) {
+      var code = studyState && studyState.duelJoinCode;
+      if (!code) return;
+      var value = kind === 'url' ? duelJoinUrl(code) : code;
+      var done = function () {
+        if (!button) return;
+        var previous = button.textContent;
+        button.textContent = tr('Copied','Скопировано');
+        setTimeout(function () { if (button) button.textContent = previous; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(done).catch(function () {
+          window.prompt(tr('Copy this','Скопируйте'), value);
+        });
+      } else {
+        window.prompt(tr('Copy this','Скопируйте'), value);
+      }
+    }
+
+    function queueDuelRoom(task) {
+      if (!studyState) return Promise.resolve();
+      studyState.duelRoomQueue = (studyState.duelRoomQueue || Promise.resolve()).then(task).catch(function (error) {
+        console.warn('Duel room update failed.', error);
+        var status = $('#challengeMembers');
+        if (status) status.textContent = (error && error.message) || tr('Could not open the room. Sign in to host.','Не удалось открыть комнату. Войдите, чтобы вести эфир.');
+      });
+      return studyState.duelRoomQueue;
+    }
+
+    function lobbySettingsPatch() {
+      var deck = currentDuelDeck();
+      return {
+        deck: deck,
+        target: studyState.lang || 'de',
+        level: studyState.level || 'A1',
+        topic: studyState.duelTopic || 'all',
+        mode: studyState.duelMode || 'teacher',
+        total_questions: deck.length
+      };
+    }
+
+    function attachDuelRoom(room) {
+      if (!studyState || !room) return;
+      var api = duelRoomApi();
+      studyState.duelRoomId = room.id;
+      applyDuelCodeToLobby(room.join_code);
+      if (studyState.duelRoomChannel && api) api.unsubscribe(studyState.duelRoomChannel);
+      studyState.duelRoomChannel = api ? api.subscribe(room.id, {
+        onVote: function (vote) {
+          if (!studyState || studyState.duelRoomId !== room.id) return;
+          if (Number(vote.question_index) !== studyState.idx) return;
+          if (!studyState.duelPoll) studyState.duelPoll = [0, 0, 0, 0];
+          var option = Number(vote.option_index);
+          if (option >= 0 && option < 4) studyState.duelPoll[option] += 1;
+          updateDuelPoll();
+        },
+        onPlayer: function () {
+          if (!studyState || studyState.duelRoomId !== room.id) return;
+          void refreshDuelRoomPlayers();
+        }
+      }) : null;
+    }
+
+    async function ensureDuelLobbyRoom() {
+      if (!studyState) return null;
+      var api = duelRoomApi();
+      if (!api || !uid()) {
+        var status = $('#challengeMembers');
+        if (status) status.textContent = tr('Sign in to get a live join code.','Войдите, чтобы получить живой код.');
+        return null;
+      }
+      return queueDuelRoom(async function () {
+        if (!studyState) return null;
+        var options = lobbySettingsPatch();
+        var room = await api.ensureLobbyRoom(options);
+        attachDuelRoom(room);
+        var latest = lobbySettingsPatch();
+        if (latest.topic !== options.topic || latest.level !== options.level || latest.mode !== options.mode || latest.target !== options.target) {
+          room = await api.setRoomState(room.id, {
+            deck: latest.deck,
+            total_questions: latest.total_questions,
+            level: latest.level,
+            topic: latest.topic,
+            duel_mode: latest.mode,
+            target: latest.target
+          }) || room;
+        }
+        await refreshDuelRoomPlayers();
+        return room;
+      });
+    }
+
+    async function startLiveDuel(button) {
+      if (!studyState) return;
+      var kit = duelTeacherKit();
+      kit.topic = studyState.duelTopic || kit.topic || 'all';
+      kit.mode = studyState.duelMode || kit.mode || 'students';
+      saveDuelTeacherKit(kit);
+      var deck = currentDuelDeck();
+      studyState.duelTopic = kit.topic;
+      studyState.duelMode = kit.mode;
+      studyState.duelBot = kit.mode !== 'teacher';
+      studyState.duelOpponentName = studyState.duelBot ? tr('Duvela Bot','Бот Duvela') : tr('Students','Ученики');
+      studyState.duelOpponentScore = 0;
+      studyState.duelClassScore = 0;
+      studyState.duelClassScoredIndex = -1;
+      studyState.duelRevealed = false;
+      studyState.duelPaused = false;
+      studyState.duelStartedAt = null;
+      studyState.data = deck;
+      studyState.idx = 0;
+      studyState.score = 0;
+      studyState.total = DUEL_QUESTION_COUNT;
+      studyState.duelPoll = [0, 0, 0, 0];
+      studyState.duelPollIndex = 0;
+      studyState.tool = 'duelmatch';
+      try {
+        if (!studyState.duelRoomId) await ensureDuelLobbyRoom();
+        var api = duelRoomApi();
+        if (api && studyState.duelRoomId) {
+          await api.setRoomState(studyState.duelRoomId, {
+            deck: deck,
+            total_questions: deck.length,
+            level: studyState.level || 'A1',
+            topic: kit.topic,
+            duel_mode: kit.mode,
+            reveal_answer: false
+          });
+          await api.showQuestion(studyState.duelRoomId, 0);
+        }
+      } catch (error) {
+        console.warn('Could not start duel room.', error);
+      }
+      $('#studyOverlayTitle').textContent = '⚡ ' + tr('LIVE Duel','LIVE-дуэль');
+      renderTool();
+      if (button) button.disabled = false;
     }
 
     function duelTeacherKit() {
@@ -2635,7 +2788,10 @@
     function duelPollHtml(item) {
       var counts = studyState.duelPoll || [0,0,0,0];
       var total = counts.reduce(function (sum, value) { return sum + Number(value || 0); }, 0);
-      return '<div class="duel-chat-poll" id="duelChatPoll"><div class="duel-poll-head"><div><small>CHAT POLL</small><b>'+esc(tr('Tap votes from LIVE chat','Нажимайте голоса из LIVE-чата'))+'</b></div><strong>'+total+'</strong></div><div class="duel-poll-bars">'+counts.map(function(count,index){var pct=total?Math.round(count/total*100):0;return '<button type="button" data-duel-vote="'+index+'"><span>'+String.fromCharCode(65+index)+'</span><i><em style="width:'+pct+'%"></em></i><strong>'+pct+'%</strong></button>';}).join('')+'</div><div class="duel-poll-actions"><button type="button" data-duel-vote-burst="1">+ '+esc(tr('chat wave','волна чата'))+'</button><button type="button" data-duel-vote-reset="1">'+esc(tr('reset poll','сброс'))+'</button></div></div>';
+      var pollLabel = studyState && studyState.duelRoomId
+        ? tr('Votes from students in the room','Голоса учеников в комнате')
+        : tr('Tap votes from LIVE chat','Нажимайте голоса из LIVE-чата');
+      return '<div class="duel-chat-poll" id="duelChatPoll"><div class="duel-poll-head"><div><small>CHAT POLL</small><b>'+esc(pollLabel)+'</b></div><strong>'+total+'</strong></div><div class="duel-poll-bars">'+counts.map(function(count,index){var pct=total?Math.round(count/total*100):0;return '<button type="button" data-duel-vote="'+index+'"><span>'+String.fromCharCode(65+index)+'</span><i><em style="width:'+pct+'%"></em></i><strong>'+pct+'%</strong></button>';}).join('')+'</div><div class="duel-poll-actions"><button type="button" data-duel-vote-burst="1">+ '+esc(tr('chat wave','волна чата'))+'</button><button type="button" data-duel-vote-reset="1">'+esc(tr('reset poll','сброс'))+'</button></div></div>';
     }
 
     function updateDuelPoll() {
@@ -2661,13 +2817,27 @@
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-topic') === studyState.duelTopic); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-mode]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-mode') === studyState.duelMode); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-level]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-level') === String(studyState.level || 'A1').toUpperCase()); });
-        var bank = buildDuelDeck(studyState.lang, studyState.level, studyState.duelTopic).length, code = duelJoinCode(studyState.lang, studyState.level);
-        var levelNode = $('#duelLobbyLevel'), bankNode = $('#duelLobbyBank'), codeNode = $('#duelJoinCode'), inlineCode = $('#duelJoinCodeInline'), strip = host.querySelector('.duel-join-strip span:last-child');
+        var bank = buildDuelDeck(studyState.lang, studyState.level, studyState.duelTopic).length;
+        var levelNode = $('#duelLobbyLevel'), bankNode = $('#duelLobbyBank'), modeLabel = $('#duelLobbyModeLabel');
         if (levelNode) levelNode.textContent = studyState.level || 'A1';
         if (bankNode) bankNode.textContent = bank;
-        if (codeNode) codeNode.textContent = code;
-        if (inlineCode) inlineCode.textContent = code;
-        if (strip) strip.textContent = duelModeLabel(studyState.duelMode) + ' · ' + duelTopicLabel(studyState.duelTopic);
+        if (modeLabel) modeLabel.textContent = duelModeLabel(studyState.duelMode) + ' · ' + duelTopicLabel(studyState.duelTopic);
+        if (studyState.duelJoinCode) applyDuelCodeToLobby(studyState.duelJoinCode);
+        if (studyState.duelRoomId) {
+          queueDuelRoom(function () {
+            var api = duelRoomApi();
+            if (!api || !studyState || !studyState.duelRoomId) return null;
+            var patch = lobbySettingsPatch();
+            return api.setRoomState(studyState.duelRoomId, {
+              deck: patch.deck,
+              total_questions: patch.total_questions,
+              level: patch.level,
+              topic: patch.topic,
+              duel_mode: patch.mode,
+              target: patch.target
+            });
+          });
+        }
       }
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic]'), function (button) {
         button.onclick = function () { studyState.duelTopic = button.getAttribute('data-duel-topic') || 'all'; refresh(); };
@@ -2684,6 +2854,9 @@
         studyState.duelTopic = topics[Math.floor(Math.random() * topics.length)][0];
         refresh();
       };
+      Array.prototype.forEach.call(host.querySelectorAll('[data-duel-copy]'), function (button) {
+        button.onclick = function () { copyDuelValue(button.getAttribute('data-duel-copy'), button); };
+      });
       refresh();
     }
 
@@ -2755,46 +2928,65 @@
 
     function duelRoomApi() { return window.DuvelaDuelRoom || null; }
 
-    async function openDuelRoom() {
-      var api = duelRoomApi();
-      if (!api) return;
-      closeDuelRoom();
-      try {
-        var room = await api.createRoom({
-          deck: studyState.data || [],
-          level: studyState.level,
-          mode: studyState.duelMode,
-          target: studyState.lang,
-          topic: studyState.duelTopic
-        });
-        studyState.duelRoomId = room.id;
-        studyState.duelJoinCode = room.join_code;
-        studyState.duelRoomPlayers = [];
-        // Stop the bot: a real room has real opponents.
-        if (studyState.duelTimerId) { clearInterval(studyState.duelTimerId); studyState.duelTimerId = null; }
-        studyState.duelBot = false;
-        studyState.duelOpponentScore = 0;
-        studyState.duelRoomChannel = api.subscribe(room.id, {
-          onVote: function (vote) {
-            if (!studyState || studyState.duelRoomId !== room.id) return;
-            if (Number(vote.question_index) !== studyState.idx) return;
-            if (!studyState.duelPoll) studyState.duelPoll = [0, 0, 0, 0];
-            var option = Number(vote.option_index);
-            if (option >= 0 && option < 4) studyState.duelPoll[option] += 1;
-            updateDuelPoll();
-          },
-          onPlayer: function () {
-            if (!studyState || studyState.duelRoomId !== room.id) return;
-            void refreshDuelRoomPlayers();
-          }
-        });
-        await api.showQuestion(room.id, 0);
-        await refreshDuelRoomPlayers();
-        renderDuelMatch();
-      } catch (error) {
-        console.warn('Could not open duel room.', error);
-        studyState.duelRoomId = null;
+    function liveLeftScore() {
+      if (!studyState) return 0;
+      return studyState.duelMode === 'class' ? Number(studyState.duelClassScore || 0) : Number(studyState.score || 0);
+    }
+
+    function liveRightScore() {
+      if (!studyState) return 0;
+      return studyState.duelMode === 'teacher' ? Number(studyState.duelClassScore || 0) : Number(studyState.duelOpponentScore || 0);
+    }
+
+    function awardClassPointIfNeeded() {
+      if (!studyState) return;
+      var deck = studyState.data || [];
+      var index = studyState.idx;
+      if (index >= deck.length) index = deck.length - 1;
+      if (index < 0 || studyState.duelClassScoredIndex === index) return;
+      var item = deck[index];
+      if (!item) return;
+      var counts = studyState.duelPoll || [0, 0, 0, 0];
+      var total = counts.reduce(function (sum, value) { return sum + Number(value || 0); }, 0);
+      if (total > 0 && Number(counts[Number(item.a)] || 0) > total / 2) {
+        studyState.duelClassScore = Number(studyState.duelClassScore || 0) + 1;
       }
+      studyState.duelClassScoredIndex = index;
+      updateDuelScoreboard();
+    }
+
+    async function teacherReveal() {
+      if (!studyState) return;
+      studyState.duelRevealed = true;
+      awardClassPointIfNeeded();
+      var item = (studyState.data || [])[studyState.idx];
+      var host = $('#studyToolBody');
+      if (item && host) {
+        var correct = host.querySelector('[data-duel-answer="' + item.a + '"]');
+        if (correct) correct.classList.add('correct');
+      }
+      var api = duelRoomApi();
+      if (api && studyState.duelRoomId) {
+        try { await api.revealAnswer(studyState.duelRoomId); } catch (error) { /* reveal is best-effort */ }
+      }
+    }
+
+    async function teacherAdvance() {
+      if (!studyState) return;
+      awardClassPointIfNeeded();
+      studyState.idx += 1;
+      studyState.duelRevealed = false;
+      studyState.duelPoll = [0, 0, 0, 0];
+      studyState.duelPollIndex = studyState.idx;
+      var api = duelRoomApi();
+      var deck = studyState.data || [];
+      if (api && studyState.duelRoomId) {
+        try {
+          if (studyState.idx >= deck.length) await api.finishRoom(studyState.duelRoomId);
+          else await api.showQuestion(studyState.duelRoomId, studyState.idx);
+        } catch (error) { /* room advance is best-effort */ }
+      }
+      renderDuelMatch();
     }
 
     async function refreshDuelRoomPlayers() {
@@ -2803,19 +2995,22 @@
       try {
         var players = await api.fetchPlayers(studyState.duelRoomId);
         studyState.duelRoomPlayers = players;
-        // Class score = sum of what the room actually got right.
-        studyState.duelOpponentScore = players.reduce(function (sum, player) {
-          return sum + Number(player.correct_count || 0);
-        }, 0);
         updateDuelScoreboard();
         renderDuelRoster();
+        var status = $('#challengeMembers');
+        if (status && studyState.tool === 'duel') {
+          status.textContent = players.length
+            ? (players.length + ' ' + tr('students ready','учеников готовы'))
+            : tr('Waiting for students…','Ждём учеников…');
+        }
       } catch (error) { /* roster refresh is best-effort */ }
     }
 
     function renderDuelRoster() {
-      var host = document.getElementById('duelRoster');
+      var host = document.getElementById('duelLobbyRoster') || document.getElementById('duelRoster');
       if (!host) return;
       var players = (studyState && studyState.duelRoomPlayers) || [];
+      var canKick = studyState && studyState.duelRoomId;
       if (!players.length) {
         host.innerHTML = '<div class="duel-roster-empty">' +
           esc(tr('Waiting for students to join with the code…', 'Ждём учеников по коду…')) + '</div>';
@@ -2823,10 +3018,20 @@
       }
       host.innerHTML = '<div class="duel-roster-head"><small>' +
         esc(tr('IN THE ROOM', 'В КОМНАТЕ')) + '</small><strong>' + players.length + '</strong></div>' +
-        '<ol class="duel-roster-list">' + players.slice(0, 8).map(function (player, index) {
+        '<ol class="duel-roster-list">' + players.slice(0, 12).map(function (player, index) {
           return '<li><b>' + (index + 1) + '</b><span>' + esc(player.display_name || 'Student') +
-            '</span><em>' + Number(player.correct_count || 0) + '</em></li>';
+            '</span><em>' + Number(player.correct_count || 0) + '</em>' +
+            (canKick ? '<button type="button" class="duel-kick" data-duel-kick="' + esc(player.id) + '" aria-label="Kick">×</button>' : '') +
+            '</li>';
         }).join('') + '</ol>';
+      Array.prototype.forEach.call(host.querySelectorAll('[data-duel-kick]'), function (button) {
+        button.onclick = function () {
+          var playerId = button.getAttribute('data-duel-kick');
+          var api = duelRoomApi();
+          if (!api || !playerId) return;
+          void api.kickPlayer(playerId).then(function () { return refreshDuelRoomPlayers(); }).catch(function () {});
+        };
+      });
     }
 
     function closeDuelRoom() {
@@ -2868,38 +3073,66 @@
       if(studyState.idx>=deck.length)return finishDuelMatch();
       var item=deck[studyState.idx];
       if(studyState.duelPollIndex!==studyState.idx){studyState.duelPoll=[0,0,0,0];studyState.duelPollIndex=studyState.idx;}
+      if(studyState.duelRoomId&&duelRoomApi()){
+        void duelRoomApi().fetchTally(studyState.duelRoomId,studyState.idx).then(function(counts){
+          if(!studyState||studyState.duelPollIndex!==studyState.idx)return;
+          studyState.duelPoll=counts;
+          updateDuelPoll();
+        }).catch(function(){});
+      }
       var playerLabel=studyState.duelMode==='teacher'?tr('TEACHER','УЧИТЕЛЬ'):studyState.duelMode==='class'?tr('CLASS','КЛАСС'):tr('YOU','ВЫ');
-      var opponentLabel=studyState.duelMode==='teacher'?tr('Students','Ученики'):(studyState.duelBot?tr('Duvela Bot','Бот Duvela'):studyState.duelOpponentName);
+      var opponentLabel=studyState.duelMode==='teacher'?tr('Class','Класс'):(studyState.duelBot?tr('Duvela Bot','Бот Duvela'):studyState.duelOpponentName);
       var pauseClass=studyState.duelPaused?' class="active"':'',pauseText=studyState.duelPaused?tr('Resume','Продолжить'):tr('Pause','Пауза');
-      host.innerHTML='<div class="duel-live-masthead"><div><small>DUVELA</small><strong>'+esc(tr('LANGUAGE DUEL','\u042f\u0417\u042b\u041a\u041e\u0412\u0410\u042f \u0414\u0423\u042d\u041b\u042c'))+'</strong></div><span><i></i> LIVE</span></div><div class="duel-live-toolbar"><span>'+esc(tr('For TikTok LIVE: capture the vertical game area','\u0414\u043b\u044f TikTok LIVE: \u0437\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u0438\u0433\u0440\u044b'))+'</span><button type="button" id="duelLiveToggle" aria-pressed="false"><span aria-hidden="true">&#9679;</span>LIVE 9:16</button></div><div class="duel-teacher-live-panel"><div><small>'+esc(duelModeLabel(studyState.duelMode))+'</small><b>'+esc(duelTopicLabel(studyState.duelTopic))+'</b></div><span>'+esc(tr('Join','Вход'))+' <b>vela.cafe</b> · <strong>'+esc(studyState.duelJoinCode||duelJoinCode(studyState.lang,studyState.level))+'</strong></span><button type="button" data-duel-teacher-action="pause"'+pauseClass+'>'+esc(pauseText)+'</button><button type="button" data-duel-teacher-action="answer">'+esc(tr('Show answer','Ответ'))+'</button><button type="button" data-duel-teacher-action="next">'+esc(tr('Next','Дальше'))+'</button></div><p class="duel-live-audience">'+esc(tr('Choose the answer in chat: A, B, C or D','\u041f\u0438\u0448\u0438\u0442\u0435 \u043e\u0442\u0432\u0435\u0442 \u0432 \u0447\u0430\u0442: A, B, C \u0438\u043b\u0438 D'))+'</p><div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'D').charAt(0).toUpperCase())+'</span><small>'+esc(playerLabel)+'</small><b id="duelMyLive">'+studyState.score+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelBot?'🤖':'👥')+'</span><small>'+esc(opponentLabel)+'</small><b id="duelOpponentLive">'+studyState.duelOpponentScore+'</b></div></div><div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div>'+duelPollHtml(item)+'<div id="duelRoster" class="duel-roster"></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
+      var answeredCount=(studyState.duelPoll||[]).reduce(function(sum,value){return sum+Number(value||0);},0);
+      var waitingCount=Math.max(0,((studyState.duelRoomPlayers||[]).length)-answeredCount);
+      host.innerHTML='<div class="duel-live-masthead"><div><small>DUVELA</small><strong>'+esc(tr('LANGUAGE DUEL','\u042f\u0417\u042b\u041a\u041e\u0412\u0410\u042f \u0414\u0423\u042d\u041b\u042c'))+'</strong></div><span><i></i> LIVE</span></div><div class="duel-live-toolbar"><span>'+esc(tr('For TikTok LIVE: capture the vertical game area','\u0414\u043b\u044f TikTok LIVE: \u0437\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u0438\u0433\u0440\u044b'))+'</span><button type="button" id="duelLiveToggle" aria-pressed="false"><span aria-hidden="true">&#9679;</span>LIVE 9:16</button></div><div class="duel-teacher-live-panel"><div><small>'+esc(duelModeLabel(studyState.duelMode))+'</small><b>'+esc(duelTopicLabel(studyState.duelTopic))+'</b></div><span>'+esc(tr('Join','Вход'))+' <b>vela.cafe</b> · <strong>'+esc(studyState.duelJoinCode||'—')+'</strong></span><button type="button" data-duel-teacher-action="pause"'+pauseClass+'>'+esc(pauseText)+'</button><button type="button" data-duel-teacher-action="answer">'+esc(tr('Show answer','Ответ'))+'</button><button type="button" data-duel-teacher-action="next">'+esc(tr('Next','Дальше'))+'</button></div><p class="duel-live-audience">'+esc(tr('Students vote on their phones. Join: ','Ученики голосуют с телефонов. Код: '))+esc(studyState.duelJoinCode||'')+(waitingCount?' · '+waitingCount+' '+esc(tr('still answering','ещё отвечают')):'')+'</p><div class="duel-match-head"><div><span class="duel-avatar me">'+esc((ctx.profile&&ctx.profile.full_name||'D').charAt(0).toUpperCase())+'</span><small>'+esc(playerLabel)+'</small><b id="duelMyLive">'+liveLeftScore()+'</b></div><strong>VS</strong><div><span class="duel-avatar bot">'+(studyState.duelMode==='teacher'?'👥':(studyState.duelBot?'🤖':'👥'))+'</span><small>'+esc(opponentLabel)+'</small><b id="duelOpponentLive">'+liveRightScore()+'</b></div></div><div class="duel-question"><small>'+esc(tr('SAME QUESTION FOR BOTH','ОДИНАКОВЫЙ ВОПРОС ДЛЯ ОБОИХ'))+'</small><h2>'+esc(item.q)+'</h2></div>'+duelPollHtml(item)+'<div id="duelRoster" class="duel-roster"></div><div class="duel-options">'+item.opts.map(function(option,index){return '<button data-duel-answer="'+index+'"><span>'+String.fromCharCode(65+index)+'</span>'+esc(option)+'</button>';}).join('')+'</div><div id="duelAnswerFeedback"></div>';
       bindDuelLiveControls(host);
       renderDuelRoster();
       var liveTitle = host.querySelector('.duel-live-masthead strong');
       if (liveTitle) liveTitle.insertAdjacentHTML('afterend', '<em class="duel-live-bank">LEVEL ' + esc(studyState.level || 'A1') + ' / BANK ' + esc(studyState.duelBankTotal || deck.length) + ' / Q ' + esc(String(studyState.idx + 1)) + '/' + esc(String(deck.length)) + '</em>');
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-teacher-action]'),function(button){button.onclick=function(){
         var action=button.getAttribute('data-duel-teacher-action');
-        if(action==='pause'){studyState.duelPaused=!studyState.duelPaused;button.classList.toggle('active',studyState.duelPaused);button.textContent=studyState.duelPaused?tr('Resume','Продолжить'):tr('Pause','Пауза');}
-        if(action==='answer'){var correct=host.querySelector('[data-duel-answer="'+item.a+'"]');if(correct)correct.classList.add('correct');}
-        if(action==='next'){studyState.idx++;if(studyState.duelRoomId&&duelRoomApi())void duelRoomApi().showQuestion(studyState.duelRoomId,studyState.idx).catch(function(){});renderDuelMatch();}
+        if(action==='pause'){
+          studyState.duelPaused=!studyState.duelPaused;
+          button.classList.toggle('active',studyState.duelPaused);
+          button.textContent=studyState.duelPaused?tr('Resume','Продолжить'):tr('Pause','Пауза');
+          var api=duelRoomApi();
+          if(api&&studyState.duelRoomId){
+            void (studyState.duelPaused?api.pauseRoom(studyState.duelRoomId):api.resumeRoom(studyState.duelRoomId)).catch(function(){});
+          }
+        }
+        if(action==='answer') void teacherReveal();
+        if(action==='next') void teacherAdvance();
       };});
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(button){button.onclick=function(){
         var selected=Number(button.getAttribute('data-duel-answer')),ok=selected===item.a;
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(node){node.disabled=true;var value=Number(node.getAttribute('data-duel-answer'));if(value===item.a)node.classList.add('correct');else if(value===selected)node.classList.add('wrong');});
-        feedback(ok,{prompt:item.q,chosen:item.opts[selected],correct:item.opts[item.a],explanation:answerExplanation(item)});if(ok)studyState.score++;else logMistake(studyState.lang,item.q,item.opts,item.a,'duel');
-        updateDuelScoreboard();if(studyState.challengeId&&uid())supa.from('practice_challenge_members').update({score:studyState.score,completed:studyState.idx+1}).eq('challenge_id',studyState.challengeId).eq('user_id',uid()).then(function(){});
+        feedback(ok,{prompt:item.q,chosen:item.opts[selected],correct:item.opts[item.a],explanation:answerExplanation(item)});
+        if(studyState.duelMode!=='class'&&ok)studyState.score++;
+        else if(!ok) logMistake(studyState.lang,item.q,item.opts,item.a,'duel');
+        void teacherReveal();
+        updateDuelScoreboard();
         $('#duelAnswerFeedback').innerHTML='<div class="inline-answer '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Point for you!','Очко вам!'):tr('The opponent can get ahead','Соперник может выйти вперёд'))+'</b><p>'+esc(item.opts[item.a])+'</p><button class="btn primary" id="duelContinue">'+esc(studyState.idx+1>=deck.length?tr('Show result','Показать результат'):tr('Next question','Следующий вопрос'))+' →</button></div>';
-        $('#duelContinue').onclick=function(){studyState.idx++;renderDuelMatch();};
+        $('#duelContinue').onclick=function(){void teacherAdvance();};
       };});
     }
 
-    function updateDuelScoreboard(){var mine=$('#duelMyLive'),opponent=$('#duelOpponentLive');if(mine)mine.textContent=studyState.score;if(opponent)opponent.textContent=studyState.duelOpponentScore;}
+    function updateDuelScoreboard(){
+      var mine=$('#duelMyLive'),opponent=$('#duelOpponentLive');
+      if(mine)mine.textContent=liveLeftScore();
+      if(opponent)opponent.textContent=liveRightScore();
+    }
 
     async function finishDuelMatch(){
       if(studyState.duelTimerId){clearInterval(studyState.duelTimerId);studyState.duelTimerId=null;}
       var coach = $('#practiceCoach');
       if (coach) { coach.hidden = true; coach.innerHTML = ''; }
-      if(!studyState.duelBot&&studyState.challengeId&&uid())try{var members=await supa.from('practice_challenge_members').select('user_id,score').eq('challenge_id',studyState.challengeId);var rival=(members.data||[]).find(function(row){return row.user_id!==uid();});studyState.duelOpponentScore=Number(rival&&rival.score||0);}catch(e){}
-      var mine=Number(studyState.score||0),rivalScore=Number(studyState.duelOpponentScore||0),won=mine>rivalScore,tie=mine===rivalScore,xp=won?25:tie?15:10,accuracy=Math.round(mine/Math.max(1,DUEL_QUESTION_COUNT)*100),kit=updateDuelTeacherStreak(),code=studyState.duelJoinCode||duelJoinCode(studyState.lang,studyState.level);
+      awardClassPointIfNeeded();
+      var api = duelRoomApi();
+      if (api && studyState.duelRoomId) {
+        try { await api.finishRoom(studyState.duelRoomId); } catch (e) {}
+      }
+      var mine=liveLeftScore(),rivalScore=liveRightScore(),won=mine>rivalScore,tie=mine===rivalScore,xp=won?25:tie?15:10,accuracy=Math.round(mine/Math.max(1,DUEL_QUESTION_COUNT)*100),kit=updateDuelTeacherStreak(),code=studyState.duelJoinCode||'';
       studyState.finished=true;bumpProgress('duel',xp);if(!uid())awardXp(xp);clearResume();
       $('#studyToolBody').innerHTML='<div class="duel-result '+(won?'win':tie?'tie':'lose')+'"><span>'+(won?'🏆':tie?'🤝':'💪')+'</span><small>DUVELA DUEL · '+esc(duelModeLabel(studyState.duelMode))+'</small><h2>'+esc(won?tr('Victory!','Победа!'):tie?tr('A draw!','Ничья!'):tr('Great fight!','Отличная борьба!'))+'</h2><p>'+esc(won?tr('You were more accurate and earned a duel win.','Вы были точнее и одержали победу в дуэли.'):tie?tr('You finished with the same score.','Вы завершили дуэль с одинаковым счётом.'):tr('Review the mistakes and challenge the rival again.','Повторите ошибки и вызовите соперника снова.'))+'</p><div class="duel-final-score"><b>'+mine+'</b><span>:</span><b>'+rivalScore+'</b></div><div class="duel-result-stats"><span><b>'+accuracy+'%</b><small>'+esc(tr('accuracy','точность'))+'</small></span><span><b>'+esc(String(kit.streak||1))+'</b><small>'+esc(tr('day streak','дней серия'))+'</small></span><span><b>+'+xp+'</b><small>XP</small></span></div><div class="duel-follow-card"><b>'+esc(tr('Follow for the next duel','Подпишись на следующую дуэль'))+'</b><span>'+esc(tr('Join','Вход'))+': vela.cafe · '+esc(tr('Code','Код'))+' '+esc(code)+'</span></div><div class="result-actions"><button class="btn" id="duelReview">'+esc(tr('Review mistakes','Повторить ошибки'))+'</button><button class="btn primary" id="duelAgain">'+esc(tr('New duel','Новая дуэль'))+'</button></div></div>';
       if(studyState.liveMode){$('#studyToolBody').insertAdjacentHTML('afterbegin','<div class="duel-live-toolbar"><button type="button" id="duelLiveToggle" aria-pressed="true"><span aria-hidden="true">&times;</span>'+esc(tr('Exit LIVE','\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 LIVE'))+'</button></div>');bindDuelLiveControls($('#studyToolBody'));}
