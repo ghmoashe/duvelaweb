@@ -65,27 +65,22 @@
         }
       }));
 
-      // Duel + Practice-for-LIVE panels are simple launchers. Both send the
-      // learner into the Practice workspace with a pre-selected tool so we
-      // don't duplicate the duel or studio implementation; the workspace
-      // already renders those.
-      const goToWorkspaceTool = (tool) => {
-        if (tool) window.location.hash = '#workspace/' + tool;
-        else window.location.hash = '#workspace';
-        ctx.setView('workspace');
-        if (ctx.isBusiness()) ctx.renderWorkspace();
-        else ctx.loadPractices().then(ctx.renderWorkspace);
-      };
+      // Duel + Practice-for-LIVE panels launch the existing study feature as
+      // an OVERLAY on top of the current page — no navigation, so a teacher
+      // running LIVE can share screen and everyone sees the duel where the
+      // teacher is already standing. openStudyTool('duel') opens the setup /
+      // matchmaking flow which then transitions into duelmatch itself.
+      const startDuelOverlay = () => ctx.openStudyTool('duel');
       const duelStart = document.getElementById('duelStartFromNav');
-      if (duelStart) duelStart.addEventListener('click', () => goToWorkspaceTool('duelmatch'));
+      if (duelStart) duelStart.addEventListener('click', startDuelOverlay);
       const duelOpen = document.getElementById('duelOpenPractice');
-      if (duelOpen) duelOpen.addEventListener('click', () => goToWorkspaceTool());
+      if (duelOpen) duelOpen.addEventListener('click', startDuelOverlay);
       const livePracticeStudio = document.getElementById('livePracticeOpenStudio');
       if (livePracticeStudio) livePracticeStudio.addEventListener('click', () => {
         ctx.setView('live');
       });
       const livePracticeDuel = document.getElementById('livePracticeOpenDuel');
-      if (livePracticeDuel) livePracticeDuel.addEventListener('click', () => goToWorkspaceTool('duelmatch'));
+      if (livePracticeDuel) livePracticeDuel.addEventListener('click', startDuelOverlay);
 
       $('#videoTabs').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-filter]');
