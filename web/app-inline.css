@@ -1588,3 +1588,204 @@
     .bubble { max-width: 88%; }
     .thread-compose { padding: 9px; position: sticky; bottom: 0; background: var(--panel); }
   }
+
+  .teacher-duel-shell {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(20px, 3vw, 34px);
+    border: 1px solid rgba(136, 102, 230, .28);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at 16% 12%, rgba(133, 64, 236, .42), transparent 34%),
+      radial-gradient(circle at 90% 70%, rgba(30, 190, 220, .28), transparent 34%),
+      linear-gradient(145deg, #120822 0%, #161024 46%, #071923 100%);
+    color: #fff;
+    box-shadow: 0 28px 80px rgba(24, 12, 52, .22);
+  }
+  .teacher-duel-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(135deg, #000, transparent 72%);
+  }
+  .teacher-duel-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(280px, .72fr);
+    gap: clamp(18px, 3vw, 34px);
+    align-items: center;
+  }
+  .teacher-duel-copy { display: grid; gap: 16px; max-width: 720px; }
+  .teacher-duel-eyebrow {
+    width: max-content;
+    max-width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    color: #f8d778;
+    font-size: 11px;
+    font-weight: 950;
+    letter-spacing: .22em;
+  }
+  .teacher-duel-copy h2 {
+    margin: 0;
+    font-size: clamp(38px, 6vw, 78px);
+    line-height: .92;
+    letter-spacing: -.06em;
+  }
+  .teacher-duel-copy p {
+    max-width: 680px;
+    margin: 0;
+    color: #d8cfe5;
+    font-size: clamp(15px, 1.4vw, 19px);
+    font-weight: 700;
+    line-height: 1.55;
+  }
+  .teacher-duel-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+  .teacher-duel-actions .btn {
+    min-height: 50px;
+    padding: 0 20px;
+    border-color: rgba(255,255,255,.18);
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    font-weight: 900;
+    box-shadow: none;
+  }
+  .teacher-duel-actions .btn.primary {
+    border: 0;
+    background: linear-gradient(100deg, #7845f1, #d63bd8);
+    box-shadow: 0 14px 34px rgba(139, 66, 230, .36);
+  }
+  .teacher-duel-preview {
+    justify-self: center;
+    width: min(100%, 330px);
+    aspect-ratio: 9 / 16;
+    display: grid;
+    align-content: start;
+    gap: 13px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 32px;
+    background:
+      radial-gradient(circle at 80% 82%, rgba(32, 184, 218, .28), transparent 34%),
+      linear-gradient(180deg, rgba(37, 23, 58, .96), rgba(5, 17, 29, .96));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 24px 70px rgba(0,0,0,.32);
+  }
+  .tdp-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .tdp-top b { color: #f8d778; letter-spacing: .22em; }
+  .tdp-top span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #df2455;
+    font-size: 11px;
+    font-weight: 950;
+  }
+  .tdp-top i { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgba(255,255,255,.14); }
+  .teacher-duel-preview h3 { margin: -4px 0 4px; font-size: 23px; letter-spacing: -.03em; }
+  .tdp-score {
+    display: grid;
+    grid-template-columns: 48px 1fr auto 1fr 48px;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(210, 180, 255, .28);
+    border-radius: 22px;
+    background: linear-gradient(110deg, rgba(123,64,232,.28), rgba(255,255,255,.08), rgba(23,169,213,.16));
+  }
+  .tdp-score strong { display: grid; place-items: center; height: 48px; border-radius: 16px; background: linear-gradient(145deg,#7d45ea,#ba42db); font-size: 24px; }
+  .tdp-score b { text-align: center; font-size: 34px; line-height: 1; }
+  .tdp-score em { color: #e4bdff; font-style: normal; font-weight: 950; }
+  .tdp-question {
+    padding: 20px 12px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 22px;
+    background: rgba(255,255,255,.1);
+    text-align: center;
+    font-size: 25px;
+    font-weight: 950;
+    line-height: 1.15;
+  }
+  .tdp-answers { display: grid; gap: 9px; }
+  .tdp-answers span {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 17px;
+    background: rgba(255,255,255,.08);
+    font-size: 18px;
+    font-weight: 900;
+  }
+  .tdp-answers b {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: linear-gradient(145deg,#7d45ea,#ba42db);
+  }
+  .teacher-duel-metrics {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: clamp(18px, 2.4vw, 28px);
+  }
+  .teacher-duel-metrics span,
+  .teacher-duel-flow span {
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 18px;
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(12px);
+  }
+  .teacher-duel-metrics span { display: grid; gap: 5px; padding: 15px; }
+  .teacher-duel-metrics b { color: #fff; font-size: 25px; }
+  .teacher-duel-metrics small { color: #bfb2cf; font-size: 11px; font-weight: 800; line-height: 1.3; }
+  .teacher-duel-flow {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .teacher-duel-flow span {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 12px;
+    color: #e6dff0;
+    font-weight: 850;
+  }
+  .teacher-duel-flow b {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f8d778;
+    color: #1a1027;
+    font-size: 12px;
+  }
+  @media (max-width: 960px) {
+    .teacher-duel-hero { grid-template-columns: 1fr; }
+    .teacher-duel-preview { width: min(100%, 300px); }
+    .teacher-duel-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .teacher-duel-shell { padding: 16px; border-radius: 24px; }
+    .teacher-duel-actions { display: grid; }
+    .teacher-duel-actions .btn { width: 100%; }
+    .teacher-duel-metrics { grid-template-columns: 1fr; }
+    .teacher-duel-flow { display: grid; }
+  }

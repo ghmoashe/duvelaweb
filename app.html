@@ -14,10 +14,10 @@
 <script src="./web/vendor/chess-0.10.3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="web/event-cards.css" rel="stylesheet">
-<link href="web/practice-hub.css?v=20260903duellive2" rel="stylesheet">
+<link href="web/practice-hub.css?v=20260904-vocab1000-duel1" rel="stylesheet">
 <link href="web/app-media-layout.css?v=20260729audit1" rel="stylesheet">
 <link href="web/duvi-assistant.css?v=20260816duvinew2" rel="stylesheet">
-<link href="web/app-inline.css?v=20260904-nav-duel3" rel="stylesheet">
+<link href="web/app-inline.css?v=20260904-vocab1000-duel1" rel="stylesheet">
 <link href="web/app-live.css" rel="stylesheet">
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -264,12 +264,40 @@
     </section>
 
     <section class="panel" data-panel="duel">
-      <div class="card" id="duelLaunchCard">
-        <h2 data-t="duelPageTitle">Language Duel</h2>
-        <p class="lead" data-t="duelPageLead">Real-time match with a learner at your level — 5 questions, whoever scores more on the clock wins. Opens in an overlay right here — perfect to share on screen during a LIVE lesson.</p>
-        <div class="grid-2" style="margin-top:14px">
-          <button class="btn primary" type="button" id="duelStartFromNav" data-t="duelStartFromNav">Play Duel</button>
-          <button class="btn" type="button" id="duelOpenPractice" data-t="duelOpenPractice">Preview deck</button>
+      <div class="teacher-duel-shell" id="duelLaunchCard">
+        <div class="teacher-duel-hero">
+          <div class="teacher-duel-copy">
+            <span class="teacher-duel-eyebrow">DUVELA LIVE ARENA</span>
+            <h2 data-t="duelPageTitle">Language Duel</h2>
+            <p data-t="duelPageLead">Run a fast 5-question duel built for TikTok LIVE: viewers answer A, B, C or D in chat while Duvela Bot keeps pressure on the scoreboard.</p>
+            <div class="teacher-duel-actions">
+              <button class="btn primary" type="button" id="duelStartFromNav" data-t="duelStartFromNav">Start LIVE duel</button>
+              <button class="btn" type="button" id="duelOpenPractice" data-t="duelOpenPractice">Preview deck</button>
+            </div>
+          </div>
+          <div class="teacher-duel-preview" aria-hidden="true">
+            <div class="tdp-top"><b>DUVELA</b><span><i></i> LIVE</span></div>
+            <h3>LANGUAGE DUEL</h3>
+            <div class="tdp-score"><strong>D</strong><b>2</b><em>VS</em><b>3</b><strong>🤖</strong></div>
+            <div class="tdp-question">Ich gehe ___ Schule.</div>
+            <div class="tdp-answers">
+              <span><b>A</b> zur</span>
+              <span><b>B</b> zum</span>
+              <span><b>C</b> im</span>
+              <span><b>D</b> am</span>
+            </div>
+          </div>
+        </div>
+        <div class="teacher-duel-metrics">
+          <span><b>9:16</b><small>TikTok screen fit</small></span>
+          <span><b>1000+</b><small>German word bank</small></span>
+          <span><b>A1-C2</b><small>Level routing</small></span>
+          <span><b>A-D</b><small>Chat answers</small></span>
+        </div>
+        <div class="teacher-duel-flow">
+          <span><b>1</b> Pick level</span>
+          <span><b>2</b> Share screen</span>
+          <span><b>3</b> Viewers answer in chat</span>
         </div>
       </div>
     </section>
@@ -539,7 +567,7 @@
 <script src="./web/app-feature-messages.js?v=20260805-messages1"></script>
 <script src="./web/app-feature-notifications.js"></script>
 <script src="./web/app-feature-practice.js?v=20260730practice1"></script>
-<script src="./web/app-feature-study.js?v=20260904-nav-duel3"></script>
+<script src="./web/app-feature-study.js?v=20260904-vocab1000-duel1"></script>
 <script src="./web/app-feature-games.js"></script>
 <script src="./web/app-onboarding-data.js?v=20260728organization3"></script>
 <script src="./web/app-onboarding.js?v=20260815-nofocus"></script>

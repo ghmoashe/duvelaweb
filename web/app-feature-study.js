@@ -99,12 +99,33 @@
       ['life','C1',[['Medien','media','медийный'],['Internet','internet','интернет'],['Kultur','culture','культурный'],['Gesellschafts','society','общественный']]],
       ['life','C2',[['Infrastruktur','infrastructure','инфраструктурный'],['Datenschutz','data protection','защиты данных'],['Nachhaltigkeits','sustainability','устойчивый']]]
     ];
-    // The earlier build called enrichGermanVocabBank() here, but the helper
-    // itself was never defined in the bundle — every fresh app.html load
-    // threw ReferenceError, aborted createStudyFeature, and left the whole
-    // screen stuck on the loading spinner. Guard the invocation so the
-    // startup path survives even if the helper is added back later.
-    if (typeof enrichGermanVocabBank === 'function') enrichGermanVocabBank();
+    // Generate a large German level bank from topic heads and practical prefixes.
+    function enrichGermanVocabBank() {
+      var seen = Object.create(null);
+      VOCAB.de.forEach(function (item) {
+        if (item && item.w) seen[item.w] = true;
+      });
+      DE_VOCAB_PREFIX_GROUPS.forEach(function (group) {
+        var heads = DE_VOCAB_HEADS[group[0]] || [];
+        var level = group[1];
+        var prefixes = group[2] || [];
+        prefixes.forEach(function (prefix) {
+          heads.forEach(function (head) {
+            var compound = prefix[0] + head[0];
+            compound = compound.charAt(0).toUpperCase() + compound.slice(1);
+            var word = head[1] + ' ' + compound;
+            if (seen[word]) return;
+            seen[word] = true;
+            VOCAB.de.push({
+              w: word,
+              t: head[4] + ': ' + prefix[2] + ' / ' + prefix[1] + ' ' + head[3],
+              level: level
+            });
+          });
+        });
+      });
+    }
+    enrichGermanVocabBank();
 
     const ARTICLES = [
       { noun: 'Haus', art: 'das' }, { noun: 'Frau', art: 'die' }, { noun: 'Mann', art: 'der' },
@@ -1321,6 +1342,7 @@
       if (studyState.tool === 'vocabulary') {
         var savedWords = loadSavedWords(studyState.lang);
         var dueNow = savedWords.filter(function (word) { return !word.dueAt || new Date(word.dueAt).getTime() <= Date.now(); }).length;
+        var bankWords = strictBank(VOCAB, studyState.lang, studyState.level).length;
         var vocabModes = [
           { tool:'flashcards', icon:'🔤', title:tr('Flashcards','\u0424\u043b\u0435\u0448\u043a\u0430\u0440\u0442\u044b'), desc:tr('Flip words, save them and repeat the difficult ones.','\u041f\u0435\u0440\u0435\u0432\u043e\u0440\u0430\u0447\u0438\u0432\u0430\u0439\u0442\u0435 \u0441\u043b\u043e\u0432\u0430, \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0439\u0442\u0435 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u044f\u0439\u0442\u0435 \u0441\u043b\u043e\u0436\u043d\u044b\u0435.') },
           { tool:'memory', icon:'🃏', title:tr('Memory match','\u041c\u0435\u043c\u043e\u0440\u0438'), desc:tr('Match word and translation in a quick visual drill.','\u0421\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435 \u0441\u043b\u043e\u0432\u043e \u0438 \u043f\u0435\u0440\u0435\u0432\u043e\u0434 \u0432 \u0431\u044b\u0441\u0442\u0440\u043e\u043c \u0432\u0438\u0437\u0443\u0430\u043b\u044c\u043d\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0435.') },
@@ -1337,6 +1359,7 @@
                 '<p>' + esc(tr('Use one clear vocabulary hub for learning, matching, sentence usage and saved-word review.', '\u0417\u0434\u0435\u0441\u044c \u043e\u0434\u0438\u043d \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u0439 hub \u0434\u043b\u044f \u0438\u0437\u0443\u0447\u0435\u043d\u0438\u044f \u0441\u043b\u043e\u0432, \u043c\u0435\u043c\u043e\u0440\u0438, \u0443\u043f\u043e\u0442\u0440\u0435\u0431\u043b\u0435\u043d\u0438\u044f \u0432 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u044f\u0445 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d\u043d\u044b\u0445 \u0441\u043b\u043e\u0432.')) + '</p>' +
               '</div>' +
               '<div class="vocab-hub-stats">' +
+                '<span><b>' + bankWords.toLocaleString() + '</b><small>' + esc(tr('level words','\u0441\u043b\u043e\u0432 \u0443\u0440\u043e\u0432\u043d\u044f')) + '</small></span>' +
                 '<span><b>' + vocabModes.length + '</b><small>' + esc(tr('word modes','\u0440\u0435\u0436\u0438\u043c\u043e\u0432 \u0441\u043b\u043e\u0432')) + '</small></span>' +
                 '<span><b>' + savedWords.length + '</b><small>' + esc(tr('saved words','\u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d\u043d\u044b\u0445 \u0441\u043b\u043e\u0432')) + '</small></span>' +
                 '<span><b>' + dueNow + '</b><small>' + esc(tr('ready to review','\u0433\u043e\u0442\u043e\u0432\u043e \u043a \u043f\u043e\u0432\u0442\u043e\u0440\u0443')) + '</small></span>' +
@@ -2579,6 +2602,8 @@
 
     async function finishDuelMatch(){
       if(studyState.duelTimerId){clearInterval(studyState.duelTimerId);studyState.duelTimerId=null;}
+      var coach = $('#practiceCoach');
+      if (coach) { coach.hidden = true; coach.innerHTML = ''; }
       if(!studyState.duelBot&&studyState.challengeId&&uid())try{var members=await supa.from('practice_challenge_members').select('user_id,score').eq('challenge_id',studyState.challengeId);var rival=(members.data||[]).find(function(row){return row.user_id!==uid();});studyState.duelOpponentScore=Number(rival&&rival.score||0);}catch(e){}
       var mine=Number(studyState.score||0),rivalScore=Number(studyState.duelOpponentScore||0),won=mine>rivalScore,tie=mine===rivalScore,xp=won?25:tie?15:10;
       studyState.finished=true;bumpProgress('duel',xp);if(!uid())awardXp(xp);clearResume();
