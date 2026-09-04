@@ -1312,26 +1312,27 @@
 #studyOverlay.practice-live-mode .duel-poll-actions{display:none}
 #studyOverlay.practice-live-mode .duel-poll-bars button{border-color:rgba(255,255,255,.16);background:rgba(9,8,20,.34)}
 #studyOverlay.practice-live-mode .duel-poll-bars i{background:rgba(255,255,255,.13)}
-/* Duvela LIVE arena style: dark pill button + solid violet letter badge.
-   Uniform, calm look that reads well on stream — the accent lives on the
-   A/B/C/D circle, not on the whole button. */
+/* Duvela LIVE arena style: solid deep-purple pill + solid violet A/B/C/D
+   badge. Solid (not translucent) so the option never picks up the page
+   colour through it and reads grey. */
 #studyOverlay.practice-live-mode .duel-options button,
 #studyOverlay.practice-live-mode .duel-options button:nth-child(1),
 #studyOverlay.practice-live-mode .duel-options button:nth-child(2),
 #studyOverlay.practice-live-mode .duel-options button:nth-child(3),
 #studyOverlay.practice-live-mode .duel-options button:nth-child(4){
-  border:1px solid rgba(255,255,255,.06);
+  border:1px solid rgba(197,99,234,.28);
   border-radius:20px;
-  background:rgba(11,10,32,.72);
+  background:linear-gradient(135deg,#1a1636 0%,#251b46 55%,#2b1e4c 100%);
   color:#fff;
   font-weight:900;
   text-shadow:none;
-  box-shadow:0 10px 26px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);
+  box-shadow:0 14px 32px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06);
 }
 #studyOverlay.practice-live-mode .duel-options button:hover{
-  border-color:rgba(197,99,234,.55);
-  background:rgba(20,17,48,.86);
+  border-color:rgba(197,99,234,.7);
+  background:linear-gradient(135deg,#231b45 0%,#2f2358 55%,#3a2564 100%);
   transform:translateY(-1px);
+  box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
 }
 #studyOverlay.practice-live-mode .duel-options button span{
   flex-basis:clamp(40px,5.4vh,54px);
@@ -1341,6 +1342,6 @@
   color:#fff;
   font-weight:950;
   font-size:clamp(17px,2.3vh,23px);
-  box-shadow:0 6px 18px rgba(129,55,232,.55),inset 0 1px 0 rgba(255,255,255,.28);
+  box-shadow:0 8px 20px rgba(129,55,232,.65),inset 0 1px 0 rgba(255,255,255,.28);
 }
 #studyOverlay.practice-live-mode .duel-options button span{box-shadow:0 8px 22px rgba(134,62,231,.42)}
