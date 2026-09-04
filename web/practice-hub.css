@@ -1295,3 +1295,23 @@
 #studyOverlay.practice-live-mode .duel-options button span{flex-basis:38px;height:38px;border-radius:12px}
 @media(max-height:900px){#studyOverlay.practice-live-mode .duel-live-audience{display:none}#studyOverlay.practice-live-mode .duel-chat-poll{padding:7px}#studyOverlay.practice-live-mode .duel-question h2{font-size:27px}#studyOverlay.practice-live-mode .duel-options button{min-height:45px}}
 @media(max-height:760px){#studyOverlay.practice-live-mode .duel-teacher-live-panel button[data-duel-teacher-action=answer]{display:none}#studyOverlay.practice-live-mode .duel-chat-poll{display:none}#studyOverlay.practice-live-mode .duel-options button{min-height:43px}}
+
+/* LIVE Duel contrast polish: darker canvas, clearer cards, less washed-out capture. */
+#studyOverlay.practice-live-mode .overlay-card{background:radial-gradient(circle at 18% 4%,rgba(142,70,255,.42),transparent 35%),radial-gradient(circle at 92% 78%,rgba(24,202,245,.26),transparent 34%),linear-gradient(180deg,#080610 0%,#120d22 50%,#06131f 100%)!important;box-shadow:0 0 100px rgba(0,0,0,.74)!important}
+#studyOverlay.practice-live-mode .overlay-card:before{border-color:rgba(255,214,128,.46);box-shadow:inset 0 0 34px rgba(145,76,255,.28)}
+#studyOverlay.practice-live-mode .duel-live-masthead{border-bottom-color:rgba(255,255,255,.18)}
+#studyOverlay.practice-live-mode .duel-live-masthead small{color:#ffd36a;text-shadow:0 0 18px rgba(255,185,62,.2)}
+#studyOverlay.practice-live-mode .duel-live-bank{color:#38d9ff;text-shadow:0 0 18px rgba(56,217,255,.24)}
+#studyOverlay.practice-live-mode .duel-teacher-live-panel,#studyOverlay.practice-live-mode .duel-chat-poll,#studyOverlay.practice-live-mode .duel-question{border-color:rgba(255,255,255,.2);background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 10px 28px rgba(0,0,0,.2)}
+#studyOverlay.practice-live-mode .duel-match-head{border-color:rgba(164,104,255,.38);background:linear-gradient(105deg,rgba(130,62,221,.48),rgba(21,30,51,.7),rgba(28,196,238,.24));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 12px 28px rgba(0,0,0,.24)}
+#studyOverlay.practice-live-mode .duel-question{background:linear-gradient(135deg,rgba(127,67,230,.25),rgba(255,255,255,.08));backdrop-filter:blur(8px)}
+#studyOverlay.practice-live-mode .duel-question h2{color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.34)}
+#studyOverlay.practice-live-mode .duel-poll-actions{display:none}
+#studyOverlay.practice-live-mode .duel-poll-bars button{border-color:rgba(255,255,255,.16);background:rgba(9,8,20,.34)}
+#studyOverlay.practice-live-mode .duel-poll-bars i{background:rgba(255,255,255,.13)}
+#studyOverlay.practice-live-mode .duel-options button{border-color:rgba(255,255,255,.18);background:linear-gradient(100deg,rgba(130,62,221,.32),rgba(34,62,83,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 22px rgba(0,0,0,.22)}
+#studyOverlay.practice-live-mode .duel-options button:nth-child(1){border-color:rgba(38,211,157,.5);background:linear-gradient(100deg,rgba(18,115,92,.44),rgba(34,74,88,.56))}
+#studyOverlay.practice-live-mode .duel-options button:nth-child(2){border-color:rgba(255,92,123,.5);background:linear-gradient(100deg,rgba(125,33,62,.5),rgba(37,51,71,.56))}
+#studyOverlay.practice-live-mode .duel-options button:nth-child(3){border-color:rgba(178,116,255,.54);background:linear-gradient(100deg,rgba(86,48,145,.52),rgba(43,52,94,.56))}
+#studyOverlay.practice-live-mode .duel-options button:nth-child(4){border-color:rgba(255,255,255,.24);background:linear-gradient(100deg,rgba(42,48,64,.72),rgba(34,68,85,.56))}
+#studyOverlay.practice-live-mode .duel-options button span{box-shadow:0 8px 22px rgba(134,62,231,.42)}
