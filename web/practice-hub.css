@@ -1062,11 +1062,14 @@
 #studyOverlay.practice-live-mode .duel-question small{color:#d3a5ff;font-size:clamp(10px,1.45vh,14px)}
 #studyOverlay.practice-live-mode .duel-question h2{margin-top:11px;color:#fff;font-size:clamp(26px,4vh,42px);line-height:1.15;text-wrap:balance}
 #studyOverlay.practice-live-mode .duel-options{grid-template-columns:1fr;gap:clamp(9px,1.35vh,14px)}
-#studyOverlay.practice-live-mode .duel-options button{min-height:clamp(58px,7.6vh,78px);padding:10px 15px;border-color:rgba(255,255,255,.15);border-radius:18px;background:rgba(255,255,255,.09);color:#fff;font-size:clamp(17px,2.2vh,23px);box-shadow:0 8px 22px rgba(0,0,0,.15);backdrop-filter:blur(10px)}
-#studyOverlay.practice-live-mode .duel-options button:hover{border-color:#c28aff;background:rgba(160,78,230,.22);transform:translateY(-1px)}
-#studyOverlay.practice-live-mode .duel-options button span{flex-basis:clamp(38px,5vh,50px);height:clamp(38px,5vh,50px);border-radius:13px;background:linear-gradient(145deg,#7d45ea,#b542dd);color:#fff;font-size:clamp(16px,2.2vh,22px);box-shadow:0 5px 15px rgba(111,52,206,.33)}
-#studyOverlay.practice-live-mode .duel-options button.correct{border-color:#28d39f;background:rgba(20,152,112,.28)}
-#studyOverlay.practice-live-mode .duel-options button.wrong{border-color:#ff6d79;background:rgba(190,48,67,.27)}
+/* Duel options in LIVE mode used to be near-transparent white on the dark
+   backdrop, which read as a stack of greyed-out buttons. Give them a solid
+   premium gradient so each option is legibly punchy on stream. */
+#studyOverlay.practice-live-mode .duel-options button{min-height:clamp(58px,7.6vh,78px);padding:10px 15px;border:1px solid rgba(255,255,255,.28);border-radius:18px;background:linear-gradient(135deg,#7d45ea 0%,#b542dd 55%,#ff6b9a 100%);color:#fff;font-size:clamp(17px,2.2vh,23px);font-weight:900;letter-spacing:.01em;box-shadow:0 12px 28px rgba(89,32,181,.42),inset 0 1px 0 rgba(255,255,255,.22);text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#studyOverlay.practice-live-mode .duel-options button:hover{border-color:#ffe6ff;background:linear-gradient(135deg,#9256ff 0%,#d356ff 55%,#ff7fac 100%);transform:translateY(-2px);box-shadow:0 16px 34px rgba(89,32,181,.55),inset 0 1px 0 rgba(255,255,255,.32)}
+#studyOverlay.practice-live-mode .duel-options button span{flex-basis:clamp(38px,5vh,50px);height:clamp(38px,5vh,50px);border-radius:13px;background:rgba(255,255,255,.28);color:#fff;font-size:clamp(16px,2.2vh,22px);font-weight:950;box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),0 5px 15px rgba(0,0,0,.18)}
+#studyOverlay.practice-live-mode .duel-options button.correct{border-color:#28d39f;background:linear-gradient(135deg,#0f9866 0%,#14b884 55%,#28d39f 100%);box-shadow:0 14px 32px rgba(20,152,112,.55),inset 0 1px 0 rgba(255,255,255,.28)}
+#studyOverlay.practice-live-mode .duel-options button.wrong{border-color:#ff6d79;background:linear-gradient(135deg,#ab1f34 0%,#e33750 55%,#ff6d79 100%);box-shadow:0 14px 32px rgba(190,48,67,.55),inset 0 1px 0 rgba(255,255,255,.24)}
 #studyOverlay.practice-live-mode .inline-answer{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.15);background:rgba(10,10,18,.72);color:#fff}
 #studyOverlay.practice-live-mode .inline-answer p{color:#dcd1e6}
 #studyOverlay.practice-live-mode .inline-answer .btn{min-height:44px;background:linear-gradient(100deg,#7b3fe1,#cf3bd8);color:#fff}
