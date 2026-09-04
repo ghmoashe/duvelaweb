@@ -566,6 +566,7 @@
     renderSchedule,
     renderVideos,
     renderWorkspace,
+    openStudyTool,
     saveChallengeProgress,
     setAppLang: featureContext.setAppLang,
     saveProfile,
