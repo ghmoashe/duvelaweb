@@ -1489,3 +1489,21 @@
   background:#302247!important;
   background-image:linear-gradient(180deg,#362750 0%,#281f3c 100%)!important;
 }
+
+/* Zero grey veil: remove the full-card pseudo mask and keep the 9:16 stage dark. */
+#studyOverlay.practice-live-mode .overlay-card{
+  background:#120822!important;
+  background-image:linear-gradient(145deg,#120822 0%,#161024 52%,#071923 100%)!important;
+}
+#studyOverlay.practice-live-mode .overlay-card:before{
+  display:none!important;
+  content:none!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  mask-image:none!important;
+}
+#studyOverlay.practice-live-mode .overlay-body,
+#studyOverlay.practice-live-mode .practice-workspace{
+  background:transparent!important;
+}
