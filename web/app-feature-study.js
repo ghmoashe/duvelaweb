@@ -2579,11 +2579,14 @@
         // same bank serves both audiences. In the duel we only want one
         // side: mixing both makes each option look like a compound term
         // ("учебный партнер / learning partner") and the learner has to
-        // parse four such strings in seconds.
+        // parse four such strings in seconds. The Duvela audience is
+        // Russian-speaking, so we always take the Russian half — a German
+        // duel must not surface English options regardless of the teacher's
+        // interface language.
         var pickMeaning = function (text) {
           var parts = String(text || '').split(' / ');
           if (parts.length < 2) return String(text || '').trim();
-          return String(ctx.isRu ? parts[0] : parts[parts.length - 1]).trim();
+          return String(parts[0]).trim();
         };
         var vocab = strictBank(VOCAB, lang, selectedLevel).filter(function (item) {
           return item && item.w && item.t;
@@ -2608,7 +2611,9 @@
           opts = opts.filter(function (opt, position) { return opts.indexOf(opt) === position; });
           if (opts.length !== 4) return;
           var mixed = shuffle(opts);
-          deck.push({ q:tr('What does "' + item.w + '" mean?', 'Что значит "' + item.w + '"?'), opts:mixed, a:mixed.indexOf(meaning), level:item.level, kind:'vocab' });
+          // Prompt stays Russian to match the always-Russian options — the
+          // German word it names is the only target-language token here.
+          deck.push({ q:'Что значит "' + item.w + '"?', opts:mixed, a:mixed.indexOf(meaning), level:item.level, kind:'vocab' });
         });
       });
       var seen = {};
