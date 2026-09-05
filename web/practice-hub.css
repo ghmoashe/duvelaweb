@@ -1550,6 +1550,35 @@
   background:#302247!important;
   background-image:linear-gradient(180deg,#362750 0%,#281f3c 100%)!important;
 }
+/* The purple-veil rule above wins with !important, so the correct/wrong
+   feedback needs to shout back at the same volume — otherwise a wrong tap
+   paints nothing and the animation looks broken. */
+#studyOverlay.practice-live-mode .duel-options button.correct{
+  background:#0f9866!important;
+  background-image:linear-gradient(135deg,#0f9866 0%,#14b884 55%,#28d39f 100%)!important;
+  border-color:#28d39f!important;
+  box-shadow:0 14px 32px rgba(20,152,112,.55),inset 0 1px 0 rgba(255,255,255,.28)!important;
+}
+#studyOverlay.practice-live-mode .duel-options button.wrong{
+  background:#ab1f34!important;
+  background-image:linear-gradient(135deg,#ab1f34 0%,#e33750 55%,#ff6d79 100%)!important;
+  border-color:#ff6d79!important;
+  box-shadow:0 14px 32px rgba(190,48,67,.55),inset 0 1px 0 rgba(255,255,255,.24)!important;
+  animation:duelWrongShake .38s ease-in-out;
+}
+#studyOverlay.practice-live-mode .duel-options button.correct span{
+  background:rgba(255,255,255,.32)!important;
+}
+#studyOverlay.practice-live-mode .duel-options button.wrong span{
+  background:rgba(255,255,255,.32)!important;
+}
+@keyframes duelWrongShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
 
 /* Zero grey veil: remove the full-card pseudo mask and keep the 9:16 stage dark. */
 #studyOverlay.practice-live-mode .overlay-card{
