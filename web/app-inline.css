@@ -1624,14 +1624,14 @@
   .teacher-duel-eyebrow {
     width: max-content;
     max-width: 100%;
-    padding: 8px 12px;
-    border: 1px solid rgba(255,255,255,.18);
+    padding: 12px 20px;
+    border: 1px solid rgba(255,255,255,.22);
     border-radius: 999px;
-    background: rgba(255,255,255,.08);
+    background: rgba(255,255,255,.1);
     color: #f8d778;
-    font-size: 11px;
+    font-size: clamp(15px, 1.4vw, 18px);
     font-weight: 950;
-    letter-spacing: .22em;
+    letter-spacing: .24em;
   }
   .teacher-duel-copy h2 {
     margin: 0;
