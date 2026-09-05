@@ -118,9 +118,14 @@
             var word = head[1] + ' ' + compound;
             if (seen[word]) return;
             seen[word] = true;
+            // Translation format matches the hand-written entries above
+            // ("дом / house"): russian modifier + root, slash, english
+            // modifier + root. Not "root: modifier / modifier root" — that
+            // packed two languages *and* a category-style colon into one
+            // string and read as four separate concepts.
             VOCAB.de.push({
               w: word,
-              t: head[4] + ': ' + prefix[2] + ' / ' + prefix[1] + ' ' + head[3],
+              t: prefix[2] + ' ' + head[4] + ' / ' + prefix[1] + ' ' + head[3],
               level: level
             });
           });
@@ -2570,20 +2575,40 @@
             });
           });
         }
+        // Vocab entries store the meaning as "russian / english" so the
+        // same bank serves both audiences. In the duel we only want one
+        // side: mixing both makes each option look like a compound term
+        // ("учебный партнер / learning partner") and the learner has to
+        // parse four such strings in seconds.
+        var pickMeaning = function (text) {
+          var parts = String(text || '').split(' / ');
+          if (parts.length < 2) return String(text || '').trim();
+          return String(ctx.isRu ? parts[0] : parts[parts.length - 1]).trim();
+        };
         var vocab = strictBank(VOCAB, lang, selectedLevel).filter(function (item) {
           return item && item.w && item.t;
         });
         vocab.forEach(function (item, index) {
+          var meaning = pickMeaning(item.t);
           var distractors = vocab.filter(function (other) {
-            return other && other.t && other.t !== item.t;
+            if (!other || !other.t) return false;
+            var otherMeaning = pickMeaning(other.t);
+            return otherMeaning && otherMeaning !== meaning;
           });
           if (distractors.length < 3) return;
           var offset = (index * 7) % distractors.length;
-          var opts = [item.t, distractors[offset].t, distractors[(offset + 11) % distractors.length].t, distractors[(offset + 23) % distractors.length].t];
+          var opts = [
+            meaning,
+            pickMeaning(distractors[offset].t),
+            pickMeaning(distractors[(offset + 11) % distractors.length].t),
+            pickMeaning(distractors[(offset + 23) % distractors.length].t)
+          ];
           opts = opts.map(function (opt) { return String(opt || '').trim(); }).filter(Boolean);
+          // Trim any duplicates that survived the pickMeaning slice.
+          opts = opts.filter(function (opt, position) { return opts.indexOf(opt) === position; });
           if (opts.length !== 4) return;
           var mixed = shuffle(opts);
-          deck.push({ q:tr('What does "' + item.w + '" mean?', 'Что значит "' + item.w + '"?'), opts:mixed, a:mixed.indexOf(item.t), level:item.level, kind:'vocab' });
+          deck.push({ q:tr('What does "' + item.w + '" mean?', 'Что значит "' + item.w + '"?'), opts:mixed, a:mixed.indexOf(meaning), level:item.level, kind:'vocab' });
         });
       });
       var seen = {};
