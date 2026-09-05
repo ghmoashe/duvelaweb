@@ -35,7 +35,11 @@ const files = [
 const dirs = [
   'web',
   'locales',
-  'legal'
+  'legal',
+  // Universal-links verification files (Apple AASA + Android assetlinks.json).
+  // Both must sit at the site root under /.well-known/ or the OS will not
+  // hand vela.cafe taps to the Hub app.
+  '.well-known'
 ];
 
 function removeDirRecursive(targetPath) {

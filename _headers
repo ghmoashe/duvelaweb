@@ -3,6 +3,18 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(self), microphone=(self), geolocation=()
 
+# Apple's AASA fetcher hits this exact path with no extension and refuses the
+# file unless it is served as JSON. Android's package manager is stricter about
+# assetlinks.json — same treatment for consistency. Cache short so a fingerprint
+# rotation reaches devices quickly.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600, must-revalidate
+
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 

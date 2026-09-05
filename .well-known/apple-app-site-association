@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "REPLACE_TEAM_ID.com.duvela.academy.hub",
+        "paths": [
+          "/app.html*",
+          "/app.html",
+          "NOT /admin.html*",
+          "NOT /business*",
+          "NOT /classroom.html*",
+          "NOT /telc*"
+        ]
+      }
+    ]
+  }
+}
