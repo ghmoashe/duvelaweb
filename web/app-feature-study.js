@@ -2481,23 +2481,24 @@
       if(!team){
         var kit = duelTeacherKit(), selectedTopic = studyState.duelTopic || kit.topic || 'all', selectedMode = studyState.duelMode || kit.mode || 'students';
         studyState.duelTopic = selectedTopic;studyState.duelMode = selectedMode;
+        studyState.duelLevels = normalizeDuelLevels(studyState.duelLevels || kit.levels || kit.level || studyState.level, studyState.level);
         studyState.duelQuestionCount = studyState.duelQuestionCount || kit.questions || 10;
         studyState.duelQuestionSeconds = studyState.duelQuestionSeconds || kit.seconds || 15;
         studyState.duelSource = studyState.duelSource || kit.source || 'bank';
         studyState.duelPracticeId = studyState.duelPracticeId || kit.practiceId || '';
-        var duelBankTotal = buildDuelDeck(studyState.lang, studyState.level, selectedTopic).length;
+        var duelBankTotal = buildDuelDeck(studyState.lang, studyState.duelLevels, selectedTopic).length;
         var joinCode = studyState.duelJoinCode || '••••';
         host.innerHTML='<div class="social-challenge duel-search-card duel-teacher-lobby">'
           +'<header class="duel-lobby-hero"><div class="duel-search-orbit"><span>⚔️</span></div><div class="duel-lobby-hero-copy"><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Students join now','Ученики заходят сейчас'))+'</h2></div><div class="duel-code-chip"><strong id="duelJoinCode">'+esc(joinCode)+'</strong><button type="button" class="duel-copy-btn" data-duel-copy="code">'+esc(tr('Copy','Копировать'))+'</button></div></header>'
           +'<div class="duel-teacher-panel"><div class="duel-panel-head"><div><small>TEACHER CONTROL</small><b>'+esc(tr('Room settings','Настройки комнаты'))+'</b></div></div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Mode','Режим'))+'</span>'+duelModeList().map(function(item){return '<button type="button" data-duel-mode="'+esc(item[0])+'" class="'+(item[0]===selectedMode?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Topic','Тема'))+'</span>'+duelTopicList().map(function(item){return '<button type="button" data-duel-topic="'+esc(item[0])+'" class="'+(item[0]===selectedTopic?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
-          +'<div class="duel-control-row compact"><span>'+esc(tr('Level','Уровень'))+'</span>'+['A1','A2','B1','B2','C1','C2'].map(function(level){return '<button type="button" data-duel-level="'+level+'" class="'+(level===String(studyState.level||'A1').toUpperCase()?'active':'')+'">'+level+'</button>';}).join('')+'<button type="button" data-duel-generate="1">'+esc(tr('Generate lesson','Сгенерировать урок'))+'</button></div>'
+          +'<div class="duel-control-row compact"><span>'+esc(tr('Levels','Уровни'))+'</span>'+['A1','A2','B1','B2','C1','C2'].map(function(level){return '<button type="button" data-duel-level="'+level+'" class="'+(studyState.duelLevels.indexOf(level)>=0?'active':'')+'">'+level+'</button>';}).join('')+'<button type="button" data-duel-generate="1">'+esc(tr('Generate lesson','Сгенерировать урок'))+'</button></div>'
           +'<div class="duel-control-row compact"><span>'+esc(tr('Questions','Вопросы'))+'</span>'+[5,10,15].map(function(count){return '<button type="button" data-duel-count="'+count+'" class="'+(count===duelQuestionCount()?'active':'')+'">'+count+'</button>';}).join('')+'<span>'+esc(tr('Timer','Таймер'))+'</span>'+[10,15,20].map(function(seconds){return '<button type="button" data-duel-seconds="'+seconds+'" class="'+(seconds===duelQuestionSeconds()?'active':'')+'">'+seconds+'s</button>';}).join('')+'</div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Source','Источник'))+'</span>'+[['bank',tr('Bank','Банк')],['mine',tr('My pack','Мой набор')],['ai',tr('AI','AI')]].map(function(item){return '<button type="button" data-duel-source="'+item[0]+'" class="'+(item[0]===duelSource()?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
           +'<div class="duel-control-row" id="duelPackRow"'+(duelSource()==='mine'?'':' hidden')+'><span>'+esc(tr('Pack','Набор'))+'</span><select id="duelPackSelect" class="duel-pack-select"><option value="">'+esc(tr('Loading packs…','Загрузка наборов…'))+'</option></select></div></div>'
           +'<aside class="duel-lobby-side"><div class="duel-lobby-share"><img id="duelLobbyQr" alt="QR" width="88" height="88" hidden><div><div class="duel-lobby-url" id="duelLobbyUrl">'+esc(tr('Opening room…','Открываем комнату…'))+'</div><div class="duel-lobby-share-actions"><button type="button" class="duel-copy-btn" data-duel-copy="url">'+esc(tr('Copy link','Скопировать ссылку'))+'</button></div></div></div>'
-          +'<div class="duel-search-stats"><span><b id="duelLobbyCount">'+esc(String(duelQuestionCount()))+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b id="duelLobbyLevel">'+esc(studyState.level || 'A1')+'</b><small>'+esc(tr('level','уровень'))+'</small></span><span><b id="duelLobbyBank">'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span><span><b>'+esc(String(kit.streak||0))+'</b><small>'+esc(tr('teacher streak','серия учителя'))+'</small></span></div>'
+          +'<div class="duel-search-stats"><span><b id="duelLobbyCount">'+esc(String(duelQuestionCount()))+'</b><small>'+esc(tr('questions','вопросов'))+'</small></span><span><b id="duelLobbyLevel">'+esc(duelLevelLabel())+'</b><small>'+esc(tr('levels','уровни'))+'</small></span><span><b id="duelLobbyBank">'+esc(duelBankTotal)+'</b><small>'+esc(tr('duel bank','банк дуэли'))+'</small></span><span><b>'+esc(String(kit.streak||0))+'</b><small>'+esc(tr('teacher streak','серия учителя'))+'</small></span></div>'
           +'<span hidden id="duelJoinCodeInline">'+esc(joinCode)+'</span><span hidden id="duelLobbyModeLabel">'+esc(duelModeLabel(selectedMode))+' · '+esc(duelTopicLabel(selectedTopic))+'</span>'
           +'<div id="duelLobbyRoster" class="duel-lobby-roster"></div><div id="challengeMembers" class="duel-status duel-search-status">'+esc(tr('Opening the room…','Открываем комнату…'))+'</div>'
           +'<button class="btn primary" id="socialStart">'+esc(tr('Start LIVE duel','Запустить LIVE-дуэль'))+'</button></aside></div>';
@@ -2526,41 +2527,64 @@
       }catch(error){button.disabled=false;button.textContent=tr('Try again','Повторить');alert(error.message||tr('Team service is unavailable.','Командный сервис недоступен.'));}
     }
 
+    function normalizeDuelLevels(value, fallback) {
+      var allowed = { A1:true, A2:true, B1:true, B2:true, C1:true, C2:true };
+      var raw = Array.isArray(value) ? value : String(value || '').split(/[,\s/+]+/);
+      var levels = [];
+      raw.forEach(function (item) {
+        var level = normalizePracticeLevel(item, '');
+        if (allowed[level] && levels.indexOf(level) < 0) levels.push(level);
+      });
+      if (!levels.length) levels.push(normalizePracticeLevel(fallback || (studyState && studyState.level) || 'A1', 'A1'));
+      return levels.slice(0, 2);
+    }
+
+    function duelSelectedLevels() {
+      return normalizeDuelLevels(studyState && studyState.duelLevels, studyState && studyState.level);
+    }
+
+    function duelLevelLabel() {
+      return duelSelectedLevels().join(' + ');
+    }
+
     function buildDuelDeck(lang, level, topic) {
+      var levels = normalizeDuelLevels(level, studyState && studyState.level);
       var deck = [];
-      strictBank(GRAMMAR, lang, level).forEach(function (item) {
-        if (item && item.opts && item.opts.length === 4) deck.push({ q:item.q, opts:item.opts, a:item.a, level:item.level });
-      });
-      strictBank(WORD_USAGE, lang, level).forEach(function (item) {
-        var answer = item && item.opts ? item.opts.indexOf(item.a) : -1;
-        if (item && item.opts && item.opts.length === 4 && answer >= 0) deck.push({ q:item.s, opts:item.opts, a:answer, level:item.level });
-      });
-      if (lang === 'de') {
-        exactLevelItems(ARTICLES, level).forEach(function (item) {
-          var opts = ['der', 'die', 'das', tr('no article', 'без артикля')];
-          deck.push({
-            q:tr('Article: ___ ' + item.noun, 'Артикль: ___ ' + item.noun),
-            opts:opts,
-            a:opts.indexOf(item.art),
-            level:item.level,
-            kind:'article'
+      levels.forEach(function (selectedLevel) {
+        strictBank(GRAMMAR, lang, selectedLevel).forEach(function (item) {
+          if (item && item.opts && item.opts.length === 4) deck.push({ q:item.q, opts:item.opts, a:item.a, level:item.level });
+        });
+        strictBank(WORD_USAGE, lang, selectedLevel).forEach(function (item) {
+          var answer = item && item.opts ? item.opts.indexOf(item.a) : -1;
+          if (item && item.opts && item.opts.length === 4 && answer >= 0) deck.push({ q:item.s, opts:item.opts, a:answer, level:item.level });
+        });
+        if (lang === 'de') {
+          exactLevelItems(ARTICLES, selectedLevel).forEach(function (item) {
+            var opts = ['der', 'die', 'das', tr('no article', 'без артикля')];
+            deck.push({
+              q:tr('Article: ___ ' + item.noun, 'Артикль: ___ ' + item.noun),
+              opts:opts,
+              a:opts.indexOf(item.art),
+              level:item.level,
+              kind:'article'
+            });
           });
+        }
+        var vocab = strictBank(VOCAB, lang, selectedLevel).filter(function (item) {
+          return item && item.w && item.t;
         });
-      }
-      var vocab = strictBank(VOCAB, lang, level).filter(function (item) {
-        return item && item.w && item.t;
-      });
-      vocab.forEach(function (item, index) {
-        var distractors = vocab.filter(function (other) {
-          return other && other.t && other.t !== item.t;
+        vocab.forEach(function (item, index) {
+          var distractors = vocab.filter(function (other) {
+            return other && other.t && other.t !== item.t;
+          });
+          if (distractors.length < 3) return;
+          var offset = (index * 7) % distractors.length;
+          var opts = [item.t, distractors[offset].t, distractors[(offset + 11) % distractors.length].t, distractors[(offset + 23) % distractors.length].t];
+          opts = opts.map(function (opt) { return String(opt || '').trim(); }).filter(Boolean);
+          if (opts.length !== 4) return;
+          var mixed = shuffle(opts);
+          deck.push({ q:tr('What does "' + item.w + '" mean?', 'Что значит "' + item.w + '"?'), opts:mixed, a:mixed.indexOf(item.t), level:item.level, kind:'vocab' });
         });
-        if (distractors.length < 3) return;
-        var offset = (index * 7) % distractors.length;
-        var opts = [item.t, distractors[offset].t, distractors[(offset + 11) % distractors.length].t, distractors[(offset + 23) % distractors.length].t];
-        opts = opts.map(function (opt) { return String(opt || '').trim(); }).filter(Boolean);
-        if (opts.length !== 4) return;
-        var mixed = shuffle(opts);
-        deck.push({ q:tr('What does "' + item.w + '" mean?', 'Что значит "' + item.w + '"?'), opts:mixed, a:mixed.indexOf(item.t), level:item.level, kind:'vocab' });
       });
       var seen = {};
       deck = shuffle(deck).filter(function (item) {
@@ -2641,7 +2665,7 @@
         return studyState.duelPracticeDeck.slice(0, count);
       }
       var topic = studyState.duelTopic || 'all';
-      var full = buildDuelDeck(studyState.lang, studyState.level, topic);
+      var full = buildDuelDeck(studyState.lang, duelSelectedLevels(), topic);
       studyState.duelBankTotal = full.length;
       return full.slice(0, count);
     }
@@ -2768,7 +2792,7 @@
       return {
         deck: deck,
         target: studyState.lang || 'de',
-        level: studyState.level || 'A1',
+        level: duelLevelLabel(),
         topic: studyState.duelTopic || 'all',
         mode: studyState.duelMode || 'teacher',
         total_questions: deck.length,
@@ -2873,9 +2897,11 @@
       var kit = duelTeacherKit();
       kit.topic = studyState.duelTopic || kit.topic || 'all';
       kit.mode = studyState.duelMode || kit.mode || 'students';
+      studyState.duelLevels = normalizeDuelLevels(studyState.duelLevels || kit.levels || studyState.level, studyState.level);
       kit.questions = duelQuestionCount();
       kit.seconds = duelQuestionSeconds();
       kit.source = duelSource();
+      kit.levels = duelSelectedLevels();
       saveDuelTeacherKit(kit);
       var deck = currentDuelDeck();
       studyState.duelTopic = kit.topic;
@@ -2909,7 +2935,7 @@
             deck: deck,
             total_questions: deck.length,
             question_seconds: duelQuestionSeconds(),
-            level: studyState.level || 'A1',
+            level: duelLevelLabel(),
             topic: kit.topic,
             duel_mode: kit.mode,
             reveal_answer: false
@@ -2927,9 +2953,9 @@
 
     function duelTeacherKit() {
       try {
-        return Object.assign({ topic:'all',mode:'students',streak:0,lastDay:'',totalLives:0,questions:10,seconds:15,source:'bank',practiceId:'' }, JSON.parse(localStorage.getItem(DUEL_TEACHER_KEY) || '{}'));
+        return Object.assign({ topic:'all',mode:'students',streak:0,lastDay:'',totalLives:0,questions:10,seconds:15,source:'bank',practiceId:'',levels:[] }, JSON.parse(localStorage.getItem(DUEL_TEACHER_KEY) || '{}'));
       } catch (e) {
-        return { topic:'all',mode:'students',streak:0,lastDay:'',totalLives:0,questions:10,seconds:15,source:'bank',practiceId:'' };
+        return { topic:'all',mode:'students',streak:0,lastDay:'',totalLives:0,questions:10,seconds:15,source:'bank',practiceId:'',levels:[] };
       }
     }
 
@@ -3115,7 +3141,7 @@
             mode: 'topic',
             format: 'mcq',
             target: generateTargetName(studyState.lang),
-            level: String(studyState.level || 'A1').toLowerCase(),
+            level: String(duelSelectedLevels().slice(-1)[0] || studyState.level || 'A1').toLowerCase(),
             count: count,
             locale: ctx.isRu ? 'ru' : 'en',
             topic: duelTopicLabel(studyState.duelTopic || 'all')
@@ -3169,14 +3195,16 @@
         var kit = duelTeacherKit();
         kit.topic = studyState.duelTopic || kit.topic || 'all';
         kit.mode = studyState.duelMode || kit.mode || 'students';
+        studyState.duelLevels = normalizeDuelLevels(studyState.duelLevels || kit.levels || studyState.level, studyState.level);
         kit.questions = duelQuestionCount();
         kit.seconds = duelQuestionSeconds();
         kit.source = duelSource();
         kit.practiceId = studyState.duelPracticeId || '';
+        kit.levels = duelSelectedLevels();
         saveDuelTeacherKit(kit);
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-topic') === studyState.duelTopic); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-mode]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-mode') === studyState.duelMode); });
-        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-level]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-level') === String(studyState.level || 'A1').toUpperCase()); });
+        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-level]'), function (button) { button.classList.toggle('active', duelSelectedLevels().indexOf(button.getAttribute('data-duel-level')) >= 0); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-count]'), function (button) { button.classList.toggle('active', Number(button.getAttribute('data-duel-count')) === duelQuestionCount()); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-seconds]'), function (button) { button.classList.toggle('active', Number(button.getAttribute('data-duel-seconds')) === duelQuestionSeconds()); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-source]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-source') === duelSource()); });
@@ -3184,7 +3212,7 @@
         if (packRow) packRow.hidden = duelSource() !== 'mine';
         var deck = currentDuelDeck();
         var levelNode = $('#duelLobbyLevel'), bankNode = $('#duelLobbyBank'), modeLabel = $('#duelLobbyModeLabel'), countNode = $('#duelLobbyCount');
-        if (levelNode) levelNode.textContent = studyState.level || 'A1';
+        if (levelNode) levelNode.textContent = duelLevelLabel();
         if (bankNode) bankNode.textContent = String(studyState.duelBankTotal || deck.length);
         if (countNode) countNode.textContent = String(duelQuestionCount());
         if (modeLabel) modeLabel.textContent = duelModeLabel(studyState.duelMode) + ' · ' + duelTopicLabel(studyState.duelTopic);
@@ -3213,7 +3241,20 @@
         button.onclick = function () { studyState.duelMode = button.getAttribute('data-duel-mode') || 'students'; refresh(); };
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-level]'), function (button) {
-        button.onclick = function () { studyState.level = button.getAttribute('data-duel-level') || 'A1'; studyState.data = null; refresh(); };
+        button.onclick = function () {
+          var level = button.getAttribute('data-duel-level') || 'A1';
+          var levels = duelSelectedLevels();
+          var existing = levels.indexOf(level);
+          if (existing >= 0 && levels.length > 1) levels.splice(existing, 1);
+          else if (existing < 0) {
+            levels.push(level);
+            if (levels.length > 2) levels.shift();
+          }
+          studyState.duelLevels = levels;
+          studyState.level = levels[0] || level;
+          studyState.data = null;
+          refresh();
+        };
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-count]'), function (button) {
         button.onclick = function () { studyState.duelQuestionCount = Number(button.getAttribute('data-duel-count')) || 10; refresh(); };
@@ -3558,7 +3599,7 @@
         if (uid()) void window.DuvelaDuelFx.renderGiftRank($('#duelGiftRank'), uid());
       }
       var liveTitle = host.querySelector('.duel-live-masthead strong');
-      if (liveTitle) liveTitle.insertAdjacentHTML('afterend', '<em class="duel-live-bank">LEVEL ' + esc(studyState.level || 'A1') + ' / BANK ' + esc(studyState.duelBankTotal || deck.length) + ' / Q ' + esc(String(studyState.idx + 1)) + '/' + esc(String(deck.length)) + '</em>');
+      if (liveTitle) liveTitle.insertAdjacentHTML('afterend', '<em class="duel-live-bank">LEVEL ' + esc(duelLevelLabel()) + ' / BANK ' + esc(studyState.duelBankTotal || deck.length) + ' / Q ' + esc(String(studyState.idx + 1)) + '/' + esc(String(deck.length)) + '</em>');
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-teacher-action]'),function(button){button.onclick=function(){
         var action=button.getAttribute('data-duel-teacher-action');
         if(action==='pause'){
