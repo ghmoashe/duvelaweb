@@ -104,11 +104,19 @@
     const supa = client();
     if (!supa || !roomId) return null;
     // Drop votes from a previous run so Q1 is answerable again on the same code.
-    await supa.from(VOTE_TABLE).delete().eq('room_id', roomId);
-    await supa
+    const voteReset = await supa.from(VOTE_TABLE).delete().eq('room_id', roomId);
+    if (voteReset.error) throw voteReset.error;
+    let playerReset = await supa
       .from(PLAYER_TABLE)
-      .update({ score: 0, correct_count: 0, answered_count: 0 })
+      .update({ score: 0, correct_count: 0, answered_count: 0, last_answered_question: -1, last_answered_option: -1 })
       .eq('room_id', roomId);
+    if (playerReset.error && /last_answered/i.test(String(playerReset.error.message || ''))) {
+      playerReset = await supa
+        .from(PLAYER_TABLE)
+        .update({ score: 0, correct_count: 0, answered_count: 0 })
+        .eq('room_id', roomId);
+    }
+    if (playerReset.error) throw playerReset.error;
     return setRoomState(roomId, Object.assign({}, patch || {}, {
       status: 'lobby',
       current_question: -1,
@@ -193,6 +201,22 @@
     return data;
   }
 
+  async function findMyPlayer(roomId) {
+    const supa = client();
+    if (!supa || !roomId) return null;
+    const auth = await supa.auth.getUser();
+    const userId = auth?.data?.user?.id || null;
+    if (!userId) return null;
+    const { data, error } = await supa
+      .from(PLAYER_TABLE)
+      .select('*')
+      .eq('room_id', roomId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
   async function joinRoom(joinCode, displayName) {
     const supa = client();
     if (!supa) throw new Error('Supabase is not configured.');
@@ -206,18 +230,13 @@
     // A signed-in learner rejoining (refresh, dropped connection) must land on
     // the same player row so their score survives.
     if (userId) {
-      const existing = await supa
-        .from(PLAYER_TABLE)
-        .select('*')
-        .eq('room_id', room.id)
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (existing.data) {
-        await supa
+      const existingPlayer = await findMyPlayer(room.id);
+      if (existingPlayer) {
+        const touch = await supa
           .from(PLAYER_TABLE)
           .update({ last_seen_at: new Date().toISOString() })
-          .eq('id', existing.data.id);
-        return { room, player: existing.data };
+          .eq('id', existingPlayer.id);
+        return { room, player: existingPlayer, isNew: false };
       }
     }
 
@@ -228,12 +247,24 @@
       .select()
       .single();
     if (error) throw error;
-    return { room, player: data };
+    return { room, player: data, isNew: true };
   }
 
   async function submitVote(roomId, playerId, questionIndex, optionIndex, isCorrect) {
     const supa = client();
     if (!supa) throw new Error('Supabase is not configured.');
+    const roomRes = await supa
+      .from(ROOM_TABLE)
+      .select('current_question,deck,status,reveal_answer')
+      .eq('id', roomId)
+      .maybeSingle();
+    if (roomRes.error) throw roomRes.error;
+    const room = roomRes.data;
+    if (!room || room.status !== 'running' || room.reveal_answer) throw new Error('This question is closed.');
+    if (Number(room.current_question) !== Number(questionIndex)) throw new Error('This question already moved on.');
+    const deck = Array.isArray(room.deck) ? room.deck : [];
+    const item = deck[Number(questionIndex)];
+    const verifiedCorrect = !!(item && Number(item.a) === Number(optionIndex));
     const { data, error } = await supa
       .from(VOTE_TABLE)
       .insert({
@@ -241,7 +272,7 @@
         player_id: playerId,
         question_index: questionIndex,
         option_index: optionIndex,
-        is_correct: !!isCorrect
+        is_correct: verifiedCorrect
       })
       .select()
       .single();
@@ -249,6 +280,20 @@
     // worth surfacing, the poll simply ignores the second tap.
     if (error && error.code === '23505') return null;
     if (error) throw error;
+    let playerUpdate = await supa
+      .from(PLAYER_TABLE)
+      .update({
+        last_answered_question: questionIndex,
+        last_answered_option: optionIndex,
+        last_seen_at: new Date().toISOString()
+      })
+      .eq('id', playerId);
+    if (playerUpdate.error && /last_answered/i.test(String(playerUpdate.error.message || ''))) {
+      playerUpdate = await supa
+        .from(PLAYER_TABLE)
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', playerId);
+    }
     return data;
   }
 
@@ -510,6 +555,7 @@
     finishRoom,
     closeRoom,
     findRoomByCode,
+    findMyPlayer,
     joinRoom,
     submitVote,
     parseChatVote,

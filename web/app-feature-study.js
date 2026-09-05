@@ -2533,11 +2533,27 @@
       });
       strictBank(WORD_USAGE, lang, level).forEach(function (item) {
         var answer = item && item.opts ? item.opts.indexOf(item.a) : -1;
-        if (item && item.opts && item.opts.length === 4) deck.push({ q:item.s, opts:item.opts, a:answer < 0 ? 0 : answer, level:item.level });
+        if (item && item.opts && item.opts.length === 4 && answer >= 0) deck.push({ q:item.s, opts:item.opts, a:answer, level:item.level });
+      });
+      var vocab = strictBank(VOCAB, lang, level).filter(function (item) {
+        return item && item.w && item.t;
+      });
+      vocab.forEach(function (item, index) {
+        var distractors = vocab.filter(function (other) {
+          return other && other.t && other.t !== item.t;
+        });
+        if (distractors.length < 3) return;
+        var offset = (index * 7) % distractors.length;
+        var opts = [item.t, distractors[offset].t, distractors[(offset + 11) % distractors.length].t, distractors[(offset + 23) % distractors.length].t];
+        opts = opts.map(function (opt) { return String(opt || '').trim(); }).filter(Boolean);
+        if (opts.length !== 4) return;
+        var mixed = shuffle(opts);
+        deck.push({ q:tr('What does "' + item.w + '" mean?', 'Что значит "' + item.w + '"?'), opts:mixed, a:mixed.indexOf(item.t), level:item.level, kind:'vocab' });
       });
       var seen = {};
       deck = shuffle(deck).filter(function (item) {
         var key = item.q + '|' + item.opts.join('|');
+        if (!(item.a >= 0) || item.a >= item.opts.length) return false;
         if (seen[key]) return false;
         seen[key] = true;
         return true;
@@ -2857,6 +2873,9 @@
       studyState.duelOpponentScore = 0;
       studyState.duelClassScore = 0;
       studyState.duelClassScoredIndex = -1;
+      studyState.duelBotScoredIndex = -1;
+      studyState.duelBotFallbackActive = false;
+      studyState.duelTeacherAnsweredIndex = -1;
       studyState.duelRevealed = false;
       studyState.duelPaused = false;
       studyState.duelStartedAt = null;
@@ -3282,7 +3301,47 @@
 
     function liveRightScore() {
       if (!studyState) return 0;
-      return studyState.duelMode === 'teacher' ? Number(studyState.duelClassScore || 0) : Number(studyState.duelOpponentScore || 0);
+      return studyState.duelMode === 'teacher' && !duelBotOpponentActive() ? Number(studyState.duelClassScore || 0) : Number(studyState.duelOpponentScore || 0);
+    }
+
+    function duelRealPlayersCount() {
+      return ((studyState && studyState.duelRoomPlayers) || []).filter(function (player) {
+        return player && player.origin !== 'chat';
+      }).length;
+    }
+
+    function duelBotOpponentActive() {
+      if (!studyState) return false;
+      return studyState.duelMode !== 'teacher' || studyState.duelBotFallbackActive || duelRealPlayersCount() === 0;
+    }
+
+    function duelBotCorrectForItem(item, index) {
+      var text = String((item && item.q) || '') + '|' + String(index || 0);
+      var hash = 0;
+      for (var i = 0; i < text.length; i++) hash = ((hash << 5) - hash + text.charCodeAt(i)) >>> 0;
+      return (hash % 100) < 68;
+    }
+
+    function awardBotPointIfNeeded(item) {
+      if (!studyState || !duelBotOpponentActive()) return;
+      var index = Number(studyState.idx || 0);
+      if (studyState.duelBotScoredIndex === index) return;
+      if (studyState.duelMode === 'teacher') studyState.duelBotFallbackActive = true;
+      studyState.duelBotScoredIndex = index;
+      if (duelBotCorrectForItem(item, index)) {
+        studyState.duelOpponentScore = Number(studyState.duelOpponentScore || 0) + 1;
+      }
+      updateDuelScoreboard();
+    }
+
+    function lockDuelAnswerButtons(host, item, selected) {
+      if (!host || !item) return;
+      Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'), function (node) {
+        node.disabled = true;
+        var value = Number(node.getAttribute('data-duel-answer'));
+        if (value === Number(item.a)) node.classList.add('correct');
+        else if (value === selected) node.classList.add('wrong');
+      });
     }
 
     function awardClassPointIfNeeded() {
@@ -3304,14 +3363,16 @@
 
     async function teacherReveal() {
       if (!studyState) return;
-      studyState.duelRevealed = true;
-      awardClassPointIfNeeded();
       var item = (studyState.data || [])[studyState.idx];
       var host = $('#studyToolBody');
-      if (item && host) {
-        var correct = host.querySelector('[data-duel-answer="' + item.a + '"]');
-        if (correct) correct.classList.add('correct');
+      if (studyState.duelRevealed) {
+        lockDuelAnswerButtons(host, item, null);
+        return;
       }
+      studyState.duelRevealed = true;
+      awardClassPointIfNeeded();
+      awardBotPointIfNeeded(item);
+      lockDuelAnswerButtons(host, item, null);
       var api = duelRoomApi();
       if (api && studyState.duelRoomId) {
         try { await api.revealAnswer(studyState.duelRoomId); } catch (error) { /* reveal is best-effort */ }
@@ -3332,26 +3393,33 @@
 
     async function teacherAdvance() {
       if (!studyState) return;
+      if (studyState.duelAdvancing) return;
+      studyState.duelAdvancing = true;
       awardClassPointIfNeeded();
-      studyState.idx += 1;
-      studyState.duelRevealed = false;
-      studyState.duelPoll = [0, 0, 0, 0];
-      studyState.duelPollIndex = studyState.idx;
-      studyState.duelAnsweredIds = {};
-      studyState.duelFrozenLeft = null;
-      studyState.duelQuestionStartedAt = new Date().toISOString();
-      var api = duelRoomApi();
-      var deck = studyState.data || [];
-      if (api && studyState.duelRoomId) {
-        try {
-          if (studyState.idx >= deck.length) await api.finishRoom(studyState.duelRoomId);
-          else {
-            var started = await api.showQuestion(studyState.duelRoomId, studyState.idx);
-            if (started && started.question_started_at) studyState.duelQuestionStartedAt = started.question_started_at;
-          }
-        } catch (error) { /* room advance is best-effort */ }
+      try {
+        studyState.idx += 1;
+        studyState.duelRevealed = false;
+        studyState.duelTeacherAnsweredIndex = -1;
+        studyState.duelPoll = [0, 0, 0, 0];
+        studyState.duelPollIndex = studyState.idx;
+        studyState.duelAnsweredIds = {};
+        studyState.duelFrozenLeft = null;
+        studyState.duelQuestionStartedAt = new Date().toISOString();
+        var api = duelRoomApi();
+        var deck = studyState.data || [];
+        if (api && studyState.duelRoomId) {
+          try {
+            if (studyState.idx >= deck.length) await api.finishRoom(studyState.duelRoomId);
+            else {
+              var started = await api.showQuestion(studyState.duelRoomId, studyState.idx);
+              if (started && started.question_started_at) studyState.duelQuestionStartedAt = started.question_started_at;
+            }
+          } catch (error) { /* room advance is best-effort */ }
+        }
+        renderDuelMatch();
+      } finally {
+        if (studyState) studyState.duelAdvancing = false;
       }
-      renderDuelMatch();
     }
 
     async function refreshDuelRoomPlayers() {
@@ -3451,12 +3519,6 @@
       var host=$('#studyToolBody'),deck=studyState.data||[];
       if(!studyState.duelStartedAt){
         studyState.duelStartedAt=Date.now();
-        if(studyState.duelBot)studyState.duelTimerId=setInterval(function(){
-          if(!studyState||studyState.tool!=='duelmatch'||studyState.finished)return;
-          if(studyState.duelPaused)return;
-          if(studyState.duelOpponentScore<duelQuestionCount()&&Math.random()<.72)studyState.duelOpponentScore++;
-          updateDuelScoreboard();
-        },4200);
       }
       if(studyState.idx>=deck.length)return finishDuelMatch();
       var item=deck[studyState.idx];
@@ -3471,7 +3533,7 @@
         }).catch(function(){});
       }
       var playerLabel=studyState.duelMode==='teacher'?tr('TEACHER','УЧИТЕЛЬ'):studyState.duelMode==='class'?tr('CLASS','КЛАСС'):tr('YOU','ВЫ');
-      var opponentLabel=studyState.duelMode==='teacher'?tr('Class','Класс'):(studyState.duelBot?tr('Duvela Bot','Бот Duvela'):studyState.duelOpponentName);
+      var opponentLabel=studyState.duelMode==='teacher'&&!duelBotOpponentActive()?tr('Class','Класс'):(duelBotOpponentActive()?tr('Duvela Bot','Бот Duvela'):studyState.duelOpponentName);
       var pauseClass=studyState.duelPaused?' class="active"':'',pauseText=studyState.duelPaused?tr('Resume','Продолжить'):tr('Pause','Пауза');
       var answeredCount=duelAnsweredCount()||(studyState.duelPoll||[]).reduce(function(sum,value){return sum+Number(value||0);},0);
       var playerTotal=((studyState.duelRoomPlayers||[]).length);
@@ -3507,8 +3569,11 @@
         if(action==='next') void teacherAdvance();
       };});
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(button){button.onclick=function(){
+        if (studyState.duelPaused || studyState.duelRevealed || duelSecondsLeft() <= 0) return;
+        if (studyState.duelTeacherAnsweredIndex === studyState.idx) return;
         var selected=Number(button.getAttribute('data-duel-answer')),ok=selected===item.a;
-        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-answer]'),function(node){node.disabled=true;var value=Number(node.getAttribute('data-duel-answer'));if(value===item.a)node.classList.add('correct');else if(value===selected)node.classList.add('wrong');});
+        studyState.duelTeacherAnsweredIndex = studyState.idx;
+        lockDuelAnswerButtons(host, item, selected);
         feedback(ok,{prompt:item.q,chosen:item.opts[selected],correct:item.opts[item.a],explanation:answerExplanation(item)});
         if(studyState.duelMode!=='class'&&ok)studyState.score++;
         else if(!ok) logMistake(studyState.lang,item.q,item.opts,item.a,'duel');
@@ -3581,6 +3646,8 @@
     }
 
     async function finishDuelMatch(){
+      if (!studyState || studyState.finished || studyState.finishingDuel) return;
+      studyState.finishingDuel = true;
       if(studyState.duelTimerId){clearInterval(studyState.duelTimerId);studyState.duelTimerId=null;}
       stopDuelClock();
       stopNextDuelCountdown();
@@ -3598,7 +3665,7 @@
       var top = players.slice(0, 8);
       var winner = top[0];
       var mine=liveLeftScore(),rivalScore=liveRightScore(),won=mine>rivalScore,tie=mine===rivalScore,xp=won?25:tie?15:10,accuracy=Math.round(mine/Math.max(1,duelQuestionCount())*100),kit=updateDuelTeacherStreak(),code=studyState.duelJoinCode||'';
-      studyState.finished=true;bumpProgress('duel',xp);if(uid())awardXp(xp);clearResume();
+      studyState.finished=true;studyState.finishingDuel=false;bumpProgress('duel',xp);if(uid())awardXp(xp);clearResume();
       stopDuelChatIngest();
       var podium = top.length
         ? '<ol class="duel-podium">' + top.map(function (player, index) {

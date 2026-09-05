@@ -112,7 +112,7 @@
     const room = state.room;
     if (!room) return null;
     const deck = Array.isArray(room.deck) ? room.deck : [];
-    const index = Number(room.current_question);
+    const index = roomQuestionIndex(room);
     if (!(index >= 0) || index >= deck.length) return null;
     const item = deck[index];
     if (!item || !Array.isArray(item.opts) || item.opts.length < 2) return null;
@@ -125,6 +125,11 @@
     const started = room.question_started_at ? new Date(room.question_started_at).getTime() : 0;
     if (!started) return limit;
     return Math.max(0, Math.ceil(limit - (Date.now() - started) / 1000));
+  }
+
+  function roomQuestionIndex(room) {
+    const index = Number(room && room.current_question);
+    return Number.isFinite(index) ? index : -1;
   }
 
   function stopClock() {
@@ -169,11 +174,20 @@
       const auth = await supa.auth.getUser();
       const userId = auth && auth.data && auth.data.user && auth.data.user.id;
       if (!userId) return;
-      const rank = state.players.findIndex(function (player) { return player.id === state.player.id; });
-      const xp = playerXp(state.player, rank < 0 ? 99 : rank);
-      const profile = await supa.from('profiles').select('score').eq('id', userId).maybeSingle();
-      const current = Number(profile && profile.data && profile.data.score || 0);
-      await supa.from('profiles').update({ score: current + xp }).eq('id', userId);
+      let xp = 0;
+      if (state.room && state.room.id) {
+        const rpc = await supa.rpc('award_live_duel_xp', { p_room_id: state.room.id });
+        if (!rpc.error) xp = Number(rpc.data || 0);
+        else if (!/award_live_duel_xp/i.test(String(rpc.error.message || ''))) throw rpc.error;
+      }
+      if (!xp) {
+        const rank = state.players.findIndex(function (player) { return player.id === state.player.id; });
+        xp = playerXp(state.player, rank < 0 ? 99 : rank);
+        const profile = await supa.from('profiles').select('score').eq('id', userId).maybeSingle();
+        const current = Number(profile && profile.data && profile.data.score || 0);
+        const updated = await supa.from('profiles').update({ score: current + xp }).eq('id', userId);
+        if (updated.error) throw updated.error;
+      }
       state.awardedXp = xp;
       render();
     } catch (error) { /* XP is best-effort */ }
@@ -193,6 +207,25 @@
     const card = playCard();
     if (!card) return;
     const room = state.room;
+    if (!room && !state.waiting) { card.innerHTML = ''; card.hidden = true; return; }
+    if (state.waiting && !state.player) {
+      const place = state.queue.findIndex(function (row) { return row.user_id === (state.waiting.userId || ''); });
+      card.hidden = false;
+      card.innerHTML = '<div class="duel-play-head"><div><small>' + esc(tr('QUEUE', '\u041e\u0427\u0415\u0420\u0415\u0414\u042c')) + '</small><strong>' +
+        esc(state.waiting.code || '') + '</strong></div>' +
+        '<button class="btn" type="button" id="duelPlayLeave">' + esc(tr('Leave', '\u0412\u044b\u0439\u0442\u0438')) + '</button></div>' +
+        '<div class="duel-play-body duel-play-wait"><h3>' +
+        esc(tr('A duel is already in progress', '\u0414\u0443\u044d\u043b\u044c \u0443\u0436\u0435 \u0438\u0434\u0451\u0442')) + '</h3><p>' +
+        esc(tr('You are on the waiting list. The next lobby will let you in automatically.',
+          '\u0412\u044b \u0432 \u0441\u043f\u0438\u0441\u043a\u0435 \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u044f. \u041d\u043e\u0432\u043e\u0435 \u043b\u043e\u0431\u0431\u0438 \u0432\u043f\u0443\u0441\u0442\u0438\u0442 \u0432\u0430\u0441 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438.')) + '</p>' +
+        (place >= 0 ? '<p><b>#' + (place + 1) + '</b></p>' : '') +
+        '<ol class="duel-play-board">' + state.queue.map(function (row, index) {
+          return '<li' + (row.user_id === state.waiting.userId ? ' class="me"' : '') + '><b>' + (index + 1) +
+            '</b><span>' + esc(row.display_name || 'Student') + '</span></li>';
+        }).join('') + '</ol></div>';
+      bind();
+      return;
+    }
     if (!room || !state.player) { card.innerHTML = ''; card.hidden = true; return; }
     card.hidden = false;
 
@@ -256,7 +289,11 @@
       return;
     }
 
-    const index = Number(room.current_question);
+    const index = roomQuestionIndex(room);
+    if (Number(state.player && state.player.last_answered_question) === index) {
+      state.answeredIndex = index;
+      state.answeredOption = Number(state.player.last_answered_option);
+    }
     const answered = state.answeredIndex === index;
     const reveal = !!room.reveal_answer;
     const left = secondsLeft(room);
@@ -332,7 +369,7 @@
       const players = await api().fetchPlayers(state.room.id);
       state.players = players;
       const mine = state.player && players.find(function (player) { return player.id === state.player.id; });
-      if (state.player && !mine) {
+      if (state.player && !mine && players.length) {
         leaveRoom();
         setStatus(tr('You were removed from the room.', 'Вас убрали из комнаты.'), 'bad');
         return;
@@ -400,14 +437,23 @@
     if (!rooms) throw new Error('Duel rooms are not available.');
     const found = await rooms.findRoomByCode(code);
     if (found && (found.status === 'running' || found.status === 'paused')) {
-      const waiting = await enterWaitingList(found, name);
-      if (waiting) return;
+      const existingPlayer = rooms.findMyPlayer ? await rooms.findMyPlayer(found.id) : null;
+      if (!existingPlayer) {
+        const waiting = await enterWaitingList(found, name);
+        if (waiting) return;
+      }
     }
     const joined = await rooms.joinRoom(code, name);
     state.room = joined.room;
     state.player = joined.player;
-    state.answeredIndex = -1;
-    state.answeredOption = -1;
+    const currentIndex = roomQuestionIndex(joined.room);
+    if (Number(joined.player.last_answered_question) === currentIndex) {
+      state.answeredIndex = currentIndex;
+      state.answeredOption = Number(joined.player.last_answered_option);
+    } else {
+      state.answeredIndex = -1;
+      state.answeredOption = -1;
+    }
     state.xpAwarded = false;
     state.awardedXp = 0;
     state.channel = rooms.subscribe(joined.room.id, {
