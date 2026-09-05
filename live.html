@@ -504,6 +504,29 @@
     font-weight: 700;
   }
   .stage:fullscreen .fullscreen-exit { display: inline-flex; align-items: center; }
+  .duel-stage-overlay{position:absolute;inset:0;z-index:7;display:grid;grid-template-rows:auto auto 1fr auto auto auto;align-content:start;gap:8px;padding:14px 16px 18px;background:linear-gradient(180deg,rgba(8,6,16,.18),rgba(8,6,16,.58) 72%);color:#fff;pointer-events:none}
+  .duel-stage-overlay[hidden]{display:none!important}
+  .duel-stage-overlay .dso-top{display:flex;align-items:center;gap:10px}
+  .duel-stage-overlay .dso-live{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#d91f50;font-size:11px;font-weight:950}
+  .duel-stage-overlay .dso-live i{width:7px;height:7px;border-radius:50%;background:#fff}
+  .duel-stage-overlay #dsoCode{font-size:18px;letter-spacing:.06em}
+  .duel-stage-overlay .dso-rank{padding:4px 10px;border-radius:999px;background:#f5c542;color:#3b2708;font-size:11px;font-weight:900}
+  .duel-stage-overlay .dso-timer{display:grid;place-items:center;width:48px;height:48px;border:3px solid #fff;border-radius:50%;font-size:20px;font-weight:950}
+  .duel-stage-overlay .dso-timer.urgent{border-color:#ef4444;color:#fecaca}
+  .duel-stage-overlay .dso-join{margin:0;color:#d9ccea;font-size:12px;font-weight:800}
+  .duel-stage-overlay h2{margin:0;font-size:clamp(20px,3.2vw,34px);line-height:1.2}
+  .duel-stage-overlay .dso-poll{display:grid;gap:6px;pointer-events:auto}
+  .duel-stage-overlay .dso-poll button{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;min-height:38px;padding:6px 10px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(12,10,24,.72);color:#fff;text-align:left;cursor:pointer}
+  .duel-stage-overlay .dso-poll button.correct{border-color:#2dd4a7;background:rgba(45,212,167,.28)}
+  .duel-stage-overlay .dso-poll span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#8b42e8;font-weight:950}
+  .duel-stage-overlay .dso-poll i{display:none}
+  .duel-stage-overlay .dso-poll b{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .duel-stage-overlay .dso-controls{display:flex;gap:8px;pointer-events:auto}
+  .duel-stage-overlay .dso-controls button{min-height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(12,10,24,.8);color:#fff;font-weight:850;cursor:pointer}
+  .duel-duvi{position:absolute;right:12px;bottom:12px;width:min(22%,140px);pointer-events:none;filter:drop-shadow(0 12px 24px rgba(0,0,0,.4))}
+  .duel-duvi.pop{animation:duelDuviPop .45s cubic-bezier(.2,1.4,.3,1)}
+  @keyframes duelDuviPop{0%{transform:scale(.6) translateY(18px);opacity:0}100%{transform:scale(1);opacity:1}}
+  .duel-confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .stage-overlay {
     position: absolute;
     inset: 0;
@@ -1755,6 +1778,9 @@
 </div>
 
 <script src="./web/live-page.js?v=20260831-restream1"></script>
-<script src="./web/live-studio-ui.js?v=20260721-11"></script>
+<script src="./web/duel-room.js?v=20260905-duel-p2"></script>
+<script src="./web/duel-live-fx.js?v=20260905-duel-p2"></script>
+<script src="./web/duel-studio-overlay.js?v=20260905-duel-p2"></script>
+<script src="./web/live-studio-ui.js?v=20260905-duel-p2"></script>
 </body>
 </html>

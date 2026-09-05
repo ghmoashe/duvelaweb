@@ -72,7 +72,12 @@
   if(chatButton)chatButton.onclick=openHostChat;
   let chatReady=false;const chatBootstrap=setInterval(async()=>{if(chatReady||!api.getSession())return;try{chatReady=await api.initializeChat();if(chatReady)clearInterval(chatBootstrap);}catch(_){}},1000);
 
-  dock.insertAdjacentHTML('afterbegin','<button type="button" class="btn" id="studioShareScreen">▣ '+t('Share screen','Экран')+'</button><button type="button" class="btn" id="studioNotesBtn">✎ '+t('Notes','Заметки')+'</button><button type="button" class="btn" id="studioPlanBtn">◷ '+t('Lesson plan','План')+'</button>');
+  dock.insertAdjacentHTML('afterbegin','<button type="button" class="btn" id="studioDuelBtn">⚔️ '+t('Duel','Дуэль')+'</button><button type="button" class="btn" id="studioShareScreen">▣ '+t('Share screen','Экран')+'</button><button type="button" class="btn" id="studioNotesBtn">✎ '+t('Notes','Заметки')+'</button><button type="button" class="btn" id="studioPlanBtn">◷ '+t('Lesson plan','План')+'</button>');
+  const duelBtn=document.getElementById('studioDuelBtn');
+  if(duelBtn) duelBtn.onclick=function(){
+    if(window.DuvelaDuelStudio) window.DuvelaDuelStudio.toggle();
+    else alert(t('Duel overlay is not loaded.','Оверлей дуэли не загрузился.'));
+  };
   dock.insertAdjacentHTML('beforeend','<button type="button" class="btn" id="studioRecord">● '+t('Record','Запись')+'</button>');
   document.getElementById('studioRecord').onclick=async function(){try{if(api.isRecording()){await api.stopRecording();this.classList.remove('danger');this.textContent='● '+t('Record','Запись');}else{api.startRecording();this.classList.add('danger');this.textContent='■ '+t('Stop recording','Остановить запись');}}catch(error){alert(error.message);}};
   document.getElementById('studioShareScreen').addEventListener('click',async function(){ try { const on=await api.toggleScreenShare(); this.classList.toggle('primary',on); this.textContent=on?t('Stop sharing','Остановить экран'):t('Share screen','Экран'); } catch(error){ alert(error.message); } });

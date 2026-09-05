@@ -1705,6 +1705,9 @@
   .duel-play-head .btn { margin-left: auto; min-height: 40px; padding: 0 16px; }
   .duel-play-body { display: grid; gap: 14px; padding-top: 16px; }
   .duel-play-count { color: #b9aecd; font-size: 11px; font-weight: 900; letter-spacing: .18em; }
+  .duel-play-count-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .duel-play-timer { display: grid; place-items: center; width: 42px; height: 42px; border: 2px solid #9b6cf0; border-radius: 50%; color: #fff; font-size: 16px; font-weight: 950; }
+  .duel-play-timer.urgent { border-color: #e21f53; color: #ff9d9d; }
   .duel-play-body h3 { margin: 0; font-size: clamp(20px, 2.6vw, 30px); line-height: 1.2; }
   .duel-play-options { display: grid; gap: 10px; }
   .duel-play-options button {

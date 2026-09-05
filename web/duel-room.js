@@ -77,7 +77,8 @@
       level: options.level || 'A1',
       topic: options.topic || null,
       duel_mode: options.mode || 'teacher',
-      total_questions: deck.length || 10,
+      total_questions: deck.length || options.total_questions || 10,
+      question_seconds: options.question_seconds || 15,
       deck,
       status: 'lobby',
       current_question: -1,
@@ -123,7 +124,8 @@
       level: options.level || 'A1',
       topic: options.topic || null,
       duel_mode: options.mode || 'teacher',
-      total_questions: deck.length || 10,
+      total_questions: deck.length || options.total_questions || 10,
+      question_seconds: options.question_seconds || 15,
       deck
     };
     if (!existing) return createRoom(options);
@@ -160,10 +162,16 @@
   }
 
   const showQuestion = (roomId, index) =>
-    setRoomState(roomId, { current_question: index, reveal_answer: false, status: 'running' });
+    setRoomState(roomId, {
+      current_question: index,
+      reveal_answer: false,
+      status: 'running',
+      question_started_at: new Date().toISOString()
+    });
   const revealAnswer = (roomId) => setRoomState(roomId, { reveal_answer: true });
   const pauseRoom = (roomId) => setRoomState(roomId, { status: 'paused' });
-  const resumeRoom = (roomId) => setRoomState(roomId, { status: 'running' });
+  const resumeRoom = (roomId, extra) =>
+    setRoomState(roomId, Object.assign({ status: 'running' }, extra || {}));
   const finishRoom = (roomId) => setRoomState(roomId, { status: 'finished' });
   const closeRoom = (roomId) => setRoomState(roomId, { status: 'closed' });
 
@@ -246,35 +254,203 @@
 
   // ── Shared reads ───────────────────────────────────────────────────────────
 
-  async function fetchPlayers(roomId) {
+  function parseChatVote(text) {
+    const raw = String(text || '').trim().toUpperCase().replace(/["""']/g, '');
+    if (!raw) return -1;
+    const match = raw.match(/^(?:ANSWER|VOTE|ГОЛОС|ОТВЕТ|OPTION|VAR)\s*[:.\-]?\s*([ABCD])(?:\b|[\).:!]|$)/)
+      || raw.match(/^([ABCD])(?:\b|[\).:!]|$)/);
+    if (!match) return -1;
+    return match[1].charCodeAt(0) - 65;
+  }
+
+  async function findActiveLiveSession() {
+    const supa = client();
+    if (!supa) return null;
+    const teacherId = await currentTeacherId();
+    if (!teacherId) return null;
+    const { data, error } = await supa
+      .from('live_sessions')
+      .select('id, teacher_id, status, channel_name')
+      .eq('teacher_id', teacherId)
+      .eq('status', 'live')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return null;
+    return data || null;
+  }
+
+  async function ingestChatVote(roomId, payload) {
+    const supa = client();
+    if (!supa || !roomId) return null;
+    const optionIndex = Number(payload && payload.optionIndex);
+    if (!(optionIndex >= 0 && optionIndex <= 3)) return null;
+
+    const roomRes = await supa
+      .from(ROOM_TABLE)
+      .select('id, current_question, deck, teacher_id, status, reveal_answer')
+      .eq('id', roomId)
+      .maybeSingle();
+    const room = roomRes.data;
+    if (!room || room.status !== 'running' || room.reveal_answer) return null;
+    const userId = payload.userId || null;
+    if (userId && userId === room.teacher_id) return null;
+    const questionIndex = Number(room.current_question);
+    if (!(questionIndex >= 0)) return null;
+    const deck = Array.isArray(room.deck) ? room.deck : [];
+    const item = deck[questionIndex];
+    const isCorrect = !!(item && Number(item.a) === optionIndex);
+    const name = String(payload.displayName || 'Chat').trim().slice(0, 60) || 'Chat';
+
+    let player = null;
+    if (userId) {
+      const existing = await supa.from(PLAYER_TABLE).select('*').eq('room_id', roomId).eq('user_id', userId).maybeSingle();
+      player = existing.data;
+    }
+    if (!player) {
+      let chatLookup = await supa
+        .from(PLAYER_TABLE)
+        .select('*')
+        .eq('room_id', roomId)
+        .eq('display_name', name)
+        .eq('origin', 'chat')
+        .maybeSingle();
+      if (chatLookup.error && /origin/.test(String(chatLookup.error.message || ''))) {
+        chatLookup = await supa.from(PLAYER_TABLE).select('*').eq('room_id', roomId).eq('display_name', name).maybeSingle();
+      }
+      player = chatLookup.data;
+    }
+    if (!player) {
+      const row = { room_id: roomId, user_id: userId, display_name: name, origin: 'chat' };
+      let inserted = await supa.from(PLAYER_TABLE).insert(row).select().single();
+      if (inserted.error && /origin/.test(String(inserted.error.message || ''))) {
+        delete row.origin;
+        inserted = await supa.from(PLAYER_TABLE).insert(row).select().single();
+      }
+      if (inserted.error) return null;
+      player = inserted.data;
+    }
+    return submitVote(roomId, player.id, questionIndex, optionIndex, isCorrect);
+  }
+
+  async function enqueueWaiter(teacherId, displayName, joinCode) {
+    const supa = client();
+    const userId = await currentTeacherId();
+    if (!supa || !userId || !teacherId) throw new Error('Sign in to join the waiting list.');
+    const { error } = await supa.from('live_duel_queue').upsert({
+      teacher_id: teacherId,
+      user_id: userId,
+      display_name: String(displayName || 'Student').slice(0, 60),
+      join_code: joinCode || null
+    }, { onConflict: 'teacher_id,user_id' });
+    if (error) throw error;
+  }
+
+  async function leaveQueue(teacherId) {
+    const supa = client();
+    const userId = await currentTeacherId();
+    if (!supa || !userId || !teacherId) return;
+    await supa.from('live_duel_queue').delete().eq('teacher_id', teacherId).eq('user_id', userId);
+  }
+
+  async function fetchQueue(teacherId) {
+    const supa = client();
+    if (!supa || !teacherId) return [];
+    const { data, error } = await supa
+      .from('live_duel_queue')
+      .select('id,user_id,display_name,created_at')
+      .eq('teacher_id', teacherId)
+      .order('created_at', { ascending: true });
+    if (error) return [];
+    return data || [];
+  }
+
+  async function findTeacherLobby(teacherId) {
+    const supa = client();
+    if (!supa || !teacherId) return null;
+    const { data, error } = await supa
+      .from(ROOM_TABLE)
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .eq('status', 'lobby')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return null;
+    return data || null;
+  }
+
+  function subscribeQueue(teacherId, onChange) {
+    const supa = client();
+    if (!supa || !teacherId) return null;
+    const channel = supa.channel('duel-queue-' + teacherId + '-' + Date.now());
+    channel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'live_duel_queue',
+      filter: 'teacher_id=eq.' + teacherId
+    }, () => { if (onChange) onChange(); });
+    channel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: ROOM_TABLE,
+      filter: 'teacher_id=eq.' + teacherId
+    }, (payload) => { if (onChange) onChange(payload.new || payload.old); });
+    channel.subscribe();
+    return channel;
+  }
+
+  function subscribeLiveChat(sessionId, onMessage) {
+    const supa = client();
+    if (!supa || !sessionId) return null;
+    const channel = supa.channel('duel-live-chat-' + sessionId + '-' + Date.now());
+    channel.on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'live_messages',
+      filter: 'session_id=eq.' + sessionId
+    }, (payload) => {
+      if (onMessage) onMessage(payload.new || {});
+    });
+    channel.subscribe();
+    return channel;
+  }
+
+  async function fetchPlayers(roomId, options) {
     const supa = client();
     if (!supa || !roomId) return [];
-    const { data, error } = await supa
+    let query = supa
       .from(PLAYER_TABLE)
       .select('*')
       .eq('room_id', roomId)
       .order('score', { ascending: false })
       .order('correct_count', { ascending: false })
       .limit(200);
-    if (error) throw error;
+    if (options && options.joinedOnly) query = query.neq('origin', 'chat');
+    const { data, error } = await query;
+    if (error && options && options.joinedOnly) return fetchPlayers(roomId);
+    if (error) return [];
     return data || [];
   }
 
   async function fetchTally(roomId, questionIndex) {
     const supa = client();
-    if (!supa || !roomId) return [0, 0, 0, 0];
+    const empty = { counts: [0, 0, 0, 0], answeredIds: {} };
+    if (!supa || !roomId) return empty;
     const { data, error } = await supa
       .from(VOTE_TABLE)
-      .select('option_index')
+      .select('option_index, player_id')
       .eq('room_id', roomId)
       .eq('question_index', questionIndex);
     if (error) throw error;
     const counts = [0, 0, 0, 0];
+    const answeredIds = {};
     (data || []).forEach((row) => {
       const index = Number(row.option_index);
       if (index >= 0 && index < 4) counts[index] += 1;
+      if (row.player_id) answeredIds[row.player_id] = true;
     });
-    return counts;
+    return { counts, answeredIds };
   }
 
   // ── Realtime ───────────────────────────────────────────────────────────────
@@ -336,6 +512,15 @@
     findRoomByCode,
     joinRoom,
     submitVote,
+    parseChatVote,
+    ingestChatVote,
+    findActiveLiveSession,
+    subscribeLiveChat,
+    enqueueWaiter,
+    leaveQueue,
+    fetchQueue,
+    findTeacherLobby,
+    subscribeQueue,
     fetchPlayers,
     fetchTally,
     subscribe,

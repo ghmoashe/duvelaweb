@@ -36,7 +36,12 @@
     // tick, room update) never re-opens the options.
     answeredIndex: -1,
     answeredOption: -1,
-    players: []
+    players: [],
+    clockId: null,
+    xpAwarded: false,
+    waiting: null,
+    queue: [],
+    queueChannel: null
   };
 
   // Best-effort: a signed-in learner should not have to retype their name.
@@ -114,13 +119,73 @@
     return item;
   }
 
+  function secondsLeft(room) {
+    const limit = Number((room && room.question_seconds) || 15);
+    if (!room || room.status === 'paused') return limit;
+    const started = room.question_started_at ? new Date(room.question_started_at).getTime() : 0;
+    if (!started) return limit;
+    return Math.max(0, Math.ceil(limit - (Date.now() - started) / 1000));
+  }
+
+  function stopClock() {
+    if (state.clockId) {
+      clearInterval(state.clockId);
+      state.clockId = null;
+    }
+  }
+
+  function startClock() {
+    stopClock();
+    state.clockId = setInterval(function () {
+      const node = document.getElementById('duelPlayTimer');
+      if (!state.room || state.room.status !== 'running') return;
+      const left = secondsLeft(state.room);
+      if (node) {
+        node.textContent = String(left);
+        node.classList.toggle('urgent', left <= 5);
+      }
+      if (left <= 0 && !state.room.reveal_answer) {
+        const options = document.querySelectorAll('[data-duel-play-option]');
+        Array.prototype.forEach.call(options, function (button) { button.disabled = true; });
+      }
+    }, 200);
+  }
+
+  function playerXp(player, rank) {
+    const correct = Number(player && player.correct_count || 0);
+    let xp = 8 + correct * 2;
+    if (rank === 0) xp += 20;
+    else if (rank === 1) xp += 12;
+    else if (rank === 2) xp += 6;
+    return xp;
+  }
+
+  async function awardFinishXp() {
+    if (state.xpAwarded || !state.player) return;
+    state.xpAwarded = true;
+    const supa = supabase();
+    if (!supa) return;
+    try {
+      const auth = await supa.auth.getUser();
+      const userId = auth && auth.data && auth.data.user && auth.data.user.id;
+      if (!userId) return;
+      const rank = state.players.findIndex(function (player) { return player.id === state.player.id; });
+      const xp = playerXp(state.player, rank < 0 ? 99 : rank);
+      const profile = await supa.from('profiles').select('score').eq('id', userId).maybeSingle();
+      const current = Number(profile && profile.data && profile.data.score || 0);
+      await supa.from('profiles').update({ score: current + xp }).eq('id', userId);
+      state.awardedXp = xp;
+      render();
+    } catch (error) { /* XP is best-effort */ }
+  }
+
   function scoreboardHtml() {
     if (!state.players.length) return '';
     const me = state.player ? state.player.id : null;
     return '<ol class="duel-play-board">' + state.players.slice(0, 8).map(function (player, index) {
       const mine = player.id === me ? ' class="me"' : '';
       return '<li' + mine + '><b>' + (index + 1) + '</b><span>' + esc(player.display_name || 'Student') +
-        '</span><em>' + Number(player.correct_count || 0) + '</em></li>';
+        '</span><em>' + Number(player.score || player.correct_count || 0) + '</em></li>';
     }).join('') + '</ol>';
   }
 
@@ -137,11 +202,35 @@
       '<button class="btn" type="button" id="duelPlayLeave">' + esc(tr('Leave', 'Выйти')) + '</button>' +
       '</div>';
 
+    if (state.waiting && !state.player) {
+      const place = state.queue.findIndex(function (row) { return row.user_id === (state.waiting.userId || ''); });
+      card.hidden = false;
+      card.innerHTML = '<div class="duel-play-head"><div><small>' + esc(tr('QUEUE', 'ОЧЕРЕДЬ')) + '</small><strong>' +
+        esc(state.waiting.code || '') + '</strong></div>' +
+        '<button class="btn" type="button" id="duelPlayLeave">' + esc(tr('Leave', 'Выйти')) + '</button></div>' +
+        '<div class="duel-play-body duel-play-wait"><h3>' +
+        esc(tr('A duel is already in progress', 'Дуэль уже идёт')) + '</h3><p>' +
+        esc(tr('You are on the waiting list. The next lobby will let you in automatically.',
+          'Вы в списке ожидания. Как только учитель откроет новое лобби, вы зайдёте автоматически.')) + '</p>' +
+        (place >= 0 ? '<p><b>#' + (place + 1) + '</b></p>' : '') +
+        '<ol class="duel-play-board">' + state.queue.map(function (row, index) {
+          return '<li' + (row.user_id === state.waiting.userId ? ' class="me"' : '') + '><b>' + (index + 1) +
+            '</b><span>' + esc(row.display_name || 'Student') + '</span></li>';
+        }).join('') + '</ol></div>';
+      bind();
+      return;
+    }
+
     if (room.status === 'finished' || room.status === 'closed') {
+      stopClock();
+      void awardFinishXp();
+      const rank = state.players.findIndex(function (player) { return state.player && player.id === state.player.id; });
+      const xp = state.awardedXp || playerXp(state.player, rank < 0 ? 99 : rank);
       card.innerHTML = head + '<div class="duel-play-body"><h3>' +
         esc(tr('The duel is over', 'Дуэль завершена')) + '</h3><p>' +
-        esc(tr('Your correct answers: ', 'Правильных ответов: ')) +
-        Number(state.player.correct_count || 0) + '</p>' + scoreboardHtml() + '</div>';
+        esc(tr('Your score: ', 'Ваш счёт: ')) + Number(state.player.score || 0) +
+        ' · ' + Number(state.player.correct_count || 0) + ' ' + esc(tr('correct', 'верных')) +
+        ' · +' + xp + ' XP</p>' + scoreboardHtml() + '</div>';
       bind();
       return;
     }
@@ -170,7 +259,9 @@
     const index = Number(room.current_question);
     const answered = state.answeredIndex === index;
     const reveal = !!room.reveal_answer;
-    const locked = answered || reveal;
+    const left = secondsLeft(room);
+    const timedOut = left <= 0;
+    const locked = answered || reveal || timedOut;
     const options = item.opts.slice(0, 4).map(function (option, optionIndex) {
       let className = '';
       if (answered && optionIndex === state.answeredOption) className = ' class="chosen"';
@@ -186,19 +277,23 @@
     const note = reveal
       ? '<p class="duel-play-note">' + esc(tr('Answer revealed. Waiting for the next question…',
         'Ответ показан. Ждём следующий вопрос…')) + '</p>'
-      : (answered
-        ? '<p class="duel-play-note">' + esc(tr('Answer locked in. Waiting for the next question…',
-          'Ответ принят. Ждём следующий вопрос…')) + '</p>'
-        : '');
+      : (timedOut && !answered
+        ? '<p class="duel-play-note">' + esc(tr("Time's up.", 'Время вышло.')) + '</p>'
+        : (answered
+          ? '<p class="duel-play-note">' + esc(tr('Answer locked in. Waiting for the next question…',
+            'Ответ принят. Ждём следующий вопрос…')) + '</p>'
+          : ''));
 
     card.innerHTML = head +
       '<div class="duel-play-body">' +
-      '<small class="duel-play-count">' + esc(tr('Question ', 'Вопрос ')) + (index + 1) + ' / ' +
+      '<div class="duel-play-count-row"><small class="duel-play-count">' + esc(tr('Question ', 'Вопрос ')) + (index + 1) + ' / ' +
       Number(room.total_questions || (room.deck || []).length || 0) + '</small>' +
+      '<strong class="duel-play-timer' + (left <= 5 ? ' urgent' : '') + '" id="duelPlayTimer">' + left + '</strong></div>' +
       '<h3>' + esc(item.q) + '</h3>' +
       '<div class="duel-play-options">' + options + '</div>' + note + scoreboardHtml() +
       '</div>';
     bind();
+    startClock();
   }
 
   function bind() {
@@ -214,7 +309,7 @@
     const room = state.room;
     const item = currentItem();
     if (!room || !state.player || !item) return;
-    if (room.status === 'paused' || room.reveal_answer) return;
+    if (room.status === 'paused' || room.reveal_answer || secondsLeft(room) <= 0) return;
     const index = Number(room.current_question);
     if (state.answeredIndex === index) return;
     const optionIndex = Number(button.getAttribute('data-duel-play-option'));
@@ -248,6 +343,12 @@
   }
 
   function leaveRoom() {
+    stopClock();
+    if (state.waiting && api() && api().leaveQueue) void api().leaveQueue(state.waiting.teacherId);
+    if (state.queueChannel && api()) api().unsubscribe(state.queueChannel);
+    state.waiting = null;
+    state.queue = [];
+    state.queueChannel = null;
     if (state.channel) api().unsubscribe(state.channel);
     state.channel = null;
     state.room = null;
@@ -262,14 +363,53 @@
     setStatus('', '');
   }
 
+  async function enterWaitingList(room, name) {
+    const rooms = api();
+    if (!rooms || !rooms.enqueueWaiter) return false;
+    const supa = supabase();
+    const auth = supa ? await supa.auth.getUser() : null;
+    const userId = auth && auth.data && auth.data.user && auth.data.user.id;
+    await rooms.enqueueWaiter(room.teacher_id, name, room.join_code);
+    state.waiting = { teacherId: room.teacher_id, code: room.join_code, userId: userId, name: name };
+    if (state.queueChannel) rooms.unsubscribe(state.queueChannel);
+    const refreshQueue = async function () {
+      try {
+        state.queue = await rooms.fetchQueue(room.teacher_id);
+      } catch (error) { state.queue = []; }
+      const lobby = await rooms.findTeacherLobby(room.teacher_id);
+      if (lobby && lobby.status === 'lobby') {
+        await rooms.leaveQueue(room.teacher_id);
+        state.waiting = null;
+        if (state.queueChannel) rooms.unsubscribe(state.queueChannel);
+        state.queueChannel = null;
+        await join(lobby.join_code, name);
+        const form = document.getElementById('duelJoinForm');
+        if (form) form.hidden = true;
+        return;
+      }
+      render();
+    };
+    state.queueChannel = rooms.subscribeQueue(room.teacher_id, function () { void refreshQueue(); });
+    await refreshQueue();
+    render();
+    return true;
+  }
+
   async function join(code, name) {
     const rooms = api();
     if (!rooms) throw new Error('Duel rooms are not available.');
+    const found = await rooms.findRoomByCode(code);
+    if (found && (found.status === 'running' || found.status === 'paused')) {
+      const waiting = await enterWaitingList(found, name);
+      if (waiting) return;
+    }
     const joined = await rooms.joinRoom(code, name);
     state.room = joined.room;
     state.player = joined.player;
     state.answeredIndex = -1;
     state.answeredOption = -1;
+    state.xpAwarded = false;
+    state.awardedXp = 0;
     state.channel = rooms.subscribe(joined.room.id, {
       onRoom: function (room) {
         if (!state.room || state.room.id !== room.id) return;
