@@ -1220,6 +1220,10 @@
 .duel-panel-head small{display:block;color:#7040d8;font-size:9px;font-weight:950;letter-spacing:.13em}
 .duel-panel-head b{font-size:15px}.duel-panel-head>strong{padding:9px 12px;border-radius:13px;background:#171020;color:#fff;font-size:16px;letter-spacing:.04em}
 .duel-control-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px}
+/* Author display:flex was silently beating the browser's [hidden]{display:none}
+   default, so the "Pack" row stayed visible under Bank/AI source and misled
+   the teacher with a "No MCQ packs yet" line that did not belong there. */
+.duel-control-row[hidden]{display:none!important}
 .duel-control-row>span{min-width:46px;color:#72657f;font-size:11px;font-weight:950;text-transform:uppercase}
 .duel-control-row button{min-height:30px;padding:0 10px;border:1px solid #e4d9f4;border-radius:999px;background:#fff;color:#5d526c;font-size:11px;font-weight:900;cursor:pointer}
 .duel-control-row button.active{border-color:#7040d8;background:linear-gradient(100deg,#7040d8,#c53ada);color:#fff;box-shadow:0 7px 17px rgba(112,64,216,.18)}
