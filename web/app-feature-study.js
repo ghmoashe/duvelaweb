@@ -2535,6 +2535,18 @@
         var answer = item && item.opts ? item.opts.indexOf(item.a) : -1;
         if (item && item.opts && item.opts.length === 4 && answer >= 0) deck.push({ q:item.s, opts:item.opts, a:answer, level:item.level });
       });
+      if (lang === 'de') {
+        exactLevelItems(ARTICLES, level).forEach(function (item) {
+          var opts = ['der', 'die', 'das', tr('no article', 'без артикля')];
+          deck.push({
+            q:tr('Article: ___ ' + item.noun, 'Артикль: ___ ' + item.noun),
+            opts:opts,
+            a:opts.indexOf(item.art),
+            level:item.level,
+            kind:'article'
+          });
+        });
+      }
       var vocab = strictBank(VOCAB, lang, level).filter(function (item) {
         return item && item.w && item.t;
       });
