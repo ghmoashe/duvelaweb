@@ -1754,6 +1754,26 @@
   .duel-play-board li b { color: #b9aecd; font-size: 12px; }
   .duel-play-board li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .duel-play-board li em { font-style: normal; font-weight: 950; }
+  .duel-app-handoff {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 18px;
+    border: 1px solid rgba(197,99,234,.35);
+    border-radius: 20px;
+    background: linear-gradient(135deg, #2b1e4c 0%, #1a1636 100%);
+    color: #fff;
+  }
+  .duel-app-handoff strong { font-size: 16px; line-height: 1.35; }
+  .duel-app-handoff small { color: #b9aecd; font-size: 12px; }
+  .duel-app-handoff-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .duel-app-handoff .btn { min-height: 48px; padding: 0 22px; }
+  .duel-app-handoff .btn.primary {
+    border: 0;
+    background: linear-gradient(100deg, #7845f1, #d63bd8);
+    color: #fff;
+    box-shadow: 0 14px 34px rgba(139, 66, 230, .36);
+  }
   .teacher-duel-preview {
     justify-self: center;
     width: min(100%, 330px);

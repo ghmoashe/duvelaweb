@@ -479,6 +479,48 @@
     render();
   }
 
+  function isMobile() {
+    // Enough to catch phones and tablets — narrow enough that we do not push
+    // the app hand-off to desktop learners who happen to have the mobile UA
+    // string in their dev tools.
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+  }
+
+  function openInApp(code) {
+    // duvelahub:// is the Hub app's URL scheme (app.config.ts). If the app is
+    // installed the OS hands the tap to it; if it is not, iOS Safari shows a
+    // "cannot open" prompt, so we surface a "Get the app" fallback next to it
+    // rather than autolaunching.
+    const target = 'duvelahub://native/live-duel?code=' + encodeURIComponent(code);
+    window.location.href = target;
+  }
+
+  function renderAppHandoff(code) {
+    if (!code || !isMobile()) return;
+    const panel = document.querySelector('[data-panel="duel"]');
+    if (!panel || document.getElementById('duelAppHandoff')) return;
+    const card = document.createElement('div');
+    card.id = 'duelAppHandoff';
+    card.className = 'duel-app-handoff';
+    card.innerHTML =
+      '<strong>' + esc(tr('You have a duel code — open it in the Duvela Academy Hub app',
+        'У вас есть код дуэли — откройте её в приложении Duvela Academy Hub')) + '</strong>' +
+      '<div class="duel-app-handoff-row">' +
+      '<button class="btn primary" type="button" id="duelOpenInApp">' +
+      esc(tr('Open in Duvela Academy Hub', 'Открыть в Duvela Academy Hub')) + '</button>' +
+      '<button class="btn" type="button" id="duelJoinInBrowser">' +
+      esc(tr('Play in browser', 'Играть в браузере')) + '</button>' +
+      '</div>' +
+      '<small>' + esc(tr('No app yet? Install "Duvela Academy Hub" from the App Store or Google Play.',
+        'Нет приложения? Установите «Duvela Academy Hub» из App Store или Google Play.')) + '</small>';
+    const first = panel.firstElementChild;
+    panel.insertBefore(card, first);
+    document.getElementById('duelOpenInApp').addEventListener('click', function () { openInApp(code); });
+    document.getElementById('duelJoinInBrowser').addEventListener('click', function () {
+      card.remove();
+    });
+  }
+
   function mount() {
     const form = document.getElementById('duelJoinForm');
     if (!form || form.dataset.bound === '1') return;
@@ -489,6 +531,7 @@
     const preset = codeFromLocation();
     if (codeField && preset && !codeField.value) codeField.value = preset;
     if (nameField) void suggestedName().then(function (name) { if (name && !nameField.value) nameField.value = name; });
+    if (preset) renderAppHandoff(preset);
 
     async function submitJoin() {
       const field = document.getElementById('duelJoinCode');
