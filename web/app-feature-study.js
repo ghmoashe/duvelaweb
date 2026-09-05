@@ -2942,6 +2942,19 @@
           });
           var started = await api.showQuestion(studyState.duelRoomId, 0);
           if (started && started.question_started_at) studyState.duelQuestionStartedAt = started.question_started_at;
+          // Fire-and-forget: notify the teacher's followers with the join
+          // code. Failure is invisible on purpose — a push glitch must not
+          // block the duel from actually starting.
+          if (uid() && studyState.duelJoinCode) {
+            void supa.functions.invoke('notify-duel-start', {
+              body: {
+                teacherId: uid(),
+                joinCode: studyState.duelJoinCode,
+                target: studyState.lang || 'de',
+                level: duelLevelLabel()
+              }
+            }).catch(function () {});
+          }
         }
       } catch (error) {
         console.warn('Could not start duel room.', error);
