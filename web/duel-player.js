@@ -503,16 +503,21 @@
     card.id = 'duelAppHandoff';
     card.className = 'duel-app-handoff';
     card.innerHTML =
-      '<strong>' + esc(tr('You have a duel code — open it in the Duvela Academy Hub app',
-        'У вас есть код дуэли — откройте её в приложении Duvela Academy Hub')) + '</strong>' +
+      '<div class="duel-app-handoff-lede">' +
+      '<img src="./hub-app-icon.png" alt="Duvela Academy Hub" class="duel-app-handoff-icon">' +
+      '<div>' +
+      '<strong>' + esc(tr('Duvela Academy Hub', 'Duvela Academy Hub')) + '</strong>' +
+      '<p>' + esc(tr('You have a duel code — play with the class right in the app.',
+        'У вас есть код дуэли — играйте с классом прямо в приложении.')) + '</p>' +
+      '</div></div>' +
       '<div class="duel-app-handoff-row">' +
       '<button class="btn primary" type="button" id="duelOpenInApp">' +
-      esc(tr('Open in Duvela Academy Hub', 'Открыть в Duvela Academy Hub')) + '</button>' +
+      esc(tr('Open in the Hub app', 'Открыть в приложении Hub')) + '</button>' +
       '<button class="btn" type="button" id="duelJoinInBrowser">' +
       esc(tr('Play in browser', 'Играть в браузере')) + '</button>' +
       '</div>' +
-      '<small>' + esc(tr('No app yet? Install "Duvela Academy Hub" from the App Store or Google Play.',
-        'Нет приложения? Установите «Duvela Academy Hub» из App Store или Google Play.')) + '</small>';
+      '<small>' + esc(tr('Already installed? The button opens the app. Otherwise install "Duvela Academy Hub" from the App Store or Google Play.',
+        'Уже установлено? Кнопка откроет приложение. Иначе установите «Duvela Academy Hub» из App Store или Google Play.')) + '</small>';
     const first = panel.firstElementChild;
     panel.insertBefore(card, first);
     document.getElementById('duelOpenInApp').addEventListener('click', function () { openInApp(code); });

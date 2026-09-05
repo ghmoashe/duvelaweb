@@ -1764,8 +1764,17 @@
     background: linear-gradient(135deg, #2b1e4c 0%, #1a1636 100%);
     color: #fff;
   }
-  .duel-app-handoff strong { font-size: 16px; line-height: 1.35; }
-  .duel-app-handoff small { color: #b9aecd; font-size: 12px; }
+  .duel-app-handoff strong { font-size: 18px; line-height: 1.25; }
+  .duel-app-handoff p { margin: 4px 0 0; color: #d8cfe5; font-size: 14px; line-height: 1.35; }
+  .duel-app-handoff small { color: #b9aecd; font-size: 12px; line-height: 1.4; }
+  .duel-app-handoff-lede { display: flex; align-items: center; gap: 12px; }
+  .duel-app-handoff-icon {
+    flex: 0 0 56px;
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,.3);
+  }
   .duel-app-handoff-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .duel-app-handoff .btn { min-height: 48px; padding: 0 22px; }
   .duel-app-handoff .btn.primary {

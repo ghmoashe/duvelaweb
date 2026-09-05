@@ -24,6 +24,9 @@ const files = [
   'sw.js',
   'logo.webp',
   'logo2.png',
+  // Hub app icon used in the Duel panel's "Open in Duvela Academy Hub"
+  // hand-off card so a learner recognises the app they're jumping to.
+  'hub-app-icon.png',
   'og.png',
   'video-poster.jpg',
   'robots.txt',
