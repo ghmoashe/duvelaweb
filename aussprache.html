@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aussprache — Duvela</title>
+<meta name="description" content="German pronunciation drill with Fish Audio and minimal-pair contrasts.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Aussprache · Duvela">
+<meta property="og:description" content="Ear-training minimal pairs for German learners.">
+<meta property="og:image" content="./logo2.png">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="./web/vendor/supabase-js-v2.js"></script>
+<script src="./locales/web-locales.js"></script>
+<script src="./web/duvela-web-config.js"></script>
+<style>
+  :root {
+    --bg: #F4EDFF;
+    --ink: #181327;
+    --muted: #5A5170;
+    --line: #E4DEF0;
+    --card: #FFFFFF;
+    --purple: #7B47E6;
+    --purple-deep: #5B2FB3;
+    --green: #16A06D;
+    --red: #F43F5E;
+    --warn: #F97316;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: var(--bg); color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; display: grid; gap: 14px; }
+  .header { display: flex; align-items: center; gap: 12px; }
+  .back { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid var(--line); text-decoration: none; }
+  .kicker { color: var(--purple-deep); font-size: 11px; font-weight: 900; letter-spacing: 0.24em; text-transform: uppercase; }
+  h1 { margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em; }
+  .streak { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #FFF4EA; border: 1px solid #FFD8AE; color: #B85F00; font-size: 12px; font-weight: 900; width: max-content; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 0 -4px; scrollbar-width: thin; }
+  .chip { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; height: 34px; border-radius: 999px; background: #fff; border: 1px solid var(--line); color: var(--ink); font-size: 12.5px; font-weight: 800; cursor: pointer; }
+  .chip.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .chip .badge { margin-left: 4px; padding: 2px 6px; border-radius: 8px; background: #F4EDFF; color: #8B7EAA; font-size: 10.5px; font-weight: 900; }
+  .chip.active .badge { background: rgba(255,255,255,.22); color: #fff; }
+  .card { background: var(--card); border-radius: 22px; padding: 18px; display: grid; gap: 12px; box-shadow: 0 12px 34px rgba(31, 20, 54, 0.08); }
+  .card-kicker { color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; }
+  .modes { display: flex; gap: 8px; }
+  .mode { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font-size: 12px; font-weight: 800; cursor: pointer; color: var(--muted); }
+  .mode.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .play {
+    align-self: center; display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 22px; border-radius: 999px; border: 0; cursor: pointer;
+    background: linear-gradient(135deg, var(--purple), var(--purple-deep)); color: #fff;
+    font-size: 14px; font-weight: 900; letter-spacing: .05em;
+    box-shadow: 0 14px 30px rgba(123, 71, 230, 0.36);
+  }
+  .play[disabled] { opacity: .6; cursor: default; }
+  .speeds { display: flex; gap: 8px; justify-content: center; }
+  .speed { min-width: 52px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer; }
+  .speed.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choices.stack { grid-template-columns: 1fr; }
+  .choice {
+    position: relative; padding: 14px; border-radius: 18px; background: #F8F5FF;
+    border: 2px solid transparent; cursor: pointer; display: grid; gap: 6px; text-align: left;
+    font: inherit; color: inherit;
+  }
+  .choice.correct { border-color: var(--green); background: #E6FBF3; }
+  .choice.wrong { border-color: var(--red); background: #FDECEF; }
+  .choice[disabled] { cursor: default; }
+  .choice .word { font-size: 20px; font-weight: 900; }
+  .choices.stack .choice .word { font-size: 15px; line-height: 1.35; padding-right: 32px; }
+  .choice .ipa { color: #7B7488; font-size: 12px; font-weight: 700; }
+  .choice .len { height: 4px; border-radius: 2px; background: #B69CFF; opacity: 0.7; }
+  .choice .len.long { background: var(--purple); height: 5px; opacity: 1; }
+  .choice .play-mini {
+    position: absolute; right: 10px; top: 10px; width: 26px; height: 26px;
+    display: grid; place-items: center; border-radius: 50%; border: 1px solid #E4D9F4;
+    background: #fff; cursor: pointer; color: var(--purple); font-size: 14px;
+  }
+  .hint { padding: 12px 14px; border-radius: 14px; background: #F4EDFF; display: grid; gap: 6px; }
+  .hint .lbl { color: var(--purple); font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+  .hint .text { font-size: 14px; font-weight: 700; }
+  .hint .ex { color: #5A5170; font-size: 12.5px; font-style: italic; }
+  .next {
+    align-self: center; padding: 12px 24px; border-radius: 999px; border: 0; cursor: pointer;
+    background: var(--purple); color: #fff; font-size: 14px; font-weight: 900; margin-top: 4px;
+  }
+  .footnote { color: var(--muted); font-size: 12px; text-align: center; }
+  .gate { padding: 18px; background: #fff; border-radius: 16px; text-align: center; }
+  .gate a { color: var(--purple); font-weight: 800; text-decoration: none; }
+  [dir="rtl"] .choice { text-align: right; }
+  [dir="rtl"] .choice .play-mini { right: auto; left: 10px; }
+</style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <div class="header">
+      <a class="back" href="./app.html" aria-label="Back">←</a>
+      <div>
+        <div class="kicker">DEUTSCH · AUSSPRACHE</div>
+        <h1 id="pageTitle">Тренажёр произношения</h1>
+      </div>
+    </div>
+    <div id="root">
+      <div class="gate">Loading…</div>
+    </div>
+    <div class="footnote" id="footnote"></div>
+  </div>
+
+<script src="./web/aussprache-app.js?v=20260906-aussprache-v1"></script>
+</body>
+</html>
