@@ -75,12 +75,6 @@
       if (duelStart) duelStart.addEventListener('click', startDuelOverlay);
       const duelOpen = document.getElementById('duelOpenPractice');
       if (duelOpen) duelOpen.addEventListener('click', startDuelOverlay);
-      const livePracticeStudio = document.getElementById('livePracticeOpenStudio');
-      if (livePracticeStudio) livePracticeStudio.addEventListener('click', () => {
-        ctx.setView('live');
-      });
-      const livePracticeDuel = document.getElementById('livePracticeOpenDuel');
-      if (livePracticeDuel) livePracticeDuel.addEventListener('click', startDuelOverlay);
 
       $('#videoTabs').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-filter]');

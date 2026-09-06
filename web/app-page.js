@@ -99,7 +99,7 @@
       workspace: tr('Practice', 'Практика'),
       schedule: tr('Schedule', 'Расписание'),
       leaderboard: tr('Rankings', 'Рейтинги'),
-      duel: tr('Language Duel', 'Языковая дуэль'),
+      duel: tr('Practice for LIVE', 'Практика для LIVE'),
       profile: tr('Profile', 'Профиль')
     },
     bus: {
@@ -113,8 +113,7 @@
       workspace: tr('Notes', 'Заметки'),
       schedule: tr('Schedule', 'Расписание'),
       leaderboard: tr('Rankings', 'Рейтинги'),
-      duel: tr('Language Duel', 'Языковая дуэль'),
-      livePractice: tr('Practice for LIVE', 'Практика для LIVE'),
+      duel: tr('Practice for LIVE', 'Практика для LIVE'),
       profile: tr('Profile', 'Профиль')
     }
   };
@@ -129,7 +128,7 @@
       workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
-      duel: [tr('Language Duel', 'Языковая дуэль'), tr('Real-time match with a learner at your level — 10 questions, whoever scores more on the clock wins.', 'Матч в реальном времени с учеником вашего уровня — 10 вопросов на скорость, победит тот, кто наберёт больше.')],
+      duel: [tr('Practice for LIVE', 'Практика для LIVE'), tr('Real-time match with a learner at your level — 10 questions, whoever scores more on the clock wins.', 'Матч в реальном времени с учеником вашего уровня — 10 вопросов на скорость, победит тот, кто наберёт больше.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
     },
     bus: {
@@ -143,8 +142,7 @@
       workspace: [tr('Notes', 'Заметки'), tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
-      duel: [tr('Language Duel', 'Языковая дуэль'), tr('Run a live duel with your learners or preview the deck before class.', 'Проведите живую дуэль с учениками или посмотрите вопросы перед уроком.')],
-      livePractice: [tr('Practice for LIVE', 'Практика для LIVE'), tr('Warm-ups, drills and duel decks ready to launch inside a live lesson.', 'Разминки, упражнения и вопросы дуэли — готовы для запуска прямо во время эфира.')],
+      duel: [tr('Practice for LIVE', 'Практика для LIVE'), tr('Run a live duel with your learners or preview the deck before class.', 'Проведите живую дуэль с учениками или посмотрите вопросы перед уроком.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
   };
