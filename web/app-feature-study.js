@@ -143,6 +143,32 @@
       { noun: 'Fenster', art: 'das' }, { noun: 'Straße', art: 'die' }, { noun: 'Apfel', art: 'der' }
     ];
 
+    // Practice-for-LIVE sentence-check bank: four full sentences per row,
+    // one is grammatically correct German, three are common traps
+    // (wrong verb-second, missing umlaut, wrong Kasus, misplaced ge-).
+    // Kept as its own bank because the MCQ shell needs full-sentence
+    // options, not one-word choices.
+    const SENTENCE_CHECK_DE = {
+      de: [
+        { level: 'A1', opts: ['Ich bin Student.', 'Ich Student bin.', 'Ich ist Student.', 'Bin ich Student.'], a: 0 },
+        { level: 'A1', opts: ['Wir kommen aus Berlin.', 'Wir komme aus Berlin.', 'Wir aus Berlin kommen.', 'Wir kommt aus Berlin.'], a: 0 },
+        { level: 'A1', opts: ['Er trinkt einen Kaffee.', 'Er trinkt ein Kaffee.', 'Er trinke einen Kaffee.', 'Er trinken einen Kaffee.'], a: 0 },
+        { level: 'A1', opts: ['Das Kind spielt im Garten.', 'Das Kind spielt in Garten.', 'Das Kind spielt in dem Garten drin.', 'Das Kind spielt an dem Garten.'], a: 0 },
+        { level: 'A1', opts: ['Heute gehe ich einkaufen.', 'Heute ich gehe einkaufen.', 'Heute ich einkaufen gehe.', 'Heute geht ich einkaufen.'], a: 0 },
+        { level: 'A2', opts: ['Gestern habe ich einen Kuchen gebacken.', 'Gestern ich habe einen Kuchen gebacken.', 'Gestern habe ich einen Kuchen backen.', 'Gestern bin ich einen Kuchen gebacken.'], a: 0 },
+        { level: 'A2', opts: ['Ich fahre mit dem Bus zur Arbeit.', 'Ich fahre mit den Bus zur Arbeit.', 'Ich fahre mit dem Bus zu die Arbeit.', 'Ich fahre mit der Bus zur Arbeit.'], a: 0 },
+        { level: 'A2', opts: ['Kannst du mir bitte helfen?', 'Kannst du mich bitte helfen?', 'Können du mir bitte helfen?', 'Du kannst mir bitte helfen?'], a: 0 },
+        { level: 'A2', opts: ['Wir treffen uns um acht Uhr.', 'Wir treffen sich um acht Uhr.', 'Wir uns treffen um acht Uhr.', 'Wir treffen uns am acht Uhr.'], a: 0 },
+        { level: 'A2', opts: ['Nach der Arbeit gehe ich nach Hause.', 'Nach die Arbeit gehe ich nach Hause.', 'Nach der Arbeit ich gehe nach Hause.', 'Nach der Arbeit gehe ich zu Hause.'], a: 0 },
+        { level: 'B1', opts: ['Wenn ich Zeit hätte, würde ich mehr lesen.', 'Wenn ich hätte Zeit, würde ich mehr lesen.', 'Wenn ich Zeit hatte, würde ich mehr lesen.', 'Wenn ich Zeit hätte, ich würde mehr lesen.'], a: 0 },
+        { level: 'B1', opts: ['Obwohl es regnet, gehen wir spazieren.', 'Obwohl es regnet, wir gehen spazieren.', 'Obwohl regnet es, gehen wir spazieren.', 'Obwohl es regnete, gehen wir spazieren.'], a: 0 },
+        { level: 'B1', opts: ['Das ist der Mann, dem ich geholfen habe.', 'Das ist der Mann, den ich geholfen habe.', 'Das ist der Mann, der ich geholfen habe.', 'Das ist der Mann, dessen ich geholfen habe.'], a: 0 },
+        { level: 'B1', opts: ['Wegen des schlechten Wetters bleiben wir zu Hause.', 'Wegen dem schlechten Wetter bleiben wir zu Hause.', 'Wegen das schlechte Wetter bleiben wir zu Hause.', 'Wegen der schlechten Wetter bleiben wir zu Hause.'], a: 0 },
+        { level: 'B2', opts: ['Je früher wir anfangen, desto schneller sind wir fertig.', 'Je früher wir anfangen, desto schneller wir sind fertig.', 'Je früher anfangen wir, desto schneller sind wir fertig.', 'Je früher wir anfangen, um so schneller wir fertig sind.'], a: 0 },
+        { level: 'B2', opts: ['Der Vertrag muss bis Freitag unterschrieben werden.', 'Der Vertrag muss bis Freitag unterschreiben werden.', 'Der Vertrag muss bis Freitag unterschrieben werde.', 'Der Vertrag muss bis Freitag unterschrieben wird.'], a: 0 },
+      ]
+    };
+
     const GRAMMAR = {
       de: [
         { level: 'A1', q: 'Ich ___ Student.', opts: ['bin', 'bist', 'ist', 'sind'], a: 0 },
@@ -207,6 +233,47 @@
         { level: 'B2', q: 'Es wird empfohlen, den Bericht ___ Freitag einzureichen.', opts: ['bis', 'zu', 'auf', 'in'], a: 0 },
         // C1 top-up
         { level: 'C1', q: 'Kaum war er gegangen, ___ das Meeting weiter.', opts: ['ging', 'geht', 'gegangen', 'gehen'], a: 0 },
+        // ── Curated for Practice-for-LIVE (Sep 2026) ──
+        // Prepositions (kind → 'prep'): options are exactly four one-word
+        // German prepositions so classifyGermanGrammar tags the row cleanly.
+        { level: 'A1', q: 'Ich fahre ___ Berlin.', opts: ['nach', 'zu', 'in', 'auf'], a: 0 },
+        { level: 'A1', q: 'Wir sitzen ___ dem Tisch.', opts: ['an', 'auf', 'in', 'bei'], a: 0 },
+        { level: 'A1', q: 'Das Kind spielt ___ dem Garten.', opts: ['in', 'auf', 'an', 'zu'], a: 0 },
+        { level: 'A2', q: 'Ich warte ___ den Bus.', opts: ['auf', 'für', 'an', 'bei'], a: 0 },
+        { level: 'A2', q: 'Ich denke oft ___ meine Familie.', opts: ['an', 'auf', 'für', 'bei'], a: 0 },
+        { level: 'A2', q: 'Er lebt schon lange ___ seiner Frau.', opts: ['mit', 'bei', 'zu', 'für'], a: 0 },
+        { level: 'A2', q: 'Wir fahren morgen ___ dem Auto.', opts: ['mit', 'in', 'auf', 'zu'], a: 0 },
+        { level: 'B1', q: 'Er kommt ___ die Party um acht.', opts: ['zu', 'an', 'auf', 'bei'], a: 0 },
+        { level: 'B1', q: 'Sie hat Angst ___ Prüfungen.', opts: ['vor', 'auf', 'an', 'bei'], a: 0 },
+        { level: 'B1', q: 'Wir freuen uns schon ___ das Wochenende.', opts: ['auf', 'für', 'an', 'zu'], a: 0 },
+        // Cases (kind → 'case'): dative / accusative / genitive endings,
+        // all four options are inflected articles so classifyGermanGrammar
+        // sends them to the "cases" chip and nowhere else.
+        { level: 'A2', q: 'Ich helfe ___ Mann.', opts: ['dem', 'den', 'der', 'des'], a: 0 },
+        { level: 'A2', q: 'Ich sehe ___ Hund.', opts: ['den', 'dem', 'der', 'des'], a: 0 },
+        { level: 'A2', q: 'Ich gebe ___ Frau die Blume.', opts: ['der', 'dem', 'den', 'die'], a: 0 },
+        { level: 'A2', q: 'Ich danke ___ Lehrerin.', opts: ['der', 'dem', 'den', 'die'], a: 0 },
+        { level: 'B1', q: 'Er antwortet ___ Chef.', opts: ['dem', 'den', 'der', 'des'], a: 0 },
+        { level: 'B1', q: 'Ich fahre mit ___ Zug.', opts: ['dem', 'den', 'der', 'des'], a: 0 },
+        { level: 'B1', q: 'Wegen ___ Regens bleiben wir zu Hause.', opts: ['des', 'dem', 'den', 'der'], a: 0 },
+        { level: 'B2', q: 'Ich erinnere mich an ___ Tag noch gut.', opts: ['den', 'dem', 'der', 'des'], a: 0 },
+        { level: 'B2', q: 'Trotz ___ Kälte gehen wir spazieren.', opts: ['der', 'die', 'den', 'dem'], a: 0 },
+        // Verb forms (kind → 'verb'): four inflected forms of the same verb
+        // (or same tense) so the row is unambiguously a Konjugation row.
+        { level: 'A1', q: 'Du ___ sehr schnell.', opts: ['sprichst', 'sprecht', 'spreche', 'sprechen'], a: 0 },
+        { level: 'A1', q: 'Ihr ___ nach Hause.', opts: ['geht', 'geh', 'gehe', 'gehen'], a: 0 },
+        { level: 'A1', q: 'Sie ___ ein Lied.', opts: ['singt', 'singen', 'singst', 'singe'], a: 0 },
+        { level: 'A2', q: 'Gestern ___ ich zu Hause geblieben.', opts: ['bin', 'habe', 'ist', 'hat'], a: 0 },
+        { level: 'A2', q: 'Er ___ das Buch schon gelesen.', opts: ['hat', 'ist', 'sind', 'haben'], a: 0 },
+        { level: 'A2', q: 'Wir ___ pünktlich angekommen.', opts: ['sind', 'haben', 'ist', 'seid'], a: 0 },
+        { level: 'B1', q: 'Wenn er käme, ___ wir zusammen essen.', opts: ['würden', 'werden', 'wurden', 'wollen'], a: 0 },
+        { level: 'B1', q: 'Sie ___ mich angerufen, als ich ankam.', opts: ['hatte', 'hat', 'habe', 'ist'], a: 0 },
+        { level: 'B2', q: 'Der Brief muss noch ___ werden.', opts: ['geschrieben', 'schreiben', 'schreibt', 'schrieb'], a: 0 },
+        // Article-inflection quick fire (kind → 'article' via classifier).
+        { level: 'A1', q: 'Ich habe ___ Katze.', opts: ['eine', 'ein', 'einen', 'einem'], a: 0 },
+        { level: 'A1', q: 'Das ist ___ Auto meines Vaters.', opts: ['das', 'die', 'der', 'den'], a: 0 },
+        { level: 'A2', q: 'Er sucht ___ Job.', opts: ['einen', 'ein', 'eine', 'einer'], a: 0 },
+        { level: 'A2', q: 'Wir haben ___ Termin um drei.', opts: ['einen', 'ein', 'eine', 'einem'], a: 0 },
       ],
       en: [
         { level: 'A1', q: 'She ___ to school every day.', opts: ['go', 'goes', 'going', 'gone'], a: 1 },
@@ -2602,6 +2669,19 @@
               kind:'article'
             });
           });
+          // Sentence-check drill: four full sentences, one grammatically
+          // correct, three plausible traps (wrong word order, missing
+          // umlaut, dropped verb second, wrong case). Runs in the same
+          // MCQ shell — the prompt tells the learner what to look for.
+          strictBank(SENTENCE_CHECK_DE, 'de', selectedLevel).forEach(function (item) {
+            deck.push({
+              q:tr('Which sentence is correct?','Какое предложение верно?'),
+              opts:item.opts,
+              a:item.a,
+              level:item.level,
+              kind:'sentence'
+            });
+          });
         }
         // Vocab-translation entries used to land here as "Что значит X?"
         // items, but tester screenshots showed nonsense compounds like
@@ -3030,7 +3110,8 @@
         ['article', tr('Articles','Артикль')],
         ['prep', tr('Prepositions','Предлоги')],
         ['case', tr('Cases','Падежи')],
-        ['verb', tr('Verb forms','Формы глагола')]
+        ['verb', tr('Verb forms','Формы глагола')],
+        ['sentence', tr('Correct sentence','Верное предложение')]
       ]);
     }
 
@@ -3054,7 +3135,7 @@
 
     // Grammar categories that HARD-filter the deck (only items with a
     // matching `kind` survive). Softer topics keep the fuzzy-match order.
-    var HARD_KIND_TOPICS = { article: 1, prep: 1, case: 1, verb: 1 };
+    var HARD_KIND_TOPICS = { article: 1, prep: 1, case: 1, verb: 1, sentence: 1 };
 
     function orderDuelDeckByTopic(deck, topic) {
       if (!topic || topic === 'all') return deck;
