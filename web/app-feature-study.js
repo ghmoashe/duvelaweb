@@ -2552,16 +2552,44 @@
       return duelSelectedLevels().join(' + ');
     }
 
+    // Classify a grammar item into one of the practice-for-LIVE categories
+    // so the teacher can filter the deck to "only articles" / "only
+    // prepositions" / "only cases" / "only verbs". Regex-based on the
+    // options because the entry itself has no `kind`, and the shape of
+    // the answers is a reliable signal (der/die/das = article,
+    // dem/den/dessen after a preposition = case, etc.).
+    var GERMAN_PREPS = /^(an|auf|in|bei|mit|nach|zu|zum|zur|im|am|beim|von|für|über|unter|ohne|um|aus|gegen|durch|hinter|neben|vor|zwischen|nach)$/i;
+    var GERMAN_ARTICLES = /^(der|die|das|dem|den|des|ein|eine|einen|einem|einer|eines|keine?|keinen|keinem|meiner?|meinen?|meinem)$/i;
+    var GERMAN_CASES = /^(der|die|das|dem|den|des|dessen|deren|denen|einer|eines|einem|einen)$/i;
+    var GERMAN_VERB_ENDINGS = /^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|komme|kommst|kommt|kommen|lerne|lernst|lernt|lernen|gehe|gehst|geht|gehen|trinke|trinkst|trinkt|trinken|esse|isst|essen|weiß|weißt|wissen|werde|werden|wurde|wurden|worden|geworden|gemacht|gearbeitet|gesehen|gelesen)$/i;
+    function classifyGermanGrammar(opts) {
+      if (!Array.isArray(opts) || opts.length !== 4) return 'mixed';
+      var trimmed = opts.map(function (option) { return String(option || '').trim(); });
+      var articleHits = trimmed.filter(function (option) { return GERMAN_ARTICLES.test(option); }).length;
+      var caseHits = trimmed.filter(function (option) { return GERMAN_CASES.test(option); }).length;
+      var prepHits = trimmed.filter(function (option) { return GERMAN_PREPS.test(option); }).length;
+      var verbHits = trimmed.filter(function (option) { return GERMAN_VERB_ENDINGS.test(option); }).length;
+      if (prepHits >= 3) return 'prep';
+      if (caseHits >= 3 && !prepHits) return 'case';
+      if (articleHits >= 3) return 'article';
+      if (verbHits >= 3) return 'verb';
+      return 'mixed';
+    }
+
     function buildDuelDeck(lang, level, topic) {
       var levels = normalizeDuelLevels(level, studyState && studyState.level);
       var deck = [];
       levels.forEach(function (selectedLevel) {
         strictBank(GRAMMAR, lang, selectedLevel).forEach(function (item) {
-          if (item && item.opts && item.opts.length === 4) deck.push({ q:item.q, opts:item.opts, a:item.a, level:item.level });
+          if (!item || !item.opts || item.opts.length !== 4) return;
+          var kind = lang === 'de' ? classifyGermanGrammar(item.opts) : 'mixed';
+          deck.push({ q:item.q, opts:item.opts, a:item.a, level:item.level, kind:kind });
         });
         strictBank(WORD_USAGE, lang, selectedLevel).forEach(function (item) {
           var answer = item && item.opts ? item.opts.indexOf(item.a) : -1;
-          if (item && item.opts && item.opts.length === 4 && answer >= 0) deck.push({ q:item.s, opts:item.opts, a:answer, level:item.level });
+          if (!item || !item.opts || item.opts.length !== 4 || answer < 0) return;
+          var kind = lang === 'de' ? classifyGermanGrammar(item.opts) : 'mixed';
+          deck.push({ q:item.s, opts:item.opts, a:answer, level:item.level, kind:kind });
         });
         if (lang === 'de') {
           exactLevelItems(ARTICLES, selectedLevel).forEach(function (item) {
@@ -2575,46 +2603,11 @@
             });
           });
         }
-        // Vocab entries store the meaning as "russian / english" so the
-        // same bank serves both audiences. In the duel we only want one
-        // side: mixing both makes each option look like a compound term
-        // ("учебный партнер / learning partner") and the learner has to
-        // parse four such strings in seconds. The Duvela audience is
-        // Russian-speaking, so we always take the Russian half — a German
-        // duel must not surface English options regardless of the teacher's
-        // interface language.
-        var pickMeaning = function (text) {
-          var parts = String(text || '').split(' / ');
-          if (parts.length < 2) return String(text || '').trim();
-          return String(parts[0]).trim();
-        };
-        var vocab = strictBank(VOCAB, lang, selectedLevel).filter(function (item) {
-          return item && item.w && item.t;
-        });
-        vocab.forEach(function (item, index) {
-          var meaning = pickMeaning(item.t);
-          var distractors = vocab.filter(function (other) {
-            if (!other || !other.t) return false;
-            var otherMeaning = pickMeaning(other.t);
-            return otherMeaning && otherMeaning !== meaning;
-          });
-          if (distractors.length < 3) return;
-          var offset = (index * 7) % distractors.length;
-          var opts = [
-            meaning,
-            pickMeaning(distractors[offset].t),
-            pickMeaning(distractors[(offset + 11) % distractors.length].t),
-            pickMeaning(distractors[(offset + 23) % distractors.length].t)
-          ];
-          opts = opts.map(function (opt) { return String(opt || '').trim(); }).filter(Boolean);
-          // Trim any duplicates that survived the pickMeaning slice.
-          opts = opts.filter(function (opt, position) { return opts.indexOf(opt) === position; });
-          if (opts.length !== 4) return;
-          var mixed = shuffle(opts);
-          // Prompt stays Russian to match the always-Russian options — the
-          // German word it names is the only target-language token here.
-          deck.push({ q:'Что значит "' + item.w + '"?', opts:mixed, a:mixed.indexOf(meaning), level:item.level, kind:'vocab' });
-        });
+        // Vocab-translation entries used to land here as "Что значит X?"
+        // items, but tester screenshots showed nonsense compounds like
+        // "die Familienantwort" (the enricher was generating rows the
+        // learner has never heard of). Practice for LIVE now stays on
+        // real grammar drills only.
       });
       var seen = {};
       deck = shuffle(deck).filter(function (item) {
@@ -3020,7 +3013,8 @@
     }
 
     function duelTopicList() {
-      return [
+      var lang = studyState && studyState.lang;
+      var base = [
         ['all', tr('Mixed lesson','Смешанный урок')],
         ['life', tr('Daily life','Быт / Alltag')],
         ['school', tr('School','Школа')],
@@ -3028,6 +3022,16 @@
         ['exam', tr('Exam prep','Экзамен')],
         ['grammar', tr('Grammar','Грамматика')]
       ];
+      if (lang !== 'de') return base;
+      // German gets four extra category chips so a teacher can spin up a
+      // focused drill for one Kasus / Präposition / Artikel / Verb form
+      // right inside the LIVE deck.
+      return base.concat([
+        ['article', tr('Articles','Артикль')],
+        ['prep', tr('Prepositions','Предлоги')],
+        ['case', tr('Cases','Падежи')],
+        ['verb', tr('Verb forms','Формы глагола')]
+      ]);
     }
 
     function duelModeList() {
@@ -3048,8 +3052,16 @@
       return found ? found[1] : duelModeList()[0][1];
     }
 
+    // Grammar categories that HARD-filter the deck (only items with a
+    // matching `kind` survive). Softer topics keep the fuzzy-match order.
+    var HARD_KIND_TOPICS = { article: 1, prep: 1, case: 1, verb: 1 };
+
     function orderDuelDeckByTopic(deck, topic) {
       if (!topic || topic === 'all') return deck;
+      if (HARD_KIND_TOPICS[topic]) {
+        var byKind = deck.filter(function (item) { return item.kind === topic; });
+        return byKind.length ? byKind : deck;
+      }
       var patterns = {
         life: /kaffee|wasser|haus|stadt|bahnhof|ticket|essen|trinken|famil|freund|morgen|abend|supermarkt|cafe|bitte|gern|heute|schule/i,
         school: /schule|kurs|klasse|lehrer|lernen|lernst|lernt|buch|prüfung|test|frage|antwort|deutsch/i,
