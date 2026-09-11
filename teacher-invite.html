@@ -560,9 +560,32 @@
      the page palette. */
   .awards-section { background: linear-gradient(180deg, #FFFDF7 0%, #FFF6E6 100%); }
   .awards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-top: 32px; }
-  .award-card { text-align: center; padding: 22px 14px 18px; border-radius: 20px; background: #fff; border: 1px solid rgba(245,158,11,.2); box-shadow: 0 12px 32px rgba(245,158,11,.08); transition: transform .2s, box-shadow .2s; }
-  .award-card:hover { transform: translateY(-4px); box-shadow: 0 20px 44px rgba(245,158,11,.18); }
-  .award-card img { width: 96px; height: 96px; object-fit: contain; margin: 0 auto; display: block; filter: drop-shadow(0 6px 12px rgba(245,158,11,.25)); }
+  .award-card { position: relative; overflow: hidden; text-align: center; padding: 22px 14px 18px; border-radius: 20px; background: #fff; border: 1px solid rgba(245,158,11,.2); box-shadow: 0 12px 32px rgba(245,158,11,.08); transition: transform .3s cubic-bezier(.4,1.5,.5,1), box-shadow .3s, border-color .3s; }
+  /* Soft gold radial glow that fades in behind the medal on hover. */
+  .award-card::before { content: ''; position: absolute; top: -30%; left: -30%; width: 160%; height: 160%; background: radial-gradient(circle at center, rgba(245,158,11,.28), transparent 55%); opacity: 0; transition: opacity .4s; pointer-events: none; z-index: 0; }
+  /* Diagonal shine sweep — plays once per hover as the card lifts. */
+  .award-card::after { content: ''; position: absolute; top: 0; left: -75%; width: 55%; height: 100%; background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.55) 50%, transparent 100%); transform: skewX(-22deg); pointer-events: none; z-index: 1; }
+  .award-card:hover { transform: translateY(-8px); border-color: rgba(245,158,11,.55); box-shadow: 0 28px 60px rgba(245,158,11,.28); }
+  .award-card:hover::before { opacity: 1; }
+  .award-card:hover::after { animation: card-shine 1.1s ease-in-out; }
+  .award-card > * { position: relative; z-index: 2; }
+  @keyframes card-shine { 0% { left: -75%; } 100% { left: 140%; } }
+  /* Continuous wobble on the medal while the card is hovered — a slow
+     3D-ish tilt that reads as prestige, not distraction. */
+  .award-card img { width: 96px; height: 96px; object-fit: contain; margin: 0 auto; display: block; filter: drop-shadow(0 6px 12px rgba(245,158,11,.25)); transform-origin: center bottom; transition: transform .35s cubic-bezier(.4,1.6,.5,1), filter .35s; will-change: transform; }
+  .award-card:hover img { animation: medal-wobble 1.8s ease-in-out infinite; filter: drop-shadow(0 14px 22px rgba(245,158,11,.45)); }
+  @keyframes medal-wobble {
+    0%   { transform: translateY(0)    rotate(-4deg) scale(1.08); }
+    25%  { transform: translateY(-6px) rotate( 4deg) scale(1.12); }
+    50%  { transform: translateY(0)    rotate(-4deg) scale(1.08); }
+    75%  { transform: translateY(-4px) rotate( 5deg) scale(1.14); }
+    100% { transform: translateY(0)    rotate(-4deg) scale(1.08); }
+  }
+  /* Respect users who don't want motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .award-card:hover img { animation: none; transform: scale(1.05); }
+    .award-card:hover::after { animation: none; }
+  }
   .award-card h3 { margin-top: 14px; font-size: 17px; font-weight: 800; color: var(--dark); letter-spacing: -.01em; }
   .award-card p { margin-top: 8px; font-size: 14px; line-height: 1.55; color: var(--soft); }
   @media (max-width: 1080px) { .awards-grid { grid-template-columns: repeat(4, 1fr); } }
