@@ -26,6 +26,11 @@
     function syncRoleOptions() {
       const badge = $('#roleBadge');
       if (badge) badge.textContent = roleLabels[session.role] || session.role;
+      // Reveal the Admin panel sidebar link when profiles.is_admin is true.
+      // .nav-admin-only is hidden by default (see app-inline.css) and shown
+      // by body.admin-mode; a demoted account switches back on the next load.
+      const isAdmin = Boolean(session.profile && session.profile.is_admin);
+      document.body.classList.toggle('admin-mode', isAdmin);
     }
 
     function renderAccessNotice() {

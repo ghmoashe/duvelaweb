@@ -546,6 +546,15 @@
   body.business-mode .nav-business-only { display: flex; }
   body:not(.business-mode) .nav .nav-business-only { display:none !important; }
   body:not(.business-mode) .panel.bus-only { display: none !important; }
+  /* Admin-only sidebar link — mirrors the business-only rule. Revealed
+     by body.admin-mode which app-role-access.js flips based on
+     profile.is_admin. Styled as a real nav row so it blends with
+     the other buttons even though it's an <a>. */
+  .nav-admin-only { display: none; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; color: inherit; text-decoration: none; font-weight: 700; }
+  .nav-admin-only:hover { background: var(--lav-soft, #eee6ff); }
+  .nav-admin-only .nav-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; color: #c2410c; }
+  body.admin-mode .nav-admin-only { display: flex; }
+  body:not(.admin-mode) .nav-admin-only { display: none !important; }
   .mg-wrap { display: grid; gap: 16px; max-width: 860px; }
   .mg-wrap svg { width: 1em; height: 1em; }
   .mg-loading { padding: 40px; text-align: center; color: var(--soft); font-weight: 700; }

@@ -107,6 +107,10 @@
       <button data-view="leaderboard" aria-label="Rankings"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M5 5H3v2a4 4 0 004 4"/><path d="M19 5h2v2a4 4 0 01-4 4"/></svg></span><span>Rankings</span></button>
       <button data-view="duel" aria-label="Practice for LIVE"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></span><span>Practice for LIVE</span></button>
       <button data-view="profile" aria-label="Profile"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span><span>Profile</span></button>
+      <!-- Admin control panel lives at /admin.html (5 tabs: Overview / Leads /
+           Accounts / Users / Audit). The sidebar link is hidden by default
+           and revealed by body.admin-mode when profile.is_admin is true. -->
+      <a class="nav-admin-only" href="./admin.html" aria-label="Admin panel"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><span data-t="adminPanelLink">Admin panel</span></a>
     </nav>
     <div class="side-foot">
       <b id="sideStatusTitle">Hub Web</b>
