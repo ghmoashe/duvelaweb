@@ -204,6 +204,24 @@
         { level: 'B1', opts: ['Wegen des schlechten Wetters bleiben wir zu Hause.', 'Wegen dem schlechten Wetter bleiben wir zu Hause.', 'Wegen das schlechte Wetter bleiben wir zu Hause.', 'Wegen der schlechten Wetter bleiben wir zu Hause.'], a: 0 },
         { level: 'B2', opts: ['Je früher wir anfangen, desto schneller sind wir fertig.', 'Je früher wir anfangen, desto schneller wir sind fertig.', 'Je früher anfangen wir, desto schneller sind wir fertig.', 'Je früher wir anfangen, um so schneller wir fertig sind.'], a: 0 },
         { level: 'B2', opts: ['Der Vertrag muss bis Freitag unterschrieben werden.', 'Der Vertrag muss bis Freitag unterschreiben werden.', 'Der Vertrag muss bis Freitag unterschrieben werde.', 'Der Vertrag muss bis Freitag unterschrieben wird.'], a: 0 },
+        // ── Bank top-up (Sep 2026) — grows the LIVE deck past the ~80-item ceiling
+        // so a regular TikTok teacher doesn't drain the pool in a week.
+        { level: 'A1', opts: ['Wo wohnst du?', 'Wo du wohnst?', 'Wo wohnen du?', 'Wo wohnt du?'], a: 0 },
+        { level: 'A1', opts: ['Ich habe eine Schwester.', 'Ich habe ein Schwester.', 'Ich hat eine Schwester.', 'Ich habe einen Schwester.'], a: 0 },
+        { level: 'A1', opts: ['Am Montag arbeite ich lange.', 'Am Montag ich arbeite lange.', 'Am Montag ich lange arbeite.', 'Am Montag arbeit ich lange.'], a: 0 },
+        { level: 'A1', opts: ['Meine Freundin heißt Sara.', 'Meine Freundin heißen Sara.', 'Meine Freundin heiße Sara.', 'Mein Freundin heißt Sara.'], a: 0 },
+        { level: 'A2', opts: ['Ich habe mir die Zähne geputzt.', 'Ich habe mich die Zähne geputzt.', 'Ich habe mich die Zähne putzt.', 'Ich habe mir die Zähne putze.'], a: 0 },
+        { level: 'A2', opts: ['Er hat sich einen neuen Laptop gekauft.', 'Er hat ihn einen neuen Laptop gekauft.', 'Er hat sich ein neues Laptop gekauft.', 'Er hat sich einen neues Laptop gekauft.'], a: 0 },
+        { level: 'A2', opts: ['Wir sind letzte Woche nach Wien gefahren.', 'Wir haben letzte Woche nach Wien gefahren.', 'Wir sind letzte Woche zu Wien gefahren.', 'Wir sind letzte Woche in Wien gefahren.'], a: 0 },
+        { level: 'A2', opts: ['Ich muss um sieben Uhr aufstehen.', 'Ich muss um sieben Uhr aufsteh.', 'Ich muss um sieben Uhr aufstehe.', 'Ich muss um sieben Uhr steht auf.'], a: 0 },
+        { level: 'B1', opts: ['Ich habe keine Lust, heute rauszugehen.', 'Ich habe keine Lust, heute raus zu gehen.', 'Ich habe keine Lust, heute rausgehen.', 'Ich habe kein Lust, heute rauszugehen.'], a: 0 },
+        { level: 'B1', opts: ['Trotz der Verspätung erreichten wir das Konzert.', 'Trotz die Verspätung erreichten wir das Konzert.', 'Trotz der Verspätung wir erreichten das Konzert.', 'Trotzdem die Verspätung erreichten wir das Konzert.'], a: 0 },
+        { level: 'B1', opts: ['Ich freue mich darauf, dich bald zu sehen.', 'Ich freue mich darauf, dich bald sehen.', 'Ich freue mich dafür, dich bald zu sehen.', 'Ich freue mich darauf, dass dich bald sehen.'], a: 0 },
+        { level: 'B1', opts: ['Er behauptet, alles verstanden zu haben.', 'Er behauptet, alles zu verstanden haben.', 'Er behauptet, alles verstanden haben.', 'Er behauptet, dass alles verstanden zu haben.'], a: 0 },
+        { level: 'B2', opts: ['Nachdem wir gegessen hatten, gingen wir spazieren.', 'Nachdem wir gegessen hatten, wir gingen spazieren.', 'Nachdem wir hatten gegessen, gingen wir spazieren.', 'Nachdem wir gegessen haben, gingen wir spazieren.'], a: 0 },
+        { level: 'B2', opts: ['Die Rechnung ist bereits bezahlt worden.', 'Die Rechnung ist bereits bezahlen worden.', 'Die Rechnung ist bereits bezahlt geworden.', 'Die Rechnung ist bereits worden bezahlt.'], a: 0 },
+        { level: 'B2', opts: ['Es ist nicht sicher, ob er kommt.', 'Es ist nicht sicher, ob kommt er.', 'Es ist nicht sicher, wenn er kommt.', 'Es ist nicht sicher, dass ob er kommt.'], a: 0 },
+        { level: 'C1', opts: ['Es lohnt sich, geduldig zu bleiben.', 'Es lohnt sich, geduldig bleiben.', 'Es lohnt sich, geduldig zu blieb.', 'Es lohnt geduldig zu bleiben.'], a: 0 },
       ]
     };
 
@@ -312,6 +330,54 @@
         { level: 'A1', q: 'Das ist ___ Auto meines Vaters.', opts: ['das', 'die', 'der', 'den'], a: 0 },
         { level: 'A2', q: 'Er sucht ___ Job.', opts: ['einen', 'ein', 'eine', 'einer'], a: 0 },
         { level: 'A2', q: 'Wir haben ___ Termin um drei.', opts: ['einen', 'ein', 'eine', 'einem'], a: 0 },
+        // ── Bank top-up (Sep 2026). Each row is 4-option German MCQ that
+        // classifyGermanGrammar tags into exactly one chip (prep / article /
+        // case / verb / mixed) so the Practice-for-LIVE category filters
+        // stay clean.
+        // Prepositions (kind → 'prep')
+        { level: 'A1', q: 'Sie kommt ___ Italien.', opts: ['aus', 'von', 'zu', 'in'], a: 0 },
+        { level: 'A1', q: 'Wir treffen uns ___ Bahnhof.', opts: ['am', 'im', 'zu', 'an'], a: 0 },
+        { level: 'A1', q: 'Ich gehe ___ Freund.', opts: ['zum', 'zur', 'im', 'am'], a: 0 },
+        { level: 'A1', q: 'Der Zug fährt ___ München.', opts: ['nach', 'zu', 'in', 'auf'], a: 0 },
+        { level: 'A2', q: 'Ich bin ___ meinem Bruder.', opts: ['bei', 'mit', 'zu', 'an'], a: 0 },
+        { level: 'A2', q: 'Wir sprechen ___ die Reise.', opts: ['über', 'auf', 'für', 'mit'], a: 0 },
+        { level: 'A2', q: 'Danke ___ die Blumen!', opts: ['für', 'zu', 'an', 'auf'], a: 0 },
+        { level: 'A2', q: 'Ich koche ___ meiner Familie.', opts: ['für', 'zu', 'an', 'auf'], a: 0 },
+        { level: 'B1', q: 'Sie träumt ___ einer Weltreise.', opts: ['von', 'auf', 'mit', 'in'], a: 0 },
+        { level: 'B1', q: 'Er wartet schon ___ zwei Stunden.', opts: ['seit', 'vor', 'für', 'ab'], a: 0 },
+        { level: 'B1', q: 'Sie hat sich ___ die Stelle beworben.', opts: ['um', 'auf', 'für', 'an'], a: 0 },
+        { level: 'B2', q: 'Der Bericht handelt ___ dem Klimawandel.', opts: ['von', 'über', 'mit', 'an'], a: 0 },
+        { level: 'B2', q: 'Die Zahl der Mitglieder ist ___ ein Drittel gestiegen.', opts: ['um', 'auf', 'für', 'an'], a: 0 },
+        // Cases (kind → 'case', 4 inflected articles)
+        { level: 'A1', q: 'Ich sehe ___ Katze.', opts: ['die', 'der', 'das', 'den'], a: 0 },
+        { level: 'A1', q: 'Wo ist ___ Schlüssel?', opts: ['der', 'die', 'das', 'den'], a: 0 },
+        { level: 'A2', q: 'Der Lehrer erklärt ___ Schüler die Regel.', opts: ['dem', 'den', 'des', 'der'], a: 0 },
+        { level: 'A2', q: 'Ich schenke ___ Tochter ein Buch.', opts: ['der', 'die', 'den', 'des'], a: 0 },
+        { level: 'B1', q: 'Wegen ___ Verspätung kamen wir spät.', opts: ['der', 'die', 'den', 'das'], a: 0 },
+        { level: 'B1', q: 'Ich helfe ___ Kollegen bei der Aufgabe.', opts: ['dem', 'den', 'der', 'des'], a: 0 },
+        { level: 'B2', q: 'Trotz ___ Regens gingen wir raus.', opts: ['des', 'dem', 'den', 'der'], a: 0 },
+        { level: 'B2', q: 'Statt ___ Tees nehme ich Kaffee.', opts: ['des', 'dem', 'den', 'der'], a: 0 },
+        // Verbs (kind → 'verb', 4 forms of the same verb / tense)
+        { level: 'A1', q: 'Was ___ du gerne?', opts: ['isst', 'esst', 'esse', 'essen'], a: 0 },
+        { level: 'A1', q: 'Wir ___ einen Kaffee.', opts: ['nehmen', 'nimmt', 'nehme', 'nimmst'], a: 0 },
+        { level: 'A1', q: 'Er ___ jeden Tag Sport.', opts: ['macht', 'machen', 'mache', 'machst'], a: 0 },
+        { level: 'A1', q: 'Ich ___ nach Hause.', opts: ['fahre', 'fährst', 'fährt', 'fahren'], a: 0 },
+        { level: 'A2', q: 'Ich ___ dich gestern gesehen.', opts: ['habe', 'bin', 'hat', 'ist'], a: 0 },
+        { level: 'A2', q: 'Sie ___ ihm gestern geholfen.', opts: ['hat', 'ist', 'haben', 'sind'], a: 0 },
+        { level: 'A2', q: 'Wir ___ gestern lange geschlafen.', opts: ['haben', 'sind', 'ist', 'hat'], a: 0 },
+        { level: 'B1', q: 'Wenn ich es gewusst hätte, ___ ich anders reagiert.', opts: ['hätte', 'wäre', 'würde', 'werde'], a: 0 },
+        { level: 'B1', q: 'Er tat so, als ___ er nichts gehört.', opts: ['hätte', 'hat', 'wäre', 'würde'], a: 0 },
+        { level: 'B2', q: 'Der Antrag ___ von der Kommission geprüft.', opts: ['wird', 'wurde', 'werden', 'ist'], a: 0 },
+        // Articles (kind → 'article')
+        { level: 'A1', q: 'Das ist ___ Haus meiner Eltern.', opts: ['das', 'die', 'der', 'den'], a: 0 },
+        { level: 'A1', q: 'Ich brauche ___ Stift.', opts: ['einen', 'ein', 'eine', 'einer'], a: 0 },
+        { level: 'A2', q: 'Er hat ___ Fahrrad verkauft.', opts: ['das', 'die', 'der', 'den'], a: 0 },
+        // Mixed connectives (kind → 'mixed')
+        { level: 'A2', q: 'Ich lerne Deutsch, ___ ich in Berlin arbeiten möchte.', opts: ['weil', 'aber', 'oder', 'und'], a: 0 },
+        { level: 'B1', q: '___ das Wetter schön ist, machen wir ein Picknick.', opts: ['Wenn', 'Als', 'Ob', 'Damit'], a: 0 },
+        { level: 'B1', q: 'Er ist krank, ___ konnte er nicht kommen.', opts: ['deshalb', 'obwohl', 'trotzdem', 'sonst'], a: 0 },
+        { level: 'B2', q: 'Ich rufe dich an, ___ ich zu Hause bin.', opts: ['sobald', 'seit', 'bis', 'während'], a: 0 },
+        { level: 'B2', q: 'Er studiert, ___ er ein besseres Gehalt bekommt.', opts: ['damit', 'weil', 'obwohl', 'als'], a: 0 },
       ],
       en: [
         { level: 'A1', q: 'She ___ to school every day.', opts: ['go', 'goes', 'going', 'gone'], a: 1 },
