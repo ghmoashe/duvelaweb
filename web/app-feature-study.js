@@ -2616,7 +2616,8 @@
           +'<header class="duel-lobby-hero"><div class="duel-search-orbit"><span>⚔️</span></div><div class="duel-lobby-hero-copy"><small>DUVELA LIVE DUEL</small><h2>'+esc(tr('Students join now','Ученики заходят сейчас'))+'</h2></div><div class="duel-code-chip"><strong id="duelJoinCode">'+esc(joinCode)+'</strong><button type="button" class="duel-copy-btn" data-duel-copy="code">'+esc(tr('Copy','Копировать'))+'</button></div></header>'
           +'<div class="duel-teacher-panel"><div class="duel-panel-head"><div><small>TEACHER CONTROL</small><b>'+esc(tr('Room settings','Настройки комнаты'))+'</b></div></div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Mode','Режим'))+'</span>'+duelModeList().map(function(item){return '<button type="button" data-duel-mode="'+esc(item[0])+'" class="'+(item[0]===selectedMode?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
-          +'<div class="duel-control-row"><span>'+esc(tr('Topic','Тема'))+'</span>'+duelTopicList().map(function(item){return '<button type="button" data-duel-topic="'+esc(item[0])+'" class="'+(item[0]===selectedTopic?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
+          +'<div class="duel-control-row duel-topic-groups"><span>'+esc(tr('Topic','Тема'))+'</span>'+duelTopicGroups().map(function(group){return '<button type="button" data-duel-topic-group="'+esc(group[0])+'" class="duel-topic-group-tab '+(group[0]===duelActiveTopicGroup()?'active':'')+'">'+esc(group[1])+'</button>';}).join('')+'</div>'
+          +'<div class="duel-control-row duel-topic-chips" data-active-group="'+esc(duelActiveTopicGroup())+'"><span></span>'+duelTopicList().map(function(item){var g=duelTopicGroupOf(item[0]);return '<button type="button" data-duel-topic="'+esc(item[0])+'" data-topic-group="'+esc(g)+'" class="'+(item[0]===selectedTopic?'active':'')+'"'+(g===duelActiveTopicGroup()?'':' hidden')+'>'+esc(item[1])+'</button>';}).join('')+'</div>'
           +'<div class="duel-control-row compact"><span>'+esc(tr('Levels','Уровни'))+'</span>'+['A1','A2','B1','B2','C1','C2'].map(function(level){return '<button type="button" data-duel-level="'+level+'" class="'+(studyState.duelLevels.indexOf(level)>=0?'active':'')+'">'+level+'</button>';}).join('')+'<button type="button" data-duel-generate="1">'+esc(tr('Generate lesson','Сгенерировать урок'))+'</button></div>'
           +'<div class="duel-control-row compact"><span>'+esc(tr('Questions','Вопросы'))+'</span>'+[5,10,15].map(function(count){return '<button type="button" data-duel-count="'+count+'" class="'+(count===duelQuestionCount()?'active':'')+'">'+count+'</button>';}).join('')+'<span>'+esc(tr('Timer','Таймер'))+'</span>'+[10,15,20].map(function(seconds){return '<button type="button" data-duel-seconds="'+seconds+'" class="'+(seconds===duelQuestionSeconds()?'active':'')+'">'+seconds+'s</button>';}).join('')+'<button type="button" data-duel-autopilot="1" class="duel-autopilot-toggle '+(studyState.duelAutopilot?'active':'')+'" title="'+esc(tr('Hands-off: auto-reveal on timeout, auto-advance after 3s. Teacher can still tap Pause / Next.','Без рук: сам показывает ответ по таймеру и переходит через 3 с. Пауза / Дальше — всегда работают.'))+'">'+esc(studyState.duelAutopilot?tr('Auto-pilot: ON','Автопилот: ВКЛ'):tr('Auto-pilot','Автопилот'))+'</button></div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Source','Источник'))+'</span>'+[['bank',tr('Bank','Банк')],['mine',tr('My pack','Мой набор')],['ai',tr('AI','AI')]].map(function(item){return '<button type="button" data-duel-source="'+item[0]+'" class="'+(item[0]===duelSource()?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
@@ -3176,6 +3177,41 @@
       ]);
     }
 
+    // Group the topic chips so the row doesn't stretch to 11 buttons on
+    // German. Everyday = mixed + real-life themes; Grammar = the focused
+    // drill deck; Exam = telc / DTZ prep. Active group is derived from the
+    // currently-selected topic on the first render, then held on
+    // studyState.duelTopicGroup so a teacher can browse without clicking a
+    // chip.
+    var DUEL_TOPIC_GROUP_MEMBERS = {
+      everyday: { all:1, life:1, school:1, work:1 },
+      grammar:  { grammar:1, article:1, prep:1, case:1, verb:1, sentence:1 },
+      exam:     { exam:1 }
+    };
+
+    function duelTopicGroups() {
+      return [
+        ['everyday', tr('Everyday','Быт')],
+        ['grammar',  tr('Grammar','Грамматика')],
+        ['exam',     tr('Exam','Экзамен')]
+      ];
+    }
+
+    function duelTopicGroupOf(topic) {
+      var groups = Object.keys(DUEL_TOPIC_GROUP_MEMBERS);
+      for (var i = 0; i < groups.length; i++) {
+        if (DUEL_TOPIC_GROUP_MEMBERS[groups[i]][topic]) return groups[i];
+      }
+      return 'everyday';
+    }
+
+    function duelActiveTopicGroup() {
+      var stored = studyState && studyState.duelTopicGroup;
+      var groupIds = duelTopicGroups().map(function (row) { return row[0]; });
+      if (stored && groupIds.indexOf(stored) >= 0) return stored;
+      return duelTopicGroupOf((studyState && studyState.duelTopic) || 'all');
+    }
+
     function duelModeList() {
       return [
         ['students', tr('Students vs Bot','Ученики против бота')],
@@ -3233,7 +3269,12 @@
       var pollLabel = studyState && studyState.duelRoomId
         ? tr('Students + stream chat A/B/C/D','Ученики + чат эфира A/B/C/D')
         : tr('Tap votes from LIVE chat','Нажимайте голоса из LIVE-чата');
-      return '<div class="duel-chat-poll" id="duelChatPoll"><div class="duel-poll-head"><div><small>CHAT POLL</small><b>'+esc(pollLabel)+'</b></div><strong>'+total+'</strong></div><div class="duel-poll-bars">'+counts.map(function(count,index){var pct=total?Math.round(count/total*100):0;return '<button type="button" data-duel-vote="'+index+'"><span>'+String.fromCharCode(65+index)+'</span><i><em style="width:'+pct+'%"></em></i><strong>'+pct+'%</strong></button>';}).join('')+'</div><div class="duel-poll-actions"><button type="button" data-duel-vote-burst="1">+ '+esc(tr('chat wave','волна чата'))+'</button><button type="button" data-duel-vote-reset="1">'+esc(tr('reset poll','сброс'))+'</button></div></div>';
+      // The +N button DOESN'T pull actual chat: it just adds simulated votes so
+      // the poll bars look alive during demo streams / practice. Call it that.
+      // Real chat integration comes from students joining via the code (auto)
+      // or the teacher tapping the A/B/C/D buttons themselves (manual).
+      var burstLabel = tr('Simulate poll (demo)','Симуляция голосов (демо)');
+      return '<div class="duel-chat-poll" id="duelChatPoll"><div class="duel-poll-head"><div><small>CHAT POLL</small><b>'+esc(pollLabel)+'</b></div><strong>'+total+'</strong></div><div class="duel-poll-bars">'+counts.map(function(count,index){var pct=total?Math.round(count/total*100):0;return '<button type="button" data-duel-vote="'+index+'"><span>'+String.fromCharCode(65+index)+'</span><i><em style="width:'+pct+'%"></em></i><strong>'+pct+'%</strong></button>';}).join('')+'</div><div class="duel-poll-actions"><button type="button" data-duel-vote-burst="1" class="duel-poll-demo" title="'+esc(tr('Adds fake votes so the poll bars look busy during a demo. Real chat integration comes from students joining via the code.','Добавляет фейковые голоса, чтобы график не был пустым во время демо. Настоящие голоса идут через код входа.'))+'">'+esc(burstLabel)+'</button><button type="button" data-duel-vote-reset="1">'+esc(tr('reset poll','сброс'))+'</button></div></div>';
     }
 
     function updateDuelPoll() {
@@ -3399,7 +3440,15 @@
         kit.practiceId = studyState.duelPracticeId || '';
         kit.levels = duelSelectedLevels();
         saveDuelTeacherKit(kit);
-        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-topic') === studyState.duelTopic); });
+        var activeGroup = duelActiveTopicGroup();
+        var chipRow = host.querySelector('.duel-topic-chips');
+        if (chipRow) chipRow.setAttribute('data-active-group', activeGroup);
+        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic-group]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-topic-group') === activeGroup); });
+        Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic]'), function (button) {
+          var chipGroup = button.getAttribute('data-topic-group') || duelTopicGroupOf(button.getAttribute('data-duel-topic'));
+          button.hidden = chipGroup !== activeGroup;
+          button.classList.toggle('active', button.getAttribute('data-duel-topic') === studyState.duelTopic);
+        });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-mode]'), function (button) { button.classList.toggle('active', button.getAttribute('data-duel-mode') === studyState.duelMode); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-level]'), function (button) { button.classList.toggle('active', duelSelectedLevels().indexOf(button.getAttribute('data-duel-level')) >= 0); });
         Array.prototype.forEach.call(host.querySelectorAll('[data-duel-count]'), function (button) { button.classList.toggle('active', Number(button.getAttribute('data-duel-count')) === duelQuestionCount()); });
@@ -3431,8 +3480,21 @@
           });
         }
       }
+      Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic-group]'), function (button) {
+        button.onclick = function () {
+          studyState.duelTopicGroup = button.getAttribute('data-duel-topic-group') || 'everyday';
+          refresh();
+        };
+      });
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-topic]'), function (button) {
-        button.onclick = function () { studyState.duelTopic = button.getAttribute('data-duel-topic') || 'all'; refresh(); };
+        button.onclick = function () {
+          var topic = button.getAttribute('data-duel-topic') || 'all';
+          studyState.duelTopic = topic;
+          // Snap the visible group to the one that owns this chip so the
+          // teacher's next glance at the row shows what's actually selected.
+          studyState.duelTopicGroup = duelTopicGroupOf(topic);
+          refresh();
+        };
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-duel-mode]'), function (button) {
         button.onclick = function () { studyState.duelMode = button.getAttribute('data-duel-mode') || 'students'; refresh(); };
