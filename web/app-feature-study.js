@@ -8,6 +8,44 @@
     const EXAM_GOAL_KEY = 'duvela.study.examGoal';
     const DUEL_LIVE_KEY = 'duvela.study.duelLiveMode';
     const DUEL_TEACHER_KEY = 'duvela.study.duelTeacherKit';
+    // Anti-repeat: remember which questions have been shown by this teacher in
+    // the last 24 hours, so viewers who catch two of a teacher's LIVEs in a
+    // day don't see the exact same items back-to-back. Keyed by question text
+    // (banks don't carry stable ids). Kept per-browser; nothing on the server.
+    const DUEL_SHOWN_KEY = 'duvela.study.duelShownRecent';
+    const DUEL_SHOWN_TTL_MS = 24 * 3600 * 1000;
+    const DUEL_SHOWN_CAP = 300;
+
+    function readRecentShownQuestions() {
+      try {
+        var list = JSON.parse(localStorage.getItem(DUEL_SHOWN_KEY) || '[]');
+        if (!Array.isArray(list)) return [];
+        var cutoff = Date.now() - DUEL_SHOWN_TTL_MS;
+        return list.filter(function (entry) { return entry && entry.q && entry.ts && entry.ts > cutoff; });
+      } catch (e) { return []; }
+    }
+
+    function recentShownSet() {
+      var set = Object.create(null);
+      readRecentShownQuestions().forEach(function (entry) { set[entry.q] = 1; });
+      return set;
+    }
+
+    function rememberShownQuestions(items) {
+      if (!items || !items.length) return;
+      var current = readRecentShownQuestions();
+      var seen = Object.create(null);
+      current.forEach(function (entry) { seen[entry.q] = entry; });
+      var now = Date.now();
+      items.forEach(function (item) {
+        if (!item || !item.q) return;
+        seen[item.q] = { q: String(item.q), ts: now };
+      });
+      var merged = Object.keys(seen).map(function (key) { return seen[key]; });
+      merged.sort(function (a, b) { return b.ts - a.ts; });
+      if (merged.length > DUEL_SHOWN_CAP) merged = merged.slice(0, DUEL_SHOWN_CAP);
+      try { localStorage.setItem(DUEL_SHOWN_KEY, JSON.stringify(merged)); } catch (e) {}
+    }
     const DUEL_QUESTION_COUNT = 10;
     let studyState = null;
     let aiChatState = null;
@@ -2558,6 +2596,20 @@
         studyState.duelQuestionSeconds = studyState.duelQuestionSeconds || kit.seconds || 15;
         studyState.duelSource = studyState.duelSource || kit.source || 'bank';
         studyState.duelPracticeId = studyState.duelPracticeId || kit.practiceId || '';
+        studyState.duelAutopilot = studyState.duelAutopilot != null ? !!studyState.duelAutopilot : !!kit.autopilot;
+        // Quick-Start: the landing button set window.__duvelaDuelQuickStart.
+        // If the teacher has run at least one previous duel (kit.lastDay set)
+        // we skip the settings panel entirely and jump straight into
+        // startLiveDuel with the saved preset. From landing tap to Q1 is <2s.
+        if (window.__duvelaDuelQuickStart && kit.lastDay) {
+          window.__duvelaDuelQuickStart = false;
+          host.innerHTML = '<div class="duel-quickstart-splash"><span>⚡</span><b>' + esc(tr('Starting your last preset…','Запускаем последний пресет…')) + '</b><small>' + esc(duelModeLabel(selectedMode) + ' · ' + duelTopicLabel(selectedTopic) + ' · ' + duelLevelLabel() + ' · ' + duelQuestionCount() + '×' + duelQuestionSeconds() + 's') + '</small></div>';
+          void startLiveDuel(null);
+          return;
+        }
+        // Consume any dangling quick-start flag so the next visit renders the
+        // lobby normally.
+        window.__duvelaDuelQuickStart = false;
         var duelBankTotal = buildDuelDeck(studyState.lang, studyState.duelLevels, selectedTopic).length;
         var joinCode = studyState.duelJoinCode || '••••';
         host.innerHTML='<div class="social-challenge duel-search-card duel-teacher-lobby">'
@@ -2566,7 +2618,7 @@
           +'<div class="duel-control-row"><span>'+esc(tr('Mode','Режим'))+'</span>'+duelModeList().map(function(item){return '<button type="button" data-duel-mode="'+esc(item[0])+'" class="'+(item[0]===selectedMode?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Topic','Тема'))+'</span>'+duelTopicList().map(function(item){return '<button type="button" data-duel-topic="'+esc(item[0])+'" class="'+(item[0]===selectedTopic?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
           +'<div class="duel-control-row compact"><span>'+esc(tr('Levels','Уровни'))+'</span>'+['A1','A2','B1','B2','C1','C2'].map(function(level){return '<button type="button" data-duel-level="'+level+'" class="'+(studyState.duelLevels.indexOf(level)>=0?'active':'')+'">'+level+'</button>';}).join('')+'<button type="button" data-duel-generate="1">'+esc(tr('Generate lesson','Сгенерировать урок'))+'</button></div>'
-          +'<div class="duel-control-row compact"><span>'+esc(tr('Questions','Вопросы'))+'</span>'+[5,10,15].map(function(count){return '<button type="button" data-duel-count="'+count+'" class="'+(count===duelQuestionCount()?'active':'')+'">'+count+'</button>';}).join('')+'<span>'+esc(tr('Timer','Таймер'))+'</span>'+[10,15,20].map(function(seconds){return '<button type="button" data-duel-seconds="'+seconds+'" class="'+(seconds===duelQuestionSeconds()?'active':'')+'">'+seconds+'s</button>';}).join('')+'</div>'
+          +'<div class="duel-control-row compact"><span>'+esc(tr('Questions','Вопросы'))+'</span>'+[5,10,15].map(function(count){return '<button type="button" data-duel-count="'+count+'" class="'+(count===duelQuestionCount()?'active':'')+'">'+count+'</button>';}).join('')+'<span>'+esc(tr('Timer','Таймер'))+'</span>'+[10,15,20].map(function(seconds){return '<button type="button" data-duel-seconds="'+seconds+'" class="'+(seconds===duelQuestionSeconds()?'active':'')+'">'+seconds+'s</button>';}).join('')+'<button type="button" data-duel-autopilot="1" class="duel-autopilot-toggle '+(studyState.duelAutopilot?'active':'')+'" title="'+esc(tr('Hands-off: auto-reveal on timeout, auto-advance after 3s. Teacher can still tap Pause / Next.','Без рук: сам показывает ответ по таймеру и переходит через 3 с. Пауза / Дальше — всегда работают.'))+'">'+esc(studyState.duelAutopilot?tr('Auto-pilot: ON','Автопилот: ВКЛ'):tr('Auto-pilot','Автопилот'))+'</button></div>'
           +'<div class="duel-control-row"><span>'+esc(tr('Source','Источник'))+'</span>'+[['bank',tr('Bank','Банк')],['mine',tr('My pack','Мой набор')],['ai',tr('AI','AI')]].map(function(item){return '<button type="button" data-duel-source="'+item[0]+'" class="'+(item[0]===duelSource()?'active':'')+'">'+esc(item[1])+'</button>';}).join('')+'</div>'
           +'<div class="duel-control-row" id="duelPackRow"'+(duelSource()==='mine'?'':' hidden')+'><span>'+esc(tr('Pack','Набор'))+'</span><select id="duelPackSelect" class="duel-pack-select"><option value="">'+esc(tr('Loading packs…','Загрузка наборов…'))+'</option></select></div></div>'
           +'<aside class="duel-lobby-side"><div class="duel-lobby-share"><img id="duelLobbyQr" alt="QR" width="88" height="88" hidden><div><div class="duel-lobby-url" id="duelLobbyUrl">'+esc(tr('Opening room…','Открываем комнату…'))+'</div><div class="duel-lobby-share-actions"><button type="button" class="duel-copy-btn" data-duel-copy="url">'+esc(tr('Copy link','Скопировать ссылку'))+'</button></div></div></div>'
@@ -2759,18 +2811,24 @@
 
     function currentDuelDeck() {
       var count = duelQuestionCount();
+      var full;
       if (duelSource() === 'ai' && Array.isArray(studyState.duelGeneratedDeck) && studyState.duelGeneratedDeck.length) {
-        studyState.duelBankTotal = studyState.duelGeneratedDeck.length;
-        return studyState.duelGeneratedDeck.slice(0, count);
+        full = studyState.duelGeneratedDeck.slice();
+      } else if (duelSource() === 'mine' && Array.isArray(studyState.duelPracticeDeck) && studyState.duelPracticeDeck.length) {
+        full = studyState.duelPracticeDeck.slice();
+      } else {
+        var topic = studyState.duelTopic || 'all';
+        full = buildDuelDeck(studyState.lang, duelSelectedLevels(), topic);
       }
-      if (duelSource() === 'mine' && Array.isArray(studyState.duelPracticeDeck) && studyState.duelPracticeDeck.length) {
-        studyState.duelBankTotal = studyState.duelPracticeDeck.length;
-        return studyState.duelPracticeDeck.slice(0, count);
-      }
-      var topic = studyState.duelTopic || 'all';
-      var full = buildDuelDeck(studyState.lang, duelSelectedLevels(), topic);
       studyState.duelBankTotal = full.length;
-      return full.slice(0, count);
+      // Anti-repeat: prefer questions the teacher hasn't shown in the last
+      // 24h. Fall back to the full deck only if we can't fill count items
+      // without repeats (small bank / narrow topic). Order is preserved so
+      // the topic/level ranking upstream still wins.
+      var recent = recentShownSet();
+      var fresh = full.filter(function (item) { return item && !recent[String(item.q || '')]; });
+      var deck = fresh.length >= count ? fresh : fresh.concat(full.filter(function (item) { return item && recent[String(item.q || '')]; }));
+      return deck.slice(0, count);
     }
 
     function duelAnsweredCount() {
@@ -3005,8 +3063,11 @@
       kit.seconds = duelQuestionSeconds();
       kit.source = duelSource();
       kit.levels = duelSelectedLevels();
+      kit.autopilot = !!studyState.duelAutopilot;
       saveDuelTeacherKit(kit);
       var deck = currentDuelDeck();
+      // Persist the qids so the next LIVE the same day doesn't repeat them.
+      rememberShownQuestions(deck);
       studyState.duelTopic = kit.topic;
       studyState.duelMode = kit.mode;
       studyState.duelBot = kit.mode !== 'teacher';
@@ -3404,6 +3465,16 @@
           refresh();
         };
       });
+      var autopilot = host.querySelector('[data-duel-autopilot]');
+      if (autopilot) autopilot.onclick = function () {
+        studyState.duelAutopilot = !studyState.duelAutopilot;
+        autopilot.classList.toggle('active', studyState.duelAutopilot);
+        autopilot.textContent = studyState.duelAutopilot ? tr('Auto-pilot: ON','Автопилот: ВКЛ') : tr('Auto-pilot','Автопилот');
+        // Persist immediately so Quick Start next time inherits the choice.
+        var kit = duelTeacherKit();
+        kit.autopilot = !!studyState.duelAutopilot;
+        saveDuelTeacherKit(kit);
+      };
       var generate = host.querySelector('[data-duel-generate]');
       if (generate) generate.onclick = function () { void generateDuelLesson(generate); };
       var packSelect = host.querySelector('#duelPackSelect');
@@ -3567,16 +3638,101 @@
         try { await api.revealAnswer(studyState.duelRoomId); } catch (error) { /* reveal is best-effort */ }
       }
       var fx = window.DuvelaDuelFx;
+      var revealMajority = false;
+      if (item) {
+        var revealCounts = studyState.duelPoll || [0, 0, 0, 0];
+        var revealTotal = revealCounts.reduce(function (sum, value) { return sum + Number(value || 0); }, 0);
+        revealMajority = revealTotal > 0 && Number(revealCounts[Number(item.a)] || 0) > revealTotal / 2;
+      }
       if (fx && host) {
-        var majority = false;
-        if (item) {
-          var counts = studyState.duelPoll || [0, 0, 0, 0];
-          var total = counts.reduce(function (sum, value) { return sum + Number(value || 0); }, 0);
-          majority = total > 0 && Number(counts[Number(item.a)] || 0) > total / 2;
-        }
         fx.confetti(host);
-        fx.playRevealSound(majority || studyState.duelMode !== 'class');
-        fx.showDuvi(host, majority ? 'correct' : 'reveal');
+        fx.playRevealSound(revealMajority || studyState.duelMode !== 'class');
+        fx.showDuvi(host, revealMajority ? 'correct' : 'reveal');
+      }
+      // Adaptive difficulty: after the first 3 questions, look at the class's
+      // majority-correct rate and, if two or more levels are on the deck, snap
+      // the remaining questions to the harder level (smashing) or the easier
+      // one (struggling). One-level decks are left alone.
+      if (!studyState.duelCorrectHistory) studyState.duelCorrectHistory = [];
+      var alreadyRecorded = studyState.duelCorrectRecordedIndex === studyState.idx;
+      if (!alreadyRecorded) {
+        studyState.duelCorrectHistory.push(revealMajority);
+        studyState.duelCorrectRecordedIndex = studyState.idx;
+        if (studyState.duelCorrectHistory.length === 3 && !studyState.duelAdaptiveApplied) {
+          applyAdaptiveDifficulty();
+        }
+      }
+      // Auto-pilot: hands-off mode. Once we've shown the answer, wait a short
+      // beat for viewers to read the reveal, then advance ourselves. Teacher
+      // can still hit Pause / Next at any time — pause cancels the timer, and
+      // Next runs immediately if tapped before the timer fires.
+      scheduleAutopilotAdvance();
+    }
+
+    function applyAdaptiveDifficulty() {
+      if (!studyState || studyState.duelAdaptiveApplied) return;
+      var levels = duelSelectedLevels();
+      if (!Array.isArray(levels) || levels.length < 2) return;
+      var history = studyState.duelCorrectHistory || [];
+      var correct = history.filter(Boolean).length;
+      if (correct === history.length) {
+        // All three majority-correct → snap to the harder tier.
+        var harder = levels[levels.length - 1];
+        adaptRemainingDeck(harder, 'up');
+      } else if (correct === 0) {
+        // All three majority-wrong → drop to the easier tier.
+        adaptRemainingDeck(levels[0], 'down');
+      } else {
+        // Mixed — leave the deck as-is.
+        return;
+      }
+      studyState.duelAdaptiveApplied = true;
+    }
+
+    function adaptRemainingDeck(targetLevel, direction) {
+      if (!studyState || !Array.isArray(studyState.data)) return;
+      var head = studyState.data.slice(0, studyState.idx + 1);
+      var tail = studyState.data.slice(studyState.idx + 1);
+      // Items in the bank carry .level; when they don't, keep them (mixed).
+      var preferred = tail.filter(function (item) {
+        return !item.level || String(item.level) === targetLevel;
+      });
+      var rest = tail.filter(function (item) {
+        return item.level && String(item.level) !== targetLevel;
+      });
+      var reordered = preferred.concat(rest);
+      studyState.data = head.concat(reordered);
+      var toast = document.getElementById('studyToolBody');
+      if (toast) {
+        var notice = document.createElement('div');
+        notice.className = 'duel-adaptive-toast ' + (direction === 'up' ? 'up' : 'down');
+        notice.textContent = direction === 'up'
+          ? tr('Level up! Harder questions ahead.','Уровень выше! Впереди сложнее.')
+          : tr('Easing off — next questions are lighter.','Смягчаем — следующие вопросы легче.');
+        toast.insertBefore(notice, toast.firstChild);
+        setTimeout(function () { if (notice && notice.parentNode) notice.parentNode.removeChild(notice); }, 3000);
+      }
+    }
+
+    function scheduleAutopilotAdvance() {
+      if (!studyState || !studyState.duelAutopilot) return;
+      if (studyState.duelPaused) return;
+      if (studyState.duelAutopilotTimer) {
+        clearTimeout(studyState.duelAutopilotTimer);
+      }
+      studyState.duelAutopilotTimer = setTimeout(function () {
+        studyState.duelAutopilotTimer = null;
+        if (!studyState || studyState.tool !== 'duelmatch' || studyState.finished) return;
+        if (studyState.duelPaused || !studyState.duelAutopilot) return;
+        if (!studyState.duelRevealed) return; // safety: only advance after a reveal
+        void teacherAdvance();
+      }, 3500);
+    }
+
+    function cancelAutopilotAdvance() {
+      if (studyState && studyState.duelAutopilotTimer) {
+        clearTimeout(studyState.duelAutopilotTimer);
+        studyState.duelAutopilotTimer = null;
       }
     }
 
@@ -3745,6 +3901,7 @@
           var api=duelRoomApi();
           if(studyState.duelPaused){
             studyState.duelFrozenLeft=duelSecondsLeft();
+            cancelAutopilotAdvance();
             if(api&&studyState.duelRoomId) void api.pauseRoom(studyState.duelRoomId).catch(function(){});
           } else {
             var remaining=Number(studyState.duelFrozenLeft!=null?studyState.duelFrozenLeft:duelQuestionSeconds());
@@ -3752,6 +3909,10 @@
             studyState.duelQuestionStartedAt=startedAt;
             studyState.duelFrozenLeft=null;
             if(api&&studyState.duelRoomId) void api.resumeRoom(studyState.duelRoomId,{question_started_at:startedAt}).catch(function(){});
+            // Resuming while the answer is already revealed should not leave
+            // the deck hanging — restart the autopilot beat if the teacher
+            // opted into hands-off.
+            if (studyState.duelRevealed) scheduleAutopilotAdvance();
           }
         }
         if(action==='answer') void teacherReveal();
@@ -3840,6 +4001,7 @@
       if(studyState.duelTimerId){clearInterval(studyState.duelTimerId);studyState.duelTimerId=null;}
       stopDuelClock();
       stopNextDuelCountdown();
+      cancelAutopilotAdvance();
       var coach = $('#practiceCoach');
       if (coach) { coach.hidden = true; coach.innerHTML = ''; }
       awardClassPointIfNeeded();
@@ -3865,7 +4027,12 @@
       var headline = winner
         ? esc(winner.display_name || 'Student') + ' ' + esc(tr('wins!','побеждает!'))
         : esc(won?tr('Victory!','Победа!'):tie?tr('A draw!','Ничья!'):tr('Great fight!','Отличная борьба!'));
-      $('#studyToolBody').innerHTML='<div class="duel-result '+(won?'win':tie?'tie':'lose')+'" id="duelResultCard"><span>'+(winner?'🏆':(won?'🏆':tie?'🤝':'💪'))+'</span><small>DUVELA DUEL · '+esc(duelModeLabel(studyState.duelMode))+'</small><h2>'+headline+'</h2><p>'+esc(tr('Speed bonus is in. Top 8 below — next duel in 30s.','Скоростной бонус учтён. Топ-8 ниже — следующая дуэль через 30 с.'))+'</p><div class="duel-final-score"><b>'+mine+'</b><span>:</span><b>'+rivalScore+'</b></div>'+podium+'<div class="duel-result-stats"><span><b>'+accuracy+'%</b><small>'+esc(tr('accuracy','точность'))+'</small></span><span><b>'+esc(String(kit.streak||1))+'</b><small>'+esc(tr('day streak','дней серия'))+'</small></span><span><b>+'+xp+'</b><small>XP</small></span></div><div class="duel-follow-card"><b>'+esc(tr('Follow for the next duel','Подпишись на следующую дуэль'))+'</b><span>'+esc(tr('Join','Вход'))+': vela.cafe · '+esc(tr('Code','Код'))+' '+esc(code)+'</span></div><div class="result-actions"><button class="btn" id="duelShareCard">'+esc(tr('Save winner card','Сохранить карточку'))+'</button><button class="btn" id="duelReview">'+esc(tr('Review mistakes','Повторить ошибки'))+'</button><button class="btn primary" id="duelAgain">'+esc(tr('New duel','Новая дуэль'))+' · 30</button></div></div>';
+      var joinUrl = duelJoinUrl(code);
+      var joinRef = (ctx.profile && (ctx.profile.username || ctx.profile.id)) || '';
+      var joinDeepUrl = joinUrl + (joinUrl.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(joinRef) + '&bonus=50xp';
+      var joinQrUrl = duelQrSrc(joinDeepUrl);
+      var teacherHandle = esc(String((ctx.profile && (ctx.profile.full_name || ctx.profile.username)) || 'Duvela teacher'));
+      $('#studyToolBody').innerHTML='<div class="duel-result '+(won?'win':tie?'tie':'lose')+'" id="duelResultCard"><span>'+(winner?'🏆':(won?'🏆':tie?'🤝':'💪'))+'</span><small>DUVELA DUEL · '+esc(duelModeLabel(studyState.duelMode))+'</small><h2>'+headline+'</h2><p>'+esc(tr('Speed bonus is in. Top 8 below — next duel in 30s.','Скоростной бонус учтён. Топ-8 ниже — следующая дуэль через 30 с.'))+'</p><div class="duel-final-score"><b>'+mine+'</b><span>:</span><b>'+rivalScore+'</b></div>'+podium+'<div class="duel-result-stats"><span><b>'+accuracy+'%</b><small>'+esc(tr('accuracy','точность'))+'</small></span><span><b>'+esc(String(kit.streak||1))+'</b><small>'+esc(tr('day streak','дней серия'))+'</small></span><span><b>+'+xp+'</b><small>XP</small></span></div><div class="duel-join-cta" id="duelJoinCta"><img class="duel-join-qr" alt="Join Duvela" width="120" height="120" src="'+esc(joinQrUrl)+'"><div class="duel-join-cta-copy"><small>'+esc(tr('CLAIM +50 XP · FOLLOW '+String(ctx.profile && ctx.profile.full_name ? ctx.profile.full_name.toUpperCase() : 'YOUR TEACHER'),'ЗАБЕРИ +50 XP · ПОДПИШИСЬ НА '+String(ctx.profile && ctx.profile.full_name ? ctx.profile.full_name.toUpperCase() : 'УЧИТЕЛЯ')))+'</small><b>'+esc(tr('Scan or open in Duvela','Отсканируй или открой в Duvela'))+'</b><span>'+esc(joinDeepUrl.replace(/^https?:\/\//,''))+'</span><em>'+teacherHandle+'</em></div></div><div class="duel-next-countdown"><small>'+esc(tr('NEXT DUEL','СЛЕДУЮЩАЯ ДУЭЛЬ'))+'</small><b id="duelNextTimer">00:30</b></div><div class="result-actions"><button class="btn" id="duelShareCard">'+esc(tr('Save winner card','Сохранить карточку'))+'</button><button class="btn" id="duelReview">'+esc(tr('Review mistakes','Повторить ошибки'))+'</button><button class="btn primary" id="duelAgain">'+esc(tr('New duel','Новая дуэль'))+' · 30</button></div></div>';
       if(studyState.liveMode){$('#studyToolBody').insertAdjacentHTML('afterbegin','<div class="duel-live-toolbar"><button type="button" id="duelLiveToggle" aria-pressed="true"><span aria-hidden="true">&times;</span>'+esc(tr('Exit LIVE','\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 LIVE'))+'</button></div>');bindDuelLiveControls($('#studyToolBody'));}
       if(window.DuvelaDuelFx){window.DuvelaDuelFx.confetti($('#studyToolBody'));window.DuvelaDuelFx.playRevealSound(true);window.DuvelaDuelFx.showDuvi($('#studyToolBody'),'win');}
       $('#duelReview').onclick=function(){stopNextDuelCountdown();openStudyTool('mistakes');};
@@ -3874,9 +4041,17 @@
       var again=$('#duelAgain'), left=30;
       if(again) again.onclick=function(){stopNextDuelCountdown();openStudyTool('duel');};
       studyState.nextDuelLeft=left;
+      var timerEl = document.getElementById('duelNextTimer');
+      function paintNextTimer(remaining){
+        var mm = String(Math.max(0, Math.floor(remaining / 60))).padStart(2, '0');
+        var ss = String(Math.max(0, remaining % 60)).padStart(2, '0');
+        if (timerEl) timerEl.textContent = mm + ':' + ss;
+      }
+      paintNextTimer(left);
       studyState.nextDuelTimer=setInterval(function(){
         if(!studyState){return;}
         left-=1;studyState.nextDuelLeft=left;
+        paintNextTimer(Math.max(0, left));
         if(again) again.textContent=tr('New duel','Новая дуэль')+' · '+Math.max(0,left);
         if(left<=0){stopNextDuelCountdown();openStudyTool('duel');}
       },1000);

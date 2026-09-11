@@ -75,6 +75,15 @@
       if (duelStart) duelStart.addEventListener('click', startDuelOverlay);
       const duelOpen = document.getElementById('duelOpenPractice');
       if (duelOpen) duelOpen.addEventListener('click', startDuelOverlay);
+      // Quick Start: skip room settings and jump straight into the last-used
+      // Practice-for-LIVE preset. The feature-study lobby checks this flag
+      // on render and, when true + saved kit exists, auto-invokes startLiveDuel
+      // instead of rendering the settings panel.
+      const duelQuickStart = document.getElementById('duelQuickStart');
+      if (duelQuickStart) duelQuickStart.addEventListener('click', () => {
+        window.__duvelaDuelQuickStart = true;
+        startDuelOverlay();
+      });
 
       $('#videoTabs').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-filter]');

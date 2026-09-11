@@ -1694,3 +1694,30 @@
 .duel-stage-overlay .dso-controls button{min-height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(12,10,24,.8);color:#fff;font-weight:850;cursor:pointer}
 .duel-stage-overlay .dso-duvi{right:12px;bottom:12px;width:min(22%,140px)}
 .practice-workspace{position:relative}
+
+/* Practice-for-LIVE efficiency polish: Quick-Start splash, auto-pilot toggle,
+   adaptive-difficulty toast, join-CTA panel on the winner screen, next-duel
+   countdown. Kept tight to reuse the existing hub palette. */
+.duel-quickstart-splash{display:grid;gap:8px;justify-items:center;padding:56px 24px;text-align:center;color:#4c377a}
+.duel-quickstart-splash span{font-size:56px;filter:drop-shadow(0 8px 22px rgba(124,58,237,.35))}
+.duel-quickstart-splash b{font-size:20px;font-weight:900}
+.duel-quickstart-splash small{color:#7a6d99;font-weight:800;letter-spacing:.02em}
+.duel-autopilot-toggle{min-height:36px;padding:6px 12px;border:1px solid rgba(103,62,184,.22);border-radius:12px;background:#fff;color:#5b2fc9;font-size:12px;font-weight:900;cursor:pointer;margin-left:auto}
+.duel-autopilot-toggle.active{background:linear-gradient(120deg,#7c3aed,#5b2fc9);border-color:transparent;color:#fff;box-shadow:0 8px 22px rgba(124,58,237,.28)}
+.duel-adaptive-toast{margin:0 0 10px;padding:10px 14px;border-radius:14px;font-weight:900;letter-spacing:.02em;text-align:center;animation:duelAdaptiveIn .5s ease-out}
+.duel-adaptive-toast.up{background:linear-gradient(120deg,#7c3aed,#a35be5);color:#fff}
+.duel-adaptive-toast.down{background:#fef1d1;color:#8a5900}
+@keyframes duelAdaptiveIn{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.duel-join-cta{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;width:min(560px,100%);padding:14px 16px;border-radius:20px;background:linear-gradient(120deg,#241537,#3d1e63);color:#fff;box-shadow:0 18px 40px rgba(30,16,50,.25)}
+.duel-join-cta .duel-join-qr{border-radius:14px;background:#fff;padding:6px}
+.duel-join-cta-copy{display:grid;gap:2px;min-width:0}
+.duel-join-cta-copy small{color:#f5c56b;font-weight:900;letter-spacing:.09em;font-size:10px}
+.duel-join-cta-copy b{font-size:16px;font-weight:900}
+.duel-join-cta-copy span{color:#c9bfe4;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duel-join-cta-copy em{color:#a586d9;font-style:normal;font-size:11px;font-weight:800}
+.duel-next-countdown{display:grid;justify-items:center;gap:3px;padding:8px 14px;border-radius:14px;background:rgba(124,58,237,.12);color:#5b2fc9;width:min(300px,100%)}
+.duel-next-countdown small{font-size:10px;font-weight:900;letter-spacing:.13em}
+.duel-next-countdown b{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+#studyOverlay.practice-live-mode .duel-join-cta{background:linear-gradient(120deg,rgba(255,255,255,.12),rgba(124,58,237,.24));border:1px solid rgba(255,255,255,.12)}
+#studyOverlay.practice-live-mode .duel-next-countdown{background:rgba(255,255,255,.1);color:#e6d9ff}
+@media(max-width:640px){.duel-join-cta{grid-template-columns:1fr;justify-items:center;text-align:center}}
