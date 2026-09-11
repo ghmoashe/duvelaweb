@@ -22,9 +22,16 @@ const files = [
   'reset-password.html',
   'teacher-invite.html',
   'teacher-invite-accepted.html',
+  // Organizer-facing form for inviting a teacher into their organization.
+  // Uses create_organization_invitation RPC — must ship with the rest of
+  // the static site or vela.cafe/invite-teachers.html returns 404.
+  'invite-teachers.html',
   'sw.js',
   'logo.webp',
   'logo2.png',
+  // New colorful DUVELA wordmark used in the teacher-invite header.
+  // <img> falls back to logo2.png via onerror when this file is missing.
+  'logo3.png',
   // Hub app icon used in the Duel panel's "Open in Duvela Academy Hub"
   // hand-off card so a learner recognises the app they're jumping to.
   'hub-app-icon.png',
