@@ -41,7 +41,6 @@
         '<strong id="dsoCode">—</strong>' +
         '<span id="dsoRank" class="dso-rank" hidden></span>' +
       '</div>' +
-      '<img class="duel-duvi dso-duvi" alt="DUVI" src="./web/assets/duvi/greeting.png">' +
       '<div class="dso-timer" id="dsoTimer">15</div>' +
       '<p class="dso-join" id="dsoJoin"></p>' +
       '<h2 id="dsoQuestion">' + esc(tr('Waiting for a LIVE duel…', 'Ждём LIVE-дуэль…')) + '</h2>' +
@@ -60,7 +59,7 @@
       if (action === 'close') { hide(); return; }
       if (action === 'reveal') {
         void api().revealAnswer(state.room.id);
-        if (fx()) { fx().confetti(node); fx().playRevealSound(true); fx().showDuvi(node, 'reveal'); }
+        if (fx()) { fx().confetti(node); fx().playRevealSound(true); }
       }
       if (action === 'next') {
         const next = Number(state.room.current_question) + 1;
@@ -169,7 +168,6 @@
           const node = overlay();
           fx().confetti(node);
           fx().playRevealSound(true);
-          fx().showDuvi(node, 'reveal');
         }
         render();
         void refreshTally();

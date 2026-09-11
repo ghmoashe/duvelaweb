@@ -3709,7 +3709,6 @@
       if (fx && host) {
         fx.confetti(host);
         fx.playRevealSound(revealMajority || studyState.duelMode !== 'class');
-        fx.showDuvi(host, revealMajority ? 'correct' : 'reveal');
       }
       // Adaptive difficulty: after the first 3 questions, look at the class's
       // majority-correct rate and, if two or more levels are on the deck, snap
@@ -3948,9 +3947,8 @@
       bindDuelLiveControls(host);
       renderDuelRoster();
       startDuelClock();
-      if (window.DuvelaDuelFx) {
-        window.DuvelaDuelFx.showDuvi(host, studyState.duelRevealed ? 'reveal' : 'wait');
-        if (uid()) void window.DuvelaDuelFx.renderGiftRank($('#duelGiftRank'), uid());
+      if (window.DuvelaDuelFx && uid()) {
+        void window.DuvelaDuelFx.renderGiftRank($('#duelGiftRank'), uid());
       }
       var liveTitle = host.querySelector('.duel-live-masthead strong');
       if (liveTitle) liveTitle.insertAdjacentHTML('afterend', '<em class="duel-live-bank">LEVEL ' + esc(duelLevelLabel()) + ' / BANK ' + esc(studyState.duelBankTotal || deck.length) + ' / Q ' + esc(String(studyState.idx + 1)) + '/' + esc(String(deck.length)) + '</em>');
@@ -4096,7 +4094,7 @@
       var teacherHandle = esc(String((ctx.profile && (ctx.profile.full_name || ctx.profile.username)) || 'Duvela teacher'));
       $('#studyToolBody').innerHTML='<div class="duel-result '+(won?'win':tie?'tie':'lose')+'" id="duelResultCard"><span>'+(winner?'🏆':(won?'🏆':tie?'🤝':'💪'))+'</span><small>DUVELA DUEL · '+esc(duelModeLabel(studyState.duelMode))+'</small><h2>'+headline+'</h2><p>'+esc(tr('Speed bonus is in. Top 8 below — next duel in 30s.','Скоростной бонус учтён. Топ-8 ниже — следующая дуэль через 30 с.'))+'</p><div class="duel-final-score"><b>'+mine+'</b><span>:</span><b>'+rivalScore+'</b></div>'+podium+'<div class="duel-result-stats"><span><b>'+accuracy+'%</b><small>'+esc(tr('accuracy','точность'))+'</small></span><span><b>'+esc(String(kit.streak||1))+'</b><small>'+esc(tr('day streak','дней серия'))+'</small></span><span><b>+'+xp+'</b><small>XP</small></span></div><div class="duel-join-cta" id="duelJoinCta"><img class="duel-join-qr" alt="Join Duvela" width="120" height="120" src="'+esc(joinQrUrl)+'"><div class="duel-join-cta-copy"><small>'+esc(tr('CLAIM +50 XP · FOLLOW '+String(ctx.profile && ctx.profile.full_name ? ctx.profile.full_name.toUpperCase() : 'YOUR TEACHER'),'ЗАБЕРИ +50 XP · ПОДПИШИСЬ НА '+String(ctx.profile && ctx.profile.full_name ? ctx.profile.full_name.toUpperCase() : 'УЧИТЕЛЯ')))+'</small><b>'+esc(tr('Scan or open in Duvela','Отсканируй или открой в Duvela'))+'</b><span>'+esc(joinDeepUrl.replace(/^https?:\/\//,''))+'</span><em>'+teacherHandle+'</em></div></div><div class="duel-next-countdown"><small>'+esc(tr('NEXT DUEL','СЛЕДУЮЩАЯ ДУЭЛЬ'))+'</small><b id="duelNextTimer">00:30</b></div><div class="result-actions"><button class="btn" id="duelShareCard">'+esc(tr('Save winner card','Сохранить карточку'))+'</button><button class="btn" id="duelReview">'+esc(tr('Review mistakes','Повторить ошибки'))+'</button><button class="btn primary" id="duelAgain">'+esc(tr('New duel','Новая дуэль'))+' · 30</button></div></div>';
       if(studyState.liveMode){$('#studyToolBody').insertAdjacentHTML('afterbegin','<div class="duel-live-toolbar"><button type="button" id="duelLiveToggle" aria-pressed="true"><span aria-hidden="true">&times;</span>'+esc(tr('Exit LIVE','\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 LIVE'))+'</button></div>');bindDuelLiveControls($('#studyToolBody'));}
-      if(window.DuvelaDuelFx){window.DuvelaDuelFx.confetti($('#studyToolBody'));window.DuvelaDuelFx.playRevealSound(true);window.DuvelaDuelFx.showDuvi($('#studyToolBody'),'win');}
+      if(window.DuvelaDuelFx){window.DuvelaDuelFx.confetti($('#studyToolBody'));window.DuvelaDuelFx.playRevealSound(true);}
       $('#duelReview').onclick=function(){stopNextDuelCountdown();openStudyTool('mistakes');};
       var share=$('#duelShareCard');
       if(share) share.onclick=function(){downloadDuelShareCard(top, code, winner ? String(winner.display_name || 'Winner') + ' wins' : 'Duel result');};
