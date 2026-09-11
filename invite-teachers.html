@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duvela — Invite teachers</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="./logo.webp" type="image/webp">
+<script src="./web/vendor/supabase-js-v2.js"></script>
+<script src="./web/duvela-web-config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F5FA;
+    --card: #FFFFFF;
+    --ink: #17151F;
+    --ink-soft: #6B6478;
+    --ink-muted: #948CA6;
+    --purple: #6D3FE0;
+    --violet: #A855F7;
+    --teal: #0F9F7A;
+    --red: #EF4444;
+    --amber: #B45309;
+    --lav-line: #E9E5F1;
+    --lav-soft: #F1ECFF;
+    --grad: linear-gradient(90deg, #5A2FCB 0%, #A855F7 55%, #C026D3 100%);
+    --radius-lg: 20px;
+    --shadow-sm: 0 6px 18px rgba(32, 22, 64, .06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; -webkit-font-smoothing: antialiased; }
+  a { color: var(--purple); text-decoration: none; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 60px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--lav-line); margin-bottom: 28px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { height: 32px; mix-blend-mode: multiply; }
+  .brand span { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
+  .who { color: var(--ink-soft); font-size: 13px; }
+  .who button { margin-left: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--lav-line); background: #fff; color: var(--purple); font-family: inherit; font-weight: 600; font-size: 12.5px; cursor: pointer; }
+  .who button:hover { border-color: var(--purple); background: var(--lav-soft); }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { color: var(--ink-soft); margin-top: 6px; font-size: 14px; max-width: 640px; }
+  .card { background: #fff; border: 1px solid var(--lav-line); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-sm); margin-top: 20px; }
+  .card h2 { font-size: 15px; font-weight: 700; text-transform: uppercase; color: var(--purple); letter-spacing: .06em; }
+  .card p.lead { margin-top: 4px; color: var(--ink-soft); font-size: 13px; }
+  .field { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--lav-line); border-radius: 10px; padding: 10px 12px; font-family: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink); background: #FBFAFD; outline: none; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--purple); background: #fff; box-shadow: 0 0 0 3px rgba(109,63,224,.12); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn { margin-top: 14px; padding: 11px 18px; border-radius: 10px; border: none; background: var(--grad); color: #fff; font-family: inherit; font-weight: 650; font-size: 13.5px; cursor: pointer; box-shadow: 0 8px 20px rgba(109,63,224,.28); transition: .2s; }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(109,63,224,.36); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.small { padding: 8px 14px; font-size: 12.5px; margin-top: 0; }
+  .btn.ghost { background: #fff; color: var(--purple); border: 1px solid var(--lav-line); box-shadow: none; }
+  .msg { margin-top: 14px; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; }
+  .msg.ok { background: rgba(15,159,122,.12); color: var(--teal); }
+  .msg.err { background: rgba(239,68,68,.12); color: var(--red); }
+  .invite-link { margin-top: 12px; padding: 14px; background: var(--lav-soft); border-radius: 12px; }
+  .invite-link .link-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .invite-link input { flex: 1; border: 1px solid var(--lav-line); border-radius: 8px; padding: 9px 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; background: #fff; color: var(--ink); }
+  .invite-link .hint { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+  table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 8px; font-size: 11.5px; text-transform: uppercase; color: var(--ink-muted); font-weight: 700; letter-spacing: .04em; border-bottom: 1px solid var(--lav-line); }
+  td { padding: 12px 8px; border-bottom: 1px solid var(--lav-line); vertical-align: middle; }
+  td.empty { text-align: center; color: var(--ink-muted); padding: 26px 8px; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .pill.pending { background: rgba(180,83,9,.14); color: var(--amber); }
+  .pill.expired { background: rgba(148,140,166,.18); color: var(--ink-muted); }
+  .info-box { padding: 14px 16px; background: var(--lav-soft); border-radius: 12px; margin-top: 16px; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+  .signed-out { text-align: center; padding: 60px 20px; }
+  .signed-out h2 { margin-bottom: 10px; font-size: 20px; }
+  #noOrg { display: none; padding: 16px; background: rgba(180,83,9,.08); border: 1px solid rgba(180,83,9,.2); border-radius: 12px; color: var(--amber); font-size: 13px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./app.html">
+      <img src="./logo.webp" alt="Duvela">
+      <span>Duvela · Invite teachers</span>
+    </a>
+    <div class="who" id="who">Not signed in</div>
+  </header>
+
+  <div id="signedOut" class="signed-out" style="display:none;">
+    <h2>Sign in to invite teachers</h2>
+    <p class="sub">You'll be redirected to your workspace to sign in first.</p>
+    <a class="btn" style="display: inline-block; margin-top: 20px; text-decoration:none;" href="./app.html">Open workspace</a>
+  </div>
+
+  <div id="signedIn" style="display:none;">
+    <h1>Invite a teacher to your organization</h1>
+    <p class="sub">Create a shareable invite link. When the teacher opens it and signs up with the invited email, they join your organization automatically as a teacher.</p>
+
+    <div id="noOrg">
+      You're not an admin of any organization yet. Create one from your <a href="./app.html#profile">profile</a>, then come back here.
+    </div>
+
+    <div id="orgUi" style="display:none;">
+      <div class="card">
+        <h2>Create invitation</h2>
+        <p class="lead">The invite expires after 14 days. Existing Duvela teachers get added instantly on accept; others land in "pending" until they sign up.</p>
+        <div class="field">
+          <label for="orgSelect">Organization</label>
+          <select id="orgSelect"></select>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="inviteEmail">Teacher email</label>
+            <input id="inviteEmail" type="email" placeholder="anna@school.com" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="inviteName">Full name (optional)</label>
+            <input id="inviteName" type="text" placeholder="Anna Müller" autocomplete="off">
+          </div>
+        </div>
+        <button class="btn" id="createBtn">Create teacher invitation</button>
+        <div id="createMsg"></div>
+        <div id="linkBox" class="invite-link" style="display:none;">
+          <b>Invitation created.</b> Share this link with the teacher:
+          <div class="link-row">
+            <input id="inviteLink" readonly>
+            <button class="btn small ghost" id="copyLinkBtn">Copy</button>
+          </div>
+          <p class="hint" id="linkHint"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Pending teacher invitations</h2>
+        <p class="lead">Teachers who haven't accepted yet. Click a row to copy its invite link again.</p>
+        <table>
+          <thead>
+            <tr><th>Email</th><th>Status</th><th>Expires</th><th></th></tr>
+          </thead>
+          <tbody id="pendingBody">
+            <tr><td colspan="4" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box">
+        <b>How it works.</b> The invite uses the same <code>create_organization_invitation</code> RPC as the mobile Business app, with the role fixed to <code>teacher</code>. RLS on <code>organization_invitations</code> gates who can create — only owners and admins of the selected organization succeed. Accepting the invite adds the teacher to <code>organization_memberships</code> and flips their profile's <code>is_teacher</code> flag on first login.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (!window.DuvelaWebConfig || typeof window.DuvelaWebConfig.createSupabaseClient !== 'function') {
+    document.body.innerHTML = '<div class="wrap"><div class="card"><h2>Configuration missing</h2>' +
+      '<p class="lead">DuvelaWebConfig isn\'t loaded. Ensure ./web/duvela-web-config.js is served.</p></div></div>';
+    throw new Error('Missing DuvelaWebConfig');
+  }
+  var client = window.DuvelaWebConfig.createSupabaseClient();
+  var currentUser = null;
+  var orgs = [];
+  var selectedOrgId = null;
+
+  function joinBase() {
+    // Deep-link the teacher back to the same origin the org owner is on so
+    // they land on the correct workspace after accepting.
+    return location.origin + location.pathname.replace(/invite-teacher\.html.*$/, '') + 'app.html';
+  }
+
+  function showMsg(id, text, kind) {
+    var el = document.getElementById(id);
+    el.className = 'msg ' + (kind || 'ok');
+    el.textContent = text;
+    if (kind === 'ok') setTimeout(function () { el.className = 'msg'; el.textContent = ''; }, 5000);
+  }
+
+  async function boot() {
+    var s = await client.auth.getSession();
+    currentUser = s.data.session ? s.data.session.user : null;
+    if (!currentUser) {
+      document.getElementById('signedOut').style.display = 'block';
+      document.getElementById('signedIn').style.display = 'none';
+      return;
+    }
+    document.getElementById('signedOut').style.display = 'none';
+    document.getElementById('signedIn').style.display = 'block';
+    document.getElementById('who').innerHTML =
+      currentUser.email + '<button id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').addEventListener('click', async function () {
+      await client.auth.signOut();
+      location.reload();
+    });
+    await loadOrgs();
+  }
+
+  async function loadOrgs() {
+    // Show every organization where the current user is admin or owner (RLS
+    // hides the rest anyway, so the query is a formality — but keeping it
+    // explicit makes an accidental "student in an org" case not clutter the
+    // dropdown).
+    var r = await client.from('organization_memberships')
+      .select('organization_id, role, organizations!organization_memberships_organization_id_fkey(id, name)')
+      .eq('user_id', currentUser.id)
+      .eq('status', 'active')
+      .in('role', ['owner', 'admin']);
+    orgs = ((r.data || []).map(function (row) {
+      return row.organizations
+        ? { id: row.organizations.id, name: row.organizations.name, role: row.role }
+        : null;
+    })).filter(Boolean);
+    if (!orgs.length) {
+      document.getElementById('noOrg').style.display = 'block';
+      document.getElementById('orgUi').style.display = 'none';
+      return;
+    }
+    document.getElementById('orgUi').style.display = 'block';
+    var select = document.getElementById('orgSelect');
+    select.innerHTML = orgs.map(function (org) {
+      return '<option value="' + org.id + '">' + escapeHtml(org.name) + '  ·  ' + org.role + '</option>';
+    }).join('');
+    selectedOrgId = orgs[0].id;
+    select.value = selectedOrgId;
+    select.addEventListener('change', function () {
+      selectedOrgId = select.value;
+      void loadPending();
+    });
+    await loadPending();
+  }
+
+  async function loadPending() {
+    var body = document.getElementById('pendingBody');
+    body.innerHTML = '<tr><td colspan="4" class="empty">Loading…</td></tr>';
+    var r = await client.from('organization_invitations')
+      .select('id, email, role, token, status, expires_at, created_at')
+      .eq('organization_id', selectedOrgId)
+      .eq('role', 'teacher')
+      .order('created_at', { ascending: false });
+    if (r.error) {
+      body.innerHTML = '<tr><td colspan="4" class="empty">' + escapeHtml(r.error.message) + '</td></tr>';
+      return;
+    }
+    var rows = (r.data || []).filter(function (row) { return row.status === 'pending'; });
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="4" class="empty">No pending teacher invitations. Send one above.</td></tr>';
+      return;
+    }
+    var now = Date.now();
+    body.innerHTML = rows.map(function (row) {
+      var expires = new Date(row.expires_at).getTime();
+      var expired = expires < now;
+      var expLabel = expired ? 'Expired' : timeLeft(expires - now);
+      return '<tr data-token="' + escapeHtml(row.token) + '">' +
+        '<td>' + escapeHtml(row.email) + '</td>' +
+        '<td><span class="pill ' + (expired ? 'expired' : 'pending') + '">' + (expired ? 'expired' : 'pending') + '</span></td>' +
+        '<td>' + expLabel + '</td>' +
+        '<td style="text-align:right;">' +
+        (expired ? '' : '<button class="btn small ghost" data-copy="' + escapeHtml(row.token) + '">Copy link</button>') +
+        '</td></tr>';
+    }).join('');
+    Array.prototype.forEach.call(body.querySelectorAll('[data-copy]'), function (button) {
+      button.addEventListener('click', function () {
+        var link = joinBase() + '?invite=' + encodeURIComponent(button.getAttribute('data-copy'));
+        copyToClipboard(link, button);
+      });
+    });
+  }
+
+  document.getElementById('createBtn').addEventListener('click', async function () {
+    var email = document.getElementById('inviteEmail').value.trim();
+    if (!email || !selectedOrgId) return;
+    var btn = this;
+    btn.disabled = true;
+    var previous = btn.textContent;
+    btn.textContent = 'Creating…';
+    var r = await client.rpc('create_organization_invitation', {
+      target_email: email,
+      target_organization_id: selectedOrgId,
+      target_role: 'teacher',
+    });
+    btn.disabled = false;
+    btn.textContent = previous;
+    if (r.error) {
+      showMsg('createMsg', r.error.message || 'Could not create invitation.', 'err');
+      return;
+    }
+    var row = (r.data || [])[0];
+    if (!row || !row.token) {
+      showMsg('createMsg', 'The server did not return an invitation token.', 'err');
+      return;
+    }
+    document.getElementById('createMsg').className = 'msg';
+    document.getElementById('createMsg').textContent = '';
+    var link = joinBase() + '?invite=' + encodeURIComponent(row.token);
+    document.getElementById('linkBox').style.display = 'block';
+    document.getElementById('inviteLink').value = link;
+    document.getElementById('linkHint').textContent =
+      'Expires ' + new Date(row.expires_at).toLocaleString();
+    document.getElementById('inviteEmail').value = '';
+    document.getElementById('inviteName').value = '';
+    await loadPending();
+  });
+
+  document.getElementById('copyLinkBtn').addEventListener('click', function () {
+    var input = document.getElementById('inviteLink');
+    copyToClipboard(input.value, this);
+  });
+
+  function copyToClipboard(text, button) {
+    var previous = button.textContent;
+    var done = function () {
+      button.textContent = 'Copied ✓';
+      setTimeout(function () { button.textContent = previous; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var tmp = document.createElement('textarea');
+      tmp.value = text;
+      tmp.setAttribute('readonly', '');
+      tmp.style.position = 'absolute';
+      tmp.style.left = '-9999px';
+      document.body.appendChild(tmp);
+      tmp.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(tmp);
+      done();
+    }
+  }
+
+  function timeLeft(ms) {
+    if (ms <= 0) return '—';
+    var days = Math.floor(ms / 86400000);
+    if (days >= 1) return days + 'd left';
+    var hours = Math.floor(ms / 3600000);
+    if (hours >= 1) return hours + 'h left';
+    return Math.floor(ms / 60000) + 'm left';
+  }
+
+  function escapeHtml(text) {
+    return String(text == null ? '' : text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  void boot();
+</script>
+</body>
+</html>
