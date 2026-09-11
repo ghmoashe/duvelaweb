@@ -47,6 +47,9 @@ const dirs = [
   'web',
   'locales',
   'legal',
+  // Teacher award medals surfaced on teacher-invite.html and later on
+  // the teacher profile page. 10 PNGs — small enough to ship as-is.
+  'awards',
   // Universal-links verification files (Apple AASA + Android assetlinks.json).
   // Both must sit at the site root under /.well-known/ or the OS will not
   // hand vela.cafe taps to the Hub app.

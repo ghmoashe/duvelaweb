@@ -554,6 +554,20 @@
 
   /* Application form — real submission, gated by teacher_applications table. */
   .apply-section { background: linear-gradient(180deg, #FAF6FF 0%, #F0EBFA 100%); }
+  /* Awards row — 5-column grid on desktop, 2 on mobile. Each card is a
+     medal image + title + short description. Background is a soft gold
+     wash so the medals read as prestige without fighting the rest of
+     the page palette. */
+  .awards-section { background: linear-gradient(180deg, #FFFDF7 0%, #FFF6E6 100%); }
+  .awards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-top: 32px; }
+  .award-card { text-align: center; padding: 22px 14px 18px; border-radius: 20px; background: #fff; border: 1px solid rgba(245,158,11,.2); box-shadow: 0 12px 32px rgba(245,158,11,.08); transition: transform .2s, box-shadow .2s; }
+  .award-card:hover { transform: translateY(-4px); box-shadow: 0 20px 44px rgba(245,158,11,.18); }
+  .award-card img { width: 96px; height: 96px; object-fit: contain; margin: 0 auto; display: block; filter: drop-shadow(0 6px 12px rgba(245,158,11,.25)); }
+  .award-card h3 { margin-top: 12px; font-size: 14px; font-weight: 800; color: var(--dark); letter-spacing: -.01em; }
+  .award-card p { margin-top: 6px; font-size: 12px; line-height: 1.5; color: var(--soft); }
+  @media (max-width: 1080px) { .awards-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 820px)  { .awards-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px)  { .awards-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .award-card img { width: 78px; height: 78px; } .award-card h3 { font-size: 13px; } }
   .apply-form { max-width: 780px; margin: 32px auto 0; background: #fff; border-radius: 22px; padding: clamp(20px, 4vw, 36px); border: 1px solid var(--line); box-shadow: 0 24px 72px rgba(32,22,64,.08); }
   .apply-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
   .apply-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
@@ -830,6 +844,22 @@
       </div>
     </section>
 
+    <!-- Teacher awards: recognition medals a teacher can earn on Duvela.
+         Used both here as a motivator and on the public teacher profile
+         once earned. Data lives in the awards[] array below; render loop
+         at the bottom builds a card per medal so translations stay in
+         the same i18n dictionary. -->
+    <section class="section awards-section" id="awards">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="awards_kicker">Recognition</span>
+          <h2 data-i18n="awards_title">10 awards teachers can earn on Duvela</h2>
+          <p data-i18n="awards_body">Every award is visible on your public profile — students see who's been active, consistent and highly rated at a glance.</p>
+        </div>
+        <div class="awards-grid" id="awardsGrid"></div>
+      </div>
+    </section>
+
     <section class="section apply-section" id="apply">
       <div class="wrap">
         <div class="section-head">
@@ -977,6 +1007,17 @@
       eyebrow:'Welcome to Duvela Academy Hub',
       video_kicker:'Welcome to Duvela Academy Hub',video_title:'60 seconds — see what a teacher gets on day one.',video_body:'From public profile and courses to browser LIVE, chat, community and payments — everything a teacher needs, in one workspace.',video_play:'Play the overview',video_placeholder:'Video coming soon. Meanwhile, scroll down for the tour.',
       strip_languages:'languages',strip_teachers:'teachers',strip_learners:'active learners',strip_signup:'setup fee',
+      awards_kicker:'Recognition',awards_title:'10 awards teachers can earn on Duvela',awards_body:"Every award is visible on your public profile — students see who's been active, consistent and highly rated at a glance.",
+      award_live_teacher_t:'Live Teacher',award_live_teacher_b:'For hosting your first LIVE lesson.',
+      award_student_favorite_t:'Student Favorite',award_student_favorite_b:'For a high rating — 4.8+ after 10 reviews.',
+      award_consistent_t:'Consistent Teacher',award_consistent_b:'For being active 7 days in a row or 4 consecutive weeks.',
+      award_mentor_t:'Mentor',award_mentor_b:'When several students reach their goals or complete a program.',
+      award_community_t:'Community Star',award_community_b:'For active participation — answering, commenting, sharing useful materials.',
+      award_first100_t:'First 100 Teachers',award_first100_b:'For being one of the first 100 teachers on Duvela.',
+      award_first_lesson_t:'First Lesson',award_first_lesson_b:'For running your very first lesson on the platform.',
+      award_10_lessons_t:'10 Lessons Together',award_10_lessons_b:'For hosting 10 lessons with the same student or group.',
+      award_author_t:'Duvela Author',award_author_b:'For publishing a course, practice pack or original material.',
+      award_graduate_t:'First Graduate',award_graduate_b:'For guiding your first student to finish a full program.',
       apply_kicker:'Application',apply_title:'Apply to teach on Duvela',apply_body:"Tell us a bit about yourself. Our team reviews every application within 24 hours and sends the invitation link straight to your inbox.",
       apply_name:'Full name',apply_email:'Email',apply_phone:'Phone / Telegram (optional)',apply_country:'City, country',apply_native:'Native language',apply_teach:'I teach (comma-separated)',apply_levels:'Levels (A1–C2, comma-separated)',apply_years:'Years of experience',apply_platform:'Where do you teach now? (optional)',apply_motivation:'Why Duvela? (a couple of sentences)',apply_consent:'I agree to be contacted by the Duvela team about my application.',apply_submit:'Send application',apply_note:"You'll hear from us within 24 hours.",apply_sending:'Sending…',apply_success:"Thanks — we got your application. We'll be in touch within 24 hours.",apply_error:'Could not send.',apply_missing:'Please fill in your name and email.',apply_need_consent:'Please agree to be contacted before sending.'
     });
@@ -1024,6 +1065,17 @@
       eyebrow:'Добро пожаловать в Duvela Academy Hub',
       video_kicker:'Добро пожаловать в Duvela Academy Hub',video_title:'60 секунд — увидьте, что получает учитель в первый же день.',video_body:'От публичного профиля и курсов до LIVE-студии в браузере, чата, сообщества и приёма оплат — всё, что нужно учителю, в одном кабинете.',video_play:'Смотреть обзор',video_placeholder:'Видео скоро появится. А пока — ниже полный обзор.',
       strip_languages:'языков',strip_teachers:'учителей',strip_learners:'активных учеников',strip_signup:'плата за подключение',
+      awards_kicker:'Признание',awards_title:'10 наград учителей на Duvela',awards_body:'Все награды видны в вашем публичном профиле — ученики сразу видят, кто активен, стабилен и высоко оценён.',
+      award_live_teacher_t:'Live Teacher',award_live_teacher_b:'За первый проведённый LIVE-урок.',
+      award_student_favorite_t:'Student Favorite',award_student_favorite_b:'За высокий рейтинг — 4.8+ после 10 отзывов.',
+      award_consistent_t:'Consistent Teacher',award_consistent_b:'За активность 7 дней подряд или 4 недели подряд.',
+      award_mentor_t:'Mentor',award_mentor_b:'Когда несколько учеников достигают целей или завершают программу.',
+      award_community_t:'Community Star',award_community_b:'За активное участие — ответы, комментарии, полезные материалы.',
+      award_first100_t:'First 100 Teachers',award_first100_b:'За вход в первую сотню учителей Duvela.',
+      award_first_lesson_t:'First Lesson',award_first_lesson_b:'За первый урок, проведённый на платформе.',
+      award_10_lessons_t:'10 Lessons Together',award_10_lessons_b:'За 10 проведённых уроков с одним учеником или группой.',
+      award_author_t:'Duvela Author',award_author_b:'За публикацию курса, практики или авторского материала.',
+      award_graduate_t:'First Graduate',award_graduate_b:'За первого ученика, полностью завершившего программу.',
       apply_kicker:'Заявка',apply_title:'Заявка на преподавание в Duvela',apply_body:'Расскажите немного о себе. Команда рассматривает каждую заявку в течение 24 часов и присылает ссылку-приглашение прямо на email.',
       apply_name:'Полное имя',apply_email:'Email',apply_phone:'Телефон / Telegram (не обязательно)',apply_country:'Город, страна',apply_native:'Родной язык',apply_teach:'Преподаю (через запятую)',apply_levels:'Уровни (A1–C2, через запятую)',apply_years:'Опыт (лет)',apply_platform:'Где преподаёте сейчас? (не обязательно)',apply_motivation:'Почему Duvela? (пара предложений)',apply_consent:'Согласен(а) на связь со стороны команды Duvela по моей заявке.',apply_submit:'Отправить заявку',apply_note:'Ответим в течение 24 часов.',apply_sending:'Отправляем…',apply_success:'Спасибо — мы получили вашу заявку. Свяжемся в течение 24 часов.',apply_error:'Не удалось отправить.',apply_missing:'Пожалуйста, заполните имя и email.',apply_need_consent:'Пожалуйста, подтвердите согласие перед отправкой.'
     });
@@ -1071,6 +1123,17 @@
       eyebrow:'Willkommen bei Duvela Academy Hub',
       video_kicker:'Willkommen bei Duvela Academy Hub',video_title:'60 Sekunden — sieh, was ein Lehrer am ersten Tag bekommt.',video_body:'Vom öffentlichen Profil und Kursen bis zu LIVE im Browser, Chat, Community und Zahlungen — alles, was ein Lehrer braucht, in einem Arbeitsbereich.',video_play:'Überblick abspielen',video_placeholder:'Video kommt bald. Bis dahin — scrolle für die Tour.',
       strip_languages:'Sprachen',strip_teachers:'Lehrer',strip_learners:'aktive Lernende',strip_signup:'Einrichtungsgebühr',
+      awards_kicker:'Anerkennung',awards_title:'10 Auszeichnungen für Duvela-Lehrer',awards_body:'Jede Auszeichnung ist in deinem öffentlichen Profil sichtbar — Lernende sehen auf einen Blick, wer aktiv, konstant und hoch bewertet ist.',
+      award_live_teacher_t:'Live Teacher',award_live_teacher_b:'Für die erste durchgeführte LIVE-Stunde.',
+      award_student_favorite_t:'Student Favorite',award_student_favorite_b:'Für eine hohe Bewertung — 4,8+ nach 10 Rezensionen.',
+      award_consistent_t:'Consistent Teacher',award_consistent_b:'Für Aktivität an 7 Tagen in Folge oder 4 Wochen hintereinander.',
+      award_mentor_t:'Mentor',award_mentor_b:'Wenn mehrere Lernende ihre Ziele erreichen oder ein Programm abschließen.',
+      award_community_t:'Community Star',award_community_b:'Für aktive Teilnahme — Antworten, Kommentare, nützliche Materialien.',
+      award_first100_t:'First 100 Teachers',award_first100_b:'Für die Zugehörigkeit zu den ersten 100 Lehrern auf Duvela.',
+      award_first_lesson_t:'First Lesson',award_first_lesson_b:'Für die allererste Stunde auf der Plattform.',
+      award_10_lessons_t:'10 Lessons Together',award_10_lessons_b:'Für 10 gehaltene Stunden mit demselben Lernenden oder einer Gruppe.',
+      award_author_t:'Duvela Author',award_author_b:'Für die Veröffentlichung eines Kurses, Übungspakets oder Originalmaterials.',
+      award_graduate_t:'First Graduate',award_graduate_b:'Für den ersten Lernenden, der ein vollständiges Programm abgeschlossen hat.',
       apply_kicker:'Bewerbung',apply_title:'Als Lehrer bei Duvela bewerben',apply_body:'Erzähl uns kurz von dir. Wir prüfen jede Bewerbung innerhalb von 24 Stunden und schicken den Einladungslink direkt in dein Postfach.',
       apply_name:'Vollständiger Name',apply_email:'E-Mail',apply_phone:'Telefon / Telegram (optional)',apply_country:'Stadt, Land',apply_native:'Muttersprache',apply_teach:'Ich unterrichte (durch Komma getrennt)',apply_levels:'Niveaus (A1–C2, durch Komma getrennt)',apply_years:'Berufserfahrung (Jahre)',apply_platform:'Wo unterrichtest du aktuell? (optional)',apply_motivation:'Warum Duvela? (ein paar Sätze)',apply_consent:'Ich stimme zu, dass das Duvela-Team mich zu meiner Bewerbung kontaktiert.',apply_submit:'Bewerbung senden',apply_note:'Wir melden uns innerhalb von 24 Stunden.',apply_sending:'Senden…',apply_success:'Danke — wir haben deine Bewerbung. Wir melden uns innerhalb von 24 Stunden.',apply_error:'Konnte nicht gesendet werden.',apply_missing:'Bitte Name und E-Mail ausfüllen.',apply_need_consent:'Bitte stimme der Kontaktaufnahme vor dem Senden zu.'
     });
@@ -1139,6 +1202,35 @@
       });
     }
 
+    // Teacher awards data — 10 medals from ./awards/*.png. Titles + bodies
+    // pull from the i18n dictionary so the grid re-renders in whatever
+    // language the picker is on.
+    var awards = [
+      { file:'live-teacher.png',        t:'award_live_teacher_t',        b:'award_live_teacher_b' },
+      { file:'student-favorite.png',    t:'award_student_favorite_t',    b:'award_student_favorite_b' },
+      { file:'consistent-teacher.png',  t:'award_consistent_t',          b:'award_consistent_b' },
+      { file:'mentor.png',              t:'award_mentor_t',              b:'award_mentor_b' },
+      { file:'community-star.png',      t:'award_community_t',           b:'award_community_b' },
+      { file:'first-100-teachers.png',  t:'award_first100_t',            b:'award_first100_b' },
+      { file:'first-lesson.png',        t:'award_first_lesson_t',        b:'award_first_lesson_b' },
+      { file:'10-lessons-together.png', t:'award_10_lessons_t',          b:'award_10_lessons_b' },
+      { file:'duvela-author.png',       t:'award_author_t',              b:'award_author_b' },
+      { file:'first-graduate.png',      t:'award_graduate_t',            b:'award_graduate_b' },
+    ];
+    function renderAwards(copyLang) {
+      var grid = document.getElementById('awardsGrid');
+      if (!grid) return;
+      grid.innerHTML = awards.map(function (a) {
+        var title = dict[copyLang][a.t] || dict.en[a.t] || '';
+        var body = dict[copyLang][a.b] || dict.en[a.b] || '';
+        return '<div class="award-card">' +
+          '<img src="./awards/' + a.file + '" alt="' + title.replace(/"/g, '&quot;') + '" loading="lazy">' +
+          '<h3>' + title + '</h3>' +
+          '<p>' + body + '</p>' +
+        '</div>';
+      }).join('');
+    }
+
     function renderLang() {
       var copyLang = dictLang(lang);
       var info = localeInfo(lang);
@@ -1162,6 +1254,7 @@
         document.querySelectorAll('[data-i18n-html="' + key + '"]').forEach(function (node) { node.innerHTML = dict[copyLang][key]; });
       });
       document.querySelectorAll('.js-teacher-signup').forEach(function (link) { link.href = signupUrl(); });
+      renderAwards(copyLang);
     }
     document.querySelectorAll('[data-lang]').forEach(function (button) {
       button.addEventListener('click', function () {
