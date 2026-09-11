@@ -25,6 +25,11 @@
      the rest of the web app and reads SUPABASE_URL / anon key at runtime. -->
 <script src="./web/vendor/supabase-js-v2.js"></script>
 <script src="./web/duvela-web-config.js"></script>
+<!-- Full 34+ locale catalog shared with the main index page. We use it
+     only for the language picker names/flags; page copy stays in the
+     inline EN/RU/DE dictionary below and falls back to EN for other
+     languages until they're translated. -->
+<script src="./locales/web-locales.js"></script>
 <style>
   :root {
     --bg: #F7F7FB;
@@ -97,6 +102,16 @@
     cursor: pointer;
   }
   .lang-switch button.active { border-color: var(--purple); color: var(--purple); background: #F1ECFF; }
+  /* Full 34+ language picker (matches index.html catalog) — a select
+     instead of pill buttons so the list fits without wrapping. */
+  .lang-pick { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; }
+  .lang-pick:hover { border-color: var(--purple); }
+  .lang-pick select { border: 0; background: transparent; font: inherit; color: inherit; outline: none; cursor: pointer; padding: 2px 4px 2px 0; }
+  /* Bigger brand slot — the new colorful wordmark reads clearer when
+     it has room to breathe. Falls back to the older logo2.png if
+     logo3.png hasn't shipped yet (see the <img onerror>). */
+  .brand-lg img { height: 42px; max-height: 42px; }
+  @media (max-width: 640px) { .brand-lg img { height: 32px; } }
   .pill {
     display: inline-flex;
     align-items: center;
@@ -626,8 +641,8 @@
   <nav class="nav">
     <div class="wrap">
       <div class="nav-inner">
-        <a class="brand" href="./index.html" aria-label="Duvela home">
-          <img src="./logo2.png" alt="Duvela">
+        <a class="brand brand-lg" href="./index.html" aria-label="Duvela home">
+          <img src="./logo3.png" alt="Duvela" onerror="this.onerror=null;this.src='./logo2.png';">
         </a>
         <div class="nav-actions">
           <div class="nav-links" aria-label="Page sections">
@@ -635,11 +650,10 @@
             <a href="#how" data-i18n="nav_how">How it works</a>
             <a href="#faq" data-i18n="nav_faq">Questions</a>
           </div>
-          <div class="lang-switch" aria-label="Language">
-            <button type="button" data-lang="en">EN</button>
-            <button type="button" data-lang="ru">RU</button>
-            <button type="button" data-lang="de">DE</button>
-          </div>
+          <label class="lang-pick" aria-label="Language">
+            <span aria-hidden="true">🌐</span>
+            <select id="langSelect" data-lang-select></select>
+          </label>
           <a class="pill" href="./index.html" data-i18n="nav_home">Home</a>
           <a class="pill primary js-teacher-signup" data-cta-place="navigation" href="./index.html?login=1" data-i18n="nav_join">Join as teacher</a>
         </div>
@@ -1062,7 +1076,15 @@
     });
     var refInput = document.getElementById('inviteRef');
     var rawLang = (inviteParams.get('lang') || localStorage.getItem(langKey) || navigator.language || 'en').toLowerCase();
-    var lang = rawLang.indexOf('ru') === 0 ? 'ru' : rawLang.indexOf('de') === 0 ? 'de' : 'en';
+    var supportedCodes = ((window.DUVELA_WEB_I18N && window.DUVELA_WEB_I18N.locales) || [{ code:'en' }, { code:'ru' }, { code:'de' }]).map(function (l) { return l.code; });
+    function pickSupportedLang(raw) {
+      if (!raw) return 'en';
+      var short = raw.slice(0, 2);
+      if (supportedCodes.indexOf(raw) >= 0) return raw;
+      if (supportedCodes.indexOf(short) >= 0) return short;
+      return 'en';
+    }
+    var lang = pickSupportedLang(rawLang);
     var ref = (inviteParams.get('ref') || inviteParams.get('org') || 'duvela-teacher').trim().slice(0, 80);
     if (refInput) refInput.value = ref;
     function inviteUrl() {
@@ -1089,28 +1111,62 @@
       window.dataLayer.push(payload);
       try { window.dispatchEvent(new CustomEvent('duvela:teacher-invite-action', { detail: payload })); } catch (_) {}
     }
+    // Full 34+ locale catalog shared with the main index page. Only three
+    // languages (en/ru/de) have translated copy right now — the rest map
+    // to English via dictLang() so a viewer can still browse the page in
+    // their locale and get the correct html[lang] + RTL direction.
+    var catalog = (window.DUVELA_WEB_I18N && Array.isArray(window.DUVELA_WEB_I18N.locales))
+      ? window.DUVELA_WEB_I18N.locales
+      : [{ code:'en', flag:'🇺🇸', name:'English', dir:'ltr' },
+         { code:'ru', flag:'🇷🇺', name:'Русский', dir:'ltr' },
+         { code:'de', flag:'🇩🇪', name:'Deutsch', dir:'ltr' }];
+    function dictLang(code) { return dict[code] ? code : 'en'; }
+    function localeInfo(code) {
+      for (var i = 0; i < catalog.length; i++) if (catalog[i].code === code) return catalog[i];
+      return null;
+    }
+    var langSelect = document.getElementById('langSelect');
+    if (langSelect) {
+      langSelect.innerHTML = catalog.map(function (locale) {
+        return '<option value="' + locale.code + '">' + (locale.flag ? locale.flag + '  ' : '') + locale.name + '</option>';
+      }).join('');
+      langSelect.value = lang;
+      langSelect.addEventListener('change', function () {
+        lang = langSelect.value;
+        try { localStorage.setItem(langKey, lang); } catch (_) {}
+        trackInviteAction('language_change', lang);
+        renderLang();
+      });
+    }
+
     function renderLang() {
+      var copyLang = dictLang(lang);
+      var info = localeInfo(lang);
       document.documentElement.lang = lang;
-      document.title = dict[lang].seo_title;
+      document.documentElement.dir = (info && info.dir === 'rtl') ? 'rtl' : 'ltr';
+      document.title = dict[copyLang].seo_title;
       var description = document.querySelector('meta[name="description"]');
       var ogTitle = document.querySelector('meta[property="og:title"]');
       var ogDescription = document.querySelector('meta[property="og:description"]');
-      if (description) description.content = dict[lang].seo_description;
-      if (ogTitle) ogTitle.content = dict[lang].seo_title;
-      if (ogDescription) ogDescription.content = dict[lang].seo_description;
+      if (description) description.content = dict[copyLang].seo_description;
+      if (ogTitle) ogTitle.content = dict[copyLang].seo_title;
+      if (ogDescription) ogDescription.content = dict[copyLang].seo_description;
+      if (langSelect && langSelect.value !== lang) langSelect.value = lang;
+      // Legacy EN/RU/DE pill buttons are gone, but keep this loop as a
+      // no-op guard in case an embed reintroduces them.
       document.querySelectorAll('[data-lang]').forEach(function (button) {
         button.classList.toggle('active', button.dataset.lang === lang);
       });
-      Object.keys(dict[lang]).forEach(function (key) {
-        document.querySelectorAll('[data-i18n="' + key + '"]').forEach(function (node) { node.textContent = dict[lang][key]; });
-        document.querySelectorAll('[data-i18n-html="' + key + '"]').forEach(function (node) { node.innerHTML = dict[lang][key]; });
+      Object.keys(dict[copyLang]).forEach(function (key) {
+        document.querySelectorAll('[data-i18n="' + key + '"]').forEach(function (node) { node.textContent = dict[copyLang][key]; });
+        document.querySelectorAll('[data-i18n-html="' + key + '"]').forEach(function (node) { node.innerHTML = dict[copyLang][key]; });
       });
       document.querySelectorAll('.js-teacher-signup').forEach(function (link) { link.href = signupUrl(); });
     }
     document.querySelectorAll('[data-lang]').forEach(function (button) {
       button.addEventListener('click', function () {
         lang = button.dataset.lang;
-        localStorage.setItem(langKey, lang);
+        try { localStorage.setItem(langKey, lang); } catch (_) {}
         trackInviteAction('language_change', button.dataset.lang);
         renderLang();
       });
