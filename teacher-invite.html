@@ -21,6 +21,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Supabase client for the "Apply to teach" form. Config is shared with
+     the rest of the web app and reads SUPABASE_URL / anon key at runtime. -->
+<script src="./web/vendor/supabase-js-v2.js"></script>
+<script src="./web/duvela-web-config.js"></script>
 <style>
   :root {
     --bg: #F7F7FB;
@@ -507,6 +511,54 @@
     line-height: 1;
   }
   .faq-item[open] summary::after { content: "−"; }
+
+  /* VIP gold eyebrow — overrides the teal one on the hero only. */
+  .eyebrow-gold { background: linear-gradient(120deg, rgba(245,158,11,.14), rgba(245,158,11,.06)); border-color: rgba(245,158,11,.35); color: #8A5A00; }
+  .eyebrow-gold i { background: var(--gold); box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+
+  /* Video section — placeholder card with a play button, ready to swap
+     the inner iframe when the real overview clip is uploaded. */
+  .video-section { padding-top: 24px; }
+  .video-frame { position: relative; margin-top: 32px; border-radius: 24px; overflow: hidden; background: var(--dark); box-shadow: 0 32px 80px rgba(19,10,55,.28); aspect-ratio: 16 / 9; }
+  .video-frame-inner { position: absolute; inset: 0; display: grid; place-items: center; }
+  .video-frame-inner iframe { width: 100%; height: 100%; border: 0; }
+  .video-placeholder { text-align: center; color: rgba(255,255,255,.9); padding: 20px; }
+  .video-placeholder-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(245,158,11,.18); color: #FBBF24; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .video-placeholder-badge i { width: 8px; height: 8px; border-radius: 50%; background: #EF4444; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+  .video-placeholder-title { margin-top: 18px; font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -.02em; background: linear-gradient(120deg, #fff, #C7D2FE 60%, #FBBF24); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .video-placeholder-caption { margin-top: 10px; font-size: 14px; color: rgba(255,255,255,.7); }
+  .video-play { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 12px; padding: 14px 24px; border-radius: 999px; border: 0; background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%); color: #171321; font-family: inherit; font-weight: 800; font-size: 14px; letter-spacing: .01em; cursor: pointer; box-shadow: 0 22px 50px rgba(245,158,11,.35); transition: .2s; }
+  .video-play:hover { transform: translate(-50%, calc(-50% - 3px)); box-shadow: 0 28px 60px rgba(245,158,11,.5); }
+  .video-play svg { width: 22px; height: 22px; }
+  .video-play.hidden { display: none; }
+  .video-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+  .video-strip span { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 12px; border-radius: 14px; background: linear-gradient(180deg, #FFFFFF, #F7F3FF); border: 1px solid var(--line); }
+  .video-strip b { font-size: 24px; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(120deg, var(--purple), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .video-strip small { font-size: 11.5px; font-weight: 650; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+  /* Application form — real submission, gated by teacher_applications table. */
+  .apply-section { background: linear-gradient(180deg, #FAF6FF 0%, #F0EBFA 100%); }
+  .apply-form { max-width: 780px; margin: 32px auto 0; background: #fff; border-radius: 22px; padding: clamp(20px, 4vw, 36px); border: 1px solid var(--line); box-shadow: 0 24px 72px rgba(32,22,64,.08); }
+  .apply-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
+  .apply-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .apply-field > span { font-size: 12.5px; font-weight: 650; color: var(--soft); }
+  .apply-field > span em { color: var(--purple); font-style: normal; margin-left: 3px; }
+  .apply-field input, .apply-field textarea { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 14px; color: var(--ink); background: #FBFAFD; outline: none; transition: .15s; }
+  .apply-field input:focus, .apply-field textarea:focus { border-color: var(--purple); background: #fff; box-shadow: 0 0 0 3px rgba(109,63,224,.12); }
+  .apply-field textarea { resize: vertical; min-height: 100px; font-family: inherit; }
+  .apply-consent { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: #F7F3FF; border-radius: 12px; margin-top: 6px; }
+  .apply-consent label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: var(--soft); line-height: 1.5; }
+  .apply-consent input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--purple); }
+  .apply-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; }
+  .apply-note { font-size: 12.5px; color: var(--soft); }
+  .apply-message { margin-top: 14px; padding: 0; border-radius: 10px; font-size: 13.5px; font-weight: 600; }
+  .apply-message.ok { padding: 14px 16px; background: rgba(15,159,122,.14); color: #08745A; }
+  .apply-message.err { padding: 14px 16px; background: rgba(239,68,68,.14); color: #B42318; }
+  @media (max-width: 720px) {
+    .apply-row { grid-template-columns: 1fr; }
+    .video-strip { grid-template-columns: repeat(2, 1fr); }
+  }
   .faq-item p { margin: 0; padding: 0 22px 20px; color: var(--soft); line-height: 1.65; }
   .mobile-cta { display: none; }
   footer { padding: 34px 0 46px; color: var(--muted); font-size: 13px; font-weight: 650; }
@@ -599,7 +651,7 @@
     <header class="hero">
       <div class="wrap hero-grid">
         <div>
-          <span class="eyebrow"><i></i><span data-i18n="eyebrow">Teacher invitation</span></span>
+          <span class="eyebrow eyebrow-gold"><i></i><span data-i18n="eyebrow">Welcome to Duvela Academy Hub</span></span>
           <h1 data-i18n-html="hero_title">Teach on <span class="grad">Duvela</span> with one clean workspace.</h1>
           <p class="lead" data-i18n="hero_body">Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.</p>
           <div class="hero-ctas">
@@ -645,6 +697,38 @@
         </aside>
       </div>
     </header>
+
+    <!-- 60-second overview video: what a teacher's day-in-the-life looks
+         like on Duvela. Drop the real YouTube / Vimeo embed URL into
+         data-src on #introVideoFrame and it lazy-swaps on first play. -->
+    <section class="section video-section" id="video">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="video_kicker">Welcome to Duvela Academy Hub</span>
+          <h2 data-i18n="video_title">60 seconds — see what a teacher gets on day one.</h2>
+          <p data-i18n="video_body">From public profile and courses to browser LIVE, chat, community and payments — everything a teacher needs, in one workspace.</p>
+        </div>
+        <div class="video-frame" id="introVideo">
+          <button type="button" class="video-play" id="introVideoPlay" aria-label="Play the Duvela teacher overview video">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+            <span data-i18n="video_play">Play the overview</span>
+          </button>
+          <div class="video-frame-inner" id="introVideoFrame" data-src="">
+            <div class="video-placeholder">
+              <div class="video-placeholder-badge"><i></i>DUVELA · LIVE STUDIO</div>
+              <div class="video-placeholder-title">Duvela Academy Hub</div>
+              <div class="video-placeholder-caption" data-i18n="video_placeholder">Video coming soon. Meanwhile, scroll down for the tour.</div>
+            </div>
+          </div>
+        </div>
+        <div class="video-strip">
+          <span><b>12+</b><small data-i18n="strip_languages">languages</small></span>
+          <span><b>200+</b><small data-i18n="strip_teachers">teachers</small></span>
+          <span><b>3k+</b><small data-i18n="strip_learners">active learners</small></span>
+          <span><b>0%</b><small data-i18n="strip_signup">setup fee</small></span>
+        </div>
+      </div>
+    </section>
 
     <section class="section alt" id="value">
       <div class="wrap value-grid">
@@ -731,28 +815,74 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section apply-section" id="apply">
       <div class="wrap">
-        <div class="invite-box">
-          <div>
-            <h2 data-i18n="invite_title">Ready to open your teacher workspace?</h2>
-            <p data-i18n="invite_body">Accept the invitation. Duvela will open signup with the teacher role selected and preserve the invitation reference.</p>
-            <div class="final-checks">
-              <span data-i18n="final_check_1">Teacher role selected</span>
-              <span data-i18n="final_check_2">Invite reference preserved</span>
-              <span data-i18n="final_check_3">Continue in your browser</span>
-            </div>
-            <div class="invite-code">
-              <label for="inviteRef" data-i18n="code_label">Your invite reference</label>
-              <input id="inviteRef" maxlength="80" autocomplete="off" value="duvela-teacher" readonly aria-readonly="true">
-            </div>
-            <div class="note" id="copyNote" aria-live="polite"></div>
-          </div>
-          <div class="invite-actions">
-            <button class="pill" type="button" id="copyInvite" data-i18n="copy">Copy invite link</button>
-            <a class="pill primary js-teacher-signup" data-cta-place="final" href="./index.html?login=1" data-i18n="create">Accept and create account</a>
-          </div>
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="apply_kicker">Application</span>
+          <h2 data-i18n="apply_title">Apply to teach on Duvela</h2>
+          <p data-i18n="apply_body">Tell us a bit about yourself. Our team reviews every application within 24 hours and sends the invitation link straight to your inbox.</p>
         </div>
+        <form class="apply-form" id="applyForm" novalidate>
+          <div class="apply-row">
+            <label class="apply-field">
+              <span data-i18n="apply_name">Full name<em>*</em></span>
+              <input type="text" name="full_name" required minlength="2" maxlength="120" autocomplete="name" placeholder="Anna Müller">
+            </label>
+            <label class="apply-field">
+              <span data-i18n="apply_email">Email<em>*</em></span>
+              <input type="email" name="email" required autocomplete="email" placeholder="you@school.com">
+            </label>
+          </div>
+          <div class="apply-row">
+            <label class="apply-field">
+              <span data-i18n="apply_phone">Phone / Telegram (optional)</span>
+              <input type="text" name="phone" maxlength="60" placeholder="+49 …">
+            </label>
+            <label class="apply-field">
+              <span data-i18n="apply_country">City, country</span>
+              <input type="text" name="city_country" maxlength="120" placeholder="Berlin, DE">
+            </label>
+          </div>
+          <div class="apply-row">
+            <label class="apply-field">
+              <span data-i18n="apply_native">Native language</span>
+              <input type="text" name="native_language" maxlength="40" placeholder="Deutsch">
+            </label>
+            <label class="apply-field">
+              <span data-i18n="apply_teach">I teach (comma-separated)</span>
+              <input type="text" name="teaching_languages" maxlength="120" placeholder="German, English">
+            </label>
+          </div>
+          <div class="apply-row">
+            <label class="apply-field">
+              <span data-i18n="apply_levels">Levels (A1–C2, comma-separated)</span>
+              <input type="text" name="teaching_levels" maxlength="60" placeholder="A2, B1, B2">
+            </label>
+            <label class="apply-field">
+              <span data-i18n="apply_years">Years of experience</span>
+              <input type="number" name="years_experience" min="0" max="60" placeholder="5">
+            </label>
+          </div>
+          <label class="apply-field">
+            <span data-i18n="apply_platform">Where do you teach now? (optional)</span>
+            <input type="text" name="current_platform" maxlength="200" placeholder="Preply, VHS Berlin, own website…">
+          </label>
+          <label class="apply-field">
+            <span data-i18n="apply_motivation">Why Duvela? (a couple of sentences)</span>
+            <textarea name="motivation" rows="4" maxlength="1200" placeholder="I want to teach LIVE workshops and grow a community around German pronunciation…"></textarea>
+          </label>
+          <div class="apply-consent">
+            <label>
+              <input type="checkbox" id="applyConsent" required>
+              <span data-i18n="apply_consent">I agree to be contacted by the Duvela team about my application.</span>
+            </label>
+          </div>
+          <div class="apply-actions">
+            <button class="pill primary" type="submit" id="applySubmit" data-i18n="apply_submit">Send application</button>
+            <span class="apply-note" data-i18n="apply_note">You'll hear from us within 24 hours.</span>
+          </div>
+          <div class="apply-message" id="applyMessage" aria-live="polite"></div>
+        </form>
       </div>
     </section>
   </main>
@@ -827,7 +957,12 @@
       invite_title:'Ready to open your teacher workspace?',invite_body:'Accept the invitation. Duvela will open signup with the teacher role selected and preserve the invitation reference.',
       final_check_1:'Teacher role selected',final_check_2:'Invite reference preserved',final_check_3:'Continue in your browser',
       code_label:'Your invite reference',create:'Accept and create account',
-      seo_title:'Teach with Duvela | Teacher workspace',seo_description:'Create a teacher profile, publish courses and classes, run LIVE lessons, manage sessions, assignments and learners in Duvela.'
+      seo_title:'Teach with Duvela | Teacher workspace',seo_description:'Create a teacher profile, publish courses and classes, run LIVE lessons, manage sessions, assignments and learners in Duvela.',
+      eyebrow:'Welcome to Duvela Academy Hub',
+      video_kicker:'Welcome to Duvela Academy Hub',video_title:'60 seconds — see what a teacher gets on day one.',video_body:'From public profile and courses to browser LIVE, chat, community and payments — everything a teacher needs, in one workspace.',video_play:'Play the overview',video_placeholder:'Video coming soon. Meanwhile, scroll down for the tour.',
+      strip_languages:'languages',strip_teachers:'teachers',strip_learners:'active learners',strip_signup:'setup fee',
+      apply_kicker:'Application',apply_title:'Apply to teach on Duvela',apply_body:"Tell us a bit about yourself. Our team reviews every application within 24 hours and sends the invitation link straight to your inbox.",
+      apply_name:'Full name',apply_email:'Email',apply_phone:'Phone / Telegram (optional)',apply_country:'City, country',apply_native:'Native language',apply_teach:'I teach (comma-separated)',apply_levels:'Levels (A1–C2, comma-separated)',apply_years:'Years of experience',apply_platform:'Where do you teach now? (optional)',apply_motivation:'Why Duvela? (a couple of sentences)',apply_consent:'I agree to be contacted by the Duvela team about my application.',apply_submit:'Send application',apply_note:"You'll hear from us within 24 hours.",apply_sending:'Sending…',apply_success:"Thanks — we got your application. We'll be in touch within 24 hours.",apply_error:'Could not send.',apply_missing:'Please fill in your name and email.',apply_need_consent:'Please agree to be contacted before sending.'
     });
     Object.assign(dict.ru, {
       hero_title:'Всё для преподавания — в одном кабинете <span class="grad">Duvela</span>.',
@@ -868,7 +1003,12 @@
       invite_title:'Готовы открыть кабинет учителя?',invite_body:'Примите приглашение. Duvela откроет регистрацию с выбранной ролью учителя и сохранит код приглашения.',
       final_check_1:'Роль учителя выбрана',final_check_2:'Код приглашения сохранён',final_check_3:'Продолжение в браузере',
       code_label:'Ваш код приглашения',create:'Принять и создать аккаунт',
-      seo_title:'Преподавайте с Duvela | Кабинет учителя',seo_description:'Создайте профиль учителя, публикуйте курсы и классы, проводите LIVE-уроки и управляйте занятиями, заданиями и учениками в Duvela.'
+      seo_title:'Преподавайте с Duvela | Кабинет учителя',seo_description:'Создайте профиль учителя, публикуйте курсы и классы, проводите LIVE-уроки и управляйте занятиями, заданиями и учениками в Duvela.',
+      eyebrow:'Добро пожаловать в Duvela Academy Hub',
+      video_kicker:'Добро пожаловать в Duvela Academy Hub',video_title:'60 секунд — увидьте, что получает учитель в первый же день.',video_body:'От публичного профиля и курсов до LIVE-студии в браузере, чата, сообщества и приёма оплат — всё, что нужно учителю, в одном кабинете.',video_play:'Смотреть обзор',video_placeholder:'Видео скоро появится. А пока — ниже полный обзор.',
+      strip_languages:'языков',strip_teachers:'учителей',strip_learners:'активных учеников',strip_signup:'плата за подключение',
+      apply_kicker:'Заявка',apply_title:'Заявка на преподавание в Duvela',apply_body:'Расскажите немного о себе. Команда рассматривает каждую заявку в течение 24 часов и присылает ссылку-приглашение прямо на email.',
+      apply_name:'Полное имя',apply_email:'Email',apply_phone:'Телефон / Telegram (не обязательно)',apply_country:'Город, страна',apply_native:'Родной язык',apply_teach:'Преподаю (через запятую)',apply_levels:'Уровни (A1–C2, через запятую)',apply_years:'Опыт (лет)',apply_platform:'Где преподаёте сейчас? (не обязательно)',apply_motivation:'Почему Duvela? (пара предложений)',apply_consent:'Согласен(а) на связь со стороны команды Duvela по моей заявке.',apply_submit:'Отправить заявку',apply_note:'Ответим в течение 24 часов.',apply_sending:'Отправляем…',apply_success:'Спасибо — мы получили вашу заявку. Свяжемся в течение 24 часов.',apply_error:'Не удалось отправить.',apply_missing:'Пожалуйста, заполните имя и email.',apply_need_consent:'Пожалуйста, подтвердите согласие перед отправкой.'
     });
     Object.assign(dict.de, {
       hero_title:'Alles zum Unterrichten — in einem <span class="grad">Duvela</span>-Arbeitsbereich.',
@@ -909,7 +1049,12 @@
       invite_title:'Bereit für deinen Lehrerbereich?',invite_body:'Nimm die Einladung an. Duvela öffnet die Registrierung mit ausgewählter Lehrerrolle und behält die Einladungsreferenz.',
       final_check_1:'Lehrerrolle ausgewählt',final_check_2:'Einladungsreferenz gespeichert',final_check_3:'Direkt im Browser fortfahren',
       code_label:'Deine Einladungsreferenz',create:'Annehmen und Konto erstellen',
-      seo_title:'Mit Duvela unterrichten | Lehrerbereich',seo_description:'Lehrerprofil erstellen, Kurse und Klassen veröffentlichen, LIVE unterrichten und Termine, Aufgaben sowie Lernende in Duvela verwalten.'
+      seo_title:'Mit Duvela unterrichten | Lehrerbereich',seo_description:'Lehrerprofil erstellen, Kurse und Klassen veröffentlichen, LIVE unterrichten und Termine, Aufgaben sowie Lernende in Duvela verwalten.',
+      eyebrow:'Willkommen bei Duvela Academy Hub',
+      video_kicker:'Willkommen bei Duvela Academy Hub',video_title:'60 Sekunden — sieh, was ein Lehrer am ersten Tag bekommt.',video_body:'Vom öffentlichen Profil und Kursen bis zu LIVE im Browser, Chat, Community und Zahlungen — alles, was ein Lehrer braucht, in einem Arbeitsbereich.',video_play:'Überblick abspielen',video_placeholder:'Video kommt bald. Bis dahin — scrolle für die Tour.',
+      strip_languages:'Sprachen',strip_teachers:'Lehrer',strip_learners:'aktive Lernende',strip_signup:'Einrichtungsgebühr',
+      apply_kicker:'Bewerbung',apply_title:'Als Lehrer bei Duvela bewerben',apply_body:'Erzähl uns kurz von dir. Wir prüfen jede Bewerbung innerhalb von 24 Stunden und schicken den Einladungslink direkt in dein Postfach.',
+      apply_name:'Vollständiger Name',apply_email:'E-Mail',apply_phone:'Telefon / Telegram (optional)',apply_country:'Stadt, Land',apply_native:'Muttersprache',apply_teach:'Ich unterrichte (durch Komma getrennt)',apply_levels:'Niveaus (A1–C2, durch Komma getrennt)',apply_years:'Berufserfahrung (Jahre)',apply_platform:'Wo unterrichtest du aktuell? (optional)',apply_motivation:'Warum Duvela? (ein paar Sätze)',apply_consent:'Ich stimme zu, dass das Duvela-Team mich zu meiner Bewerbung kontaktiert.',apply_submit:'Bewerbung senden',apply_note:'Wir melden uns innerhalb von 24 Stunden.',apply_sending:'Senden…',apply_success:'Danke — wir haben deine Bewerbung. Wir melden uns innerhalb von 24 Stunden.',apply_error:'Konnte nicht gesendet werden.',apply_missing:'Bitte Name und E-Mail ausfüllen.',apply_need_consent:'Bitte stimme der Kontaktaufnahme vor dem Senden zu.'
     });
     var refInput = document.getElementById('inviteRef');
     var rawLang = (inviteParams.get('lang') || localStorage.getItem(langKey) || navigator.language || 'en').toLowerCase();
@@ -979,6 +1124,8 @@
         } catch (_) {}
       });
     });
+    // The old copyInvite/inviteRef surface was removed with the redesign —
+    // guard the previous handlers so the JS doesn't blow up.
     var copyButton = document.getElementById('copyInvite');
     var copyNote = document.getElementById('copyNote');
     if (copyButton) {
@@ -991,6 +1138,82 @@
         } catch (_) {
           if (copyNote) copyNote.textContent = url;
         }
+      });
+    }
+
+    // Video: swap the placeholder for the iframe on first play. Real embed
+    // URL is set via data-src on #introVideoFrame — leave it blank until
+    // the marketing team ships the clip.
+    var videoPlay = document.getElementById('introVideoPlay');
+    var videoFrame = document.getElementById('introVideoFrame');
+    if (videoPlay && videoFrame) {
+      videoPlay.addEventListener('click', function () {
+        var src = videoFrame.getAttribute('data-src') || '';
+        if (!src) {
+          // No URL yet — bounce them down to the tour section so the click
+          // still leads somewhere meaningful.
+          trackInviteAction('video_play', 'placeholder');
+          var target = document.getElementById('features') || document.getElementById('value');
+          if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+        videoFrame.innerHTML = '<iframe src="' + src + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+        videoPlay.classList.add('hidden');
+        trackInviteAction('video_play', 'intro');
+      });
+    }
+
+    // Teacher application form: inserts into public.teacher_applications
+    // (RLS lets anon insert with basic length checks; admins read via
+    // admin.html → Overview → Teacher applications RPC).
+    var applyForm = document.getElementById('applyForm');
+    var applyMessage = document.getElementById('applyMessage');
+    var applySubmit = document.getElementById('applySubmit');
+    if (applyForm) {
+      applyForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (applyMessage) { applyMessage.className = 'apply-message'; applyMessage.textContent = ''; }
+        var consent = document.getElementById('applyConsent');
+        if (consent && !consent.checked) {
+          if (applyMessage) { applyMessage.className = 'apply-message err'; applyMessage.textContent = dict[lang].apply_need_consent || 'Please agree to be contacted before sending.'; }
+          return;
+        }
+        var data = new FormData(applyForm);
+        var cityCountry = String(data.get('city_country') || '').split(',');
+        var payload = {
+          full_name: String(data.get('full_name') || '').trim(),
+          email: String(data.get('email') || '').trim(),
+          phone: String(data.get('phone') || '').trim() || null,
+          native_language: String(data.get('native_language') || '').trim() || null,
+          teaching_languages: String(data.get('teaching_languages') || '').split(',').map(function (v) { return v.trim(); }).filter(Boolean),
+          teaching_levels: String(data.get('teaching_levels') || '').split(',').map(function (v) { return v.trim().toUpperCase(); }).filter(Boolean),
+          years_experience: Number(data.get('years_experience') || 0) || null,
+          current_platform: String(data.get('current_platform') || '').trim() || null,
+          city: (cityCountry[0] || '').trim() || null,
+          country: (cityCountry[1] || '').trim() || null,
+          motivation: String(data.get('motivation') || '').trim() || null,
+          source: 'teacher-invite:' + lang,
+        };
+        if (!payload.full_name || !payload.email) {
+          if (applyMessage) { applyMessage.className = 'apply-message err'; applyMessage.textContent = dict[lang].apply_missing || 'Please fill in your name and email.'; }
+          return;
+        }
+        if (!window.DuvelaWebConfig || typeof window.DuvelaWebConfig.createSupabaseClient !== 'function') {
+          if (applyMessage) { applyMessage.className = 'apply-message err'; applyMessage.textContent = 'Configuration missing — reload the page.'; }
+          return;
+        }
+        var client = window.DuvelaWebConfig.createSupabaseClient();
+        if (applySubmit) { applySubmit.disabled = true; applySubmit.textContent = dict[lang].apply_sending || 'Sending…'; }
+        var result = await client.from('teacher_applications').insert(payload);
+        if (applySubmit) { applySubmit.disabled = false; applySubmit.textContent = dict[lang].apply_submit; }
+        if (result.error) {
+          if (applyMessage) { applyMessage.className = 'apply-message err'; applyMessage.textContent = (dict[lang].apply_error || 'Could not send.') + ' ' + result.error.message; }
+          trackInviteAction('apply_error', result.error.code || 'unknown');
+          return;
+        }
+        if (applyMessage) { applyMessage.className = 'apply-message ok'; applyMessage.textContent = dict[lang].apply_success || 'Thanks — we got your application. We\'ll be in touch within 24 hours.'; }
+        applyForm.reset();
+        trackInviteAction('apply_success', payload.source);
       });
     }
     document.querySelectorAll('.faq-item').forEach(function (item, index) {
