@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>document.documentElement.classList.add('js');</script>
 <title>Teach with Duvela | Teacher workspace</title>
-<meta name="description" content="Create a teacher profile, publish courses and classes, run LIVE lessons, manage sessions, assignments and learners in Duvela.">
+<meta name="description" content="Create a teacher profile, publish courses, classes and online/offline events, run LIVE lessons, manage sessions, assignments and learners in Duvela.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#6D3FE0">
 <link rel="canonical" href="https://www.vela.cafe/teacher-invite.html">
@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Duvela">
 <meta property="og:url" content="https://www.vela.cafe/teacher-invite.html">
 <meta property="og:title" content="Teach with Duvela | Teacher workspace">
-<meta property="og:description" content="Create a teacher profile, publish courses and classes, run LIVE lessons, manage sessions, assignments and learners in Duvela.">
+<meta property="og:description" content="Create a teacher profile, publish courses, classes and online/offline events, run LIVE lessons, manage sessions, assignments and learners in Duvela.">
 <meta property="og:image" content="https://www.vela.cafe/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="./logo.webp" type="image/webp">
@@ -552,6 +552,24 @@
   .video-strip b { font-size: 24px; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(120deg, var(--purple), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .video-strip small { font-size: 11.5px; font-weight: 650; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
 
+  .demo-section { background: linear-gradient(180deg, #FFFFFF 0%, #F5F8FF 100%); }
+  .demo-grid { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 22px; align-items: stretch; margin-top: 30px; }
+  .testflight-card, .demo-access-card { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: clamp(20px, 3vw, 30px); box-shadow: 0 24px 64px rgba(37,99,235,.08); }
+  .testflight-mark { display: inline-flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: #EFF6FF; color: #1D4ED8; font-weight: 850; }
+  .testflight-logo { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(145deg, #2F80ED, #68D8FF); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 12px 24px rgba(37,99,235,.22); }
+  .testflight-logo svg { width: 28px; height: 28px; color: #fff; }
+  .testflight-card h3, .demo-access-card h3 { margin: 22px 0 0; font-size: 28px; line-height: 1.12; letter-spacing: -.02em; }
+  .testflight-card p, .demo-access-card p { margin: 12px 0 0; color: var(--soft); line-height: 1.65; font-weight: 520; }
+  .demo-steps { display: grid; gap: 10px; margin-top: 22px; }
+  .demo-step { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; padding: 12px; border: 1px solid #DCEAFE; border-radius: 14px; background: #F8FBFF; }
+  .demo-step b { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #DBEAFE; color: #1D4ED8; font-size: 13px; }
+  .demo-step span { color: var(--dark); font-weight: 750; font-size: 14px; line-height: 1.4; }
+  .demo-feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 22px; }
+  .demo-feature { min-height: 92px; padding: 14px; border-radius: 16px; background: linear-gradient(180deg, #FBFAFF, #F4F0FF); border: 1px solid #E8E0FF; }
+  .demo-feature i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: #EEE8FF; color: var(--purple); font-style: normal; font-weight: 850; margin-bottom: 10px; }
+  .demo-feature b { display: block; font-size: 14px; }
+  .demo-feature span { display: block; margin-top: 5px; color: var(--soft); font-size: 12.5px; line-height: 1.45; }
+
   /* Application form — real submission, gated by teacher_applications table. */
   .apply-section { background: linear-gradient(180deg, #FAF6FF 0%, #F0EBFA 100%); }
   /* Awards row — 5-column grid on desktop, 2 on mobile. Each card is a
@@ -604,12 +622,14 @@
   .apply-consent input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--purple); }
   .apply-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; }
   .apply-note { font-size: 12.5px; color: var(--soft); }
-  .apply-message { margin-top: 14px; padding: 0; border-radius: 10px; font-size: 13.5px; font-weight: 600; }
-  .apply-message.ok { padding: 14px 16px; background: rgba(15,159,122,.14); color: #08745A; }
+  .apply-message { margin-top: 14px; padding: 0; border-radius: 16px; font-size: 13.5px; font-weight: 600; }
+  .apply-message.ok { padding: 18px 18px 18px 58px; background: linear-gradient(135deg, rgba(15,159,122,.14), rgba(37,99,235,.12)); color: #075F4A; border: 1px solid rgba(15,159,122,.22); box-shadow: 0 18px 44px rgba(15,159,122,.12); position: relative; line-height: 1.55; }
+  .apply-message.ok::before { content: "✓"; position: absolute; left: 18px; top: 18px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #0F9F7A; color: #fff; font-weight: 900; }
   .apply-message.err { padding: 14px 16px; background: rgba(239,68,68,.14); color: #B42318; }
   @media (max-width: 720px) {
     .apply-row { grid-template-columns: 1fr; }
     .video-strip { grid-template-columns: repeat(2, 1fr); }
+    .demo-grid, .demo-feature-grid { grid-template-columns: 1fr; }
   }
   .faq-item p { margin: 0; padding: 0 22px 20px; color: var(--soft); line-height: 1.65; }
   .mobile-cta { display: none; }
@@ -683,6 +703,7 @@
         </a>
         <div class="nav-actions">
           <div class="nav-links" aria-label="Page sections">
+            <a href="#demo" data-i18n="nav_demo">Demo</a>
             <a href="#features" data-i18n="nav_features">Features</a>
             <a href="#how" data-i18n="nav_how">How it works</a>
             <a href="#faq" data-i18n="nav_faq">Questions</a>
@@ -692,7 +713,7 @@
             <select id="langSelect" data-lang-select></select>
           </label>
           <a class="pill" href="./index.html" data-i18n="nav_home">Home</a>
-          <a class="pill primary js-teacher-signup" data-cta-place="navigation" href="./index.html?login=1" data-i18n="nav_join">Join as teacher</a>
+          <a class="pill primary js-teacher-signup" data-cta-place="navigation" href="#apply" data-i18n="nav_join">Join as teacher</a>
         </div>
       </div>
     </div>
@@ -704,14 +725,14 @@
         <div>
           <span class="eyebrow eyebrow-gold"><i></i><span data-i18n="eyebrow">Welcome to Duvela Academy Hub</span></span>
           <h1 data-i18n-html="hero_title">Teach on <span class="grad">Duvela</span> with one clean workspace.</h1>
-          <p class="lead" data-i18n="hero_body">Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.</p>
+          <p class="lead" data-i18n="hero_body">Request early access to the Duvela Academy Hub demo through TestFlight. Test courses, LIVE lessons, online/offline events and your teacher profile before public launch.</p>
           <div class="hero-ctas">
-            <a class="pill primary js-teacher-signup" data-cta-place="hero" href="./index.html?login=1" data-i18n="accept">Accept invite</a>
+            <a class="pill primary js-teacher-signup" data-cta-place="hero" href="#apply" data-i18n="accept">Request Demo/TestFlight access</a>
             <a class="pill" href="#how" data-i18n="see_how">See how it works</a>
           </div>
           <div class="cta-note">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>
-            <span data-i18n="cta_note">The teacher role is selected automatically</span>
+            <span data-i18n="cta_note">Demo version is available by TestFlight invitation</span>
           </div>
           <div class="proof" aria-label="Teacher workspace highlights">
             <div><span class="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 10l4.5-2.5v9L15 14M5 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>LIVE</b><span data-i18n="proof_live">Run browser lessons with camera, mic and chat</span></div>
@@ -781,6 +802,50 @@
       </div>
     </section>
 
+    <section class="section demo-section" id="demo">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="demo_kicker">Demo version</span>
+          <h2 data-i18n="demo_title">Teacher access goes through TestFlight while Duvela is in demo.</h2>
+          <p data-i18n="demo_body">We invite teachers in controlled batches, so the hub stays stable and feedback can be reviewed before public launch.</p>
+        </div>
+        <div class="demo-grid">
+          <article class="testflight-card">
+            <div class="testflight-mark" aria-label="TestFlight">
+              <span class="testflight-logo">
+                <svg viewBox="0 0 48 48" aria-hidden="true">
+                  <circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="3.8"/>
+                  <path d="M24 7v34M7 24h34M13 13l22 22M35 13 13 35" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                  <circle cx="24" cy="24" r="4.5" fill="currentColor"/>
+                </svg>
+              </span>
+              <span>TestFlight</span>
+            </div>
+            <h3 data-i18n="demo_card_title">How to get the demo</h3>
+            <p data-i18n="demo_card_body">Leave your teacher details. After review, we send the TestFlight invitation and onboarding instructions.</p>
+            <div class="demo-steps">
+              <div class="demo-step"><b>1</b><span data-i18n="demo_step_1">Send a short teacher request.</span></div>
+              <div class="demo-step"><b>2</b><span data-i18n="demo_step_2">Duvela reviews the profile and contact details.</span></div>
+              <div class="demo-step"><b>3</b><span data-i18n="demo_step_3">You receive the TestFlight invite.</span></div>
+              <div class="demo-step"><b>4</b><span data-i18n="demo_step_4">You test the Teacher Hub and share feedback.</span></div>
+            </div>
+          </article>
+          <article class="demo-access-card">
+            <h3 data-i18n="demo_features_title">What is available in the demo</h3>
+            <p data-i18n="demo_features_body">The demo focuses on the core tools a teacher needs to prepare, publish and manage learning activity.</p>
+            <div class="demo-feature-grid">
+              <div class="demo-feature"><i>P</i><b data-i18n="demo_feature_profile_t">Teacher profile</b><span data-i18n="demo_feature_profile_b">Bio, languages, subjects and public identity.</span></div>
+              <div class="demo-feature"><i>C</i><b data-i18n="demo_feature_courses_t">Courses</b><span data-i18n="demo_feature_courses_b">Structured offers with level and schedule.</span></div>
+              <div class="demo-feature"><i>L</i><b data-i18n="demo_feature_live_t">LIVE lessons</b><span data-i18n="demo_feature_live_b">Browser lessons and live teaching tools.</span></div>
+              <div class="demo-feature"><i>E</i><b data-i18n="demo_feature_events_t">Online/offline events</b><span data-i18n="demo_feature_events_b">Workshops, clubs and community sessions.</span></div>
+              <div class="demo-feature"><i>M</i><b data-i18n="demo_feature_media_t">Media</b><span data-i18n="demo_feature_media_b">Shorts, videos and photos for your studio.</span></div>
+              <div class="demo-feature"><i>A</i><b data-i18n="demo_feature_awards_t">Awards</b><span data-i18n="demo_feature_awards_b">Badges that can later appear on the profile.</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="section alt" id="value">
       <div class="wrap value-grid">
         <div class="value-copy">
@@ -837,14 +902,14 @@
         </div>
         <div class="journey">
           <div class="steps">
-            <div class="step"><b>1</b><span data-i18n="step1">Accept the invite and create a teacher account.</span></div>
+            <div class="step"><b>1</b><span data-i18n="step1">Request demo access and leave your teacher contact.</span></div>
             <div class="step"><b>2</b><span data-i18n="step2">Complete your profile with subjects, language and experience.</span></div>
             <div class="step"><b>3</b><span data-i18n="step3">Create a course, class, event or LIVE session.</span></div>
             <div class="step"><b>4</b><span data-i18n="step4">Manage enrollments, sessions, submissions and learner activity.</span></div>
           </div>
           <aside class="result-card">
             <div><span data-i18n="result_kicker">Your result</span><h3 data-i18n="result_title">A teacher presence learners can discover — and a workspace you can run.</h3><p data-i18n="result_body">The public side explains your offer. The private side keeps daily teaching organized.</p></div>
-            <a class="pill js-teacher-signup" data-cta-place="how_result" href="./index.html?login=1" data-i18n="result_cta">Create teacher workspace</a>
+            <a class="pill js-teacher-signup" data-cta-place="how_result" href="#apply" data-i18n="result_cta">Request demo access</a>
           </aside>
         </div>
       </div>
@@ -857,7 +922,7 @@
           <h2 data-i18n="faq_title">Clear answers to the main questions.</h2>
         </div>
         <div class="faq-list">
-          <details class="faq-item" open><summary data-i18n="faq_1_q">What happens after I accept the invite?</summary><p data-i18n="faq_1_a">Duvela opens signup with the teacher role selected. After creating the account, you can complete your profile and publish your first offer.</p></details>
+          <details class="faq-item" open><summary data-i18n="faq_1_q">What happens after I request access?</summary><p data-i18n="faq_1_a">Duvela reviews your teacher request and sends a demo/TestFlight invitation. After approval, you can test the teacher hub and prepare your first offer.</p></details>
           <details class="faq-item"><summary data-i18n="faq_2_q">What can I publish?</summary><p data-i18n="faq_2_a">Courses, LIVE lessons and events such as workshops, clubs or online sessions.</p></details>
           <details class="faq-item"><summary data-i18n="faq_3_q">Do I need to install anything?</summary><p data-i18n="faq_3_a">The teacher workspace and LIVE tools open in the browser.</p></details>
           <details class="faq-item"><summary data-i18n="faq_4_q">Can learners see my profile?</summary><p data-i18n="faq_4_a">Yes. The public profile can present your subjects, languages, experience, links, courses and upcoming events.</p></details>
@@ -886,9 +951,9 @@
     <section class="section apply-section" id="apply">
       <div class="wrap">
         <div class="section-head">
-          <span class="section-kicker" data-i18n="apply_kicker">Application</span>
-          <h2 data-i18n="apply_title">Apply to teach on Duvela</h2>
-          <p data-i18n="apply_body">Tell us a bit about yourself. Our team reviews every application within 24 hours and sends the invitation link straight to your inbox.</p>
+          <span class="section-kicker" data-i18n="apply_kicker">Demo access</span>
+          <h2 data-i18n="apply_title">Request teacher demo access</h2>
+          <p data-i18n="apply_body">Tell us a bit about yourself. Our team reviews every request and sends the TestFlight demo invitation straight to your inbox.</p>
         </div>
         <form class="apply-form" id="applyForm" novalidate>
           <div class="apply-row">
@@ -942,12 +1007,12 @@
           <div class="apply-consent">
             <label>
               <input type="checkbox" id="applyConsent" required>
-              <span data-i18n="apply_consent">I agree to be contacted by the Duvela team about my application.</span>
+              <span data-i18n="apply_consent">I agree to be contacted by the Duvela team about demo/TestFlight access.</span>
             </label>
           </div>
           <div class="apply-actions">
-            <button class="pill primary" type="submit" id="applySubmit" data-i18n="apply_submit">Send application</button>
-            <span class="apply-note" data-i18n="apply_note">You'll hear from us within 24 hours.</span>
+            <button class="pill primary" type="submit" id="applySubmit" data-i18n="apply_submit">Request demo access</button>
+            <span class="apply-note" data-i18n="apply_note">We'll reply with TestFlight details after review.</span>
           </div>
           <div class="apply-message" id="applyMessage" aria-live="polite"></div>
         </form>
@@ -962,45 +1027,43 @@
     </div>
   </footer>
 
-  <div class="mobile-cta" aria-label="Teacher signup">
-    <span data-i18n="mobile_cta_note">Your teacher workspace is one click away</span>
-    <a class="pill primary js-teacher-signup" data-cta-place="mobile_sticky" href="./index.html?login=1" data-i18n="accept_short">Get started</a>
+  <div class="mobile-cta" aria-label="Teacher demo access">
+    <span data-i18n="mobile_cta_note">Demo access is available by TestFlight invite</span>
+    <a class="pill primary js-teacher-signup" data-cta-place="mobile_sticky" href="#apply" data-i18n="accept_short">Request access</a>
   </div>
 
 <script>
   (function () {
-    var signupRoleKey = 'duvela.webSignupRole';
-    var authModeKey = 'duvela.webAuthMode';
     var inviteRefKey = 'duvela.teacherInviteRef';
     var inviteRoleKey = 'duvela.teacherInviteRole';
     var langKey = 'duvela.webLang';
     var inviteParams = new URLSearchParams(window.location.search);
     var dict = {
       en: {
-        nav_home:'Home',nav_join:'Join as teacher',eyebrow:'Teacher invitation',hero_title:'Teach on <span class="grad">Duvela</span> with one clean workspace.',hero_body:'Create a public teacher profile, publish courses, host LIVE lessons, manage learners and grow your audience from the Duvela web app.',accept:'Accept invite',see_how:'See how it works',proof_live:'Run browser lessons with camera, mic and chat',proof_courses_t:'Courses',proof_courses:'Publish structured offers learners can join',proof_events_t:'Events',proof_events:'Create workshops, clubs and online sessions',ready:'Ready',preview_title:'Your teacher profile',preview_body:'German, English, art, school subjects and more',mini_offers:'active offers',mini_learners:'new learners',mini_level:'popular level',mini_tools:'studio tools',feed_course_t:'Create course',feed_course_b:'Set title, level, price and schedule',feed_live_t:'Start LIVE',feed_live_b:'Open a teacher room from the browser',feed_event_t:'Add event',feed_event_b:'Invite learners to a workshop or club',tag_offer:'Offer',tag_studio:'Studio',tag_growth:'Growth',get_kicker:'What teachers get',get_title:'A practical workspace for teaching, not just a profile page.',get_body:'Duvela gives teachers the core tools needed to present offers, teach live and keep learner activity organized.',card_profile_t:'Public teacher profile',card_profile_b:'Show your subjects, languages, experience, social links and teaching focus in one place.',card_course_t:'Course and class offers',card_course_b:'Create courses with level, language, schedule, pricing and learner enrollment management.',card_live_t:'LIVE teaching tools',card_live_b:'Open LIVE rooms, run group lessons, chat with learners and reuse your teaching workflow.',how_kicker:'How it works',how_title:'From invite to first offer in four steps.',step1:'Accept the invite and create a teacher account.',step2:'Complete your profile with subjects, language and experience.',step3:'Create a course, event or LIVE session for learners.',step4:'Manage enrollments, messages and learner progress from the workspace.',invite_title:'Invite another teacher to Duvela',invite_body:'Share this page with a teacher. The signup button prepares the account flow for the teacher role.',code_label:'Invite code',copy:'Copy invite link',create:'Create teacher account',copied:'Invite link copied.',footer:'For independent teachers, organizers and schools.'
+        nav_home:'Home',nav_demo:'Demo',nav_join:'Demo access',eyebrow:'Teacher invitation',hero_title:'Teach on <span class="grad">Duvela</span> with one clean workspace.',hero_body:'Request early access to the Duvela Academy Hub demo through TestFlight. Test courses, LIVE lessons, online/offline events and your teacher profile before public launch.',accept:'Accept invite',see_how:'See how it works',proof_live:'Run browser lessons with camera, mic and chat',proof_courses_t:'Courses',proof_courses:'Publish structured offers learners can join',proof_events_t:'Events',proof_events:'Create workshops, clubs and online sessions',ready:'Ready',preview_title:'Your teacher profile',preview_body:'German, English, art, school subjects and more',mini_offers:'active offers',mini_learners:'new learners',mini_level:'popular level',mini_tools:'studio tools',feed_course_t:'Create course',feed_course_b:'Set title, level, price and schedule',feed_live_t:'Start LIVE',feed_live_b:'Open a teacher room from the browser',feed_event_t:'Add event',feed_event_b:'Invite learners to a workshop or club',tag_offer:'Offer',tag_studio:'Studio',tag_growth:'Growth',get_kicker:'What teachers get',get_title:'A practical workspace for teaching, not just a profile page.',get_body:'Duvela gives teachers the core tools needed to present offers, teach live and keep learner activity organized.',card_profile_t:'Public teacher profile',card_profile_b:'Show your subjects, languages, experience, social links and teaching focus in one place.',card_course_t:'Course and class offers',card_course_b:'Create courses with level, language, schedule, pricing and learner enrollment management.',card_live_t:'LIVE teaching tools',card_live_b:'Open LIVE rooms, run group lessons, chat with learners and reuse your teaching workflow.',how_kicker:'How it works',how_title:'From demo request to first offer in four steps.',step1:'Request demo access and leave your teacher contact.',step2:'Complete your profile with subjects, language and experience.',step3:'Create a course, event or LIVE session for learners.',step4:'Manage enrollments, messages and learner progress from the workspace.',invite_title:'Invite another teacher to Duvela',invite_body:'Share this page with a teacher. The request form prepares demo/TestFlight access for the teacher role.',code_label:'Invite code',copy:'Copy invite link',create:'Request demo access',copied:'Invite link copied.',footer:'For independent teachers, organizers and schools.'
       },
       ru: {
-        nav_home:'Главная',nav_join:'Стать учителем',eyebrow:'Приглашение учителя',hero_title:'Преподавайте в <span class="grad">Duvela</span> из одного удобного кабинета.',hero_body:'Создайте публичный профиль учителя, публикуйте курсы, проводите LIVE-уроки, управляйте учениками и развивайте аудиторию в веб-приложении Duvela.',accept:'Принять приглашение',see_how:'Как это работает',proof_live:'Проводите уроки в браузере с камерой, микрофоном и чатом',proof_courses_t:'Курсы',proof_courses:'Публикуйте понятные программы, куда ученики могут записаться',proof_events_t:'События',proof_events:'Создавайте воркшопы, клубы и онлайн-занятия',ready:'Готово',preview_title:'Ваш профиль учителя',preview_body:'Немецкий, английский, искусство, школьные предметы и другое',mini_offers:'активных предложения',mini_learners:'новых учеников',mini_level:'популярный уровень',mini_tools:'инструменты студии',feed_course_t:'Создать курс',feed_course_b:'Укажите название, уровень, цену и расписание',feed_live_t:'Запустить LIVE',feed_live_b:'Откройте комнату учителя прямо в браузере',feed_event_t:'Добавить событие',feed_event_b:'Пригласите учеников на воркшоп или клуб',tag_offer:'Оффер',tag_studio:'Студия',tag_growth:'Рост',get_kicker:'Что получает учитель',get_title:'Рабочий кабинет для преподавания, а не просто страница профиля.',get_body:'Duvela даёт учителям основные инструменты для предложений, live-уроков и работы с учениками.',card_profile_t:'Публичный профиль учителя',card_profile_b:'Покажите предметы, языки, опыт, ссылки и направление преподавания в одном месте.',card_course_t:'Курсы и классы',card_course_b:'Создавайте курсы с уровнем, языком, расписанием, ценой и управлением записями.',card_live_t:'LIVE-инструменты',card_live_b:'Открывайте LIVE-комнаты, проводите групповые уроки, общайтесь с учениками и повторяйте рабочий процесс.',how_kicker:'Как это работает',how_title:'От приглашения до первого предложения за четыре шага.',step1:'Примите приглашение и создайте аккаунт учителя.',step2:'Заполните профиль: предметы, язык и опыт.',step3:'Создайте курс, событие или LIVE-сессию для учеников.',step4:'Управляйте записями, сообщениями и прогрессом учеников из кабинета.',invite_title:'Пригласить ещё одного учителя в Duvela',invite_body:'Отправьте эту страницу учителю. Кнопка регистрации подготовит flow для роли учителя.',code_label:'Код приглашения',copy:'Скопировать ссылку',create:'Создать аккаунт учителя',copied:'Ссылка приглашения скопирована.',footer:'Для независимых учителей, организаторов и школ.'
+        nav_home:'Главная',nav_demo:'Demo',nav_join:'Demo-доступ',eyebrow:'Приглашение учителя',hero_title:'Преподавайте в <span class="grad">Duvela</span> из одного удобного кабинета.',hero_body:'Получите ранний доступ к demo Duvela Academy Hub через TestFlight. Протестируйте курсы, LIVE-уроки, онлайн/офлайн события и профиль учителя до публичного запуска.',accept:'Принять приглашение',see_how:'Как это работает',proof_live:'Проводите уроки в браузере с камерой, микрофоном и чатом',proof_courses_t:'Курсы',proof_courses:'Публикуйте понятные программы, куда ученики могут записаться',proof_events_t:'События',proof_events:'Создавайте воркшопы, клубы и онлайн-занятия',ready:'Готово',preview_title:'Ваш профиль учителя',preview_body:'Немецкий, английский, искусство, школьные предметы и другое',mini_offers:'активных предложения',mini_learners:'новых учеников',mini_level:'популярный уровень',mini_tools:'инструменты студии',feed_course_t:'Создать курс',feed_course_b:'Укажите название, уровень, цену и расписание',feed_live_t:'Запустить LIVE',feed_live_b:'Откройте комнату учителя прямо в браузере',feed_event_t:'Добавить событие',feed_event_b:'Пригласите учеников на воркшоп или клуб',tag_offer:'Оффер',tag_studio:'Студия',tag_growth:'Рост',get_kicker:'Что получает учитель',get_title:'Рабочий кабинет для преподавания, а не просто страница профиля.',get_body:'Duvela даёт учителям основные инструменты для предложений, live-уроков и работы с учениками.',card_profile_t:'Публичный профиль учителя',card_profile_b:'Покажите предметы, языки, опыт, ссылки и направление преподавания в одном месте.',card_course_t:'Курсы и классы',card_course_b:'Создавайте курсы с уровнем, языком, расписанием, ценой и управлением записями.',card_live_t:'LIVE-инструменты',card_live_b:'Открывайте LIVE-комнаты, проводите групповые уроки, общайтесь с учениками и повторяйте рабочий процесс.',how_kicker:'Как это работает',how_title:'От demo-заявки до первого предложения за четыре шага.',step1:'Оставьте заявку и контакты для TestFlight-доступа.',step2:'Заполните профиль: предметы, язык и опыт.',step3:'Создайте курс, событие или LIVE-сессию для учеников.',step4:'Управляйте записями, сообщениями и прогрессом учеников из кабинета.',invite_title:'Пригласить ещё одного учителя в Duvela',invite_body:'Отправьте эту страницу учителю. Форма заявки подготовит demo/TestFlight доступ для роли учителя.',code_label:'Код приглашения',copy:'Скопировать ссылку',create:'Получить demo-доступ',copied:'Ссылка приглашения скопирована.',footer:'Для независимых учителей, организаторов и школ.'
       },
       de: {
-        nav_home:'Startseite',nav_join:'Als Lehrer starten',eyebrow:'Lehrereinladung',hero_title:'Unterrichten mit <span class="grad">Duvela</span> in einem klaren Arbeitsbereich.',hero_body:'Erstelle ein öffentliches Lehrerprofil, veröffentliche Kurse, halte LIVE-Unterricht, verwalte Lernende und baue deine Reichweite in der Duvela Web-App aus.',accept:'Einladung annehmen',see_how:'Ablauf ansehen',proof_live:'Unterricht im Browser mit Kamera, Mikrofon und Chat durchführen',proof_courses_t:'Kurse',proof_courses:'Strukturierte Angebote veröffentlichen, für die sich Lernende anmelden können',proof_events_t:'Events',proof_events:'Workshops, Clubs und Online-Termine erstellen',ready:'Bereit',preview_title:'Dein Lehrerprofil',preview_body:'Deutsch, Englisch, Kunst, Schulfächer und mehr',mini_offers:'aktive Angebote',mini_learners:'neue Lernende',mini_level:'beliebtes Niveau',mini_tools:'Studio-Werkzeuge',feed_course_t:'Kurs erstellen',feed_course_b:'Titel, Niveau, Preis und Zeitplan festlegen',feed_live_t:'LIVE starten',feed_live_b:'Einen Lehrerraum direkt im Browser öffnen',feed_event_t:'Event hinzufügen',feed_event_b:'Lernende zu Workshop oder Club einladen',tag_offer:'Angebot',tag_studio:'Studio',tag_growth:'Wachstum',get_kicker:'Was Lehrer bekommen',get_title:'Ein praktischer Arbeitsbereich zum Unterrichten, nicht nur eine Profilseite.',get_body:'Duvela gibt Lehrern die wichtigsten Werkzeuge für Angebote, Live-Unterricht und organisierte Lernaktivität.',card_profile_t:'Öffentliches Lehrerprofil',card_profile_b:'Zeige Fächer, Sprachen, Erfahrung, Links und Unterrichtsschwerpunkt an einem Ort.',card_course_t:'Kurs- und Klassenangebote',card_course_b:'Erstelle Kurse mit Niveau, Sprache, Zeitplan, Preis und Anmeldemanagement.',card_live_t:'LIVE-Unterrichtswerkzeuge',card_live_b:'Öffne LIVE-Räume, halte Gruppenunterricht, chatte mit Lernenden und nutze deinen Ablauf erneut.',how_kicker:'So funktioniert es',how_title:'Von der Einladung zum ersten Angebot in vier Schritten.',step1:'Einladung annehmen und Lehreraccount erstellen.',step2:'Profil mit Fächern, Sprache und Erfahrung vervollständigen.',step3:'Kurs, Event oder LIVE-Termin für Lernende erstellen.',step4:'Anmeldungen, Nachrichten und Lernfortschritt im Arbeitsbereich verwalten.',invite_title:'Weiteren Lehrer zu Duvela einladen',invite_body:'Teile diese Seite mit einem Lehrer. Die Registrierung wird für die Lehrerrolle vorbereitet.',code_label:'Einladungscode',copy:'Einladungslink kopieren',create:'Lehreraccount erstellen',copied:'Einladungslink kopiert.',footer:'Für selbstständige Lehrer, Organisatoren und Schulen.'
+        nav_home:'Startseite',nav_demo:'Demo',nav_join:'Demo-Zugang',eyebrow:'Lehrereinladung',hero_title:'Unterrichten mit <span class="grad">Duvela</span> in einem klaren Arbeitsbereich.',hero_body:'Demo-Version anfragen, eine TestFlight-Einladung erhalten und den Lehrerbereich mit Kursen, Online-/Offline-Events und LIVE-Unterricht testen.',accept:'Demo/TestFlight-Zugang anfragen',see_how:'Ablauf ansehen',proof_live:'Unterricht im Browser mit Kamera, Mikrofon und Chat durchführen',proof_courses_t:'Kurse',proof_courses:'Strukturierte Angebote veröffentlichen, für die sich Lernende anmelden können',proof_events_t:'Events',proof_events:'Workshops, Clubs und Online-Termine erstellen',ready:'Bereit',preview_title:'Dein Lehrerprofil',preview_body:'Deutsch, Englisch, Kunst, Schulfächer und mehr',mini_offers:'aktive Angebote',mini_learners:'neue Lernende',mini_level:'beliebtes Niveau',mini_tools:'Studio-Werkzeuge',feed_course_t:'Kurs erstellen',feed_course_b:'Titel, Niveau, Preis und Zeitplan festlegen',feed_live_t:'LIVE starten',feed_live_b:'Einen Lehrerraum direkt im Browser öffnen',feed_event_t:'Event hinzufügen',feed_event_b:'Lernende zu Workshop oder Club einladen',tag_offer:'Angebot',tag_studio:'Studio',tag_growth:'Wachstum',get_kicker:'Was Lehrer bekommen',get_title:'Ein praktischer Arbeitsbereich zum Unterrichten, nicht nur eine Profilseite.',get_body:'Duvela gibt Lehrern die wichtigsten Werkzeuge für Angebote, Live-Unterricht und organisierte Lernaktivität.',card_profile_t:'Öffentliches Lehrerprofil',card_profile_b:'Zeige Fächer, Sprachen, Erfahrung, Links und Unterrichtsschwerpunkt an einem Ort.',card_course_t:'Kurs- und Klassenangebote',card_course_b:'Erstelle Kurse mit Niveau, Sprache, Zeitplan, Preis und Anmeldemanagement.',card_live_t:'LIVE-Unterrichtswerkzeuge',card_live_b:'Öffne LIVE-Räume, halte Gruppenunterricht, chatte mit Lernenden und nutze deinen Ablauf erneut.',how_kicker:'So funktioniert es',how_title:'Von der Demo-Anfrage zum ersten Angebot in vier Schritten.',step1:'Demo-Zugang anfragen und Lehrerkontakt hinterlassen.',step2:'Profil mit Fächern, Sprache und Erfahrung vervollständigen.',step3:'Kurs, Event oder LIVE-Termin für Lernende erstellen.',step4:'Anmeldungen, Nachrichten und Lernfortschritt im Arbeitsbereich verwalten.',invite_title:'Weiteren Lehrer zu Duvela einladen',invite_body:'Teile diese Seite mit einem Lehrer. Das Anfrageformular bereitet den Demo/TestFlight-Zugang für die Lehrerrolle vor.',code_label:'Einladungscode',copy:'Einladungslink kopieren',create:'Demo-Zugang anfragen',copied:'Einladungslink kopiert.',footer:'Für selbstständige Lehrer, Organisatoren und Schulen.'
       }
     };
     Object.assign(dict.en, {
       hero_title:'Everything you need to teach — in one <span class="grad">Duvela</span> workspace.',
-      hero_body:'Create your profile, launch courses and LIVE lessons, welcome learners and manage teaching without switching between services.',
-      accept:'Create teacher workspace',
-      accept_short:'Get started',
-      cta_note:'The teacher role is selected automatically',
+      hero_body:'Request early access to the Duvela Academy Hub demo through TestFlight. Test courses, LIVE lessons, online/offline events and your teacher profile before public launch.',
+      accept:'Request Demo/TestFlight access',
+      accept_short:'Request access',
+      cta_note:'Demo version is available by TestFlight invitation',
       mini_profile_t:'Public profile',mini_profile:'subjects and experience',
       mini_courses_t:'Courses',mini_courses:'price and schedule',
       mini_learners_t:'Learners',mini_learners:'in one list',mini_tools:'browser studio',
       faq_kicker:'Before you start',faq_title:'Clear answers to the main questions.',
-      faq_1_q:'What happens after I accept the invite?',faq_1_a:'Duvela opens signup with the teacher role selected. After creating the account, you can complete your profile and publish your first offer.',
+      faq_1_q:'What happens after I request access?',faq_1_a:'Duvela reviews your teacher request and sends a demo/TestFlight invitation. After approval, you can test the teacher hub and prepare your first offer.',
       faq_2_q:'What can I publish?',faq_2_a:'Courses, LIVE lessons and events such as workshops, clubs or online sessions.',
       faq_3_q:'Do I need to install anything?',faq_3_a:'The teacher workspace and LIVE tools open in the browser.',
-      mobile_cta_note:'Your teacher workspace is one click away',
-      nav_features:'Features',nav_how:'How it works',nav_faq:'Questions',
+      mobile_cta_note:'Demo access is available by TestFlight invite',
+      nav_demo:'Demo',nav_features:'Features',nav_how:'How it works',nav_faq:'Questions',
       value_kicker:'One connected workflow',value_title:'Spend less time assembling tools. Keep teaching in one place.',value_body:'A profile brings learners to your offer. Courses and events explain what you teach. The workspace keeps enrollment, schedule, LIVE and feedback connected.',
       value_1_t:'Present your expertise',value_1_b:'Subjects, languages, experience, links and active offers in a public profile.',
       value_2_t:'Publish a clear offer',value_2_b:'Describe the level, language, schedule and price of a course or class.',
@@ -1017,19 +1080,29 @@
       audience_1_t:'Independent teachers',audience_1_b:'A public profile, personal offers, LIVE lessons and direct learner management.',
       audience_2_t:'Course creators',audience_2_b:'Structured courses, classes, assignments and feedback in one teaching flow.',
       audience_3_t:'Schools and organizers',audience_3_b:'Courses, classes, practices and events presented under an organization.',
-      how_title:'From invitation to your first teaching offer in four clear steps.',
+      how_title:'From demo request to your first teaching offer in four clear steps.',
       step3:'Create a course, class, event or LIVE session.',step4:'Manage enrollments, sessions, submissions and learner activity.',
-      result_kicker:'Your result',result_title:'A teacher presence learners can discover — and a workspace you can run.',result_body:'The public side explains your offer. The private side keeps daily teaching organized.',result_cta:'Create teacher workspace',
+      result_kicker:'Your result',result_title:'A teacher presence learners can discover — and a workspace you can run.',result_body:'The public side explains your offer. The private side keeps daily teaching organized.',result_cta:'Request demo access',
       faq_4_q:'Can learners see my profile?',faq_4_a:'Yes. The public profile can present your subjects, languages, experience, links, courses and upcoming events.',
       faq_5_q:'Can I manage assignments?',faq_5_a:'The teacher workspace supports reviewing speaking and writing submissions, scores and written feedback.',
       faq_6_q:'Is Duvela only for independent teachers?',faq_6_a:'No. The platform also supports course creators, organizers and schools working with classes and events.',
-      invite_title:'Ready to open your teacher workspace?',invite_body:'Accept the invitation. Duvela will open signup with the teacher role selected and preserve the invitation reference.',
-      final_check_1:'Teacher role selected',final_check_2:'Invite reference preserved',final_check_3:'Continue in your browser',
-      code_label:'Your invite reference',create:'Accept and create account',
-      seo_title:'Teach with Duvela | Teacher workspace',seo_description:'Create a teacher profile, publish courses and classes, run LIVE lessons, manage sessions, assignments and learners in Duvela.',
+      invite_title:'Ready to try the teacher demo?',invite_body:'Send a short request. The Duvela team will review it and share TestFlight access for the demo version.',
+      final_check_1:'Teacher request captured',final_check_2:'Invite reference preserved',final_check_3:'TestFlight details after review',
+      code_label:'Your invite reference',create:'Request demo access',
+      seo_title:'Teach with Duvela | Teacher workspace',seo_description:'Create a teacher profile, publish courses, classes and online/offline events, run LIVE lessons, manage sessions, assignments and learners in Duvela.',
       eyebrow:'Welcome to Duvela Academy Hub',
       video_kicker:'Welcome to Duvela Academy Hub',video_title:'60 seconds — see what a teacher gets on day one.',video_body:'From public profile and courses to browser LIVE, chat, community and payments — everything a teacher needs, in one workspace.',video_play:'Play the overview',video_placeholder:'Video coming soon. Meanwhile, scroll down for the tour.',
       strip_languages:'languages',strip_teachers:'teachers',strip_learners:'active learners',strip_signup:'setup fee',
+      demo_kicker:'Demo version',demo_title:'Teacher access goes through TestFlight while Duvela is in demo.',demo_body:'We invite teachers in controlled batches, so the hub stays stable and feedback can be reviewed before public launch.',
+      demo_card_title:'How to get the demo',demo_card_body:'Leave your teacher details. After review, we send the TestFlight invitation and onboarding instructions.',
+      demo_step_1:'Send a short teacher request.',demo_step_2:'Duvela reviews the profile and contact details.',demo_step_3:'You receive the TestFlight invite.',demo_step_4:'You test the Teacher Hub and share feedback.',
+      demo_features_title:'What is available in the demo',demo_features_body:'The demo focuses on the core tools a teacher needs to prepare, publish and manage learning activity.',
+      demo_feature_profile_t:'Teacher profile',demo_feature_profile_b:'Bio, languages, subjects and public identity.',
+      demo_feature_courses_t:'Courses',demo_feature_courses_b:'Structured offers with level and schedule.',
+      demo_feature_live_t:'LIVE lessons',demo_feature_live_b:'Browser lessons and live teaching tools.',
+      demo_feature_events_t:'Online/offline events',demo_feature_events_b:'Workshops, clubs and community sessions.',
+      demo_feature_media_t:'Media',demo_feature_media_b:'Shorts, videos and photos for your studio.',
+      demo_feature_awards_t:'Awards',demo_feature_awards_b:'Badges that can later appear on the profile.',
       awards_kicker:'Recognition',awards_title:'10 awards teachers can earn on Duvela',awards_body:"Every award is visible on your public profile — students see who's been active, consistent and highly rated at a glance.",
       award_live_teacher_t:'Live Teacher',award_live_teacher_b:'For hosting your first LIVE lesson.',
       award_student_favorite_t:'Student Favorite',award_student_favorite_b:'For a high rating — 4.8+ after 10 reviews.',
@@ -1041,24 +1114,24 @@
       award_10_lessons_t:'10 Lessons Together',award_10_lessons_b:'For hosting 10 lessons with the same student or group.',
       award_author_t:'Duvela Author',award_author_b:'For publishing a course, practice pack or original material.',
       award_graduate_t:'First Graduate',award_graduate_b:'For guiding your first student to finish a full program.',
-      apply_kicker:'Application',apply_title:'Apply to teach on Duvela',apply_body:"Tell us a bit about yourself. Our team reviews every application within 24 hours and sends the invitation link straight to your inbox.",
-      apply_name:'Full name',apply_email:'Email',apply_phone:'Phone / Telegram (optional)',apply_country:'City, country',apply_native:'Native language',apply_teach:'I teach (comma-separated)',apply_levels:'Levels (A1–C2, comma-separated)',apply_years:'Years of experience',apply_platform:'Where do you teach now? (optional)',apply_motivation:'Why Duvela? (a couple of sentences)',apply_consent:'I agree to be contacted by the Duvela team about my application.',apply_submit:'Send application',apply_note:"You'll hear from us within 24 hours.",apply_sending:'Sending…',apply_success:"Thanks — we got your application. We'll be in touch within 24 hours.",apply_error:'Could not send.',apply_missing:'Please fill in your name and email.',apply_need_consent:'Please agree to be contacted before sending.'
+      apply_kicker:'Demo access',apply_title:'Request teacher demo access',apply_body:"Tell us a bit about yourself. Our team reviews every request and sends the TestFlight demo invitation straight to your inbox.",
+      apply_name:'Full name',apply_email:'Email',apply_phone:'Phone / Telegram (optional)',apply_country:'City, country',apply_native:'Native language',apply_teach:'I teach (comma-separated)',apply_levels:'Levels (A1–C2, comma-separated)',apply_years:'Years of experience',apply_platform:'Where do you teach now? (optional)',apply_motivation:'Why Duvela? (a couple of sentences)',apply_consent:'I agree to be contacted by the Duvela team about demo/TestFlight access.',apply_submit:'Request demo access',apply_note:"We'll reply with TestFlight details after review.",apply_sending:'Sending…',apply_success:"Thanks — we got your request. We'll send demo/TestFlight details after review.",apply_error:'Could not send.',apply_missing:'Please fill in your name and email.',apply_need_consent:'Please agree to be contacted before sending.'
     });
     Object.assign(dict.ru, {
       hero_title:'Всё для преподавания — в одном кабинете <span class="grad">Duvela</span>.',
-      hero_body:'Создайте профиль, запускайте курсы и LIVE-уроки, принимайте учеников и управляйте занятиями без переключения между сервисами.',
-      accept:'Создать кабинет учителя',
-      accept_short:'Начать',
-      cta_note:'Роль учителя будет выбрана автоматически',
+      hero_body:'Оставьте заявку на demo-версию, получите TestFlight-приглашение и протестируйте кабинет учителя с курсами, онлайн/офлайн событиями и LIVE-уроками.',
+      accept:'Получить Demo/TestFlight доступ',
+      accept_short:'Получить доступ',
+      cta_note:'Demo-версия доступна по приглашению в TestFlight',
       mini_profile_t:'Публичный профиль',mini_profile:'предметы и опыт',
       mini_courses_t:'Курсы',mini_courses:'цена и расписание',
       mini_learners_t:'Ученики',mini_learners:'в одном списке',mini_tools:'студия в браузере',
       faq_kicker:'Перед началом',faq_title:'Ответы на главные вопросы.',
-      faq_1_q:'Что произойдёт после нажатия на кнопку?',faq_1_a:'Duvela откроет регистрацию с уже выбранной ролью учителя. После создания аккаунта вы сможете заполнить профиль и опубликовать первое предложение.',
+      faq_1_q:'Что будет после заявки?',faq_1_a:'Команда Duvela проверит заявку учителя и отправит приглашение в demo/TestFlight. После подтверждения вы сможете протестировать teacher hub и подготовить первое предложение.',
       faq_2_q:'Что можно публиковать?',faq_2_a:'Курсы, LIVE-уроки и события — например, воркшопы, клубы или онлайн-занятия.',
       faq_3_q:'Нужно ли что-то устанавливать?',faq_3_a:'Кабинет учителя и LIVE-инструменты открываются прямо в браузере.',
-      mobile_cta_note:'Ваш кабинет учителя — в одном клике',
-      nav_features:'Возможности',nav_how:'Как это работает',nav_faq:'Вопросы',
+      mobile_cta_note:'Demo-доступ доступен по приглашению TestFlight',
+      nav_demo:'Demo',nav_features:'Возможности',nav_how:'Как это работает',nav_faq:'Вопросы',
       value_kicker:'Один связный процесс',value_title:'Меньше времени на сборку инструментов. Больше — на преподавание.',value_body:'Профиль приводит ученика к вашему предложению. Курсы и события объясняют, чему вы учите. Кабинет связывает записи, расписание, LIVE и обратную связь.',
       value_1_t:'Покажите свою экспертизу',value_1_b:'Предметы, языки, опыт, ссылки и активные предложения в публичном профиле.',
       value_2_t:'Опубликуйте понятное предложение',value_2_b:'Укажите уровень, язык, расписание и цену курса или класса.',
@@ -1075,19 +1148,29 @@
       audience_1_t:'Независимые преподаватели',audience_1_b:'Публичный профиль, собственные предложения, LIVE-уроки и прямое управление учениками.',
       audience_2_t:'Авторы курсов',audience_2_b:'Структурированные курсы, классы, задания и обратная связь в одном процессе.',
       audience_3_t:'Школы и организаторы',audience_3_b:'Курсы, классы, практики и события от имени организации.',
-      how_title:'От приглашения до первого предложения — четыре понятных шага.',
+      how_title:'От demo-заявки до первого предложения — четыре понятных шага.',
       step3:'Создайте курс, класс, событие или LIVE-сессию.',step4:'Управляйте записями, занятиями, работами и активностью учеников.',
-      result_kicker:'Ваш результат',result_title:'Профиль, который могут найти ученики, и кабинет, которым удобно управлять.',result_body:'Публичная часть объясняет ваше предложение. Закрытая часть организует ежедневную работу.',result_cta:'Создать кабинет учителя',
+      result_kicker:'Ваш результат',result_title:'Профиль, который могут найти ученики, и кабинет, которым удобно управлять.',result_body:'Публичная часть объясняет ваше предложение. Закрытая часть организует ежедневную работу.',result_cta:'Получить demo-доступ',
       faq_4_q:'Смогут ли ученики увидеть мой профиль?',faq_4_a:'Да. В публичном профиле можно показать предметы, языки, опыт, ссылки, курсы и ближайшие события.',
       faq_5_q:'Можно ли проверять задания?',faq_5_a:'В кабинете учителя можно проверять устные и письменные работы, ставить оценки и оставлять комментарии.',
       faq_6_q:'Duvela подходит только независимым учителям?',faq_6_a:'Нет. Платформа также поддерживает авторов курсов, организаторов и школы, работающие с классами и событиями.',
-      invite_title:'Готовы открыть кабинет учителя?',invite_body:'Примите приглашение. Duvela откроет регистрацию с выбранной ролью учителя и сохранит код приглашения.',
-      final_check_1:'Роль учителя выбрана',final_check_2:'Код приглашения сохранён',final_check_3:'Продолжение в браузере',
-      code_label:'Ваш код приглашения',create:'Принять и создать аккаунт',
-      seo_title:'Преподавайте с Duvela | Кабинет учителя',seo_description:'Создайте профиль учителя, публикуйте курсы и классы, проводите LIVE-уроки и управляйте занятиями, заданиями и учениками в Duvela.',
+      invite_title:'Готовы попробовать demo для учителей?',invite_body:'Оставьте короткую заявку. Команда Duvela проверит её и отправит TestFlight-доступ к demo-версии.',
+      final_check_1:'Заявка учителя сохранена',final_check_2:'Код приглашения сохранён',final_check_3:'TestFlight детали после проверки',
+      code_label:'Ваш код приглашения',create:'Получить demo-доступ',
+      seo_title:'Преподавайте с Duvela | Кабинет учителя',seo_description:'Создайте профиль учителя, публикуйте курсы, классы и онлайн/офлайн события, проводите LIVE-уроки и управляйте занятиями, заданиями и учениками в Duvela.',
       eyebrow:'Добро пожаловать в Duvela Academy Hub',
       video_kicker:'Добро пожаловать в Duvela Academy Hub',video_title:'60 секунд — увидьте, что получает учитель в первый же день.',video_body:'От публичного профиля и курсов до LIVE-студии в браузере, чата, сообщества и приёма оплат — всё, что нужно учителю, в одном кабинете.',video_play:'Смотреть обзор',video_placeholder:'Видео скоро появится. А пока — ниже полный обзор.',
       strip_languages:'языков',strip_teachers:'учителей',strip_learners:'активных учеников',strip_signup:'плата за подключение',
+      demo_kicker:'Demo-версия',demo_title:'Пока Duvela в demo, доступ для учителей идёт через TestFlight.',demo_body:'Мы приглашаем учителей небольшими группами, чтобы hub работал стабильно, а обратная связь была учтена до публичного запуска.',
+      demo_card_title:'Как получить demo',demo_card_body:'Оставьте данные учителя. После проверки мы отправим TestFlight-приглашение и короткую инструкцию.',
+      demo_step_1:'Отправьте короткую заявку учителя.',demo_step_2:'Duvela проверит профиль и контакты.',demo_step_3:'Вы получите TestFlight-приглашение.',demo_step_4:'Вы протестируете Teacher Hub и отправите feedback.',
+      demo_features_title:'Что доступно в demo',demo_features_body:'Demo показывает основные инструменты, которые нужны учителю для подготовки, публикации и управления обучением.',
+      demo_feature_profile_t:'Профиль учителя',demo_feature_profile_b:'Био, языки, предметы и публичная карточка.',
+      demo_feature_courses_t:'Курсы',demo_feature_courses_b:'Структурированные предложения с уровнем и расписанием.',
+      demo_feature_live_t:'LIVE-уроки',demo_feature_live_b:'Уроки в браузере и live-инструменты преподавания.',
+      demo_feature_events_t:'Онлайн/офлайн события',demo_feature_events_b:'Воркшопы, клубы и встречи сообщества.',
+      demo_feature_media_t:'Медиа',demo_feature_media_b:'Shorts, видео и фото для вашей студии.',
+      demo_feature_awards_t:'Награды',demo_feature_awards_b:'Значки, которые позже можно показывать в профиле.',
       awards_kicker:'Признание',awards_title:'10 наград учителей на Duvela',awards_body:'Все награды видны в вашем публичном профиле — ученики сразу видят, кто активен, стабилен и высоко оценён.',
       award_live_teacher_t:'Live Teacher',award_live_teacher_b:'За первый проведённый LIVE-урок.',
       award_student_favorite_t:'Student Favorite',award_student_favorite_b:'За высокий рейтинг — 4.8+ после 10 отзывов.',
@@ -1099,24 +1182,24 @@
       award_10_lessons_t:'10 Lessons Together',award_10_lessons_b:'За 10 проведённых уроков с одним учеником или группой.',
       award_author_t:'Duvela Author',award_author_b:'За публикацию курса, практики или авторского материала.',
       award_graduate_t:'First Graduate',award_graduate_b:'За первого ученика, полностью завершившего программу.',
-      apply_kicker:'Заявка',apply_title:'Заявка на преподавание в Duvela',apply_body:'Расскажите немного о себе. Команда рассматривает каждую заявку в течение 24 часов и присылает ссылку-приглашение прямо на email.',
-      apply_name:'Полное имя',apply_email:'Email',apply_phone:'Телефон / Telegram (не обязательно)',apply_country:'Город, страна',apply_native:'Родной язык',apply_teach:'Преподаю (через запятую)',apply_levels:'Уровни (A1–C2, через запятую)',apply_years:'Опыт (лет)',apply_platform:'Где преподаёте сейчас? (не обязательно)',apply_motivation:'Почему Duvela? (пара предложений)',apply_consent:'Согласен(а) на связь со стороны команды Duvela по моей заявке.',apply_submit:'Отправить заявку',apply_note:'Ответим в течение 24 часов.',apply_sending:'Отправляем…',apply_success:'Спасибо — мы получили вашу заявку. Свяжемся в течение 24 часов.',apply_error:'Не удалось отправить.',apply_missing:'Пожалуйста, заполните имя и email.',apply_need_consent:'Пожалуйста, подтвердите согласие перед отправкой.'
+      apply_kicker:'Demo-доступ',apply_title:'Заявка на demo для учителя',apply_body:'Расскажите немного о себе. Команда рассмотрит заявку и пришлёт TestFlight-приглашение к demo-версии прямо на email.',
+      apply_name:'Полное имя',apply_email:'Email',apply_phone:'Телефон / Telegram (не обязательно)',apply_country:'Город, страна',apply_native:'Родной язык',apply_teach:'Преподаю (через запятую)',apply_levels:'Уровни (A1–C2, через запятую)',apply_years:'Опыт (лет)',apply_platform:'Где преподаёте сейчас? (не обязательно)',apply_motivation:'Почему Duvela? (пара предложений)',apply_consent:'Согласен(а) на связь со стороны команды Duvela по demo/TestFlight доступу.',apply_submit:'Получить demo-доступ',apply_note:'Ответим после проверки заявки и пришлём TestFlight детали.',apply_sending:'Отправляем…',apply_success:'Спасибо — мы получили вашу заявку. После проверки отправим demo/TestFlight детали.',apply_error:'Не удалось отправить.',apply_missing:'Пожалуйста, заполните имя и email.',apply_need_consent:'Пожалуйста, подтвердите согласие перед отправкой.'
     });
     Object.assign(dict.de, {
       hero_title:'Alles zum Unterrichten — in einem <span class="grad">Duvela</span>-Arbeitsbereich.',
-      hero_body:'Profil erstellen, Kurse und LIVE-Unterricht starten, Lernende aufnehmen und den Unterricht ohne Wechsel zwischen Diensten verwalten.',
-      accept:'Lehrerbereich erstellen',
-      accept_short:'Starten',
-      cta_note:'Die Lehrerrolle wird automatisch ausgewählt',
+      hero_body:'Demo-Version anfragen, eine TestFlight-Einladung erhalten und den Lehrerbereich mit Kursen, Online-/Offline-Events und LIVE-Unterricht testen.',
+      accept:'Demo/TestFlight-Zugang anfragen',
+      accept_short:'Zugang anfragen',
+      cta_note:'Die Demo-Version ist per TestFlight-Einladung verfügbar',
       mini_profile_t:'Öffentliches Profil',mini_profile:'Fächer und Erfahrung',
       mini_courses_t:'Kurse',mini_courses:'Preis und Zeitplan',
       mini_learners_t:'Lernende',mini_learners:'in einer Liste',mini_tools:'Studio im Browser',
       faq_kicker:'Vor dem Start',faq_title:'Klare Antworten auf die wichtigsten Fragen.',
-      faq_1_q:'Was passiert nach dem Klick?',faq_1_a:'Duvela öffnet die Registrierung mit vorausgewählter Lehrerrolle. Danach kannst du dein Profil vervollständigen und dein erstes Angebot veröffentlichen.',
+      faq_1_q:'Was passiert nach der Anfrage?',faq_1_a:'Duvela prüft deine Anfrage und sendet eine Demo/TestFlight-Einladung. Nach der Freigabe kannst du den Teacher Hub testen und dein erstes Angebot vorbereiten.',
       faq_2_q:'Was kann ich veröffentlichen?',faq_2_a:'Kurse, LIVE-Unterricht und Events wie Workshops, Clubs oder Online-Termine.',
       faq_3_q:'Muss ich etwas installieren?',faq_3_a:'Der Lehrerbereich und die LIVE-Werkzeuge öffnen sich direkt im Browser.',
-      mobile_cta_note:'Dein Lehrerbereich ist nur einen Klick entfernt',
-      nav_features:'Funktionen',nav_how:'So funktioniert es',nav_faq:'Fragen',
+      mobile_cta_note:'Demo-Zugang ist per TestFlight-Einladung verfügbar',
+      nav_demo:'Demo',nav_features:'Funktionen',nav_how:'So funktioniert es',nav_faq:'Fragen',
       value_kicker:'Ein verbundener Ablauf',value_title:'Weniger Zeit für einzelne Werkzeuge. Mehr Zeit zum Unterrichten.',value_body:'Das Profil führt Lernende zu deinem Angebot. Kurse und Events zeigen, was du unterrichtest. Der Arbeitsbereich verbindet Anmeldungen, Zeitplan, LIVE und Feedback.',
       value_1_t:'Expertise präsentieren',value_1_b:'Fächer, Sprachen, Erfahrung, Links und aktive Angebote im öffentlichen Profil.',
       value_2_t:'Ein klares Angebot veröffentlichen',value_2_b:'Niveau, Sprache, Zeitplan und Preis für Kurs oder Klasse angeben.',
@@ -1133,19 +1216,29 @@
       audience_1_t:'Selbstständige Lehrkräfte',audience_1_b:'Öffentliches Profil, eigene Angebote, LIVE-Unterricht und direkte Lernendenverwaltung.',
       audience_2_t:'Kursanbieter',audience_2_b:'Strukturierte Kurse, Klassen, Aufgaben und Feedback in einem Ablauf.',
       audience_3_t:'Schulen und Veranstalter',audience_3_b:'Kurse, Klassen, Übungen und Events unter einer Organisation.',
-      how_title:'Von der Einladung zum ersten Angebot in vier klaren Schritten.',
+      how_title:'Von der Demo-Anfrage zum ersten Angebot in vier klaren Schritten.',
       step3:'Kurs, Klasse, Event oder LIVE-Termin erstellen.',step4:'Anmeldungen, Termine, Abgaben und Lernaktivität verwalten.',
-      result_kicker:'Dein Ergebnis',result_title:'Ein Profil, das Lernende finden können — und ein Arbeitsbereich für den Alltag.',result_body:'Die öffentliche Seite erklärt dein Angebot. Der private Bereich organisiert die tägliche Arbeit.',result_cta:'Lehrerbereich erstellen',
+      result_kicker:'Dein Ergebnis',result_title:'Ein Profil, das Lernende finden können — und ein Arbeitsbereich für den Alltag.',result_body:'Die öffentliche Seite erklärt dein Angebot. Der private Bereich organisiert die tägliche Arbeit.',result_cta:'Demo-Zugang anfragen',
       faq_4_q:'Können Lernende mein Profil sehen?',faq_4_a:'Ja. Das öffentliche Profil kann Fächer, Sprachen, Erfahrung, Links, Kurse und kommende Events zeigen.',
       faq_5_q:'Kann ich Aufgaben verwalten?',faq_5_a:'Im Lehrerbereich lassen sich Sprech- und Schreibaufgaben prüfen, bewerten und kommentieren.',
       faq_6_q:'Ist Duvela nur für selbstständige Lehrkräfte?',faq_6_a:'Nein. Die Plattform unterstützt auch Kursanbieter, Veranstalter und Schulen mit Klassen und Events.',
-      invite_title:'Bereit für deinen Lehrerbereich?',invite_body:'Nimm die Einladung an. Duvela öffnet die Registrierung mit ausgewählter Lehrerrolle und behält die Einladungsreferenz.',
-      final_check_1:'Lehrerrolle ausgewählt',final_check_2:'Einladungsreferenz gespeichert',final_check_3:'Direkt im Browser fortfahren',
-      code_label:'Deine Einladungsreferenz',create:'Annehmen und Konto erstellen',
-      seo_title:'Mit Duvela unterrichten | Lehrerbereich',seo_description:'Lehrerprofil erstellen, Kurse und Klassen veröffentlichen, LIVE unterrichten und Termine, Aufgaben sowie Lernende in Duvela verwalten.',
+      invite_title:'Bereit für die Lehrer-Demo?',invite_body:'Sende eine kurze Anfrage. Das Duvela-Team prüft sie und teilt den TestFlight-Zugang zur Demo-Version.',
+      final_check_1:'Lehrer-Anfrage gespeichert',final_check_2:'Einladungsreferenz gespeichert',final_check_3:'TestFlight-Details nach Prüfung',
+      code_label:'Deine Einladungsreferenz',create:'Demo-Zugang anfragen',
+      seo_title:'Mit Duvela unterrichten | Lehrerbereich',seo_description:'Lehrerprofil erstellen, Kurse, Klassen und Online-/Offline-Events veröffentlichen, LIVE unterrichten und Termine, Aufgaben sowie Lernende in Duvela verwalten.',
       eyebrow:'Willkommen bei Duvela Academy Hub',
       video_kicker:'Willkommen bei Duvela Academy Hub',video_title:'60 Sekunden — sieh, was ein Lehrer am ersten Tag bekommt.',video_body:'Vom öffentlichen Profil und Kursen bis zu LIVE im Browser, Chat, Community und Zahlungen — alles, was ein Lehrer braucht, in einem Arbeitsbereich.',video_play:'Überblick abspielen',video_placeholder:'Video kommt bald. Bis dahin — scrolle für die Tour.',
       strip_languages:'Sprachen',strip_teachers:'Lehrer',strip_learners:'aktive Lernende',strip_signup:'Einrichtungsgebühr',
+      demo_kicker:'Demo-Version',demo_title:'Solange Duvela in der Demo ist, läuft der Lehrerzugang über TestFlight.',demo_body:'Wir laden Lehrkräfte in kontrollierten Gruppen ein, damit der Hub stabil bleibt und Feedback vor dem öffentlichen Start einfließt.',
+      demo_card_title:'So bekommst du die Demo',demo_card_body:'Hinterlasse deine Lehrerdaten. Nach der Prüfung senden wir die TestFlight-Einladung und kurze Onboarding-Hinweise.',
+      demo_step_1:'Kurze Lehreranfrage senden.',demo_step_2:'Duvela prüft Profil und Kontaktdaten.',demo_step_3:'Du erhältst die TestFlight-Einladung.',demo_step_4:'Du testest den Teacher Hub und gibst Feedback.',
+      demo_features_title:'Was in der Demo verfügbar ist',demo_features_body:'Die Demo konzentriert sich auf die Kernwerkzeuge zum Vorbereiten, Veröffentlichen und Verwalten von Lernaktivität.',
+      demo_feature_profile_t:'Lehrerprofil',demo_feature_profile_b:'Bio, Sprachen, Fächer und öffentliche Identität.',
+      demo_feature_courses_t:'Kurse',demo_feature_courses_b:'Strukturierte Angebote mit Niveau und Zeitplan.',
+      demo_feature_live_t:'LIVE-Unterricht',demo_feature_live_b:'Browser-Unterricht und Live-Lehrwerkzeuge.',
+      demo_feature_events_t:'Online-/Offline-Events',demo_feature_events_b:'Workshops, Clubs und Community-Termine.',
+      demo_feature_media_t:'Medien',demo_feature_media_b:'Shorts, Videos und Fotos für dein Studio.',
+      demo_feature_awards_t:'Auszeichnungen',demo_feature_awards_b:'Badges, die später im Profil erscheinen können.',
       awards_kicker:'Anerkennung',awards_title:'10 Auszeichnungen für Duvela-Lehrer',awards_body:'Jede Auszeichnung ist in deinem öffentlichen Profil sichtbar — Lernende sehen auf einen Blick, wer aktiv, konstant und hoch bewertet ist.',
       award_live_teacher_t:'Live Teacher',award_live_teacher_b:'Für die erste durchgeführte LIVE-Stunde.',
       award_student_favorite_t:'Student Favorite',award_student_favorite_b:'Für eine hohe Bewertung — 4,8+ nach 10 Rezensionen.',
@@ -1157,8 +1250,8 @@
       award_10_lessons_t:'10 Lessons Together',award_10_lessons_b:'Für 10 gehaltene Stunden mit demselben Lernenden oder einer Gruppe.',
       award_author_t:'Duvela Author',award_author_b:'Für die Veröffentlichung eines Kurses, Übungspakets oder Originalmaterials.',
       award_graduate_t:'First Graduate',award_graduate_b:'Für den ersten Lernenden, der ein vollständiges Programm abgeschlossen hat.',
-      apply_kicker:'Bewerbung',apply_title:'Als Lehrer bei Duvela bewerben',apply_body:'Erzähl uns kurz von dir. Wir prüfen jede Bewerbung innerhalb von 24 Stunden und schicken den Einladungslink direkt in dein Postfach.',
-      apply_name:'Vollständiger Name',apply_email:'E-Mail',apply_phone:'Telefon / Telegram (optional)',apply_country:'Stadt, Land',apply_native:'Muttersprache',apply_teach:'Ich unterrichte (durch Komma getrennt)',apply_levels:'Niveaus (A1–C2, durch Komma getrennt)',apply_years:'Berufserfahrung (Jahre)',apply_platform:'Wo unterrichtest du aktuell? (optional)',apply_motivation:'Warum Duvela? (ein paar Sätze)',apply_consent:'Ich stimme zu, dass das Duvela-Team mich zu meiner Bewerbung kontaktiert.',apply_submit:'Bewerbung senden',apply_note:'Wir melden uns innerhalb von 24 Stunden.',apply_sending:'Senden…',apply_success:'Danke — wir haben deine Bewerbung. Wir melden uns innerhalb von 24 Stunden.',apply_error:'Konnte nicht gesendet werden.',apply_missing:'Bitte Name und E-Mail ausfüllen.',apply_need_consent:'Bitte stimme der Kontaktaufnahme vor dem Senden zu.'
+      apply_kicker:'Demo-Zugang',apply_title:'Lehrer-Demo-Zugang anfragen',apply_body:'Erzähl uns kurz von dir. Wir prüfen deine Anfrage und schicken die TestFlight-Einladung zur Demo-Version direkt in dein Postfach.',
+      apply_name:'Vollständiger Name',apply_email:'E-Mail',apply_phone:'Telefon / Telegram (optional)',apply_country:'Stadt, Land',apply_native:'Muttersprache',apply_teach:'Ich unterrichte (durch Komma getrennt)',apply_levels:'Niveaus (A1–C2, durch Komma getrennt)',apply_years:'Berufserfahrung (Jahre)',apply_platform:'Wo unterrichtest du aktuell? (optional)',apply_motivation:'Warum Duvela? (ein paar Sätze)',apply_consent:'Ich stimme zu, dass das Duvela-Team mich zum Demo/TestFlight-Zugang kontaktiert.',apply_submit:'Demo-Zugang anfragen',apply_note:'Wir melden uns nach der Prüfung mit TestFlight-Details.',apply_sending:'Senden…',apply_success:'Danke — wir haben deine Anfrage. Nach der Prüfung senden wir Demo/TestFlight-Details.',apply_error:'Konnte nicht gesendet werden.',apply_missing:'Bitte Name und E-Mail ausfüllen.',apply_need_consent:'Bitte stimme der Kontaktaufnahme vor dem Senden zu.'
     });
     var refInput = document.getElementById('inviteRef');
     var rawLang = (inviteParams.get('lang') || localStorage.getItem(langKey) || navigator.language || 'en').toLowerCase();
@@ -1179,11 +1272,8 @@
       url.searchParams.set('lang', lang);
       return url.href;
     }
-    function signupUrl() {
-      var url = new URL('./index.html', window.location.href);
-      url.searchParams.set('login', '1');
-      url.searchParams.set('teacher_invite', (refInput && refInput.value.trim()) || 'duvela-teacher');
-      return url.href;
+    function demoAccessUrl() {
+      return '#apply';
     }
     function trackInviteAction(action, placement) {
       var payload = {
@@ -1276,7 +1366,7 @@
         document.querySelectorAll('[data-i18n="' + key + '"]').forEach(function (node) { node.textContent = dict[copyLang][key]; });
         document.querySelectorAll('[data-i18n-html="' + key + '"]').forEach(function (node) { node.innerHTML = dict[copyLang][key]; });
       });
-      document.querySelectorAll('.js-teacher-signup').forEach(function (link) { link.href = signupUrl(); });
+      document.querySelectorAll('.js-teacher-signup').forEach(function (link) { link.href = demoAccessUrl(); });
       renderAwards(copyLang);
     }
     document.querySelectorAll('[data-lang]').forEach(function (button) {
@@ -1289,15 +1379,18 @@
     });
     if (refInput) refInput.addEventListener('input', renderLang);
     document.querySelectorAll('.js-teacher-signup').forEach(function (link) {
-      link.addEventListener('click', function () {
-        trackInviteAction('signup_click', link.dataset.ctaPlace || 'unknown');
+      link.addEventListener('click', function (event) {
+        trackInviteAction('demo_access_click', link.dataset.ctaPlace || 'unknown');
         try {
-          localStorage.setItem(signupRoleKey, 'teacher');
-          localStorage.setItem(authModeKey, 'signup');
           localStorage.setItem(inviteRoleKey, 'teacher');
           localStorage.setItem(inviteRefKey, (refInput && refInput.value.trim()) || 'duvela-teacher');
           sessionStorage.setItem(inviteRefKey, (refInput && refInput.value.trim()) || 'duvela-teacher');
         } catch (_) {}
+        var target = document.getElementById('apply');
+        if (target && target.scrollIntoView) {
+          event.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
     });
     // The old copyInvite/inviteRef surface was removed with the redesign —
@@ -1387,7 +1480,7 @@
           trackInviteAction('apply_error', result.error.code || 'unknown');
           return;
         }
-        if (applyMessage) { applyMessage.className = 'apply-message ok'; applyMessage.textContent = dict[lang].apply_success || 'Thanks — we got your application. We\'ll be in touch within 24 hours.'; }
+        if (applyMessage) { applyMessage.className = 'apply-message ok'; applyMessage.textContent = dict[lang].apply_success || 'Thanks — we got your request. We will send demo/TestFlight details after review.'; }
         applyForm.reset();
         trackInviteAction('apply_success', payload.source);
       });
