@@ -36,6 +36,7 @@ const files = [
   // hand-off card so a learner recognises the app they're jumping to.
   'hub-app-icon.png',
   'og.png',
+  'testflight.jpg',
   'video-poster.jpg',
   'robots.txt',
   'sitemap.xml',
