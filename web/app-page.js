@@ -104,7 +104,7 @@
     },
     bus: {
       home: tr('Dashboard', 'Dashboard'),
-      management: tr('Management', 'Management'),
+      management: tr('Workspace', 'Workspace'),
       videos: tr('Media', 'Медиа'),
       live: tr('Live Studio', 'LIVE-студия'),
       courses: tr('Courses', 'Курсы'),
@@ -263,6 +263,14 @@
   const appRouter = routerApi.create({ $, $$, tr, navLabels, titles, modeKey, setText });
   function updateShellCopy() { return appRouter.syncShell(); }
   function setView(view) { return appRouter.setView(view); }
+  function syncSidebarProfile() {
+    const displayName = profile?.full_name || user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : 'Duvela');
+    const roleText = isBusiness() ? tr('German Teacher', 'German Teacher') : roleLabels[role] || 'Duvela';
+    const avatar = document.querySelector('.side-avatar');
+    if (avatar) avatar.innerHTML = avatarInner(displayName, profile?.avatar_url) + '<i></i>';
+    setText('.side-profile-copy b', displayName);
+    setText('.side-profile-copy small', roleText);
+  }
   function row(item, actionHtml) {
     const level = item.level ? '<span class="tag">' + esc(item.level) + '</span>' : '';
     return '<div class="card row">' +
@@ -297,7 +305,7 @@
       get user() { return user; },
       get profile() { return profile; },
       get role() { return role; },
-      setProfile(nextProfile) { profile = nextProfile; },
+      setProfile(nextProfile) { profile = nextProfile; syncSidebarProfile(); },
       isBusiness,
       roleLabels,
       supportedLocales,
@@ -338,6 +346,9 @@
       studyToolsHtml,
       bindStudyTiles,
       openStudyTool,
+      elsaExamCardHtml,
+      bindElsaExamCard,
+      openElsaExam,
       openPracticeBuilder,
       openChallengeCreate,
       openClassManage,
@@ -369,6 +380,7 @@
   const notificationsFeature = window.DuvelaAppNotifications.create(featureContext);
   const practiceFeature = window.DuvelaAppPractice.create(featureContext);
   const studyFeature = window.DuvelaAppStudy.create(featureContext);
+  const elsaExamFeature = window.DuvelaElsaExam ? window.DuvelaElsaExam.create(featureContext) : null;
   const gamesFeature = window.DuvelaAppGames.create(featureContext);
   const businessFeature = window.DuvelaAppBusiness.create(featureContext);
   const classesFeature = window.DuvelaAppClasses.create(featureContext);
@@ -414,6 +426,9 @@
   function studyToolsHtml() { return studyFeature.studyToolsHtml(); }
   function bindStudyTiles() { return studyFeature.bindStudyTiles(); }
   function openStudyTool(id) { return studyFeature.openStudyTool(id); }
+  function elsaExamCardHtml() { return elsaExamFeature ? elsaExamFeature.elsaExamCardHtml() : ''; }
+  function bindElsaExamCard() { return elsaExamFeature ? elsaExamFeature.bindElsaExamCard() : undefined; }
+  function openElsaExam() { return elsaExamFeature ? elsaExamFeature.open() : undefined; }
 
   async function loadSchedule() { return scheduleFeature.loadSchedule(); }
   function renderSchedule() { return scheduleFeature.renderSchedule(); }
@@ -451,6 +466,7 @@
   function closeDuel() { return gamesFeature.closeDuel(); }
   function renderAll() {
     updateShellCopy();
+    syncSidebarProfile();
     renderAccessNotice();
     syncRoleOptions();
     renderProfile();

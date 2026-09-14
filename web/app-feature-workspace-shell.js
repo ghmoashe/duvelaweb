@@ -22,12 +22,15 @@
       }
       document.querySelector('[data-panel="workspace"]')?.classList.add('learner-practice-panel');
       var studyHtml = ctx.studyToolsHtml ? ctx.studyToolsHtml() : '';
+      var elsaHtml = ctx.elsaExamCardHtml ? ctx.elsaExamCardHtml() : '';
       $('#workspaceActions').innerHTML =
+        elsaHtml +
         studyHtml +
         '<div class="section-head practice-teacher-head" style="margin:18px 0 8px"><h2 style="font-size:19px">' + esc(tr('Teacher practices', 'Практики от преподавателей')) + '</h2><span>' + esc(tr('Only for your selected direction and level', 'Только для вашего направления и уровня')) + '</span></div>' +
         ctx.practicesHtml() +
         ctx.challengesHtml();
       if (ctx.bindStudyTiles) ctx.bindStudyTiles();
+      if (ctx.bindElsaExamCard) ctx.bindElsaExamCard();
       renderWorkspaceSide(false);
     }
 
@@ -136,6 +139,7 @@
       var filterButton = function (id, label) { return '<button type="button" class="' + (notesFilter === id ? 'active' : '') + '" data-note-filter="' + esc(id) + '">' + esc(label) + '</button>'; };
       $('#workspaceActions').innerHTML =
         '<div class="notes-page">' +
+          '<section class="notes-hero"><div><span>DUVELA NOTES</span><h2>Рабочий центр заметок</h2><p>Планы уроков, контент, дедлайны и follow-up задачи в одном месте.</p></div><div class="notes-hero-stats"><b>' + notes.length + '<small>заметок</small></b><b>' + notes.filter(function (n) { return n.isPinned; }).length + '<small>закреплено</small></b><b>4<small>на неделе</small></b></div></section>' +
           '<form id="noteForm" class="note-form">' +
             '<div class="note-form-head"><div><h2>' + esc(editing ? tr('Edit note', 'Изменить заметку') : tr('New note', 'Новая заметка')) + '</h2><p>' + esc(tr('Autosaves while you type. Synced when the DB table is installed.', 'Автосохранение при наборе. Синхронизация работает после установки DB таблицы.')) + '</p></div><button class="btn primary" type="submit">' + esc(editing ? tr('Save note', 'Сохранить заметку') : tr('Add note', 'Добавить заметку')) + '</button></div>' +
             '<input type="hidden" id="noteId" value="' + esc(editing ? editing.id : '') + '">' +
@@ -221,7 +225,17 @@
             focusRow('2', tr('Content and event ideas', 'Идеи контента и событий'), tr('Save media, course, event and campaign ideas.', 'Сохраняйте идеи медиа, курсов, событий и кампаний.')) +
             focusRow('3', tr('Follow-ups', 'Follow-up'), tr('Track students, clients, leads and team tasks.', 'Отмечайте учеников, клиентов, лиды и задачи команды.')) +
           '</div>' +
-          '<div class="note-mini-stats"><div><b>' + notes.length + '</b><span>' + esc(tr('notes', 'заметок')) + '</span></div><div><b>' + notes.filter(function (n) { return n.isPinned; }).length + '</b><span>' + esc(tr('pinned', 'закреплено')) + '</span></div></div>';
+          '<div class="note-mini-stats"><div><b>' + notes.length + '</b><span>' + esc(tr('notes', 'заметок')) + '</span></div><div><b>' + notes.filter(function (n) { return n.isPinned; }).length + '</b><span>' + esc(tr('pinned', 'закреплено')) + '</span></div><div><b>4</b><span>дедлайна</span></div><div><b>7</b><span>выполнено</span></div></div>' +
+          '<div class="note-side-section"><div class="section-head"><h2>Ближайшие дедлайны</h2><span>Смотреть все</span></div>' +
+            '<div class="note-deadline"><b>Подготовить урок A2: Freizeit</b><span>16 апреля, 14:00</span><em>Lesson</em></div>' +
+            '<div class="note-deadline"><b>Сценарий для видео: Modalverben</b><span>17 апреля, 10:00</span><em>Content</em></div>' +
+            '<div class="note-deadline"><b>Проверить домашние задания (B1)</b><span>18 апреля, 18:00</span><em>Student</em></div>' +
+          '</div>' +
+          '<div class="note-side-section"><div class="section-head"><h2>Быстрые шаблоны</h2><span>Все шаблоны</span></div><div class="note-template-grid">' +
+            '<button type="button"><span>▤</span><b>План урока</b><small>Структура и цели</small></button>' +
+            '<button type="button"><span>▻</span><b>Контент-пост</b><small>Идеи и план</small></button>' +
+            '<button type="button"><span>◉</span><b>Подготовка эфира</b><small>Чеклист и задачи</small></button>' +
+          '</div></div>';
         return;
       }
       const saved = (() => {

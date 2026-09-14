@@ -17,8 +17,8 @@
 <link href="web/practice-hub.css?v=20260905-duel-pack-hidden" rel="stylesheet">
 <link href="web/app-media-layout.css?v=20260729audit1" rel="stylesheet">
 <link href="web/duvi-assistant.css?v=20260816duvinew2" rel="stylesheet">
-<link href="web/app-inline.css?v=20260906-duel-rename" rel="stylesheet">
-<link href="web/app-live.css" rel="stylesheet">
+<link href="web/app-inline.css?v=20260914-sidebar-scroll1" rel="stylesheet">
+<link href="web/app-live.css?v=20260913-live-studio6" rel="stylesheet">
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
@@ -85,10 +85,18 @@
 
 <div class="app" id="app" style="display:none">
   <aside class="sidebar">
-    <a class="brand" href="./index.html" aria-label="Duvela home">
-      <img src="./logo.webp" alt="Duvela">
-      <span>Duvela</span>
-    </a>
+    <div class="sidebar-head">
+      <a class="brand" href="./index.html" aria-label="Duvela home">
+        <img src="./logo4.png" alt="Duvela" onerror="this.onerror=null;this.src='./logo3.png';this.onerror=function(){this.onerror=null;this.src='./logo2.png';};">
+        <span>Duvela</span>
+      </a>
+      <button class="sidebar-toggle" type="button" aria-label="Compact sidebar">‹‹</button>
+    </div>
+    <button class="side-profile" type="button" data-view="profile" aria-label="Teacher profile">
+      <span class="side-avatar">DH<i></i></span>
+      <span class="side-profile-copy"><b>Duvvv hshsh</b><small>German Teacher</small><em>Online</em></span>
+      <span class="side-profile-arrow">›</span>
+    </button>
     <div class="role-badge" id="roleBadge" aria-live="polite">Learner</div>
     <select class="role-select" id="langSelect" aria-label="Language" style="font-weight:800">
       <option value="en">🇬🇧 English</option>
@@ -113,8 +121,18 @@
       <a class="nav-admin-only" href="./admin.html" aria-label="Admin panel"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><span data-t="adminPanelLink">Admin panel</span></a>
     </nav>
     <div class="side-foot">
-      <b id="sideStatusTitle">Hub Web</b>
-      <span id="sideStatusText">Signed in. Your browser workspace is active.</span>
+      <button class="side-workspace" type="button" data-view="management">
+        <span class="side-workspace-icon">▦</span>
+        <span><b id="sideStatusTitle">Hub Web</b><small id="sideStatusText">Signed in. Your browser workspace is active.</small></span>
+        <i>›</i>
+      </button>
+      <button class="side-settings-row side-language-row" type="button" data-sidebar-action="language">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 010 20"/><path d="M12 2a15 15 0 000 20"/></svg></span>
+        <span>Русский</span>
+        <i>⌄</i>
+      </button>
+      <button class="side-settings-row" type="button" data-sidebar-action="settings"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 00.36 1.98l.06.06a2 2 0 01-2.83 2.83l-.06-.06A1.8 1.8 0 0015 19.4a1.8 1.8 0 00-1 .6 1.8 1.8 0 00-.4 1.2V21a2 2 0 01-4 0v-.09A1.8 1.8 0 009 19.4a1.8 1.8 0 00-1.98.36l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.8 1.8 0 004.6 15a1.8 1.8 0 00-.6-1 1.8 1.8 0 00-1.2-.4H3a2 2 0 010-4h.09A1.8 1.8 0 004.6 9a1.8 1.8 0 00-.36-1.98l-.06-.06a2 2 0 012.83-2.83l.06.06A1.8 1.8 0 009 4.6a1.8 1.8 0 001-.6 1.8 1.8 0 00.4-1.2V3a2 2 0 014 0v.09A1.8 1.8 0 0015 4.6a1.8 1.8 0 001.98-.36l.06-.06a2 2 0 012.83 2.83l-.06.06A1.8 1.8 0 0019.4 9c.2.37.54.64.96.76.2.06.42.08.64.08H21a2 2 0 010 4h-.09A1.8 1.8 0 0019.4 15z"/></svg></span><span>Settings</span></button>
+      <button class="side-settings-row" type="button" data-sidebar-action="support"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 115.8 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg></span><span>Help & Support</span></button>
     </div>
   </aside>
 
@@ -240,6 +258,42 @@
             <button class="btn primary" type="submit">Send</button>
           </form>
         </div>
+        <aside class="msg-info-col">
+          <section class="msg-info-card">
+            <div class="msg-info-head"><h3>Информация об ученике</h3><button type="button">•••</button></div>
+            <div class="msg-student">
+              <span class="msg-student-avatar">MK<i></i></span>
+              <h4>Maria K.</h4>
+              <p><span></span> Online</p>
+              <div><b>A2</b> German A2</div>
+              <small>Курс: <strong>Deutsch Conversation A2</strong></small>
+            </div>
+            <button class="msg-side-primary" type="button">▣ Запланировать урок</button>
+            <div class="msg-side-actions">
+              <button type="button">▤ Открыть курс</button>
+              <button type="button">♙ Профиль</button>
+            </div>
+            <div class="msg-progress-list">
+              <p><span>▣</span><b>Следующий урок</b><strong>16 апреля, 14:00</strong></p>
+              <p><span>◷</span><b>Последний урок</b><strong>9 апреля, 14:00</strong></p>
+              <p><span>▥</span><b>Посещаемость</b><strong>8 из 10 уроков <em>80%</em></strong></p>
+              <p><span>▧</span><b>Домашнее задание</b><strong>Задано 9 апреля <em class="ok">Выполнено</em></strong></p>
+            </div>
+          </section>
+          <section class="msg-info-card compact">
+            <h3>Быстрые действия</h3>
+            <button type="button">▣ Запланировать урок</button>
+            <button type="button">✎ Отправить учебный материал</button>
+            <button type="button">▤ Открыть заметки об ученике</button>
+            <button type="button">••• Больше действий</button>
+          </section>
+          <section class="msg-info-card compact">
+            <div class="msg-info-head"><h3>Недавняя активность</h3><a>Показать все</a></div>
+            <p class="msg-activity">▣ Выполнила домашнее задание <span>9 апреля, 18:32</span></p>
+            <p class="msg-activity">▣ Посетила урок <span>9 апреля, 14:00</span></p>
+            <p class="msg-activity">▣ Отправила сообщение <span>7 апреля, 11:24</span></p>
+          </section>
+        </aside>
       </div>
     </section>
 
@@ -549,41 +603,42 @@
 <script src="./web/duvela-web-profile-writes.js?v=20260814-role1"></script>
 <script src="./web/app-store.js"></script>
 <script src="./web/app-router.js?v=20260904-nav-duel3"></script>
-<script src="./web/app-bootstrap.js?v=20260906-duel-rename"></script>
+<script src="./web/app-bootstrap.js?v=20260914-sidebar-actions1"></script>
 <script src="./web/app-role-access.js?v=20260814-role3"></script>
 <script src="./web/app-static-ui.js"></script>
 <script src="./web/app-public-data.js"></script>
 <script src="./web/app-feature-media.js?v=20260722-3"></script>
-<script src="./web/app-feature-media-platform.js?v=20260722-6"></script>
+<script src="./web/app-feature-media-platform.js?v=20260913-media-analytics1"></script>
 <script src="./web/app-feature-profile.js?v=20260815-goal1"></script>
-<script src="./web/app-feature-leaderboard.js"></script>
+<script src="./web/app-feature-leaderboard.js?v=20260913-leaderboard1"></script>
 <script src="./web/app-feature-practice-builder.js"></script>
-<script src="./web/app-feature-workspace-shell.js?v=20260730practice1"></script>
-<script src="./web/app-feature-dashboard.js"></script>
-<script src="./web/app-feature-management.js"></script>
+<script src="./web/app-feature-workspace-shell.js?v=20260913-notes-rich1"></script>
+<script src="./web/app-feature-dashboard.js?v=20260913-dashboard-routes1"></script>
+<script src="./web/app-feature-management.js?v=20260913-management-routes1"></script>
 <script src="./web/app-bunny-upload.js"></script>
-<script src="./web/app-feature-media-studio.js"></script>
-<script src="./web/app-feature-profile-view.js?v=20260721-2"></script>
+<script src="./web/app-feature-media-studio.js?v=20260913-media-analytics1"></script>
+<script src="./web/app-feature-profile-view.js?v=20260913-profile-fix1"></script>
 <script src="./web/app-feature-business.js"></script>
 <script src="./web/app-feature-classes.js"></script>
-<script src="./web/app-feature-catalog.js?v=20260721-5"></script>
-<script src="./web/app-feature-schedule.js"></script>
+<script src="./web/app-feature-catalog.js?v=20260913-sidebar1"></script>
+<script src="./web/app-feature-schedule.js?v=20260913-schedule1"></script>
 <script src="./web/app-feature-gamification.js?v=20260721-2"></script>
 <script src="./web/app-feature-search.js"></script>
 <script src="./web/app-chat-e2ee.js"></script>
-<script src="./web/app-feature-messages.js?v=20260805-messages1"></script>
+<script src="./web/app-feature-messages.js?v=20260913-messages1"></script>
 <script src="./web/app-feature-notifications.js"></script>
 <script src="./web/app-feature-practice.js?v=20260730practice1"></script>
 <script src="./web/duel-room.js?v=20260905-duel-fair"></script>
 <script src="./web/duel-live-fx.js?v=20260905-duel-p2"></script>
 <script src="./web/duel-player.js?v=20260905-duel-handoff-icon"></script>
 <script src="./web/app-feature-study.js?v=20260906-live-cats2"></script>
+<script src="./web/app-feature-elsa-exam.js?v=20260914-elsa1"></script>
 <script src="./web/app-feature-games.js"></script>
 <script src="./web/app-onboarding-data.js?v=20260728organization3"></script>
 <script src="./web/app-onboarding.js?v=20260815-nofocus"></script>
 <script src="./web/app-onboarding-location.js?v=20260805ioslocation2"></script>
 <script src="./web/app-remove-age-confirmation.js"></script>
-<script src="./web/app-page.js?v=20260906-duel-rename"></script>
+<script src="./web/app-page.js?v=20260914-sidebar-avatar1"></script>
 <script src="./web/duvi-assistant.js?v=20260816duvinew2"></script>
 <script>window.DuvelaDUVI?.mount({context:'app',locale:()=>window.DuvelaCurrentAppLang||localStorage.getItem('duvela.webLang')||localStorage.getItem('duvela.web.lang')||navigator.language,autoWelcome:true});</script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
