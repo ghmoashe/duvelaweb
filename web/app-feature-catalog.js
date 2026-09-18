@@ -61,7 +61,7 @@
       try {
         const [{ data: org }, { count }, { data: mine }, { data: rsvps }, viewResult] = await Promise.all([
           item.organizer_id ? supa.from('profiles').select('full_name').eq('id', item.organizer_id).maybeSingle() : Promise.resolve({ data: null }),
-          supa.from('event_rsvps').select('*', { count: 'exact', head: true }).eq('event_id', id).eq('status', 'going'),
+          supa.from('event_rsvps').select('event_id', { count: 'exact', head: true }).eq('event_id', id).eq('status', 'going'),
           supa.from('event_rsvps').select('status').eq('event_id', id).eq('user_id', ctx.user.id).maybeSingle(),
           item.organizer_id === ctx.user.id ? supa.from('event_rsvps').select('user_id,status').eq('event_id', id).eq('status', 'going') : Promise.resolve({ data: [] }),
           supa.rpc('track_event_view', { target_event_id: id })
@@ -230,7 +230,7 @@
         }
         const capacity = Number(eventRow.max_participants) || 0;
         if (!going && capacity) {
-          const { count, error: countError } = await supa.from('event_rsvps').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'going');
+          const { count, error: countError } = await supa.from('event_rsvps').select('event_id', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'going');
           if (countError) throw countError;
           if ((count || 0) >= capacity) {
             alert(tr('This event is full.', 'На это событие мест больше нет.'));
