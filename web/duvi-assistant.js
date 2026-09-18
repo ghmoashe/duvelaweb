@@ -1,4 +1,4 @@
-(function attachDuviAssistant(global) {
+﻿(function attachDuviAssistant(global) {
   'use strict';
 
   const ASSET_ROOT = '/web/assets/duvi/';
@@ -599,3 +599,4 @@
 
   global.DuvelaDUVI = { mount, show, hide, setContext, setLocale, registerAction, ask: sendChat, setVoice: setVoiceEnabled };
 })(window);
+

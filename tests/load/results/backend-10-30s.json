@@ -1,0 +1,283 @@
+{
+    "root_group": {
+        "groups": {
+            "feed page": {
+                "name": "feed page",
+                "path": "::feed page",
+                "id": "fcb48986a8d850f6bb4643bec4c73a2d",
+                "groups": {},
+                "checks": {
+                        "feed status 2xx": {
+                            "name": "feed status 2xx",
+                            "path": "::feed page::feed status 2xx",
+                            "id": "d1154b19a2877287111670fe483f41be",
+                            "passes": 122,
+                            "fails": 0
+                        },
+                        "feed returns <= page size": {
+                            "name": "feed returns <= page size",
+                            "path": "::feed page::feed returns <= page size",
+                            "id": "1b3f6888ed6fbda75221044ef47c068b",
+                            "passes": 122,
+                            "fails": 0
+                        }
+                    }
+            },
+            "events and profiles": {
+                "path": "::events and profiles",
+                "id": "37f34ec3e84078c77990d384c5c0142b",
+                "groups": {},
+                "checks": {
+                        "events status 2xx": {
+                            "name": "events status 2xx",
+                            "path": "::events and profiles::events status 2xx",
+                            "id": "dbaab2ba1b2cdbbb5532d42d553f9e58",
+                            "passes": 122,
+                            "fails": 0
+                        },
+                        "events returns <= page size": {
+                            "passes": 122,
+                            "fails": 0,
+                            "name": "events returns <= page size",
+                            "path": "::events and profiles::events returns <= page size",
+                            "id": "a9a41cf5ef1914bf8d03f444f1443d8a"
+                        },
+                        "event detail status 2xx": {
+                            "name": "event detail status 2xx",
+                            "path": "::events and profiles::event detail status 2xx",
+                            "id": "5e6e2faacf6dd1367b073e7789be01a5",
+                            "passes": 20,
+                            "fails": 0
+                        },
+                        "organizer profile status 2xx": {
+                            "id": "4997b802b93776fefe276206dabcc2d7",
+                            "passes": 20,
+                            "fails": 0,
+                            "name": "organizer profile status 2xx",
+                            "path": "::events and profiles::organizer profile status 2xx"
+                        }
+                    },
+                "name": "events and profiles"
+            },
+            "pagination": {
+                "groups": {},
+                "checks": {
+                        "feed pagination status 2xx": {
+                            "name": "feed pagination status 2xx",
+                            "path": "::pagination::feed pagination status 2xx",
+                            "id": "26b4b6860c7c1f747eff2fb6b1a89f5f",
+                            "passes": 122,
+                            "fails": 0
+                        },
+                        "events pagination status 2xx": {
+                            "id": "d657087f09e70e89d18b9125a4bffe75",
+                            "passes": 122,
+                            "fails": 0,
+                            "name": "events pagination status 2xx",
+                            "path": "::pagination::events pagination status 2xx"
+                        }
+                    },
+                "name": "pagination",
+                "path": "::pagination",
+                "id": "bae1a25b6c778efa6db16a82b50fa29d"
+            }
+        },
+        "checks": {},
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "metrics": {
+        "group_duration": {
+            "min": 0.5139,
+            "avg": 12.496953825136613,
+            "med": 2.2560000000000002,
+            "p(90)": 4.70825,
+            "p(95)": 6.172075,
+            "p(99)": 445.6251600000002,
+            "max": 606.1181
+        },
+        "duvela_events_latency": {
+            "med": 1.33845,
+            "p(90)": 2.18608,
+            "p(95)": 2.4734999999999996,
+            "p(99)": 3.195501000000002,
+            "max": 449.1842,
+            "min": 0,
+            "avg": 4.764248484848487,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_req_connecting": {
+            "avg": 0.03298210332103321,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 1.4289,
+            "max": 2.5068,
+            "min": 0
+        },
+        "duvela_cache_store_memory": {
+            "count": 528,
+            "rate": 14.925675183482129
+        },
+        "checks": {
+            "passes": 772,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_receiving": {
+            "med": 0.31279999999999997,
+            "p(90)": 1.0011700000000006,
+            "p(95)": 1.2256049999999998,
+            "p(99)": 5.811064000000056,
+            "max": 16.0363,
+            "min": 0,
+            "avg": 0.48900756457564576
+        },
+        "vus_max": {
+            "value": 10,
+            "min": 10,
+            "max": 10
+        },
+        "data_received": {
+            "count": 296015,
+            "rate": 8367.847991360724
+        },
+        "iteration_duration": {
+            "med": 2521.4855,
+            "p(90)": 3394.4516,
+            "p(95)": 3625.12025,
+            "p(99)": 3988.8907539999996,
+            "max": 4409.3615,
+            "min": 1286.012,
+            "avg": 2578.566667213114
+        },
+        "data_sent": {
+            "rate": 9081.594909367808,
+            "count": 321264
+        },
+        "duvela_cache_misses": {
+            "count": 9,
+            "rate": 0.2544149179002636
+        },
+        "http_req_duration": {
+            "p(95)": 3.7772,
+            "p(99)": 416.80987200000175,
+            "max": 605.4433,
+            "min": 0,
+            "avg": 11.87689409594096,
+            "med": 1.33515,
+            "p(90)": 2.432350000000001,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "duvela_cache_hits": {
+            "count": 519,
+            "rate": 14.671260265581866
+        },
+        "iterations": {
+            "count": 122,
+            "rate": 3.4487355537591284
+        },
+        "http_req_tls_handshaking": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0,
+            "min": 0,
+            "avg": 0,
+            "med": 0
+        },
+        "duvela_feed_latency": {
+            "p(99)": 438.93837199999854,
+            "max": 605.4433,
+            "min": 0.5096,
+            "avg": 12.662128688524593,
+            "med": 1.3411,
+            "p(90)": 2.4530100000000004,
+            "p(95)": 3.7772,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "duvela_api_error_rate": {
+            "passes": 0,
+            "fails": 528,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_reqs": {
+            "count": 542,
+            "rate": 15.321431722438096
+        },
+        "http_req_blocked": {
+            "max": 2.5068,
+            "min": 0,
+            "avg": 0.04949981549815498,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 1.4366290000000004
+        },
+        "http_req_sending": {
+            "max": 0.8128,
+            "min": 0,
+            "avg": 0.04359280442804429,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0.564265,
+            "p(99)": 0.738793
+        },
+        "http_req_duration{expected_response:true}": {
+            "max": 605.4433,
+            "min": 0,
+            "avg": 11.87689409594096,
+            "med": 1.33515,
+            "p(90)": 2.432350000000001,
+            "p(95)": 3.7772,
+            "p(99)": 416.80987200000175
+        },
+        "vus": {
+            "value": 1,
+            "min": 0,
+            "max": 10
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 542,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "duvela_profiles_latency": {
+            "max": 1.4534,
+            "min": 0.5108,
+            "avg": 0.868285,
+            "med": 0.7536499999999999,
+            "p(90)": 1.27885,
+            "p(95)": 1.40514,
+            "p(99)": 1.443748,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_req_waiting": {
+            "med": 0.8207500000000001,
+            "p(90)": 1.79448,
+            "p(95)": 3.733334999999979,
+            "p(99)": 404.6718110000014,
+            "max": 605.4433,
+            "min": 0,
+            "avg": 11.344293726937272
+        }
+    },
+    "setup_data": {
+        "pageSize": 20
+    }
+}

@@ -116,6 +116,7 @@
         $('#deleteFreeSlots').addEventListener('click', deleteAllFreeSlots);
         $('#scheduleSettings').addEventListener('click', editScheduleSettings);
         $('#calendarConnections').addEventListener('click', showCalendarConnections);
+        renderTeacherScheduleDashboard(CAL, CLOCK, VIDEO, free, booked);
       } else {
         $('#scheduleTitle').textContent = tr('Book a lesson', '\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f \u043d\u0430 \u0443\u0440\u043e\u043a');
         $('#scheduleSub').textContent = tr('Choose a teacher, compare open times and manage your bookings.', '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f, \u0441\u0440\u0430\u0432\u043d\u0438\u0442\u0435 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f \u0438 \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u0439\u0442\u0435 \u0437\u0430\u043f\u0438\u0441\u044f\u043c\u0438.');
@@ -142,6 +143,73 @@
           }).join('') + '</div>' : '<div class="mg-empty schedule-empty"><span class="mg-empty-ic">' + CLOCK + '</span><b>' + esc(tr('No bookings yet', '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442')) + '</b><p>' + esc(tr('Pick a teacher and choose a free time.', '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044f \u0438 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f.')) + '</p></div>');
         bindScheduleFilters(main);
       }
+    }
+
+    function renderTeacherScheduleDashboard(CAL, CLOCK, VIDEO, free, booked) {
+      var main = $('#scheduleMain');
+      var side = $('#scheduleSide');
+      if (!main || !side) return;
+      var slots = state.mySlots || [];
+      var total = slots.length;
+      var freeCount = free;
+      var bookedCount = booked;
+      var revenue = slots.reduce(function (sum, slot) { return sum + (slot.is_booked ? Number(slot.price || 0) : 0); }, 0);
+      var freePercent = total ? Math.round((freeCount / total) * 100) : 0;
+      var bookedPercent = total ? Math.round((bookedCount / total) * 100) : 0;
+      var now = new Date();
+      var monday = new Date(now);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+      var dayNames = ['\u041f\u043d', '\u0412\u0442', '\u0421\u0440', '\u0427\u0442', '\u041f\u0442', '\u0421\u0431', '\u0412\u0441'];
+      var monthNames = ['\u044f\u043d\u0432', '\u0444\u0435\u0432', '\u043c\u0430\u0440', '\u0430\u043f\u0440', '\u043c\u0430\u0439', '\u0438\u044e\u043d', '\u0438\u044e\u043b', '\u0430\u0432\u0433', '\u0441\u0435\u043d', '\u043e\u043a\u0442', '\u043d\u043e\u044f', '\u0434\u0435\u043a'];
+      var days = dayNames.map(function (label, index) {
+        var d = new Date(monday);
+        d.setDate(monday.getDate() + index);
+        return [label, d.getDate() + ' ' + monthNames[d.getMonth()], d.toISOString().slice(0, 10)];
+      });
+      var hours = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+      var scheduleItems = slots.map(function (slot) {
+        var dayIndex = days.findIndex(function (day) { return day[2] === slot.slot_date; });
+        if (dayIndex < 0) return null;
+        var time = String(slot.slot_time || '').slice(0, 5);
+        var hourIndex = hours.indexOf(time.slice(0, 2) + ':00');
+        if (hourIndex < 0) return null;
+        var duration = Math.max(1, Math.round((Number(slot.duration_min) || 60) / 60));
+        var startMinutes = Number(time.slice(3, 5)) || 0;
+        var row = hourIndex + (startMinutes >= 30 ? 0.5 : 0);
+        var endHour = String((Number(time.slice(0, 2)) || 0) + duration).padStart(2, '0') + ':' + time.slice(3, 5);
+        return [dayIndex, row, duration, time + ' - ' + endHour, slot.is_booked ? '\u0417\u0430\u043d\u044f\u0442' : '\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u043e', slot.is_booked ? 'booked' : 'free'];
+      }).filter(Boolean);
+      main.innerHTML =
+        '<div class="sch-pro-metrics">' +
+          '<div><span>' + CAL + '</span><b>' + total + '</b><p>Всего слотов</p><em>real data</em></div>' +
+          '<div><span class="ok">✓</span><b>' + freeCount + '</b><p>Свободно</p><em>' + freePercent + '%</em></div>' +
+          '<div><span>👥</span><b>' + bookedCount + '</b><p>Забронировано</p><em>' + bookedPercent + '%</em></div>' +
+          '<div><span class="gold">≋</span><b>€' + revenue + '</b><p>Ожидаемый доход</p><em>на этой неделе</em></div>' +
+        '</div>' +
+        '<section class="sch-calendar-card"><div class="sch-calendar-head"><div><button type="button">‹</button><button type="button">›</button><b>' + esc(days[0][1] + ' - ' + days[6][1] + ' ' + now.getFullYear()) + '</b><button type="button">Сегодня</button></div><div><button class="active" type="button">Неделя</button><button type="button">Месяц</button><button type="button">Список</button></div></div>' +
+        '<div class="sch-week-grid"><div class="sch-corner">Время</div>' + days.map(function (d, i) { return '<div class="sch-day' + (d[2] === now.toISOString().slice(0, 10) ? ' active' : '') + '"><b>' + d[0] + '</b><span>' + d[1] + '</span></div>'; }).join('') +
+        hours.map(function (h) { return '<div class="sch-hour">' + h + '</div>' + days.map(function () { return '<div class="sch-cell"></div>'; }).join(''); }).join('') +
+        scheduleItems.map(function (item) { return '<div class="sch-event ' + item[5] + '" style="grid-column:' + (item[0] + 2) + ';grid-row:' + (Math.floor(item[1]) + 3) + ' / span ' + item[2] + '"><b>' + item[3] + '</b><span>' + item[4] + '</span></div>'; }).join('') +
+        '</div><div class="sch-legend"><span><i class="booked"></i>Забронировано</span><span><i class="free"></i>Свободно</span><span><i></i>Недоступно</span><span><i class="break"></i>Перерыв</span></div></section>' +
+        '<section class="sch-work-hours"><span>' + CAL + '</span><div><h3>Рабочие часы</h3><p>Пн – Пт · 09:00 – 18:00</p><small>Вы можете изменить рабочие часы в настройках.</small></div><button type="button" id="scheduleSettingsInline">Настроить</button></section>';
+      side.innerHTML =
+        '<button class="sch-open-slot" type="button" onclick="document.getElementById(\'slotDate\')?.focus()">+ Открыть слот</button>' +
+        '<section class="sch-side-card"><h3>Создать новый слот</h3><form id="slotForm" class="sch-slot-form">' +
+          '<label>Дата<input id="slotDate" type="date" required></label><label>Время<input id="slotTime" type="time" value="18:00" required></label>' +
+          '<label>Продолжительность<select id="slotDur"><option value="60">60 минут</option><option value="45">45 минут</option><option value="30">30 минут</option></select></label><label>Цена<input id="slotPrice" type="number" min="0" step="0.01" value="19"></label>' +
+          '<input id="slotCount" type="hidden" value="1"><input id="slotBreak" type="hidden" value="0"><input id="slotRepeat" type="hidden" value="none"><input id="slotEndDate" type="hidden"><input id="workingStart" type="hidden" value="09:00"><input id="workingEnd" type="hidden" value="18:00"><select id="slotCurrency" hidden><option>EUR</option></select><input id="slotLiveUrl" type="hidden"><input id="slotApproval" type="checkbox" hidden><div id="slotWeekdays" hidden></div><p id="slotBatchHint"></p>' +
+          '<div class="sch-segments"><b>Тип урока</b><span class="active">Индивидуальный</span><span>Групповой</span><span>LIVE</span></div><div class="sch-segments"><b>Формат</b><span class="active">Онлайн</span><span>Офлайн</span></div>' +
+          '<button type="submit"><span id="slotSubmitLabel">Создать слот</span></button></form></section>' +
+        '<section class="sch-side-card"><div class="sch-side-head"><h3>Шаблоны слотов</h3><a>Все →</a></div><div class="sch-template-grid"><button><span>♟</span><b>Private lesson</b><small>60 min</small><strong>€19</strong></button><button><span>💬</span><b>Conversation</b><small>45 min</small><strong>€15</strong></button><button><span>👥</span><b>LIVE class</b><small>60 min</small><strong>€10</strong></button></div></section>' +
+        '<section class="sch-side-card"><h3>&#x421;&#x438;&#x43d;&#x445;&#x440;&#x43e;&#x43d;&#x438;&#x437;&#x430;&#x446;&#x438;&#x44f; &#x43a;&#x430;&#x43b;&#x435;&#x43d;&#x434;&#x430;&#x440;&#x44f;</h3><div class="sch-sync"><span>&#x1f5d3;</span><b>Google Calendar</b><button type="button">&#x41f;&#x43e;&#x434;&#x43a;&#x43b;&#x44e;&#x447;&#x438;&#x442;&#x44c;</button></div><div class="sch-sync"><span>&#x25a3;</span><b>Outlook Calendar</b><button type="button">&#x41f;&#x43e;&#x434;&#x43a;&#x43b;&#x44e;&#x447;&#x438;&#x442;&#x44c;</button></div></section>' +
+        '<section class="sch-side-card"><div class="sch-side-head"><h3>&#x411;&#x43b;&#x438;&#x436;&#x430;&#x439;&#x448;&#x438;&#x435; &#x443;&#x440;&#x43e;&#x43a;&#x438;</h3><a>&#x412;&#x441;&#x435; &rarr;</a></div>' + (slots.filter(function (slot) { return slot.is_booked; }).slice(0, 2).map(function (slot) { return '<div class="sch-next"><b>' + esc(formatDate(slot.slot_date) + ' ' + String(slot.slot_time || '').slice(0, 5)) + '</b><span>' + esc((slot.duration_min || 60) + ' min ? ' + (slot.status || slot.booking_status || 'booked')) + '</span><em>' + esc(slot.booking_status || slot.status || 'booked') + '</em></div>'; }).join('') || '<div class="sch-next empty"><b>&mdash;</b><span>&#x41d;&#x435;&#x442; &#x43f;&#x440;&#x435;&#x434;&#x441;&#x442;&#x43e;&#x44f;&#x449;&#x438;&#x445; &#x437;&#x430;&#x431;&#x440;&#x43e;&#x43d;&#x438;&#x440;&#x43e;&#x432;&#x430;&#x43d;&#x43d;&#x44b;&#x445; &#x443;&#x440;&#x43e;&#x43a;&#x43e;&#x432;</span></div>') + '</section>';
+      $('#slotForm').addEventListener('submit', createSlot);
+      ['slotDate','slotTime','slotDur','slotCount','slotBreak','slotRepeat','slotEndDate','workingStart','workingEnd'].forEach(function (id) {
+        var el = $('#' + id); if (el) el.addEventListener('input', updateSlotBatchPreview);
+      });
+      $('#scheduleSettingsInline')?.addEventListener('click', editScheduleSettings);
+      updateSlotBatchPreview();
     }
 
     function bindScheduleFilters(host) {

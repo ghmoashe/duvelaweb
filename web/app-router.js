@@ -24,7 +24,13 @@
       const copy = titles[modeKey()];
       const allowedView = modeKey() !== 'bus' && view === 'management' ? 'home' : view;
       const known = copy[allowedView] ? allowedView : 'home';
-      $$('.nav button').forEach((button) => button.classList.toggle('active', button.dataset.view === known));
+      $$('.nav button').forEach((button) => {
+        const isChallengeTab = known === 'management' && window.__duvelaManagementTab === 'challenges';
+        const active = isChallengeTab
+          ? button.dataset.view === 'management' && button.dataset.managementTab === 'challenges'
+          : button.dataset.view === known && !(button.dataset.view === 'management' && button.dataset.managementTab);
+        button.classList.toggle('active', active);
+      });
       $$('.panel').forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === known));
       $('#viewTitle').textContent = copy[known][0];
       $('#viewSub').textContent = copy[known][1];

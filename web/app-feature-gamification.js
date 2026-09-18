@@ -70,6 +70,76 @@
       }).join('') + '</div>';
     }
 
+    function renderChallengesPage() {
+      const head = document.querySelector('[data-panel="challenges"] .section-head');
+      const list = $('#challengeList');
+      if (!list) return;
+      if (head) {
+        head.querySelector('h2').textContent = tr('Challenges', 'Челленджи');
+        head.querySelector('span').textContent = tr('Motivate students with clear goals.', 'Мотивируйте учеников понятными целями.');
+      }
+      const today = day();
+      const levels = [...new Set((state.challenges || []).map((item) => item.target_level).filter(Boolean))];
+      const canCreate = typeof ctx.isBusiness === 'function' ? ctx.isBusiness() : false;
+      const cards = (state.challenges || []).map((challenge, index) => {
+        const joined = state.myChallengeIds && state.myChallengeIds.has(String(challenge.id));
+        const status = challenge.ends_at && day(challenge.ends_at) < today ? 'ended' : (challenge.started_at && day(challenge.started_at) > today ? 'upcoming' : 'active');
+        const goals = [
+          challenge.daily_min_dialogs ? challenge.daily_min_dialogs + ' ' + tr('dialogs', 'диалогов') : '',
+          challenge.daily_min_words ? challenge.daily_min_words + ' ' + tr('words', 'слов') : '',
+          challenge.daily_min_writing ? challenge.daily_min_writing + ' ' + tr('writing tasks', 'письменных заданий') : '',
+          challenge.daily_min_live_min ? challenge.daily_min_live_min + ' ' + tr('LIVE min', 'мин. LIVE') : ''
+        ].filter(Boolean);
+        const progress = joined ? Math.min(90, 35 + (index * 14)) : 0;
+        const search = [challenge.title, challenge.target_level, challenge.exam_type, goals.join(' ')].filter(Boolean).join(' ').toLowerCase();
+        return '<article class="card catalog-card event-catalog-card challenge-page-card" data-challenge-card data-challenge="' + esc(challenge.id || '') + '" data-challenge-status="' + status + '" data-challenge-mine="' + (joined ? '1' : '0') + '" data-challenge-level="' + esc(challenge.target_level || '') + '" data-challenge-search="' + esc(search) + '" tabindex="0">' +
+          '<div class="catalog-cover">' +
+            (challenge.cover_url ? '<img src="' + esc(challenge.cover_url) + '" alt="">' : '<div class="catalog-cover-fallback challenge"><span>DUVELA CHALLENGE</span><b>' + esc((challenge.title || 'C').slice(0, 2).toUpperCase()) + '</b></div>') +
+            '<div class="catalog-cover-shade"></div><span class="catalog-type">' + esc(joined ? tr('Joined', 'Участвую') : tr('Challenge', 'Челлендж')) + '</span>' +
+            (challenge.target_level ? '<span class="catalog-level">' + esc(challenge.target_level) + '</span>' : '') +
+          '</div><div class="catalog-body">' +
+            '<span class="catalog-eyebrow">' + esc(challenge.exam_type || tr('Daily practice', 'Ежедневная практика')) + '</span><h3>' + esc(challenge.title || tr('Duvela challenge', 'Челлендж Duvela')) + '</h3>' +
+            '<p class="catalog-description">' + esc(challenge.ends_at ? tr('Complete the daily goals until ', 'Выполняйте ежедневные цели до ') + formatDate(challenge.ends_at) : tr('A clear goal that keeps learners active and visible.', 'Понятная цель, которая держит учеников в активности.')) + '</p>' +
+            '<div class="catalog-facts"><span><b>◎</b>' + esc(challenge.target_level || tr('Any level', 'Любой уровень')) + '</span><span><b>□</b>' + esc(challenge.started_at ? formatDate(challenge.started_at) : tr('Start today', 'Начните сегодня')) + '</span>' + (goals[0] ? '<span><b>✓</b>' + esc(goals[0]) + '</span>' : '') + '</div>' +
+            (joined ? '<div class="mg-progress"><i style="width:' + progress + '%"></i></div>' : '') +
+            '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Reward', 'Награда')) + '</small><strong>XP + 🏅</strong></div><button class="btn primary catalog-open" type="button">' + esc(joined ? tr('Continue', 'Продолжить') : tr('View challenge', 'Подробнее')) + '</button></div>' +
+          '</div></article>';
+      }).join('');
+      list.innerHTML =
+        '<div class="catalog-toolbar">' +
+          '<label class="catalog-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="search" data-challenge-search-input placeholder="' + esc(tr('Search by title...', 'Поиск по названию...')) + '"></label>' +
+          '<select data-challenge-level-filter><option value="">' + esc(tr('All levels', 'Все уровни')) + '</option>' + levels.map((level) => '<option value="' + esc(level) + '">' + esc(level) + '</option>').join('') + '</select>' +
+          (canCreate ? '<button type="button" class="btn primary" data-mg-new-challenge>' + esc(tr('New challenge', 'Новый челлендж')) + '</button>' : '') +
+        '</div>' +
+        '<div class="event-catalog-tabs"><button class="active" data-challenge-filter="active">' + esc(tr('Active', 'Активные')) + '</button><button data-challenge-filter="upcoming">' + esc(tr('Upcoming', 'Предстоящие')) + '</button><button data-challenge-filter="mine">' + esc(tr('My challenges', 'Мои челленджи')) + '</button><button data-challenge-filter="ended">' + esc(tr('Completed', 'Завершённые')) + '</button></div>' +
+        (cards || '<div class="card empty">' + esc(tr('No challenges yet.', 'Челленджей пока нет.')) + '</div>');
+      const apply = () => {
+        const period = list.dataset.challengeFilter || 'active';
+        const q = (list.querySelector('[data-challenge-search-input]')?.value || '').trim().toLowerCase();
+        const level = list.querySelector('[data-challenge-level-filter]')?.value || '';
+        list.querySelectorAll('[data-challenge-card]').forEach((card) => {
+          const periodOk = period === 'mine' ? card.dataset.challengeMine === '1' : card.dataset.challengeStatus === period;
+          const queryOk = !q || card.dataset.challengeSearch.includes(q);
+          const levelOk = !level || card.dataset.challengeLevel === level;
+          card.hidden = !(periodOk && queryOk && levelOk);
+        });
+        list.querySelectorAll('[data-challenge-filter]').forEach((button) => button.classList.toggle('active', button.dataset.challengeFilter === period));
+      };
+      list.querySelectorAll('[data-challenge-filter]').forEach((button) => {
+        button.onclick = () => { list.dataset.challengeFilter = button.dataset.challengeFilter; apply(); };
+      });
+      list.querySelector('[data-challenge-search-input]')?.addEventListener('input', apply);
+      list.querySelector('[data-challenge-level-filter]')?.addEventListener('change', apply);
+      list.querySelectorAll('[data-challenge-card]').forEach((card) => {
+        card.onclick = (event) => {
+          if (event.target.closest('button')) event.preventDefault();
+          openChallenge(card.dataset.challenge);
+        };
+      });
+      list.dataset.challengeFilter = 'active';
+      apply();
+    }
+
     async function loadChallengeDetails(id) {
       const mine = await supa.from('challenge_progress').select('*').eq('challenge_id', id).eq('user_id', ctx.user.id).order('day', { ascending: false });
       const people = await supa.from('challenge_participants').select('user_id,status').eq('challenge_id', id).neq('status', 'cancelled').limit(100);
@@ -163,7 +233,7 @@
       } catch (error) { alert(error.message || tr('Could not create the challenge.', 'Не удалось создать челлендж.')); }
     }
 
-    return { challengesHtml, joinChallenge, loadChallenges, loadWallet, openChallenge, openChallengeCreate, saveChallengeProgress, walletHtml };
+    return { challengesHtml, joinChallenge, loadChallenges, loadWallet, openChallenge, openChallengeCreate, renderChallengesPage, saveChallengeProgress, walletHtml };
   }
   window.DuvelaAppGamification = { create: createGamificationFeature };
 })();

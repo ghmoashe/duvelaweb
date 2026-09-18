@@ -92,9 +92,10 @@
     hub: {
       home: tr('Home', 'Главная'),
       videos: tr('Media', 'Медиа'),
-      live: tr('Live', 'Эфиры'),
+      live: tr('Live', 'Эфир'),
       courses: tr('Courses', 'Курсы'),
       events: tr('Events', 'События'),
+      challenges: tr('Challenges', 'Челленджи'),
       messages: tr('Messages', 'Сообщения'),
       workspace: tr('Practice', 'Практика'),
       schedule: tr('Schedule', 'Расписание'),
@@ -109,6 +110,7 @@
       live: tr('Live Studio', 'LIVE-студия'),
       courses: tr('Courses', 'Курсы'),
       events: tr('Events', 'События'),
+      challenges: tr('Challenges', 'Челленджи'),
       messages: tr('Messages', 'Сообщения'),
       workspace: tr('Notes', 'Заметки'),
       schedule: tr('Schedule', 'Расписание'),
@@ -124,6 +126,7 @@
       live: [tr('Live', 'Эфиры'), tr('Join active lessons with teachers.', 'Подключайтесь к активным урокам с учителями.')],
       courses: [tr('Courses', 'Курсы'), tr('Structured programs from teachers.', 'Структурированные программы от преподавателей.')],
       events: [tr('Events', 'События'), tr('Meetups, workshops and speaking practice.', 'Встречи, воркшопы и speaking practice.')],
+      challenges: [tr('Challenges', 'Челленджи'), tr('Daily goals and shared progress.', 'Ежедневные цели и общий прогресс.')],
       messages: [tr('Messages', 'Сообщения'), tr('Recent conversations and lesson updates.', 'Последние диалоги и обновления уроков.')],
       workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
@@ -138,6 +141,7 @@
       live: [tr('Live Studio', 'Live Studio'), tr('Open active lessons and manage public live rooms.', 'Запускайте уроки, держите расписание под рукой и переиспользуйте недавние комнаты.')],
       courses: [tr('Courses', 'Курсы'), tr('Structure offers, cohorts and paid learning programs.', 'Собирайте офферы, потоки и платные программы обучения.')],
       events: [tr('Events', 'События'), tr('Plan workshops, meetups and online sessions.', 'Планируйте воркшопы, митапы и онлайн-сессии.')],
+      challenges: [tr('Challenges', 'Челленджи'), tr('Motivate students with clear goals and shared progress.', 'Мотивируйте учеников понятными целями и общим прогрессом.')],
       messages: [tr('Messages', 'Сообщения'), tr('Learner conversations and recent platform updates.', 'Диалоги с учениками и обновления платформы.')],
       workspace: [tr('Notes', 'Заметки'), tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
@@ -444,6 +448,7 @@
   function walletHtml() { return gamificationFeature.walletHtml(); }
   async function loadChallenges() { return gamificationFeature.loadChallenges(); }
   function challengesHtml() { return gamificationFeature.challengesHtml(); }
+  function renderChallenges() { return gamificationFeature.renderChallengesPage(); }
   async function openChallenge(id) { return gamificationFeature.openChallenge(id); }
   async function joinChallenge(id) { return gamificationFeature.joinChallenge(id); }
   async function saveChallengeProgress(id) { return gamificationFeature.saveChallengeProgress(id); }
@@ -475,6 +480,7 @@
     renderLive();
     renderCourses();
     renderEvents();
+    renderChallenges();
     renderMessages();
     renderWorkspace();
     renderSchedule();
@@ -572,6 +578,7 @@
     renderAll,
     renderCourses,
     renderEvents,
+    renderChallenges,
     renderHome,
     renderManagement,
     renderLive,

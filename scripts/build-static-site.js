@@ -32,6 +32,7 @@ const files = [
   // New colorful DUVELA wordmark used in the teacher-invite header.
   // <img> falls back to logo2.png via onerror when this file is missing.
   'logo3.png',
+  'logo4.png',
   // Hub app icon used in the Duel panel's "Open in Duvela Academy Hub"
   // hand-off card so a learner recognises the app they're jumping to.
   'hub-app-icon.png',
@@ -48,6 +49,7 @@ const dirs = [
   'web',
   'locales',
   'legal',
+  'assets',
   // Teacher award medals surfaced on teacher-invite.html and later on
   // the teacher profile page. 10 PNGs — small enough to ship as-is.
   'awards',

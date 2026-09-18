@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: duvela-backend-staging
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile.backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: BACKEND_HOST
+        value: 0.0.0.0
+      - key: BACKEND_PORT
+        value: 8787
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: DUVELA_FEED_CACHE_TTL_SECONDS
+        value: 30
+      - key: DUVELA_EVENTS_CACHE_TTL_SECONDS
+        value: 120
+      - key: DUVELA_EVENT_CACHE_TTL_SECONDS
+        value: 120
+      - key: DUVELA_PROFILE_CACHE_TTL_SECONDS
+        value: 300

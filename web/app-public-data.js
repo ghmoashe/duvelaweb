@@ -4,6 +4,22 @@
 
   function createPublicDataFeature(ctx) {
     const { supa, state, tr, formatDate, getUser, isBusiness } = ctx;
+    const config = window.DuvelaWebConfig || {};
+
+    async function publicRead(type, params) {
+      if (!config.publicReadApiUrl) return null;
+      const query = new URLSearchParams(Object.assign({ type }, params || {}));
+      const result = await fetch(config.publicReadApiUrl + '?' + query.toString(), {
+        headers: {
+          apikey: config.supabaseAnonKey || '',
+          Authorization: 'Bearer ' + (config.supabaseAnonKey || ''),
+          Accept: 'application/json'
+        }
+      });
+      if (!result.ok) return null;
+      const data = await result.json().catch(() => null);
+      return Array.isArray(data) ? { data, error: null } : null;
+    }
 
     async function safeQuery(label, query, map) {
       try {
@@ -87,7 +103,7 @@
         ),
         safeQuery(
           'events',
-          () => supa.from('events').select(EVENT_COLS).order('event_date', { ascending: true }).limit(12),
+          async () => (await publicRead('events', { limit: 12, offset: 0 })) || supa.from('events').select(EVENT_COLS).order('event_date', { ascending: true }).limit(12),
           mapEventRow
         )
       ];

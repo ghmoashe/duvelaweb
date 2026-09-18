@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   function createCatalogFeature(ctx) {
     const { $, tr, esc, alert, supa, state, formatDate, formatMoney } = ctx;
     const studentGoal = window.DuvelaStudentGoal || {
@@ -579,13 +579,86 @@
       return price + '<button class="btn primary" data-enroll="' + esc(item.id) + '" style="margin-left:8px">' + esc(tr('Enroll', 'Записаться')) + '</button>';
     }
 
+    function teacherCourseCard(item, index) {
+      const title = item.title || tr('Course', 'Курс');
+      const level = item.level || '—';
+      const language = item.language || 'German';
+      const price = formatMoney(item);
+      const students = Number(item.students_count || item.enrollments_count) || 0;
+      const rating = item.rating ? Number(item.rating).toFixed(1) : '—';
+      const lessons = Number(item.lessons_count || item.lesson_count) || 0;
+      const status = item.status === 'draft' ? tr('Draft', 'Черновик') : tr('Published', 'Опубликован');
+      const statusClass = item.status === 'draft' ? 'draft' : 'ok';
+      const next = item.next_lesson || item.schedule || '—';
+      const image = item.image || item.cover_image_url || item.cover_url || '';
+      return '<article class="tc-course-card" data-tc-card data-tc-search="' + esc([title, item.description, level, language].filter(Boolean).join(' ').toLowerCase()) + '" data-tc-level="' + esc(level) + '" data-tc-status="' + esc(item.status || 'published') + '">' +
+        '<div class="tc-course-cover">' + (image ? '<img src="' + esc(image) + '" alt="">' : '<div class="tc-course-art tone-' + (index % 4) + '"><b>' + esc(level) + '</b><span>' + esc(title) + '</span></div>') +
+          '<span class="tc-status ' + statusClass + '">' + esc(status) + '</span><span class="tc-lessons">' + esc(String(lessons)) + ' ' + esc(tr('lessons', 'уроков')) + '</span></div>' +
+        '<div class="tc-course-body"><h3>' + esc(title) + '</h3><p>' + esc(item.description || tr('Clear lessons, useful practice and steady progress for learners.', 'Понятные уроки, полезная практика и стабильный прогресс для учеников.')) + '</p>' +
+          '<div class="tc-tags"><span>' + esc(level) + '</span><span>' + esc(language) + '</span><span>Online</span></div>' +
+          '<div class="tc-course-stats"><span>♙ ' + esc(String(students)) + ' ' + esc(tr('students', 'учеников')) + '</span><span>★ ' + esc(String(rating)) + '</span></div>' +
+          '<div class="tc-next">▣ ' + esc(tr('Next lesson:', 'Следующий урок:')) + ' <b>' + esc(next) + '</b><strong>' + esc(price) + '</strong></div>' +
+          '<div class="tc-actions">' + (item.id ? '<button type="button" data-course="' + esc(item.id) + '">◉ ' + esc(tr('View', 'Открыть')) + '</button>' : '') + '<a href="#management" data-go="management">✎ ' + esc(tr('Edit', 'Изменить')) + '</a><a href="#messages" data-go="messages">♙ ' + esc(tr('Students', 'Ученики')) + '</a><a href="#home" data-go="home">▥ ' + esc(tr('Analytics', 'Аналитика')) + '</a></div>' +
+        '</div></article>';
+    }
+
+    function renderTeacherCourses() {
+      const courses = state.courses || [];
+      const total = courses.length;
+      const students = courses.reduce((sum, item) => sum + (Number(item.students_count || item.enrollments_count) || 0), 0);
+      const ratedCourses = courses.map((item) => Number(item.rating)).filter((value) => Number.isFinite(value) && value > 0);
+      const avgRating = ratedCourses.length ? (ratedCourses.reduce((sum, value) => sum + value, 0) / ratedCourses.length).toFixed(1) : '—';
+      const revenue = '—';
+      const levels = [...new Set(courses.map((item) => item.level).filter(Boolean))];
+      const cards = courses.map(teacherCourseCard).join('');
+      return '<div class="tc-layout">' +
+        '<main class="tc-main">' +
+          '<section class="tc-metrics">' +
+            '<div><span>▣</span><b>' + esc(String(total)) + '</b><small>' + esc(tr('Courses', 'Курсы')) + '</small><em>' + esc(tr('real data', 'реальные данные')) + '</em></div>' +
+            '<div><span class="blue">♙</span><b>' + esc(String(students)) + '</b><small>' + esc(tr('Students', 'Ученики')) + '</small><em>' + esc(tr('real data', 'реальные данные')) + '</em></div>' +
+            '<div><span class="gold">◎</span><b>' + esc(revenue) + '</b><small>' + esc(tr('Revenue', 'Доход')) + '</small><em>' + esc(tr('no sales data', 'нет данных продаж')) + '</em></div>' +
+            '<div><span class="orange">★</span><b>' + esc(avgRating) + '</b><small>' + esc(tr('Avg. rating', 'Сред. рейтинг')) + '</small><em>' + esc(ratedCourses.length ? tr('from courses', 'из курсов') : tr('no ratings', 'нет оценок')) + '</em></div>' +
+          '</section>' +
+          '<section class="tc-toolbar"><label>⌕<input id="tcSearch" placeholder="' + esc(tr('Search courses...', 'Поиск курсов...')) + '"></label><button class="active" data-tc-filter="all">' + esc(tr('All', 'Все')) + ' (' + esc(String(total)) + ')</button><button data-tc-filter="published">' + esc(tr('Published', 'Опубликован')) + '</button><button data-tc-filter="draft">' + esc(tr('Draft', 'Черновик')) + '</button><button data-tc-filter="free">' + esc(tr('Free', 'Бесплатно')) + '</button><select id="tcLevel"><option value="">' + esc(tr('All levels', 'Все уровни')) + '</option>' + levels.map((level) => '<option>' + esc(level) + '</option>').join('') + '</select><select><option>' + esc(tr('Newest', 'Новые')) + '</option></select></section>' +
+          '<section class="tc-grid">' + cards + '<article class="tc-create-card"><span>+</span><h3>' + esc(tr('Create your next course', 'Создайте следующий курс')) + '</h3><p>' + esc(tr('Build lessons, set schedule, choose price and start teaching.', 'Соберите уроки, настройте расписание, цену и начните преподавать.')) + '</p><a href="#management" data-go="management">+ ' + esc(tr('Create course', 'Создать курс')) + '</a></article></section>' +
+        '</main><aside class="tc-side">' +
+          '<section class="tc-side-card"><div class="tc-side-head"><h3>' + esc(tr('Top performing course', 'Лучший курс')) + '</h3><a href="#home" data-go="home">' + esc(tr('View all', 'Все')) + ' →</a></div><div class="tc-top-course">' +
+            '<div class="tc-top-cover">' + (courses[0] && (courses[0].image || courses[0].cover_image_url) ? '<img src="' + esc(courses[0].image || courses[0].cover_image_url) + '" alt="">' : '<div class="tc-course-art tone-0"><b>' + esc((courses[0] && courses[0].level) || 'A1') + '</b><span>' + esc((courses[0] && courses[0].title) || 'Deutsch') + '</span></div>') + '</div>' +
+            '<div class="tc-top-meta"><h4>' + esc((courses[0] && courses[0].title) || tr('No courses yet', 'Курсов пока нет')) + '</h4><p><b>' + esc(String(courses[0] ? (Number(courses[0].students_count || courses[0].enrollments_count) || 0) : 0)) + '</b> ' + esc(tr('students', 'учеников')) + '</p><p><b>' + esc(courses[0] && courses[0].rating ? Number(courses[0].rating).toFixed(1) : '—') + '</b> ' + esc(tr('rating', 'рейтинг')) + '</p><p><b>—</b> ' + esc(tr('revenue', 'доход')) + '</p></div></div><div class="tc-good">✓ ' + esc(tr('Based on your published course data.', 'На основе опубликованных курсов.')) + '</div></section>' +
+          '<section class="tc-side-card"><div class="tc-side-head"><h3>' + esc(tr('Course performance', 'Эффективность курсов')) + '</h3><button type="button">This month⌄</button></div><div class="tc-rings"><div><b>—</b><span>' + esc(tr('Completion rate', 'Завершение')) + '</span></div><div><b>' + esc(avgRating) + '</b><span>' + esc(tr('Average rating', 'Сред. рейтинг')) + '</span></div><div><b>' + esc(String(students)) + '</b><span>' + esc(tr('Total students', 'Всего учеников')) + '</span></div></div></section>' +
+          '<section class="tc-side-card"><div class="tc-side-head"><h3>' + esc(tr('Revenue', 'Доход')) + '</h3><button type="button">This month⌄</button></div><div class="tc-revenue"><b>—</b><em>' + esc(tr('no sales data', 'нет данных продаж')) + '</em><div>' + [0,0,0,0,0,0,0,0,0,0,0,0].map((v) => '<span style="height:' + v + '%"></span>').join('') + '</div></div></section>' +
+          '<section class="tc-side-card"><div class="tc-side-head"><h3>' + esc(tr('Tips for successful courses', 'Советы для успешных курсов')) + '</h3></div><div class="tc-tips"><p><b>▣ ' + esc(tr('Use clear learning outcomes', 'Пишите понятный результат')) + '</b><span>' + esc(tr('Students should understand what they will achieve.', 'Ученики должны понимать, что получат.')) + '</span></p><p><b>✦ ' + esc(tr('Add interactive exercises', 'Добавьте интерактивные задания')) + '</b><span>' + esc(tr('Keep learners engaged and motivated.', 'Держите учеников вовлеченными.')) + '</span></p><p><b>♙ ' + esc(tr('Promote your course', 'Продвигайте курс')) + '</b><span>' + esc(tr('Share it in live sessions and social media.', 'Делитесь в эфирах и соцсетях.')) + '</span></p></div></section>' +
+        '</aside></div>';
+    }
+
     function renderCourses() {
       const head = document.querySelector('[data-panel="courses"] .section-head');
       if (head) {
-        head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Courses & offers', 'Курсы и офферы') : tr('Courses', 'Курсы');
-        head.querySelector('span').textContent = ctx.isBusiness() ? tr('Web catalog', 'Веб-каталог') : tr('Structured programs', 'Структурированные программы');
+        head.querySelector('h2').textContent = ctx.isBusiness() ? tr('Courses', 'Курсы') : tr('Courses', 'Курсы');
+        head.querySelector('span').textContent = ctx.isBusiness() ? tr('Create and manage your courses. Share your knowledge and help learners grow.', 'Создавайте и управляйте курсами. Делитесь знаниями и помогайте ученикам расти.') : tr('Structured programs', 'Структурированные программы');
       }
       const courseList = $('#courseList');
+      if (ctx.isBusiness()) {
+        courseList.innerHTML = renderTeacherCourses();
+        const search = courseList.querySelector('#tcSearch');
+        const level = courseList.querySelector('#tcLevel');
+        const filters = courseList.querySelectorAll('[data-tc-filter]');
+        let active = 'all';
+        const apply = () => {
+          const q = (search && search.value || '').trim().toLowerCase();
+          const lv = level && level.value || '';
+          courseList.querySelectorAll('[data-tc-card]').forEach((card) => {
+            const okSearch = !q || card.dataset.tcSearch.includes(q);
+            const okLevel = !lv || card.dataset.tcLevel === lv;
+            const okStatus = active === 'all' || card.dataset.tcStatus === active || (active === 'free' && card.textContent.toLowerCase().includes('free'));
+            card.hidden = !(okSearch && okLevel && okStatus);
+          });
+        };
+        if (search) search.oninput = apply;
+        if (level) level.onchange = apply;
+        filters.forEach((button) => button.onclick = () => { active = button.dataset.tcFilter; filters.forEach((item) => item.classList.toggle('active', item === button)); apply(); });
+        return;
+      }
       const courseLevels = [...new Set(state.courses.map((item) => item.level).filter(Boolean))];
       const courseSaved = savedCatalogIds('courses');
       courseList.innerHTML = catalogToolbar('courses', courseLevels, false) + state.courses.map((item) =>
@@ -814,7 +887,7 @@
     }
 
     function emptyLiveBlockV2(copy) {
-      return '<div class="card empty">' + esc(copy) + '</div>';
+      return '<div class="live-inline-empty"><span>▣</span><b>' + esc(copy) + '</b></div>';
     }
 
     function learnerLiveEmptyStateV2() {
@@ -827,17 +900,46 @@
         '</div>';
     }
 
+    function liveReadyItem(done, label) {
+      return '<div class="live-ready-item"><span class="' + (done ? 'ok' : '') + '">' + (done ? '✓' : '') + '</span><b>' + esc(label) + '</b><i>›</i></div>';
+    }
+
+    function liveMiniStat(icon, label, value, trend) {
+      return '<div class="live-mini-stat"><span>' + icon + '</span><div><small>' + esc(label) + '</small><b>' + esc(value) + '</b>' + (trend ? '<em>' + esc(trend) + '</em>' : '') + '</div></div>';
+    }
+
+    function liveTemplate(icon, title, copy) {
+      return '<a class="live-template" href="#live" data-go="live"><span>' + icon + '</span><div><b>' + esc(title) + '</b><small>' + esc(copy) + '</small></div></a>';
+    }
+
+    function liveAction(icon, title, copy, href) {
+      return '<a class="live-action-card" href="' + esc(href) + '" data-go="' + esc(href.replace('#', '')) + '"><span>' + icon + '</span><div><b>' + esc(title) + '</b><small>' + esc(copy) + '</small></div></a>';
+    }
+
     function renderLiveRowsV2(target, items, creator, emptyCopy) {
       const node = document.getElementById(target);
       if (!node) return;
       node.innerHTML = items.length
-        ? items.map((item) =>
-            '<article class="card live-catalog-card ' + (item.status === 'live' ? 'is-live' : '') + '">' +
-              '<div class="live-catalog-visual"><div class="live-orbit"></div><span class="live-camera">●</span><span class="live-status">' + esc(liveRowLevelV2(item, creator)) + '</span></div>' +
-              '<div class="live-catalog-body"><div><span class="catalog-eyebrow">' + esc(item.language || tr('Live lesson', 'Live-урок')) + (item.level ? ' · ' + esc(item.level) : '') + '</span><h3>' + esc(item.title || tr('Live lesson', 'Live-урок')) + '</h3><p>' + esc(tr('with ', 'с преподавателем ') + (item.teacher_name || tr('Duvela teacher', 'Duvela'))) + '</p></div>' +
-                '<div class="live-catalog-meta"><span><b>◉</b>' + esc(item.status === 'live' ? tr('Streaming now', 'Сейчас в эфире') : liveTimingV2(item) || tr('Session details', 'Детали сессии')) + '</span><span><b>♙</b>' + esc(item.is_private ? tr('Private room', 'Приватная комната') : tr('Public room', 'Публичный эфир')) + '</span></div>' +
-                '<a class="btn ' + (item.status === 'live' ? 'primary' : '') + '" href="' + (creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item)) + '">' + esc(liveRowActionV2(item, creator)) + '</a>' +
-              '</div></article>'
+        ? items.map((item, index) => {
+            const title = item.title || tr('Live lesson', 'Live-урок');
+            const teacher = item.teacher_name || tr('Duvela teacher', 'Duvela');
+            const thumb = item.cover_url || item.image || item.image_url || item.thumbnail_url || '';
+            const duration = item.duration_min || item.duration || '—';
+            const viewers = item.viewer_count || item.participants_count || item.participants || '—';
+            const earned = item.earned_coins || item.coins || '—';
+            const href = creator ? ctx.teacherLiveUrl(item) : ctx.liveUrl(item);
+            return '<article class="live-session-card ' + (item.status === 'live' ? 'is-live' : '') + '">' +
+              '<a class="live-session-thumb" href="' + esc(href) + '">' +
+                (thumb ? '<img src="' + esc(thumb) + '" alt="">' : '<div class="live-session-art"><span>LIVE</span><b>Duvela</b></div>') +
+                '<strong>' + esc(liveRowLevelV2(item, creator)) + '</strong><em>' + esc(String(duration)) + '</em>' +
+              '</a>' +
+              '<div class="live-session-body">' +
+                '<span class="live-session-kind">' + esc((item.language || tr('LIVE lesson', 'LIVE-урок')).toString().toUpperCase()) + (item.level ? ' · ' + esc(item.level) : '') + '</span>' +
+                '<h3>' + esc(title) + '</h3><p>' + esc(tr('with ', 'с преподавателем ') + teacher) + '</p>' +
+                '<div class="live-session-meta"><span>◷ ' + esc(liveTimingV2(item) || tr('Recently finished', 'Недавно завершен')) + '</span><span>♙ ' + esc(item.is_private ? tr('Private', 'Приватный') : tr('Public', 'Публичный')) + '</span><span>👥 ' + esc(String(viewers)) + '</span></div>' +
+                '<div class="live-session-actions"><a class="live-replay-btn" href="' + esc(href) + '">▶ ' + esc(liveRowActionV2(item, creator)) + '</a><a class="live-analytics-btn" href="#home" data-go="home">▥ ' + esc(tr('Analytics', 'Аналитика')) + '</a><b>' + esc(String(earned)) + (earned === '—' ? '' : ' DC') + '</b></div>' +
+              '</div></article>';
+          }
           ).join('')
         : emptyLiveBlockV2(emptyCopy);
     }
@@ -1005,35 +1107,31 @@
       if (historyBlock) historyBlock.style.display = creator ? '' : 'none';
 
       $('#liveHostPanel').innerHTML = creator ? (
-        '<div class="live-studio-grid">' +
-          '<div class="card live-studio-card">' +
-            '<div><h3>' + esc(tr('Browser studio', 'Браузерная студия')) + '</h3><p>' + esc(tr('Run one operational view for launch, schedule, diagnostics and watch-link handoff.', 'Держите в одной точке запуск, расписание, диагностику и передачу ссылки на просмотр.')) + '</p></div>' +
-            '<div class="live-studio-metrics">' +
+        '<div class="live-studio-dashboard">' +
+          '<section class="live-hero-card">' +
+            '<div class="live-hero-copy"><span class="live-kicker">◉ ' + esc(tr('Studio broadcast', 'Студия эфира')) + '</span><h3>' + esc(tr('Ready to go live?', 'Готовы к эфиру?')) + '</h3><p>' + esc(tr('Run engaging lessons in real time, talk with learners and earn Duvela Coins.', 'Проводите увлекательные уроки в реальном времени, общайтесь с учениками и зарабатывайте Duvela Coins.')) + '</p></div>' +
+            '<div class="live-check-row">' +
+              '<span>✓ ' + esc(tr('Camera ready', 'Камера готова')) + '</span><span>✓ ' + esc(tr('Microphone ready', 'Микрофон готов')) + '</span><span>✓ ' + esc(tr('Connection excellent', 'Соединение отличное')) + '</span><span>◎ ' + esc(tr('Language: German', 'Язык: немецкий')) + '</span><span>▰ ' + esc(tr('Level: A2', 'Уровень: A2')) + '</span><span>☷ ' + esc(tr('Format: Public', 'Формат: публичный')) + '</span>' +
+            '</div>' +
+            '<div class="live-hero-actions"><a class="live-red-btn" href="' + ctx.teacherLiveUrl(mine || scheduledItems[0] || historyItems[0]) + '">◉ ' + esc(tr('Go live now', 'В эфир сейчас')) + '</a><a class="live-ghost-btn" href="#schedule" data-go="schedule">▣ ' + esc(tr('Schedule live', 'Запланировать эфир')) + '</a></div>' +
+            '<div class="live-hero-stats">' +
               studioMetricV2(tr('Active', 'Активно'), String(liveItems.length)) +
               studioMetricV2(tr('Scheduled', 'Запланировано'), String(scheduledItems.length)) +
-              studioMetricV2(tr('Archive', 'Архив'), String(historyItems.length)) +
+              studioMetricV2(tr('Completed', 'Завершено'), String(historyItems.length)) +
+              studioMetricV2(tr('Earned', 'Заработано'), '—') +
             '</div>' +
-            '<div class="live-studio-actions">' +
-              '<a class="btn primary" href="' + ctx.teacherLiveUrl(mine || scheduledItems[0] || historyItems[0]) + '">' + esc(mine ? tr('Re-enter studio', 'Вернуться в студию') : tr('Open studio', 'Открыть студию')) + '</a>' +
-              (mine && !mine.is_private ? '<a class="btn" href="' + ctx.liveUrl(mine) + '" target="_blank" rel="noopener">' + esc(tr('Open watch page', 'Открыть страницу просмотра')) + '</a>' : '') +
-            '</div>' +
-          '</div>' +
-          '<div class="card live-studio-card">' +
-            (mine
-              ? '<div><h3>' + esc(tr('Your current room', 'Ваша текущая комната')) + '</h3><p>' + esc(liveRowMetaV2(mine)) + '</p></div>' +
-                '<div class="live-studio-metrics">' +
-                  studioMetricV2(tr('Teacher', 'Преподаватель'), mine.teacher_name || tr('Teacher', 'Преподаватель')) +
-                  studioMetricV2(tr('Status', 'Статус'), liveRowLevelV2(mine, true)) +
-                  studioMetricV2(tr('Access', 'Доступ'), mine.is_private ? tr('Private', 'Приватный') : tr('Public', 'Публичный')) +
-                '</div>' +
-                '<div class="live-studio-actions"><a class="btn" href="' + ctx.teacherLiveUrl(mine) + '">' + esc(tr('Manage room', 'Управлять комнатой')) + '</a></div>'
-              : '<div><h3>' + esc(tr('Studio flow', 'Сценарий студии')) + '</h3><p>' + esc(tr('Keep the room lifecycle clean: prepare, schedule, go live, then reuse the session.', 'Держите цикл комнаты простым: подготовка, расписание, запуск и повторное использование.')) + '</p></div>' +
-                '<div class="live-studio-steps">' +
-                  studioStepV2(tr('1. Prepare room', '1. Подготовьте комнату'), tr('Update title, level, language and access before learners arrive.', 'Обновите название, уровень, язык и доступ до прихода учеников.')) +
-                  studioStepV2(tr('2. Schedule or start', '2. Запланируйте или запустите'), tr('Use one room for immediate live start or for the next slot.', 'Используйте одну комнату либо для мгновенного старта, либо для ближайшего слота.')) +
-                  studioStepV2(tr('3. Reuse history', '3. Переиспользуйте историю'), tr('Ended sessions stay visible so the next launch is faster.', 'Завершенные сессии остаются под рукой, чтобы следующий запуск был быстрее.')) +
-                '</div>')
-          + '</div>' +
+          '</section>' +
+          '<aside class="live-side-stack">' +
+            '<section class="live-side-card"><div class="live-side-head"><h3>' + esc(tr('Studio readiness', 'Готовность студии')) + '</h3><b>—</b></div><div class="live-readiness-bar"><i style="width:0%"></i></div>' +
+              liveReadyItem(Boolean(mine || scheduledItems[0]), tr('Lesson title', 'Название урока')) + liveReadyItem(Boolean((mine || scheduledItems[0] || {}).cover_url), tr('Thumbnail', 'Миниатюра')) + liveReadyItem(Boolean((mine || scheduledItems[0] || {}).level), tr('Level', 'Уровень')) + liveReadyItem(Boolean(mine || scheduledItems[0]), tr('Room link', 'Ссылка на комнату')) + liveReadyItem(scheduledItems.length > 0, tr('Student access', 'Доступ учеников')) + '</section>' +
+            '<section class="live-side-card"><div class="live-side-head"><h3>' + esc(tr('LIVE effectiveness', 'Эффективность LIVE')) + '</h3><button type="button">' + esc(tr('Last 30 days', 'Последние 30 дней')) + '⌄</button></div><div class="live-effect-grid">' +
+              liveMiniStat('👥', tr('Active rooms', 'Активные комнаты'), String(liveItems.length), tr('real data', 'реальные данные')) + liveMiniStat('◷', tr('Scheduled', 'Запланировано'), String(scheduledItems.length), tr('real data', 'реальные данные')) + liveMiniStat('▮', tr('Completed', 'Завершено'), String(historyItems.length), tr('real data', 'реальные данные')) + liveMiniStat('🪙', 'Coins', '—', tr('no data', 'нет данных')) + '</div></section>' +
+          '</aside>' +
+          '<section class="live-mini-panel live-upcoming-panel"><div class="live-panel-title"><h3>' + esc(tr('Upcoming lives', 'Ближайшие эфиры')) + '</h3><a href="#schedule" data-go="schedule">' + esc(tr('All sessions', 'Все сессии')) + ' →</a></div><div class="live-upcoming-list">' + (scheduledItems.length ? scheduledItems.slice(0, 2).map(function (item) { return '<div><span>' + esc(ctx.formatDate(item.slot_date || item.created_at || item.started_at)) + '<b>' + esc(String(item.slot_time || item.started_at || '').slice(0, 5) || '—') + '</b></span><strong>' + esc(item.title || item.teacher_name || tr('LIVE session', 'LIVE-сессия')) + '</strong><small>● ' + esc(item.status || tr('Scheduled', 'Запланировано')) + '</small></div>'; }).join('') : '<div><strong>' + esc(tr('No upcoming sessions yet.', 'Пока нет ближайших сессий.')) + '</strong><small>' + esc(tr('Create a slot in Schedule.', 'Создайте слот в расписании.')) + '</small></div>') + '</div></section>' +
+          '<section class="live-mini-panel live-template-panel"><div class="live-panel-title"><h3>' + esc(tr('Studio templates', 'Шаблоны студии')) + '</h3><a href="#live" data-go="live">' + esc(tr('All templates', 'Все шаблоны')) + ' →</a></div><div class="live-template-grid">' +
+            liveTemplate('💬', 'Konversation A2', tr('Communication practice', 'Общение и практика')) + liveTemplate('📕', tr('Grammar A1', 'Грамматика A1'), tr('Rules and examples', 'Правила и примеры')) + liveTemplate('🎓', tr('Exam B1', 'Экзамен B1'), tr('Test preparation', 'Подготовка к тестам')) + liveTemplate('👥', tr('Private lesson', 'Приватный урок'), tr('Individual session', 'Индивидуальная сессия')) + '</div></section>' +
+          '<section class="live-mini-panel live-actions-panel"><div class="live-panel-title"><h3>' + esc(tr('Quick actions', 'Быстрые действия')) + '</h3></div><div class="live-action-grid">' +
+            liveAction('+', tr('Create room', 'Создать комнату'), tr('New live', 'Новый эфир'), '#live') + liveAction('🔗', tr('Share link', 'Поделиться ссылкой'), tr('Invite students', 'Пригласить учеников'), '#messages') + liveAction('⚙', tr('Check equipment', 'Проверить оборудование'), tr('Camera and microphone', 'Камера и микрофон'), '#live') + liveAction('▣', tr('Open studio', 'Открыть студию'), tr('Launch in browser', 'Запустить в браузере'), '#live') + '</div></section>' +
         '</div>'
       ) : (!liveItems.length && !scheduledItems.length ? learnerLiveEmptyStateV2() : '');
       renderLiveRowsV2('liveList', feedItems, creator, creator ? tr('No additional live rooms right now.', 'Сейчас нет других live-комнат.') : tr('No public live sessions right now.', 'Сейчас нет публичных эфиров.'));
@@ -1066,3 +1164,4 @@
 
   window.DuvelaAppCatalog = { create: createCatalogFeature };
 })();
+

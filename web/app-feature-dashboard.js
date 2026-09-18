@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   // Rich business "Dashboard" home for the web workspace — mirrors the mobile Bus
   // dashboard: profile + rating, Go Live banner, quick actions, My Business (LIVE
   // earnings in DUVELA coins), Manage events, My Gifts, Recent LIVE sessions and
@@ -118,7 +118,7 @@
           ? safe(supa.from('course_enrollments').select('id,course_id,status,full_name,email,created_at').in('course_id', paidCourses.map((course) => course.id)).in('status', ['confirmed', 'pending']), { data: [] })
           : { data: [] },
         paidEvents.length
-          ? safe(supa.from('event_rsvps').select('event_id,user_id,status').in('event_id', paidEvents.map((event) => event.id)).eq('status', 'going'), { data: [] })
+          ? safe(supa.from('event_rsvps').select('event_id,user_id,status,created_at').in('event_id', paidEvents.map((event) => event.id)).eq('status', 'going'), { data: [] })
           : { data: [] }
       ]);
       const courseById = new Map(paidCourses.map((course) => [course.id, course]));
@@ -148,7 +148,7 @@
         if (!event || rsvp.user_id === uid) return;
         eventSalesCount += 1;
         eventSalesTotal += Number(event.price_amount || 0);
-        eventSales.push({ event_id: rsvp.event_id, title: event.title || 'Event', amount: Number(event.price_amount || 0), currency: 'EUR' });
+        eventSales.push({ event_id: rsvp.event_id, title: event.title || 'Event', amount: Number(event.price_amount || 0), currency: 'EUR', created_at: rsvp.created_at });
       });
       const salesCurrency = (paidCourses.find((course) => course.currency) || {}).currency || 'EUR';
 
@@ -183,6 +183,18 @@
       const recent = earnings.slice().sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()).slice(0, 3);
       const topGifts = aggregateByName(gifts.map((item) => ({ name: item.gift_name, value: item.cost })));
       const topViewers = aggregateByName(gifts.map((item) => ({ name: item.sender_name, value: item.cost })));
+      const courseMonthSalesTotal = sum(courseSales.filter((item) => afterMonth(item.created_at)), (item) => item.amount);
+      const eventMonthSalesTotal = sum(eventSales.filter((item) => afterMonth(item.created_at)), (item) => item.amount);
+      const weekSalesByDay = new Map(dayKeys().map((key) => [key, 0]));
+      const addSaleDay = (item) => {
+        const key = (item.created_at || '').slice(0, 10);
+        if (key && weekSalesByDay.has(key)) weekSalesByDay.set(key, weekSalesByDay.get(key) + (Number(item.amount) || 0));
+      };
+      courseSales.forEach(addSaleDay);
+      eventSales.forEach(addSaleDay);
+      earnings.forEach((item) => addSaleDay({ created_at: item.created_at, amount: item.amount }));
+      const weekRevenueByDay = dayKeys().map((key) => weekSalesByDay.get(key) || 0);
+      const weekRevenueTotal = weekRevenueByDay.reduce((total, value) => total + value, 0);
 
       // 7-day activity: content + engagement signals we can read cheaply.
       const keys = dayKeys();
@@ -211,6 +223,11 @@
         giftsTotal,
         total,
         monthTotal,
+        monthCourseSalesTotal: courseMonthSalesTotal,
+        monthEventSalesTotal: eventMonthSalesTotal,
+        monthRevenueTotal: courseMonthSalesTotal + eventMonthSalesTotal + monthTotal,
+        weekRevenueByDay,
+        weekRevenueTotal,
         paidMinutesTotal,
         sessionsCount,
         recent,
@@ -238,14 +255,14 @@
     function pill(label, value) {
       return '<div class="bd-pill"><b>' + esc(value) + '</b><span>' + esc(label) + '</span></div>';
     }
-    function manageRow(view, tint, icon, title, meta) {
-      return '<a class="bd-manage-row" href="#' + view + '" data-go="' + view + '">' +
+    function manageRow(view, tint, icon, title, meta, tab) {
+      return '<a class="bd-manage-row" href="#' + view + '" data-go="' + view + '"' + (tab ? ' data-management-tab="' + esc(tab) + '"' : '') + '>' +
         '<span class="bd-manage-ic" style="background:' + tint + '">' + icon + '</span>' +
         '<span class="bd-manage-copy"><b>' + esc(title) + '</b><span>' + esc(meta) + '</span></span>' +
         '<span class="bd-chevron">›</span></a>';
     }
-    function quick(view, tint, icon, label) {
-      return '<a class="bd-quick" href="#' + view + '" data-go="' + view + '">' +
+    function quick(view, tint, icon, label, tab) {
+      return '<a class="bd-quick" href="#' + view + '" data-go="' + view + '"' + (tab ? ' data-management-tab="' + esc(tab) + '"' : '') + '>' +
         '<span class="bd-quick-ic" style="background:' + tint + '">' + icon + '</span>' +
         '<span>' + esc(label) + '</span></a>';
     }
@@ -389,6 +406,7 @@
       const v = (value) => ready ? value : '—';
       const canWithdraw = Boolean(data && data.total > 0);
       const salesCurrency = (data && data.salesCurrency) || 'EUR';
+      const realMoney = (amount) => ready ? money(amount, salesCurrency) : '—';
 
       const ic = {
         live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg>',
@@ -424,57 +442,58 @@
         '<span class="bd-golive-btn">' + ic.live + esc(tr('Go Live', 'В эфир')) + '</span>' +
         '</a>';
 
+
+      html += '<div class="bd-top-metrics">' +
+        '<div class="income"><span>' + ic.gem + '</span><div><small>' + esc(tr('Monthly income', 'Доход за месяц')) + '</small><b>' + v(money(data && data.monthRevenueTotal, salesCurrency)) + '</b><em>' + esc(tr('real data', 'реальные данные')) + '</em></div></div>' +
+        '<div class="students"><span>' + ic.people + '</span><div><small>' + esc(tr('Students', 'Ученики')) + '</small><b>' + v(num(data && data.clientsCount)) + '</b><em>' + esc(tr('event clients', 'по событиям')) + '</em></div></div>' +
+        '<div class="rating"><span>' + ic.trophy + '</span><div><small>' + esc(tr('Rating', 'Рейтинг')) + '</small><b>' + esc(rating || '—') + '</b><em>' + esc(rating ? tr('from reviews', 'из отзывов') : tr('no reviews', 'нет отзывов')) + '</em></div></div>' +
+        '<div class="views"><span>' + ic.eye + '</span><div><small>' + esc(tr('Views', 'Просмотры')) + '</small><b>' + v(num(data && data.viewsCount)) + '</b><em>' + esc(tr('posts total', 'по постам')) + '</em></div></div>' +
+      '</div>';
+
       // Two-column body on wide screens: actions/business on the left, insights on the right.
       html += '<div class="bd-grid"><div class="bd-col">';
 
       // Quick actions
       html += '<div class="bd-quick-grid">' +
-        quick('live', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир')) +
+        quick('management', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир'), 'live') +
         quick('schedule', 'var(--teal-soft)', ic.cal, tr('Schedule', 'Расписание')) +
         quick('events', 'var(--purple-soft)', ic.add, tr('Create Event', 'Создать событие')) +
         quick('events', 'var(--purple-soft)', ic.cal, tr('My Events', 'Мои события')) +
         quick('courses', 'var(--purple-soft)', ic.book, tr('My Courses', 'Мои курсы')) +
         quick('courses', 'var(--teal-soft)', ic.book, tr('Add Courses', 'Добавить курсы')) +
-        quick('workspace', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи')) +
-        quick('workspace', 'var(--teal-soft)', ic.bulb, tr('My practices', 'Мои практики')) +
+        quick('management', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи'), 'challenges') +
+        quick('duel', 'var(--teal-soft)', ic.bulb, tr('My practices', 'Мои практики')) +
         '</div>';
 
-      // My Business (LIVE earnings) — the card carries its own title, so no section heading.
+      // My Business balance card.
+      var weekLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      var weekValues = ready && data.weekRevenueByDay ? data.weekRevenueByDay : [0, 0, 0, 0, 0, 0, 0];
+      var weekMax = Math.max.apply(null, weekValues.concat([1]));
+      var weekBars = weekValues.map(function (amount, index) {
+        var height = amount === 0 ? 4 : Math.max(18, Math.round(amount / weekMax * 100));
+        return '<span><i style="height:' + height + '%"></i><b>' + weekLabels[index] + '</b>' + (amount > 0 ? '<em>' + esc(money(amount, salesCurrency)) + '</em>' : '') + '</span>';
+      }).join('');
       html += '<div class="bd-section">' +
-        '<div class="bd-business">' +
-          '<div class="bd-business-top">' +
-            '<span class="bd-business-title">' + esc(tr('My Business', 'Мой бизнес')) + '</span>' +
-            '<span class="bd-business-badge">' + esc(tr('Teacher Live', 'Учитель Live')) + '</span>' +
+        '<div class="bd-business bd-business-balance">' +
+          '<div class="bd-business-balance-top"><h3>' + esc(tr('My Business', 'Мой бизнес')) + '</h3><button type="button">' + esc(tr('Last 7 days', 'Последние 7 дней')) + '⌄</button></div>' +
+          '<div class="bd-income-tiles">' +
+            '<div><span>' + ic.book + '</span><small>' + esc(tr('Courses', 'Курсы')) + '</small><b>' + realMoney(data && data.monthCourseSalesTotal) + '</b></div>' +
+            '<div><span class="red">' + ic.live + '</span><small>LIVE</small><b>' + (ready ? dc(data && data.monthTotal) : '—') + '</b></div>' +
+            '<div><span>' + ic.cal + '</span><small>' + esc(tr('Events', 'События')) + '</small><b>' + realMoney(data && data.monthEventSalesTotal) + '</b></div>' +
+            '<div><span>' + ic.gem + '</span><small>' + esc(tr('Gifts', 'Подарки')) + '</small><b>' + (ready ? dc(data && data.giftsTotal) : '—') + '</b></div>' +
           '</div>' +
-          '<div class="bd-business-figures">' +
-            '<div><b>' + v(dc(data && data.total)) + '</b><span>' + esc(tr('LIVE balance', 'LIVE баланс')) + '</span></div>' +
-            '<div><b>' + v(money(data && data.courseEventSalesTotal, salesCurrency)) + '</b><span>' + esc(tr('Course/Event sales', 'Продажи курсов/событий')) + '</span></div>' +
-          '</div>' +
-          '<div class="bd-business-pills">' +
-            pill(tr('Course sales', 'Продажи курсов'), v(money(data && data.courseSalesTotal, salesCurrency))) +
-            pill(tr('Event sales', 'Продажи событий'), v(money(data && data.eventSalesTotal, salesCurrency))) +
-            pill(tr('Paid LIVE', 'Платный LIVE'), v(dc(data && data.paidMinutesTotal))) +
-            pill(tr('Gifts', 'Подарки'), v(dc(data && data.giftsTotal))) +
-            pill(tr('LIVE this month', 'LIVE за месяц'), v(dc(data && data.monthTotal))) +
-          '</div>' +
-          '<button class="bd-business-status" type="button"' + (data && data.coursePendingCount > 0 ? ' data-business-pending' : ' data-business-details') + '>' +
-            '<span>' + (data && data.coursePendingCount > 0 ? '⏱' : canWithdraw ? '✓' : 'ⓘ') + '</span>' +
-            '<b>' + esc(data && data.coursePendingCount > 0 ? (num(data.coursePendingCount) + ' ' + tr('pending enrollments', 'заявок ждут подтверждения')) : canWithdraw ? tr('Balance is ready to withdraw', 'Баланс доступен для вывода') : tr('No balance to withdraw yet', 'Пока нет средств для вывода')) + '</b>' +
-          '</button>' +
-          '<div class="bd-business-actions">' +
-            '<button class="bd-btn-outline" type="button" data-business-details>' + esc(tr('Details', 'Подробнее')) + '</button>' +
-            '<button class="bd-btn-solid' + (!canWithdraw ? ' disabled' : '') + '" type="button" data-business-withdraw>' + esc(tr('Withdraw', 'Вывести')) + '</button>' +
-          '</div>' +
-        '</div>' +
-        '</div>';
+          '<div class="bd-business-chart-row"><div class="bd-business-chart"><div class="bd-y-axis"><span>' + esc(money(weekMax, salesCurrency)) + '</span><span>' + esc(money(weekMax * .66, salesCurrency)) + '</span><span>' + esc(money(weekMax * .33, salesCurrency)) + '</span><span>' + esc(money(0, salesCurrency)) + '</span></div><div class="bd-week-bars">' + weekBars + '</div></div>' +
+          '<div class="bd-business-total"><small>' + esc(tr('Total for 7 days', 'Всего за 7 дней')) + '</small><b>' + realMoney(data && data.weekRevenueTotal) + '</b><em>' + esc(tr('courses, events and LIVE', 'курсы, события и LIVE')) + '</em></div></div>' +
+          '<div class="bd-business-actions"><button class="bd-btn-outline" type="button" data-business-details>' + esc(tr('Details', 'Подробнее')) + '</button><button class="bd-btn-solid" type="button" data-business-withdraw>' + esc(tr('Withdraw', 'Вывести')) + '</button></div>' +
+        '</div></div>';
 
       // Manage events
       html += section(tr('Manage events', 'Управление событиями'), null,
         '<div class="bd-manage">' +
           manageRow('events', 'var(--purple-soft)', ic.cal, tr('Events', 'События'), tr('Plan and publish events', 'Планируйте и публикуйте события')) +
           manageRow('courses', 'var(--teal-soft)', ic.book, tr('Courses', 'Курсы'), tr('Manage Courses', 'Управление курсами')) +
-          manageRow('live', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир'), tr('Sessions with students', 'Сессии с учениками')) +
-          manageRow('workspace', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи'), tr('Motivate students', 'Мотивируйте учеников')) +
+          manageRow('management', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир'), tr('Sessions with students', 'Сессии с учениками'), 'live') +
+          manageRow('management', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи'), tr('Motivate students', 'Мотивируйте учеников'), 'challenges') +
         '</div>');
 
       // Right column: insights (gifts + recent sessions + analytics).
@@ -568,3 +587,6 @@
 
   window.DuvelaBusinessDashboard = { create: createBusinessDashboard };
 })();
+
+
+

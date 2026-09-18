@@ -48,6 +48,14 @@
       ['finance', '💵', tr('Finance', 'Финансы')]
     ];
 
+    const AWARDS = [
+      { key: 'first-100-teachers', title: 'First 100 Teachers', text: 'With Duvela from the start.', img: './awards/first-100-teachers.png', unlocked: true },
+      { key: 'first-lesson', title: 'First Lesson', text: 'Created or hosted the first lesson.', img: './awards/first-lesson.png', unlocked: true },
+      { key: '10-lessons-together', title: '10 Lessons Together', text: 'Built steady learning rhythm.', img: './awards/10-lessons-together.png', unlocked: false },
+      { key: 'duvela-author', title: 'Duvela Author', text: 'Published learning media for students.', img: './awards/duvela-author.png', unlocked: true },
+      { key: 'live-teacher', title: 'Live Teacher', text: 'Hosted the first LIVE lesson.', img: './awards/live-teacher.png', unlocked: false }
+    ];
+
     let activeTab = 'about';
     let mode = 'view'; // 'view' | 'edit' | 'verify'
     let stats = null;
@@ -58,6 +66,7 @@
     let draft = null;
     let verifyNote = '';
     let verifyBusy = false;
+    let selectedAwardKey = localStorage.getItem('duvela.teacher.selectedAward') || 'first-100-teachers';
 
     async function safe(p) { try { const r = await p; return (r && r.error) ? null : r; } catch (e) { return null; } }
 
@@ -128,6 +137,7 @@
       shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
       globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
       gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S9 3 7 5s3 3 5 3zM12 8s3-5 5-3-3 3-5 3z"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.7 8.7 0 01-3.7-.8L3 21l1.9-5.1A8.4 8.4 0 1112 19.9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>',
       cam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
       x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg>',
       back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>'
@@ -142,6 +152,76 @@
     }
     function chips(items, cls) {
       return '<div class="pv-chips">' + items.map(function (t) { return '<span class="pv-chip ' + (cls || '') + '">' + esc(t) + '</span>'; }).join('') + '</div>';
+    }
+    function selectedAward() {
+      return AWARDS.find(function (a) { return a.key === selectedAwardKey && a.unlocked; }) || AWARDS.find(function (a) { return a.unlocked; }) || AWARDS[0];
+    }
+    function awardBadge(cls) {
+      const award = selectedAward();
+      return '<span class="pv-award-badge ' + (cls || '') + '"><img src="' + esc(award.img) + '" alt=""><span>' + esc(award.title) + '</span></span>';
+    }
+
+    function renderDesktopView(data) {
+      const p = data.profile;
+      const name = data.name;
+      const location = data.location;
+      const teachText = data.teaches.join(', ') || tr('German, English', 'German, English');
+      const nativeText = prettyList(p.language)[0] || tr('Not set', 'Not set');
+      const levelText = p.language_level || 'A1';
+      const ratingText = stats && stats.rating ? stats.rating.toFixed(1) : '0.0';
+      const studentsText = stats ? String(stats.students) : '0';
+      const lessonsText = stats ? String(stats.lessons) : '0';
+      const bioText = p.bio || tr('Tell students who you help, what level you teach, and how your lessons feel.', 'Tell students who you help, what level you teach, and how your lessons feel.');
+      const spec = data.specialization.length ? data.specialization : ['Conversation', 'Grammar', 'Pronunciation'];
+      let html = '<div class="pv-desktop"><main class="pv-main">';
+      html += '<section class="pv-hero" style="' + data.cover + '">' +
+        '<p class="pv-quote">"' + esc(tr('Languages open doors - good teaching makes the way easier.', 'Languages open doors - good teaching makes the way easier.')) + '"</p>' +
+        '<button type="button" class="pv-hero-edit" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit Profile', 'Edit Profile')) + '</span></button>' +
+        '<span class="pv-hero-avatar">' + ctx.avatarInner(name, p.avatar_url) +
+          '<button type="button" class="pv-avatar-cam" id="pvAvatarCam" aria-label="' + esc(tr('Change photo', 'Change photo')) + '">' + IC.cam + '</button>' +
+        '</span>' +
+        '<div class="pv-hero-main"><h2>' + esc(name) + awardBadge('hero') + '</h2>' +
+          (location ? '<div class="pv-hero-loc">' + IC.loc + '<span>' + esc(location) + '</span></div>' : '') +
+        '</div>' +
+        '<div class="pv-avatar-panel"><button type="button" class="pv-cover-cam" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Change cover')) + '">' + IC.cam + '</button><b>' + esc(tr('Avatar & cover', 'Avatar & cover')) + '</b><span>JPG, PNG, WebP</span><div class="pv-media-actions"><button type="button" class="pv-small-outline" id="pvAvatarPick">' + esc(tr('Change avatar', 'Change avatar')) + '</button><button type="button" class="pv-small-outline" id="pvCoverPick">' + esc(tr('Change cover', 'Change cover')) + '</button><button type="button" class="pv-small-danger" id="pvAvatarRemove"' + (!p.avatar_url ? ' disabled' : '') + '>' + esc(tr('Remove avatar', 'Remove avatar')) + '</button><button type="button" class="pv-small-danger" id="pvCoverRemove"' + (!p.cover_url ? ' disabled' : '') + '>' + esc(tr('Remove cover', 'Remove cover')) + '</button></div><div class="pv-cover-presets"><button type="button" class="pv-cover-preset duvela" data-cover-preset="duvela"><i></i>Duvela</button><button type="button" class="pv-cover-preset ocean" data-cover-preset="ocean"><i></i>Ocean</button><button type="button" class="pv-cover-preset sunset" data-cover-preset="sunset"><i></i>Sunset</button><button type="button" class="pv-cover-preset premium" data-cover-preset="premium"><i></i>Pro</button><button type="button" class="pv-cover-preset fresh" data-cover-preset="fresh"><i></i>Fresh</button></div></div>' +
+        '<div class="pv-hero-tags"><span><i>' + IC.cap + '</i>Teacher</span><span><i>' + IC.globe + '</i>' + esc(nativeText) + '</span><span><i>*</i>' + esc(ratingText + ' rating') + '</span><span><i>G</i>' + esc(studentsText + ' students') + '</span><span><i>B</i>' + esc(lessonsText + ' lessons') + '</span></div>' +
+        '<div class="pv-hero-tags pv-hero-tags-soft"><span><i>' + IC.lang + '</i>' + esc(teachText) + '</span><span><i>A</i>' + esc(levelText) + '</span>' + spec.slice(0, 4).map(function (x) { return '<span><i>✓</i>' + esc(x) + '</span>'; }).join('') + '</div>' +
+        '<p class="pv-hero-bio">' + esc(bioText) + '</p>' +
+        '<input type="file" id="pvCoverFile" accept="image/*" hidden><input type="file" id="pvAvatarFile" accept="image/*" hidden>' +
+        '</section>';
+
+      const sideHtml = '<aside class="pv-side">' +
+        '<div class="pv-side-card"><div class="pv-mini-stats"><div><i>*</i><b>' + esc(ratingText) + '</b><span>' + esc(tr('Rating', 'Rating')) + '</span></div><div><i>G</i><b>' + esc(studentsText) + '</b><span>' + esc(tr('Students', 'Students')) + '</span></div><div><i>B</i><b>' + esc(lessonsText) + '</b><span>' + esc(tr('Lessons', 'Lessons')) + '</span></div><div><i>Z</i><b>98%</b><span>' + esc(tr('Response', 'Response')) + '</span></div></div>' +
+        '<h3>' + esc(tr('Your performance', 'Your performance')) + '</h3><div class="pv-bars"><span><b>' + esc(tr('Teaching quality', 'Teaching quality')) + '</b><i>92%</i></span><em><u style="width:92%"></u></em><span><b>' + esc(tr('Punctuality', 'Punctuality')) + '</b><i>96%</i></span><em><u style="width:96%"></u></em><span><b>' + esc(tr('Speaking practice', 'Speaking practice')) + '</b><i>88%</i></span><em><u style="width:88%"></u></em></div></div>' +
+        '<div class="pv-side-card pv-coins"><img src="./assets/coins/duvela-coin.png" alt=""><div><b>2,450</b><span>Duvela Coins</span><p>' + esc(tr('Earn coins from lessons, events and active engagement.', 'Earn coins from lessons, events and active engagement.')) + '</p></div></div>' +
+        '<div class="pv-side-card"><h3>' + esc(tr('Latest activity', 'Latest activity')) + '</h3><div class="pv-activity"><span>LIVE</span><b>' + esc(tr('Live lesson finished', 'Live lesson finished')) + '</b><i>+80</i></div><div class="pv-activity"><span>NEW</span><b>' + esc(tr('New student joined', 'New student joined')) + '</b><i>+1</i></div></div>' +
+        '</aside>';
+
+      html += '<section class="pv-card pv-identity"><h3>' + esc(tr('Identity', 'Identity')) + '</h3><button type="button" class="pv-link-btn" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit details', 'Edit details')) + '</span></button><div class="pv-id-grid"><div><span>E-Mail</span><b>' + esc(ctx.user.email || '') + '</b></div><div><span>' + esc(tr('Role', 'Role')) + '</span><b>Teacher</b></div><div><span>' + esc(tr('Full name', 'Full name')) + '</span><b>' + esc(name) + '</b></div><div><span>' + esc(tr('City', 'City')) + '</span><b>' + esc(location || '-') + '</b></div></div></section>';
+      html += '<div class="pv-lower-grid"><section class="pv-card pv-goals"><h3>' + esc(tr('Teaching & goals', 'Teaching & goals')) + '</h3><p class="pv-about">' + esc(p.teaching_experience || tr('Help learners move from first confidence to clear results with structured lessons.', 'Help learners move from first confidence to clear results with structured lessons.')) + '</p><div class="pv-check-list"><span>' + esc(teachText) + '</span><span>' + esc(levelText) + '</span><span>Live teaching</span></div></section>';
+      html += '<section class="pv-card pv-about-card"><h3>' + esc(tr('About me', 'About me')) + '</h3><button type="button" class="pv-link-btn" data-pv-act="edit"><span>' + esc(tr('Edit', 'Edit')) + '</span></button><p class="pv-about">' + esc(bioText) + '</p>' + chips(spec.slice(0, 6), '') + '</section></div>';
+      html += '<section class="pv-card pv-awards-card"><div class="pv-awards-head"><div><h3>' + esc(tr('Awards', 'Awards')) + '</h3><p>' + esc(tr('Choose which badge appears next to your name.', 'Choose which badge appears next to your name.')) + '</p></div>' + awardBadge('selected') + '</div><div class="pv-awards-grid">' + AWARDS.map(function (a) {
+        return '<button type="button" class="pv-award-tile' + (a.key === selectedAwardKey ? ' active' : '') + (!a.unlocked ? ' locked' : '') + '" data-award-select="' + esc(a.key) + '"' + (!a.unlocked ? ' disabled' : '') + '><img src="' + esc(a.img) + '" alt=""><b>' + esc(a.title) + '</b><span>' + esc(a.text) + '</span></button>';
+      }).join('') + '</div></section>';
+      html += '<section class="pv-card pv-reviews-card"><h3>' + esc(tr('Reviews', 'Reviews')) + '</h3>';
+      if (!reviews) {
+        html += '<div class="pv-review-empty"><i>' + IC.chat + '</i><b>' + esc(tr('Loading reviews...', 'Loading reviews...')) + '</b><p>' + esc(tr('Reviews will appear here after your first meetup, session, or business exchange.', 'Reviews will appear here after your first meetup, session, or business exchange.')) + '</p></div>';
+      } else if (!reviews.length) {
+        html += '<div class="pv-review-empty"><i>' + IC.chat + '</i><b>' + esc(tr('No reviews yet', 'No reviews yet')) + '</b><p>' + esc(tr('Reviews will appear here after your first meetup, session, or business exchange.', 'Reviews will appear here after your first meetup, session, or business exchange.')) + '</p></div>';
+      } else {
+        html += '<div class="pv-review-list">' + reviews.slice(0, 3).map(function (r) {
+          return '<article class="pv-review"><div class="pv-review-top"><b>* ' + esc(String(r.rating || '')) + '</b><span>' + esc(new Date(r.created_at).toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-US')) + '</span></div>' + (r.comment ? '<p>' + esc(r.comment) + '</p>' : '') + '</article>';
+        }).join('') + '</div>';
+      }
+      html += '</section>';
+
+      const verification = ctx.state ? ctx.state.verification : null;
+      const verifyLabel = p.is_verified ? tr('Verified', 'Verified') : (verification && verification.status === 'pending') ? tr('Pending', 'Pending') : tr('Verification', 'Verification');
+      html += '<section class="pv-actions pv-wide-actions"><button type="button" class="pv-action" data-pv-act="edit"><span class="pv-action-ic">' + IC.edit + '</span>' + esc(tr('Edit Profile', 'Edit Profile')) + '</button><button type="button" class="pv-action" data-pv-act="verify"><span class="pv-action-ic teal">' + IC.shield + '</span>' + esc(verifyLabel) + '</button><button type="button" class="pv-action" data-pv-act="lang"><span class="pv-action-ic">' + IC.globe + '</span>' + esc(tr('Change Language', 'Change Language')) + '</button><button type="button" class="pv-action" data-pv-act="invite"><span class="pv-action-ic teal">' + IC.gift + '</span>' + esc(tr('Invite Friends', 'Invite Friends')) + '</button></section>';
+      html += '<section class="pv-account-card pv-desktop-account"><div><h3>' + esc(tr('Account', 'Account')) + '</h3><p>' + esc(tr('Sign out of this browser or permanently delete your account.', 'Sign out of this browser or permanently delete your account.')) + '</p></div><div class="pv-account-actions"><button type="button" class="pv-account-btn" data-pv-act="signout">← ' + esc(tr('Sign out', 'Sign out')) + '</button><button type="button" class="pv-account-btn danger" data-pv-act="delete">⌫ ' + esc(tr('Delete account', 'Delete account')) + '</button></div></section>';
+      html += '</main>' + sideHtml + '</div>';
+      if (saveNotice) html += '<div class="pv-toast">' + esc(saveNotice) + '</div>';
+      return html;
     }
 
     function render() {
@@ -185,6 +265,7 @@
       const cover = presetCover || (p.cover_url
         ? 'background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25)),url(' + esc(p.cover_url) + ');background-size:cover;background-position:center;'
         : 'background:linear-gradient(135deg,#12B886,#37D89E);');
+      return renderDesktopView({ profile: p, name: name, location: location, teaches: teaches, specialization: specialization, cover: cover });
       let html = '<div class="pv-cover" style="' + cover + '">' +
         (p.is_verified ? '<span class="pv-certified">' + esc(tr('Certified Teacher', 'Сертифицированный учитель')) + '</span>' : '') +
         '<button type="button" class="pv-cover-cam" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Изменить обложку')) + '">' + IC.cam + '</button>' +
@@ -329,40 +410,48 @@
 
     function renderEdit() {
       const d = draft;
-      let html = '<button type="button" class="pv-backlink" id="pvEditCancel">' + IC.back + '<span>' + esc(tr('Cancel', 'Отмена')) + '</span></button>';
-      html += '<div class="pv-card"><h3>' + esc(tr('Edit Profile', 'Редактирование профиля')) + '</h3>';
+      const name = (d.full_name || (ctx.user.email || 'Duvela').split('@')[0]).trim();
+      const location = [d.city, d.country].filter(Boolean).join(', ');
+      const teaches = d.teaches_languages.map(function (id) { return TEACH_LANGUAGE_LABELS[id] || id; }).join(', ') || tr('German, English', 'German, English');
+      const spec = d.specialization.length ? d.specialization : ['Conversation', 'Grammar', 'Pronunciation'];
+      let html = '<div class="pv-edit-shell">';
+      html += '<div class="pv-edit-top"><button type="button" class="pv-backlink" id="pvEditCancel">' + IC.back + '<span>' + esc(tr('Back to profile', 'Back to profile')) + '</span></button>' +
+        '<div><h2>' + esc(tr('Edit Profile', 'Edit Profile')) + '</h2><p>' + esc(tr('Keep your public teacher profile clear, polished and ready for students.', 'Keep your public teacher profile clear, polished and ready for students.')) + '</p></div></div>';
 
-      html += '<div class="pv-sec-label">' + esc(tr('Basics', 'Основное')) + '</div>';
+      html += '<div class="pv-edit-layout"><main class="pv-edit-main">';
+      html += '<section class="pv-edit-card"><div class="pv-edit-card-head"><span>' + IC.cap + '</span><div><h3>' + esc(tr('Basics', 'Basics')) + '</h3><p>' + esc(tr('Name, location, native language and level.', 'Name, location, native language and level.')) + '</p></div></div>';
       html += '<div class="pv-field-grid">' +
         textField('pvName', tr('Full name', 'Имя'), d.full_name) +
         textField('pvCity', tr('City', 'Город'), d.city) +
         textField('pvCountry', tr('Country', 'Страна'), d.country) +
         textField('pvLanguage', tr('Native language', 'Родной язык'), d.language) +
         textField('pvLevel', tr('Level', 'Уровень'), d.language_level, 'A1–C2') +
-        '</div>';
+        '</div></section>';
 
-      html += '<div class="pv-sec-label">' + esc(tr('Teaches', 'Преподаёт')) + '</div>';
+      html += '<section class="pv-edit-card"><div class="pv-edit-card-head"><span>' + IC.lang + '</span><div><h3>' + esc(tr('Teaches', 'Teaches')) + '</h3><p>' + esc(tr('Choose the languages students can book with you.', 'Choose the languages students can book with you.')) + '</p></div></div>';
       html += '<div class="pv-toggle-chips">' + TEACH_LANGUAGES.map(function (id) {
         const on = d.teaches_languages.indexOf(id) >= 0;
-        return '<button type="button" class="pv-toggle-chip' + (on ? ' active' : '') + '" data-teach-toggle="' + id + '">' + esc(TEACH_LANGUAGE_LABELS[id]) + '</button>';
-      }).join('') + '</div>';
+        return '<button type="button" class="pv-toggle-chip' + (on ? ' active' : '') + '" data-teach-toggle="' + id + '"><span>' + (on ? '✓' : '+') + '</span>' + esc(TEACH_LANGUAGE_LABELS[id]) + '</button>';
+      }).join('') + '</div></section>';
 
-      html += '<div class="pv-sec-label">' + esc(tr('About Me', 'Обо мне')) + '</div>';
+      html += '<section class="pv-edit-card"><div class="pv-edit-card-head"><span>' + IC.edit + '</span><div><h3>' + esc(tr('About me', 'About me')) + '</h3><p>' + esc(tr('Write what students should understand before booking.', 'Write what students should understand before booking.')) + '</p></div></div>';
       html += textArea('pvBio', tr('Bio', 'О себе'), d.bio, tr('Tell students about yourself', 'Расскажите ученикам о себе'));
 
       html += chipEditor(tr('Qualifications', 'Квалификации'), 'quals', d.qualifications);
       html += chipEditor(tr('Specialization', 'Специализация'), 'spec', d.specialization);
+      html += '</section>';
 
-      html += '<div class="pv-sec-label">' + esc(tr('Experience', 'Опыт')) + '</div>';
-      html += textArea('pvExperience', tr('Teaching experience', 'Опыт преподавания'), d.teaching_experience, tr('Years of experience, background, achievements…', 'Стаж, бэкграунд, достижения…'));
+      html += '<section class="pv-edit-card"><div class="pv-edit-card-head"><span>' + IC.medal + '</span><div><h3>' + esc(tr('Experience', 'Experience')) + '</h3><p>' + esc(tr('Describe your teaching background and results.', 'Describe your teaching background and results.')) + '</p></div></div>';
+      html += textArea('pvExperience', tr('Teaching experience', 'Опыт преподавания'), d.teaching_experience, tr('Years of experience, background, achievements...', 'Years of experience, background, achievements...'));
+      html += '</section>';
 
-      html += '<div class="pv-sec-label">' + esc(tr('Interests', 'Интересы')) + '</div>';
+      html += '<section class="pv-edit-card"><div class="pv-edit-card-head"><span>' + IC.gift + '</span><div><h3>' + esc(tr('Interests', 'Interests')) + '</h3><p>' + esc(tr('Small signals that make the profile feel human.', 'Small signals that make the profile feel human.')) + '</p></div></div>';
       html += '<div class="pv-toggle-chips">' + INTEREST_OPTIONS.map(function (item) {
         const on = d.profile_interests.indexOf(item[0]) >= 0;
         return '<button type="button" class="pv-toggle-chip' + (on ? ' active' : '') + '" data-interest-toggle="' + item[0] + '">' + item[1] + ' ' + esc(item[2]) + '</button>';
-      }).join('') + '</div>';
+      }).join('') + '</div></section>';
 
-      html += '<div class="pv-sec-label">' + esc(tr('Social links', 'Соцсети')) + '</div>';
+      html += '<section class="pv-edit-card"><div class="pv-edit-card-head"><span>' + IC.share + '</span><div><h3>' + esc(tr('Social links', 'Social links')) + '</h3><p>' + esc(tr('Optional links for students who want to know more.', 'Optional links for students who want to know more.')) + '</p></div></div>';
       html += '<div class="pv-field-grid">' +
         textField('pvInstagram', 'Instagram', d.instagram, '@handle') +
         textField('pvTiktok', 'TikTok', d.tiktok, '@handle') +
@@ -371,15 +460,21 @@
         textField('pvYoutube', 'YouTube', d.youtube, '@handle') +
         textField('pvTelegram', 'Telegram', d.telegram, '@handle') +
         textField('pvWebsite', tr('Website', 'Сайт'), d.website, 'https://…') +
-        '</div>';
+        '</div></section>';
+      html += '</main>';
+
+      html += '<aside class="pv-edit-side"><section class="pv-edit-preview"><div class="pv-edit-preview-cover"><span class="pv-edit-preview-avatar">' + ctx.avatarInner(name, (ctx.profile || {}).avatar_url) + '</span></div>' +
+        '<h3>' + esc(name) + '</h3>' + (location ? '<p>' + IC.loc + '<span>' + esc(location) + '</span></p>' : '') +
+        '<div class="pv-hero-tags pv-edit-preview-tags"><span><i>' + IC.cap + '</i>Teacher</span><span><i>' + IC.globe + '</i>' + esc(d.language || 'ru') + '</span><span><i>A</i>' + esc(d.language_level || 'A1') + '</span></div>' +
+        '<div class="pv-hero-tags pv-hero-tags-soft pv-edit-preview-tags"><span><i>' + IC.lang + '</i>' + esc(teaches) + '</span>' + spec.slice(0, 3).map(function (x) { return '<span><i>+</i>' + esc(x) + '</span>'; }).join('') + '</div>' +
+        '<p class="pv-about">' + esc(d.bio || tr('Your short teacher bio will appear here.', 'Your short teacher bio will appear here.')) + '</p></section>';
 
       if (saveNotice) html += '<div class="pv-notice">' + esc(saveNotice) + '</div>';
 
       html += '<div class="pv-edit-actions">' +
         '<button type="button" class="pv-btn-outline" id="pvEditCancel2">' + esc(tr('Cancel', 'Отмена')) + '</button>' +
         '<button type="button" class="pv-btn-solid" id="pvEditSave"' + (saving ? ' disabled' : '') + '>' + esc(saving ? tr('Saving…', 'Сохранение…') : tr('Save changes', 'Сохранить')) + '</button>' +
-        '</div>';
-      html += '</div>';
+        '</div></aside></div></div>';
       return html;
     }
 
@@ -533,6 +628,28 @@
       setTimeout(function () { saveNotice = ''; paint(); }, 2000);
     }
 
+    async function clearMediaField(field) {
+      saveNotice = tr('Updating...', 'Updating...'); paint();
+      const patch = {}; patch[field] = null; patch.updated_at = new Date().toISOString();
+      const r = await safe(supa.from('profiles').update(patch).eq('id', ctx.user.id));
+      if (!r) { saveNotice = tr('Could not update. Try again.', 'Could not update. Try again.'); paint(); return; }
+      ctx.setProfile(Object.assign({}, ctx.profile || {}, patch));
+      saveNotice = tr('Updated', 'Updated');
+      paint();
+      setTimeout(function () { saveNotice = ''; paint(); }, 2000);
+    }
+    async function setCoverPreset(preset) {
+      if (!preset) return;
+      saveNotice = tr('Updating...', 'Updating...'); paint();
+      const patch = { cover_url: 'preset:' + preset, updated_at: new Date().toISOString() };
+      const r = await safe(supa.from('profiles').update(patch).eq('id', ctx.user.id));
+      if (!r) { saveNotice = tr('Could not update. Try again.', 'Could not update. Try again.'); paint(); return; }
+      ctx.setProfile(Object.assign({}, ctx.profile || {}, patch));
+      saveNotice = tr('Updated', 'Updated');
+      paint();
+      setTimeout(function () { saveNotice = ''; paint(); }, 2000);
+    }
+
     function bindView(host) {
       Array.prototype.forEach.call(host.querySelectorAll('[data-pv-tab]'), function (b) {
         b.addEventListener('click', function () {
@@ -547,24 +664,41 @@
         if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { ctx.alert(tr('Profile link copied.', 'Ссылка на профиль скопирована.')); }).catch(function () {});
         else ctx.alert(link);
       });
-      const avatarCam = host.querySelector('#pvAvatarCam');
       const avatarFile = host.querySelector('#pvAvatarFile');
-      if (avatarCam && avatarFile) {
-        avatarCam.addEventListener('click', function () { avatarFile.click(); });
+      const coverFile = host.querySelector('#pvCoverFile');
+      Array.prototype.forEach.call(host.querySelectorAll('#pvAvatarCam,#pvAvatarPick'), function (button) {
+        if (button && avatarFile) button.addEventListener('click', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          avatarFile.click();
+        });
+      });
+      if (avatarFile) {
         avatarFile.addEventListener('change', function () {
           const f = avatarFile.files && avatarFile.files[0];
           if (f) void uploadAndSave('avatar_url', f);
         });
       }
-      const coverCam = host.querySelector('#pvCoverCam');
-      const coverFile = host.querySelector('#pvCoverFile');
-      if (coverCam && coverFile) {
-        coverCam.addEventListener('click', function () { coverFile.click(); });
+      Array.prototype.forEach.call(host.querySelectorAll('#pvCoverCam,#pvCoverPick'), function (button) {
+        if (button && coverFile) button.addEventListener('click', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          coverFile.click();
+        });
+      });
+      if (coverFile) {
         coverFile.addEventListener('change', function () {
           const f = coverFile.files && coverFile.files[0];
           if (f) void uploadAndSave('cover_url', f);
         });
       }
+      const avatarRemove = host.querySelector('#pvAvatarRemove');
+      const coverRemove = host.querySelector('#pvCoverRemove');
+      if (avatarRemove) avatarRemove.addEventListener('click', function () { void clearMediaField('avatar_url'); });
+      if (coverRemove) coverRemove.addEventListener('click', function () { void clearMediaField('cover_url'); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-cover-preset]'), function (b) {
+        b.addEventListener('click', function () { void setCoverPreset(b.getAttribute('data-cover-preset')); });
+      });
       Array.prototype.forEach.call(host.querySelectorAll('[data-pv-act]'), function (b) {
         b.addEventListener('click', function () {
           const act = b.getAttribute('data-pv-act');
@@ -588,6 +722,13 @@
           }
           if (act === 'signout') { document.getElementById('signOut')?.click(); return; }
           if (act === 'delete') { document.getElementById('deleteAccountBtn')?.click(); }
+        });
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-award-select]'), function (b) {
+        b.addEventListener('click', function () {
+          selectedAwardKey = b.getAttribute('data-award-select') || selectedAwardKey;
+          localStorage.setItem('duvela.teacher.selectedAward', selectedAwardKey);
+          paint();
         });
       });
     }

@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="./web/vendor/supabase-js-v2.js"></script>
+<script src="./web/duvela-runtime-config.js"></script>
 <script src="./web/duvela-web-config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -83,6 +84,8 @@
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   .chip { font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; background: var(--lav-soft); color: var(--purple-deep); border: 1px solid #E2D8FA; }
   .chip.teal { background: #E9F8F3; color: #087D62; border-color: #CDEDE2; }
+  .award-chip { display: inline-flex; align-items: center; gap: 7px; background: #FFF8E7; color: #8A4B00; border-color: #F5D99D; }
+  .award-chip img { width: 20px; height: 20px; border-radius: 999px; object-fit: contain; }
   .bio { margin-top: 24px; font-size: 15px; line-height: 1.72; color: #433B51; white-space: pre-wrap; font-weight: 400; max-width: 680px; }
   .action-panel { align-self: end; background: var(--panel); border: 1px solid var(--lav-line); border-radius: 20px; padding: 22px; margin-top: 24px; }
   .action-kicker { color: var(--purple-deep); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
@@ -131,6 +134,9 @@
   .event-date span { font-size: 10.5px; font-weight: 650; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .02em; }
   .event-info h3 { font-size: 14px; font-weight: 750; }
   .event-info .sub { color: var(--ink-soft); font-size: 12px; font-weight: 500; margin-top: 4px; }
+  .public-empty { display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 13px; align-items: center; min-height: 92px; border: 1px dashed #D9CCFB; border-radius: 18px; background: linear-gradient(135deg,#fff,#faf7ff); padding: 18px; color: var(--ink-soft); box-shadow: 0 12px 35px rgba(50,35,78,.05); }
+  .public-empty i { width: 48px; height: 48px; border-radius: 15px; display: inline-flex; align-items: center; justify-content: center; background: var(--lav-soft); color: var(--purple); font-style: normal; font-size: 22px; font-weight: 800; }
+  .public-empty b { font-size: 14px; line-height: 1.35; }
   @media (max-width: 780px) {
     .wrap { width: min(100% - 24px, 680px); padding-top: 12px; }
     .topbar { padding-bottom: 14px; }
@@ -236,6 +242,6 @@
   </div>
 </div>
 
-<script src="./web/profile-page.js"></script>
+<script src="./web/profile-page.js?v=20260912-public-profile-polish"></script>
 </body>
 </html>

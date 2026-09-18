@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   // Business "Management" page — web mirror of the mobile Bus management screen
   // (app/(business)/events.tsx): a gradient tab bar (Events / Courses / Schedule
   // Live / Challenges) with per-tab summary + list + empty states. View-only lists;
@@ -58,6 +58,26 @@
       const t = ev.event_time ? String(ev.event_time).slice(0, 5) : '';
       return [d, t].filter(Boolean).join(' · ') || tr('No date set', 'Дата не задана');
     }
+    function initials(text) {
+      return String(text || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (word) {
+        return word.charAt(0).toUpperCase();
+      }).join('') || 'D';
+    }
+    function richCover(item, tone, icon) {
+      var src = item.image_url || item.cover_image_url || item.cover_url || item.poster_url || item.photo_url || '';
+      if (src) return '<img src="' + esc(src) + '" alt="">';
+      return '<div class="mg-card-art ' + tone + '"><span>' + icon + '</span><b>' + esc(initials(item.title || item.topic || tone)) + '</b></div>';
+    }
+    function pill(label, tone) {
+      return '<span class="mg-pill ' + (tone || '') + '">' + esc(label) + '</span>';
+    }
+    function metaItem(icon, text) {
+      return text ? '<span>' + icon + esc(text) + '</span>' : '';
+    }
+    function renderTags(tags) {
+      return tags.filter(Boolean).map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('');
+    }
+
     function shortDate(value) {
       if (!value) return '';
       var date = new Date(String(value).slice(0, 10) + 'T00:00:00');
@@ -139,12 +159,22 @@
         '</div>';
 
       if (list.length) {
-        html += '<div class="mg-list">' + list.map(function (ev) {
-          return '<a class="mg-row" href="#events" data-go="events" data-event-open="' + esc(ev.id) + '">' +
-            '<span class="mg-row-ic">' + IC.cal + '</span>' +
-            '<span class="mg-row-copy"><b>' + esc(ev.title || tr('Untitled event', 'Без названия')) + '</b>' +
-            '<span>' + esc(eventWhen(ev)) + (isOnline(ev) ? ' · ' + esc(tr('Online', 'Онлайн')) : '') + '</span></span>' +
-            '<span class="mg-row-tag">' + esc(priceText(ev)) + '</span></a>';
+        html += '<div class="mg-rich-list">' + list.map(function (ev) {
+          var online = isOnline(ev);
+          var title = ev.title || tr('Untitled event', 'Без названия');
+          var place = online ? tr('Online', 'Онлайн') : [ev.city, ev.country].filter(Boolean).join(', ');
+          var participants = ev.max_participants || ev.capacity || '';
+          var desc = ev.description || (online ? tr('Online workshop for your community.', 'Онлайн-воркшоп для вашего сообщества.') : tr('Offline meetup with students and teachers.', 'Офлайн-встреча с учениками и учителями.'));
+          return '<article class="mg-rich-card mg-event-card">' +
+            '<div class="mg-rich-cover">' + richCover(ev, online ? 'live' : 'event', online ? IC.live : IC.cal) + '</div>' +
+            '<div class="mg-rich-main">' +
+              '<div class="mg-rich-title"><h3>' + esc(title) + '</h3>' + pill(online ? tr('Online', 'Онлайн') : tr('Offline', 'Офлайн'), online ? 'live' : 'event') + '</div>' +
+              '<p class="mg-rich-copy">' + esc(desc) + '</p>' +
+              '<div class="mg-rich-tags">' + renderTags([ev.language, ev.format, priceText(ev)]) + '</div>' +
+              '<div class="mg-rich-meta">' + metaItem(IC.cal, eventWhen(ev)) + metaItem(IC.book, place) + (participants ? metaItem(IC.trophy, participants + ' ' + tr('seats', 'мест')) : '') + '</div>' +
+            '</div>' +
+            '<div class="mg-rich-side"><strong>' + esc(priceText(ev)) + '</strong><button type="button" class="mg-btn-solid sm" data-go="events" data-event-open="' + esc(ev.id) + '">' + esc(tr('Open', 'Открыть')) + '</button></div>' +
+          '</article>';
         }).join('') + '</div>';
       } else {
         html += emptyCard(IC.cal,
@@ -233,18 +263,23 @@
         '<button type="button" class="mg-btn-outline sm" data-mg-schedule-live>' + esc(tr('Mass LIVE', 'Массовый LIVE')) + '</button></div>' +
         '</div>';
       html += '<div class="mg-broadcast-choice"><div class="card"><b>Zoom Classroom</b><p>' + esc(tr('Interactive lesson: student cameras, microphones, chat and screen sharing.', 'Интерактивный урок: камеры учеников, микрофоны, чат и демонстрация экрана.')) + '</p></div><div class="card"><b>Agora LIVE</b><p>' + esc(tr('Public broadcast: large audience, reactions and gifts.', 'Публичный эфир: большая аудитория, реакции и подарки.')) + '</p></div></div>';
-      if (classrooms.length) html += '<div class="section-head"><h2 style="font-size:16px">' + esc(tr('Group lessons', 'Групповые уроки')) + '</h2><span>Zoom</span></div><div class="mg-list">' + classrooms.map(function (session) {
-        return '<a class="mg-row" href="./classroom.html?s=' + encodeURIComponent(session.id) + '">' +
-          '<span class="mg-row-ic purple">' + IC.live + '</span><span class="mg-row-copy"><b>' + esc(session.title || tr('Group lesson', 'Групповой урок')) + '</b>' +
-          '<span>' + esc(session.starts_at ? new Date(session.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US') : '') + ' · Zoom Classroom</span></span>' +
-          '<span class="mg-row-tag">' + esc(session.status === 'live' ? tr('Join', 'Войти') : tr('Open', 'Открыть')) + '</span></a>';
+      if (classrooms.length) html += '<div class="section-head"><h2 style="font-size:16px">' + esc(tr('Group lessons', 'Групповые уроки')) + '</h2><span>Zoom</span></div><div class="mg-rich-list">' + classrooms.map(function (session) {
+        var when = session.starts_at ? new Date(session.starts_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US') : tr('Time not set', 'Время не указано');
+        return '<article class="mg-rich-card mg-live-card">' +
+          '<div class="mg-rich-cover">' + richCover({ title: session.title }, 'live', IC.live) + '</div>' +
+          '<div class="mg-rich-main"><div class="mg-rich-title"><h3>' + esc(session.title || tr('Group lesson', 'Групповой урок')) + '</h3>' + pill(session.status === 'live' ? 'LIVE' : 'Zoom', 'live') + '</div>' +
+          '<p class="mg-rich-copy">' + esc(tr('Interactive lesson with cameras, chat and screen sharing.', 'Интерактивный урок с камерами, чатом и демонстрацией экрана.')) + '</p>' +
+          '<div class="mg-rich-tags"><span>Zoom Classroom</span><span>' + esc(session.status || tr('Scheduled', 'Запланирован')) + '</span></div><div class="mg-rich-meta">' + metaItem(IC.cal, when) + '</div></div>' +
+          '<div class="mg-rich-side"><strong>Zoom</strong><a class="mg-btn-solid sm" href="./classroom.html?s=' + encodeURIComponent(session.id) + '">' + esc(session.status === 'live' ? tr('Join', 'Войти') : tr('Open', 'Открыть')) + '</a></div>' +
+          '</article>';
       }).join('') + '</div>';
-      if (live.length) html += '<div class="section-head"><h2 style="font-size:16px">' + esc(tr('Mass broadcasts', 'Массовые эфиры')) + '</h2><span>Agora</span></div><div class="mg-list">' + live.map(function (ev) {
-        return '<a class="mg-row" href="#events" data-go="events" data-event-open="' + esc(ev.id) + '">' +
-          '<span class="mg-row-ic red">' + IC.live + '</span>' +
-          '<span class="mg-row-copy"><b>' + esc(ev.title || tr('LIVE session', 'LIVE сессия')) + '</b>' +
-          '<span>' + esc(eventWhen(ev)) + '</span></span>' +
-          '<span class="mg-chevron">›</span></a>';
+      if (live.length) html += '<div class="section-head"><h2 style="font-size:16px">' + esc(tr('Mass broadcasts', 'Массовые эфиры')) + '</h2><span>Agora</span></div><div class="mg-rich-list">' + live.map(function (ev) {
+        return '<article class="mg-rich-card mg-live-card">' +
+          '<div class="mg-rich-cover">' + richCover(ev, 'live', IC.live) + '</div>' +
+          '<div class="mg-rich-main"><div class="mg-rich-title"><h3>' + esc(ev.title || tr('LIVE session', 'LIVE сессия')) + '</h3>' + pill('Agora LIVE', 'live') + '</div>' +
+          '<p class="mg-rich-copy">' + esc(ev.description || tr('Public broadcast for a larger audience.', 'Публичный эфир для большой аудитории.')) + '</p><div class="mg-rich-tags"><span>Reactions</span><span>Gifts</span><span>Community</span></div><div class="mg-rich-meta">' + metaItem(IC.cal, eventWhen(ev)) + '</div></div>' +
+          '<div class="mg-rich-side"><strong>LIVE</strong><button type="button" class="mg-btn-solid sm" data-go="events" data-event-open="' + esc(ev.id) + '">' + esc(tr('Open', 'Открыть')) + '</button></div>' +
+          '</article>';
       }).join('') + '</div>';
       if (!classrooms.length && !live.length) html += emptyCard(IC.live, tr('Nothing scheduled yet', 'Пока ничего не запланировано'), tr('Choose a group lesson or a mass broadcast above.', 'Выберите групповой урок или массовый эфир выше.'));
       return html;
@@ -263,13 +298,17 @@
         '<span>' + esc(tr('Motivate students', 'Мотивируйте учеников')) + '</span></div>' +
         '<button type="button" class="mg-btn-solid purple" data-mg-new-challenge>' + esc(tr('New challenge', 'Новый челлендж')) + '</button>' +
         '</div>';
-      html += '<div class="mg-list">' + ch.map(function (c) {
+      html += '<div class="mg-rich-list">' + ch.map(function (c, index) {
         var meta = [c.target_level, c.exam_type].filter(Boolean).join(' · ');
-        return '<a class="mg-row" href="#workspace" data-go="workspace" data-challenge="' + esc(c.id) + '">' +
-          '<span class="mg-row-ic purple">' + IC.trophy + '</span>' +
-          '<span class="mg-row-copy"><b>' + esc(c.title || tr('Challenge', 'Челлендж')) + '</b>' +
-          '<span>' + esc(meta) + '</span></span>' +
-          '<span class="mg-chevron">›</span></a>';
+        var progress = Math.min(90, 35 + (index * 14));
+        return '<article class="mg-rich-card mg-challenge-card">' +
+          '<div class="mg-rich-cover">' + richCover(c, 'challenge', IC.trophy) + '</div>' +
+          '<div class="mg-rich-main"><div class="mg-rich-title"><h3>' + esc(c.title || tr('Challenge', 'Челлендж')) + '</h3>' + pill(tr('Challenge', 'Челлендж'), 'challenge') + '</div>' +
+          '<p class="mg-rich-copy">' + esc(tr('A focused goal that keeps learners active and visible.', 'Понятная цель, которая держит учеников в активности.')) + '</p>' +
+          '<div class="mg-rich-tags">' + (meta ? '<span>' + esc(meta) + '</span>' : '<span>Duvela</span>') + '<span>' + esc(tr('Motivation', 'Мотивация')) + '</span></div>' +
+          '<div class="mg-progress"><i style="width:' + progress + '%"></i></div></div>' +
+          '<div class="mg-rich-side"><strong>' + progress + '%</strong><a class="mg-btn-solid purple sm" href="#management" data-go="management" data-challenge="' + esc(c.id) + '">' + esc(tr('Open', 'Открыть')) + '</a></div>' +
+          '</article>';
       }).join('') + '</div>';
       return html;
     }
@@ -281,6 +320,30 @@
       return renderChallengesTab();
     }
 
+    function renderSidePanel() {
+      var events = data.events || [];
+      var courses = data.courses || [];
+      var upcoming = events.filter(isUpcoming);
+      var liveUpcoming = upcoming.filter(isOnline);
+      var online = liveUpcoming;
+      var next = liveUpcoming[0];
+      return '<aside class="mg-side">' +
+        '<section class="mg-side-card"><div class="mg-side-head"><h3>' + esc(tr('Quick overview', 'Быстрый обзор')) + '</h3><a href="#home" data-go="home">' + esc(tr('View all', 'Все')) + ' →</a></div>' +
+          '<div class="mg-side-stats">' +
+            '<div><span class="mg-row-ic">' + IC.cal + '</span><b>' + events.length + '</b><p>' + esc(tr('Events total', 'Событий всего')) + '</p></div>' +
+            '<div><span class="mg-row-ic teal">' + IC.book + '</span><b>' + courses.length + '</b><p>' + esc(tr('Courses total', 'Курсов всего')) + '</p></div>' +
+            '<div><span class="mg-row-ic purple">' + IC.trophy + '</span><b>' + (data.challenges || []).length + '</b><p>' + esc(tr('Challenges', 'Челленджи')) + '</p></div>' +
+            '<div><span class="mg-row-ic red">' + IC.live + '</span><b>' + online.length + '</b><p>' + esc(tr('Online', 'Онлайн')) + '</p></div>' +
+          '</div></section>' +
+        '<section class="mg-side-card"><div class="mg-side-head"><h3>' + esc(tr('Next live session', 'Ближайшая live-сессия')) + '</h3><a href="#management" data-go="management" data-management-tab="live">' + esc(tr('Open', 'Открыть')) + ' →</a></div>' +
+          (next ? '<div class="mg-next-live"><span class="mg-row-ic red">' + IC.live + '</span><div><b>' + esc(next.title || tr('Live session', 'Live-сессия')) + '</b><p>' + esc(eventWhen(next)) + '</p></div></div><button type="button" class="mg-btn-solid" data-mg-schedule-live>' + esc(tr('Start planning', 'Запланировать')) + '</button>' : '<div class="mg-next-live empty"><span class="mg-row-ic red">' + IC.live + '</span><div><b>' + esc(tr('No live planned', 'Live пока не запланирован')) + '</b><p>' + esc(tr('Create an online event or Zoom lesson.', 'Создайте онлайн-событие или Zoom-урок.')) + '</p></div></div>') +
+        '</section>' +
+        '<section class="mg-side-card"><div class="mg-side-head"><h3>' + esc(tr('Challenge of the month', 'Челлендж месяца')) + '</h3><a href="#management" data-go="management">' + esc(tr('View all', 'Все')) + ' →</a></div>' +
+          '<div class="mg-challenge-side"><span class="mg-row-ic purple">' + IC.trophy + '</span><div><b>7-Day Teaching Challenge</b><p>' + esc(tr('Host 7 days in a row and inspire learners.', 'Проведите 7 дней подряд и вдохновите учеников.')) + '</p><em><u style="width:71%"></u></em><small>5/7</small></div></div></section>' +
+        '<section class="mg-quote">"' + esc(tr('Good teachers change more than lessons.', 'Хорошие учителя меняют больше, чем уроки.')) + '"<span>- Duvela</span></section>' +
+      '</aside>';
+    }
+
     function paint() {
       var host = document.getElementById('managementPanel');
       if (!host) return;
@@ -288,11 +351,18 @@
         host.innerHTML = tabBar() + '<div class="mg-loading">' + esc(tr('Loading…', 'Загрузка…')) + '</div>';
         return;
       }
-      host.innerHTML = tabBar() + renderBody();
+      host.innerHTML = tabBar() + '<div class="mg-dashboard"><main class="mg-main">' + renderBody() + '</main>' + renderSidePanel() + '</div>';
       bindTabEvents(host);
     }
 
     function bindTabEvents(host) {
+      var requestedTab = window.__duvelaManagementTab;
+      if (requestedTab && TABS.some(function (t) { return t.id === requestedTab; })) {
+        activeTab = requestedTab;
+        window.__duvelaManagementTab = '';
+        paint();
+        return;
+      }
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-tab]'), function (btn) {
         btn.addEventListener('click', function () { activeTab = btn.getAttribute('data-mg-tab'); paint(); });
       });
@@ -819,7 +889,7 @@
         '<div class="pv-field"><label>' + esc(tr('Start date and time', 'Дата и время начала')) + ' *</label><input id="classWhenInput" type="datetime-local"></div>' +
         (classNotice ? '<div class="pv-notice">' + esc(classNotice) + '</div>' : '') +
         '<div class="pv-edit-actions"><button type="button" class="pv-btn-outline" id="classCancel">' + esc(tr('Cancel', 'Отмена')) + '</button>' +
-        (classes.length ? '<button type="button" class="pv-btn-solid" id="classSubmit"' + (classSaving ? ' disabled' : '') + '>' + esc(classSaving ? tr('Saving…', 'Сохранение…') : tr('Schedule Zoom lesson', 'Запланировать Zoom-урок')) + '</button>' : '<a class="pv-btn-solid" href="#workspace" data-go="workspace">' + esc(tr('Create class', 'Создать класс')) + '</a>') + '</div>';
+        (classes.length ? '<button type="button" class="pv-btn-solid" id="classSubmit"' + (classSaving ? ' disabled' : '') + '>' + esc(classSaving ? tr('Saving…', 'Сохранение…') : tr('Schedule Zoom lesson', 'Запланировать Zoom-урок')) + '</button>' : '<a class="pv-btn-solid" href="#courses" data-go="courses">' + esc(tr('Create class', 'Создать класс')) + '</a>') + '</div>';
       var cancel = el('classCancel'); if (cancel) cancel.onclick = closeModal;
       var submit = el('classSubmit'); if (submit) submit.onclick = function () { void submitClassSession(); };
     }
@@ -1034,3 +1104,4 @@
 
   window.DuvelaBusinessManagement = { create: createManagement };
 })();
+

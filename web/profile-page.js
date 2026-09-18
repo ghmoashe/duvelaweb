@@ -77,6 +77,9 @@
     return 'linear-gradient(135deg,' + colors.join(',') + ')';
   }
   function show(sectionId) { document.getElementById(sectionId).classList.add('show'); }
+  function emptyBlock(text) {
+    return '<div class="public-empty"><i>+</i><b>' + esc(text) + '</b></div>';
+  }
 
   supa.from('profiles')
     .select('id,full_name,avatar_url,cover_url,city,country,bio,is_teacher,is_organizer,language,language_level')
@@ -129,7 +132,7 @@
     meta.textContent = metaParts.join(', ');
     if (!metaParts.length) meta.style.display = 'none';
     var chips = document.getElementById('chips');
-    if (p.is_teacher) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.teacher + '</span>');
+    if (p.is_teacher) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.teacher + '</span><span class="chip award-chip"><img src="./awards/first-100-teachers.png" alt=""> First 100 Teachers</span>');
     if (p.is_organizer) chips.insertAdjacentHTML('beforeend', '<span class="chip">' + T.organizer + '</span>');
     if (p.language) chips.insertAdjacentHTML('beforeend', '<span class="chip teal">' + esc(p.language) + (p.language_level ? ' · ' + esc(p.language_level) : '') + '</span>');
     if (p.bio) {
@@ -158,8 +161,12 @@
       .eq('created_by', id).eq('status', 'active').limit(12)
       .then(function (res) {
         var rows = res.data || [];
-        if (!rows.length) return;
         var host = document.getElementById('courses');
+        if (!rows.length) {
+          host.innerHTML = emptyBlock(isRu ? 'Курсы появятся здесь после публикации.' : 'Courses will appear here after publishing.');
+          show('coursesSection');
+          return;
+        }
         rows.forEach(function (c) {
           var sub = [c.language, c.level].filter(Boolean).join(' · ');
           var price = c.price ? esc(c.price) + ' ' + esc(c.currency || '') : T.free;
@@ -183,8 +190,12 @@
       .order('event_date', { ascending: true }).limit(8)
       .then(function (res) {
         var rows = res.data || [];
-        if (!rows.length) return;
         var host = document.getElementById('events');
+        if (!rows.length) {
+          host.innerHTML = emptyBlock(isRu ? 'Онлайн и офлайн события появятся здесь.' : 'Online and offline events will appear here.');
+          show('eventsSection');
+          return;
+        }
         rows.forEach(function (ev) {
           var d = new Date(ev.event_date + 'T00:00:00');
           var day = d.getDate();
@@ -207,8 +218,12 @@
       .eq('user_id', id).order('created_at', { ascending: false }).limit(9)
       .then(function (res) {
         var rows = (res.data || []).filter(function (r) { return r.cover_url || r.mux_thumbnail_url; });
-        if (!rows.length) return;
         var host = document.getElementById('shorts');
+        if (!rows.length) {
+          host.innerHTML = emptyBlock(isRu ? 'Видео и shorts появятся здесь.' : 'Videos and shorts will appear here.');
+          show('shortsSection');
+          return;
+        }
         rows.forEach(function (r) {
           var thumb = r.mux_thumbnail_url || r.cover_url;
           host.insertAdjacentHTML('beforeend',

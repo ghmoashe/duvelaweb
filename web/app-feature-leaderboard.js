@@ -153,19 +153,20 @@
     function heroHtml(activeRole, directions, cities, filters) {
       const config = ROLE_CONFIG[activeRole];
       const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
-      return '<div class="student-rank-hero">' +
-        '<div><span>' + esc(tr('Academy rankings', 'Рейтинги Academy')) + '</span><h2>' + esc(config.title()) + '</h2><p>' + esc(tr('Use any current or future Academy language, subject or direction. The lists update from profile data, not from hardcoded German / English / Math values.', 'Используются любые текущие и будущие языки, предметы и направления Academy. Списки строятся из профилей, а не из ручного German / English / Math.')) + '</p></div>' +
+      return tabsHtml(activeRole) + '<div class="student-rank-hero">' +
+        '<div class="student-rank-title"><span>' + esc(tr('Rankings', '\u0420\u0435\u0439\u0442\u0438\u043d\u0433\u0438')) + '</span><h2>' + esc(config.title()) + '</h2><p>' + esc(tr('Compare learner, teacher, organizer and organization results in one Academy leaderboard.', '\u0421\u0440\u0430\u0432\u043d\u0438\u0432\u0430\u0439\u0442\u0435 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b \u0443\u0447\u0435\u043d\u0438\u043a\u043e\u0432, \u0443\u0447\u0438\u0442\u0435\u043b\u0435\u0439, \u043e\u0440\u0433\u0430\u043d\u0438\u0437\u0430\u0442\u043e\u0440\u043e\u0432 \u0438 \u043e\u0440\u0433\u0430\u043d\u0438\u0437\u0430\u0446\u0438\u0439.')) + '</p></div>' +
+        '<div class="student-rank-trophy" aria-hidden="true">&#127942;</div>' +
         '<div class="student-rank-control rank-control-grid">' +
-          '<label>' + esc(tr('Direction', 'Направление')) + '<select id="rankDirection" class="role-select">' + optionHtml(directions, filters.direction, tr('All Academy directions', 'Все направления Academy')) + '</select></label>' +
-          '<label>' + esc(tr('Level', 'Уровень')) + '<select id="rankLevel" class="role-select">' + optionHtml(levels, filters.level, tr('All levels', 'Все уровни')) + '</select></label>' +
-          '<label>' + esc(tr('City', 'Город')) + '<select id="rankCity" class="role-select">' + optionHtml(cities, filters.city, tr('All cities', 'Все города')) + '</select></label>' +
-          '<label>' + esc(tr('Search', 'Поиск')) + '<input id="rankSearch" class="role-select" value="' + esc(filters.search) + '" placeholder="' + esc(tr('Name or direction', 'Имя или направление')) + '"></label>' +
+          '<label class="rank-search-field">' + esc(tr('Search', '\u041f\u043e\u0438\u0441\u043a')) + '<input id="rankSearch" class="role-select" value="' + esc(filters.search) + '" placeholder="' + esc(tr('Search by name...', '\u041f\u043e\u0438\u0441\u043a \u0443\u0447\u0435\u043d\u0438\u043a\u0430 \u043f\u043e \u0438\u043c\u0435\u043d\u0438...')) + '"></label>' +
+          '<label>' + esc(tr('Direction', '\u041d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435')) + '<select id="rankDirection" class="role-select">' + optionHtml(directions, filters.direction, tr('All Academy directions', '\u0412\u0441\u0435 \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f Academy')) + '</select></label>' +
+          '<label>' + esc(tr('Level', '\u0423\u0440\u043e\u0432\u0435\u043d\u044c')) + '<select id="rankLevel" class="role-select">' + optionHtml(levels, filters.level, tr('All levels', '\u0412\u0441\u0435 \u0443\u0440\u043e\u0432\u043d\u0438')) + '</select></label>' +
+          '<label>' + esc(tr('City', '\u0413\u043e\u0440\u043e\u0434')) + '<select id="rankCity" class="role-select">' + optionHtml(cities, filters.city, tr('All cities', '\u0412\u0441\u0435 \u0433\u043e\u0440\u043e\u0434\u0430')) + '</select></label>' +
+          '<button class="btn ghost" id="studentRankRefresh" type="button">' + esc(tr('Refresh', '\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c')) + '</button>' +
         '</div>' +
-      '</div>' +
-      tabsHtml(activeRole);
+      '</div>';
     }
 
-    function podiumHtml(rows) {
+        function podiumHtml(rows) {
       const top = rows.slice(0, 3);
       if (!top.length) return '<div class="student-rank-empty">' + esc(tr('Nothing to show yet.', 'Пока нечего показать.')) + '</div>';
       const order = [top[1], top[0], top[2]].filter(Boolean);
@@ -197,18 +198,19 @@
 
     function sideHtml(rows, allRows, activeRole, filters) {
       const myIndex = rows.findIndex((row) => row.id === ctx.user.id);
-      const myRank = myIndex >= 0 ? '#' + (myIndex + 1) : '—';
+      const myRank = myIndex >= 0 ? String(myIndex + 1) : '\u2014';
       const topScore = rows.length ? xp(rows[0]).toLocaleString() : '0';
       const avgScore = rows.length ? Math.round(rows.reduce((sum, row) => sum + xp(row), 0) / rows.length).toLocaleString() : '0';
       const roleTotal = allRows.filter((row) => roleOf(row) === activeRole).length;
-      return '<div class="student-rank-stat"><span>' + esc(tr('Your rank', 'Ваш ранг')) + '</span><b>' + esc(myRank) + '</b><p>' + esc(tr('Within selected role and filters.', 'Внутри выбранной роли и фильтров.')) + '</p></div>' +
-        '<div class="student-rank-stat"><span>' + esc(tr('Shown now', 'Показано сейчас')) + '</span><b>' + rows.length.toLocaleString() + '</b><p>' + esc(tr('Matched records after filters.', 'Записи после фильтров.')) + '</p></div>' +
-        '<div class="student-rank-stat"><span>' + esc(tr('Total in role', 'Всего в роли')) + '</span><b>' + roleTotal.toLocaleString() + '</b><p>' + esc(tr('Before direction, level and city filters.', 'До фильтров направления, уровня и города.')) + '</p></div>' +
-        '<div class="student-rank-stat"><span>' + esc(tr('Top score', 'Лучший результат')) + '</span><b>' + topScore + '</b><p>XP · ' + esc(tr('Average', 'Средний')) + ' ' + avgScore + '</p></div>' +
-        '<div class="student-rank-note"><b>' + esc(tr('Dynamic Academy logic', 'Динамическая логика Academy')) + '</b><p>' + esc(tr('Directions are collected from Academy languages, categories, subcategories and real profile data. New Academy items appear here automatically after they are added to profiles/onboarding.', 'Направления собираются из языков, категорий, подкатегорий Academy и реальных профилей. Новые пункты Academy появятся здесь автоматически после добавления в профили/онбординг.')) + '</p><span>' + esc(tr('Period: all time score', 'Период: общий счёт за всё время')) + (filters.direction ? ' · ' + esc(filters.direction) : '') + '</span></div>';
+      const rankPercent = myIndex >= 0 && roleTotal ? Math.max(1, Math.ceil(((myIndex + 1) / roleTotal) * 100)) : null;
+      return '<div class="student-rank-stat rank-progress"><span>' + esc(tr('Your rank', '\u0412\u0430\u0448 \u0440\u0430\u043d\u0433')) + '</span><b>' + esc(myRank) + ' / ' + roleTotal.toLocaleString() + '</b><em>' + esc(rankPercent ? 'Top ' + rankPercent + '%' : '—') + '</em><i></i><p>' + esc(rankPercent ? tr('Calculated from current ranking data.', '\u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u043d\u043e \u043f\u043e \u0442\u0435\u043a\u0443\u0449\u0438\u043c \u0434\u0430\u043d\u043d\u044b\u043c \u0440\u0435\u0439\u0442\u0438\u043d\u0433\u0430.') : tr('No personal rank in this filter yet.', '\u0412 \u044d\u0442\u043e\u043c \u0444\u0438\u043b\u044c\u0442\u0440\u0435 \u043b\u0438\u0447\u043d\u043e\u0433\u043e \u0440\u0430\u043d\u0433\u0430 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442.')) + '</p></div>' +
+        '<div class="student-rank-stat"><span>' + esc(tr('Shown now', '\u041f\u043e\u043a\u0430\u0437\u0430\u043d\u043e \u0441\u0435\u0439\u0447\u0430\u0441')) + '</span><b>' + rows.length.toLocaleString() + '</b><p>' + esc(tr('Records after filters.', '\u0417\u0430\u043f\u0438\u0441\u0435\u0439 \u043f\u043e\u0441\u043b\u0435 \u0444\u0438\u043b\u044c\u0442\u0440\u043e\u0432.')) + '</p></div>' +
+        '<div class="student-rank-stat"><span>' + esc(tr('Top score', '\u041b\u0443\u0447\u0448\u0438\u0439 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442')) + '</span><b>' + topScore + ' XP</b><p>' + esc(tr('Average result', '\u0421\u0440\u0435\u0434\u043d\u0438\u0439 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442')) + ': ' + avgScore + ' XP</p></div>' +
+        '<div class="student-rank-stat"><span>' + esc(tr('Activity trend', '\u0422\u0440\u0435\u043d\u0434 \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u0438')) + '</span><b>—</b><p>' + esc(tr('Weekly comparison is not connected yet.', '\u0421\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0435 \u0437\u0430 \u043d\u0435\u0434\u0435\u043b\u044e \u0435\u0449\u0435 \u043d\u0435 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u043e.')) + '</p></div>' +
+        '<div class="student-rank-note"><b>' + esc(tr('How Academy ranking works', '\u041a\u0430\u043a \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u0440\u0435\u0439\u0442\u0438\u043d\u0433 Academy?')) + '</b><p>' + esc(tr('XP comes from tasks, lessons and platform activity. Use filters to compare results by role, direction, level and city.', '\u0412 \u0440\u0435\u0439\u0442\u0438\u043d\u0433 \u043f\u043e\u043f\u0430\u0434\u0430\u044e\u0442 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u043f\u043e XP \u0437\u0430 \u0437\u0430\u0434\u0430\u043d\u0438\u044f, \u0443\u0440\u043e\u043a\u0438 \u0438 \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u044c \u0432 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0435. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u0444\u0438\u043b\u044c\u0442\u0440\u044b, \u0447\u0442\u043e\u0431\u044b \u0441\u0440\u0430\u0432\u043d\u0438\u0432\u0430\u0442\u044c \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b \u043f\u043e \u0440\u043e\u043b\u044f\u043c, \u0443\u0440\u043e\u0432\u043d\u044f\u043c \u0438 \u0433\u043e\u0440\u043e\u0434\u0430\u043c.')) + '</p><button class="btn ghost" type="button">' + esc(tr('Continue learning', '\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435')) + ' \u2192</button></div>';
     }
 
-    function collectFilters(allRows, activeRole) {
+        function collectFilters(allRows, activeRole) {
       const directions = academyDirections();
       allRows.forEach((row) => rowDirections(row, roleOf(row)).forEach((item) => addUnique(directions, item)));
       const preferred = profilePreferredDirection(directions);
@@ -262,7 +264,7 @@
         heroHtml(activeRole, directions, cities, filters) +
         '<div class="student-rank-grid">' +
           '<section class="student-rank-card student-rank-main">' +
-            '<div class="student-rank-section-head"><div><h3>' + esc(ROLE_CONFIG[activeRole].title()) + '</h3><p>' + esc(filters.direction || tr('All Academy directions', 'Все направления Academy')) + '</p></div><button class="btn ghost" id="studentRankRefresh" type="button">' + esc(tr('Refresh', 'Обновить')) + '</button></div>' +
+            '<div class="student-rank-section-head"><div><h3>' + esc(ROLE_CONFIG[activeRole].title()) + '</h3><p>' + esc(filters.direction || tr('All Academy directions', '\u0412\u0441\u0435 \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f Academy')) + '</p></div><span>' + esc(tr('Showing top by earned XP', '\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u043c \u0442\u043e\u043f \u043f\u043e \u043d\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u043d\u044b\u043c XP')) + '</span></div>' +
             podiumHtml(rows) +
             listHtml(rows, activeRole, filters.direction) +
           '</section>' +

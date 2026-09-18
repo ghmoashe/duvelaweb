@@ -82,12 +82,31 @@
 
     async function loadVideos() {
       try {
-        const { data: posts } = await supa.from('posts')
-          .select('id,user_id,media_url,media_type,caption,cover_url,mux_playback_id,mux_thumbnail_url,language_level,shorts_hidden,shorts_visibility,shorts_deleted_at,created_at')
-          .in('media_type', ['video', 'youtube', 'image'])
-          .not('media_url', 'is', null)
-          .order('created_at', { ascending: false })
-          .limit(24);
+        const config = window.DuvelaWebConfig || {};
+        let posts = null;
+        if (config.publicReadApiUrl) {
+          const query = new URLSearchParams({ type: 'feed', limit: '24', offset: '0' });
+          const response = await fetch(config.publicReadApiUrl + '?' + query.toString(), {
+            headers: {
+              apikey: config.supabaseAnonKey || '',
+              Authorization: 'Bearer ' + (config.supabaseAnonKey || ''),
+              Accept: 'application/json'
+            }
+          });
+          if (response.ok) {
+            const cachedPosts = await response.json().catch(() => null);
+            if (Array.isArray(cachedPosts)) posts = cachedPosts;
+          }
+        }
+        if (!posts) {
+          const result = await supa.from('posts')
+            .select('id,user_id,media_url,media_type,caption,cover_url,mux_playback_id,mux_thumbnail_url,language_level,shorts_hidden,shorts_visibility,shorts_deleted_at,created_at')
+            .in('media_type', ['video', 'youtube', 'image'])
+            .not('media_url', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(24);
+          posts = result.data || [];
+        }
         const visible = (posts || []).filter((item) => !item.shorts_hidden && !item.shorts_deleted_at && (!item.shorts_visibility || item.shorts_visibility === 'public'));
         if (!visible.length) return;
         const authorIds = Array.from(new Set(visible.map((item) => item.user_id).filter(Boolean)));

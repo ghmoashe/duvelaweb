@@ -53,8 +53,10 @@
       bindOverlayA11y();
 
       $$('.nav button').forEach((button) => button.addEventListener('click', () => {
+        if (button.dataset.managementTab) window.__duvelaManagementTab = button.dataset.managementTab;
         ctx.setView(button.dataset.view);
         if (button.dataset.view === 'videos') ctx.renderVideos();
+        if (button.dataset.view === 'challenges') ctx.renderChallenges();
         if (button.dataset.view === 'profile') ctx.renderProfile();
         if (button.dataset.view === 'leaderboard') ctx.renderLeaderboardPage();
         if (button.dataset.view === 'management' && ctx.isBusiness()) ctx.renderManagement();
@@ -64,6 +66,46 @@
           else ctx.loadPractices().then(ctx.renderWorkspace);
         }
       }));
+
+      $$('.side-profile, .side-workspace').forEach((button) => button.addEventListener('click', () => {
+        ctx.setView(button.dataset.view);
+        if (button.dataset.view === 'profile') ctx.renderProfile();
+        if (button.dataset.view === 'management' && ctx.isBusiness()) ctx.renderManagement();
+      }));
+
+      $$('[data-sidebar-action]').forEach((button) => button.addEventListener('click', () => {
+        const action = button.dataset.sidebarAction;
+        if (action === 'settings') {
+          ctx.setView('profile');
+          ctx.renderProfile();
+          setTimeout(() => document.querySelector('#profileActionsTitle, #profileForm, #pfName')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+          return;
+        }
+        if (action === 'language') {
+          const select = document.querySelector('#profileLangSelect') || document.querySelector('#langSelect');
+          if (select) select.focus();
+          return;
+        }
+        if (action === 'support') {
+          window.location.href = 'mailto:info@duvela.de?subject=Duvela%20Support';
+        }
+      }));
+
+      const sidebarToggle = document.querySelector('.sidebar-toggle');
+      if (sidebarToggle) {
+        const applySidebarState = () => {
+          const compact = localStorage.getItem('duvela.sidebar.compact') === '1';
+          document.body.classList.toggle('sidebar-compact', compact);
+          sidebarToggle.textContent = compact ? '››' : '‹‹';
+          sidebarToggle.setAttribute('aria-pressed', compact ? 'true' : 'false');
+        };
+        applySidebarState();
+        sidebarToggle.addEventListener('click', () => {
+          const compact = !document.body.classList.contains('sidebar-compact');
+          localStorage.setItem('duvela.sidebar.compact', compact ? '1' : '0');
+          applySidebarState();
+        });
+      }
 
       // Duel + Practice-for-LIVE panels launch the existing study feature as
       // an OVERLAY on top of the current page — no navigation, so a teacher
@@ -97,9 +139,11 @@
         const go = event.target.closest('[data-go]');
         if (go) {
           event.preventDefault();
+          if (go.dataset.managementTab) window.__duvelaManagementTab = go.dataset.managementTab;
           ctx.setView(go.dataset.go);
           // Mirror the nav-button loaders so panels reached via data-go still hydrate.
           if (go.dataset.go === 'management' && ctx.isBusiness()) ctx.renderManagement();
+          if (go.dataset.go === 'challenges') ctx.renderChallenges();
           if (go.dataset.go === 'leaderboard') ctx.renderLeaderboardPage();
           if (go.dataset.go === 'schedule') ctx.loadSchedule().then(ctx.renderSchedule);
           if (go.dataset.go === 'workspace') {
@@ -151,6 +195,8 @@
         if (deletePortfolio) { event.preventDefault(); ctx.deletePortfolioItem(deletePortfolio.dataset.delPortfolio); return; }
         const challenge = event.target.closest('[data-challenge]');
         if (challenge) { ctx.openChallenge(challenge.dataset.challenge); return; }
+        const newChallenge = event.target.closest('[data-mg-new-challenge]');
+        if (newChallenge) { event.preventDefault(); ctx.openChallengeCreate(); return; }
         const joinChallenge = event.target.closest('[data-join-challenge]');
         if (joinChallenge) { event.preventDefault(); ctx.joinChallenge(joinChallenge.dataset.joinChallenge); return; }
         const saveChallenge = event.target.closest('[data-save-challenge]');
@@ -222,7 +268,7 @@
       });
 
       document.addEventListener('change', (event) => {
-        const languageSelect = event.target.closest('#profileLangSelect');
+        const languageSelect = event.target.closest('#profileLangSelect, #langSelect');
         if (!languageSelect) return;
         ctx.setAppLang(languageSelect.value);
       });
@@ -277,6 +323,7 @@
       ctx.setView(initialView);
       if (requestedEventId) ctx.openEventDetail(requestedEventId);
       if (initialView === 'management' && ctx.isBusiness()) ctx.renderManagement();
+      if (initialView === 'challenges') ctx.renderChallenges();
       if (initialView === 'leaderboard') ctx.renderLeaderboardPage();
       ctx.loadConversations();
       ctx.subscribeNotifications();
@@ -287,6 +334,7 @@
           ctx.renderLive();
           ctx.renderCourses();
           ctx.renderEvents();
+          ctx.renderChallenges();
         });
       }, 30000);
     }

@@ -1,0 +1,11 @@
+node_modules
+.git
+.classroom-build
+dist
+tmp
+.sites-package-*
+*.tar.gz
+*.mp4
+Duvela.mp4
+tests/load/results
+.openai/*.tar.gz
