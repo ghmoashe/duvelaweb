@@ -1,7 +1,54 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// DUVI is also on the public landing page, so anonymous callers are allowed —
+// but the gateway lets the anon key through for anyone, so without limits the
+// OpenAI budget was open to the internet. Signed-in users get a per-account
+// hourly budget, anonymous visitors a smaller per-IP one (Upstash Redis).
+const USER_HOURLY_LIMIT = Math.max(1, Number(Deno.env.get("DUVI_USER_HOURLY_LIMIT")) || 60);
+const ANON_HOURLY_LIMIT = Math.max(0, Number(Deno.env.get("DUVI_ANON_HOURLY_LIMIT")) || 10);
+
+async function resolveUserId(req: Request): Promise<string | null> {
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  const url = Deno.env.get("SUPABASE_URL") || "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!token || !url || !anonKey || token === anonKey) return null;
+  const { data } = await createClient(url, anonKey).auth.getUser(token).catch(() => ({ data: { user: null } }));
+  return data?.user?.id ?? null;
+}
+
+// Returns true when the caller is still within `limit` requests this hour.
+// Fails closed for anonymous callers when Redis is unavailable, open for
+// signed-in users (they are identifiable and the limit is generous).
+async function withinHourlyLimit(key: string, limit: number, failOpen: boolean): Promise<boolean> {
+  const redisUrl = (Deno.env.get("UPSTASH_REDIS_REST_URL") || "").replace(/\/+$/, "");
+  const redisToken = Deno.env.get("UPSTASH_REDIS_REST_TOKEN") || "";
+  if (!redisUrl || !redisToken) return failOpen;
+  try {
+    const hour = Math.floor(Date.now() / 3_600_000);
+    const bucket = `duvi-chat:v1:${key}:${hour}`;
+    const res = await fetch(`${redisUrl}/pipeline`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${redisToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify([["INCR", bucket], ["EXPIRE", bucket, 3700, "NX"]]),
+    });
+    const rows = await res.json().catch(() => null) as Array<{ result?: unknown }> | null;
+    const count = Number(rows?.[0]?.result);
+    if (!res.ok || !Number.isFinite(count)) return failOpen;
+    return count <= limit;
+  } catch {
+    return failOpen;
+  }
+}
+
+function clientIp(req: Request) {
+  return (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "")
+    .split(",")[0].trim() || "unknown";
+}
 
 const sseHeaders = {
   ...corsHeaders,
@@ -102,6 +149,18 @@ Deno.serve(async (req) => {
   const openaiKey = Deno.env.get("OPENAI_API_KEY") || "";
   const model = Deno.env.get("OPENAI_DUVI_MODEL") || "gpt-5.6-luna";
   if (!openaiKey) return streamPayload({ error: "DUVI chat is not configured." });
+
+  const userId = await resolveUserId(req);
+  const allowed = userId
+    ? await withinHourlyLimit(`user:${userId}`, USER_HOURLY_LIMIT, true)
+    : ANON_HOURLY_LIMIT > 0 && await withinHourlyLimit(`ip:${clientIp(req)}`, ANON_HOURLY_LIMIT, false);
+  if (!allowed) {
+    return streamPayload({
+      error: userId
+        ? "DUVI needs a short break — try again in a little while."
+        : "Sign in to keep chatting with DUVI.",
+    });
+  }
 
   const body = await req.json().catch(() => ({}));
   const context = body && typeof body.context === "object" ? body.context as Record<string, any> : {};
