@@ -19,7 +19,8 @@ const htmlFiles = [
   'reset-password.html',
 ];
 const maxHtmlBytes = 140 * 1024;
-const maxReferencedAssetBytes = 1024 * 1024;
+// 1.25 MB: leaves room for the vendored, version-pinned Agora Web SDK (1.1 MB).
+const maxReferencedAssetBytes = 1280 * 1024;
 const maxLocalMediaBytes = 10 * 1024 * 1024;
 const failures = [];
 const warnings = [];
