@@ -505,10 +505,13 @@
         '<div class="n">' + esc(name) + '</div>' +
         '<div class="c">' + esc(tr('has successfully completed', 'успешно завершил(а) курс')) + '<br><b>' + esc(course.title || 'Duvela course') + '</b></div>' +
         '<div class="d">Duvela · ' + esc(dateStr) + '</div>' +
-        '<button onclick="window.print()">' + esc(tr('Print / Save PDF', 'Печать / Сохранить PDF')) + '</button>' +
+        '<button type="button">' + esc(tr('Print / Save PDF', 'Печать / Сохранить PDF')) + '</button>' +
         '</div></body></html>'
       );
       win.document.close();
+      // The popup inherits the page CSP, so no inline onclick: wire Print from here.
+      const printButton = win.document.querySelector('button');
+      if (printButton) printButton.addEventListener('click', function () { win.print(); });
     }
 
     function renderHome() {

@@ -194,7 +194,7 @@
         '</div><div class="sch-legend"><span><i class="booked"></i>Забронировано</span><span><i class="free"></i>Свободно</span><span><i></i>Недоступно</span><span><i class="break"></i>Перерыв</span></div></section>' +
         '<section class="sch-work-hours"><span>' + CAL + '</span><div><h3>Рабочие часы</h3><p>Пн – Пт · 09:00 – 18:00</p><small>Вы можете изменить рабочие часы в настройках.</small></div><button type="button" id="scheduleSettingsInline">Настроить</button></section>';
       side.innerHTML =
-        '<button class="sch-open-slot" type="button" onclick="document.getElementById(\'slotDate\')?.focus()">+ Открыть слот</button>' +
+        '<button class="sch-open-slot" type="button" data-focus="slotDate">+ Открыть слот</button>' +
         '<section class="sch-side-card"><h3>Создать новый слот</h3><form id="slotForm" class="sch-slot-form">' +
           '<label>Дата<input id="slotDate" type="date" required></label><label>Время<input id="slotTime" type="time" value="18:00" required></label>' +
           '<label>Продолжительность<select id="slotDur"><option value="60">60 минут</option><option value="45">45 минут</option><option value="30">30 минут</option></select></label><label>Цена<input id="slotPrice" type="number" min="0" step="0.01" value="19"></label>' +

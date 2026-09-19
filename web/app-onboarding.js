@@ -302,7 +302,7 @@
         // Image flag renders everywhere; fall back to the country code (which is
         // what emoji flags degrade to on Windows anyway) if the image fails.
         var flag = img
-          ? '<img class="ob-flag-img" src="' + img + '" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ob-flag-code\',textContent:\'' + esc((D.flagCode ? D.flagCode(l) : '').toUpperCase()) + '\'}))">'
+          ? '<img class="ob-flag-img" src="' + img + '" alt="" loading="lazy" data-flag-code="' + esc((D.flagCode ? D.flagCode(l) : '').toUpperCase()) + '">'
           : '<span class="ob-flag-code">' + esc((D.flagCode ? D.flagCode(l) : '').toUpperCase()) + '</span>';
         return '<button type="button" class="ob-lang-chip' + (on ? ' active' : '') + '" data-chip="' + kind + '" data-value="' + esc(l) + '">' +
           flag + '<span>' + esc(l) + '</span></button>';

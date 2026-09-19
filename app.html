@@ -19,7 +19,7 @@
 <link href="web/duvi-assistant.css?v=20260816duvinew2" rel="stylesheet">
 <link href="web/app-inline.css?v=20260915-real-data1" rel="stylesheet">
 <link href="web/app-live.css?v=20260913-live-studio6" rel="stylesheet">
-<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
+<script src="./web/inline/app-1.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
   .ob-location{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:34px;margin-top:8px;border:1px solid #e1d9ef;border-radius:11px;background:#faf8ff;color:var(--purple);font:inherit;font-size:12px;font-weight:850;cursor:pointer;padding:7px 12px;box-sizing:border-box;transition:background .18s,border-color .18s,transform .18s}.ob-location:hover{background:var(--purple-soft);border-color:#cdb8f8;transform:translateY(-1px)}.ob-location:disabled{opacity:.55;cursor:wait;transform:none}
@@ -78,7 +78,7 @@
   .ai-bubble-say{flex:0 0 auto;align-self:flex-end;width:26px;height:26px;border-radius:50%;border:1px solid #e6e1f2;background:#fff;font-size:12px;line-height:1;cursor:pointer;color:var(--soft)}
   .ai-bubble-say:hover{border-color:#d9cffb;background:var(--purple-soft)}
 </style>
-</head>
+<script src="./web/inline/csp-safe-handlers.js"></script></head>
 <body>
 <div id="loading" class="loading">Opening Duvela Web...</div>
 <div class="onboarding-overlay" id="onboardingOverlay" aria-hidden="true"><section class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle"><div class="onboarding-top"><div><div class="onboarding-kicker" id="onboardingKicker">Duvela · Step 1 of 4</div><h2 id="onboardingTitle">Let’s make your space yours</h2><p class="lead" id="onboardingLead">Choose how you want to use Duvela.</p></div><div class="role-badge" id="onboardingRoleBadge">Learner</div></div><div class="onboarding-steps"><i class="onboarding-step active"></i><i class="onboarding-step"></i><i class="onboarding-step"></i><i class="onboarding-step"></i></div><div class="onboarding-role" id="onboardingRoles"></div><form class="onboarding-form" id="onboardingForm"></form><div class="onboarding-error" id="onboardingError"></div><div class="onboarding-actions"><div class="onboarding-actions-start"><button class="btn onboarding-exit" type="button" id="onboardingSignOut" data-t="signOut">Sign out</button><button class="btn" type="button" id="onboardingBack" style="display:none">← Back</button></div><span class="onboarding-note" id="onboardingNote">You can update this later in Profile.</span><button class="btn primary" type="submit" form="onboardingForm" id="onboardingSubmit">Continue →</button></div></section></div>
@@ -87,7 +87,7 @@
   <aside class="sidebar">
     <div class="sidebar-head">
       <a class="brand" href="./index.html" aria-label="Duvela home">
-        <img src="./logo4.png" alt="Duvela" onerror="this.onerror=null;this.src='./logo3.png';this.onerror=function(){this.onerror=null;this.src='./logo2.png';};">
+        <img src="./logo4.png" alt="Duvela" data-fallback-src="./logo3.png|./logo2.png">
         <span>Duvela</span>
       </a>
       <button class="sidebar-toggle" type="button" aria-label="Compact sidebar">‹‹</button>
@@ -647,8 +647,8 @@
 <script src="./web/app-remove-age-confirmation.js"></script>
 <script src="./web/app-page.js?v=20260914-sidebar-avatar1"></script>
 <script src="./web/duvi-assistant.js?v=20260816duvinew2"></script>
-<script>window.DuvelaDUVI?.mount({context:'app',locale:()=>window.DuvelaCurrentAppLang||localStorage.getItem('duvela.webLang')||localStorage.getItem('duvela.web.lang')||navigator.language,autoWelcome:true});</script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
+<script src="./web/inline/app-2.js"></script>
+<script src="./web/inline/app-3.js"></script>
 <script src="./web/cookie-consent.js?v=20260906-consent1"></script>
 </body>
 </html>
