@@ -92,7 +92,7 @@ function checkLiveBackendContract() {
     'grant execute on function public.send_live_gift',
   ].forEach((needle) => expectIncludes('scripts/duvela-web-supabase.sql', sql, needle));
 
-  expectIncludes('web/live-page.js', livePage, ".select('vela_coin_balance')");
+  expectIncludes('web/live-page.js', livePage, "rpc('get_my_coin_balance')");
   if (livePage.includes('duvela_coin_balance')) fail('LIVE page still references duvela_coin_balance.');
   expectIncludes('web/live-page.js', livePage, "supa.functions.invoke('live-payment'");
   expectIncludes('web/live-page.js', livePage, "supa.functions.invoke('live-restream'");

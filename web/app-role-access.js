@@ -1,5 +1,5 @@
 (function () {
-  const PROFILE_COLUMNS = 'id,full_name,avatar_url,cover_url,city,country,language,language_level,learning_languages,learning_targets,teaches_languages,bio,interests,profile_interests,qualifications,specialization,teaching_experience,telegram,instagram,tiktok,facebook,linkedin,youtube,website,registered_web_role,is_teacher,is_organizer,is_admin,is_verified,score,vela_coin_balance,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level';
+  const PROFILE_COLUMNS = 'id,full_name,avatar_url,cover_url,city,country,language,language_level,learning_languages,learning_targets,teaches_languages,bio,interests,profile_interests,qualifications,specialization,teaching_experience,telegram,instagram,tiktok,facebook,linkedin,youtube,website,registered_web_role,is_teacher,is_organizer,is_admin,is_verified,score,grammar_progress,speaking_progress,vocabulary_progress,exam_progress,weekly_minutes_goal,goal_level';
 
   function createRoleAccessFeature(ctx) {
     const {
@@ -60,6 +60,10 @@
         session.selectedRole = session.role;
         return;
       }
+
+      // Coin balance is private (not selectable from profiles): own value via RPC.
+      const coins = await supa.rpc('get_my_coin_balance');
+      if (!coins.error && typeof coins.data === 'number') session.profile.vela_coin_balance = coins.data;
 
       const hasOrganization = session.profile.is_organizer
         ? await rolesApi.hasActiveOrganization(supa, session.user.id)

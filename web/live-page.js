@@ -299,8 +299,8 @@
       renderViewerBalance();
       return;
     }
-    var result = await supa.from('profiles').select('vela_coin_balance').eq('id', currentUser.id).maybeSingle();
-    viewerBalance = typeof result.data?.vela_coin_balance === 'number' ? result.data.vela_coin_balance : null;
+    var result = await supa.rpc('get_my_coin_balance');
+    viewerBalance = !result.error && typeof result.data === 'number' ? result.data : null;
     renderViewerBalance();
   }
   function createAgoraUid(value) {
