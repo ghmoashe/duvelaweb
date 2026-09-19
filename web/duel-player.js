@@ -303,7 +303,8 @@
       let className = '';
       if (answered && optionIndex === state.answeredOption) className = ' class="chosen"';
       if (reveal) {
-        if (optionIndex === Number(item.a)) className = ' class="correct"';
+        // The key never travels with the deck: the server publishes the current answer in revealed_answer.
+        if (optionIndex === Number(room.revealed_answer)) className = ' class="correct"';
         else if (answered && optionIndex === state.answeredOption) className = ' class="wrong"';
       }
       return '<button type="button" data-duel-play-option="' + optionIndex + '"' + className +
@@ -356,7 +357,7 @@
     state.answeredOption = optionIndex;
     render();
     try {
-      await api().submitVote(room.id, state.player.id, index, optionIndex, optionIndex === Number(item.a));
+      await api().submitVote(room.id, state.player.id, index, optionIndex);
     } catch (error) {
       console.warn('Could not submit duel vote.', error);
     }

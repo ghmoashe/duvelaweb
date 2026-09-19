@@ -248,7 +248,7 @@
     return { room, player: data, isNew: true };
   }
 
-  async function submitVote(roomId, playerId, questionIndex, optionIndex, isCorrect) {
+  async function submitVote(roomId, playerId, questionIndex, optionIndex) {
     const supa = client();
     if (!supa) throw new Error('Supabase is not configured.');
     const roomRes = await supa
@@ -260,9 +260,8 @@
     const room = roomRes.data;
     if (!room || room.status !== 'running' || room.reveal_answer) throw new Error('This question is closed.');
     if (Number(room.current_question) !== Number(questionIndex)) throw new Error('This question already moved on.');
-    const deck = Array.isArray(room.deck) ? room.deck : [];
-    const item = deck[Number(questionIndex)];
-    const verifiedCorrect = !!(item && Number(item.a) === Number(optionIndex));
+    // Grading happens in the database from the server-side answer key
+    // (prepare_live_duel_vote); is_correct here is only a placeholder.
     const { data, error } = await supa
       .from(VOTE_TABLE)
       .insert({
@@ -270,7 +269,7 @@
         player_id: playerId,
         question_index: questionIndex,
         option_index: optionIndex,
-        is_correct: verifiedCorrect
+        is_correct: false
       })
       .select()
       .single();
@@ -340,9 +339,6 @@
     if (userId && userId === room.teacher_id) return null;
     const questionIndex = Number(room.current_question);
     if (!(questionIndex >= 0)) return null;
-    const deck = Array.isArray(room.deck) ? room.deck : [];
-    const item = deck[questionIndex];
-    const isCorrect = !!(item && Number(item.a) === optionIndex);
     const name = String(payload.displayName || 'Chat').trim().slice(0, 60) || 'Chat';
 
     let player = null;
@@ -373,7 +369,7 @@
       if (inserted.error) return null;
       player = inserted.data;
     }
-    return submitVote(roomId, player.id, questionIndex, optionIndex, isCorrect);
+    return submitVote(roomId, player.id, questionIndex, optionIndex);
   }
 
   async function enqueueWaiter(teacherId, displayName, joinCode) {

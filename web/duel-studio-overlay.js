@@ -116,7 +116,7 @@
     const reveal = !!room.reveal_answer;
     node.querySelector('#dsoPoll').innerHTML = (item.opts || []).slice(0, 4).map(function (opt, index) {
       const pct = total ? Math.round(counts[index] / total * 100) : 0;
-      const klass = reveal && index === Number(item.a) ? ' class="correct"' : '';
+      const klass = reveal && index === Number(room.revealed_answer) ? ' class="correct"' : '';
       return '<button type="button" data-dso-vote="' + index + '"' + klass + '><span>' +
         String.fromCharCode(65 + index) + '</span><i><em style="width:' + pct + '%"></em></i><b>' +
         esc(opt) + '</b><strong>' + pct + '%</strong></button>';
