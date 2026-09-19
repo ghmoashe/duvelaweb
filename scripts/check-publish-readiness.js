@@ -80,7 +80,7 @@ function checkResourceHints() {
   requireIncludes('app.html', app, 'src="./web/vendor/hls-v1.js"');
   requireIncludes('app.html', app, 'src="./web/vendor/xlsx-0.18.5.full.min.js"');
   requireIncludes('app.html', app, 'src="./web/vendor/chess-0.10.3.min.js"');
-  requireIncludes('live.html', live, 'rel="preconnect" href="https://download.agora.io"');
+  requireIncludes('live.html', live, 'src="./web/vendor/AgoraRTC_N-4.20.0.js"');
   requireIncludes('profile.html', profile, 'src="./web/vendor/supabase-js-v2.js"');
 }
 
