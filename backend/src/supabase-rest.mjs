@@ -30,13 +30,20 @@ export class SupabaseRestClient {
         Authorization: `Bearer ${this.supabaseKey}`,
         Accept: 'application/json',
       },
+      signal: AbortSignal.timeout(8000),
     });
     const text = await response.text();
-    const data = text ? JSON.parse(text) : null;
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (_) {
+      data = null;
+    }
     if (!response.ok) {
-      const error = new Error(data?.message || data?.error || `Supabase ${response.status}`);
-      error.status = response.status;
-      error.details = data;
+      // Upstream messages can name tables/columns — log them, never relay them.
+      const error = new Error(`Upstream error ${response.status}`);
+      error.status = response.status >= 500 ? 502 : 400;
+      error.upstream = data?.message || data?.error || null;
       throw error;
     }
     return data;

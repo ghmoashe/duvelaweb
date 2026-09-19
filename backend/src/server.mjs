@@ -15,7 +15,40 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'X-Content-Type-Options': 'nosniff',
 };
+
+// Per-IP fixed-window limiter (in-memory, per instance). The endpoints are
+// public and each cache miss costs a service-key query, so an unthrottled
+// caller could hammer Supabase / Upstash through us.
+const rateBuckets = new Map();
+function clientIp(req) {
+  return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
+}
+function overRateLimit(req) {
+  const now = Date.now();
+  const ip = clientIp(req);
+  let bucket = rateBuckets.get(ip);
+  if (!bucket || bucket.resetAt <= now) {
+    if (rateBuckets.size > 20_000) {
+      for (const [key, value] of rateBuckets) if (value.resetAt <= now) rateBuckets.delete(key);
+      if (rateBuckets.size > 20_000) rateBuckets.clear();
+    }
+    bucket = { count: 0, resetAt: now + 60_000 };
+    rateBuckets.set(ip, bucket);
+  }
+  bucket.count += 1;
+  return bucket.count > config.rateLimitPerMinute;
+}
+
+function hasMetricsAccess(req) {
+  if (!config.metricsToken) return false;
+  const supplied = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (supplied.length !== config.metricsToken.length) return false;
+  let diff = 0;
+  for (let i = 0; i < supplied.length; i += 1) diff |= supplied.charCodeAt(i) ^ config.metricsToken.charCodeAt(i);
+  return diff === 0;
+}
 
 function sendJson(res, status, body, extraHeaders = {}) {
   res.writeHead(status, {
@@ -38,8 +71,10 @@ function sendText(res, status, body, extraHeaders = {}) {
 }
 
 function sendError(res, error) {
-  sendJson(res, error.status || 500, {
-    error: error.message || 'Backend API error.',
+  // Only our own 4xx validation messages are shown; everything else is generic.
+  const status = error.status || 500;
+  sendJson(res, status, {
+    error: status >= 400 && status < 500 ? error.message || 'Bad request.' : 'Backend API error.',
   });
 }
 
@@ -100,39 +135,36 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+    const url = new URL(req.url || '/', 'http://localhost');
     routeName = url.pathname;
 
     if (url.pathname === '/health') {
-      const redisTest = await cache.selfTest().catch((error) => ({
-        configured: cache.enabled,
-        ok: false,
-        error: error.message || String(error),
-      }));
-      sendJson(res, 200, {
-        ok: true,
-        service: 'duvela-backend-api',
-        runtime: 'node',
-        supabase: supabase.configured ? 'configured' : 'missing',
-        redis: cache.enabled ? 'configured' : 'disabled',
-        redisTest,
-        memoryCache: 'enabled',
-      }, { 'Cache-Control': 'no-store' });
+      // Liveness only. It used to run a Redis SET/GET on every call and echo
+      // upstream error text — a free lever on the Upstash quota for anyone.
+      sendJson(res, 200, { ok: true, service: 'duvela-backend-api' }, { 'Cache-Control': 'no-store' });
       return;
     }
 
-    if (url.pathname === '/metrics') {
-      sendJson(res, 200, metrics.snapshot(), { 'Cache-Control': 'no-store' });
+    if (url.pathname === '/metrics' || url.pathname === '/metrics.prom') {
+      if (!hasMetricsAccess(req)) {
+        sendJson(res, 404, { error: 'Not found.' });
+        return;
+      }
+      if (url.pathname === '/metrics') sendJson(res, 200, metrics.snapshot(), { 'Cache-Control': 'no-store' });
+      else sendText(res, 200, metrics.prometheus());
       return;
     }
 
-    if (url.pathname === '/metrics.prom') {
-      sendText(res, 200, metrics.prometheus());
+    if (overRateLimit(req)) {
+      routeName = 'rate-limited';
+      metrics.record({ endpoint: routeName, status: 429, latencyMs: performance.now() - requestStarted });
+      sendJson(res, 429, { error: 'Too many requests.' }, { 'Retry-After': '60' });
       return;
     }
 
     if (await handlePublicRead(req, res, url)) return;
 
+    routeName = 'other';
     metrics.record({ endpoint: routeName, status: 404, latencyMs: performance.now() - requestStarted });
     sendJson(res, 404, { error: 'Not found.' });
   } catch (error) {
@@ -143,6 +175,7 @@ const server = http.createServer(async (req, res) => {
       status,
       endpoint: routeName,
       message: error.message || 'Backend API error.',
+      upstream: error.upstream || undefined,
     }));
     sendError(res, error);
   }

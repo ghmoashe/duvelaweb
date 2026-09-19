@@ -60,6 +60,10 @@ const eventSelect = [
   'created_at',
 ].join(',');
 
+// Public projection ONLY: this handler can run with the service key (RLS
+// bypassed) and answers unauthenticated requests for any profile id. Private
+// columns (phone, dob, is_admin, app_access, coins, rewards, goals, progress)
+// must never be listed here — clients read their own profile with a session.
 const profileSelect = [
   'id',
   'full_name',
@@ -78,33 +82,26 @@ const profileSelect = [
   'registered_web_role_confirmed',
   'is_organizer',
   'is_teacher',
-  'is_admin',
   'is_verified',
-  'app_access',
-  'learning_goal',
-  'goal_level',
-  'weekly_minutes_goal',
-  'grammar_progress',
-  'speaking_progress',
-  'vocabulary_progress',
-  'exam_progress',
   'score',
-  'score_state_version',
-  'duvela_coin_balance:vela_coin_balance',
-  'claimed_rewards',
   'learning_targets',
-  'practice_progress',
   'instagram',
   'tiktok',
   'youtube',
   'facebook',
   'linkedin',
   'website',
-  'phone',
-  'dob',
   'teacher_audience',
   'created_at',
 ].join(',');
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function badRequest(message) {
+  const error = new Error(message);
+  error.status = 400;
+  return error;
+}
 
 function config() {
   return {
@@ -207,9 +204,16 @@ async function supabaseGet(path, params) {
       authorization: `Bearer ${cfg.supabaseKey}`,
       accept: 'application/json',
     },
+    signal: AbortSignal.timeout(8000),
   });
   const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.message || body?.error || `Supabase ${response.status}`);
+  if (!response.ok) {
+    // Upstream messages can name tables/columns — log, never relay.
+    console.error('supabase error', response.status, body?.message || body?.error || '');
+    const error = new Error(`Upstream error ${response.status}`);
+    error.status = response.status >= 500 ? 502 : 400;
+    throw error;
+  }
   return Array.isArray(body) ? body : [];
 }
 
@@ -218,11 +222,16 @@ function idListParam(value) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 50);
+    .slice(0, 50)
+    .sort()
+    .filter((item, index, list) => index === 0 || item !== list[index - 1]);
 }
 
 async function readPublicData(type, { limit, offset, id, ids, organizerId }) {
+  if (id && !UUID_RE.test(id)) throw badRequest('Invalid id.');
+  if (organizerId && !UUID_RE.test(organizerId)) throw badRequest('Invalid organizerId.');
   const normalizedIds = idListParam(ids);
+  if (normalizedIds.some((item) => !UUID_RE.test(item))) throw badRequest('Invalid ids.');
   const cacheKey = [
     'vercel-api:v2',
     type,

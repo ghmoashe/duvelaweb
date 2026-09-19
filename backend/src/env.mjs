@@ -21,6 +21,10 @@ function numberEnv(name, fallback, min, max) {
   return Math.max(min, Math.min(max, Math.floor(value)));
 }
 
+function backendPort() {
+  return numberEnv('BACKEND_PORT', process.env.PORT || 8787, 1, 65535);
+}
+
 export function getConfig() {
   loadDotEnv(path.resolve(process.cwd(), '.env.local'));
   loadDotEnv();
@@ -36,11 +40,15 @@ export function getConfig() {
   return {
     env: process.env.NODE_ENV || 'development',
     host: process.env.BACKEND_HOST || '127.0.0.1',
-    port: numberEnv('BACKEND_PORT', 8787, 1, 65535),
+    port: backendPort(),
     supabaseUrl,
     supabaseKey,
     redisRestUrl: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/+$/, ''),
     redisRestToken: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+    // /metrics and /metrics.prom are served only when this is set, and then
+    // only with "Authorization: Bearer <token>".
+    metricsToken: process.env.METRICS_TOKEN || '',
+    rateLimitPerMinute: numberEnv('RATE_LIMIT_PER_MINUTE', 120, 10, 6000),
     cacheTtl: {
       feed: numberEnv('DUVELA_FEED_CACHE_TTL_SECONDS', 30, 5, 3600),
       events: numberEnv('DUVELA_EVENTS_CACHE_TTL_SECONDS', 120, 5, 3600),

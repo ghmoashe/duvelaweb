@@ -1,3 +1,5 @@
+const MEMORY_MAX_ENTRIES = 1000;
+
 export class RedisCache {
   constructor({ redisRestUrl, redisRestToken }) {
     this.redisRestUrl = redisRestUrl;
@@ -15,6 +17,7 @@ export class RedisCache {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(command),
+      signal: AbortSignal.timeout(3000),
     });
     const json = await response.json().catch(() => ({}));
     if (!response.ok || json?.error) {
@@ -65,11 +68,17 @@ export class RedisCache {
       expiresAt: Date.now() + ttlSeconds * 1000,
     });
 
-    if (this.memory.size <= 1000) return;
+    if (this.memory.size <= MEMORY_MAX_ENTRIES) return;
 
     const now = Date.now();
     for (const [entryKey, entry] of this.memory.entries()) {
       if (entry.expiresAt <= now) this.memory.delete(entryKey);
+    }
+    // Hard cap: drop the oldest insertions when everything is still fresh
+    // (a Map iterates in insertion order), so memory cannot grow unbounded.
+    for (const entryKey of this.memory.keys()) {
+      if (this.memory.size <= MEMORY_MAX_ENTRIES) break;
+      this.memory.delete(entryKey);
     }
   }
 }

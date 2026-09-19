@@ -24,6 +24,9 @@ export class BackendMetrics {
   }
 
   endpoint(name) {
+    // Endpoint names come from request paths; cap the label set so a scanner
+    // hitting random URLs cannot grow this object (and /metrics.prom) forever.
+    if (!this.endpoints[name] && Object.keys(this.endpoints).length >= 30) name = 'other';
     if (!this.endpoints[name]) this.endpoints[name] = emptyEndpointMetrics();
     return this.endpoints[name];
   }

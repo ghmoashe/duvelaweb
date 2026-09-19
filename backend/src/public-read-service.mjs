@@ -45,6 +45,11 @@ const EVENT_SELECT = [
   'created_at',
 ].join(',');
 
+// Public projection ONLY. This service runs with the Supabase service key
+// (RLS bypassed) and answers unauthenticated requests for any profile id, so
+// it must never expose private columns: phone, dob, is_admin, app_access,
+// coin balance, claimed rewards, learning goals or progress state. Clients read
+// their OWN profile straight from Supabase with the user's session instead.
 const PROFILE_SELECT = [
   'id',
   'full_name',
@@ -63,33 +68,26 @@ const PROFILE_SELECT = [
   'registered_web_role_confirmed',
   'is_organizer',
   'is_teacher',
-  'is_admin',
   'is_verified',
-  'app_access',
-  'learning_goal',
-  'goal_level',
-  'weekly_minutes_goal',
-  'grammar_progress',
-  'speaking_progress',
-  'vocabulary_progress',
-  'exam_progress',
   'score',
-  'score_state_version',
-  'duvela_coin_balance:vela_coin_balance',
-  'claimed_rewards',
   'learning_targets',
-  'practice_progress',
   'instagram',
   'tiktok',
   'youtube',
   'facebook',
   'linkedin',
   'website',
-  'phone',
-  'dob',
   'teacher_audience',
   'created_at',
 ].join(',');
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function badRequest(message) {
+  const error = new Error(message);
+  error.status = 400;
+  return error;
+}
 
 export function numberParam(url, name, fallback, min, max) {
   const value = Number(url.searchParams.get(name) || fallback);
@@ -111,11 +109,15 @@ export class PublicReadService {
       throw error;
     }
     if ((type === 'event' || type === 'profile') && !id) {
-      const error = new Error('id is required.');
-      error.status = 400;
-      throw error;
+      throw badRequest('id is required.');
     }
+    // Only well-formed UUIDs reach the query string or the cache key: keeps
+    // PostgREST filter syntax out of user input and stops an attacker from
+    // minting unlimited unique cache keys.
+    if (id && !UUID_RE.test(id)) throw badRequest('Invalid id.');
+    if (organizerId && !UUID_RE.test(organizerId)) throw badRequest('Invalid organizerId.');
     const normalizedIds = idListParam(ids);
+    if (normalizedIds.some((item) => !UUID_RE.test(item))) throw badRequest('Invalid ids.');
 
     const cacheKey = ['backend-api:v2', type, limit, offset, id, normalizedIds.join(','), organizerId].join(':');
     let cacheState = 'disabled';
@@ -198,5 +200,7 @@ function idListParam(value) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 50);
+    .slice(0, 50)
+    .sort()
+    .filter((item, index, list) => index === 0 || item !== list[index - 1]);
 }

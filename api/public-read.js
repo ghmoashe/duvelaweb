@@ -28,6 +28,7 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     metrics.requests += 1;
     metrics.errors += 1;
-    return json(res, error.status || 500, { error: error.message || 'Backend API error.' });
+    const status = error.status || 500;
+    return json(res, status, { error: status < 500 ? error.message : 'Backend API error.' });
   }
 };
