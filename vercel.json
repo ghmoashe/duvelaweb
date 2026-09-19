@@ -4,30 +4,82 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/health", "destination": "/api/health" },
-    { "source": "/metrics", "destination": "/api/metrics" }
+    {
+      "source": "/health",
+      "destination": "/api/health"
+    },
+    {
+      "source": "/metrics",
+      "destination": "/api/metrics"
+    }
   ],
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      ]
+    },
+    {
       "source": "/classroom.html",
       "headers": [
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "credentialless" },
-        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(self), display-capture=(self), geolocation=(self), unload=*" }
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "credentialless"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(self), display-capture=(self), geolocation=(self), unload=*"
+        }
       ]
     },
     {
       "source": "/.well-known/apple-app-site-association",
       "headers": [
-        { "key": "Content-Type", "value": "application/json" },
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
       ]
     },
     {
       "source": "/.well-known/assetlinks.json",
       "headers": [
-        { "key": "Content-Type", "value": "application/json" },
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
       ]
     }
   ]

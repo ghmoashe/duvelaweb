@@ -144,6 +144,10 @@ export class PublicReadService {
         select: FEED_SELECT,
         media_type: 'in.(video,youtube,image)',
         media_url: 'not.is.null',
+        // Service key bypasses RLS: hide what RLS hides from users.
+        shorts_deleted_at: 'is.null',
+        or: '(shorts_hidden.is.null,shorts_hidden.eq.false)',
+        shorts_visibility: 'eq.public',
         order: 'created_at.desc',
         limit,
         offset,

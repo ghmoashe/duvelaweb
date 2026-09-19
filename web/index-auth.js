@@ -279,6 +279,7 @@
 
     function setNavUser(user) {
       signedInUser = user;
+      const escHtml = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       const nameSource = user.user_metadata?.full_name || user.email || 'U';
       const initial = nameSource.charAt(0).toUpperCase();
       const name = user.user_metadata?.full_name || (user.email ? user.email.split('@')[0] : 'User');
@@ -289,7 +290,7 @@
         name + '</span>';
       openLoginBtn.title = 'Open Duvela Web';
       openLoginMobBtn.innerHTML =
-        '<span style="width:22px;height:22px;border-radius:99px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:10px;font-weight:900">' + initial + '</span>';
+        '<span style="width:22px;height:22px;border-radius:99px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:10px;font-weight:900">' + escHtml(initial) + '</span>';
     }
 
     function setNavGuest() {

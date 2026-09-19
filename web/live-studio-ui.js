@@ -120,7 +120,7 @@
       mic.innerHTML=devices.filter(d=>d.kind==='audioinput').map((d,i)=>'<option value="'+d.deviceId+'">'+(d.label||t('Microphone ','Микрофон ')+(i+1))+'</option>').join('');
       const context=new AudioContext(),source=context.createMediaStreamSource(meterStream),analyser=context.createAnalyser(),data=new Uint8Array(analyser.frequencyBinCount); source.connect(analyser);
       const draw=()=>{analyser.getByteFrequencyData(data); const level=data.reduce((a,b)=>a+b,0)/data.length/255; modal.querySelector('.mic-meter i').style.width=Math.min(100,level*260)+'%'; meterFrame=requestAnimationFrame(draw);}; draw();
-    } catch(error){ modal.querySelector('.preflight-status').innerHTML='<span class="bad">'+error.message+'</span>'; }
+    } catch(error){ modal.querySelector('.preflight-status').textContent=String(error&&error.message||error); }
   }
   modal.querySelector('#enterStudio').addEventListener('click',async()=>{ const button=modal.querySelector('#enterStudio'),cam=modal.querySelector('#preCamera').value,mic=modal.querySelector('#preMic').value; if(button)button.disabled=true; cancelAnimationFrame(meterFrame); meterStream?.getTracks().forEach(track=>track.stop()); modal.classList.remove('open'); try{await api.setDevices(cam,mic);}catch(error){console.warn('pre-live device setup failed',error);} });
   loadDevices();
