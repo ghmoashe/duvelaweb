@@ -190,15 +190,13 @@
     if (!supa) throw new Error('Supabase is not configured.');
     const code = String(joinCode || '').trim().toUpperCase();
     if (!code) throw new Error('Enter the duel code.');
-    const { data, error } = await supa
-      .from(ROOM_TABLE)
-      .select('*')
-      .eq('join_code', code)
-      .in('status', ['lobby', 'running', 'paused'])
-      .maybeSingle();
+    // Rooms are not listable any more: the code is looked up server-side
+    // (throttled) and only the matching room comes back.
+    const { data, error } = await supa.rpc('find_live_duel_room_by_code', { p_code: code });
     if (error) throw error;
-    if (!data) throw new Error('No live duel with that code.');
-    return data;
+    const room = Array.isArray(data) ? data[0] : data;
+    if (!room) throw new Error('No live duel with that code.');
+    return room;
   }
 
   async function findMyPlayer(roomId) {
