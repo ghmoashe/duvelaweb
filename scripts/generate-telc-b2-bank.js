@@ -8,27 +8,27 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', 'tel
 const audioRoot = './web/audio/exam-b2';
 
 const topicPairs = [
-  ['Digitale Verwaltung spart Zeit, schliesst aber manche Menschen aus.', 'Persoenliche Beratung bleibt trotz Digitalisierung unverzichtbar.'],
-  ['Flexible Arbeitsmodelle erhoehen die Produktivitaet langfristig.', 'Klare Praesenzzeiten sind fuer Teamkultur und Verantwortung notwendig.'],
-  ['Nachhaltiges Reisen sollte politisch staerker gesteuert werden.', 'Reiseentscheidungen muessen vor allem individuell und bezahlbar bleiben.'],
-  ['Praevention ist wichtiger als spaetere Behandlung.', 'Gesundheitsverhalten laesst sich nicht allein durch Regeln verbessern.'],
-  ['Soziale Medien koennen demokratische Beteiligung erweitern.', 'Oeffentliche Debatten brauchen mehr Distanz und weniger Tempo.'],
+  ['Digitale Verwaltung spart Zeit, schließt aber manche Menschen aus.', 'Persönliche Beratung bleibt trotz Digitalisierung unverzichtbar.'],
+  ['Flexible Arbeitsmodelle erhöhen die Produktivität langfristig.', 'Klare Präsenzzeiten sind für Teamkultur und Verantwortung notwendig.'],
+  ['Nachhaltiges Reisen sollte politisch stärker gesteuert werden.', 'Reiseentscheidungen müssen vor allem individuell und bezahlbar bleiben.'],
+  ['Prävention ist wichtiger als spätere Behandlung.', 'Gesundheitsverhalten lässt sich nicht allein durch Regeln verbessern.'],
+  ['Soziale Medien können demokratische Beteiligung erweitern.', 'Öffentliche Debatten brauchen mehr Distanz und weniger Tempo.'],
 ];
 
 const presentationTopics = [
   'Die Rolle digitaler Angebote im Alltag',
   'Lebenslanges Lernen im Beruf',
-  'Nachhaltige Mobilitaet in Europa',
+  'Nachhaltige Mobilität in Europa',
   'Gesundheitliche Eigenverantwortung und Gesellschaft',
   'Medienkompetenz und freiwilliges Engagement',
 ];
 
 const planningTopics = [
-  'eine Informationsveranstaltung fuer neue Einwohnerinnen und Einwohner',
+  'eine Informationsveranstaltung für neue Einwohnerinnen und Einwohner',
   'ein berufliches Weiterbildungswochenende',
   'eine klimafreundliche Studienreise',
   'einen Gesundheitstag im Stadtteil',
-  'eine Medienkampagne fuer einen Verein',
+  'eine Medienkampagne für einen Verein',
 ];
 
 function deepClone(value) {
@@ -73,8 +73,8 @@ function makeB2Test(test, index) {
       if (item.transcript) item.transcript = enrichText(item.transcript);
       if (item.audio) item.audio = `${audioRoot}/mt${n}/${item.id}.mp3`;
       item.explain = item.answer === false
-        ? 'Die Aussage stimmt nicht vollstaendig mit dem Hoertext ueberein.'
-        : 'Die Aussage entspricht dem Hoertext oder laesst sich daraus ableiten.';
+        ? 'Die Aussage stimmt nicht vollständig mit dem Hörtext überein.'
+        : 'Die Aussage entspricht dem Hörtext oder lässt sich daraus ableiten.';
     }
   }
 
@@ -86,27 +86,27 @@ function makeB2Test(test, index) {
     for (const text of part.texts || []) text.body = enrichText(text.body);
     for (const item of part.items || []) {
       if (item.situation) item.situation = enrichText(item.situation);
-      item.explain = 'Die Loesung passt nach Inhalt, Kontext und sprachlicher Funktion am besten.';
+      item.explain = 'Die Lösung passt nach Inhalt, Kontext und sprachlicher Funktion am besten.';
     }
   }
 
   const writing = result.sections.find((section) => section.id === 'schreiben');
   writing.durationMin = 30;
-  writing.instructions = 'Schreiben Sie einen zusammenhaengenden halbformellen oder formellen Text. Nehmen Sie Stellung und bearbeiten Sie alle vier Leitpunkte.';
+  writing.instructions = 'Schreiben Sie einen zusammenhängenden halbformellen oder formellen Text. Nehmen Sie Stellung und bearbeiten Sie alle vier Leitpunkte.';
   const writePart = writing.parts[0];
   writePart.title = 'Schriftlicher Ausdruck - Stellungnahme';
-  writePart.instructions = `${writePart.instructions} Formulieren Sie mindestens 150 Woerter und verbinden Sie Ihre Argumente nachvollziehbar.`;
+  writePart.instructions = `${writePart.instructions} Formulieren Sie mindestens 150 Wörter und verbinden Sie Ihre Argumente nachvollziehbar.`;
   writePart.minWords = 150;
-  writePart.sample = `${writePart.sample} Abschliessend halte ich es fuer wichtig, nicht nur einzelne praktische Vorteile zu betrachten, sondern auch langfristige Folgen fuer Organisation, Teilhabe und Verantwortung. Deshalb wuerde ich eine Loesung bevorzugen, die verbindliche Regeln mit ausreichender Flexibilitaet verbindet. Aus meiner Sicht sollte man ausserdem transparent erklaeren, wer Entscheidungen trifft, welche Kosten entstehen und wie Betroffene rechtzeitig informiert werden. So entsteht Vertrauen, und unterschiedliche Interessen koennen sachlich abgewogen werden. Wenn ein Vorschlag praktisch bleibt und trotzdem Ruecksicht auf Menschen mit verschiedenen Voraussetzungen nimmt, hat er deutlich bessere Chancen, dauerhaft akzeptiert zu werden.`;
+  writePart.sample = `${writePart.sample} Abschließend halte ich es für wichtig, nicht nur einzelne praktische Vorteile zu betrachten, sondern auch langfristige Folgen für Organisation, Teilhabe und Verantwortung. Deshalb würde ich eine Lösung bevorzugen, die verbindliche Regeln mit ausreichender Flexibilität verbindet. Aus meiner Sicht sollte man außerdem transparent erklären, wer Entscheidungen trifft, welche Kosten entstehen und wie Betroffene rechtzeitig informiert werden. So entsteht Vertrauen, und unterschiedliche Interessen können sachlich abgewogen werden. Wenn ein Vorschlag praktisch bleibt und trotzdem Rücksicht auf Menschen mit verschiedenen Voraussetzungen nimmt, hat er deutlich bessere Chancen, dauerhaft akzeptiert zu werden.`;
   writePart.rubric = { level: 'B2', maxPoints: 45, criteria: ['Aufgabenbewaeltigung', 'Kommunikative Gestaltung', 'Formale Richtigkeit'] };
 
   const speaking = result.sections.find((section) => section.id === 'sprechen');
-  speaking.instructions = 'Sie haben vor der muendlichen Pruefung 20 Minuten Vorbereitungszeit. Praesentieren Sie strukturiert, diskutieren Sie differenziert und reagieren Sie spontan auf Ihre Partnerin.';
+  speaking.instructions = 'Sie haben vor der mündlichen Prüfung 20 Minuten Vorbereitungszeit. Präsentieren Sie strukturiert, diskutieren Sie differenziert und reagieren Sie spontan auf Ihre Partnerin.';
   speaking.parts = [
     {
-      id: 'sp1', title: 'Teil 1 - Praesentation und Nachfragen', type: 'speak-intro',
-      instructions: `Praesentieren Sie kurz das Thema "${presentationTopics[index]}" und beantworten Sie Rueckfragen.`,
-      prompts: [`Welche Entwicklung halten Sie bei "${presentationTopics[index]}" fuer besonders wichtig?`, 'Welche Folgen sehen Sie fuer Alltag, Beruf oder Gesellschaft?'],
+      id: 'sp1', title: 'Teil 1 - Präsentation und Nachfragen', type: 'speak-intro',
+      instructions: `Präsentieren Sie kurz das Thema "${presentationTopics[index]}" und beantworten Sie Rückfragen.`,
+      prompts: [`Welche Entwicklung halten Sie bei "${presentationTopics[index]}" für besonders wichtig?`, 'Welche Folgen sehen Sie für Alltag, Beruf oder Gesellschaft?'],
       rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfaehigkeit', 'Aufgabenbewaeltigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
     },
     {
@@ -118,7 +118,7 @@ function makeB2Test(test, index) {
     {
       id: 'sp3', title: 'Teil 3 - Gemeinsam planen', type: 'speak-cards',
       instructions: `Planen Sie gemeinsam ${planningTopics[index]}. Einigen Sie sich auf ein realistisches Vorgehen.`,
-      cards: ['Zielgruppe und Ziel', 'Programm und Zeitplan', 'Budget und Verantwortung', 'Kommunikation und Risiko'].map((keyword, cardIndex) => ({ id: `sp3-${cardIndex + 1}`, keyword, example: `Beim Punkt ${keyword.toLowerCase()} waere mein Vorschlag, ...`, partner: 'Das ist nachvollziehbar, aber wir sollten auch eine Alternative einplanen.' })),
+      cards: ['Zielgruppe und Ziel', 'Programm und Zeitplan', 'Budget und Verantwortung', 'Kommunikation und Risiko'].map((keyword, cardIndex) => ({ id: `sp3-${cardIndex + 1}`, keyword, example: `Beim Punkt ${keyword.toLowerCase()} wäre mein Vorschlag, ...`, partner: 'Das ist nachvollziehbar, aber wir sollten auch eine Alternative einplanen.' })),
       rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfaehigkeit', 'Aufgabenbewaeltigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
     },
   ];
@@ -129,7 +129,7 @@ function makeB2Test(test, index) {
 const bank = {
   exam: 'telc-deutsch-b2',
   level: 'B2',
-  note: 'Eigenstaendige DUVELA-Uebungsinhalte im Format telc Deutsch B2. Kein offizieller telc-Pruefungssatz.',
+  note: 'Eigenständige DUVELA-Übungsinhalte im Format telc Deutsch B2. Kein offizieller telc-Prüfungssatz.',
   quality: { version: 1, reviewed: '2026-08-15', audioScripts: 55, modelTests: 5, review: 'B2 bank derived into a separate upper-level format with B2 writing, speaking and audio paths. Audio may be imported later.' },
   passMark: 60,
   passRules: { written: { sections: ['lesen', 'hoeren', 'schreiben'], maxPoints: 225, minPoints: 135 }, oral: { sections: ['sprechen'], maxPoints: 75, minPoints: 45 } },
