@@ -432,3 +432,22 @@
 .fl-bot-img{mix-blend-mode:multiply;-webkit-mask-image:linear-gradient(180deg,#000 80%,transparent),linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(180deg,#000 80%,transparent),linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-composite:intersect}
 .fl-bub{z-index:2;left:130px;top:-6px}
 .fl-bot{margin-top:34px}
+
+.awards-v2{background:radial-gradient(50% 50% at 100% 0,#fdeed6 0,transparent 70%),#fffaf3}
+.awards-v2 .aw-wrap{width:min(1400px,calc(100% - 40px))}
+.aw-head{position:relative;margin-bottom:28px}
+.aw-head h2{margin:14px 0 14px;font-size:clamp(30px,4.2vw,54px);line-height:1.06;letter-spacing:-.03em;font-weight:800}
+.aw-head>p{margin:0;max-width:40em;font-size:clamp(15px,1.4vw,19px);line-height:1.55;color:#625B73}
+.aw-sign{position:absolute;right:120px;top:-8px;font:italic 26px/1.05 "Segoe Script","Brush Script MT",cursive;color:#6d5bd0;transform:rotate(-8deg)}
+.awards-v2 .awards-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.awards-v2 .award-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:22px 18px 46px;background:linear-gradient(180deg,#fff,#fffdf9);border:1px solid #f4ece0;border-radius:22px;box-shadow:0 12px 34px rgba(150,110,40,.08);transform:none;min-height:0}
+.awards-v2 .award-card img{width:min(170px,80%);height:auto;mix-blend-mode:multiply;margin:0 auto 8px;filter:none}
+.awards-v2 .award-card h3{margin:0 0 8px;font-size:clamp(17px,1.5vw,21px);font-weight:800;letter-spacing:-.01em}
+.awards-v2 .award-card p{margin:0;font-size:14.5px;line-height:1.5;color:#625B73}
+.award-no{position:absolute;left:14px;bottom:14px;padding:6px 10px;border-radius:999px;background:#f6f0e8;color:#8a7f70;font-size:12px;font-weight:700}
+.awards-v2 .award-card:nth-child(3){border-color:#f5cf86;background:radial-gradient(70% 60% at 50% 25%,#fff0d2,#fff 75%);box-shadow:0 18px 46px rgba(245,158,11,.22)}
+.awards-v2 .award-card:nth-child(3) .award-no{background:#fbe3b4;color:#a86a00}
+.aw-foot{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:30px;color:#a29bb8;font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.aw-foot i{width:110px;height:1px;background:#d9d2ee}
+@media (max-width:1100px){.awards-v2 .awards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.aw-sign{display:none}}
+@media (max-width:680px){.awards-v2 .awards-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.awards-v2 .award-card{padding:16px 12px 42px}.aw-foot i{width:40px}}
