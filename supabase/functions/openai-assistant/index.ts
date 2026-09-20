@@ -1724,7 +1724,7 @@ function parseGermanReadingEvaluation(text: string, fallbackCorrect: boolean, fa
         ? payload.next_tip.trim()
         : typeof payload.nextTip === "string" && payload.nextTip.trim()
           ? payload.nextTip.trim()
-      : "Lies zuerst Namen, Zeit, Ort und Handlung. Danach pruefst du jede Antwort am Text.",
+      : "Lies zuerst Namen, Zeit, Ort und Handlung. Danach prüfst du jede Antwort am Text.",
   };
 }
 
@@ -1745,7 +1745,7 @@ function parseGermanReadingVoiceEvaluation(text: string, spokenText: string) {
     verdict:
       typeof payload.verdict === "string" && payload.verdict.trim()
         ? payload.verdict.trim()
-        : "AI hat dein Lesen gehoert. Lies langsam und sprich Satzenden klar aus.",
+        : "AI hat dein Lesen gehört. Lies langsam und sprich Satzenden klar aus.",
     matchedText:
       typeof payload.matched_text === "string" && payload.matched_text.trim()
         ? payload.matched_text.trim()
@@ -1757,13 +1757,13 @@ function parseGermanReadingVoiceEvaluation(text: string, spokenText: string) {
         ? payload.missed_text.trim()
         : typeof payload.missedText === "string" && payload.missedText.trim()
           ? payload.missedText.trim()
-          : "Nicht alle Woerter wurden sicher erkannt.",
+          : "Nicht alle Wörter wurden sicher erkannt.",
     nextTip:
       typeof payload.next_tip === "string" && payload.next_tip.trim()
         ? payload.next_tip.trim()
         : typeof payload.nextTip === "string" && payload.nextTip.trim()
           ? payload.nextTip.trim()
-      : "Uebe zuerst einen Satz, dann lies den ganzen Text mit kurzen Pausen nach Punkten.",
+      : "Übe zuerst einen Satz, dann lies den ganzen Text mit kurzen Pausen nach Punkten.",
   };
 }
 
@@ -1784,11 +1784,11 @@ function parseGermanSpeakingEvaluation(text: string, spokenText: string) {
     verdict:
       typeof payload.verdict === "string" && payload.verdict.trim()
         ? payload.verdict.trim()
-        : "AI hat deine Antwort gehoert. Antworte mit kurzen, klaren Saetzen.",
+        : "AI hat deine Antwort gehört. Antworte mit kurzen, klaren Sätzen.",
     correction:
       typeof payload.correction === "string" && payload.correction.trim()
         ? payload.correction.trim()
-        : "Achte auf Verbposition, Artikel und eine vollstaendige Antwort.",
+        : "Achte auf Verbposition, Artikel und eine vollständige Antwort.",
     betterAnswer:
       typeof payload.better_answer === "string" && payload.better_answer.trim()
         ? payload.better_answer.trim()
@@ -1806,7 +1806,7 @@ function parseGermanSpeakingEvaluation(text: string, spokenText: string) {
         ? payload.next_question.trim()
         : typeof payload.nextQuestion === "string" && payload.nextQuestion.trim()
           ? payload.nextQuestion.trim()
-          : "Bitte antworten Sie noch einmal mit zwei ganzen Saetzen.",
+          : "Bitte antworten Sie noch einmal mit zwei ganzen Sätzen.",
   };
 }
 
