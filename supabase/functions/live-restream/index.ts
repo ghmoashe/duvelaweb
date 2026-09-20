@@ -157,6 +157,19 @@ Deno.serve(async (req: Request) => {
       return json({ error: "channelName and hostUid are required." }, 400);
     }
 
+    // The channel must belong to a live/scheduled session hosted by the caller.
+    // Without this any signed-in user could mirror someone else's stream (paid
+    // or private) to their own RTMP target.
+    const { data: ownSession } = await serviceClient
+      .from("live_sessions")
+      .select("id")
+      .eq("channel_name", channelName)
+      .eq("teacher_id", userData.user.id)
+      .in("status", ["live", "scheduled"])
+      .limit(1)
+      .maybeSingle();
+    if (!ownSession) return json({ error: "You can only restream your own live session." }, 403);
+
     for (const target of targets) {
       if (!target.enabled) continue;
 
