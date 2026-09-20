@@ -260,3 +260,61 @@
 @media (max-width:1180px){.fr1,.fr2{grid-template-columns:1fr 1fr}.fr1 .fc-live{grid-column:1/-1}.fw-sign{display:none}}
 @media (max-width:760px){.fr1,.fr2{grid-template-columns:1fr}.fm-events{flex-direction:column}.fm-live{flex-direction:column}}
 @media (min-width:1000px){.fc-events{flex-direction:row;align-items:center}.fc-events .fc-txt{flex:0 0 30%}.fc-events .fc-mock{flex:1}.fc-events .fc-txt p{margin-bottom:10px}}
+
+.earn-v2{background:radial-gradient(40% 40% at 95% 5%,#ece4ff 0,transparent 70%),#fbfaff}
+.earn-v2 .ev-wrap{width:min(1400px,calc(100% - 40px))}
+.ev-head{position:relative;margin-bottom:34px}
+.ev-kicker{display:block;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5b33e8}
+.ev-head h2{margin:14px 0 16px;font-size:clamp(34px,4.6vw,60px);line-height:1.05;letter-spacing:-.03em;font-weight:800}
+.ev-u{position:relative;white-space:nowrap}.ev-u:after{content:"";position:absolute;left:8%;right:-4%;bottom:-10px;height:8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'%3E%3Cpath d='M2 7C30 2 60 6 118 2' stroke='%23f59e0b' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.ev-head>p{margin:0;max-width:34em;font-size:clamp(15px,1.5vw,20px);line-height:1.55;color:#625B73}
+.ev-hand{position:absolute;right:130px;top:0;font:italic 20px/1.25 "Segoe Script","Brush Script MT",cursive;color:#6d5bd0;transform:rotate(-8deg)}
+.ev-cap{position:absolute;right:10px;top:-10px;width:84px;height:84px;border-radius:24px;background:#fff;box-shadow:0 14px 34px rgba(90,60,200,.18);display:grid;place-items:center;color:#5b33e8;transform:rotate(8deg)}.ev-cap svg{width:46px;height:46px}
+.ev-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.ev-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ec{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr;gap:6px 16px;padding:20px 20px 18px;background:#fff;border:1px solid #ece7f7;border-radius:22px;box-shadow:0 12px 34px rgba(60,40,140,.06);min-width:0}
+.ec-ico{grid-row:1;width:58px;height:58px;border-radius:16px;display:grid;place-items:center;background:#efe9fd;color:#6d3fe0;box-shadow:0 8px 18px rgba(109,63,224,.15)}.ec-ico svg{width:30px;height:30px}
+.ec-body{min-width:0;padding-right:38px}
+.ec-tag{display:inline-block;padding:3px 10px;border-radius:7px;background:#efe9fd;color:#5b33e8;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.ec-body h3{margin:8px 0 6px;font-size:20px;font-weight:800;letter-spacing:-.015em}.ec-body p{margin:0;font-size:14.5px;line-height:1.5;color:#625B73}
+.ec-go{position:absolute;right:18px;top:18px;width:38px;height:38px;border-radius:50%;background:#efe9fd;color:#5b33e8;display:grid;place-items:center}.ec-go svg{width:18px;height:18px}
+.ec .em{grid-column:1/-1;margin-top:10px}
+.c-live .ec-ico{background:#fde8f0;color:#e8336d}.c-live .ec-tag{background:#fde8f0;color:#e8336d}
+.c-event .ec-ico{background:#fdf0dd;color:#e8891a}.c-event .ec-tag{background:#fdf0dd;color:#c67410}
+.c-media .ec-ico{background:#e2f7ec;color:#16a870}.c-media .ec-tag{background:#e2f7ec;color:#12805a}
+.em{background:#fff;border:1px solid #efeaf8;border-radius:14px;padding:10px 12px;font-size:12px;box-shadow:0 4px 14px rgba(60,40,140,.05);position:relative}
+.em b{font-weight:800;display:block;font-size:14px}.em small{color:#7b7492;font-size:12px}.em s{display:block;height:6px;border-radius:3px;background:#e9e4f5;margin-top:7px;width:70%}.em s+s{width:45%}
+.em-price{padding:10px 16px;border-radius:12px;background:#efe9fd;color:#5b33e8;font-weight:800;font-size:16px;margin-left:auto}
+.em-course{display:flex}.em-row{display:flex;align-items:center;gap:10px;width:100%;position:relative;z-index:1}.em-row>div{flex:1}
+.em-stack{position:absolute;left:-16px;bottom:-4px;width:70px;height:44px;border-radius:10px;background:#e9e2fb;transform:rotate(-8deg);z-index:0}
+.em-live{display:flex;align-items:center;gap:12px}.em-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:9px;background:#fde8ea;color:#e0303f;font-weight:800;font-size:14px}.em-badge i{width:8px;height:8px;border-radius:50%;background:#e0303f}
+.em-live>div{flex:1}.em-avs{display:flex;align-items:center}.em-avs i{width:26px;height:26px;border-radius:50%;background:linear-gradient(160deg,#cbb6ff,#8b64f0);border:2px solid #fff;margin-left:-8px}.em-avs em{font-style:normal;margin-left:6px;padding:6px 7px;border-radius:50%;background:#efe9fd;color:#5b33e8;font-weight:700;font-size:11px}
+.em-event{display:flex;align-items:center;gap:12px}.em-event>div{flex:1}.em-date{width:52px;padding:6px 0;border-radius:10px;background:#fbf3e6;text-align:center}.em-date small{display:block;color:#c67410;font-weight:700;font-size:10px}.em-date b{font-size:20px;line-height:1}
+.em-loc{display:flex!important;align-items:center;gap:4px}.em-loc svg{width:12px;height:12px;color:#5b33e8}
+.em-flow{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:8px}
+.em-flow u{text-decoration:none;color:#5b33e8;font-weight:700}
+.em-step{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:12px;background:#f8f6fd;font-size:11px;font-weight:700;color:#4d4665;flex:1;min-width:0;text-align:center}
+.em-step i{width:36px;height:36px;border-radius:10px;background:#efe9fd;color:#5b33e8;display:grid;place-items:center}.em-step i svg{width:20px;height:20px}
+.em-gold{background:#fdf1dc;flex:1.5;font-size:10.5px}.em-gold i{background:transparent;color:#c67410}
+.ed{position:relative;padding:22px;border-radius:26px;background:linear-gradient(170deg,#4a2fa8,#2b1a66 70%,#241458);color:#fff;box-shadow:0 26px 60px rgba(60,30,150,.35);display:flex;flex-direction:column}
+.ed-top{display:flex;align-items:center;gap:12px}.ed-ico{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.14);display:grid;place-items:center;color:#c9b8ff}.ed-ico svg{width:24px;height:24px}
+.ed-top>div{flex:1;min-width:0}.ed-top b{display:block;font-size:16px}.ed-top small{color:#c4b8ec;font-size:12px}
+.ed-demo{padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#d9ceff;white-space:nowrap}
+.ed-mid{display:flex;justify-content:space-between;align-items:flex-start;margin-top:22px}.ed-mid small{color:#d3c8f5;font-size:15px}.ed-sum{display:block;font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
+.ed-up{display:block;margin-top:6px;color:#57e0a6;font-weight:700}
+.ed-rng{display:flex;gap:2px;padding:4px;border-radius:12px;background:rgba(255,255,255,.1)}.ed-rng i{font-style:normal;padding:6px 10px;border-radius:9px;font-size:12px;color:#c4b8ec}.ed-rng i.on{background:rgba(255,255,255,.2);color:#fff;font-weight:700}
+.ed-plot{position:relative;display:flex;gap:10px;align-items:flex-end;margin-top:10px;height:150px}.ed-chart{flex:1;height:150px;min-width:0}
+.ed-y{display:flex;flex-direction:column;justify-content:space-between;height:150px;text-align:right}.ed-y i{font-style:normal;font-size:10.5px;color:#b8abe6}
+.ed-x{display:flex;justify-content:space-between;margin:6px 34px 0 0}.ed-x i{font-style:normal;font-size:11px;color:#b8abe6}
+.ed-h{display:block;margin:18px 0 10px;font-size:15px}
+.ed-row{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:8px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08)}
+.ed-row span:nth-child(2){flex:1;font-size:14px}.ed-row b{font-size:15px}.ed-row>svg{width:14px;height:14px;color:#b8abe6}
+.ed-row [class^=ed-r]{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.12);color:#c9b8ff}.ed-row [class^=ed-r] svg{width:18px;height:18px}
+.ed-r2{color:#ff6a9a!important}.ed-r3{color:#ffb454!important}
+.ed-sign{margin:auto 0 0;padding-top:14px;font:italic 17px/1.3 "Segoe Script","Brush Script MT",cursive;color:#c9b8ff}
+.ev-note{display:flex;align-items:center;gap:16px;margin-top:22px;padding:18px 26px;background:#fff;border:1px solid #ece7f7;border-radius:20px;box-shadow:0 10px 30px rgba(60,40,140,.05);font-size:15px;color:#4d4665}
+.ev-info{width:48px;height:48px;border-radius:50%;background:#efe9fd;color:#5b33e8;display:grid;place-items:center;flex:none}.ev-info svg{width:24px;height:24px}
+.ev-note>b{color:#5b33e8;font-size:19px}.ev-note>i{width:1px;height:26px;background:#d9d2ee}.ev-note>span:not(.ev-info){flex:1}
+.ev-sign2{margin-left:auto;font:italic 15px "Segoe Script","Brush Script MT",cursive;color:#5b33e8;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}.ev-sign2 svg{width:26px;height:26px}
+@media (max-width:1180px){.ev-grid{grid-template-columns:1fr}.ev-hand{display:none}.ev-sign2{display:none}}
+@media (max-width:700px){.ev-cards{grid-template-columns:1fr}.ev-cap{display:none}.ev-note{flex-wrap:wrap}.ev-note>i{display:none}.ed-sum{font-size:36px}}
