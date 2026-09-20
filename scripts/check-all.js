@@ -96,6 +96,7 @@ async function main() {
     await runNodeScript('check-web-contracts.js');
     await runNodeScript('check-publish-readiness.js');
     await runNodeScript('check-i18n.js');
+    await runNodeScript('check-teacher-invite-i18n.js');
     await runNodeScript('check-web-backend-e2e.js', true);
     await runNodeScript('agora-browser-e2e.js', true);
     log('All checks completed.');

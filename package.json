@@ -19,6 +19,7 @@
     "check": "node ./scripts/check-all.js",
     "check:all": "node ./scripts/check-all.js",
     "check:i18n": "node ./scripts/check-i18n.js",
+    "check:teacher-i18n": "node ./scripts/check-teacher-invite-i18n.js",
     "check:exam": "node ./scripts/check-telc-exam.js",
     "load:api": "k6 run -e STAGING_PUBLIC_API_URL=https://duvela-backend-production.up.railway.app/api/public-read ./tests/load/duvela-feed-events-profiles.k6.js",
     "load:api:100": "k6 run -e STAGING_PUBLIC_API_URL=https://duvela-backend-production.up.railway.app/api/public-read -e LOAD_TARGET=100 -e LOAD_DURATION=5m ./tests/load/duvela-feed-events-profiles.k6.js",
