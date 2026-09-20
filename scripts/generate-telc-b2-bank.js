@@ -63,7 +63,7 @@ function makeB2Test(test, index) {
   result.topic = presentationTopics[index];
 
   const hearing = result.sections.find((section) => section.id === 'hoeren');
-  hearing.title = 'Hoeren';
+  hearing.title = 'Hören';
   hearing.durationMin = 20;
   hearing.instructions = 'Bearbeiten Sie drei Teile. Achten Sie auf Detailinformationen, Sprecherhaltung und indirekte Aussagen.';
   for (const part of hearing.parts) {
@@ -98,7 +98,7 @@ function makeB2Test(test, index) {
   writePart.instructions = `${writePart.instructions} Formulieren Sie mindestens 150 Wörter und verbinden Sie Ihre Argumente nachvollziehbar.`;
   writePart.minWords = 150;
   writePart.sample = `${writePart.sample} Abschließend halte ich es für wichtig, nicht nur einzelne praktische Vorteile zu betrachten, sondern auch langfristige Folgen für Organisation, Teilhabe und Verantwortung. Deshalb würde ich eine Lösung bevorzugen, die verbindliche Regeln mit ausreichender Flexibilität verbindet. Aus meiner Sicht sollte man außerdem transparent erklären, wer Entscheidungen trifft, welche Kosten entstehen und wie Betroffene rechtzeitig informiert werden. So entsteht Vertrauen, und unterschiedliche Interessen können sachlich abgewogen werden. Wenn ein Vorschlag praktisch bleibt und trotzdem Rücksicht auf Menschen mit verschiedenen Voraussetzungen nimmt, hat er deutlich bessere Chancen, dauerhaft akzeptiert zu werden.`;
-  writePart.rubric = { level: 'B2', maxPoints: 45, criteria: ['Aufgabenbewaeltigung', 'Kommunikative Gestaltung', 'Formale Richtigkeit'] };
+  writePart.rubric = { level: 'B2', maxPoints: 45, criteria: ['Aufgabenbewältigung', 'Kommunikative Gestaltung', 'Formale Richtigkeit'] };
 
   const speaking = result.sections.find((section) => section.id === 'sprechen');
   speaking.instructions = 'Sie haben vor der mündlichen Prüfung 20 Minuten Vorbereitungszeit. Präsentieren Sie strukturiert, diskutieren Sie differenziert und reagieren Sie spontan auf Ihre Partnerin.';
@@ -107,19 +107,19 @@ function makeB2Test(test, index) {
       id: 'sp1', title: 'Teil 1 - Präsentation und Nachfragen', type: 'speak-intro',
       instructions: `Präsentieren Sie kurz das Thema "${presentationTopics[index]}" und beantworten Sie Rückfragen.`,
       prompts: [`Welche Entwicklung halten Sie bei "${presentationTopics[index]}" für besonders wichtig?`, 'Welche Folgen sehen Sie für Alltag, Beruf oder Gesellschaft?'],
-      rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfaehigkeit', 'Aufgabenbewaeltigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
+      rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfähigkeit', 'Aufgabenbewältigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
     },
     {
       id: 'sp2', title: 'Teil 2 - Diskussion', type: 'speak-cards',
       instructions: `Diskutieren Sie zwei Positionen zum Thema "${topicPairs[index][0]}". Fassen Sie zusammen, nehmen Sie Stellung und reagieren Sie auf Gegenargumente.`,
       cards: topicPairs[index].map((keyword, cardIndex) => ({ id: `sp2-${cardIndex + 1}`, keyword, example: 'Ein wichtiger Aspekt ist, dass ... Gleichzeitig muss man bedenken, dass ...', partner: cardIndex ? topicPairs[index][0] : topicPairs[index][1] })),
-      rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfaehigkeit', 'Aufgabenbewaeltigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
+      rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfähigkeit', 'Aufgabenbewältigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
     },
     {
       id: 'sp3', title: 'Teil 3 - Gemeinsam planen', type: 'speak-cards',
       instructions: `Planen Sie gemeinsam ${planningTopics[index]}. Einigen Sie sich auf ein realistisches Vorgehen.`,
       cards: ['Zielgruppe und Ziel', 'Programm und Zeitplan', 'Budget und Verantwortung', 'Kommunikation und Risiko'].map((keyword, cardIndex) => ({ id: `sp3-${cardIndex + 1}`, keyword, example: `Beim Punkt ${keyword.toLowerCase()} wäre mein Vorschlag, ...`, partner: 'Das ist nachvollziehbar, aber wir sollten auch eine Alternative einplanen.' })),
-      rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfaehigkeit', 'Aufgabenbewaeltigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
+      rubric: { level: 'B2', maxPoints: 25, criteria: ['Ausdrucksfähigkeit', 'Aufgabenbewältigung', 'Formale Richtigkeit', 'Aussprache und Intonation'] },
     },
   ];
 

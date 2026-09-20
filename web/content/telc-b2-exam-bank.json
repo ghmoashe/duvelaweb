@@ -42,7 +42,7 @@
       "sections": [
         {
           "id": "hoeren",
-          "title": "Hoeren",
+          "title": "Hören",
           "durationMin": 20,
           "maxPoints": 75,
           "instructions": "Bearbeiten Sie drei Teile. Achten Sie auf Detailinformationen, Sprecherhaltung und indirekte Aussagen.",
@@ -1251,7 +1251,7 @@
                 "level": "B2",
                 "maxPoints": 45,
                 "criteria": [
-                  "Aufgabenbewaeltigung",
+                  "Aufgabenbewältigung",
                   "Kommunikative Gestaltung",
                   "Formale Richtigkeit"
                 ]
@@ -1280,8 +1280,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -1310,8 +1310,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -1352,8 +1352,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -1370,7 +1370,7 @@
       "sections": [
         {
           "id": "hoeren",
-          "title": "Hoeren",
+          "title": "Hören",
           "durationMin": 20,
           "maxPoints": 75,
           "instructions": "Bearbeiten Sie drei Teile. Achten Sie auf Detailinformationen, Sprecherhaltung und indirekte Aussagen.",
@@ -2579,7 +2579,7 @@
                 "level": "B2",
                 "maxPoints": 45,
                 "criteria": [
-                  "Aufgabenbewaeltigung",
+                  "Aufgabenbewältigung",
                   "Kommunikative Gestaltung",
                   "Formale Richtigkeit"
                 ]
@@ -2608,8 +2608,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -2638,8 +2638,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -2680,8 +2680,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -2698,7 +2698,7 @@
       "sections": [
         {
           "id": "hoeren",
-          "title": "Hoeren",
+          "title": "Hören",
           "durationMin": 20,
           "maxPoints": 75,
           "instructions": "Bearbeiten Sie drei Teile. Achten Sie auf Detailinformationen, Sprecherhaltung und indirekte Aussagen.",
@@ -3907,7 +3907,7 @@
                 "level": "B2",
                 "maxPoints": 45,
                 "criteria": [
-                  "Aufgabenbewaeltigung",
+                  "Aufgabenbewältigung",
                   "Kommunikative Gestaltung",
                   "Formale Richtigkeit"
                 ]
@@ -3936,8 +3936,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -3966,8 +3966,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -4008,8 +4008,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -4026,7 +4026,7 @@
       "sections": [
         {
           "id": "hoeren",
-          "title": "Hoeren",
+          "title": "Hören",
           "durationMin": 20,
           "maxPoints": 75,
           "instructions": "Bearbeiten Sie drei Teile. Achten Sie auf Detailinformationen, Sprecherhaltung und indirekte Aussagen.",
@@ -5235,7 +5235,7 @@
                 "level": "B2",
                 "maxPoints": 45,
                 "criteria": [
-                  "Aufgabenbewaeltigung",
+                  "Aufgabenbewältigung",
                   "Kommunikative Gestaltung",
                   "Formale Richtigkeit"
                 ]
@@ -5264,8 +5264,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -5294,8 +5294,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -5336,8 +5336,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -5354,7 +5354,7 @@
       "sections": [
         {
           "id": "hoeren",
-          "title": "Hoeren",
+          "title": "Hören",
           "durationMin": 20,
           "maxPoints": 75,
           "instructions": "Bearbeiten Sie drei Teile. Achten Sie auf Detailinformationen, Sprecherhaltung und indirekte Aussagen.",
@@ -6563,7 +6563,7 @@
                 "level": "B2",
                 "maxPoints": 45,
                 "criteria": [
-                  "Aufgabenbewaeltigung",
+                  "Aufgabenbewältigung",
                   "Kommunikative Gestaltung",
                   "Formale Richtigkeit"
                 ]
@@ -6592,8 +6592,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -6622,8 +6622,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
@@ -6664,8 +6664,8 @@
                 "level": "B2",
                 "maxPoints": 25,
                 "criteria": [
-                  "Ausdrucksfaehigkeit",
-                  "Aufgabenbewaeltigung",
+                  "Ausdrucksfähigkeit",
+                  "Aufgabenbewältigung",
                   "Formale Richtigkeit",
                   "Aussprache und Intonation"
                 ]
