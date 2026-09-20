@@ -1,4 +1,4 @@
-DUVELA EXAM · TELC DEUTSCH A2 · ELEVENLABS AUDIO SCRIPTS
+DUVELA EXAM · TELC DEUTSCH A2 · AUDIO SCRIPTS
 Format: relative MP3 path | German transcript
 
 mt1/a2m1-h1-1.mp3 | Guten Tag, hier ist die Praxis Dr. König. Ihr Termin am Mittwoch muss leider ausfallen. Wir können Ihnen stattdessen Donnerstag um sechzehn Uhr dreißig anbieten. Bitte rufen Sie kurz zurück.

@@ -88,8 +88,8 @@ for (const test of a2Bank.tests) {
 }
 if (new Set(a2Bank.tests.map((test) => test.topic)).size !== 5) errors.push('A2 model tests must use five distinct speaking topics.');
 if (!fs.existsSync(path.join(root, 'web', 'images', 'exam-a2-topics.png'))) errors.push('Missing A2 topic illustration sprite.');
-const a2Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-a2', 'elevenlabs-scripts.txt'), 'utf8');
-for (const item of a2AudioItems) if (!a2Manifest.includes(item.id) || !a2Manifest.includes(item.transcript)) errors.push(`${item.id}: missing from A2 ElevenLabs manifest.`);
+const a2Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-a2', 'audio-scripts.txt'), 'utf8');
+for (const item of a2AudioItems) if (!a2Manifest.includes(item.id) || !a2Manifest.includes(item.transcript)) errors.push(`${item.id}: missing from A2 audio manifest.`);
 
 const b1Bank = banks.find((bank) => bank.level === 'B1');
 const b1HearingItems = b1Bank.tests.flatMap((test) => test.sections.find((section) => section.id === 'hoeren').parts.flatMap((part) => part.items));
@@ -128,12 +128,12 @@ for (const test of b1Bank.tests) {
   const serialized = JSON.stringify(test);
   if (/\b(?:das Tag|das Informationsabend|das Gesundheits-|das Medienworkshop|mit der Regionalzug)\b/i.test(serialized)) errors.push(`${test.id}: B1 content contains an article/case error.`);
 }
-const b1Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-b1', 'elevenlabs-scripts.txt'), 'utf8');
+const b1Manifest = fs.readFileSync(path.join(root, 'web', 'audio', 'exam-b1', 'audio-scripts.txt'), 'utf8');
 const b1AudioEntries = b1Bank.tests.flatMap((test) => {
   const parts = test.sections.find((section) => section.id === 'hoeren').parts;
   return [...parts[0].items.map((item) => ({ audio: item.audio, transcript: item.transcript })), { audio: parts[1].audio, transcript: parts[1].transcript }, ...parts[2].items.map((item) => ({ audio: item.audio, transcript: item.transcript }))];
 });
-if (b1AudioEntries.length !== 55) errors.push('B1 must provide exactly 55 ElevenLabs scripts.');
+if (b1AudioEntries.length !== 55) errors.push('B1 must provide exactly 55 audio scripts.');
 const normalizedB1Scripts = b1AudioEntries.map((entry) => String(entry.transcript || '').toLocaleLowerCase('de-DE')
   .replace(/[^a-zäöüß\s]/g, ' ')
   .replace(/\s+/g, ' ')
@@ -152,7 +152,7 @@ for (let left = 0; left < b1Shingles.length; left += 1) for (let right = left + 
 }
 for (const entry of b1AudioEntries) {
   const relative = entry.audio.replace('./web/audio/exam-b1/', '');
-  if (!b1Manifest.includes(relative) || !b1Manifest.includes(entry.transcript)) errors.push(`${relative}: missing from B1 ElevenLabs manifest.`);
+  if (!b1Manifest.includes(relative) || !b1Manifest.includes(entry.transcript)) errors.push(`${relative}: missing from B1 audio manifest.`);
 }
 if (!fs.existsSync(path.join(root, 'telc-b1-exam.html'))) errors.push('Missing B1 exam page.');
 
@@ -173,18 +173,18 @@ else {
     if (speaking.parts.map((part) => part.rubric?.maxPoints).join('/') !== '25/25/25') errors.push(`${test.id}: B2 speaking must be 25/25/25 points.`);
     if (speaking.parts.find((part) => part.id === 'sp2')?.cards?.length !== 2 || speaking.parts.find((part) => part.id === 'sp3')?.cards?.length !== 4) errors.push(`${test.id}: B2 speaking must provide two positions and four planning points.`);
   }
-  const b2ManifestPath = path.join(root, 'web', 'audio', 'exam-b2', 'elevenlabs-scripts.txt');
-  if (!fs.existsSync(b2ManifestPath)) errors.push('Missing B2 ElevenLabs manifest.');
+  const b2ManifestPath = path.join(root, 'web', 'audio', 'exam-b2', 'audio-scripts.txt');
+  if (!fs.existsSync(b2ManifestPath)) errors.push('Missing B2 audio manifest.');
   else {
     const b2Manifest = fs.readFileSync(b2ManifestPath, 'utf8');
     const b2AudioEntries = b2Bank.tests.flatMap((test) => {
       const parts = test.sections.find((section) => section.id === 'hoeren').parts;
       return [...parts[0].items.map((item) => ({ audio: item.audio, transcript: item.transcript })), { audio: parts[1].audio, transcript: parts[1].transcript }, ...parts[2].items.map((item) => ({ audio: item.audio, transcript: item.transcript }))];
     });
-    if (b2AudioEntries.length !== 55) errors.push('B2 must provide exactly 55 ElevenLabs scripts.');
+    if (b2AudioEntries.length !== 55) errors.push('B2 must provide exactly 55 audio scripts.');
     for (const entry of b2AudioEntries) {
       const relative = entry.audio.replace('./web/audio/exam-b2/', '');
-      if (!b2Manifest.includes(relative) || !b2Manifest.includes(entry.transcript)) errors.push(`${relative}: missing from B2 ElevenLabs manifest.`);
+      if (!b2Manifest.includes(relative) || !b2Manifest.includes(entry.transcript)) errors.push(`${relative}: missing from B2 audio manifest.`);
     }
   }
 }

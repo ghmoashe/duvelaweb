@@ -235,9 +235,9 @@ const bank = {
 const bankPath = path.join(root, 'web', 'content', 'telc-a2-exam-bank.json');
 fs.writeFileSync(bankPath, `${JSON.stringify(bank, null, 2)}\n`, 'utf8');
 
-const scripts = ['DUVELA EXAM · TELC DEUTSCH A2 · ELEVENLABS AUDIO SCRIPTS', 'Format: relative MP3 path | German transcript', ''];
+const scripts = ['DUVELA EXAM · TELC DEUTSCH A2 · AUDIO SCRIPTS', 'Format: relative MP3 path | German transcript', ''];
 for (const test of bank.tests) for (const part of test.sections[0].parts) for (const task of part.items) scripts.push(`${task.audio.replace('./web/audio/exam-a2/','')} | ${task.transcript}`);
 const scriptDir = path.join(root, 'web', 'audio', 'exam-a2');
 fs.mkdirSync(scriptDir, { recursive:true });
-fs.writeFileSync(path.join(scriptDir, 'elevenlabs-scripts.txt'), `${scripts.join('\n')}\n`, 'utf8');
+fs.writeFileSync(path.join(scriptDir, 'audio-scripts.txt'), `${scripts.join('\n')}\n`, 'utf8');
 console.log(`[a2] Generated ${bank.tests.length} tests and ${scripts.length - 3} audio scripts.`);

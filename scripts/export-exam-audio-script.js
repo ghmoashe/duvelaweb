@@ -6,7 +6,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const bank = JSON.parse(fs.readFileSync(path.join(root, 'web', 'content', 'telc-a1-exam-bank.json'), 'utf8'));
 const lines = [
-  '# DUVELA EXAM — ElevenLabs Hören-Skript',
+  '# DUVELA EXAM — Hören-Skript',
   '',
   'Eine Audiodatei pro Aufgabe exportieren. Dateiname exakt übernehmen.',
   'Empfehlung: natürliches Hochdeutsch, Stability 55–70, Similarity 75–85, Speed 0.92–0.98.',
@@ -35,6 +35,6 @@ for (const test of bank.tests) {
 }
 
 fs.mkdirSync(path.join(root, 'web', 'audio', 'exam'), { recursive: true });
-fs.writeFileSync(path.join(root, 'ELEVENLABS_HOEREN_SCRIPT.md'), `${lines.join('\n')}\n`, 'utf8');
+fs.writeFileSync(path.join(root, 'HOEREN_AUDIO_SCRIPT.md'), `${lines.join('\n')}\n`, 'utf8');
 fs.writeFileSync(path.join(root, 'web', 'content', 'telc-a1-exam-bank.json'), `${JSON.stringify(bank, null, 2)}\n`, 'utf8');
 console.log(`Exported ${bank.tests.length * 15} Hören scripts and audio paths.`);

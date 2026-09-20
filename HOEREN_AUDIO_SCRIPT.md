@@ -1,4 +1,4 @@
-# DUVELA EXAM — ElevenLabs Hören-Skript
+# DUVELA EXAM — Hören-Skript
 
 Eine Audiodatei pro Aufgabe exportieren. Dateiname exakt übernehmen.
 Empfehlung: natürliches Hochdeutsch, Stability 55–70, Similarity 75–85, Speed 0.92–0.98.

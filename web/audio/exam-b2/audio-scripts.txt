@@ -1,4 +1,4 @@
-DUVELA EXAM - TELC DEUTSCH B2 - ELEVENLABS AUDIO SCRIPTS
+DUVELA EXAM - TELC DEUTSCH B2 - AUDIO SCRIPTS
 Format: relative MP3 path | German transcript
 
 mt1/b2m1-h1-1.mp3 | Seit unser Haus ein Reparaturcafé organisiert, kenne ich endlich meine Nachbarn. Letzten Samstag habe ich dort mit einem Elektriker meinen alten Toaster repariert. Wegwerfen wollte ich ihn auf keinen Fall.

@@ -226,7 +226,7 @@ const bank = {
 const bankPath = path.join(root, 'web', 'content', 'telc-b1-exam-bank.json');
 fs.writeFileSync(bankPath, `${JSON.stringify(bank, null, 2)}\n`, 'utf8');
 
-const scripts = ['DUVELA EXAM · TELC DEUTSCH B1 · ELEVENLABS AUDIO SCRIPTS', 'Format: relative MP3 path | German transcript', ''];
+const scripts = ['DUVELA EXAM · TELC DEUTSCH B1 · AUDIO SCRIPTS', 'Format: relative MP3 path | German transcript', ''];
 for (const test of bank.tests) {
   const hearing = test.sections.find((section) => section.id === 'hoeren');
   for (const item of hearing.parts[0].items) scripts.push(`${item.audio.replace(`${audioRoot}/`, '')} | ${item.transcript}`);
@@ -235,7 +235,7 @@ for (const test of bank.tests) {
 }
 const scriptDir = path.join(root, 'web', 'audio', 'exam-b1');
 fs.mkdirSync(scriptDir, { recursive: true });
-fs.writeFileSync(path.join(scriptDir, 'elevenlabs-scripts.txt'), `${scripts.join('\n')}\n`, 'utf8');
-fs.writeFileSync(path.join(scriptDir, 'README.md'), '# DUVELA EXAM B1 audio\n\nGenerate the 55 recordings listed in `elevenlabs-scripts.txt` and preserve the exact folder and file names. Until MP3 files are present, the browser uses the German system voice as a fallback.\n', 'utf8');
+fs.writeFileSync(path.join(scriptDir, 'audio-scripts.txt'), `${scripts.join('\n')}\n`, 'utf8');
+fs.writeFileSync(path.join(scriptDir, 'README.md'), '# DUVELA EXAM B1 audio\n\nGenerate the 55 recordings listed in `audio-scripts.txt` and preserve the exact folder and file names. Until MP3 files are present, the browser uses the German system voice as a fallback.\n', 'utf8');
 
 console.log(`[b1] Generated ${bank.tests.length} tests and ${scripts.length - 3} audio scripts.`);
