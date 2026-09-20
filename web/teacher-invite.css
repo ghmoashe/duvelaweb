@@ -137,3 +137,49 @@
 .df-tag.is-prev{background:#efe9fd;color:#5b33e8}.df-tag.is-prev i{background:#6d3fe0}
 @media (max-width:1000px){.dv-grid{grid-template-columns:1fr}.df-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.df-grid{grid-template-columns:1fr}.dv-access,.dv-all{padding:22px 18px}}
+
+.value-v2{background:radial-gradient(50% 60% at 0 100%,#efe9ff 0,transparent 70%),#fbfaff}
+.vv-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr);gap:56px;align-items:center}
+.vv-kicker{display:block;font-size:13px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:#5b33e8}
+.vv-copy h2{margin:22px 0 22px;font-size:clamp(34px,4.6vw,58px);line-height:1.06;letter-spacing:-.03em;font-weight:800}
+.vv-copy .grad2{background:linear-gradient(90deg,#4c2bb8,#c07a3a 75%,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.vv-body{margin:0;font-size:clamp(16px,1.5vw,20px);line-height:1.6;color:#625B73;max-width:34em}
+.vv-hr{width:70px;border:0;border-top:1px solid #d9d2ee;margin:30px 0 20px}
+.vv-note{margin:0;font-style:italic;font-size:15px;color:#7b7492}
+.vv-sign{display:block;margin-top:44px;font:italic 30px/1.05 "Segoe Script","Brush Script MT","Snell Roundhand",cursive;color:#5b33e8;transform:rotate(-6deg);width:fit-content;border-bottom:3px solid transparent;border-image:linear-gradient(90deg,#7c4dff,#f59e0b) 1;padding-bottom:6px}
+.vv-list{position:relative;display:flex;flex-direction:column;gap:18px;padding-left:22px}
+.vv-list:before{content:"";position:absolute;left:0;top:14%;bottom:14%;width:1px;background:#e4dcf6}
+.vr{position:relative;display:grid;grid-template-columns:auto auto minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:center;padding:26px 28px;background:rgba(255,255,255,.85);border:1px solid #ece7f7;border-radius:26px;box-shadow:0 14px 40px rgba(60,40,140,.07)}
+.vr-dot{position:absolute;left:-29px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#8b64f0;box-shadow:0 0 0 5px #efe9fd}
+.vr-warm .vr-dot{background:#e39a4b;box-shadow:0 0 0 5px #fbeedd}
+.vr-no{width:62px;height:62px;border-radius:16px;background:#efe9fd;color:#5b33e8;display:grid;place-items:center;font-size:24px;font-weight:800}
+.vr-ico{width:76px;height:76px;border-radius:20px;background:#f1ecff;color:#5b33e8;display:grid;place-items:center}.vr-ico svg{width:38px;height:38px}
+.vr-warm .vr-no{background:#fbeedd;color:#d97a1a}.vr-warm .vr-ico{background:#fdf1e3;color:#5b33e8}
+.vr-txt h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}.vr-txt p{margin:8px 0 0;font-size:15.5px;line-height:1.55;color:#625B73}
+.vr-mock{display:flex;gap:12px;align-items:stretch;min-width:0}
+.vm{flex:1;min-width:0;background:#fff;border:1px solid #ece7f7;border-radius:18px;padding:14px 16px;box-shadow:0 6px 18px rgba(60,40,140,.06);font-size:12px;color:var(--ink);position:relative}
+.vm b{display:block;font-size:14px;font-weight:800}.vm small{display:block;color:#7b7492;font-size:11.5px;margin-top:2px}
+.vm-prof{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.vm-av{width:62px;height:62px;border-radius:50%;background:linear-gradient(160deg,#c7a8ff,#8b64f0);display:grid;place-items:center;overflow:hidden}.vm-av svg{width:44px;height:44px}
+.vm-chips{display:flex;gap:6px;margin-top:9px}.vm-chips i{font-style:normal;font-size:10.5px;padding:4px 10px;border-radius:999px;background:#efe9fd;color:#5b33e8;font-weight:600}
+.vm-bars{grid-column:1/-1;display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.vm-bars s{display:block;height:7px;border-radius:4px;background:#e9e4f5}.vm-bars s+s{width:72%}
+.vm-offer{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.vm-pic{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,#c9b8f0 0,#a58be0 45%,#5a5f9c 100%);position:relative;overflow:hidden}
+.vm-pic:after{content:"";position:absolute;left:8px;right:-6px;bottom:0;height:60%;background:#4a4d86;clip-path:polygon(0 100%,35% 20%,55% 60%,75% 35%,100% 100%)}
+.vm-when{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:11px;color:#5b5570}.vm-when svg{width:15px;height:15px}.vm-when em{margin-left:auto;font-style:normal;font-weight:800}
+.vm-bars2{grid-column:1/2;margin-top:6px}.vm-bars2 s:first-child{width:100%}
+.vm-pub{position:absolute;right:14px;bottom:12px;padding:8px 22px;border-radius:9px;background:linear-gradient(180deg,#7c4dff,#5b33e8);color:#fff;font-weight:700;font-size:12px}
+.vm-live{padding:14px}
+.vm-l1{display:flex;justify-content:space-between;align-items:center}
+.vm-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:8px;background:#fde8ea;color:#e0303f;font-weight:800;font-size:11px}.vm-badge i{width:7px;height:7px;border-radius:50%;background:#e0303f}
+.vm-cnt{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;background:#f4f1fb;font-weight:800;font-size:12px}.vm-cnt svg{width:14px;height:14px}
+.vm-avs{display:flex;gap:7px;margin:12px 0}.vm-avs i{font-style:normal;width:32px;height:32px;border-radius:50%;background:#efe9fd;color:#5b33e8;display:grid;place-items:center;font-weight:700;font-size:13px}.vm-avs i.more{background:#e3dcf7;width:36px;border-radius:16px}
+.vm-ph{display:flex;align-items:center;gap:8px;background:#f5f3fa;border-radius:10px;padding:10px}.vm-dot{width:16px;height:16px;border-radius:50%;background:#e2ddef}.vm-ph s{flex:1;height:7px;border-radius:4px;background:#e2ddef}
+.vm-side{display:flex;flex-direction:column;gap:8px;justify-content:center}.vm-side span{width:44px;height:44px;border-radius:12px;background:#f1ecff;color:#5b33e8;display:grid;place-items:center}.vm-side svg{width:20px;height:20px}
+@media (max-width:1180px){.vr{grid-template-columns:auto auto minmax(0,1fr)}.vr-mock{grid-column:1/-1}.vv-grid{grid-template-columns:1fr;gap:36px}.vv-sign{display:none}}
+@media (max-width:560px){.vr{grid-template-columns:auto minmax(0,1fr);padding:18px}.vr-ico{display:none}.vr-no{width:48px;height:48px;font-size:19px}.vr-dot{display:none}.vv-list{padding-left:0}.vv-list:before{display:none}}
+.value-v2 .wrap{width:min(1300px,calc(100% - 40px))}
+.vv-grid{gap:44px;grid-template-columns:minmax(0,.8fr) minmax(0,1.35fr)}
+.vr{gap:14px;padding:22px 22px}.vr-no{width:54px;height:54px;font-size:21px}.vr-ico{width:64px;height:64px}.vr-ico svg{width:32px;height:32px}
+.vr-txt h3{font-size:20px}.vr-txt p{font-size:14.5px}
