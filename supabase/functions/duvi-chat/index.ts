@@ -1,237 +1,285 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// ================================================================
+// duvi-chat — DUVI, the in-app AI assistant for Duvela Web.
+//
+// Streams a Claude reply (SSE) to the DUVI chat panel. The model answers
+// in the user's own language, knows which screen the user is on, and can
+// request a UI action by emitting an inline token  [[action:NAME]]  that
+// the client parses out and runs locally (open a screen, toggle the mic…).
+// This keeps the "agentic" layer simple: navigation actions are fire-and-
+// forget, so no tool-result round trips are needed.
+//
+// Request (POST):
+//   {
+//     messages: [{ role: "user"|"assistant", content: string }, ...],
+//     context: { app: "public"|"app"|"classroom", view?, role?, lang? },
+//     locale:  string           // interface language, e.g. "ru"
+//   }
+// Response: text/event-stream
+//   data: {"delta":"..."}       // streamed text chunks
+//   data: {"done":true}         // end of turn
+//   data: {"error":"..."}       // failure
+// ================================================================
+
+// Provider is auto-selected: Claude when ANTHROPIC_API_KEY is present, otherwise
+// OpenAI (already configured for generate-practice). Force one with DUVI_AI_PROVIDER.
+const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+const anthropicModel = Deno.env.get("DUVI_MODEL") ?? "claude-sonnet-5";
+const openAiApiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
+const openAiModel = Deno.env.get("DUVI_OPENAI_MODEL") ?? Deno.env.get("OPENAI_CHAT_MODEL") ?? "gpt-4.1-mini";
+const forcedProvider = (Deno.env.get("DUVI_AI_PROVIDER") ?? "").toLowerCase();
+const provider = forcedProvider === "openai"
+  ? "openai"
+  : forcedProvider === "claude" || forcedProvider === "anthropic"
+    ? "claude"
+    : anthropicApiKey
+      ? "claude"
+      : "openai";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// DUVI is also on the public landing page, so anonymous callers are allowed —
-// but the gateway lets the anon key through for anyone, so without limits the
-// OpenAI budget was open to the internet. Signed-in users get a per-account
-// hourly budget, anonymous visitors a smaller per-IP one (Upstash Redis).
-const USER_HOURLY_LIMIT = Math.max(1, Number(Deno.env.get("DUVI_USER_HOURLY_LIMIT")) || 60);
-const ANON_HOURLY_LIMIT = Math.max(0, Number(Deno.env.get("DUVI_ANON_HOURLY_LIMIT")) || 10);
+const MAX_TURNS = 16; // keep only the last N messages of history
+const MAX_CHARS = 4000; // per-message clamp
 
-async function resolveUserId(req: Request): Promise<string | null> {
-  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  const url = Deno.env.get("SUPABASE_URL") || "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-  if (!token || !url || !anonKey || token === anonKey) return null;
-  const { data } = await createClient(url, anonKey).auth.getUser(token).catch(() => ({ data: { user: null } }));
-  return data?.user?.id ?? null;
+// Available UI actions per context. The client maps each NAME to a DOM
+// element via its own builtInSelectors table, so keep these names in sync
+// with duvi-assistant.js.
+const ACTIONS: Record<string, { name: string; desc: string }[]> = {
+  app: [
+    { name: "openHome", desc: "open the Home screen" },
+    { name: "openSchedule", desc: "open the learner's Schedule / lessons" },
+    { name: "openMessages", desc: "open Messages / chats" },
+    { name: "openManagement", desc: "open the teacher/organization Management area" },
+    { name: "openLive", desc: "open the Live streaming section" },
+    { name: "openProfile", desc: "open the user's Profile to edit it" },
+  ],
+  classroom: [
+    { name: "openParticipants", desc: "open the Participants panel" },
+    { name: "openChat", desc: "open the in-class Chat" },
+    { name: "openMaterials", desc: "open the lesson Materials" },
+    { name: "toggleMic", desc: "turn the microphone on or off" },
+    { name: "copyLink", desc: "copy the classroom invite link" },
+  ],
+  public: [
+    { name: "openHome", desc: "go to the main page" },
+  ],
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders },
+  });
 }
 
-// Returns true when the caller is still within `limit` requests this hour.
-// Fails closed for anonymous callers when Redis is unavailable, open for
-// signed-in users (they are identifiable and the limit is generous).
-async function withinHourlyLimit(key: string, limit: number, failOpen: boolean): Promise<boolean> {
-  const redisUrl = (Deno.env.get("UPSTASH_REDIS_REST_URL") || "").replace(/\/+$/, "");
-  const redisToken = Deno.env.get("UPSTASH_REDIS_REST_TOKEN") || "";
-  if (!redisUrl || !redisToken) return failOpen;
-  try {
-    const hour = Math.floor(Date.now() / 3_600_000);
-    const bucket = `duvi-chat:v1:${key}:${hour}`;
-    const res = await fetch(`${redisUrl}/pipeline`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${redisToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify([["INCR", bucket], ["EXPIRE", bucket, 3700, "NX"]]),
-    });
-    const rows = await res.json().catch(() => null) as Array<{ result?: unknown }> | null;
-    const count = Number(rows?.[0]?.result);
-    if (!res.ok || !Number.isFinite(count)) return failOpen;
-    return count <= limit;
-  } catch {
-    return failOpen;
+// ── Abuse guard: in-memory sliding-window rate limit per client IP. ──────────
+// The anon key is public (it ships in the client), so the endpoint is world-
+// reachable; this caps how fast one caller can burn the AI budget. Per-instance
+// only (edge functions may run several isolates), but enough to stop a loop.
+const RL_WINDOW_MS = 60_000;
+const RL_MAX = 20; // requests per window per IP
+const rlHits = new Map<string, number[]>();
+
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for") || "";
+  return fwd.split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";
+}
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (rlHits.get(ip) || []).filter((t) => now - t < RL_WINDOW_MS);
+  recent.push(now);
+  rlHits.set(ip, recent);
+  if (rlHits.size > 5000) {
+    for (const [k, v] of rlHits) {
+      if (!v.some((t) => now - t < RL_WINDOW_MS)) rlHits.delete(k);
+    }
   }
+  return recent.length > RL_MAX;
 }
 
-function clientIp(req: Request) {
-  return (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "")
-    .split(",")[0].trim() || "unknown";
-}
+function buildSystemPrompt(ctx: Record<string, string>, locale: string): string {
+  const app = ["public", "app", "classroom"].includes(ctx.app) ? ctx.app : "app";
+  const actions = ACTIONS[app] ?? [];
+  const place =
+    app === "classroom"
+      ? "inside a live video classroom (Zoom-based group lesson)"
+      : app === "public"
+        ? "on the public marketing site (not logged in yet)"
+        : "in the main Duvela web app";
 
-const sseHeaders = {
-  ...corsHeaders,
-  "Content-Type": "text/event-stream; charset=utf-8",
-  "Cache-Control": "no-cache, no-transform",
-  Connection: "keep-alive",
-};
-
-const FRIEND_SYSTEMS: Record<string, string> = {
-  duvi: [
-    "You are DUVI, the main Duvela guide.",
-    "Help the learner move forward inside the app and practice language safely.",
-    "When the request is about product navigation, answer directly and practically.",
-    "When the request is about learning, keep the reply compact and useful."
-  ].join(" "),
-  lina: [
-    "You are LINA, the speaking buddy.",
-    "Lead with short spoken turns, roleplay, and confidence-building prompts.",
-    "Prefer one question at a time and keep momentum high."
-  ].join(" "),
-  grami: [
-    "You are GRAMI, the grammar buddy.",
-    "Spot the main mistake, correct it clearly, explain briefly, then give one tiny rule.",
-    "Do not overload the learner with theory."
-  ].join(" "),
-  stella: [
-    "You are STELLA, the story buddy.",
-    "Use mini scenes, short stories, and vivid but easy examples.",
-    "Always keep the text readable and invite the learner to continue."
-  ].join(" "),
-  nova: [
-    "You are NOVA, the pronunciation and listening buddy.",
-    "Use short phrases, clear stress marking, and hear-repeat-check loops.",
-    "Do not claim real audio analysis unless the user provided actual audio evidence."
-  ].join(" "),
-  moti: [
-    "You are MOTI, the motivation buddy.",
-    "Protect streaks, celebrate progress, and end with one concrete next step.",
-    "Keep goals small and immediately actionable."
-  ].join(" "),
-};
-
-const MODE_RULES: Record<string, string> = {
-  strict: "Reply in a strict coaching mode: direct, concise, correction-first, minimal fluff.",
-  friendly: "Reply in a friendly coaching mode: warm, supportive, and balanced.",
-  playful: "Reply in a playful coaching mode: light, energetic, and game-like without losing accuracy.",
-};
-
-const LEVEL_RULES: Record<string, string> = {
-  "A1-A2": [
-    "Target CEFR A1-A2.",
-    "Use short sentences, common words, and one step at a time.",
-    "Avoid abstract explanations and advanced grammar terms unless you immediately simplify them."
-  ].join(" "),
-  "B1-B2": [
-    "Target CEFR B1-B2.",
-    "Use everyday nuance, moderate detail, and practical examples.",
-    "You may explain grammar, but keep it concrete."
-  ].join(" "),
-  C1: [
-    "Target CEFR C1.",
-    "Use advanced but clear language, precise corrections, and natural nuance.",
-    "Challenge the learner appropriately without becoming academic for its own sake."
-  ].join(" "),
-};
-
-function extractOutputText(result: any): string {
-  if (typeof result?.output_text === "string" && result.output_text.trim()) return result.output_text.trim();
-  const nested = result?.output?.flatMap((item: any) => item?.content || [])?.find((item: any) => item?.type === "output_text")?.text;
-  return typeof nested === "string" ? nested.trim() : "";
-}
-
-function formatMessages(messages: Array<{ role?: string; content?: string }>) {
-  return (Array.isArray(messages) ? messages : [])
-    .slice(-16)
-    .map((item) => {
-      const role = item?.role === "assistant" ? "assistant" : "user";
-      const content = String(item?.content || "").trim().slice(0, 4000);
-      return `${role.toUpperCase()}: ${content}`;
-    })
-    .filter(Boolean)
-    .join("\n\n");
-}
-
-function streamPayload(payload: Record<string, unknown>) {
-  return new Response(`data: ${JSON.stringify(payload)}\n\ndata: [DONE]\n\n`, { status: 200, headers: sseHeaders });
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed." }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  const openaiKey = Deno.env.get("OPENAI_API_KEY") || "";
-  const model = Deno.env.get("OPENAI_DUVI_MODEL") || "gpt-5.6-luna";
-  if (!openaiKey) return streamPayload({ error: "DUVI chat is not configured." });
-
-  const userId = await resolveUserId(req);
-  const allowed = userId
-    ? await withinHourlyLimit(`user:${userId}`, USER_HOURLY_LIMIT, true)
-    : ANON_HOURLY_LIMIT > 0 && await withinHourlyLimit(`ip:${clientIp(req)}`, ANON_HOURLY_LIMIT, false);
-  if (!allowed) {
-    return streamPayload({
-      error: userId
-        ? "DUVI needs a short break — try again in a little while."
-        : "Sign in to keep chatting with DUVI.",
-    });
-  }
-
-  const body = await req.json().catch(() => ({}));
-  const context = body && typeof body.context === "object" ? body.context as Record<string, any> : {};
-  const messages = Array.isArray(body?.messages) ? body.messages as Array<{ role?: string; content?: string }> : [];
-  const locale = String(body?.locale || context.lang || "en").slice(0, 12);
-  const friendId = String(context.friend || "duvi");
-  const responseMode = String(context.responseMode || "friendly");
-  const levelBand = String(context.levelBand || "A1-A2");
-  const systemPrompt = FRIEND_SYSTEMS[friendId] || FRIEND_SYSTEMS.duvi;
-  const modeRule = MODE_RULES[responseMode] || MODE_RULES.friendly;
-  const levelRule = LEVEL_RULES[levelBand] || LEVEL_RULES["A1-A2"];
-  const friendName = String(context.friendName || "DUVI");
-  const friendRole = String(context.friendRole || "Guide");
-  const friendFocus = String(context.friendFocus || "Language support");
-  const friendTone = String(context.friendTone || "Helpful guide");
-  const friendStyle = String(context.friendStyle || "Clear, practical support");
-  const scenarioList = Array.isArray(context.friendScenarios) ? context.friendScenarios.slice(0, 6).join(", ") : "";
-  const conversation = formatMessages(messages);
-
-  if (!conversation) return streamPayload({ error: "Empty chat history." });
-
-  const instructions = [
-    systemPrompt,
-    modeRule,
-    levelRule,
-    `Always reply in the learner interface language: ${locale}.`,
-    'If the user asks who created you, who made you, who built you, or an equivalent question in any language, reply with exactly غضنفر معاشر when the reply language is Arabic or Persian (ar or fa). For all other languages, reply with exactly Ghazanfar Moasher.',
-    "Stay in character for the selected buddy, but remain accurate and useful.",
-    "If the user asks for correction, show the fixed version clearly.",
-    "If the user asks to practice, end with one short next turn or task.",
-    "Prefer compact answers unless the learner explicitly asks for more detail."
-  ].join(" ");
-
-  const input = [
-    `App context: ${String(context.app || "app")}`,
-    `View: ${String(context.view || "home")}`,
-    `Role: ${String(context.role || "learner")}`,
-    `Buddy: ${friendName}`,
-    `Buddy role: ${friendRole}`,
-    `Buddy focus: ${friendFocus}`,
-    `Buddy tone: ${friendTone}`,
-    `Buddy style: ${friendStyle}`,
-    `Scenarios: ${scenarioList || "none"}`,
+  const lines = [
+    "You are DUVI, the friendly in-app assistant for Duvela — a platform that connects language learners with teachers, offers courses, live streams and video classrooms.",
+    `The user is currently ${place}.`,
+    ctx.view ? `The active screen/section is "${ctx.view}".` : "",
+    ctx.role ? `The user's role is "${ctx.role}".` : "",
     "",
-    conversation
-  ].join("\n");
+    "STYLE:",
+    `- Always reply in the user's language (interface locale "${locale}"). If the user writes in another language, follow their language.`,
+    "- Be warm, concise and practical. Short paragraphs. No markdown headings.",
+    "- ANSWER THE USER'S ACTUAL QUESTION FIRST AND DIRECTLY. Read what they asked and respond to exactly that — do not switch to a generic troubleshooting or navigation answer.",
+    "- For questions about how Duvela works — features, CEFR levels, Duvela Coins, withdrawals, pricing, courses, live, classrooms — answer from the ABOUT DUVELA facts below.",
+    "- Only give troubleshooting or navigation steps when the user actually reports a problem or asks how to find something.",
+    "- If you don't know a Duvela-specific detail, say so briefly and suggest the closest next step. Never invent features.",
+    "",
+    "ABOUT DUVELA (rely only on these facts; never invent features, prices or policies beyond them):",
+    "- Duvela runs in a web browser — no download needed. One account works everywhere; a person can be a learner, a teacher, or both.",
+    "- Hub (learners): a personalized video feed matched to your CEFR level, live lessons and streams, courses, events, and a practice hub with grammar, listening, writing, reading and review tools (a premium AI Coach adds guided dialogue and corrections). Progress shows as daily goals, XP, streaks, achievements and leaderboards.",
+    "- Business (teachers & organizers): publish videos, schedule live streams, create courses and events, keep a public teacher profile, and track income from live, courses, events and gifts.",
+    "- CEFR levels A1–C2: you set your level (and can change it later); Duvela organizes content around it.",
+    "- Live streams have real-time chat and support Duvela Coin gifts. Group video classrooms are Zoom-based and separate from live streams.",
+    "- Duvela Coins (DC): in-app currency for supported gifts and rewards. Teachers can request withdrawals from 100 DC via bank, PayPal or Wise; fees/conversion are not yet published.",
+    "- Getting started: 1) set your CEFR level, 2) watch and practice daily, 3) join live lessons and speak with real teachers.",
+    "- Pricing: free to start; you pay only for teacher-led offers such as courses, events and some live sessions.",
+    "",
+    "ACTIONS:",
+    "You can trigger a UI action by ending your message with a token on its own, exactly like [[action:NAME]]. The app runs it for you. Use at most one action, only when it clearly helps, and mention what you're doing in words too. Available actions here:",
+    ...actions.map((a) => `  [[action:${a.name}]] — ${a.desc}`),
+    actions.length === 0 ? "  (none in this context)" : "",
+    "If no action fits, just answer normally without any token.",
+  ];
+  return lines.filter(Boolean).join("\n");
+}
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openaiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        reasoning: { effort: "low" },
-        instructions,
-        input,
-        text: { verbosity: "medium" },
-      }),
-    });
-
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) return streamPayload({ error: result?.error?.message || "DUVI chat request failed." });
-
-    const output = extractOutputText(result);
-    if (!output) return streamPayload({ error: "The assistant returned an empty reply." });
-    return streamPayload({ delta: output });
-  } catch (error) {
-    console.error("duvi-chat", error);
-    return streamPayload({ error: error instanceof Error ? error.message : "DUVI chat failed." });
+function clampMessages(raw: unknown): { role: string; content: string }[] {
+  const list = Array.isArray(raw) ? raw : [];
+  const out: { role: string; content: string }[] = [];
+  for (const m of list) {
+    const e = m as Record<string, unknown>;
+    const role = e.role === "assistant" ? "assistant" : "user";
+    const content = String(e.content ?? "").slice(0, MAX_CHARS).trim();
+    if (content) out.push({ role, content });
   }
+  // Trim to the last MAX_TURNS and ensure it starts with a user turn.
+  const trimmed = out.slice(-MAX_TURNS);
+  while (trimmed.length && trimmed[0].role !== "user") trimmed.shift();
+  return trimmed;
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  if (rateLimited(clientIp(req))) return json({ error: "Too many requests. Please slow down and try again in a moment." }, 429);
+  if (provider === "claude" && !anthropicApiKey) return json({ error: "ANTHROPIC_API_KEY is not set." }, 500);
+  if (provider === "openai" && !openAiApiKey) return json({ error: "No AI key configured (need ANTHROPIC_API_KEY or OPENAI_API_KEY)." }, 500);
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return json({ error: "Invalid JSON body." }, 400);
+  }
+
+  const locale = String(body.locale ?? "en").toLowerCase().split("-")[0] || "en";
+  const ctx = (body.context && typeof body.context === "object")
+    ? (body.context as Record<string, string>)
+    : {};
+  const messages = clampMessages(body.messages);
+  if (!messages.length) return json({ error: "No message provided." }, 400);
+
+  const system = buildSystemPrompt(ctx, locale);
+
+  let upstream: Response;
+  try {
+    if (provider === "claude") {
+      upstream = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": anthropicApiKey.trim(),
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: anthropicModel.trim() || "claude-sonnet-5",
+          max_tokens: 1024,
+          system,
+          messages,
+          stream: true,
+        }),
+      });
+    } else {
+      upstream = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openAiApiKey.trim()}`,
+        },
+        body: JSON.stringify({
+          model: openAiModel.trim() || "gpt-4.1-mini",
+          max_tokens: 1024,
+          messages: [{ role: "system", content: system }, ...messages],
+          stream: true,
+        }),
+      });
+    }
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : "Upstream request failed." }, 502);
+  }
+
+  if (!upstream.ok || !upstream.body) {
+    const detail = await upstream.text().catch(() => "");
+    return json({ error: `${provider} error ${upstream.status}`, detail: detail.slice(0, 500) }, 502);
+  }
+
+  // Transform Anthropic's SSE into our minimal {delta}/{done} protocol.
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const send = (obj: unknown) => encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const reader = upstream.body!.getReader();
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() ?? "";
+          for (const evt of events) {
+            const dataLine = evt.split("\n").find((l) => l.startsWith("data:"));
+            if (!dataLine) continue;
+            const payload = dataLine.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(payload);
+              if (provider === "claude") {
+                if (parsed.type === "content_block_delta" && parsed.delta?.type === "text_delta") {
+                  controller.enqueue(send({ delta: parsed.delta.text }));
+                } else if (parsed.type === "message_stop") {
+                  controller.enqueue(send({ done: true }));
+                } else if (parsed.type === "error") {
+                  controller.enqueue(send({ error: parsed.error?.message || "stream error" }));
+                }
+              } else {
+                const piece = parsed.choices?.[0]?.delta?.content;
+                if (piece) controller.enqueue(send({ delta: piece }));
+                if (parsed.choices?.[0]?.finish_reason) controller.enqueue(send({ done: true }));
+              }
+            } catch {
+              // ignore keep-alives / non-JSON pings
+            }
+          }
+        }
+        controller.enqueue(send({ done: true }));
+      } catch (e) {
+        controller.enqueue(send({ error: e instanceof Error ? e.message : "stream failed" }));
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      ...corsHeaders,
+    },
+  });
 });
