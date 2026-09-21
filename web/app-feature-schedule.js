@@ -11,7 +11,7 @@
       if (ctx.isBusiness()) {
         try {
           const { data } = await supa.from('teacher_slots')
-            .select('id,slot_date,slot_time,duration_min,is_booked,booked_by_user_id,status,price,currency,timezone,live_room_url,approval_required,booking_status,series_id')
+            .select('id,slot_date,slot_time,duration_min,is_booked,status,price,currency,timezone,live_room_url,approval_required,booking_status,series_id')
             .eq('teacher_id', ctx.user.id).gte('slot_date', today)
             .order('slot_date', { ascending: true }).order('slot_time', { ascending: true }).limit(60);
           state.mySlots = data || [];
@@ -37,9 +37,8 @@
           }).sort((a, b) => b.slots - a.slots);
         }
         state.scheduleTeachers = teachers;
-        const { data: mine } = await supa.from('teacher_slots')
-          .select('id,teacher_id,slot_date,slot_time,duration_min,price,currency,timezone,live_room_url,approval_required,status,booking_status')
-          .eq('booked_by_user_id', ctx.user.id).gte('slot_date', today).order('slot_date', { ascending: true });
+        // Booking ownership is not readable from teacher_slots: the RPC returns only the caller's own bookings.
+        const { data: mine } = await supa.rpc('get_my_booked_slots');
         const teacherIds = Array.from(new Set((mine || []).map((slot) => slot.teacher_id)));
         const { data: teacherProfiles } = teacherIds.length ? await supa.from('profiles').select('id,full_name,avatar_url,city,country').in('id', teacherIds) : { data: [] };
         const teacherMap = new Map((teacherProfiles || []).map((profile) => [profile.id, profile]));
