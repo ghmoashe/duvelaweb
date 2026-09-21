@@ -44,6 +44,7 @@
     'Mistakes to fix': 'اشتباهات برای اصلاح',
     'What to improve': 'چه چیزی را بهبود دهید',
     'New exam': 'آزمون جدید',
+    'Say a few sentences about each point': 'درباره‌ی هر مورد چند جمله بگویید',
   };
 
   function createElsaExam(ctx) {
@@ -91,12 +92,21 @@
       return data || {};
     }
 
+    // Printed keyword card of the opening part (DTZ Teil 1, Goethe A1 Teil 1): the candidate expands on each item.
+    function cueCard() {
+      return state.board === 'dtz' || (state.board === 'goethe' && state.level === 'A1')
+        ? ['Name?', 'Alter?', 'Land?', 'Wohnort?', 'Sprachen?', 'Beruf?', 'Hobby?']
+        : null;
+    }
+
     function topic() {
+      const cues = cueCard();
       return (
         BOARD_LABEL[state.board] +
         ' ' +
         state.level +
-        ' — mündliche Prüfung (Sprechen). Führe die Prüfung realistisch Teil für Teil durch und stelle eine Nachfrage pro Teil.'
+        ' — mündliche Prüfung (Sprechen). Führe die Prüfung realistisch Teil für Teil durch und stelle eine Nachfrage pro Teil.' +
+        (cues ? ' In Teil 1 sieht der Kandidat eine Stichwortkarte: ' + cues.join(' ') + ' Frage nach diesen Stichworten und hake bei jedem nach, damit er ausführlich antwortet.' : '')
       );
     }
 
@@ -221,10 +231,17 @@
       const total = PARTS(state.level);
       const part = Math.min(total, Math.floor(answersGiven() / 2) + 1);
       const done = answersGiven() >= total * 2 - 1;
-      const log = state.messages.map(function (m) {
+      const cues = cueCard();
+      const cueHtml = cues
+        ? '<div style="max-width:70%;margin:0 0 10px;padding:10px 16px 4px;border-radius:14px;background:var(--panel-soft);border:1px solid var(--line)">' +
+          '<div style="font-size:12px;font-weight:800;color:var(--teal);margin-bottom:4px">' + esc(tr('Say a few sentences about each point', 'Расскажите о каждом пункте подробнее')) + '</div>' +
+          cues.map(function (c, i) { return '<div style="text-align:center;padding:9px 0;font-size:16px;font-weight:900;' + (i ? 'border-top:1px solid currentColor' : '') + '">' + esc(c) + '</div>'; }).join('') + '</div>'
+        : '';
+      const log = state.messages.map(function (m, mi) {
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
           '<div style="max-width:82%;padding:9px 13px;border-radius:14px;font-weight:600;line-height:1.45;' +
-          (m.role === 'user' ? 'background:var(--teal);color:#fff' : 'background:var(--panel-soft);border:1px solid var(--line)') + '">' + esc(m.text) + '</div></div>';
+          (m.role === 'user' ? 'background:var(--teal);color:#fff' : 'background:var(--panel-soft);border:1px solid var(--line)') + '">' + esc(m.text) + '</div></div>' +
+          (mi === 0 ? cueHtml : '');
       }).join('') + (state.sending ? '<div style="color:var(--soft);font-weight:700">…</div>' : '');
       body().innerHTML =
         '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--soft);margin-bottom:10px">' +
