@@ -30,11 +30,14 @@ export function getConfig() {
   loadDotEnv();
 
   const supabaseUrl = (process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+  // The public read API only serves data anon may already read (RLS enforces it), so it runs on the anon key.
+  // The service-role key is a fallback for deployments that have no anon key configured; remove it from the
+  // environment once SUPABASE_ANON_KEY is set so a bug here can never bypass RLS.
   const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_ANON_KEY ||
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY ||
     '';
 
   return {
