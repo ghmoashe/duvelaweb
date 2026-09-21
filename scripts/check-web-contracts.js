@@ -97,7 +97,8 @@ function checkLiveBackendContract() {
   expectIncludes('web/live-page.js', livePage, "supa.functions.invoke('live-payment'");
   expectIncludes('web/live-page.js', livePage, "supa.functions.invoke('live-restream'");
 
-  expectIncludes('supabase/functions/live-payment/index.ts', paymentFunction, 'send_live_gift');
+  // The deployed function records payments through the coin-ledger RPC (send_live_gift is the legacy wrapper kept in the SQL script).
+  expectIncludes('supabase/functions/live-payment/index.ts', paymentFunction, 'record_live_payment');
   expectIncludes('supabase/functions/live-payment/index.ts', paymentFunction, 'SUPABASE_SERVICE_ROLE_KEY');
   expectIncludes('supabase/functions/live-restream/index.ts', restreamFunction, 'live_restream_targets');
   expectIncludes('supabase/functions/live-restream/index.ts', restreamFunction, 'rtmp-converters');
