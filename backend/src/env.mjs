@@ -49,6 +49,9 @@ export function getConfig() {
     // only with "Authorization: Bearer <token>".
     metricsToken: process.env.METRICS_TOKEN || '',
     rateLimitPerMinute: numberEnv('RATE_LIMIT_PER_MINUTE', 120, 10, 6000),
+    // Number of reverse proxies in front of this service that append to X-Forwarded-For (Railway edge = 1).
+    // The client IP is the entry that many hops from the RIGHT; anything to its left is client-controlled.
+    trustedProxyHops: numberEnv('TRUSTED_PROXY_HOPS', 1, 0, 5),
     cacheTtl: {
       feed: numberEnv('DUVELA_FEED_CACHE_TTL_SECONDS', 30, 5, 3600),
       events: numberEnv('DUVELA_EVENTS_CACHE_TTL_SECONDS', 120, 5, 3600),

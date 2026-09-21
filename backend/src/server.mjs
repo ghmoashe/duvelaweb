@@ -23,7 +23,15 @@ const corsHeaders = {
 // caller could hammer Supabase / Upstash through us.
 const rateBuckets = new Map();
 function clientIp(req) {
-  return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
+  // The leftmost X-Forwarded-For entry is supplied by the caller and can be spoofed to dodge the limiter.
+  // Trust only what our own proxy appended: the entry `trustedProxyHops` from the right.
+  const hops = config.trustedProxyHops;
+  const forwarded = String(req.headers['x-forwarded-for'] || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (hops > 0 && forwarded.length) return forwarded[Math.max(0, forwarded.length - hops)];
+  return req.socket.remoteAddress || 'unknown';
 }
 function overRateLimit(req) {
   const now = Date.now();
