@@ -2,8 +2,59 @@
   // Self-contained ELSA oral/full exam for the web app. Reuses the deployed
   // openai-assistant edge actions (respond / evaluate_exam / generate_exam_module
   // / evaluate_exam_writing). Listening playback uses the browser speech engine.
+  // Persian copy for the exam UI (same wording as the Hub's ELSA screen). The
+  // shared tr(en, ru) only knows English and Russian, so Farsi is looked up here
+  // by the English string and falls back to it when a phrase is missing.
+  const FA = {
+    'Examiner': 'ممتحن',
+    'Mock exam': 'آزمون آزمایشی',
+    'Goethe / telc / ÖSD / DTZ — speaking, reading, listening, writing': 'Goethe / telc / ÖSD / DTZ — گفتار، خواندن، شنیدن، نوشتار',
+    'Mock oral exam': 'آزمون شفاهی آزمایشی',
+    'Pick an exam and level. ELSA runs it part by part and grades you.': 'آزمون و سطح را انتخاب کنید. ELSA آن را بخش‌به‌بخش اجرا و شما را ارزیابی می‌کند.',
+    'Exam': 'آزمون',
+    'Level': 'سطح',
+    'Full exam': 'آزمون کامل',
+    'Speaking + Reading + Listening + Writing': 'گفتار + خواندن + شنیدن + نوشتار',
+    'Start exam': 'شروع آزمون',
+    'Part': 'بخش',
+    'Finish & get result': 'پایان و دریافت نتیجه',
+    'Type your answer…': 'پاسخ خود را بنویسید…',
+    'End early & get result': 'پایان زودهنگام و دریافت نتیجه',
+    'Grading your exam…': 'در حال نمره‌دهی آزمون شما…',
+    'Preparing…': 'در حال آماده‌سازی…',
+    'Reading': 'خواندن',
+    'Listening': 'شنیدن',
+    'Writing': 'نوشتار',
+    'Speaking': 'گفتار',
+    'Continue': 'ادامه',
+    'Play audio': 'پخش صدا',
+    'Listen, then answer.': 'گوش کنید، سپس پاسخ دهید.',
+    'Write your answer…': 'پاسخ خود را بنویسید…',
+    'words': 'کلمه',
+    'Submit & finish': 'ارسال و پایان',
+    'Grading your writing…': 'در حال نمره‌دهی نوشتار شما…',
+    'PASSED': 'قبول',
+    'NOT PASSED': 'مردود',
+    'By skill': 'بر اساس مهارت',
+    'Fluency': 'روانی',
+    'Accuracy': 'دقت',
+    'Vocabulary': 'واژگان',
+    'Pronunciation': 'تلفظ',
+    'By part': 'بر اساس بخش',
+    'Mistakes to fix': 'اشتباهات برای اصلاح',
+    'What to improve': 'چه چیزی را بهبود دهید',
+    'New exam': 'آزمون جدید',
+  };
+
   function createElsaExam(ctx) {
-    const { supa, tr, esc } = ctx;
+    const { supa, esc } = ctx;
+    const appLang = function () { return String(ctx.getAppLang ? ctx.getAppLang() : '').toLowerCase(); };
+    const isFa = function () { return appLang() === 'fa'; };
+    const tr = function (en, ru) { return (isFa() && FA[en]) || ctx.tr(en, ru); };
+    // Language ELSA writes feedback, corrections and exam instructions in.
+    const nativeLocale = function () { return isFa() ? 'fa-IR' : ctx.isRu ? 'ru-RU' : 'en-US'; };
+    // The exam itself is German: keep it left-to-right inside an RTL (Farsi) page.
+    const LTR = ' dir="ltr"';
 
     const BOARD_LABEL = { goethe: 'Goethe-Zertifikat', telc: 'telc Deutsch', oesd: 'ÖSD', dtz: 'DTZ' };
     const BOARDS = ['goethe', 'telc', 'oesd', 'dtz'];
@@ -56,7 +107,7 @@
         partnerName: 'ELSA',
         partnerRole: 'examiner',
         locale: 'de-DE',
-        nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US',
+        nativeLocale: nativeLocale(),
         levelRange: state.level,
         nativeHelp: false,
         lessonTemplate: BOARD_LABEL[state.board] + ' ' + state.level,
@@ -178,10 +229,10 @@
       body().innerHTML =
         '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--soft);margin-bottom:10px">' +
         '<span>' + esc(BOARD_LABEL[state.board]) + ' ' + state.level + '</span><span>' + esc(tr('Part', 'Часть')) + ' ' + part + '/' + total + '</span></div>' +
-        '<div id="elsaLog" style="max-height:44vh;overflow:auto;margin-bottom:10px">' + log + '</div>' +
+        '<div id="elsaLog"' + LTR + ' style="max-height:44vh;overflow:auto;margin-bottom:10px">' + log + '</div>' +
         (state.error ? '<div style="color:#d64545;font-weight:700;margin-bottom:8px">' + esc(state.error) + '</div>' : '') +
         (done ? '<button class="btn primary" id="elsaFinish" style="width:100%;margin-bottom:8px">🏁 ' + esc(tr('Finish & get result', 'Завершить и узнать результат')) + '</button>' : '') +
-        '<div style="display:flex;gap:8px"><input id="elsaInput" class="search" placeholder="' + esc(tr('Type your answer…', 'Напишите ответ…')) + '" style="flex:1;margin:0"><button class="btn primary" id="elsaSend">➤</button></div>' +
+        '<div style="display:flex;gap:8px"><input id="elsaInput"' + LTR + ' class="search" placeholder="' + esc(tr('Type your answer…', 'Напишите ответ…')) + '" style="flex:1;margin:0"><button class="btn primary" id="elsaSend">➤</button></div>' +
         '<button class="btn" id="elsaEndEarly" style="width:100%;margin-top:8px">' + esc(tr('End early & get result', 'Завершить досрочно')) + '</button>';
       const logEl = document.getElementById('elsaLog'); if (logEl) logEl.scrollTop = logEl.scrollHeight;
       const input = document.getElementById('elsaInput');
@@ -197,7 +248,7 @@
       renderScoring(tr('Grading your exam…', 'Оцениваю экзамен…'));
       const transcript = state.messages.map(function (m) { return (m.role === 'assistant' ? 'ELSA' : 'Lernender') + ': ' + m.text; }).join('\n');
       try {
-        const result = await call({ action: 'evaluate_exam', board: state.board, level: state.level, transcript: transcript, nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US', locale: 'de-DE' });
+        const result = await call({ action: 'evaluate_exam', board: state.board, level: state.level, transcript: transcript, nativeLocale: nativeLocale(), locale: 'de-DE' });
         state.evaluation = result;
         state.skills.sprechen = result.score.overall;
         if (state.full) { await runModule('lesen'); } else { renderResult(); }
@@ -216,7 +267,7 @@
       state.phase = skill;
       renderScoring(tr('Preparing…', 'Готовлю задание…'));
       try {
-        state.module = await call({ action: 'generate_exam_module', board: state.board, level: state.level, skill: skill, nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US' });
+        state.module = await call({ action: 'generate_exam_module', board: state.board, level: state.level, skill: skill, nativeLocale: nativeLocale() });
         state.answers = state.module.questions ? state.module.questions.map(function () { return -1; }) : [];
         state.writing = '';
         renderModule(skill);
@@ -229,7 +280,7 @@
 
     function mcqHtml(questions) {
       return questions.map(function (q, qi) {
-        return '<div style="margin-bottom:16px"><div style="font-weight:800;margin-bottom:6px">' + (qi + 1) + '. ' + esc(q.q) + '</div>' +
+        return '<div' + LTR + ' style="margin-bottom:16px"><div style="font-weight:800;margin-bottom:6px">' + (qi + 1) + '. ' + esc(q.q) + '</div>' +
           q.options.map(function (opt, oi) {
             const on = state.answers[qi] === oi;
             return '<button type="button" class="btn opt-btn' + (on ? ' primary' : '') + '" data-q="' + qi + '" data-o="' + oi + '" style="display:block;width:100%;text-align:left;margin-bottom:6px">' + esc(opt) + '</button>';
@@ -243,15 +294,15 @@
       let html = '<div style="font-weight:900;font-size:18px;margin-bottom:4px">' + esc(label) + '</div>' +
         '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-bottom:14px">' + esc(BOARD_LABEL[state.board]) + ' ' + state.level + '</div>';
       if (skill === 'lesen') {
-        html += '<div style="background:var(--panel-soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;line-height:1.6">' + esc(m.text) + '</div>' + mcqHtml(m.questions) +
+        html += '<div' + LTR + ' style="background:var(--panel-soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;line-height:1.6">' + esc(m.text) + '</div>' + mcqHtml(m.questions) +
           '<button class="btn primary" id="elsaModNext" style="width:100%">' + esc(tr('Continue', 'Далее')) + '</button>';
       } else if (skill === 'hoeren') {
         html += '<button class="btn primary" id="elsaPlay" style="margin-bottom:10px">🔊 ' + esc(tr('Play audio', 'Прослушать')) + '</button>' +
           '<p style="color:var(--soft);font-weight:600;margin:0 0 14px">' + esc(tr('Listen, then answer.', 'Послушайте, затем ответьте.')) + '</p>' + mcqHtml(m.questions) +
           '<button class="btn primary" id="elsaModNext" style="width:100%">' + esc(tr('Continue', 'Далее')) + '</button>';
       } else {
-        html += '<div style="background:var(--panel-soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;line-height:1.5">' + esc(m.prompt) + '</div>' +
-          '<textarea id="elsaWrite" class="search" style="width:100%;min-height:120px;margin:0 0 6px" placeholder="' + esc(tr('Write your answer…', 'Напишите ответ…')) + '"></textarea>' +
+        html += '<div' + LTR + ' style="background:var(--panel-soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;line-height:1.5">' + esc(m.prompt) + '</div>' +
+          '<textarea id="elsaWrite"' + LTR + ' class="search" style="width:100%;min-height:120px;margin:0 0 6px" placeholder="' + esc(tr('Write your answer…', 'Напишите ответ…')) + '"></textarea>' +
           '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-bottom:10px" id="elsaWc">0 / ' + (m.minWords || 40) + ' ' + esc(tr('words', 'слов')) + '</div>' +
           '<button class="btn primary" id="elsaWriteSubmit" style="width:100%">' + esc(tr('Submit & finish', 'Отправить и завершить')) + '</button>';
       }
@@ -298,7 +349,7 @@
       if (!state.writing.trim()) return;
       renderScoring(tr('Grading your writing…', 'Оцениваю письмо…'));
       try {
-        const graded = await call({ action: 'evaluate_exam_writing', board: state.board, level: state.level, prompt: state.module.prompt, text: state.writing, nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US' });
+        const graded = await call({ action: 'evaluate_exam_writing', board: state.board, level: state.level, prompt: state.module.prompt, text: state.writing, nativeLocale: nativeLocale() });
         state.skills.schreiben = graded.score.overall;
       } catch (e) { /* ignore, still show result */ }
       renderResult();
@@ -331,7 +382,7 @@
       }
       if (ev.mistakes && ev.mistakes.length) {
         html += '<div class="card" style="margin-bottom:12px"><b>' + esc(tr('Mistakes to fix', 'Ошибки для разбора')) + '</b>' +
-          ev.mistakes.map(function (mk) { return '<div style="margin-top:10px"><div style="color:#d64545;text-decoration:line-through">' + esc(mk.wrong) + '</div><div style="color:#2FA36B;font-weight:800">' + esc(mk.correction) + '</div>' + (mk.note ? '<small style="color:var(--soft)">' + esc(mk.note) + '</small>' : '') + '</div>'; }).join('') + '</div>';
+          ev.mistakes.map(function (mk) { return '<div style="margin-top:10px"><div' + LTR + ' style="color:#d64545;text-decoration:line-through">' + esc(mk.wrong) + '</div><div' + LTR + ' style="color:#2FA36B;font-weight:800">' + esc(mk.correction) + '</div>' + (mk.note ? '<small style="color:var(--soft)">' + esc(mk.note) + '</small>' : '') + '</div>'; }).join('') + '</div>';
       }
       if (ev.finalFeedback) html += '<div class="card" style="margin-bottom:12px">' + esc(ev.finalFeedback) + '</div>';
       if (ev.improve && ev.improve.length) html += '<div class="card" style="margin-bottom:12px"><b>' + esc(tr('What to improve', 'Что улучшить')) + '</b>' + ev.improve.map(function (t) { return '<div style="margin-top:6px">• ' + esc(t) + '</div>'; }).join('') + '</div>';
