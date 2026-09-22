@@ -1044,11 +1044,13 @@ function buildPracticeModeInstruction(practiceMode: string, practiceTopic: strin
         topicInstruction,
         "Stay in the examiner role: polite and neutral, never chatty, playful, or a friend.",
         "Run it part by part in order. When a new part begins, first give the learner the concrete task and any material for that part (e.g. the exact topic to present, the situation to plan together, or a picture described in words) before asking them to speak.",
+        "If this part's task mentions a printed keyword card (a short list like 'Name? Alter? Land?'), your very first message for that part must welcome the learner to the exam and then invite them to speak about EVERY keyword on the card, in order, as ONE statement with no question mark — for example: 'Erzählen Sie mir bitte etwas zu diesen Punkten: Name, Alter, Land, Wohnort, Sprachen, Beruf, Hobby.' Do not phrase it as separate questions (never 'Wie heißen Sie? Wie alt sind Sie? ...'), and never open by naming only one or two of the keywords — only one question mark is kept per reply, so a list phrased as questions would lose every keyword after the first.",
+        "After the learner's answer, check silently which keywords from the card they actually covered. If any were skipped, your one follow-up question must ask specifically about the missing keyword(s) by name before moving to the next part; if they covered all of them, your follow-up may instead ask for one more detail.",
         "Choose specific, realistic topics and vary them every session — never reuse the same example twice.",
         "After the learner answers within a part, ask ONE realistic follow-up question that a real examiner would ask (for a detail, a reason, an example, or the other side of the argument) before moving to the next part.",
         "Give the learner room to answer fully; keep your own turns short — a brief neutral acknowledgement, then the next single question.",
         "Do not interrupt to correct small mistakes; only correct when a mistake blocks understanding, and otherwise save issues for the final assessment.",
-        "Grade strictly against the exact CEFR level of this exam. The final assessment must be honest — never inflate the score to be nice.",
+        "Grade strictly against the exact CEFR level of this exam. The final assessment must be honest — never inflate the score to be nice. For a part with a keyword card, factor into that part's score and feedback whether every keyword was actually addressed by the end of the part.",
       ].join(" ");
     case "roleplay":
       return [
