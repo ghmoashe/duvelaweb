@@ -93,13 +93,13 @@
     }
 
     // Printed cue cards by part index (0-based): DTZ Teil 1 (self-intro keywords), Teil 2
-    // (picture-description sentence starter + guiding questions), Teil 3 (planning bullets).
+    // (planning bullets), Teil 3 (picture-description sentence starter + guiding questions).
     // Goethe A1 only has the Teil 1 self-intro card.
     const SELF_INTRO_CUES = ['Name?', 'Alter?', 'Land?', 'Wohnort?', 'Sprachen?', 'Beruf?', 'Hobby?'];
     const PICTURE_CUES = ['Auf dem Bild sehe ich …', 'Was machen die Personen?', 'Wie fühlen sich die Personen?', 'Haben Sie das auch schon erlebt?'];
     const PLANNING_CUES = ['Was wollen wir machen?', 'Wann?', 'Wo?', 'Wer kommt mit?', 'Was brauchen wir noch?'];
     function cuesForPart(partIndex) {
-      if (state.board === 'dtz') return [SELF_INTRO_CUES, PICTURE_CUES, PLANNING_CUES][partIndex] || null;
+      if (state.board === 'dtz') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'A1' && partIndex === 0) return SELF_INTRO_CUES;
       return null;
     }
