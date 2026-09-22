@@ -198,10 +198,14 @@ async function invokeLiveRestreamStatus(token) {
 }
 
 async function runPublicChecks() {
-  await expectStatus('agora-token requires auth', request('/functions/v1/agora-token', {
+  // Since the 2026-09 hardening, agora-token checks that the channel has a live/scheduled
+  // live_sessions row before it even looks at auth (so an unknown channel never leaks whether
+  // publishing would otherwise be allowed). This fake channel has no session, so it's always
+  // 403 regardless of the caller's auth — that 403 is what this smoke check now confirms.
+  await expectStatus('agora-token rejects a channel with no active live session', request('/functions/v1/agora-token', {
     method: 'POST',
     body: { channelName: 'duvela-check', uid: 123, role: 'publisher', ttlSeconds: 60 },
-  }), [401]);
+  }), [403]);
   await expectStatus('notify-course-enrollment endpoint exists', request('/functions/v1/notify-course-enrollment', {
     method: 'POST',
     body: {},
