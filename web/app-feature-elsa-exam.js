@@ -65,7 +65,9 @@
       oesd: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
       dtz: ['A2', 'B1'],
     };
-    const PARTS = (level) => (['A1', 'A2', 'B1'].indexOf(level) >= 0 ? 3 : 2);
+    // Goethe B1 gets 2 extra warm-up parts (self-intro card + picture) bolted onto the real
+    // 3-part exam (planen / präsentieren / über die Präsentation sprechen) — see cuesForPart.
+    const PARTS = (board, level) => (board === 'goethe' && level === 'B1' ? 5 : ['A1', 'A2', 'B1'].indexOf(level) >= 0 ? 3 : 2);
 
     let state = null;
 
@@ -100,12 +102,13 @@
     const PLANNING_CUES = ['Was wollen wir machen?', 'Wann?', 'Wo?', 'Wer kommt mit?', 'Was brauchen wir noch?'];
     function cuesForPart(partIndex) {
       if (state.board === 'dtz') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES][partIndex] || null;
+      if (state.board === 'goethe' && state.level === 'B1') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES, null, null][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'A1' && partIndex === 0) return SELF_INTRO_CUES;
       return null;
     }
 
     function topic() {
-      const total = PARTS(state.level);
+      const total = PARTS(state.board, state.level);
       let cueLines = '';
       for (let i = 0; i < total; i++) {
         const cues = cuesForPart(i);
@@ -136,7 +139,7 @@
         lessonTemplate: BOARD_LABEL[state.board] + ' ' + state.level,
         lessonGoal: 'Conduct the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam part by part with one follow-up per part.',
         lessonTurnIndex: turnIndex,
-        lessonTurnTarget: PARTS(state.level) * 2,
+        lessonTurnTarget: PARTS(state.board, state.level) * 2,
       };
     }
 
@@ -241,7 +244,7 @@
 
     function renderExam() {
       state.phase = 'exam';
-      const total = PARTS(state.level);
+      const total = PARTS(state.board, state.level);
       const part = Math.min(total, Math.floor(answersGiven() / 2) + 1);
       const done = answersGiven() >= total * 2 - 1;
       function cueHtmlFor(cues) {
