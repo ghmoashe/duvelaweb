@@ -156,9 +156,8 @@
     function isPlanningTaskPart(partIndex) {
       return partIndex === 1 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
     }
-    // Fixed designed graphic for the planning part (same every attempt, unlike EXAM_PHOTOS) —
-    // it already renders the PLANNING_CUES text with icons, so the plain text cue card is
-    // skipped for this part in renderExam to avoid showing the same six points twice.
+    // Fixed designed graphic for the planning part (same every attempt, unlike EXAM_PHOTOS),
+    // shown above the usual plain text cue card.
     const PLANNING_CARD_IMAGE = './assets/exam-photos/planen.jpg';
     // Bank of everyday-life stock photos, each paired with an objective description of its real
     // content (mirrored from the Hub's app/native/ai-practice-exam.tsx). ELSA never "sees" the
@@ -395,9 +394,7 @@
             const photoHtml = photoSrc
               ? '<img src="' + esc(photoSrc) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
-            // The planning graphic already shows its own prompts with icons, so skip the plain
-            // text card there — it would just repeat the same six points a second time.
-            cueHtml = photoHtml + (isPlanningTaskPart(partIndex) ? '' : cueHtmlFor(cuesForPart(partIndex)));
+            cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex));
           }
         }
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
