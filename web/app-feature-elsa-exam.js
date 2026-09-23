@@ -170,7 +170,12 @@
       let cueLines = '';
       indices.forEach(function (i) {
         const cues = cuesForPart(i);
-        if (cues) {
+        if (!cues) return;
+        if (isPictureTaskPart(i)) {
+          // A real photo is shown on screen — say a plain, natural instruction instead of
+          // reading the sentence-starter and guiding questions out loud as a list.
+          cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat ein Foto auf dem Bildschirm. Sage zu Beginn dieses Teils nur eine kurze, natürliche Aufforderung wie „Bitte beschreiben Sie das Bild, das Sie sehen, und erzählen Sie von eigenen Erfahrungen dazu." — lies die folgenden Punkte NICHT als Liste vor, nutze sie nur als Grundlage für deine Nachfrage am Ende, falls der Kandidat etwas davon nicht von selbst erwähnt: ' + cues.join(' ');
+        } else {
           cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat eine Stichwortkarte mit genau diesen Punkten: ' + cues.join(' ') +
             ' Lade ihn zu Beginn dieses Teils zu allen Punkten ein und hake am Ende nach, falls einer fehlt, damit er ausführlich antwortet.';
         }
@@ -343,7 +348,7 @@
           if (assistantOrdinal % 2 === 0) {
             const partIndex = indices[assistantOrdinal / 2];
             const photoHtml = isPictureTaskPart(partIndex) && state.photo
-              ? '<img src="' + esc(state.photo) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:cover;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
+              ? '<img src="' + esc(state.photo) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
             cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex));
           }
