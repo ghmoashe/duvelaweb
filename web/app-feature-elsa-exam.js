@@ -15,6 +15,8 @@
     'Level': 'سطح',
     'Tap a part to practise just that part with ELSA, or leave none selected for the full sequence.':
       'برای تمرین فقط همان بخش با ELSA روی یک بخش بزنید، یا برای دنباله کامل هیچ‌کدام را انتخاب نکنید.',
+    'Prepare a short talk covering these points': 'دربارهٔ این نکات یک صحبت کوتاه آماده کنید',
+    'Topic': 'موضوع',
     'Start exam': 'شروع آزمون',
     'Part': 'بخش',
     'Finish & get result': 'پایان و دریافت نتیجه',
@@ -142,9 +144,21 @@
     // Matches the fixed designed planning-card graphic shown on screen for this part (see
     // PLANNING_CARD_IMAGE below) — keep these in sync with that image's text.
     const PLANNING_CUES = ['Wann?', 'Wohin?', 'Mit wem?', 'Wie viel?', 'Was brauchen wir?', 'Nächste Schritte?'];
+    // Structure for the free-presentation part — the same three-step shape a real Goethe B1
+    // topic card uses (experience → pros/cons → opinion), for whichever topic gets picked.
+    const PRESENTATION_CUES = ['Erzählen Sie von einer eigenen Erfahrung dazu.', 'Nennen Sie Vor- und Nachteile.', 'Sagen Sie Ihre Meinung dazu.'];
+    // Topic pool for the presentation part (only Goethe B1 Teil 4 uses it today), mirrored from
+    // the Hub's TOPIC_POOL.B1 in shared/ai-practice-exams.ts.
+    const PRESENTATION_TOPIC_POOL = [
+      'Soziale Medien', 'Umwelt und Müll', 'Gesunde Ernährung', 'Reisen früher und heute',
+      'Sport im Alltag', 'Leben in der Stadt oder auf dem Land', 'Online lernen', 'Ehrenamt',
+    ];
+    function pickPresentationTopic() {
+      return PRESENTATION_TOPIC_POOL[Math.floor(Math.random() * PRESENTATION_TOPIC_POOL.length)];
+    }
     function cuesForPart(partIndex) {
       if (state.board === 'dtz') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES][partIndex] || null;
-      if (state.board === 'goethe' && state.level === 'B1') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES, null, null][partIndex] || null;
+      if (state.board === 'goethe' && state.level === 'B1') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES, PRESENTATION_CUES, null][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'A1' && partIndex === 0) return SELF_INTRO_CUES;
       return null;
     }
@@ -155,6 +169,10 @@
     // The "Gemeinsam etwas planen" part is always Teil 2 (index 1) wherever it exists.
     function isPlanningTaskPart(partIndex) {
       return partIndex === 1 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
+    }
+    // The "Ein Thema präsentieren" part is always Teil 4 (index 3), only on Goethe B1.
+    function isPresentationTaskPart(partIndex) {
+      return partIndex === 3 && state.board === 'goethe' && state.level === 'B1';
     }
     // Fixed designed graphic for the planning part (same every attempt, unlike EXAM_PHOTOS),
     // shown above the usual plain text cue card.
@@ -214,6 +232,11 @@
               ' Nutze das ausschließlich, um am Ende zu beurteilen, ob die Beschreibung des Kandidaten zum Foto passt — verrate ihm nicht, was auf dem Foto ist.'
             : '';
           cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat ein Foto auf dem Bildschirm. Sage zu Beginn dieses Teils nur eine kurze, natürliche Aufforderung wie „Bitte beschreiben Sie das Bild, das Sie sehen, und erzählen Sie von eigenen Erfahrungen dazu." — lies die folgenden Punkte NICHT als Liste vor, nutze sie nur als Grundlage für deine Nachfrage am Ende, falls der Kandidat etwas davon nicht von selbst erwähnt: ' + cues.join(' ') + photoLine;
+        } else if (isPresentationTaskPart(i) && state.topic) {
+          // The card shows one fixed topic for this attempt — ELSA must present on exactly
+          // that topic, not invent or pick a different one.
+          cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat eine Themenkarte mit dem Thema „' + state.topic + '" und diesen Punkten: ' + cues.join(' ') +
+            ' Sprich in diesem Teil ausschließlich über GENAU dieses Thema — nicht über ein anderes — und gehe dabei zu Beginn kurz auf alle Punkte ein.';
         } else {
           cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat eine Stichwortkarte mit genau diesen Punkten: ' + cues.join(' ') +
             ' Lade ihn zu Beginn dieses Teils zu allen Punkten ein und hake am Ende nach, falls einer fehlt, damit er ausführlich antwortet.';
@@ -337,6 +360,7 @@
       state.evaluation = null;
       state.skills = { sprechen: null, lesen: null, hoeren: null, schreiben: null };
       state.photo = pickExamPhoto();
+      state.topic = pickPresentationTopic();
       renderExam();
       await sendTurn('Guten Tag, ich bin bereit für die Prüfung.', true);
     }
@@ -371,10 +395,17 @@
       const total = indices.length;
       const part = Math.min(total, Math.floor(answersGiven() / 2) + 1);
       const done = answersGiven() >= total * 2 - 1;
-      function cueHtmlFor(cues) {
+      function cueHtmlFor(cues, partIndex) {
         if (!cues) return '';
+        const presenting = isPresentationTaskPart(partIndex);
+        const hint = presenting
+          ? tr('Prepare a short talk covering these points', 'Подготовьте короткое выступление по этим пунктам')
+          : tr('Say a few sentences about each point', 'Расскажите о каждом пункте подробнее');
+        const topicHtml = presenting && state.topic
+          ? '<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:6px">' + esc(tr('Topic', 'Тема')) + ': ' + esc(state.topic) + '</div>'
+          : '';
         return '<div style="max-width:70%;margin:0 0 10px;padding:10px 16px 4px;border-radius:14px;background:var(--panel-soft);border:1px solid var(--line)">' +
-          '<div style="font-size:12px;font-weight:800;color:var(--teal);margin-bottom:4px">' + esc(tr('Say a few sentences about each point', 'Расскажите о каждом пункте подробнее')) + '</div>' +
+          '<div style="font-size:12px;font-weight:800;color:var(--teal);margin-bottom:4px">' + esc(hint) + '</div>' + topicHtml +
           cues.map(function (c, i) { return '<div style="text-align:center;padding:9px 0;font-size:16px;font-weight:900;' + (i ? 'border-top:1px solid currentColor' : '') + '">' + esc(c) + '</div>'; }).join('') + '</div>';
       }
       let assistantOrdinal = -1;
@@ -394,7 +425,7 @@
             const photoHtml = photoSrc
               ? '<img src="' + esc(photoSrc) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
-            cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex));
+            cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex), partIndex);
           }
         }
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
