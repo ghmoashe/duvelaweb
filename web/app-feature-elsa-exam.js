@@ -106,6 +106,16 @@
       if (state.board === 'goethe' && state.level === 'A1' && partIndex === 0) return SELF_INTRO_CUES;
       return null;
     }
+    // The "Ein Bild beschreiben" part is always Teil 3 (index 2) wherever it exists.
+    function isPictureTaskPart(partIndex) {
+      return partIndex === 2 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
+    }
+    // Bank of everyday-life stock photos; one is picked at random each time the exam starts
+    // (state.photo, set in startExam) and stays the same across that part's exchanges.
+    const EXAM_PHOTOS = Array.from({ length: 21 }, function (_, i) {
+      return './assets/exam-photos/bild-' + String(i + 1).padStart(2, '0') + '.jpg';
+    });
+    function pickExamPhoto() { return EXAM_PHOTOS[Math.floor(Math.random() * EXAM_PHOTOS.length)]; }
 
     function topic() {
       const total = PARTS(state.board, state.level);
@@ -216,6 +226,7 @@
       state.conversationId = null;
       state.evaluation = null;
       state.skills = { sprechen: null, lesen: null, hoeren: null, schreiben: null };
+      state.photo = pickExamPhoto();
       renderExam();
       await sendTurn('Guten Tag, ich bin bereit für die Prüfung.', true);
     }
@@ -256,11 +267,17 @@
       let assistantOrdinal = -1;
       const log = state.messages.map(function (m) {
         // Each part opens with two ELSA turns (prompt, then follow-up); the opening one is
-        // every other assistant message. Show that part's cue card right under it.
+        // every other assistant message. Show that part's photo/cue card right under it.
         let cueHtml = '';
         if (m.role === 'assistant') {
           assistantOrdinal += 1;
-          if (assistantOrdinal % 2 === 0) cueHtml = cueHtmlFor(cuesForPart(assistantOrdinal / 2));
+          if (assistantOrdinal % 2 === 0) {
+            const partIndex = assistantOrdinal / 2;
+            const photoHtml = isPictureTaskPart(partIndex) && state.photo
+              ? '<img src="' + esc(state.photo) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:cover;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
+              : '';
+            cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex));
+          }
         }
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
           '<div style="max-width:82%;padding:9px 13px;border-radius:14px;font-weight:600;line-height:1.45;' +
