@@ -13,8 +13,8 @@
     'Pick an exam and level. ELSA runs it part by part and grades you.': 'آزمون و سطح را انتخاب کنید. ELSA آن را بخش‌به‌بخش اجرا و شما را ارزیابی می‌کند.',
     'Exam': 'آزمون',
     'Level': 'سطح',
-    'Full exam': 'آزمون کامل',
-    'Speaking + Reading + Listening + Writing': 'گفتار + خواندن + شنیدن + نوشتار',
+    'Tap a part to practise just that part with ELSA, or leave none selected for the full sequence.':
+      'برای تمرین فقط همان بخش با ELSA روی یک بخش بزنید، یا برای دنباله کامل هیچ‌کدام را انتخاب نکنید.',
     'Start exam': 'شروع آزمون',
     'Part': 'بخش',
     'Finish & get result': 'پایان و دریافت نتیجه',
@@ -65,9 +65,48 @@
       oesd: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
       dtz: ['A2', 'B1'],
     };
-    // Goethe B1 gets 2 extra warm-up parts (self-intro card + picture) bolted onto the real
+    // Part summaries per board+level, mirrored from the Hub's shared/ai-practice-exams.ts
+    // blueprint (same wording) so the part-picker list and turn count match what ELSA runs.
+    // Goethe B1 has 2 extra warm-up parts (self-intro card + picture) bolted onto the real
     // 3-part exam (planen / präsentieren / über die Präsentation sprechen) — see cuesForPart.
-    const PARTS = (board, level) => (board === 'goethe' && level === 'B1' ? 5 : ['A1', 'A2', 'B1'].indexOf(level) >= 0 ? 3 : 2);
+    const PART_SUMMARIES = {
+      goethe: {
+        A1: ['Sich vorstellen', 'Informationen erfragen und geben', 'Bitten und darauf reagieren'],
+        A2: ['Fragen zur Person', 'Über ein Thema sprechen', 'Gemeinsam etwas aushandeln'],
+        B1: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben', 'Ein Thema präsentieren', 'Über die Präsentation sprechen'],
+        B2: ['Einen Standpunkt vortragen', 'Diskutieren und argumentieren'],
+        C1: ['Freien Vortrag halten', 'Anspruchsvoll diskutieren'],
+        C2: ['Vortrag auf C2-Niveau', 'Kontroverse Diskussion'],
+      },
+      telc: {
+        A1: ['Sich vorstellen', 'Informationen erfragen und geben', 'Bitten formulieren'],
+        A2: ['Kontaktaufnahme', 'Über ein Thema sprechen', 'Gemeinsam planen'],
+        B1: ['Kontaktaufnahme', 'Gespräch über ein Thema', 'Gemeinsam etwas planen'],
+        B2: ['Präsentation', 'Diskussion', 'Lösung aushandeln'],
+        C1: ['Präsentation', 'Diskussion auf hohem Niveau'],
+        C2: ['Anspruchsvoller Vortrag', 'Debatte auf C2-Niveau'],
+      },
+      oesd: {
+        A1: ['Sich vorstellen', 'Über Alltag sprechen', 'Bitten und reagieren'],
+        A2: ['Über sich sprechen', 'Ein Thema besprechen', 'Gemeinsam planen'],
+        B1: ['Erfahrungen austauschen', 'Präsentation', 'Gemeinsam entscheiden'],
+        B2: ['Standpunkt vortragen', 'Diskussion'],
+        C1: ['Vortrag', 'Anspruchsvolle Diskussion'],
+        C2: ['Anspruchsvoller Vortrag', 'Debatte'],
+      },
+      dtz: {
+        A2: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben'],
+        B1: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben'],
+      },
+    };
+    function partSummariesForCurrent() {
+      return (PART_SUMMARIES[state.board] && PART_SUMMARIES[state.board][state.level]) || [];
+    }
+    // The real number of parts, read from PART_SUMMARIES rather than guessed from the level —
+    // telc B2 has 3 real parts, for instance, unlike every other board's B2.
+    function PARTS(board, level) {
+      return ((PART_SUMMARIES[board] && PART_SUMMARIES[board][level]) || []).length || 2;
+    }
 
     let state = null;
 
@@ -76,6 +115,7 @@
         board: 'goethe',
         level: 'B1',
         full: false,
+        selectedPart: null,
         phase: 'setup',
         messages: [],
         conversationId: null,
@@ -117,23 +157,30 @@
     });
     function pickExamPhoto() { return EXAM_PHOTOS[Math.floor(Math.random() * EXAM_PHOTOS.length)]; }
 
-    function topic() {
+    // Indices this attempt actually runs: every part in sequence, or just the one the
+    // learner picked on the setup screen (state.selectedPart, 0-based).
+    function activePartIndices() {
+      if (state.selectedPart != null) return [state.selectedPart];
       const total = PARTS(state.board, state.level);
+      return Array.from({ length: total }, function (_, i) { return i; });
+    }
+
+    function topic() {
+      const indices = activePartIndices();
       let cueLines = '';
-      for (let i = 0; i < total; i++) {
+      indices.forEach(function (i) {
         const cues = cuesForPart(i);
         if (cues) {
           cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat eine Stichwortkarte mit genau diesen Punkten: ' + cues.join(' ') +
             ' Lade ihn zu Beginn dieses Teils zu allen Punkten ein und hake am Ende nach, falls einer fehlt, damit er ausführlich antwortet.';
         }
-      }
-      return (
-        BOARD_LABEL[state.board] +
-        ' ' +
-        state.level +
-        ' — mündliche Prüfung (Sprechen). Führe die Prüfung realistisch Teil für Teil durch und stelle eine Nachfrage pro Teil.' +
-        cueLines
-      );
+      });
+      const summaries = partSummariesForCurrent();
+      const focusLine = state.selectedPart != null
+        ? ' Führe NUR Teil ' + (state.selectedPart + 1) + (summaries[state.selectedPart] ? ' (' + summaries[state.selectedPart] + ')' : '') +
+          ' durch, mit einer realistischen Nachfrage danach, und beende die Prüfung dann.'
+        : ' Führe die Prüfung realistisch Teil für Teil durch und stelle eine Nachfrage pro Teil.';
+      return BOARD_LABEL[state.board] + ' ' + state.level + ' — mündliche Prüfung (Sprechen).' + focusLine + cueLines;
     }
 
     function lessonParams(turnIndex) {
@@ -147,9 +194,11 @@
         levelRange: state.level,
         nativeHelp: false,
         lessonTemplate: BOARD_LABEL[state.board] + ' ' + state.level,
-        lessonGoal: 'Conduct the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam part by part with one follow-up per part.',
+        lessonGoal: state.selectedPart != null
+          ? 'Conduct only Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam, with one realistic follow-up.'
+          : 'Conduct the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam part by part with one follow-up per part.',
         lessonTurnIndex: turnIndex,
-        lessonTurnTarget: PARTS(state.board, state.level) * 2,
+        lessonTurnTarget: activePartIndices().length * 2,
       };
     }
 
@@ -194,6 +243,15 @@
       const levelBtns = LEVELS_BY_BOARD[state.board].map(function (lv) {
         return '<button type="button" class="btn opt-btn' + (state.level === lv ? ' primary' : '') + '" data-level="' + lv + '" style="min-width:52px">' + lv + '</button>';
       }).join('');
+      const partRows = partSummariesForCurrent().map(function (summary, i) {
+        const active = state.selectedPart === i;
+        return '<div data-part="' + i + '" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;' +
+          (active ? 'background:var(--panel-soft)' : '') + '">' +
+          '<span style="width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;' +
+          (active ? 'background:var(--teal);color:#fff' : 'background:var(--panel-soft)') + '">' + (i + 1) + '</span>' +
+          '<span style="flex:1;font-weight:700;font-size:13px">Teil ' + (i + 1) + '<br><small style="color:var(--soft);font-weight:600">' + esc(summary) + '</small></span>' +
+          (active ? '<span style="color:var(--teal);font-weight:900">✓</span>' : '') + '</div>';
+      }).join('');
       body().innerHTML =
         '<p style="font-weight:800;margin:0 0 6px">' + esc(tr('Mock oral exam', 'Пробный устный экзамен')) + '</p>' +
         '<p style="color:var(--soft);font-weight:600;margin:0 0 14px">' + esc(tr('Pick an exam and level. ELSA runs it part by part and grades you.', 'Выберите экзамен и уровень. ELSA проведёт его по частям и оценит.')) + '</p>' +
@@ -201,21 +259,29 @@
         '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + boardBtns + '</div>' +
         '<div style="font-weight:800;margin-bottom:8px">' + esc(tr('Level', 'Уровень')) + '</div>' +
         '<div id="elsaLevels" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + levelBtns + '</div>' +
-        '<label style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer">' +
-        '<input type="checkbox" id="elsaFull"' + (state.full ? ' checked' : '') + '>' +
-        '<span><b>' + esc(tr('Full exam', 'Полный экзамен')) + '</b><br><small style="color:var(--soft)">' + esc(tr('Speaking + Reading + Listening + Writing', 'Говорение + Чтение + Аудирование + Письмо')) + '</small></span></label>' +
+        '<div style="font-size:12px;font-weight:600;color:var(--soft);margin-bottom:8px">' +
+        esc(tr('Tap a part to practise just that part with ELSA, or leave none selected for the full sequence.', 'Нажмите на часть, чтобы отработать только её с ELSA, или не выбирайте ничего для полной последовательности.')) +
+        '</div>' +
+        '<div id="elsaParts" style="margin-bottom:16px">' + partRows + '</div>' +
         '<button class="btn primary" id="elsaStart" style="width:100%">🎤 ' + esc(tr('Start exam', 'Начать экзамен')) + '</button>';
       Array.prototype.forEach.call(body().querySelectorAll('[data-board]'), function (btn) {
         btn.addEventListener('click', function () {
           state.board = btn.getAttribute('data-board');
           if (LEVELS_BY_BOARD[state.board].indexOf(state.level) < 0) state.level = LEVELS_BY_BOARD[state.board][0];
+          state.selectedPart = null;
           renderSetup();
         });
       });
       Array.prototype.forEach.call(body().querySelectorAll('[data-level]'), function (btn) {
-        btn.addEventListener('click', function () { state.level = btn.getAttribute('data-level'); renderSetup(); });
+        btn.addEventListener('click', function () { state.level = btn.getAttribute('data-level'); state.selectedPart = null; renderSetup(); });
       });
-      body().querySelector('#elsaFull').addEventListener('change', function (e) { state.full = e.target.checked; });
+      Array.prototype.forEach.call(body().querySelectorAll('[data-part]'), function (row) {
+        row.addEventListener('click', function () {
+          const i = Number(row.getAttribute('data-part'));
+          state.selectedPart = state.selectedPart === i ? null : i;
+          renderSetup();
+        });
+      });
       body().querySelector('#elsaStart').addEventListener('click', startExam);
     }
 
@@ -255,7 +321,10 @@
 
     function renderExam() {
       state.phase = 'exam';
-      const total = PARTS(state.board, state.level);
+      // Absolute part indices (into cuesForPart/isPictureTaskPart/partSummaries) this attempt
+      // runs, in order — every part, or just the one Teil the learner selected.
+      const indices = activePartIndices();
+      const total = indices.length;
       const part = Math.min(total, Math.floor(answersGiven() / 2) + 1);
       const done = answersGiven() >= total * 2 - 1;
       function cueHtmlFor(cues) {
@@ -272,7 +341,7 @@
         if (m.role === 'assistant') {
           assistantOrdinal += 1;
           if (assistantOrdinal % 2 === 0) {
-            const partIndex = assistantOrdinal / 2;
+            const partIndex = indices[assistantOrdinal / 2];
             const photoHtml = isPictureTaskPart(partIndex) && state.photo
               ? '<img src="' + esc(state.photo) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:cover;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
