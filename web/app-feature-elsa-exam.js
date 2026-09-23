@@ -139,7 +139,9 @@
     // Goethe A1 only has the Teil 1 self-intro card.
     const SELF_INTRO_CUES = ['Name?', 'Alter?', 'Land?', 'Wohnort?', 'Sprachen?', 'Beruf?', 'Hobby?'];
     const PICTURE_CUES = ['Auf dem Bild sehe ich …', 'Was machen die Personen?', 'Wie fühlen sich die Personen?', 'Haben Sie das auch schon erlebt?'];
-    const PLANNING_CUES = ['Was wollen wir machen?', 'Wann?', 'Wo?', 'Wer kommt mit?', 'Was brauchen wir noch?'];
+    // Matches the fixed designed planning-card graphic shown on screen for this part (see
+    // PLANNING_CARD_IMAGE below) — keep these in sync with that image's text.
+    const PLANNING_CUES = ['Wann?', 'Wohin?', 'Mit wem?', 'Wie viel?', 'Was brauchen wir?', 'Nächste Schritte?'];
     function cuesForPart(partIndex) {
       if (state.board === 'dtz') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'B1') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES, null, null][partIndex] || null;
@@ -150,6 +152,14 @@
     function isPictureTaskPart(partIndex) {
       return partIndex === 2 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
     }
+    // The "Gemeinsam etwas planen" part is always Teil 2 (index 1) wherever it exists.
+    function isPlanningTaskPart(partIndex) {
+      return partIndex === 1 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
+    }
+    // Fixed designed graphic for the planning part (same every attempt, unlike EXAM_PHOTOS) —
+    // it already renders the PLANNING_CUES text with icons, so the plain text cue card is
+    // skipped for this part in renderExam to avoid showing the same six points twice.
+    const PLANNING_CARD_IMAGE = './assets/exam-photos/planen.jpg';
     // Bank of everyday-life stock photos, each paired with an objective description of its real
     // content (mirrored from the Hub's app/native/ai-practice-exam.tsx). ELSA never "sees" the
     // photo — the description is fed into her prompt so the final score can check whether the
@@ -377,10 +387,17 @@
           assistantOrdinal += 1;
           if (assistantOrdinal % 2 === 0) {
             const partIndex = indices[assistantOrdinal / 2];
-            const photoHtml = isPictureTaskPart(partIndex) && state.photo
-              ? '<img src="' + esc(state.photo.src) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
+            const photoSrc = isPictureTaskPart(partIndex) && state.photo
+              ? state.photo.src
+              : isPlanningTaskPart(partIndex)
+                ? PLANNING_CARD_IMAGE
+                : null;
+            const photoHtml = photoSrc
+              ? '<img src="' + esc(photoSrc) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
-            cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex));
+            // The planning graphic already shows its own prompts with icons, so skip the plain
+            // text card there — it would just repeat the same six points a second time.
+            cueHtml = photoHtml + (isPlanningTaskPart(partIndex) ? '' : cueHtmlFor(cuesForPart(partIndex)));
           }
         }
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
