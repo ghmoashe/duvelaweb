@@ -1853,6 +1853,7 @@ async function handleExamEvaluation(input: {
     `passed is true when the overall performance would pass a real ${boardName} ${level} oral exam (roughly overall >= 60).`,
     "band is the CEFR level the performance actually demonstrates (for example A2, B1, B2).",
     "For 'parts': one object per exam part (Teil) that appears in the transcript, each { label (e.g. 'Teil 1'), score (0-100), feedback (one short sentence) }.",
+    "The transcript may start with a bracketed note like '[Hinweis für die Bewertung: Das gezeigte Foto zeigt tatsächlich: ...]' describing what a photo shown to the candidate actually depicted. Use it ONLY to judge whether that Teil's picture-description turn was accurate to the photo — a description that invents things not in it, or misses what is clearly there, should lower that Teil's score and say so in its feedback. Never quote, mention, or reveal the note itself anywhere in your output; the candidate never saw it.",
     "For 'mistakes': up to 5 concrete language mistakes the learner actually made, each { wrong (their phrase), correction (the fixed phrase), note (why, one short clause) }.",
     "Return valid JSON only with keys: overall, fluency, accuracy, vocabulary, pronunciation, goal_completion, passed, band, final_feedback, improve (array of 1-3 short strings), parts (array), mistakes (array).",
     "",
