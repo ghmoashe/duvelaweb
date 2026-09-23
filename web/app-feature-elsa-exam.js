@@ -150,11 +150,35 @@
     function isPictureTaskPart(partIndex) {
       return partIndex === 2 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
     }
-    // Bank of everyday-life stock photos; one is picked at random each time the exam starts
-    // (state.photo, set in startExam) and stays the same across that part's exchanges.
-    const EXAM_PHOTOS = Array.from({ length: 21 }, function (_, i) {
-      return './assets/exam-photos/bild-' + String(i + 1).padStart(2, '0') + '.jpg';
-    });
+    // Bank of everyday-life stock photos, each paired with an objective description of its real
+    // content (mirrored from the Hub's app/native/ai-practice-exam.tsx). ELSA never "sees" the
+    // photo — the description is fed into her prompt so the final score can check whether the
+    // candidate's spoken description actually matched the picture, not just grammar/fluency.
+    // bild-06/bild-07 are left out: both have a stock-preview caption baked into the pixels
+    // ("Bild 11: Zu Hause – gemeinsam kochen"), which would let a candidate just read it aloud.
+    // One is picked at random each time the exam starts (state.photo, set in startExam) and
+    // stays the same across that part's exchanges.
+    const EXAM_PHOTOS = [
+      { src: './assets/exam-photos/bild-01.jpg', description: 'Vier Erwachsene joggen gemeinsam an einem Fluss entlang; im Hintergrund sind der Kölner Dom und eine alte Eisenbahnbrücke zu sehen.' },
+      { src: './assets/exam-photos/bild-02.jpg', description: 'Eine Frau kauft mit einem Einkaufswagen in einem Supermarkt Gemüse ein und nimmt gerade eine rote Paprika aus dem Regal.' },
+      { src: './assets/exam-photos/bild-03.jpg', description: 'Eine junge Frau führt mit einem Mann im Anzug ein Vorstellungsgespräch in einem Büro und hält dabei ihren Lebenslauf in der Hand.' },
+      { src: './assets/exam-photos/bild-04.jpg', description: 'Ein Vater, eine Tochter und eine Mutter kochen gemeinsam in der Küche und bereiten Gemüse und einen Salat zu.' },
+      { src: './assets/exam-photos/bild-05.jpg', description: 'Eine Familie mit zwei Kindern kocht gemeinsam in der Küche und bereitet einen großen Salat mit viel frischem Gemüse zu.' },
+      { src: './assets/exam-photos/bild-08.jpg', description: 'Eine junge Frau leiht sich in einer Bibliothek Bücher aus, während eine Bibliothekarin sie am Empfang einscannt.' },
+      { src: './assets/exam-photos/bild-09.jpg', description: 'Ein Mann gibt an einem Postschalter ein Paket ab, das von der Angestellten entgegengenommen wird.' },
+      { src: './assets/exam-photos/bild-10.jpg', description: 'Ein Kellner bringt in einem Café zwei Frauen Kaffee und ein Stück Kuchen an den Tisch.' },
+      { src: './assets/exam-photos/bild-11.jpg', description: 'Ein Paar trägt beim Umzug gemeinsam Kartons in eine neue, noch voller Umzugskisten stehende Wohnung.' },
+      { src: './assets/exam-photos/bild-12.jpg', description: 'Ein Paar repariert gemeinsam draußen im Park ein Fahrrad.' },
+      { src: './assets/exam-photos/bild-13.jpg', description: 'Eine Ärztin bespricht mit einer Patientin in der Praxis Untersuchungsergebnisse anhand einer Grafik.' },
+      { src: './assets/exam-photos/bild-14.jpg', description: 'Ein Mann mit Koffer und Rucksack kauft am Fahrkartenautomaten im Bahnhof ein Zugticket.' },
+      { src: './assets/exam-photos/bild-15.jpg', description: 'Ein Paar kocht gemeinsam in der Küche: er schneidet Gemüse, sie wäscht Salat.' },
+      { src: './assets/exam-photos/bild-16.jpg', description: 'Drei Kolleginnen und Kollegen schauen im Büro gemeinsam auf einen Laptop-Bildschirm.' },
+      { src: './assets/exam-photos/bild-17.jpg', description: 'Eine vierköpfige Familie macht mit ihrem Hund ein Picknick im Park.' },
+      { src: './assets/exam-photos/bild-18.jpg', description: 'Eine Frau kauft mit einem vollen Einkaufswagen in einem Supermarkt Gemüse ein und nimmt eine rote Paprika aus dem Regal.' },
+      { src: './assets/exam-photos/bild-19.jpg', description: 'Eine vierköpfige Familie sitzt gemeinsam am Tisch und isst zu Abend.' },
+      { src: './assets/exam-photos/bild-20.jpg', description: 'An einer Bushaltestelle steigt ein Mann in den Bus, während eine Frau wartet.' },
+      { src: './assets/exam-photos/bild-21.jpg', description: 'Ein junger Mann lernt an seinem Schreibtisch mit Büchern, einem Notizbuch und einem Laptop.' },
+    ];
     function pickExamPhoto() { return EXAM_PHOTOS[Math.floor(Math.random() * EXAM_PHOTOS.length)]; }
 
     // Indices this attempt actually runs: every part in sequence, or just the one the
@@ -173,8 +197,14 @@
         if (!cues) return;
         if (isPictureTaskPart(i)) {
           // A real photo is shown on screen — say a plain, natural instruction instead of
-          // reading the sentence-starter and guiding questions out loud as a list.
-          cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat ein Foto auf dem Bildschirm. Sage zu Beginn dieses Teils nur eine kurze, natürliche Aufforderung wie „Bitte beschreiben Sie das Bild, das Sie sehen, und erzählen Sie von eigenen Erfahrungen dazu." — lies die folgenden Punkte NICHT als Liste vor, nutze sie nur als Grundlage für deine Nachfrage am Ende, falls der Kandidat etwas davon nicht von selbst erwähnt: ' + cues.join(' ');
+          // reading the sentence-starter and guiding questions out loud as a list. ELSA can't
+          // see the photo either, so tell her what it actually shows, only to judge at the end
+          // whether the candidate's description matched it — never reveal it upfront.
+          const photoLine = state.photo
+            ? ' Das Foto, das der Kandidat in diesem Teil sieht, zeigt tatsächlich: ' + state.photo.description +
+              ' Nutze das ausschließlich, um am Ende zu beurteilen, ob die Beschreibung des Kandidaten zum Foto passt — verrate ihm nicht, was auf dem Foto ist.'
+            : '';
+          cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat ein Foto auf dem Bildschirm. Sage zu Beginn dieses Teils nur eine kurze, natürliche Aufforderung wie „Bitte beschreiben Sie das Bild, das Sie sehen, und erzählen Sie von eigenen Erfahrungen dazu." — lies die folgenden Punkte NICHT als Liste vor, nutze sie nur als Grundlage für deine Nachfrage am Ende, falls der Kandidat etwas davon nicht von selbst erwähnt: ' + cues.join(' ') + photoLine;
         } else {
           cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat eine Stichwortkarte mit genau diesen Punkten: ' + cues.join(' ') +
             ' Lade ihn zu Beginn dieses Teils zu allen Punkten ein und hake am Ende nach, falls einer fehlt, damit er ausführlich antwortet.';
@@ -348,7 +378,7 @@
           if (assistantOrdinal % 2 === 0) {
             const partIndex = indices[assistantOrdinal / 2];
             const photoHtml = isPictureTaskPart(partIndex) && state.photo
-              ? '<img src="' + esc(state.photo) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
+              ? '<img src="' + esc(state.photo.src) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
             cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex));
           }
@@ -378,7 +408,12 @@
     async function finishExam() {
       state.phase = 'scoring';
       renderScoring(tr('Grading your exam…', 'Оцениваю экзамен…'));
-      const transcript = state.messages.map(function (m) { return (m.role === 'assistant' ? 'ELSA' : 'Lernender') + ': ' + m.text; }).join('\n');
+      // Let the scorer check whether the picture-description turn actually matched the photo —
+      // it never saw the image either, only this note (see handleExamEvaluation on the server).
+      const photoNote = activePartIndices().some(isPictureTaskPart) && state.photo
+        ? '[Hinweis für die Bewertung: Das gezeigte Foto zeigt tatsächlich: ' + state.photo.description + ']\n'
+        : '';
+      const transcript = photoNote + state.messages.map(function (m) { return (m.role === 'assistant' ? 'ELSA' : 'Lernender') + ': ' + m.text; }).join('\n');
       try {
         const result = await call({ action: 'evaluate_exam', board: state.board, level: state.level, transcript: transcript, nativeLocale: nativeLocale(), locale: 'de-DE' });
         state.evaluation = result;
