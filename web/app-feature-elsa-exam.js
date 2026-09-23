@@ -23,21 +23,8 @@
     'Type your answer…': 'پاسخ خود را بنویسید…',
     'End early & get result': 'پایان زودهنگام و دریافت نتیجه',
     'Grading your exam…': 'در حال نمره‌دهی آزمون شما…',
-    'Preparing…': 'در حال آماده‌سازی…',
-    'Reading': 'خواندن',
-    'Listening': 'شنیدن',
-    'Writing': 'نوشتار',
-    'Speaking': 'گفتار',
-    'Continue': 'ادامه',
-    'Play audio': 'پخش صدا',
-    'Listen, then answer.': 'گوش کنید، سپس پاسخ دهید.',
-    'Write your answer…': 'پاسخ خود را بنویسید…',
-    'words': 'کلمه',
-    'Submit & finish': 'ارسال و پایان',
-    'Grading your writing…': 'در حال نمره‌دهی نوشتار شما…',
     'PASSED': 'قبول',
     'NOT PASSED': 'مردود',
-    'By skill': 'بر اساس مهارت',
     'Fluency': 'روانی',
     'Accuracy': 'دقت',
     'Vocabulary': 'واژگان',
@@ -116,17 +103,13 @@
       state = {
         board: 'goethe',
         level: 'B1',
-        full: false,
         selectedPart: null,
         phase: 'setup',
         messages: [],
         conversationId: null,
         sending: false,
         evaluation: null,
-        skills: { sprechen: null, lesen: null, hoeren: null, schreiben: null },
-        module: null,
-        answers: [],
-        writing: '',
+        skills: { sprechen: null },
       };
     }
 
@@ -358,7 +341,7 @@
       state.messages = [];
       state.conversationId = null;
       state.evaluation = null;
-      state.skills = { sprechen: null, lesen: null, hoeren: null, schreiben: null };
+      state.skills = { sprechen: null };
       state.photo = pickExamPhoto();
       state.topic = pickPresentationTopic();
       renderExam();
@@ -463,7 +446,7 @@
         const result = await call({ action: 'evaluate_exam', board: state.board, level: state.level, transcript: transcript, nativeLocale: nativeLocale(), locale: 'de-DE' });
         state.evaluation = result;
         state.skills.sprechen = result.score.overall;
-        if (state.full) { await runModule('lesen'); } else { renderResult(); }
+        renderResult();
       } catch (e) {
         state.error = e.message;
         renderExam();
@@ -474,97 +457,12 @@
       body().innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px">⏳</div><p style="font-weight:800;margin-top:10px">' + esc(msg) + '</p></div>';
     }
 
-    // ---- reading / listening / writing ----
-    async function runModule(skill) {
-      state.phase = skill;
-      renderScoring(tr('Preparing…', 'Готовлю задание…'));
-      try {
-        state.module = await call({ action: 'generate_exam_module', board: state.board, level: state.level, skill: skill, nativeLocale: nativeLocale() });
-        state.answers = state.module.questions ? state.module.questions.map(function () { return -1; }) : [];
-        state.writing = '';
-        renderModule(skill);
-      } catch (e) {
-        state.error = e.message;
-        // skip to next on failure
-        nextAfter(skill);
-      }
-    }
-
-    function mcqHtml(questions) {
-      return questions.map(function (q, qi) {
-        return '<div' + LTR + ' style="margin-bottom:16px"><div style="font-weight:800;margin-bottom:6px">' + (qi + 1) + '. ' + esc(q.q) + '</div>' +
-          q.options.map(function (opt, oi) {
-            const on = state.answers[qi] === oi;
-            return '<button type="button" class="btn opt-btn' + (on ? ' primary' : '') + '" data-q="' + qi + '" data-o="' + oi + '" style="display:block;width:100%;text-align:left;margin-bottom:6px">' + esc(opt) + '</button>';
-          }).join('') + '</div>';
-      }).join('');
-    }
-
-    function renderModule(skill) {
-      const m = state.module;
-      const label = skill === 'lesen' ? tr('Reading', 'Чтение') : skill === 'hoeren' ? tr('Listening', 'Аудирование') : tr('Writing', 'Письмо');
-      let html = '<div style="font-weight:900;font-size:18px;margin-bottom:4px">' + esc(label) + '</div>' +
-        '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-bottom:14px">' + esc(BOARD_LABEL[state.board]) + ' ' + state.level + '</div>';
-      if (skill === 'lesen') {
-        html += '<div' + LTR + ' style="background:var(--panel-soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;line-height:1.6">' + esc(m.text) + '</div>' + mcqHtml(m.questions) +
-          '<button class="btn primary" id="elsaModNext" style="width:100%">' + esc(tr('Continue', 'Далее')) + '</button>';
-      } else if (skill === 'hoeren') {
-        html += '<button class="btn primary" id="elsaPlay" style="margin-bottom:10px">🔊 ' + esc(tr('Play audio', 'Прослушать')) + '</button>' +
-          '<p style="color:var(--soft);font-weight:600;margin:0 0 14px">' + esc(tr('Listen, then answer.', 'Послушайте, затем ответьте.')) + '</p>' + mcqHtml(m.questions) +
-          '<button class="btn primary" id="elsaModNext" style="width:100%">' + esc(tr('Continue', 'Далее')) + '</button>';
-      } else {
-        html += '<div' + LTR + ' style="background:var(--panel-soft);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;line-height:1.5">' + esc(m.prompt) + '</div>' +
-          '<textarea id="elsaWrite"' + LTR + ' class="search" style="width:100%;min-height:120px;margin:0 0 6px" placeholder="' + esc(tr('Write your answer…', 'Напишите ответ…')) + '"></textarea>' +
-          '<div style="color:var(--soft);font-weight:700;font-size:12px;margin-bottom:10px" id="elsaWc">0 / ' + (m.minWords || 40) + ' ' + esc(tr('words', 'слов')) + '</div>' +
-          '<button class="btn primary" id="elsaWriteSubmit" style="width:100%">' + esc(tr('Submit & finish', 'Отправить и завершить')) + '</button>';
-      }
-      body().innerHTML = html;
-      if (skill !== 'schreiben') {
-        Array.prototype.forEach.call(body().querySelectorAll('[data-q]'), function (btn) {
-          btn.addEventListener('click', function () { state.answers[Number(btn.getAttribute('data-q'))] = Number(btn.getAttribute('data-o')); renderModule(skill); });
-        });
-        document.getElementById('elsaModNext').addEventListener('click', function () { submitMcq(skill); });
-        if (skill === 'hoeren') document.getElementById('elsaPlay').addEventListener('click', function () { speak(m.script); });
-      } else {
-        const ta = document.getElementById('elsaWrite');
-        ta.value = state.writing;
-        ta.addEventListener('input', function () {
-          state.writing = ta.value;
-          document.getElementById('elsaWc').textContent = ta.value.trim().split(/\s+/).filter(Boolean).length + ' / ' + (m.minWords || 40) + ' ' + tr('words', 'слов');
-        });
-        document.getElementById('elsaWriteSubmit').addEventListener('click', submitWriting);
-      }
-    }
-
     function speak(text) {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text.replace(/^[AB]:\s?/gm, ''));
       u.lang = 'de-DE'; u.rate = 0.95;
       window.speechSynthesis.speak(u);
-    }
-
-    function submitMcq(skill) {
-      const qs = state.module.questions || [];
-      const correct = qs.reduce(function (s, q, i) { return s + (state.answers[i] === q.answer ? 1 : 0); }, 0);
-      state.skills[skill] = Math.round((correct / (qs.length || 1)) * 100);
-      nextAfter(skill);
-    }
-
-    function nextAfter(skill) {
-      if (skill === 'lesen') return void runModule('hoeren');
-      if (skill === 'hoeren') return void runModule('schreiben');
-      renderResult();
-    }
-
-    async function submitWriting() {
-      if (!state.writing.trim()) return;
-      renderScoring(tr('Grading your writing…', 'Оцениваю письмо…'));
-      try {
-        const graded = await call({ action: 'evaluate_exam_writing', board: state.board, level: state.level, prompt: state.module.prompt, text: state.writing, nativeLocale: nativeLocale() });
-        state.skills.schreiben = graded.score.overall;
-      } catch (e) { /* ignore, still show result */ }
-      renderResult();
     }
 
     // ---- result ----
@@ -580,14 +478,8 @@
         '<span style="display:inline-block;padding:6px 18px;border-radius:999px;color:#fff;font-weight:900;letter-spacing:1px;background:' + (ev.passed ? '#2FA36B' : '#D94F72') + '">' + (ev.passed ? esc(tr('PASSED', 'СДАН')) : esc(tr('NOT PASSED', 'НЕ СДАН'))) + '</span>' +
         '<div style="font-size:40px;font-weight:900;margin-top:10px">' + ev.score.overall + '/100</div>' +
         '<div style="color:var(--soft);font-weight:700">' + esc(BOARD_LABEL[state.board]) + ' ' + state.level + ' · ' + esc(ev.band) + '</div></div>';
-      if (state.full) {
-        html += '<div class="card" style="margin-bottom:12px"><b>' + esc(tr('By skill', 'По навыкам')) + '</b><div style="margin-top:10px">' +
-          bar(tr('Speaking', 'Говорение'), state.skills.sprechen) + bar(tr('Reading', 'Чтение'), state.skills.lesen) +
-          bar(tr('Listening', 'Аудирование'), state.skills.hoeren) + bar(tr('Writing', 'Письмо'), state.skills.schreiben) + '</div></div>';
-      } else {
-        html += '<div class="card" style="margin-bottom:12px">' + bar(tr('Fluency', 'Беглость'), ev.score.fluency) + bar(tr('Accuracy', 'Точность'), ev.score.accuracy) +
-          bar(tr('Vocabulary', 'Лексика'), ev.score.vocabulary) + bar(tr('Pronunciation', 'Произношение'), ev.score.pronunciation) + '</div>';
-      }
+      html += '<div class="card" style="margin-bottom:12px">' + bar(tr('Fluency', 'Беглость'), ev.score.fluency) + bar(tr('Accuracy', 'Точность'), ev.score.accuracy) +
+        bar(tr('Vocabulary', 'Лексика'), ev.score.vocabulary) + bar(tr('Pronunciation', 'Произношение'), ev.score.pronunciation) + '</div>';
       if (ev.parts && ev.parts.length) {
         html += '<div class="card" style="margin-bottom:12px"><b>' + esc(tr('By part', 'По частям')) + '</b>' +
           ev.parts.map(function (p) { return '<div style="display:flex;justify-content:space-between;margin-top:8px"><span>' + esc(p.label) + '</span><b>' + p.score + '/100</b></div>' + (p.feedback ? '<small style="color:var(--soft)">' + esc(p.feedback) + '</small>' : ''); }).join('') + '</div>';
