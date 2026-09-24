@@ -36,7 +36,7 @@
   const pNav = document.querySelector('.p-nav');
   const phoneEl = document.querySelector('.phone');
   const navFor = [0, 1, 1, 2, 3, 4];
-  let pIdx = 1;
+  let pIdx = 0;
   let pTimer = null;
 
   function showPage(index) {
@@ -83,7 +83,7 @@
     phoneEl.addEventListener('focusout', startRotate);
   }
 
-  showPage(pPages[1] ? 1 : 0);
+  showPage(0);
   startRotate();
 
   let authFeature = null;

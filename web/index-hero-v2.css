@@ -298,3 +298,44 @@ h1{
   .sec-sub{font-size:16px}
   .feat{min-height:0;padding:24px}
 }
+
+/* Home screen (phone mock-up page 1): dark, closer to the supplied direction —
+   a highlighted "continue lesson" card and a "Popular now" video list. */
+.lp-chiprow{flex-wrap:wrap}
+.lp-card-continue{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  background:linear-gradient(135deg,#7c4dff,#5b33e8 65%,#a855f7);
+  box-shadow:0 14px 30px rgba(109,63,224,.38);
+}
+.lp-card-continue .lp-label{color:rgba(255,255,255,.75)}
+.lp-card-continue .lp-card-title{color:#fff}
+.lp-card-continue .lp-card-meta{color:rgba(255,255,255,.75)}
+.lp-card-continue .lp-bar{background:rgba(255,255,255,.25)}
+.lp-card-continue .lp-fill{background:#fff}
+.lp-play-mini{
+  flex-shrink:0;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  background:rgba(255,255,255,.22);
+  color:#fff;
+  font-size:12px;
+  display:grid;
+  place-items:center;
+}
+
+/* Decorative tagline near the phone, and a touch more color in the swirl behind it. */
+.phone-area::after{
+  content:"More than learning.\A Closer to your dreams.";
+  white-space:pre;
+  right:2px;
+  bottom:78px;
+  font:800 19px/1.35 "Inter",sans-serif;
+}
+.phone-area::before{
+  opacity:1;
+  background:
+    conic-gradient(from 160deg, rgba(124,77,255,.05), rgba(124,77,255,.30), rgba(23,181,139,.18), rgba(220,63,181,.24), rgba(124,77,255,.05));
+}
