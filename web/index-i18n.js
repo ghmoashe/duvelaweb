@@ -5,6 +5,7 @@
 
     const I18N = localeCatalog.base;
     const I18N_EXTRA = localeCatalog.extra;
+    const LANDING_COPY = window.DUVELA_LANDING_2026_COPY || {};
     const LANG_STORAGE_KEY = localeCatalog.storageKey;
     const LANG_DATA = localeCatalog.locales;
     const SUPPORTED_LANGS = LANG_DATA.map((locale) => locale.code);
@@ -245,6 +246,109 @@
       ['.phone-screen > .p-nav span:nth-child(5)', 'navProfile']
     ];
 
+    const LANDING_2026_MAP = [
+      ['#faq .sec-kicker', 'faqKicker'],
+      ['#faq .sec-title', 'faqTitle', true],
+      ['#faq .sec-sub', 'faqSub'],
+      ['#faq .faq-list .faq-item:nth-child(1) .faq-question', 'faq1Q'],
+      ['#faq .faq-list .faq-item:nth-child(1) .faq-answer', 'faq1A'],
+      ['#faq .faq-list .faq-item:nth-child(2) .faq-question', 'faq2Q'],
+      ['#faq .faq-list .faq-item:nth-child(2) .faq-answer', 'faq2A'],
+      ['#faq .faq-list .faq-item:nth-child(3) .faq-question', 'faq3Q'],
+      ['#faq .faq-list .faq-item:nth-child(3) .faq-answer', 'faq3A'],
+      ['#faq .faq-list .faq-item:nth-child(4) .faq-question', 'faq4Q'],
+      ['#faq .faq-list .faq-item:nth-child(4) .faq-answer', 'faq4A'],
+      ['#faq .faq-list .faq-item:nth-child(5) .faq-question', 'faq5Q'],
+      ['#faq .faq-list .faq-item:nth-child(5) .faq-answer', 'faq5A'],
+      ['#faq .faq-list .faq-item:nth-child(6) .faq-question', 'faq6Q'],
+      ['#faq .faq-list .faq-item:nth-child(6) .faq-answer', 'faq6A'],
+      ['#faq .faq-cta h3', 'faqCtaTitle'],
+      ['#faq .faq-cta p', 'faqCtaText'],
+      ['#faq .faq-cta .faq-contact-btn', 'faqCtaButton'],
+      ['#trust .sec-kicker', 'trustKicker'],
+      ['#trust .sec-title', 'trustTitle', true],
+      ['#trust .trust-item:nth-child(1) h3', 'trust1Title'],
+      ['#trust .trust-item:nth-child(1) p', 'trust1Text'],
+      ['#trust .trust-item:nth-child(2) h3', 'trust2Title'],
+      ['#trust .trust-item:nth-child(2) p', 'trust2Text'],
+      ['#trust .trust-item:nth-child(3) h3', 'trust3Title'],
+      ['#trust .trust-item:nth-child(3) p', 'trust3Text'],
+      ['#heroLiveBadge', 'heroLiveBadge'],
+      ['.preview-note', 'previewNote'],
+      ['#trustTeachers span', 'heroTrustTeachers'],
+      ['#trustCourses span', 'heroTrustCourses'],
+      ['#trustLive span', 'heroTrustLive'],
+      ['.hero-handwriting p', 'heroHandwriting', true],
+      ['#friends .sec-kicker', 'friendsKicker'],
+      ['#friends .sec-title', 'friendsTitle', true],
+      ['#friends .sec-sub', 'friendsSub'],
+      ['.crew-showcase .feat-tag', 'friendsTag'],
+      ['.crew-showcase h3', 'friendsFlowTitle'],
+      ['.crew-showcase > p', 'friendsFlowText'],
+      ['.crew-flow-step:nth-child(1) span', 'friendStep1'],
+      ['.crew-flow-step:nth-child(2) span', 'friendStep2'],
+      ['.crew-flow-step:nth-child(3) span', 'friendStep3'],
+      ['.crew-flow-step:nth-child(4) span', 'friendStep4'],
+      ['.crew-flow-step:nth-child(5) span', 'friendStep5'],
+      ['.crew-flow-step:nth-child(6) span', 'friendStep6'],
+      ['.crew-flow-step:nth-child(7) span', 'friendStep7'],
+      ['#friends .friend-card:nth-child(1) .friend-role', 'linaRole'],
+      ['#friends .friend-card:nth-child(1) p', 'linaText'],
+      ['#friends .friend-card:nth-child(2) .friend-role', 'gramiRole'],
+      ['#friends .friend-card:nth-child(2) p', 'gramiText'],
+      ['#friends .friend-card:nth-child(3) .friend-role', 'stellaRole'],
+      ['#friends .friend-card:nth-child(3) p', 'stellaText'],
+      ['#friends .friend-card:nth-child(4) .friend-role', 'novaRole'],
+      ['#friends .friend-card:nth-child(4) p', 'novaText'],
+      ['#friends .friend-card:nth-child(5) .friend-role', 'motiRole'],
+      ['#friends .friend-card:nth-child(5) p', 'motiText'],
+      ['#friends .friend-card:nth-child(6) .friend-role', 'elsaRole'],
+      ['#friends .friend-card:nth-child(6) .friend-app-role', 'elsaAppRole'],
+      ['#friends .friend-card:nth-child(6) p', 'elsaText'],
+      ['#friends .friend-card:nth-child(7) .friend-role', 'sofiaRole'],
+      ['#friends .friend-card:nth-child(7) .friend-app-role', 'sofiaAppRole'],
+      ['#friends .friend-card:nth-child(7) p', 'sofiaText'],
+      ['#teachers .sec-kicker', 'teachersKicker'],
+      ['#teachers .sec-title', 'teachersTitle', true],
+      ['#teachers .sec-sub', 'teachersSub'],
+      ['#teacherLoading h3', 'teacherLoadingTitle'],
+      ['#teacherLoading p', 'teacherLoadingText'],
+      ['.teacher-contact-links .tc-phone span', 'contactPhoneText'],
+      ['#pricing .sec-kicker', 'pricingKicker'],
+      ['#pricing .sec-title', 'pricingTitle', true],
+      ['#pricing .sec-sub', 'pricingSub'],
+      ['#pricing .price-card:nth-child(1) .price-kicker', 'price1Kicker'],
+      ['#pricing .price-card:nth-child(1) h3', 'price1Title'],
+      ['#pricing .price-card:nth-child(1) .price-value', 'priceFree'],
+      ['#pricing .price-card:nth-child(1) p', 'price1Text'],
+      ['#pricing .price-card:nth-child(1) .price-list li:nth-child(1)', 'price1Li1'],
+      ['#pricing .price-card:nth-child(1) .price-list li:nth-child(2)', 'price1Li2'],
+      ['#pricing .price-card:nth-child(1) .price-list li:nth-child(3)', 'price1Li3'],
+      ['#pricing .price-card:nth-child(1) a', 'price1Button'],
+      ['#pricing .price-card:nth-child(2) .price-kicker', 'price2Kicker'],
+      ['#pricing .price-card:nth-child(2) h3', 'price2Title'],
+      ['#pricing .price-card:nth-child(2) .price-value', 'price2Value'],
+      ['#pricing .price-card:nth-child(2) p', 'price2Text'],
+      ['#pricing .price-card:nth-child(2) .price-list li:nth-child(1)', 'price2Li1'],
+      ['#pricing .price-card:nth-child(2) .price-list li:nth-child(2)', 'price2Li2'],
+      ['#pricing .price-card:nth-child(2) .price-list li:nth-child(3)', 'price2Li3'],
+      ['#pricing .price-card:nth-child(2) a', 'price2Button'],
+      ['#pricing .price-card:nth-child(3) .price-kicker', 'price3Kicker'],
+      ['#pricing .price-card:nth-child(3) h3', 'price3Title'],
+      ['#pricing .price-card:nth-child(3) .price-value', 'priceFree'],
+      ['#pricing .price-card:nth-child(3) p', 'price3Text'],
+      ['#pricing .price-card:nth-child(3) .price-list li:nth-child(1)', 'price3Li1'],
+      ['#pricing .price-card:nth-child(3) .price-list li:nth-child(2)', 'price3Li2'],
+      ['#pricing .price-card:nth-child(3) .price-list li:nth-child(3)', 'price3Li3'],
+      ['#pricing .price-card:nth-child(3) a', 'price3Button'],
+      ['footer .foot-brand p', 'footerBrandText'],
+      ['.teacher-contact-kicker', 'teacherContactKicker'],
+      ['.teacher-contact-copy h3', 'teacherContactTitle'],
+      ['.teacher-contact-copy p', 'teacherContactBody'],
+      ['.teacher-contact-links .tc-phone b', 'contactPhone'],
+      ['.teacher-contact-links .tc-email b', 'contactEmail']
+    ];
+
     function detectWebLanguage() {
       const saved = localStorage.getItem(LANG_STORAGE_KEY);
       if (saved && SUPPORTED_LANGS.includes(saved)) return saved;
@@ -263,7 +367,8 @@
 
     function applyWebLanguage(code) {
       dict = Object.assign({}, I18N.en, I18N_EXTRA.en, I18N[code] || {}, I18N_EXTRA[code] || {});
-      Object.assign(dict, WEB_APP_COPY[code] || WEB_APP_COPY.en);
+      if (WEB_APP_COPY[code]) Object.assign(dict, WEB_APP_COPY[code]);
+      Object.assign(dict, LANDING_COPY.en || {}, LANDING_COPY[code] || {});
       document.documentElement.lang = code;
       document.documentElement.dir = RTL_LANGS.has(code) ? 'rtl' : 'ltr';
       document.title = dict.metaTitle;
@@ -275,6 +380,14 @@
       langBtn.setAttribute('aria-label', dict.languageLabel);
 
       for (const [selector, key, isHtml] of I18N_MAP) {
+        if (!dict[key]) continue;
+        document.querySelectorAll(selector).forEach((el) => {
+          if (isHtml) el.innerHTML = dict[key];
+          else el.textContent = dict[key];
+        });
+      }
+
+      for (const [selector, key, isHtml] of LANDING_2026_MAP) {
         if (!dict[key]) continue;
         document.querySelectorAll(selector).forEach((el) => {
           if (isHtml) el.innerHTML = dict[key];
