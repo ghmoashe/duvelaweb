@@ -1255,7 +1255,7 @@
 <nav class="nav">
   <div class="nav-inner">
     <a class="logo" href="./">
-      <img src="./logo2.png" alt="Duvela" class="logo-img">
+      <img src="./logo3.png" alt="Duvela" class="logo-img">
     </a>
     <ul class="nav-links">
       <li><a href="#video">Video</a></li>
@@ -1279,7 +1279,6 @@
       <button class="nav-signin-mob" id="openLoginMob" type="button" aria-label="Sign In">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </button>
-      <a class="nav-cta" href="./app.html">Open Web App</a>
     </div>
   </div>
 </nav>
@@ -1329,15 +1328,6 @@
         <a class="btn-ghost" href="?login=1" data-auth-open="signup" data-signup-role="teacher">Start teaching</a>
       </div>
       <p class="hero-clarity h-anim h-d6">Works in your browser. No download required.</p>
-      <div class="hero-trust h-anim h-d6">
-        <div class="hero-trust-item" id="trustTeachers"><b>Open</b><span>Public teacher profiles</span></div>
-        <div class="hero-trust-item" id="trustCourses"><b>Open</b><span>Courses and subjects</span></div>
-        <div class="hero-trust-item" id="trustLive"><b>Open</b><span>Live and scheduled lessons</span></div>
-      </div>
-      <div class="hero-meta h-anim h-d7">
-        <span class="hero-meta-mark" aria-hidden="true">W</span>
-        <p><b>Web app available now</b><br>Learners and teachers use the same account.</p>
-      </div>
     </div>
 
     <!-- phone mockup: Videos feed like the app -->
@@ -1573,18 +1563,51 @@
 <!-- ── FEATURES ───────────────────────────────────── -->
 <section class="video-sec" id="video">
   <div class="wrap">
+    <div class="pre-video-area">
+      <div class="hero-trust feature-pills h-anim h-d6">
+        <div class="hero-trust-item feature-pill" id="trustTeachers"><b>Open</b><span>Public teacher profiles</span></div>
+        <div class="hero-trust-item feature-pill" id="trustCourses"><b>Open</b><span>Courses and subjects</span></div>
+        <div class="hero-trust-item feature-pill" id="trustLive"><b>Open</b><span>Live and scheduled lessons</span></div>
+      </div>
+      <div class="hero-meta webapp-card h-anim h-d7">
+        <span class="hero-meta-mark" aria-hidden="true">W</span>
+        <p><b>Web app available now</b><br>Learners and teachers use the same account.</p>
+      </div>
+      <div class="corner-message" aria-hidden="true">
+        <p>More,<br>than learning.<br>Closer to dreams. <span>💜</span></p>
+        <strong>DUVELA</strong>
+        <small>KNOWLEDGE CONNECTS</small>
+      </div>
+    </div>
     <div class="video-frame">
-      <video src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" controls playsinline preload="none" poster="./video-poster.jpg"
+      <div class="video-copy">More<br>possibilities<br>for your<br>tomorrow</div>
+      <button class="video-play" type="button" aria-label="Play Duvela video">▶</button>
+      <div class="video-handwriting" aria-hidden="true">Knowledge<br>connects<br>people</div>
+      <div class="video-brand" aria-hidden="true">
+        <strong>DUVELA</strong>
+        <span>A BRIGHTER TOMORROW</span>
+      </div>
+      <div class="video-controls" aria-hidden="true">
+        <span>▶</span>
+        <span>0:00 / 1:48</span>
+        <div class="video-progress"></div>
+        <span>▮▮</span>
+        <span>⛶</span>
+        <span>⋮</span>
+      </div>
+      <video class="video-poster" src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" playsinline preload="none" poster="./video-poster.jpg"
              style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;"></video>
     </div>
   </div>
 </section>
 
-<section id="features">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="sec-kicker">Why Duvela</span>
-      <h2 class="sec-title">Everything you need to <span class="grad-text">actually learn</span></h2>
+<section id="features" class="why-duvela">
+  <div class="wrap why-duvela__inner">
+    <span class="why-duvela__handwriting why-duvela__handwriting--left">Learn<br>Grow<br>Be yourself</span>
+    <span class="why-duvela__handwriting why-duvela__handwriting--right">More,<br>than a service</span>
+    <div class="sec-head why-duvela__header reveal">
+      <span class="sec-kicker why-duvela__eyebrow">WHY DUVELA</span>
+      <h2 class="sec-title why-duvela__title">Everything you need to <span class="grad-text why-duvela__gradient">actually learn</span></h2>
       <p class="sec-sub">Not just another flashcards app. Real teachers, real videos, real conversations — languages, arts, school subjects and more, all at your level.</p>
     </div>
 
@@ -1686,6 +1709,12 @@
         <span class="feat-tag">AI Helper</span>
       </div>
     </div>
+    <div class="why-duvela__brand reveal">
+      <span class="why-duvela__bottom-note why-duvela__bottom-note--left">Knowledge<br>opens worlds</span>
+      <div class="why-duvela__wordmark">DUVELA</div>
+      <div class="why-duvela__tagline">MORE THAN LEARNING</div>
+      <span class="why-duvela__bottom-note why-duvela__bottom-note--right">Your progress<br>matters</span>
+    </div>
   </div>
 </section>
 
@@ -1694,19 +1723,21 @@
     <div class="sec-head reveal">
       <span class="sec-kicker">DUVI Crew</span>
       <h2 class="sec-title">Meet <span class="grad-text">DUVI's friends</span></h2>
-      <p class="sec-sub">DUVI stays the main guide. When a learner needs speaking, grammar, stories, pronunciation, or motivation, the right buddy steps in.</p>
+      <p class="sec-sub">DUVI stays the main guide. When a learner needs speaking, grammar, stories, pronunciation, motivation, or exam support, the right buddy steps in.</p>
     </div>
 
     <div class="crew-showcase reveal">
-      <span class="feat-tag">Inside DUVI Assistant</span>
-      <h3>One assistant, five specialist buddies</h3>
-      <p>Open DUVI, tap a friend, and the next prompt is prepared for the right helper. The assistant also auto-routes obvious intents like speaking, grammar mistakes, short stories, listening drills, and streak support.</p>
+      <span class="feat-tag">ONE TEAM. YOUR PROGRESS.</span>
+      <h3>One assistant, seven specialist buddies</h3>
+      <p>Open DUVI, tell the assistant what you need, and you'll be routed to the best helper. Each buddy has a clear job, simple tasks, and a friendly style, so you always get the right kind of support at the right moment.</p>
       <div class="crew-flow">
         <article class="crew-flow-step"><b>1. NOVA</b><span>Hear one short phrase and repeat it.</span></article>
         <article class="crew-flow-step"><b>2. LINA</b><span>Do a tiny speaking sprint or roleplay.</span></article>
         <article class="crew-flow-step"><b>3. GRAMI</b><span>Fix one mistake and explain the rule.</span></article>
         <article class="crew-flow-step"><b>4. STELLA</b><span>Get a mini story with easy vocabulary.</span></article>
         <article class="crew-flow-step"><b>5. MOTI</b><span>Protect the streak and reward progress.</span></article>
+        <article class="crew-flow-step"><b>6. ELSA</b><span>Prepare for exam speaking and better answers.</span></article>
+        <article class="crew-flow-step"><b>7. SOFIA</b><span>Practice live-style speaking with warm guidance.</span></article>
       </div>
     </div>
 
@@ -1775,14 +1806,44 @@
           <span>🏆 Rewards</span>
         </div>
       </article>
+
+      <article class="friend-card reveal friend-elsa" style="--friend-accent:#28a980">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/elsa.png" alt="ELSA, the DUVI exam speaking buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>ELSA</h3>
+        <span class="friend-role">Exam buddy</span>
+        <span class="friend-app-role">Examiner</span>
+        <p>B1/B2 speaking prompts, better answers, exam confidence, structured oral-exam practice and clear feedback.</p>
+        <div class="friend-points">
+          <span>Exam</span>
+          <span>Speaking</span>
+        </div>
+      </article>
+
+      <article class="friend-card reveal friend-sofia" style="--friend-accent:#df5d9b">
+        <div class="friend-art">
+          <img src="./web/assets/duvi/friends/sofia.png" alt="SOFIA, the DUVI live speaking buddy" loading="lazy" width="154" height="154">
+        </div>
+        <h3>SOFIA</h3>
+        <span class="friend-role">Live / speaking buddy</span>
+        <span class="friend-app-role">Conversation</span>
+        <p>Live-style speaking practice, daily guidance, warm conversation, gentle coaching and confidence building to help learners speak more naturally.</p>
+        <div class="friend-points">
+          <span>Live</span>
+          <span>Confidence</span>
+        </div>
+      </article>
     </div>
 
     <div class="friend-stickers reveal" aria-label="DUVI sticker pack">
-      <span>🔥 Streak Boost</span>
-      <span>🎧 Repeat With NOVA</span>
-      <span>✨ Story Spark</span>
-      <span>✅ Fix It</span>
-      <span>🎤 Tiny Roleplay</span>
+      <span>&#128293; Streak Boost</span>
+      <span>&#127911; Repeat With NOVA</span>
+      <span>&#10024; Story Spark</span>
+      <span>&#9989; Fix It</span>
+      <span>&#127908; Tiny Roleplay</span>
+      <span>&#128216; Exam Help</span>
+      <span>&#128101; Speak with Sofia</span>
     </div>
   </div>
 </section>
@@ -1791,45 +1852,61 @@
 <section id="how">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="sec-kicker">How it works</span>
-      <h2 class="sec-title">From zero to fluent in <span class="grad-text">3 steps</span></h2>
+      <span class="sec-kicker">КАК ЭТО РАБОТАЕТ</span>
+      <h2 class="sec-title">От нуля до свободной<br>речи за <span class="grad-text">3 шага</span></h2>
     </div>
 
     <div class="steps">
       <div class="step reveal">
-        <div class="step-figure">
+        <div class="step-figure step-figure-level">
+          <div class="level-panel" aria-hidden="true">
+            <span>A1</span>
+            <span class="is-selected">A2</span>
+            <span>B1</span>
+          </div>
           <picture>
             <source srcset="./web/assets/duvi/p-think.webp" type="image/webp">
-            <img class="step-duvi" src="./web/assets/duvi/p-think.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+            <img class="step-duvi" src="./web/assets/duvi/p-think.png" alt="DUVI рядом с выбором уровня A1, A2 и B1" loading="lazy" width="134" height="134">
           </picture>
           <div class="step-num">1</div>
         </div>
-        <h3>Take the Level Test</h3>
-        <p>Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.</p>
+        <h3>Пройдите тест уровня</h3>
+        <p>Выберите текущий уровень CEFR от A1 до C2 и обновляйте его по мере изменения учебных целей.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
-        <div class="step-figure">
+        <div class="step-figure step-figure-practice">
+          <div class="media-panel" aria-hidden="true">
+            <span class="media-play">▶</span>
+            <span></span>
+            <small>♡ 24</small>
+          </div>
           <picture>
             <source srcset="./web/assets/duvi/p-read.webp" type="image/webp">
-            <img class="step-duvi" src="./web/assets/duvi/p-read.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+            <img class="step-duvi" src="./web/assets/duvi/p-read.png" alt="DUVI рядом с видео и практикой" loading="lazy" width="134" height="134">
           </picture>
+          <div class="step-mini-icons" aria-hidden="true"><span>♡</span><span>💬</span></div>
           <div class="step-num">2</div>
         </div>
-        <h3>Watch &amp; Practice Daily</h3>
-        <p>Your feed serves videos at your level. Like, comment, follow teachers — and build your streak.</p>
+        <h3>Смотрите и практикуйтесь</h3>
+        <p>Лента подбирает видео под ваш уровень. Лайкайте, комментируйте, подписывайтесь — и держите серию.</p>
         <span class="step-arrow">›</span>
       </div>
       <div class="step reveal">
-        <div class="step-figure">
+        <div class="step-figure step-figure-live">
+          <div class="live-panel" aria-hidden="true">
+            <strong><i></i> LIVE</strong>
+            <span>Teacher lesson</span>
+            <small>🎙  📷</small>
+          </div>
           <picture>
             <source srcset="./web/assets/duvi/p-mic.webp" type="image/webp">
-            <img class="step-duvi" src="./web/assets/duvi/p-mic.png" alt="" aria-hidden="true" loading="lazy" width="134" height="134">
+            <img class="step-duvi" src="./web/assets/duvi/p-mic.png" alt="DUVI рядом с карточкой живого урока" loading="lazy" width="134" height="134">
           </picture>
           <div class="step-num">3</div>
         </div>
-        <h3>Go Live with Teachers</h3>
-        <p>Join live lessons, book courses and attend events. Speak from day one with real people.</p>
+        <h3>Выходите в эфир</h3>
+        <p>Подключайтесь к живым урокам, бронируйте курсы и посещайте события. Говорите с первого дня.</p>
       </div>
     </div>
   </div>
@@ -1839,7 +1916,7 @@
 <section id="teachers">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="sec-kicker">Public profiles</span>
+      <span class="sec-kicker">PUBLIC PROFILES</span>
       <h2 class="sec-title">Meet teachers who are <span class="grad-text">on Duvela</span></h2>
       <p class="sec-sub">This section uses public teacher profiles from Duvela. No sample ratings, follower counts or invented testimonials.</p>
     </div>
@@ -1847,6 +1924,21 @@
       <div class="teacher-empty reveal">
         <h3>Loading public teacher profiles</h3>
         <p>Duvela only shows profile information that teachers publish publicly.</p>
+      </div>
+    </div>
+    <div class="teacher-contact-panel reveal" aria-label="Duvela teacher contact channels">
+      <div class="teacher-contact-copy">
+        <span class="teacher-contact-kicker">Contact Duvela</span>
+        <h3>Talk to us before you request demo access.</h3>
+        <p>Ask about TestFlight, teacher onboarding, LIVE lessons, courses or school accounts. Choose the channel that is easiest for you.</p>
+      </div>
+      <div class="teacher-contact-links">
+        <a class="tc-card tc-whatsapp" href="https://wa.me/491634212982" target="_blank" rel="noopener"><b>WhatsApp</b><span>+49 163 4212982</span><i>→</i></a>
+        <a class="tc-card tc-telegram" href="https://t.me/duvelaacademy" target="_blank" rel="noopener"><b>Telegram</b><span>@duvelaacademy</span><i>→</i></a>
+        <a class="tc-card tc-email" href="mailto:info@duvela.de"><b>Email</b><span>info@duvela.de</span><i>→</i></a>
+        <a class="tc-card tc-instagram" href="https://www.instagram.com/duvela_academy_global?stkn=MWlsYmd4MHQxNGZ0cQ%3D%3D&amp;utm_source=qr" target="_blank" rel="noopener"><b>Instagram</b><span>@duvela_academy_global</span><i>→</i></a>
+        <a class="tc-card tc-tiktok" href="https://www.tiktok.com/@duvelaacademy?_r=1&amp;_t=ZG-99i2jHVZ2PI" target="_blank" rel="noopener"><b>TikTok</b><span>@duvelaacademy</span><i>→</i></a>
+        <a class="tc-card tc-phone" href="tel:+491634212982"><b>Phone</b><span>Call the Duvela team</span><i>→</i></a>
       </div>
     </div>
   </div>
@@ -2014,32 +2106,71 @@
     <div class="sec-head reveal">
       <span class="sec-kicker">FAQ</span>
       <h2 class="sec-title">Got <span class="grad-text">questions?</span></h2>
+      <p class="sec-sub">Everything you need to know before getting started with DUVELA.</p>
     </div>
-    <div class="faq-list reveal">
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-1">Is Duvela free? <span class="faq-arr" aria-hidden="true">+</span></button>
-        <div class="faq-a" id="faq-answer-1">Creating an account and opening the web app is free. Individual teachers may charge separately for lessons, courses or events; the price is shown with the offer.</div>
+    <div class="faq-layout">
+      <div class="faq-list reveal">
+        <div class="faq-item open" data-faq-item>
+          <button class="faq-q" type="button" aria-expanded="true" aria-controls="faq-answer-1">
+            <span class="faq-cat faq-cat-pricing">PRICING</span>
+            <span class="faq-question">Is DUVELA free to use?</span>
+            <span class="faq-arr" aria-hidden="true">−</span>
+          </button>
+          <div class="faq-a" id="faq-answer-1">DUVELA includes free learning and practice features. Teachers and organizers may also offer paid courses, lessons and events.</div>
+        </div>
+        <div class="faq-item" data-faq-item>
+          <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-2">
+            <span class="faq-cat faq-cat-learning">LEARNING</span>
+            <span class="faq-question">What can I learn on DUVELA?</span>
+            <span class="faq-arr" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-a" id="faq-answer-2">Languages are the main focus, but DUVELA also supports art, school subjects and other teacher-led learning.</div>
+        </div>
+        <div class="faq-item" data-faq-item>
+          <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-3">
+            <span class="faq-cat faq-cat-level">LEVEL TEST</span>
+            <span class="faq-question">How does the CEFR level test work?</span>
+            <span class="faq-arr" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-a" id="faq-answer-3">Choose or test your current level from A1 to C2. DUVELA then uses your level to organize suitable learning content.</div>
+        </div>
+        <div class="faq-item" data-faq-item>
+          <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-4">
+            <span class="faq-cat faq-cat-teachers">TEACHERS</span>
+            <span class="faq-question">Can I teach on DUVELA?</span>
+            <span class="faq-arr" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-a" id="faq-answer-4">Yes. Teachers can create a public profile, publish courses and practices, host LIVE sessions and organize events.</div>
+        </div>
+        <div class="faq-item" data-faq-item>
+          <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-5">
+            <span class="faq-cat faq-cat-devices">DEVICES</span>
+            <span class="faq-question">Which devices does DUVELA support?</span>
+            <span class="faq-arr" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-a" id="faq-answer-5">DUVELA works in the browser, with mobile experiences for iOS and Android also supported as they become available.</div>
+        </div>
+        <div class="faq-item" data-faq-item>
+          <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-6">
+            <span class="faq-cat faq-cat-payments">PAYMENTS</span>
+            <span class="faq-question">How are paid courses and lessons priced?</span>
+            <span class="faq-arr" aria-hidden="true">+</span>
+          </button>
+          <div class="faq-a" id="faq-answer-6">Teachers and organizers set the price for their own paid offers. Pricing and payment details are shown before a learner joins.</div>
+        </div>
       </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-2">What can I learn? <span class="faq-arr" aria-hidden="true">+</span></button>
-        <div class="faq-a" id="faq-answer-2">Available languages, subjects and creative disciplines depend on the courses and public profiles currently published by teachers.</div>
+      <div class="faq-mascot reveal" aria-hidden="true">
+        <div class="faq-bubble">?</div>
+        <img src="./web/assets/duvi/p-joy.png" alt="" loading="lazy" width="250" height="250">
       </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-3">How does the level test work? <span class="faq-arr" aria-hidden="true">+</span></button>
-        <div class="faq-a" id="faq-answer-3">The learner workspace includes CEFR level setup from A1 to C2. That level can be used to organize relevant learning content and recommendations.</div>
+    </div>
+    <div class="faq-cta reveal">
+      <div class="faq-cta-icon" aria-hidden="true">☵</div>
+      <div>
+        <h3>Still have a question?</h3>
+        <p>We’re here to help. Contact the DUVELA team anytime.</p>
       </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-4">Can I become a teacher on Duvela? <span class="faq-arr" aria-hidden="true">+</span></button>
-        <div class="faq-a" id="faq-answer-4">Yes. Create a teacher account in the web app, complete the teaching profile and use the workspace to prepare courses, events and live sessions.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-5">What devices does Duvela work on? <span class="faq-arr" aria-hidden="true">+</span></button>
-        <div class="faq-a" id="faq-answer-5">Duvela works now in modern desktop and mobile browsers. App Store and Google Play buttons are available on this page and will open the mobile downloads after the releases are published.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" aria-controls="faq-answer-6">How are paid offers priced? <span class="faq-arr" aria-hidden="true">+</span></button>
-        <div class="faq-a" id="faq-answer-6">Independent teachers and organizers set the price of their own eligible lessons, courses or events. Learners see the offer price before purchase.</div>
-      </div>
+      <a class="faq-cta-btn" href="mailto:info@duvela.de">Contact DUVELA <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
@@ -2172,6 +2303,30 @@
 <script src="./web/index-auth.js?v=20260815-role5"></script>
 <script src="./web/index-public-data.js?v=20260801-1"></script>
 <script src="./web/index-page.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var items = Array.prototype.slice.call(document.querySelectorAll('#faq [data-faq-item]'));
+    if (!items.length) return;
+    function setOpen(active) {
+      items.forEach(function (item) {
+        var isOpen = item === active;
+        var button = item.querySelector('.faq-q');
+        var icon = item.querySelector('.faq-arr');
+        item.classList.toggle('open', isOpen);
+        if (button) button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if (icon) icon.textContent = isOpen ? '−' : '+';
+      });
+    }
+    items.forEach(function (item) {
+      var button = item.querySelector('.faq-q');
+      if (!button) return;
+      button.addEventListener('click', function () {
+        setOpen(item);
+      });
+    });
+    setOpen(items.find(function (item) { return item.classList.contains('open'); }) || items[0]);
+  });
+</script>
 <script src="./web/duvi-assistant.js?v=20260816duvinew2"></script>
 <script src="./web/inline/index-2.js"></script>
 <script src="./web/cookie-consent.js?v=20260906-consent1"></script>
