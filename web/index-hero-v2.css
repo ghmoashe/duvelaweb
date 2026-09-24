@@ -301,7 +301,8 @@ h1{
 
 /* Home screen (phone mock-up page 1): dark, closer to the supplied direction —
    a highlighted "continue lesson" card and a "Popular now" video list. */
-.lp-chiprow{flex-wrap:wrap}
+.lp-chiprow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lp-chiprow .lp-chip{text-align:left;padding:11px 13px;font-size:12px;border-radius:14px}
 .lp-card-continue{
   display:flex;
   align-items:center;
@@ -325,6 +326,8 @@ h1{
   display:grid;
   place-items:center;
 }
+.phone-screen > .p-page.dark:first-child > .p-card:nth-child(5) .p-thumb{background-image:url(../assets/hero-v2/t1.webp)}
+.phone-screen > .p-page.dark:first-child > .p-card:nth-child(6) .p-thumb{background-image:url(../assets/hero-v2/t2.webp)}
 
 /* Decorative tagline near the phone, and a touch more color in the swirl behind it. */
 .phone-area::after{
