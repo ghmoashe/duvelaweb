@@ -66,7 +66,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Kurs- und Veranstaltungstools",
     "price3Li3": "LIVE Arbeitsbereich",
     "price3Button": "Beginnen Sie mit dem Unterrichten",
-    "footerBrandText": "Sprachen, Kunst und Schulfächer – auf das Niveau abgestimmte Videos, Live-Unterricht und Veranstaltungen mit echten Lehrern, alles in einer Akademie."
+    "footerBrandText": "Sprachen, Kunst und Schulfächer – auf das Niveau abgestimmte Videos, Live-Unterricht und Veranstaltungen mit echten Lehrern, alles in einer Akademie.",
+    "navPricing": "Preise",
+    "navBusiness": "Für Unternehmen",
+    "faqCatPricing": "Preise",
+    "faqCatLearning": "Lernen",
+    "faqCatLevel": "Einstufungstest",
+    "faqCatTeachers": "Lehrer",
+    "faqCatDevices": "Geräte",
+    "faqCatPayments": "Zahlungen"
   },
   "es": {
     "heroLiveBadge": "Se están programando nuevas lecciones en vivo",
@@ -136,7 +144,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li3": "LIVE espacio de trabajo",
     "price3Button": "Empezar a enseñar",
     "footerBrandText": "Idiomas, artes y materias escolares: videos de niveles, lecciones en vivo y eventos con maestros reales, todo en una sola academia.",
-    "contactEmail": "Correo electrónico"
+    "contactEmail": "Correo electrónico",
+    "navPricing": "Precios",
+    "navBusiness": "Para negocios",
+    "faqCatPricing": "Precios",
+    "faqCatLearning": "Aprendizaje",
+    "faqCatLevel": "prueba de nivel",
+    "faqCatTeachers": "Maestros",
+    "faqCatDevices": "Dispositivos",
+    "faqCatPayments": "Pagos"
   },
   "fr": {
     "heroLiveBadge": "De nouveaux cours en direct sont programmés",
@@ -205,7 +221,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Outils de cours et d'événements",
     "price3Li3": "Espace de travail LIVE",
     "price3Button": "Commencer à enseigner",
-    "footerBrandText": "Langues, arts et matières scolaires — vidéos de niveau adapté, cours en direct et événements avec de vrais professeurs, le tout dans une seule académie."
+    "footerBrandText": "Langues, arts et matières scolaires — vidéos de niveau adapté, cours en direct et événements avec de vrais professeurs, le tout dans une seule académie.",
+    "navPricing": "Tarifs",
+    "navBusiness": "Pour les affaires",
+    "faqCatPricing": "Tarifs",
+    "faqCatLearning": "Apprentissage",
+    "faqCatLevel": "Test de niveau",
+    "faqCatTeachers": "Enseignants",
+    "faqCatDevices": "Appareils",
+    "faqCatPayments": "Paiements"
   },
   "it": {
     "heroLiveBadge": "Sono in programma nuove lezioni dal vivo",
@@ -275,7 +299,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li3": "LIVE spazio di lavoro",
     "price3Button": "Inizia l'insegnamento",
     "footerBrandText": "Lingue, arti e materie scolastiche: video adatti ai livelli, lezioni dal vivo ed eventi con insegnanti veri, tutto in un'unica accademia.",
-    "contactEmail": "E-mail"
+    "contactEmail": "E-mail",
+    "navPricing": "Prezzi",
+    "navBusiness": "Per affari",
+    "faqCatPricing": "Prezzi",
+    "faqCatLearning": "Apprendimento",
+    "faqCatLevel": "Prova di livello",
+    "faqCatTeachers": "Insegnanti",
+    "faqCatDevices": "Dispositivi",
+    "faqCatPayments": "Pagamenti"
   },
   "pt": {
     "heroLiveBadge": "Novas aulas ao vivo estão sendo agendadas",
@@ -345,7 +377,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li3": "Espaço de trabalho LIVE",
     "price3Button": "Comece a ensinar",
     "footerBrandText": "Línguas, artes e disciplinas escolares — vídeos de nível correspondente, aulas ao vivo e eventos com professores reais, tudo em uma academia.",
-    "contactEmail": "E-mail"
+    "contactEmail": "E-mail",
+    "navPricing": "Preços",
+    "navBusiness": "Para negócios",
+    "faqCatPricing": "Preços",
+    "faqCatLearning": "Aprendendo",
+    "faqCatLevel": "Teste de nível",
+    "faqCatTeachers": "Professores",
+    "faqCatDevices": "Dispositivos",
+    "faqCatPayments": "Pagamentos"
   },
   "nl": {
     "heroLiveBadge": "Er worden nieuwe live lessen gepland",
@@ -414,7 +454,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Cursus- en evenemententools",
     "price3Li3": "LIVE werkruimte",
     "price3Button": "Begin met lesgeven",
-    "footerBrandText": "Talen, kunst en schoolvakken: video's op hetzelfde niveau, live lessen en evenementen met echte leraren, allemaal in één academie."
+    "footerBrandText": "Talen, kunst en schoolvakken: video's op hetzelfde niveau, live lessen en evenementen met echte leraren, allemaal in één academie.",
+    "navPricing": "Prijzen",
+    "navBusiness": "Voor zaken",
+    "faqCatPricing": "Prijzen",
+    "faqCatLearning": "Leren",
+    "faqCatLevel": "Niveau test",
+    "faqCatTeachers": "Leraren",
+    "faqCatDevices": "Apparaten",
+    "faqCatPayments": "Betalingen"
   },
   "sv": {
     "heroLiveBadge": "Nya livelektioner planeras",
@@ -483,7 +531,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Kurs- och evenemangsverktyg",
     "price3Li3": "LIVE arbetsyta",
     "price3Button": "Börja undervisa",
-    "footerBrandText": "Språk, konst och skolämnen — nivåmatchade videor, livelektioner och evenemang med riktiga lärare, allt i en akademi."
+    "footerBrandText": "Språk, konst och skolämnen — nivåmatchade videor, livelektioner och evenemang med riktiga lärare, allt i en akademi.",
+    "navPricing": "Prissättning",
+    "navBusiness": "För företag",
+    "faqCatPricing": "Prissättning",
+    "faqCatLearning": "Lärande",
+    "faqCatLevel": "Nivåtest",
+    "faqCatTeachers": "Lärare",
+    "faqCatDevices": "Enheter",
+    "faqCatPayments": "Betalningar"
   },
   "no": {
     "heroLiveBadge": "Nye livetimer planlegges",
@@ -552,7 +608,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Kurs- og arrangementsverktøy",
     "price3Li3": "LIVE arbeidsområde",
     "price3Button": "Start undervisningen",
-    "footerBrandText": "Språk, kunst og skolefag — nivåtilpassede videoer, livetimer og arrangementer med ekte lærere, alt i ett akademi."
+    "footerBrandText": "Språk, kunst og skolefag — nivåtilpassede videoer, livetimer og arrangementer med ekte lærere, alt i ett akademi.",
+    "navPricing": "Prissetting",
+    "navBusiness": "For virksomheten",
+    "faqCatPricing": "Prissetting",
+    "faqCatLearning": "Læring",
+    "faqCatLevel": "Nivåtest",
+    "faqCatTeachers": "Lærere",
+    "faqCatDevices": "Enheter",
+    "faqCatPayments": "Betalinger"
   },
   "da": {
     "heroLiveBadge": "Nye livelektioner er ved at blive planlagt",
@@ -621,7 +685,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Kursus- og begivenhedsværktøjer",
     "price3Li3": "LIVE arbejdsområde",
     "price3Button": "Start undervisningen",
-    "footerBrandText": "Sprog, kunst og skolefag — niveaumatchede videoer, livelektioner og begivenheder med rigtige lærere, alt sammen i ét akademi."
+    "footerBrandText": "Sprog, kunst og skolefag — niveaumatchede videoer, livelektioner og begivenheder med rigtige lærere, alt sammen i ét akademi.",
+    "navPricing": "Prissætning",
+    "navBusiness": "For erhvervslivet",
+    "faqCatPricing": "Prissætning",
+    "faqCatLearning": "Læring",
+    "faqCatLevel": "Niveau test",
+    "faqCatTeachers": "Lærere",
+    "faqCatDevices": "Enheder",
+    "faqCatPayments": "Betalinger"
   },
   "fi": {
     "heroLiveBadge": "Uusia live-tunteja järjestetään",
@@ -690,7 +762,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Kurssi- ja tapahtumatyökalut",
     "price3Li3": "LIVE-työtila",
     "price3Button": "Aloita opettaminen",
-    "footerBrandText": "Kielet, taiteet ja kouluaineet – tasokohtaisia videoita, suoria oppitunteja ja tapahtumia oikeiden opettajien kanssa yhdessä akatemiassa."
+    "footerBrandText": "Kielet, taiteet ja kouluaineet – tasokohtaisia videoita, suoria oppitunteja ja tapahtumia oikeiden opettajien kanssa yhdessä akatemiassa.",
+    "navPricing": "Hinnoittelu",
+    "navBusiness": "Liiketoimintaa varten",
+    "faqCatPricing": "Hinnoittelu",
+    "faqCatLearning": "Oppiminen",
+    "faqCatLevel": "Tasotesti",
+    "faqCatTeachers": "Opettajat",
+    "faqCatDevices": "Laitteet",
+    "faqCatPayments": "Maksut"
   },
   "bg": {
     "heroLiveBadge": "Насрочват се нови уроци на живо",
@@ -759,7 +839,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Инструменти за курсове и събития",
     "price3Li3": "LIVE работно пространство",
     "price3Button": "Започнете да преподавате",
-    "footerBrandText": "Езици, изкуства и училищни предмети — видеоклипове за съответстващи нива, уроци на живо и събития с истински учители, всичко това в една академия."
+    "footerBrandText": "Езици, изкуства и училищни предмети — видеоклипове за съответстващи нива, уроци на живо и събития с истински учители, всичко това в една академия.",
+    "navPricing": "Ценообразуване",
+    "navBusiness": "За бизнес",
+    "faqCatPricing": "Ценообразуване",
+    "faqCatLearning": "учене",
+    "faqCatLevel": "Тест за ниво",
+    "faqCatTeachers": "Учители",
+    "faqCatDevices": "устройства",
+    "faqCatPayments": "Плащания"
   },
   "bs": {
     "heroLiveBadge": "Nove lekcije uživo su zakazane",
@@ -848,7 +936,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "Nema izmišljenih recenzija",
     "trust2Text": "Imena uzoraka, ocjene, ukupan broj pratilaca i neprovjerene tvrdnje o napretku su uklonjene.",
     "trust3Title": "Jasna cijena",
-    "trust3Text": "Kreiranje naloga je besplatno. Nezavisne ponude nastavnika prikazuju svoju cijenu prije kupovine."
+    "trust3Text": "Kreiranje naloga je besplatno. Nezavisne ponude nastavnika prikazuju svoju cijenu prije kupovine.",
+    "navPricing": "Pricing",
+    "navBusiness": "Za posao",
+    "faqCatPricing": "Pricing",
+    "faqCatLearning": "Učenje",
+    "faqCatLevel": "Test nivoa",
+    "faqCatTeachers": "Nastavnici",
+    "faqCatDevices": "Uređaji",
+    "faqCatPayments": "Plaćanja"
   },
   "hr": {
     "heroLiveBadge": "Nove lekcije uživo su u rasporedu",
@@ -937,7 +1033,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "Nema izmišljenih recenzija",
     "trust2Text": "Uklonjeni su ogledni nazivi, ocjene, ukupni broj sljedbenika i neprovjerene tvrdnje o napretku.",
     "trust3Title": "Jasna cijena",
-    "trust3Text": "Stvaranje računa je besplatno. Nezavisni učitelj nudi prikaz vlastite cijene prije kupnje."
+    "trust3Text": "Stvaranje računa je besplatno. Nezavisni učitelj nudi prikaz vlastite cijene prije kupnje.",
+    "navPricing": "Cijene",
+    "navBusiness": "Za posao",
+    "faqCatPricing": "Cijene",
+    "faqCatLearning": "Učenje",
+    "faqCatLevel": "Test razine",
+    "faqCatTeachers": "Učitelji",
+    "faqCatDevices": "Uređaji",
+    "faqCatPayments": "Plaćanja"
   },
   "mk": {
     "heroLiveBadge": "Се закажуваат нови часови во живо",
@@ -1006,7 +1110,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Алатки за курсеви и настани",
     "price3Li3": "LIVE работен простор",
     "price3Button": "###СТАВЕ11### Започнете со предавање",
-    "footerBrandText": "Јазици, уметности и училишни предмети — видеа споредени на нивоа, часови во живо и настани со вистински наставници, се во една академија."
+    "footerBrandText": "Јазици, уметности и училишни предмети — видеа споредени на нивоа, часови во живо и настани со вистински наставници, се во една академија.",
+    "navPricing": "Цените",
+    "navBusiness": "За бизнис",
+    "faqCatPricing": "Цените",
+    "faqCatLearning": "Учење",
+    "faqCatLevel": "Тест на ниво",
+    "faqCatTeachers": "Наставниците",
+    "faqCatDevices": "Уреди",
+    "faqCatPayments": "Плаќања"
   },
   "ro": {
     "heroLiveBadge": "Noi lecții live sunt programate",
@@ -1076,7 +1188,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li3": "LIVE spațiu de lucru",
     "price3Button": "Începeți să predați",
     "footerBrandText": "Limbi străine, arte și materii școlare — videoclipuri la nivel, lecții live și evenimente cu profesori adevărați, toate într-o singură academie.",
-    "contactEmail": "E-mail"
+    "contactEmail": "E-mail",
+    "navPricing": "Prețuri",
+    "navBusiness": "Pentru afaceri",
+    "faqCatPricing": "Prețuri",
+    "faqCatLearning": "Învățare",
+    "faqCatLevel": "Test de nivel",
+    "faqCatTeachers": "Profesori",
+    "faqCatDevices": "Dispozitive",
+    "faqCatPayments": "Plăți"
   },
   "sr": {
     "heroLiveBadge": "###ИТЕМ0### Нови часови уживо су заказани",
@@ -1165,7 +1285,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "###ИТЕМ11### Нема измишљених рецензија",
     "trust2Text": "###ИТЕМ12### Примери имена, оцене, укупан број пратилаца и непроверене тврдње о напретку су уклоњене.",
     "trust3Title": "###ИТЕМ13### Јасна цена",
-    "trust3Text": "###ИТЕМ14### Креирање налога је бесплатно. Понуде независних наставника приказују сопствену цену пре куповине."
+    "trust3Text": "###ИТЕМ14### Креирање налога је бесплатно. Понуде независних наставника приказују сопствену цену пре куповине.",
+    "navPricing": "Прицинг",
+    "navBusiness": "За посао",
+    "faqCatPricing": "Прицинг",
+    "faqCatLearning": "Учење",
+    "faqCatLevel": "Тест нивоа",
+    "faqCatTeachers": "Наставници",
+    "faqCatDevices": "Уређаји",
+    "faqCatPayments": "Паиментс"
   },
   "sl": {
     "heroLiveBadge": "Načrtujejo se nove lekcije v živo",
@@ -1254,7 +1382,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "Brez izmišljenih ocen",
     "trust2Text": "Vzorčna imena, ocene, skupno število sledilcev in nepreverjene trditve o napredku so bile odstranjene.",
     "trust3Title": "Jasna cena",
-    "trust3Text": "Ustvarjanje računa je brezplačno. Neodvisni učitelj ponuja prikaz lastne cene pred nakupom."
+    "trust3Text": "Ustvarjanje računa je brezplačno. Neodvisni učitelj ponuja prikaz lastne cene pred nakupom.",
+    "navPricing": "Cene",
+    "navBusiness": "Za posel",
+    "faqCatPricing": "Cene",
+    "faqCatLearning": "Učenje",
+    "faqCatLevel": "Test nivoja",
+    "faqCatTeachers": "Učitelji",
+    "faqCatDevices": "Naprave",
+    "faqCatPayments": "Plačila"
   },
   "pl": {
     "heroLiveBadge": "Zaplanowano nowe lekcje na żywo",
@@ -1343,7 +1479,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "###ELEMENT11### Brak wymyślonych recenzji",
     "trust2Text": "Przykładowe nazwy, oceny, łączna liczba obserwujących i niezweryfikowane roszczenia dotyczące postępu zostały usunięte.",
     "trust3Title": "###ELEMENT13### Jasne ceny",
-    "trust3Text": "Założenie konta jest bezpłatne. Oferty niezależnych nauczycieli wyświetlają własną cenę przed zakupem."
+    "trust3Text": "Założenie konta jest bezpłatne. Oferty niezależnych nauczycieli wyświetlają własną cenę przed zakupem.",
+    "navPricing": "Ceny",
+    "navBusiness": "Dla biznesu",
+    "faqCatPricing": "Ceny",
+    "faqCatLearning": "Nauka",
+    "faqCatLevel": "Próba poziomu",
+    "faqCatTeachers": "Nauczyciele",
+    "faqCatDevices": "Urządzenia",
+    "faqCatPayments": "Płatności"
   },
   "cs": {
     "heroLiveBadge": "Nové živé lekce jsou naplánovány",
@@ -1432,7 +1576,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "Žádné vymyšlené recenze",
     "trust2Text": "Vzorová jména, hodnocení, celkové počty sledujících a neověřené nároky na postup byly odstraněny.",
     "trust3Title": "Jasná cena",
-    "trust3Text": "Vytvoření účtu je zdarma. Nabídky nezávislých učitelů zobrazují před nákupem vlastní cenu."
+    "trust3Text": "Vytvoření účtu je zdarma. Nabídky nezávislých učitelů zobrazují před nákupem vlastní cenu.",
+    "navPricing": "Ceny",
+    "navBusiness": "Pro podnikání",
+    "faqCatPricing": "Ceny",
+    "faqCatLearning": "Učení",
+    "faqCatLevel": "Test úrovně",
+    "faqCatTeachers": "Učitelé",
+    "faqCatDevices": "Zařízení",
+    "faqCatPayments": "Platby"
   },
   "sq": {
     "heroLiveBadge": "Po planifikohen mësime të reja drejtpërdrejt",
@@ -1502,7 +1654,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li3": "LIVE hapësira e punës",
     "price3Button": "###ARTIKU11### Filloni të mësoni",
     "footerBrandText": "Gjuhë, arte dhe lëndë shkollore — video të përputhura me nivele, mësime të drejtpërdrejta dhe ngjarje me mësues të vërtetë, të gjitha në një akademi.",
-    "contactEmail": "###ARTIKU13### Email"
+    "contactEmail": "###ARTIKU13### Email",
+    "navPricing": "Çmimet",
+    "navBusiness": "Për biznes",
+    "faqCatPricing": "Çmimet",
+    "faqCatLearning": "Të mësuarit",
+    "faqCatLevel": "Testi i nivelit",
+    "faqCatTeachers": "Mësuesit",
+    "faqCatDevices": "Pajisjet",
+    "faqCatPayments": "Pagesat"
   },
   "tr": {
     "heroLiveBadge": "Yeni canlı dersler planlanıyor",
@@ -1591,7 +1751,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "Uydurulmuş inceleme yok",
     "trust2Text": "Örnek adlar, derecelendirmeler, takipçi toplamları ve doğrulanmamış ilerleme talepleri kaldırıldı.",
     "trust3Title": "Net fiyatlandırma",
-    "trust3Text": "Hesap oluşturmak ücretsizdir. Bağımsız öğretmen teklifleri satın almadan önce kendi fiyatlarını gösterir."
+    "trust3Text": "Hesap oluşturmak ücretsizdir. Bağımsız öğretmen teklifleri satın almadan önce kendi fiyatlarını gösterir.",
+    "navPricing": "Fiyatlandırma",
+    "navBusiness": "İş için",
+    "faqCatPricing": "Fiyatlandırma",
+    "faqCatLearning": "Öğrenme",
+    "faqCatLevel": "Seviye testi",
+    "faqCatTeachers": "Öğretmenler",
+    "faqCatDevices": "Cihazlar",
+    "faqCatPayments": "Ödemeler"
   },
   "ru": {
     "friendsTag": "ОДНА КОМАНДА. ВАШ ПРОГРЕСС.",
@@ -1648,7 +1816,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Инструменты курсов и мероприятий",
     "price3Li3": "LIVE рабочая область",
     "price3Button": "Начать обучение",
-    "contactEmail": "Электронная почта"
+    "contactEmail": "Электронная почта",
+    "navPricing": "????",
+    "navBusiness": "??? ???????",
+    "faqCatPricing": "????",
+    "faqCatLearning": "????????",
+    "faqCatLevel": "???? ??????",
+    "faqCatTeachers": "?????????????",
+    "faqCatDevices": "??????????",
+    "faqCatPayments": "???????"
   },
   "uk": {
     "friendsTag": "ОДНА КОМАНДА. ВАШ ПРОГРЕС.",
@@ -1705,7 +1881,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Інструменти для курсів і заходів",
     "price3Li3": "LIVE робоче середовище",
     "price3Button": "Почніть викладати",
-    "contactEmail": "Електронна пошта"
+    "contactEmail": "Електронна пошта",
+    "navPricing": "Ціноутворення",
+    "navBusiness": "Для бізнесу",
+    "faqCatPricing": "Ціноутворення",
+    "faqCatLearning": "навчання",
+    "faqCatLevel": "Тест рівня",
+    "faqCatTeachers": "Вчителі",
+    "faqCatDevices": "Пристрої",
+    "faqCatPayments": "Платежі"
   },
   "kk": {
     "friendsTag": "###0### БІР КОМАНДА. СІЗДІҢ ПРОГРЕССІҢІЗ.",
@@ -1762,7 +1946,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Курс және оқиға құралдары",
     "price3Li3": "LIVE жұмыс кеңістігі",
     "price3Button": "Оқытуды бастаңыз",
-    "contactEmail": "Электрондық пошта"
+    "contactEmail": "Электрондық пошта",
+    "navPricing": "Баға белгілеу",
+    "navBusiness": "Бизнес үшін",
+    "faqCatPricing": "Баға белгілеу",
+    "faqCatLearning": "Үйрену",
+    "faqCatLevel": "Деңгейлік тест",
+    "faqCatTeachers": "Мұғалімдер",
+    "faqCatDevices": "Құрылғылар",
+    "faqCatPayments": "Төлемдер"
   },
   "az": {
     "heroLiveBadge": "Yeni canlı dərslər planlaşdırılır",
@@ -1851,7 +2043,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "İxtira edilmiş rəy yoxdur",
     "trust2Text": "Nümunə adlar, reytinqlər, izləyicilərin ümumi sayı və təsdiqlənməmiş irəliləyiş iddiaları silindi.",
     "trust3Title": "Qiyməti aydınlaşdırın",
-    "trust3Text": "Hesab yaratmaq pulsuzdur. Müstəqil müəllim təklifləri satın almadan əvvəl öz qiymətini göstərir."
+    "trust3Text": "Hesab yaratmaq pulsuzdur. Müstəqil müəllim təklifləri satın almadan əvvəl öz qiymətini göstərir.",
+    "navPricing": "Qiymətləndirmə",
+    "navBusiness": "Biznes üçün",
+    "faqCatPricing": "Qiymətləndirmə",
+    "faqCatLearning": "Öyrənmək",
+    "faqCatLevel": "Səviyyə testi",
+    "faqCatTeachers": "Müəllimlər",
+    "faqCatDevices": "Cihazlar",
+    "faqCatPayments": "Ödənişlər"
   },
   "uz": {
     "heroLiveBadge": "Yangi jonli darslar rejalashtirilgan",
@@ -1940,7 +2140,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "O'ylab topilgan sharhlar yo'q",
     "trust2Text": "Namuna nomlari, reytinglari, kuzatuvchilarning umumiy soni va tasdiqlanmagan daʼvolar olib tashlandi.",
     "trust3Title": "Aniq narxlar",
-    "trust3Text": "Hisob yaratish bepul. Mustaqil o'qituvchi takliflari sotib olishdan oldin o'z narxini ko'rsatadi."
+    "trust3Text": "Hisob yaratish bepul. Mustaqil o'qituvchi takliflari sotib olishdan oldin o'z narxini ko'rsatadi.",
+    "navPricing": "Narxlash",
+    "navBusiness": "Biznes uchun",
+    "faqCatPricing": "Narxlash",
+    "faqCatLearning": "O'rganish",
+    "faqCatLevel": "Daraja testi",
+    "faqCatTeachers": "O'qituvchilar",
+    "faqCatDevices": "Qurilmalar",
+    "faqCatPayments": "To'lovlar"
   },
   "tg": {
     "friendsTag": "ЯК КОМАНДА. ПЕШРАФТИ ШУМО.",
@@ -1997,7 +2205,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "Воситаҳои курс ва чорабиниҳо",
     "price3Li3": "LIVE фазои кории",
     "price3Button": "Ба таълим шурӯъ кунед",
-    "contactEmail": "Почтаи электронӣ"
+    "contactEmail": "Почтаи электронӣ",
+    "navPricing": "Нархгузорӣ",
+    "navBusiness": "Барои тиҷорат",
+    "faqCatPricing": "Нархгузорӣ",
+    "faqCatLearning": "Омӯзиш",
+    "faqCatLevel": "Санҷиши сатҳи",
+    "faqCatTeachers": "Муаллимон",
+    "faqCatDevices": "Дастгоҳҳо",
+    "faqCatPayments": "Пардохтҳо"
   },
   "ar": {
     "friendsTag": "فريق واحد. التقدم المحرز الخاص بك.",
@@ -2053,7 +2269,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li1": "الملف الشخصي للتدريس",
     "price3Li2": "أدوات الدورة والفعاليات",
     "price3Li3": "LIVE مساحة العمل",
-    "price3Button": "ابدأ التدريس"
+    "price3Button": "ابدأ التدريس",
+    "navPricing": "???????",
+    "navBusiness": "???????",
+    "faqCatPricing": "???????",
+    "faqCatLearning": "??????",
+    "faqCatLevel": "?????? ???????",
+    "faqCatTeachers": "????????",
+    "faqCatDevices": "???????",
+    "faqCatPayments": "?????????"
   },
   "vi": {
     "heroLiveBadge": "Các bài học trực tiếp mới đang được lên lịch",
@@ -2152,7 +2376,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "trust2Title": "Không có đánh giá sáng tạo nào",
     "trust2Text": "Tên mẫu, xếp hạng, tổng số người theo dõi và xác nhận tiến độ chưa được xác minh đã bị xóa.",
     "trust3Title": "Giá cả rõ ràng",
-    "trust3Text": "Tạo tài khoản miễn phí. Giáo viên độc lập cung cấp hiển thị giá riêng của họ trước khi mua hàng."
+    "trust3Text": "Tạo tài khoản miễn phí. Giáo viên độc lập cung cấp hiển thị giá riêng của họ trước khi mua hàng.",
+    "navPricing": "giá cả",
+    "navBusiness": "Dành cho doanh nghiệp",
+    "faqCatPricing": "giá cả",
+    "faqCatLearning": "học tập",
+    "faqCatLevel": "Kiểm tra trình độ",
+    "faqCatTeachers": "giáo viên",
+    "faqCatDevices": "Thiết bị",
+    "faqCatPayments": "Thanh toán"
   },
   "zh": {
     "heroLiveBadge": "# 新的直播课程正在安排中",
@@ -2221,7 +2453,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "课程和活动工具",
     "price3Li3": "LIVE 工作区",
     "price3Button": "开始教学",
-    "footerBrandText": "语言、艺术和学校科目 — 水平匹配的视频、现场课程和由真正的老师参与的活动，全部在一所学院中。"
+    "footerBrandText": "语言、艺术和学校科目 — 水平匹配的视频、现场课程和由真正的老师参与的活动，全部在一所学院中。",
+    "navPricing": "定价",
+    "navBusiness": "商务用",
+    "faqCatPricing": "定价",
+    "faqCatLearning": "学习",
+    "faqCatLevel": "水平测试",
+    "faqCatTeachers": "教师队伍",
+    "faqCatDevices": "设备",
+    "faqCatPayments": "付款方式"
   },
   "ja": {
     "heroLiveBadge": "新しいライブレッスンがスケジュールされています",
@@ -2290,7 +2530,15 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "コースおよびイベントツール",
     "price3Li3": "LIVE ワークスペース",
     "price3Button": "指導を開始する",
-    "footerBrandText": "言語、芸術、学校の科目 - レベルに合わせたビデオ、実際の教師によるライブ レッスン、イベントがすべて 1 つのアカデミーにあります。"
+    "footerBrandText": "言語、芸術、学校の科目 - レベルに合わせたビデオ、実際の教師によるライブ レッスン、イベントがすべて 1 つのアカデミーにあります。",
+    "navPricing": "価格設定",
+    "navBusiness": "ビジネス向け",
+    "faqCatPricing": "価格設定",
+    "faqCatLearning": "学習",
+    "faqCatLevel": "レベルテスト",
+    "faqCatTeachers": "教師",
+    "faqCatDevices": "デバイス",
+    "faqCatPayments": "支払い"
   },
   "ko": {
     "heroLiveBadge": "새로운 실시간 수업이 예정되어 있습니다",
@@ -2359,7 +2607,25 @@ window.DUVELA_LANDING_2026_AUTO = {
     "price3Li2": "강좌 및 이벤트 도구",
     "price3Li3": "LIVE 작업 공간",
     "price3Button": "강의 시작",
-    "footerBrandText": "언어, 예술 및 학교 과목 — 레벨 매칭 비디오, 실제 교사와의 라이브 수업 및 이벤트가 모두 하나의 아카데미에 있습니다."
+    "footerBrandText": "언어, 예술 및 학교 과목 — 레벨 매칭 비디오, 실제 교사와의 라이브 수업 및 이벤트가 모두 하나의 아카데미에 있습니다.",
+    "navPricing": "가격",
+    "navBusiness": "비즈니스용",
+    "faqCatPricing": "가격",
+    "faqCatLearning": "학습",
+    "faqCatLevel": "레벨 테스트",
+    "faqCatTeachers": "교사",
+    "faqCatDevices": "장치",
+    "faqCatPayments": "결제"
+  },
+  "fa": {
+    "navPricing": "قیمت‌گذاری",
+    "navBusiness": "برای کسب‌وکار",
+    "faqCatPricing": "قیمت‌گذاری",
+    "faqCatLearning": "یادگیری",
+    "faqCatLevel": "آزمون سطح",
+    "faqCatTeachers": "معلمان",
+    "faqCatDevices": "دستگاه‌ها",
+    "faqCatPayments": "پرداخت‌ها"
   }
 };
 (function(){
