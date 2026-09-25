@@ -42,7 +42,14 @@ Deno.serve(async (req) => {
     .select("follower_id").eq("following_id", session.teacher_id);
   if (followersError) return json({ error: followersError.message }, 500);
 
-  const recipientIds = [...new Set((followers || []).map((row) => row.follower_id).filter(Boolean))];
+  const { data: registrants, error: registrantsError } = await service.from("live_registrations")
+    .select("user_id").eq("session_id", sessionId);
+  if (registrantsError) return json({ error: registrantsError.message }, 500);
+
+  const recipientIds = [...new Set([
+    ...(followers || []).map((row) => row.follower_id),
+    ...(registrants || []).map((row) => row.user_id),
+  ].filter((id) => id && id !== session.teacher_id))];
   const teacherName = session.teacher_name || "Duvela teacher";
   const topic = session.topic || "LIVE lesson";
   if (recipientIds.length) {
