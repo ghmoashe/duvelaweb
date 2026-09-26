@@ -1977,6 +1977,48 @@ async function callJsonModel(prompt: string, maxTokens: number): Promise<JsonRec
   }
 }
 
+// "You can say" chips: two short replies the learner could give to the partner's LAST message,
+// each with a translation into the learner's native language. Strictly about the conversation.
+async function handleSuggestReplies(input: {
+  assistantText: string;
+  history: ConversationHistoryMessage[];
+  locale: string;
+  levelRange: string;
+  nativeLocale: string;
+  partnerName: string;
+}) {
+  const targetName = getLanguageName(input.locale || "de");
+  const nativeName = getLanguageName(input.nativeLocale || "en");
+  const transcript = input.history
+    .slice(-6)
+    .map((message) => `${message.role === "assistant" ? input.partnerName || "Partner" : "Learner"}: ${message.text}`)
+    .join("\n");
+
+  const prompt = [
+    `A ${input.levelRange} ${targetName} learner is chatting with ${input.partnerName || "a conversation partner"}.`,
+    transcript ? `Conversation so far:\n${transcript}` : "",
+    `The partner's LAST message: "${input.assistantText}"`,
+    `Write exactly 2 different short replies (max 12 words each, simple ${input.levelRange}-level ${targetName}) the learner could say NEXT.`,
+    "Each reply must directly answer or react to the partner's last message and continue THIS conversation. Never change the topic, never invent a new topic.",
+    `For each reply also give a natural ${nativeName} translation.`,
+    'Return JSON: {"replies":[{"text":"...","native":"..."},{"text":"...","native":"..."}]}',
+  ].filter(Boolean).join("\n");
+
+  const parsed = await callJsonModel(prompt, 300);
+  const replies = (Array.isArray(parsed.replies) ? parsed.replies : [])
+    .map((item) => {
+      const record = (item && typeof item === "object" ? item : {}) as JsonRecord;
+      return {
+        text: typeof record.text === "string" ? record.text.replace(/\s+/g, " ").trim() : "",
+        native: typeof record.native === "string" ? record.native.replace(/\s+/g, " ").trim() : "",
+      };
+    })
+    .filter((reply) => reply.text)
+    .slice(0, 2);
+
+  return json(200, { replies });
+}
+
 // Generate a reading / listening / writing exam module for the full ELSA exam.
 async function handleGenerateExamModule(input: {
   board: string;
@@ -2963,9 +3005,23 @@ Deno.serve(async (req) => {
       action !== "evaluate_exam" &&
       action !== "generate_exam_module" &&
       action !== "evaluate_exam_writing" &&
-      action !== "check_pronunciation"
+      action !== "check_pronunciation" &&
+      action !== "suggest_replies"
     ) {
       return json(400, { error: "Unsupported action." });
+    }
+
+    if (action === "suggest_replies") {
+      const assistantText = typeof body.assistantText === "string" ? body.assistantText.trim().slice(0, 1200) : "";
+      if (!assistantText) return json(400, { error: "assistantText is required." });
+      return handleSuggestReplies({
+        assistantText,
+        history: normalizeConversationHistory(body.history),
+        locale: typeof body.locale === "string" ? body.locale : "de",
+        levelRange: typeof body.levelRange === "string" && body.levelRange.trim() ? body.levelRange.trim().toUpperCase() : "A1-A2",
+        nativeLocale: typeof body.nativeLocale === "string" ? body.nativeLocale : "en",
+        partnerName: typeof body.partnerName === "string" ? body.partnerName.trim() : "",
+      });
     }
 
     if (action === "evaluate_exam") {
