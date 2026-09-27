@@ -312,6 +312,25 @@
           <tbody id="finTxBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
+      <div class="card">
+        <h2>Teacher payout requests</h2>
+        <p class="lead">Teachers convert LIVE gift/paid-minute earnings to DV coin, then request a payout here — the DV is already debited. Pay them outside the app, then mark Paid; Reject refunds the DV.</p>
+        <div class="row" style="grid-template-columns:auto 1fr;">
+          <div class="field"><label>Status</label>
+            <select id="payoutStatusFilter">
+              <option value="pending" selected>Pending</option>
+              <option value="paid">Paid</option>
+              <option value="rejected">Rejected</option>
+              <option value="">All</option>
+            </select>
+          </div>
+        </div>
+        <table style="margin-top:12px;">
+          <thead><tr><th class="tight">When</th><th>Teacher</th><th>DV</th><th>Method</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="payoutBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+        <div class="msg" id="payoutMsg"></div>
+      </div>
     </div>
 
     <!-- BULK OPS -->

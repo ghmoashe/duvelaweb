@@ -264,7 +264,47 @@
         '</tr>';
       }).join('');
     }
+
+    await loadPayoutRequests();
   }
+
+  // ── Teacher payout requests ──────────────────────────────────────────────
+  document.getElementById('payoutStatusFilter').addEventListener('change', loadPayoutRequests);
+  async function loadPayoutRequests() {
+    var status = document.getElementById('payoutStatusFilter').value || null;
+    var res = await client.rpc('admin_list_payout_requests', { status_filter: status });
+    var body = document.getElementById('payoutBody');
+    if (res.error) { body.innerHTML = '<tr><td colspan="7" class="empty">' + esc(res.error.message) + '</td></tr>'; return; }
+    if (!res.data || res.data.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No payout requests.</td></tr>'; return; }
+    var pillClass = { pending: 'open', paid: 'handled', rejected: 'cancelled' };
+    body.innerHTML = res.data.map(function (r) {
+      var actions = r.status === 'pending'
+        ? '<button class="btn small" data-payout-act="paid" data-payout-id="' + r.id + '">Mark paid</button> ' +
+          '<button class="btn small danger" data-payout-act="rejected" data-payout-id="' + r.id + '">Reject</button>'
+        : (r.admin_note ? esc(r.admin_note) : '—');
+      return '<tr>' +
+        '<td class="tight">' + fmtDateTime(r.created_at) + '</td>' +
+        '<td>' + esc(r.teacher_name || r.teacher_email || r.teacher_id) + '</td>' +
+        '<td><strong>' + r.amount_dv + '</strong></td>' +
+        '<td>' + esc(r.method) + '</td>' +
+        '<td>' + esc(r.details || '—') + '</td>' +
+        '<td><span class="pill ' + (pillClass[r.status] || 'open') + '">' + esc(r.status) + '</span></td>' +
+        '<td>' + actions + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+  document.getElementById('payoutBody').addEventListener('click', async function (e) {
+    var btn = e.target.closest('[data-payout-act]');
+    if (!btn) return;
+    var status = btn.dataset.payoutAct;
+    var note = status === 'rejected' ? window.prompt('Reason for rejecting (optional):') : window.prompt('Payout reference / note (optional):');
+    if (note === null) return; // cancelled
+    btn.disabled = true;
+    var r = await client.rpc('admin_set_payout_status', { p_request_id: btn.dataset.payoutId, p_status: status, p_note: note });
+    if (r.error) { msg('payoutMsg', r.error.message, 'err'); btn.disabled = false; return; }
+    msg('payoutMsg', '✓ Request ' + status, 'ok');
+    await loadPayoutRequests();
+  });
 
   // ── Bulk ops ─────────────────────────────────────────────────────────────
   async function loadBulkAccounts() {
