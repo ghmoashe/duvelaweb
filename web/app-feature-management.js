@@ -179,9 +179,9 @@
       } else {
         html += emptyCard(IC.cal,
           eventsSub === 'upcoming' ? tr('No upcoming events', 'Нет предстоящих событий') : tr('No past events', 'Нет прошедших событий'),
-          eventsSub === 'upcoming' ? tr('Create an event and it will appear here.', 'Создайте событие — и оно появится здесь.') : tr('Past events will be listed here.', 'Здесь будут показаны прошедшие события.'),
-          eventsSub === 'upcoming' ? tr('Create event', 'Создать событие') : null,
-          'data-mg-new-event');
+          eventsSub === 'upcoming' ? tr('Use the New event button above to add a workshop, class meetup or online session.', 'Используйте кнопку «Новое событие» выше, чтобы добавить воркшоп, встречу или онлайн-сессию.') : tr('Past events will be listed here.', 'Здесь будут показаны прошедшие события.'),
+          null,
+          '');
       }
       return html;
     }
@@ -334,12 +334,9 @@
             '<div><span class="mg-row-ic teal">' + IC.book + '</span><b>' + courses.length + '</b><p>' + esc(tr('Courses total', 'Курсов всего')) + '</p></div>' +
             '<div><span class="mg-row-ic purple">' + IC.trophy + '</span><b>' + (data.challenges || []).length + '</b><p>' + esc(tr('Challenges', 'Челленджи')) + '</p></div>' +
             '<div><span class="mg-row-ic red">' + IC.live + '</span><b>' + online.length + '</b><p>' + esc(tr('Online', 'Онлайн')) + '</p></div>' +
-          '</div></section>' +
-        '<section class="mg-side-card"><div class="mg-side-head"><h3>' + esc(tr('Next live session', 'Ближайшая live-сессия')) + '</h3><a href="#management" data-go="management" data-management-tab="live">' + esc(tr('Open', 'Открыть')) + ' →</a></div>' +
-          (next ? '<div class="mg-next-live"><span class="mg-row-ic red">' + IC.live + '</span><div><b>' + esc(next.title || tr('Live session', 'Live-сессия')) + '</b><p>' + esc(eventWhen(next)) + '</p></div></div><button type="button" class="mg-btn-solid" data-mg-schedule-live>' + esc(tr('Start planning', 'Запланировать')) + '</button>' : '<div class="mg-next-live empty"><span class="mg-row-ic red">' + IC.live + '</span><div><b>' + esc(tr('No live planned', 'Live пока не запланирован')) + '</b><p>' + esc(tr('Create an online event or Zoom lesson.', 'Создайте онлайн-событие или Zoom-урок.')) + '</p></div></div>') +
+          '</div>' +
+          '<div class="mg-next-inline"><span class="mg-row-ic red">' + IC.live + '</span><div><b>' + esc(tr('Next live', 'Ближайший LIVE')) + '</b><p>' + esc(next ? ((next.title || tr('Live session', 'Live-сессия')) + ' · ' + eventWhen(next)) : tr('No live planned yet', 'LIVE пока не запланирован')) + '</p></div><a href="#management" data-go="management" data-management-tab="live">' + esc(tr('Open', 'Открыть')) + '</a></div>' +
         '</section>' +
-        '<section class="mg-side-card"><div class="mg-side-head"><h3>' + esc(tr('Challenge of the month', 'Челлендж месяца')) + '</h3><a href="#management" data-go="management">' + esc(tr('View all', 'Все')) + ' →</a></div>' +
-          '<div class="mg-challenge-side"><span class="mg-row-ic purple">' + IC.trophy + '</span><div><b>7-Day Teaching Challenge</b><p>' + esc(tr('Host 7 days in a row and inspire learners.', 'Проведите 7 дней подряд и вдохновите учеников.')) + '</p><em><u style="width:71%"></u></em><small>5/7</small></div></div></section>' +
         '<section class="mg-quote">"' + esc(tr('Good teachers change more than lessons.', 'Хорошие учителя меняют больше, чем уроки.')) + '"<span>- Duvela</span></section>' +
       '</aside>';
     }

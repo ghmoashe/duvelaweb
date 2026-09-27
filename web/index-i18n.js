@@ -286,7 +286,7 @@
       ['#trustTeachers span', 'heroTrustTeachers'],
       ['#trustCourses span', 'heroTrustCourses'],
       ['#trustLive span', 'heroTrustLive'],
-      ['.hero-handwriting p', 'heroHandwriting', true],
+      ['.corner-message p', 'heroHandwriting', true],
       ['#friends .sec-kicker', 'friendsKicker'],
       ['#friends .sec-title', 'friendsTitle', true],
       ['#friends .sec-sub', 'friendsSub'],

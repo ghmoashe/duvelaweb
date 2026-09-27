@@ -25,6 +25,7 @@ npm-debug.log*
 dist/
 build/
 .classroom-build/
+.practices-build/
 supabase/.temp/
 
 # Large media files (host separately)

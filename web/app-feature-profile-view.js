@@ -171,23 +171,44 @@
       const ratingText = stats && stats.rating ? stats.rating.toFixed(1) : '0.0';
       const studentsText = stats ? String(stats.students) : '0';
       const lessonsText = stats ? String(stats.lessons) : '0';
-      const bioText = p.bio || tr('Tell students who you help, what level you teach, and how your lessons feel.', 'Tell students who you help, what level you teach, and how your lessons feel.');
+      const bioText = p.bio || tr('Tell students who you help, what level you teach, and how your lessons feel.', 'Расскажите ученикам, кому вы помогаете, какой у вас уровень и как проходят ваши уроки.');
       const spec = data.specialization.length ? data.specialization : ['Conversation', 'Grammar', 'Pronunciation'];
+      const nameParts = String(name || tr('Duvela', 'Duvela')).trim().split(/\s+/);
+      const heroFirstName = nameParts.shift() || name;
+      const heroLastName = nameParts.join(' ');
+      const heroLocation = location || '';
+      // Only surface chips backed by real profile data — no marketing copy
+      // pretending to describe this specific teacher's offerings.
+      const featureChips = [];
+      if (data.teaches.length) featureChips.push({ label: teachText, type: 'languages', icon: IC.lang });
+      if (p.language_level) featureChips.push({ label: p.language_level, type: 'level', icon: IC.cap });
+      data.specialization.slice(0, 3).forEach(function (s) {
+        featureChips.push({ label: s, type: 'career', icon: IC.gift });
+      });
+      const activeCover = String(p.cover_url || 'preset:duvela').replace(/^preset:/, '') || 'duvela';
       let html = '<div class="pv-desktop"><main class="pv-main">';
       html += '<section class="pv-hero" style="' + data.cover + '">' +
         '<p class="pv-quote">"' + esc(tr('Languages open doors - good teaching makes the way easier.', 'Languages open doors - good teaching makes the way easier.')) + '"</p>' +
         '<button type="button" class="pv-hero-edit" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit Profile', 'Edit Profile')) + '</span></button>' +
-        '<span class="pv-hero-avatar">' + ctx.avatarInner(name, p.avatar_url) +
-          '<button type="button" class="pv-avatar-cam" id="pvAvatarCam" aria-label="' + esc(tr('Change photo', 'Change photo')) + '">' + IC.cam + '</button>' +
-        '</span>' +
-        '<div class="pv-hero-main"><h2>' + esc(name) + awardBadge('hero') + '</h2>' +
-          (location ? '<div class="pv-hero-loc">' + IC.loc + '<span>' + esc(location) + '</span></div>' : '') +
+        '<div class="pv-identity-row">' +
+          '<span class="pv-hero-avatar">' + ctx.avatarInner(name, p.avatar_url) +
+            '<button type="button" class="pv-avatar-cam" id="pvAvatarCam" aria-label="' + esc(tr('Change photo', 'Change photo')) + '">' + IC.cam + '</button>' +
+          '</span>' +
+          '<div class="pv-hero-main"><h2><span>' + esc(heroFirstName) + '</span>' + (heroLastName ? '<span>' + esc(heroLastName) + '</span>' : '') + '</h2>' + awardBadge('hero') +
+            (heroLocation ? '<div class="pv-hero-loc">' + IC.loc + '<span>' + esc(heroLocation) + '</span></div>' : '') +
+          '</div>' +
         '</div>' +
         '<div class="pv-avatar-panel"><button type="button" class="pv-cover-cam" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Change cover')) + '">' + IC.cam + '</button><b>' + esc(tr('Avatar & cover', 'Avatar & cover')) + '</b><span>JPG, PNG, WebP</span><div class="pv-media-actions"><button type="button" class="pv-small-outline" id="pvAvatarPick">' + esc(tr('Change avatar', 'Change avatar')) + '</button><button type="button" class="pv-small-outline" id="pvCoverPick">' + esc(tr('Change cover', 'Change cover')) + '</button><button type="button" class="pv-small-danger" id="pvAvatarRemove"' + (!p.avatar_url ? ' disabled' : '') + '>' + esc(tr('Remove avatar', 'Remove avatar')) + '</button><button type="button" class="pv-small-danger" id="pvCoverRemove"' + (!p.cover_url ? ' disabled' : '') + '>' + esc(tr('Remove cover', 'Remove cover')) + '</button></div><div class="pv-cover-presets"><button type="button" class="pv-cover-preset duvela" data-cover-preset="duvela"><i></i>Duvela</button><button type="button" class="pv-cover-preset ocean" data-cover-preset="ocean"><i></i>Ocean</button><button type="button" class="pv-cover-preset sunset" data-cover-preset="sunset"><i></i>Sunset</button><button type="button" class="pv-cover-preset premium" data-cover-preset="premium"><i></i>Pro</button><button type="button" class="pv-cover-preset fresh" data-cover-preset="fresh"><i></i>Fresh</button></div></div>' +
+        (featureChips.length ? '<div class="pv-hero-tags pv-reference-tags">' + featureChips.map(function (chip) { return '<span class="pv-feature-chip ' + chip.type + '"><i>' + chip.icon + '</i>' + esc(chip.label) + '</span>'; }).join('') + '</div>' : '') +
         '<div class="pv-hero-tags"><span><i>' + IC.cap + '</i>Teacher</span><span><i>' + IC.globe + '</i>' + esc(nativeText) + '</span><span><i>*</i>' + esc(ratingText + ' rating') + '</span><span><i>G</i>' + esc(studentsText + ' students') + '</span><span><i>B</i>' + esc(lessonsText + ' lessons') + '</span></div>' +
         '<div class="pv-hero-tags pv-hero-tags-soft"><span><i>' + IC.lang + '</i>' + esc(teachText) + '</span><span><i>A</i>' + esc(levelText) + '</span>' + spec.slice(0, 4).map(function (x) { return '<span><i>✓</i>' + esc(x) + '</span>'; }).join('') + '</div>' +
         '<p class="pv-hero-bio">' + esc(bioText) + '</p>' +
         '<input type="file" id="pvCoverFile" accept="image/*" hidden><input type="file" id="pvAvatarFile" accept="image/*" hidden>' +
+        '</section>';
+      html += '<section class="pv-profile-stats-card">' +
+        '<div><span class="students">' + IC.chat + '</span><b>' + esc(studentsText) + '</b><small>' + esc(tr('Students', 'Students')) + '</small></div>' +
+        '<div><span class="lessons">' + IC.cap + '</span><b>' + esc(lessonsText) + '</b><small>' + esc(tr('Lessons', 'Lessons')) + '</small></div>' +
+        '<div><span class="rating">' + IC.medal + '</span><b>' + esc(stats && stats.rating ? ratingText : '-') + '</b><small>' + esc(tr('Rating', 'Rating')) + '</small></div>' +
         '</section>';
 
       const sideHtml = '<aside class="pv-side">' +
@@ -264,7 +285,7 @@
       const presetCover = coverPresetStyle(p.cover_url);
       const cover = presetCover || (p.cover_url
         ? 'background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25)),url(' + esc(p.cover_url) + ');background-size:cover;background-position:center;'
-        : 'background:linear-gradient(135deg,#12B886,#37D89E);');
+        : 'background:linear-gradient(135deg,#18A4EE 0%,#176CE8 48%,#352E99 100%);');
       return renderDesktopView({ profile: p, name: name, location: location, teaches: teaches, specialization: specialization, cover: cover });
       let html = '<div class="pv-cover" style="' + cover + '">' +
         (p.is_verified ? '<span class="pv-certified">' + esc(tr('Certified Teacher', 'Сертифицированный учитель')) + '</span>' : '') +

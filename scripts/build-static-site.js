@@ -11,6 +11,7 @@ const files = [
   'aussprache.html',
   'live.html',
   'profile.html',
+  'practices.html',
   'legal.html',
   'telc-exam.html',
   'telc-a2-exam.html',
@@ -105,6 +106,8 @@ files.forEach(copyProjectFile);
 dirs.forEach(copyProjectDir);
 copyFile(path.join(root, '.classroom-build', 'classroom.html'), path.join(outDir, 'classroom.html'));
 copyDirRecursive(path.join(root, '.classroom-build', 'assets'), path.join(outDir, 'assets'));
+copyFile(path.join(root, '.practices-build', 'practices.html'), path.join(outDir, 'practices.html'));
+copyDirRecursive(path.join(root, '.practices-build', 'assets'), path.join(outDir, 'assets'));
 
 const serverDir = path.join(outDir, 'server');
 fs.mkdirSync(serverDir, { recursive: true });

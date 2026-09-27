@@ -2,7 +2,7 @@
   "name": "duvela-web",
   "private": true,
   "scripts": {
-    "build": "vite build --config vite.classroom.config.js && node ./scripts/build-static-site.js",
+    "build": "vite build --config vite.classroom.config.js && vite build --config vite.practices.config.js && node ./scripts/build-static-site.js",
     "build:classroom": "vite build --config vite.classroom.config.js",
     "backend": "node ./backend/src/server.mjs",
     "backend:dev": "node --watch ./backend/src/server.mjs",
@@ -36,6 +36,8 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@zoom/videosdk": "^2.4.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "vite": "^7.1.12"
   }
 }

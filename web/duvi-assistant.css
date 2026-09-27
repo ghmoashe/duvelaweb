@@ -2,8 +2,8 @@
   --duvi-accent: #087d6d;
   --duvi-gold: #f3b72f;
   position: fixed;
-  right: max(18px, env(safe-area-inset-right));
-  bottom: max(92px, calc(env(safe-area-inset-bottom) + 18px));
+  right: max(22px, env(safe-area-inset-right));
+  bottom: max(120px, calc(env(safe-area-inset-bottom) + 120px));
   z-index: 120;
   display: grid;
   justify-items: end;
@@ -19,8 +19,8 @@
 
 .duvi-launcher {
   position: relative;
-  width: 66px;
-  height: 66px;
+  width: 58px;
+  height: 58px;
   padding: 3px;
   border: 1px solid rgba(243, 183, 47, .9);
   border-radius: 50%;
@@ -52,8 +52,8 @@
   position: absolute;
   right: 2px;
   bottom: 3px;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border: 2px solid #fff;
   border-radius: 50%;
   background: #24b47e;

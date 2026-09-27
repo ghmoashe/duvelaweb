@@ -851,6 +851,11 @@ h1{
   letter-spacing:.07em;
   font-weight:800;
 }
+html[dir="rtl"] .corner-message{
+  right:auto;
+  left:20px;
+  transform:rotate(5deg);
+}
 .video-showcase,
 .video-frame{
   position:relative;
