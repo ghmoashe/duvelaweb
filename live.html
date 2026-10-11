@@ -1516,9 +1516,13 @@
           <button type="button" class="btn" id="toggleFullscreen" style="display:none">Full screen</button>
           <button type="button" class="btn primary" id="hostAction" style="display:none">Start LIVE</button>
           <button type="button" class="btn" id="pinMaterial" style="display:none">Материал</button>
+          <button type="button" class="btn" id="pushTaskBtn" style="display:none">📋 Task</button>
           <button type="button" class="btn danger" id="endLive" style="display:none">End LIVE</button>
           <input type="file" id="materialFile" accept="image/*,application/pdf" style="display:none">
         </div>
+      </div>
+      <div id="taskPushPanel" style="display:none;position:fixed;right:16px;bottom:84px;width:300px;max-height:60vh;overflow:auto;background:var(--panel,#fff);border:1px solid var(--line,#e5e5ea);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:14px;z-index:9999">
+        <div id="taskPushBody"></div>
       </div>
     </section>
 

@@ -33,6 +33,8 @@
   var currentSession = null;
   var materialChannel = null;
   var reactionChannel = null;
+  var taskChannel = null;
+  var teacherLmsCourses = null; // lazy-loaded {id,title,lessons:[{id,title,tasks:[...]}]} for the host task picker
   var liveReactionCount = 0;
   var peakViewerCount = 0;
   var pdfMaterialPage = 1;
@@ -1587,9 +1589,11 @@
       el('toggleMic').style.display = 'inline-flex';
       el('toggleCam').style.display = 'inline-flex';
       el('pinMaterial').style.display = 'inline-flex';
+      el('pushTaskBtn').style.display = 'inline-flex';
       if (currentSession) {
         subscribeLiveMaterial(currentSession.id);
         subscribeLiveReactions(currentSession.id);
+        subscribeLiveTask(currentSession.id);
         renderLiveMaterial(currentSession.material_url);
         await loadViewerMessages();
         await subscribeViewerRealtime();
@@ -1896,6 +1900,126 @@
     var result=await supa.from('live_reactions').insert({session_id:currentSession.id,user_id:currentUser.id,emoji:emoji});if(result.error)console.warn('Reaction analytics was not saved:',result.error.message);return true;
   }
 
+  // ── Push a lesson task into the room (teacher → students) ────────────────
+  // Same channel name/event/payload shape as the native app's sendLiveTask/
+  // subscribeToLiveTask (shared/supabase/live.ts), so a task pushed from a
+  // phone reaches a web viewer and vice versa.
+  function subscribeLiveTask(id) {
+    if (!supa || !id) return;
+    if (taskChannel) { try { supa.removeChannel(taskChannel); } catch (e) {} taskChannel = null; }
+    taskChannel = supa.channel('live-task-' + id)
+      .on('broadcast', { event: 'task' }, function (msg) {
+        var p = msg && msg.payload;
+        if (p && !isHostMode) showLiveTaskBanner(p);
+      })
+      .subscribe();
+  }
+
+  function showLiveTaskBanner(payload) {
+    var stage = document.querySelector('.stage');
+    if (!stage || !payload) return;
+    var old = stage.querySelector('.live-task-banner');
+    if (old) old.remove();
+    var node = document.createElement('div');
+    node.className = 'live-task-banner';
+    node.style.cssText = 'position:absolute;left:16px;right:16px;bottom:96px;z-index:30;background:#fff;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:14px 16px;display:flex;gap:10px;align-items:flex-start';
+    node.innerHTML =
+      '<span style="font-size:20px;line-height:1">📋</span>' +
+      '<div style="flex:1;min-width:0"><b style="display:block;font-size:14px;color:#17122b">' + esc(tr('New task from the teacher', 'Новое задание от преподавателя')) + '</b>' +
+      '<div style="font-weight:800;margin-top:2px">' + esc(payload.taskTitle || '') + '</div>' +
+      (payload.taskDescription ? '<p style="margin:4px 0 0;font-size:13px;color:#6b6478">' + esc(payload.taskDescription) + '</p>' : '') + '</div>' +
+      '<button type="button" aria-label="Close" style="border:0;background:none;font-size:18px;cursor:pointer;color:#8b8398">×</button>';
+    node.querySelector('button').addEventListener('click', function () { node.remove(); });
+    stage.appendChild(node);
+    setTimeout(function () { if (node.parentNode) node.remove(); }, 20000);
+  }
+
+  async function loadTeacherLmsCourses() {
+    if (teacherLmsCourses || !supa || !currentUser) return teacherLmsCourses || [];
+    try {
+      var coursesRes = await supa.from('courses').select('id,title').eq('created_by', currentUser.id).order('created_at', { ascending: false });
+      var courses = coursesRes.data || [];
+      var ids = courses.map(function (c) { return c.id; });
+      if (!ids.length) { teacherLmsCourses = []; return teacherLmsCourses; }
+      var lessonsRes = await supa.from('course_lessons').select('id,course_id,order_index,title').in('course_id', ids).order('order_index', { ascending: true });
+      var tasksRes = await supa.from('lesson_tasks').select('id,lesson_id,course_id,order_index,title,description,max_score').in('course_id', ids).order('order_index', { ascending: true });
+      var lessons = lessonsRes.data || [], tasks = tasksRes.data || [];
+      teacherLmsCourses = courses.map(function (c) {
+        var courseLessons = lessons.filter(function (l) { return l.course_id === c.id; }).map(function (l) {
+          return { id: l.id, title: l.title, tasks: tasks.filter(function (t) { return t.lesson_id === l.id; }) };
+        }).filter(function (l) { return l.tasks.length > 0; });
+        return { id: c.id, title: c.title, lessons: courseLessons };
+      }).filter(function (c) { return c.lessons.length > 0; });
+    } catch (e) { teacherLmsCourses = []; }
+    return teacherLmsCourses;
+  }
+
+  async function renderTaskPushPanel() {
+    var body = el('taskPushBody');
+    if (!body) return;
+    body.innerHTML = '<div style="font-size:13px;color:#8b8398">' + esc(tr('Loading…', 'Загрузка…')) + '</div>';
+    var courses = await loadTeacherLmsCourses();
+    if (!courses.length) {
+      body.innerHTML = '<b style="display:block;margin-bottom:6px">' + esc(tr('Push a task', 'Отправить задание')) + '</b>' +
+        '<p style="font-size:13px;color:#8b8398;margin:0">' + esc(tr('Add lessons and tasks to one of your courses first (Management → Courses).', 'Сначала добавьте уроки и задания в один из ваших курсов (Management → Courses).')) + '</p>';
+      return;
+    }
+    body.innerHTML = '<b style="display:block;margin-bottom:8px">' + esc(tr('Push a task', 'Отправить задание')) + '</b>' +
+      '<select id="taskPushCourse" style="width:100%;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid #e5e5ea">' +
+        courses.map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.title) + '</option>'; }).join('') +
+      '</select>' +
+      '<select id="taskPushTask" style="width:100%;margin-bottom:10px;padding:8px;border-radius:8px;border:1px solid #e5e5ea"></select>' +
+      '<button type="button" id="taskPushSend" class="btn primary" style="width:100%">' + esc(tr('Send to room', 'Отправить в эфир')) + '</button>' +
+      '<div id="taskPushNote" style="font-size:12px;color:#8b8398;margin-top:6px"></div>';
+    function fillTasks() {
+      var courseId = el('taskPushCourse').value;
+      var course = courses.find(function (c) { return String(c.id) === String(courseId); });
+      var options = [];
+      (course ? course.lessons : []).forEach(function (lesson) {
+        lesson.tasks.forEach(function (task) {
+          options.push('<option value="' + esc(task.id) + '" data-lesson="' + esc(lesson.id) + '" data-course="' + esc(courseId) + '">' + esc(lesson.title + ' — ' + task.title) + '</option>');
+        });
+      });
+      el('taskPushTask').innerHTML = options.join('');
+    }
+    el('taskPushCourse').addEventListener('change', fillTasks);
+    fillTasks();
+    el('taskPushSend').addEventListener('click', function () { void sendPushedTask(); });
+  }
+
+  function toggleTaskPushPanel() {
+    var panel = el('taskPushPanel');
+    if (!panel) return;
+    var opening = panel.style.display === 'none';
+    panel.style.display = opening ? 'block' : 'none';
+    if (opening) void renderTaskPushPanel();
+  }
+
+  async function sendPushedTask() {
+    if (!currentSession?.id) return;
+    var select = el('taskPushTask');
+    var option = select && select.options[select.selectedIndex];
+    if (!option) return;
+    var courses = teacherLmsCourses || [];
+    var courseId = option.getAttribute('data-course');
+    var lessonId = option.getAttribute('data-lesson');
+    var course = courses.find(function (c) { return String(c.id) === String(courseId); });
+    var lesson = course && course.lessons.find(function (l) { return String(l.id) === String(lessonId); });
+    var task = lesson && lesson.tasks.find(function (t) { return String(t.id) === String(option.value); });
+    if (!task) return;
+    if (!taskChannel) subscribeLiveTask(currentSession.id);
+    var payload = { taskId: task.id, lessonId: lessonId, courseId: courseId, taskTitle: task.title, taskDescription: task.description || null, maxScore: task.max_score || 100 };
+    try {
+      await taskChannel.send({ type: 'broadcast', event: 'task', payload: payload });
+      var note = el('taskPushNote');
+      if (note) note.textContent = tr('Sent!', 'Отправлено!');
+      setTimeout(function () { el('taskPushPanel') && (el('taskPushPanel').style.display = 'none'); }, 700);
+    } catch (e) {
+      var note2 = el('taskPushNote');
+      if (note2) note2.textContent = tr('Could not send the task.', 'Не удалось отправить задание.');
+    }
+  }
+
   async function watch() {
     if (!sessionId) {
       setStage('', tr('No live session selected.', 'Сессия эфира не выбрана.'));
@@ -1942,6 +2066,7 @@
       renderLiveMaterial(currentSession.material_url);
       subscribeLiveMaterial(sessionId);
       subscribeLiveReactions(sessionId);
+      subscribeLiveTask(sessionId);
       void renderFollowUi();
       setViewerControlsEnabled(true);
       startElapsedClock(currentSession.started_at || new Date().toISOString());
@@ -2028,6 +2153,7 @@
       renderLiveMaterial(currentSession.material_url);
       subscribeLiveMaterial(sessionId);
       subscribeLiveReactions(sessionId);
+      subscribeLiveTask(sessionId);
       void renderFollowUi();
       renderViewerGuestRequestUi();
       setViewerControlsEnabled(true);
@@ -2110,8 +2236,11 @@
     el('toggleMic').style.display = 'none';
     el('toggleCam').style.display = 'none';
     el('pinMaterial').style.display = 'none';
+    el('pushTaskBtn').style.display = 'none';
+    if (el('taskPushPanel')) el('taskPushPanel').style.display = 'none';
     if (materialChannel) { try { await supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
     if (guestRequestChannel) { try { await supa.removeChannel(guestRequestChannel); } catch (e) {} guestRequestChannel = null; }
+    if (taskChannel) { try { await supa.removeChannel(taskChannel); } catch (e) {} taskChannel = null; }
     renderLiveMaterial(null);
     remoteGuestUsers = {};
     renderGuestGrid();
@@ -2230,6 +2359,7 @@
       if (!isHostPublishing && hostCameraStream) void openHostCamera(cameraFacingMode);
     });
     el('pinMaterial').addEventListener('click', function () { void hostToggleMaterial(); });
+    if (el('pushTaskBtn')) el('pushTaskBtn').addEventListener('click', toggleTaskPushPanel);
     el('materialFile').addEventListener('change', function () { void hostUploadMaterial(); });
     el('scenePreset').addEventListener('change', function () { setScenePreset(el('scenePreset').value, true); });
     el('coverImageBtn').addEventListener('click', chooseCoverImage);
