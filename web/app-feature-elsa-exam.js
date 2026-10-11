@@ -189,7 +189,25 @@
       { src: './assets/exam-photos/bild-20.jpg', description: 'An einer Bushaltestelle steigt ein Mann in den Bus, während eine Frau wartet.' },
       { src: './assets/exam-photos/bild-21.jpg', description: 'Ein junger Mann lernt an seinem Schreibtisch mit Büchern, einem Notizbuch und einem Laptop.' },
     ];
-    function pickExamPhoto() { return EXAM_PHOTOS[Math.floor(Math.random() * EXAM_PHOTOS.length)]; }
+    // Avoid repeating a photo the candidate just had — keep a short rolling history (up to a
+    // third of the bank) and resample until we land outside it. Ported from the Hub native app
+    // after a tester reported the same picture coming back 2-3 times in a row with the old
+    // pure-Math.random() pick (this file never got that fix).
+    const recentExamPhotoIndexes = [];
+    function pickExamPhoto() {
+      const avoidCount = Math.min(EXAM_PHOTOS.length - 1, Math.ceil(EXAM_PHOTOS.length / 3));
+      let index = Math.floor(Math.random() * EXAM_PHOTOS.length);
+      let attempts = 0;
+      while (recentExamPhotoIndexes.includes(index) && attempts < 20) {
+        index = Math.floor(Math.random() * EXAM_PHOTOS.length);
+        attempts += 1;
+      }
+      recentExamPhotoIndexes.push(index);
+      if (recentExamPhotoIndexes.length > avoidCount) {
+        recentExamPhotoIndexes.shift();
+      }
+      return EXAM_PHOTOS[index];
+    }
 
     // Indices this attempt actually runs: every part in sequence, or just the one the
     // learner picked on the setup screen (state.selectedPart, 0-based).
