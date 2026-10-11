@@ -41,7 +41,9 @@
         safe(supa.from('events').select(ctx.getEventColumns()).eq('organizer_id', uid).order('event_date', { ascending: true })),
         safe(supa.from('courses').select('id,title,description,level,language,status,price,currency,cover_image_url,starts_on,ends_on,schedule,location,delivery_mode,zoom_enabled,max_students,created_at').eq('created_by', uid).neq('status', 'archived').order('created_at', { ascending: false })),
         safe(supa.from('challenges').select('id,title,target_level,exam_type,started_at,ends_at').order('created_at', { ascending: false }).limit(20)),
-        safe(supa.from('class_sessions').select('id,class_id,title,starts_at,status,provider').eq('created_by', uid).order('starts_at', { ascending: true }).limit(40))
+        safe(supa.from('class_sessions').select('id,class_id,title,starts_at,status,provider').eq('created_by', uid).order('starts_at', { ascending: true }).limit(40)),
+        // Populates state.myPractices/state.practiceSubmissions for the Practices tab.
+        ctx.loadBusinessWorkspace().catch(function () {})
       ]);
       data = { events: (ev && ev.data) || [], courses: (co && co.data) || [], challenges: (ch && ch.data) || [], classSessions: (cs && cs.data) || [] };
     }
@@ -115,13 +117,15 @@
       cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>',
       book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 012-2h13v16H6.5A2.5 2.5 0 004 21.5"/></svg>',
       live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg>',
-      trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v4a6 6 0 01-12 0zM4 5h2M18 5h2M9 21h6M12 15v6"/></svg>'
+      trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v4a6 6 0 01-12 0zM4 5h2M18 5h2M9 21h6M12 15v6"/></svg>',
+      target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>'
     };
 
     var TABS = [
       { id: 'events', label: tr('Events', 'События'), icon: IC.cal },
       { id: 'courses', label: tr('Courses', 'Курсы'), icon: IC.book },
       { id: 'live', label: tr('Schedule Live', 'Запланировать эфир'), icon: IC.live },
+      { id: 'practices', label: tr('Practices', 'Практики'), icon: IC.target },
       { id: 'challenges', label: tr('Challenges', 'Челленджи'), icon: IC.trophy }
     ];
 
@@ -313,10 +317,27 @@
       return html;
     }
 
+    function renderPracticesTab() {
+      var practices = (state.myPractices || []);
+      var submissions = (state.practiceSubmissions || []);
+      var toReview = submissions.filter(function (s) { return s.status === 'submitted'; }).length;
+      var html = '<div class="mg-summary">' +
+        '<span class="mg-summary-ic purple">' + IC.target + '</span>' +
+        '<div class="mg-summary-copy"><b>' + esc(practices.length + ' ' + tr('practices', 'практик')) + '</b>' +
+        '<span>' + esc(toReview ? (toReview + ' ' + tr('submissions to review', 'работ на проверке')) : tr('Exercises for your students', 'Упражнения для ваших учеников')) + '</span></div>' +
+        '<button type="button" class="mg-btn-solid purple" data-mg-new-practice>' + esc(tr('New practice', 'Новая практика')) + '</button>' +
+        '</div>';
+      html += practices.length ? ctx.teacherPracticeCardsHtml() : emptyCard(IC.target, tr('No practices yet', 'Пока нет практик'),
+        tr('Create a short exercise for your students — grammar, vocabulary or listening.', 'Создайте короткое упражнение для учеников — грамматику, лексику или аудирование.'),
+        tr('Create practice', 'Создать практику'), 'data-mg-new-practice');
+      return html;
+    }
+
     function renderBody() {
       if (activeTab === 'events') return renderEventsTab();
       if (activeTab === 'courses') return renderCoursesTab();
       if (activeTab === 'live') return renderLiveTab();
+      if (activeTab === 'practices') return renderPracticesTab();
       return renderChallengesTab();
     }
 
@@ -408,6 +429,14 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-challenge]'), function (b) {
         b.addEventListener('click', function () { openChallengeModal(); });
       });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-practice]'), function (b) {
+        b.addEventListener('click', function () { if (ctx.openPracticeBuilder) ctx.openPracticeBuilder(); });
+      });
+      // data-create-practice ("Edit / clone" on each existing practice card, from the
+      // reused teacherPracticeCardsHtml()) is intentionally NOT bound here: the builder
+      // has no load-existing-practice mode, so wiring it to openPracticeBuilder() would
+      // silently hand the teacher a blank form while the button promises an edit. Leave
+      // unbound until the builder actually supports loading a practice's saved items.
     }
 
     // ── Course creation (modal) ─────────────────────────────────────────────
@@ -1096,7 +1125,7 @@
       return null;
     }
 
-    return { render };
+    return { render, paint };
   }
 
   window.DuvelaBusinessManagement = { create: createManagement };

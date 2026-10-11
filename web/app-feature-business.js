@@ -413,7 +413,8 @@
       importCoursesExcel,
       loadBusinessWorkspace,
       removeMember,
-      renderBusinessWorkspace
+      renderBusinessWorkspace,
+      teacherPracticeCardsHtml
     };
   }
 

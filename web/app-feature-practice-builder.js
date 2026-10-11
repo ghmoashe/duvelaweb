@@ -88,7 +88,13 @@
         if (itemsError) throw itemsError;
         $('#pbOverlay').classList.remove('open');
         await Promise.all([ctx.loadBusinessWorkspace(), ctx.loadPractices()]);
-        ctx.renderBusinessWorkspace();
+        // Refresh whichever screen shows this teacher's practices: the Management >
+        // Practices tab (if that's where the builder was opened from) and the learner-
+        // facing practice list (ctx.renderWorkspace, used when a business user is viewing
+        // practicesHtml() too). renderBusinessWorkspace()/its #workspaceActions target was
+        // retired when Notes took over that DOM node — repaint through the real owners now.
+        if (ctx.management && ctx.management.paint) ctx.management.paint();
+        if (ctx.renderWorkspace) ctx.renderWorkspace();
       } catch (error) {
         note.style.color = 'var(--red)';
         note.textContent = error.message || tr('Could not publish the practice.', 'Не удалось опубликовать практику.');

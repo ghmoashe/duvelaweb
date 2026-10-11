@@ -339,6 +339,7 @@
       renderBusinessWorkspace,
       loadPublicData,
       loadBusinessWorkspace,
+      teacherPracticeCardsHtml,
       loadPractices,
       loadConversations,
       uploadToBucket,
@@ -443,6 +444,7 @@
   async function loadBusinessWorkspace() { return businessFeature.loadBusinessWorkspace(); }
   async function removeMember(id) { return businessFeature.removeMember(id); }
   function renderBusinessWorkspace() { return businessFeature.renderBusinessWorkspace(); }
+  function teacherPracticeCardsHtml() { return businessFeature.teacherPracticeCardsHtml(); }
 
   async function loadWallet() { return gamificationFeature.loadWallet(); }
   function walletHtml() { return gamificationFeature.walletHtml(); }
