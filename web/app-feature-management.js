@@ -366,10 +366,11 @@
       var host = document.getElementById('managementPanel');
       if (!host) return;
       if (!data) {
-        host.innerHTML = tabBar() + '<div class="mg-loading">' + esc(tr('Loading…', 'Загрузка…')) + '</div>';
+        host.innerHTML = orgBarHtml() + tabBar() + '<div class="mg-loading">' + esc(tr('Loading…', 'Загрузка…')) + '</div>';
+        bindTabEvents(host);
         return;
       }
-      host.innerHTML = tabBar() + '<div class="mg-dashboard"><main class="mg-main">' + renderBody() + '</main>' + renderSidePanel() + '</div>';
+      host.innerHTML = orgBarHtml() + tabBar() + '<div class="mg-dashboard"><main class="mg-main">' + renderBody() + '</main>' + renderSidePanel() + '</div>';
       bindTabEvents(host);
     }
 
@@ -432,6 +433,9 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-practice]'), function (b) {
         b.addEventListener('click', function () { if (ctx.openPracticeBuilder) ctx.openPracticeBuilder(); });
       });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-mg-edit-org]'), function (b) {
+        b.addEventListener('click', function () { void openOrgModal(); });
+      });
       // data-create-practice ("Edit / clone" on each existing practice card, from the
       // reused teacherPracticeCardsHtml()) is intentionally NOT bound here: the builder
       // has no load-existing-practice mode, so wiring it to openPracticeBuilder() would
@@ -487,6 +491,115 @@
       await safe(supa.from('organization_memberships').insert({ organization_id: orgRes.data.id, user_id: ctx.user.id, role: 'owner', status: 'active' }));
       if (ctx.state) ctx.state.myOrg = orgRes.data;
       return orgRes.data;
+    }
+
+    // ── Organization profile (name/type/city/country/logo/contacts) ─────────
+    // ensureOrg() only ever set name+slug on first use (course/event creation needs
+    // organization_id, not a full profile) and nothing after onboarding ever let a
+    // teacher come back and fill in the rest — this is the only reachable place to do so.
+    var ORG_TYPES = ['school', 'academy', 'company', 'ngo', 'community'];
+    var orgEditing = null, orgLogo = null, orgSaving = false, orgNotice = '';
+
+    function orgTypeLabel(type) {
+      var labels = {
+        school: tr('School', 'Школа'), academy: tr('Academy', 'Академия'), company: tr('Company', 'Компания'),
+        ngo: tr('NGO', 'НКО'), community: tr('Community', 'Сообщество')
+      };
+      return labels[type] || tr('Organization', 'Организация');
+    }
+
+    function orgBarHtml() {
+      var org = (ctx.state && ctx.state.myOrg) || null;
+      var meta = org
+        ? ([org.city, org.country].filter(Boolean).join(', ') || tr('Add city, country, logo and more', 'Добавьте город, страну, логотип и другое'))
+        : tr('Set up your public organization profile', 'Настройте публичный профиль организации');
+      return '<div class="mg-summary" style="margin-bottom:12px">' +
+        '<span class="mg-summary-ic">' + (org && org.logo_url ? '<img src="' + esc(org.logo_url) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">' : '🏫') + '</span>' +
+        '<div class="mg-summary-copy"><b>' + esc((org && org.name) || tr('Your organization', 'Ваша организация')) + '</b>' +
+        '<span>' + esc(meta) + '</span></div>' +
+        '<button type="button" class="mg-btn-solid" data-mg-edit-org>' + esc(org ? tr('Edit profile', 'Изменить профиль') : tr('Set up', 'Настроить')) + '</button>' +
+        '</div>';
+    }
+
+    async function openOrgModal() {
+      var org = await ensureOrg();
+      if (!org) return;
+      var full = await safe(supa.from('organizations').select('id,name,type,city,country,description,logo_url,website_url,public_email,public_phone').eq('id', org.id).single());
+      orgEditing = (full && full.data) || org;
+      orgLogo = orgEditing.logo_url || null;
+      orgNotice = ''; orgSaving = false;
+      openModal(tr('Organization profile', 'Профиль организации'), paintOrgModal);
+    }
+
+    function paintOrgModal() {
+      var body = el('ccBody');
+      if (!body) return;
+      var o = orgEditing || {};
+      var logoStyle = orgLogo ? 'background-image:url(' + esc(orgLogo) + ');background-size:cover;background-position:center;' : '';
+      body.innerHTML =
+        '<button type="button" class="cc-cover" id="orgLogoBtn" style="' + logoStyle + '">' +
+          (orgLogo ? '' : '<span>+ ' + esc(tr('Add logo', 'Добавить логотип')) + '</span>') +
+        '</button>' +
+        '<input type="file" id="orgLogoFile" accept="image/*" hidden>' +
+        '<div class="pv-field" style="margin-top:12px"><label>' + esc(tr('Organization name', 'Название организации')) + ' *</label>' +
+          '<input id="orgNameInput" type="text" value="' + esc(o.name || '') + '"></div>' +
+        '<div class="pv-field"><label>' + esc(tr('Type', 'Тип')) + '</label><select id="orgTypeInput">' +
+          ORG_TYPES.map(function (t) { return '<option value="' + t + '"' + (o.type === t ? ' selected' : '') + '>' + esc(orgTypeLabel(t)) + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="pv-field-grid">' +
+          field('orgCityInput', tr('City', 'Город'), 'text', '', o.city) +
+          field('orgCountryInput', tr('Country', 'Страна'), 'text', '', o.country) +
+        '</div>' +
+        '<div class="pv-field"><label>' + esc(tr('Website', 'Сайт')) + '</label><input id="orgWebsiteInput" type="text" placeholder="https://" value="' + esc(o.website_url || '') + '"></div>' +
+        '<div class="pv-field-grid">' +
+          field('orgPublicEmailInput', tr('Public email', 'Публичный email'), 'text', '', o.public_email) +
+          field('orgPublicPhoneInput', tr('Public phone', 'Публичный телефон'), 'text', '', o.public_phone) +
+        '</div>' +
+        '<div class="pv-field"><label>' + esc(tr('About', 'Описание')) + '</label><textarea id="orgDescInput" maxlength="600">' + esc(o.description || '') + '</textarea></div>' +
+        (orgNotice ? '<div class="pv-notice">' + esc(orgNotice) + '</div>' : '') +
+        '<div class="pv-edit-actions">' +
+          '<button type="button" class="pv-btn-solid" id="orgSubmit"' + (orgSaving ? ' disabled' : '') + '>' + esc(orgSaving ? tr('Saving…', 'Сохранение…') : tr('Save changes', 'Сохранить')) + '</button>' +
+        '</div>';
+      var logoBtn = el('orgLogoBtn'); var logoFile = el('orgLogoFile');
+      if (logoBtn && logoFile) {
+        logoBtn.onclick = function () { logoFile.click(); };
+        logoFile.onchange = function () { var f = logoFile.files && logoFile.files[0]; if (f) void uploadOrgLogo(f); };
+      }
+      var submit = el('orgSubmit');
+      if (submit) submit.onclick = function () { void saveOrg(); };
+    }
+
+    async function uploadOrgLogo(file) {
+      orgNotice = tr('Uploading logo…', 'Загрузка логотипа…'); paintOrgModal();
+      try { orgLogo = await ctx.uploadToBucket('posts', file); orgNotice = ''; }
+      catch (e) { orgNotice = tr('Could not upload the logo.', 'Не удалось загрузить логотип.'); }
+      paintOrgModal();
+    }
+
+    async function saveOrg() {
+      var name = (el('orgNameInput') && el('orgNameInput').value.trim()) || '';
+      if (!name) { orgNotice = tr('Enter an organization name.', 'Введите название организации.'); paintOrgModal(); return; }
+      var val = function (id) { return (el(id) && el(id).value.trim()) || ''; };
+      var row = {
+        name: name,
+        type: (el('orgTypeInput') && el('orgTypeInput').value) || null,
+        city: val('orgCityInput') || null,
+        country: val('orgCountryInput') || null,
+        website_url: val('orgWebsiteInput') || null,
+        public_email: val('orgPublicEmailInput') || null,
+        public_phone: val('orgPublicPhoneInput') || null,
+        description: val('orgDescInput') || null,
+        logo_url: orgLogo || null
+      };
+      orgSaving = true; orgNotice = ''; paintOrgModal();
+      var res;
+      try { res = await supa.from('organizations').update(row).eq('id', orgEditing.id).eq('owner_id', ctx.user.id).select('id,name,city,country,type,logo_url').single(); }
+      catch (e) { res = { error: e }; }
+      orgSaving = false;
+      if (!res || res.error || !res.data) { orgNotice = (res && res.error && res.error.message) || tr('Could not save the organization.', 'Не удалось сохранить организацию.'); paintOrgModal(); return; }
+      if (ctx.state) ctx.state.myOrg = Object.assign({}, ctx.state.myOrg, res.data);
+      closeModal();
+      paint();
     }
 
     // Generic create-modal shell shared by course/event/challenge.
