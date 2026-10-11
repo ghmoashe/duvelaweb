@@ -7,6 +7,45 @@
       return '<div class="hub-focus-row"><div class="n">' + index + '</div><div><b>' + esc(title) + '</b><p>' + esc(copy) + '</p></div></div>';
     }
 
+    function notesCreatedThisWeek(notes) {
+      var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      return notes.filter(function (n) { return n.createdAt && new Date(n.createdAt).getTime() >= weekAgo; }).length;
+    }
+
+    var NOTE_TEMPLATES = {
+      lesson: {
+        type: 'lesson',
+        title: tr('Lesson plan', 'План урока'),
+        text: tr('Goal:\n\nStructure:\n1. Warm-up\n2. \n3. \n\nMaterials:\n', 'Цель:\n\nСтруктура:\n1. Разминка\n2. \n3. \n\nМатериалы:\n'),
+      },
+      content: {
+        type: 'content',
+        title: tr('Content post', 'Контент-пост'),
+        text: tr('Idea:\n\nFormat:\n\nCall to action:\n', 'Идея:\n\nФормат:\n\nПризыв к действию:\n'),
+      },
+      live: {
+        type: 'event',
+        title: tr('LIVE prep checklist', 'Подготовка эфира'),
+        text: tr('Topic:\n\nChecklist:\n- \n- \n- \n', 'Тема:\n\nЧеклист:\n- \n- \n- \n'),
+      },
+    };
+
+    function applyNoteTemplate(key) {
+      var tpl = NOTE_TEMPLATES[key];
+      var titleEl = $('#noteTitle'), typeEl = $('#noteType'), textEl = $('#noteText');
+      if (!tpl || !titleEl || !typeEl || !textEl) return;
+      if (!titleEl.value.trim()) titleEl.value = tpl.title;
+      typeEl.value = tpl.type;
+      if (!textEl.value.trim()) textEl.value = tpl.text;
+      titleEl.focus();
+    }
+
+    function pendingDeadlineNotes(notes) {
+      return notes
+        .filter(function (n) { return n.dueDate && n.status !== 'done'; })
+        .sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0; });
+    }
+
     function renderWorkspace() {
       const creator = ctx.isBusiness();
       $('#workspaceNavLabel').textContent = creator ? tr('Notes', 'Заметки') : tr('Practice', 'Практика');
@@ -139,7 +178,7 @@
       var filterButton = function (id, label) { return '<button type="button" class="' + (notesFilter === id ? 'active' : '') + '" data-note-filter="' + esc(id) + '">' + esc(label) + '</button>'; };
       $('#workspaceActions').innerHTML =
         '<div class="notes-page">' +
-          '<section class="notes-hero"><div><span>DUVELA NOTES</span><h2>Рабочий центр заметок</h2><p>Планы уроков, контент, дедлайны и follow-up задачи в одном месте.</p></div><div class="notes-hero-stats"><b>' + notes.length + '<small>заметок</small></b><b>' + notes.filter(function (n) { return n.isPinned; }).length + '<small>закреплено</small></b><b>4<small>на неделе</small></b></div></section>' +
+          '<section class="notes-hero"><div><span>DUVELA NOTES</span><h2>Рабочий центр заметок</h2><p>Планы уроков, контент, дедлайны и follow-up задачи в одном месте.</p></div><div class="notes-hero-stats"><b>' + notes.length + '<small>заметок</small></b><b>' + notes.filter(function (n) { return n.isPinned; }).length + '<small>закреплено</small></b><b>' + notesCreatedThisWeek(notes) + '<small>на неделе</small></b></div></section>' +
           '<form id="noteForm" class="note-form">' +
             '<div class="note-form-head"><div><h2>' + esc(editing ? tr('Edit note', 'Изменить заметку') : tr('New note', 'Новая заметка')) + '</h2><p>' + esc(tr('Autosaves while you type. Synced when the DB table is installed.', 'Автосохранение при наборе. Синхронизация работает после установки DB таблицы.')) + '</p></div><button class="btn primary" type="submit">' + esc(editing ? tr('Save note', 'Сохранить заметку') : tr('Add note', 'Добавить заметку')) + '</button></div>' +
             '<input type="hidden" id="noteId" value="' + esc(editing ? editing.id : '') + '">' +
@@ -218,6 +257,13 @@
       const side = $('#workspaceSide');
       if (creator) {
         var notes = notesCache || [];
+        var pendingDeadlines = pendingDeadlineNotes(notes);
+        var doneCount = notes.filter(function (n) { return n.status === 'done'; }).length;
+        var deadlineRowsHtml = pendingDeadlines.length
+          ? pendingDeadlines.slice(0, 3).map(function (n) {
+              return '<div class="note-deadline"><b>' + esc(n.title || tr('Untitled note', 'Без названия')) + '</b><span>' + esc(ctx.formatDate(n.dueDate + 'T00:00:00')) + '</span><em>' + esc(noteTypeLabel(n.type)) + '</em></div>';
+            }).join('')
+          : '<div class="note-deadline note-deadline-empty">' + esc(tr('No deadlines set.', 'Нет дедлайнов.')) + '</div>';
         side.innerHTML =
           '<div class="section-head"><h2>' + esc(tr('Notes summary', 'Сводка заметок')) + '</h2><span>' + esc(tr('Local workspace', 'Локальная зона')) + '</span></div>' +
           '<div class="note-side-card">' +
@@ -225,17 +271,18 @@
             focusRow('2', tr('Content and event ideas', 'Идеи контента и событий'), tr('Save media, course, event and campaign ideas.', 'Сохраняйте идеи медиа, курсов, событий и кампаний.')) +
             focusRow('3', tr('Follow-ups', 'Follow-up'), tr('Track students, clients, leads and team tasks.', 'Отмечайте учеников, клиентов, лиды и задачи команды.')) +
           '</div>' +
-          '<div class="note-mini-stats"><div><b>' + notes.length + '</b><span>' + esc(tr('notes', 'заметок')) + '</span></div><div><b>' + notes.filter(function (n) { return n.isPinned; }).length + '</b><span>' + esc(tr('pinned', 'закреплено')) + '</span></div><div><b>4</b><span>дедлайна</span></div><div><b>7</b><span>выполнено</span></div></div>' +
-          '<div class="note-side-section"><div class="section-head"><h2>Ближайшие дедлайны</h2><span>Смотреть все</span></div>' +
-            '<div class="note-deadline"><b>Подготовить урок A2: Freizeit</b><span>16 апреля, 14:00</span><em>Lesson</em></div>' +
-            '<div class="note-deadline"><b>Сценарий для видео: Modalverben</b><span>17 апреля, 10:00</span><em>Content</em></div>' +
-            '<div class="note-deadline"><b>Проверить домашние задания (B1)</b><span>18 апреля, 18:00</span><em>Student</em></div>' +
+          '<div class="note-mini-stats"><div><b>' + notes.length + '</b><span>' + esc(tr('notes', 'заметок')) + '</span></div><div><b>' + notes.filter(function (n) { return n.isPinned; }).length + '</b><span>' + esc(tr('pinned', 'закреплено')) + '</span></div><div><b>' + pendingDeadlines.length + '</b><span>' + esc(tr('deadlines', 'дедлайна')) + '</span></div><div><b>' + doneCount + '</b><span>' + esc(tr('done', 'выполнено')) + '</span></div></div>' +
+          '<div class="note-side-section"><div class="section-head"><h2>' + esc(tr('Upcoming deadlines', 'Ближайшие дедлайны')) + '</h2></div>' +
+            deadlineRowsHtml +
           '</div>' +
-          '<div class="note-side-section"><div class="section-head"><h2>Быстрые шаблоны</h2><span>Все шаблоны</span></div><div class="note-template-grid">' +
-            '<button type="button"><span>▤</span><b>План урока</b><small>Структура и цели</small></button>' +
-            '<button type="button"><span>▻</span><b>Контент-пост</b><small>Идеи и план</small></button>' +
-            '<button type="button"><span>◉</span><b>Подготовка эфира</b><small>Чеклист и задачи</small></button>' +
+          '<div class="note-side-section"><div class="section-head"><h2>' + esc(tr('Quick templates', 'Быстрые шаблоны')) + '</h2></div><div class="note-template-grid">' +
+            '<button type="button" data-note-template="lesson"><span>▤</span><b>' + esc(tr('Lesson plan', 'План урока')) + '</b><small>' + esc(tr('Structure and goals', 'Структура и цели')) + '</small></button>' +
+            '<button type="button" data-note-template="content"><span>▻</span><b>' + esc(tr('Content post', 'Контент-пост')) + '</b><small>' + esc(tr('Idea and plan', 'Идеи и план')) + '</small></button>' +
+            '<button type="button" data-note-template="live"><span>◉</span><b>' + esc(tr('LIVE prep', 'Подготовка эфира')) + '</b><small>' + esc(tr('Checklist and tasks', 'Чеклист и задачи')) + '</small></button>' +
           '</div></div>';
+        side.querySelectorAll('[data-note-template]').forEach(function (button) {
+          button.addEventListener('click', function () { applyNoteTemplate(button.dataset.noteTemplate); });
+        });
         return;
       }
       const saved = (() => {
