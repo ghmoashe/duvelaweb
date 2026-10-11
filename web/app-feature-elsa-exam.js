@@ -188,6 +188,19 @@
       { src: './assets/exam-photos/bild-19.jpg', description: 'Eine vierköpfige Familie sitzt gemeinsam am Tisch und isst zu Abend.' },
       { src: './assets/exam-photos/bild-20.jpg', description: 'An einer Bushaltestelle steigt ein Mann in den Bus, während eine Frau wartet.' },
       { src: './assets/exam-photos/bild-21.jpg', description: 'Ein junger Mann lernt an seinem Schreibtisch mit Büchern, einem Notizbuch und einem Laptop.' },
+      // bild-22 to bild-32 ported from the Hub native app's richer photo bank (mirrored
+      // 2026-10-11) so both apps cover the same range of everyday scenes.
+      { src: './assets/exam-photos/bild-22.jpg', description: 'Eine Frau geht mit einem Golden Retriever an der Leine im Park spazieren.' },
+      { src: './assets/exam-photos/bild-23.jpg', description: 'Ein Mann brät in der Küche Gemüse in einer Pfanne.' },
+      { src: './assets/exam-photos/bild-24.jpg', description: 'Eine Frau putzt mit Gummihandschuhen und einem Reinigungsspray die Küchenarbeitsplatte.' },
+      { src: './assets/exam-photos/bild-25.jpg', description: 'Drei Freunde sitzen draußen an einem Café-Tisch und trinken gemeinsam Kaffee.' },
+      { src: './assets/exam-photos/bild-26.jpg', description: 'Ein Mann trainiert im Fitnessstudio mit einer Kurzhantel seinen Bizeps.' },
+      { src: './assets/exam-photos/bild-27.jpg', description: 'Eine Frau sitzt im Wohnzimmer auf dem Boden und packt einen Koffer für eine Reise.' },
+      { src: './assets/exam-photos/bild-28.jpg', description: 'Vier Studierende lernen gemeinsam in der Bibliothek an einem Tisch mit Laptop und Büchern.' },
+      { src: './assets/exam-photos/bild-29.jpg', description: 'Ein Paar streicht gemeinsam eine Wand hellgrün; im Zimmer stehen Umzugskartons und eine Leiter.' },
+      { src: './assets/exam-photos/bild-30.jpg', description: 'Eine Patientin sitzt auf der Untersuchungsliege und schildert dem Arzt ihre Beschwerden, während er sich auf einem Klemmbrett Notizen macht.' },
+      { src: './assets/exam-photos/bild-31.jpg', description: 'Ein Patient sitzt auf der Untersuchungsliege und spricht mit der Ärztin, die seine Angaben auf einem Klemmbrett notiert.' },
+      { src: './assets/exam-photos/bild-32.jpg', description: 'Eine Apothekerin reicht einer Kundin über den Tresen eine Medikamentenschachtel, im Hintergrund sind Regale voller Arzneimittel zu sehen.' },
     ];
     // Avoid repeating a photo the candidate just had — keep a short rolling history (up to a
     // third of the bank) and resample until we land outside it. Ported from the Hub native app
