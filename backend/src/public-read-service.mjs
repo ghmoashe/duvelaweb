@@ -45,11 +45,13 @@ const EVENT_SELECT = [
   'created_at',
 ].join(',');
 
-// Public projection ONLY. This service runs with the Supabase service key
-// (RLS bypassed) and answers unauthenticated requests for any profile id, so
-// it must never expose private columns: phone, dob, is_admin, app_access,
-// coin balance, claimed rewards, learning goals or progress state. Clients read
-// their OWN profile straight from Supabase with the user's session instead.
+// Reviewed publication view only; never read the base profile table here.
+// This service runs with the Supabase service key (RLS bypassed), so the
+// only thing standing between a profile's private fields and any
+// unauthenticated caller is reading from public_profiles_v2 instead of
+// profiles: that view already encodes the owner's reviewed publication
+// consent and their approved-field selection. Clients read their OWN
+// profile straight from Supabase with the user's session instead.
 const PROFILE_SELECT = [
   'id',
   'full_name',
@@ -57,28 +59,26 @@ const PROFILE_SELECT = [
   'cover_url',
   'city',
   'country',
+  'bio',
   'language',
   'language_level',
-  'learning_languages',
-  'practice_languages',
   'teaches_languages',
-  'profile_interests',
-  'bio',
-  'registered_web_role',
-  'registered_web_role_confirmed',
-  'is_organizer',
+  'explanation_languages',
+  'qualifications',
+  'specialization',
+  'teaching_experience',
+  'teacher_audience',
   'is_teacher',
+  'is_organizer',
   'is_verified',
   'score',
-  'learning_targets',
+  'registered_web_role',
   'instagram',
   'tiktok',
   'youtube',
   'facebook',
   'linkedin',
   'website',
-  'teacher_audience',
-  'created_at',
 ].join(',');
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -119,12 +119,15 @@ export class PublicReadService {
     const normalizedIds = idListParam(ids);
     if (normalizedIds.some((item) => !UUID_RE.test(item))) throw badRequest('Invalid ids.');
 
-    const cacheKey = ['backend-api:v2', type, limit, offset, id, normalizedIds.join(','), organizerId].join(':');
+    const cacheKey = ['backend-api:v3', type, limit, offset, id, normalizedIds.join(','), organizerId].join(':');
     let cacheState = 'disabled';
     try {
-      const cached = await this.cache.get(cacheKey);
+      // Profile responses are never cached: the owner's reviewed publication
+      // choice can be revoked at any time, and a shared cache would keep
+      // serving a withdrawn projection to later callers.
+      const cached = ['profile', 'profiles'].includes(type) ? { state: 'disabled' } : await this.cache.get(cacheKey);
       cacheState = cached.state;
-      if (cached.value) return { data: cached.value, cacheState: 'hit', cacheStore: cached.store || 'cache' };
+      if (!['profile', 'profiles'].includes(type) && cached.value) return { data: cached.value, cacheState: 'hit', cacheStore: cached.store || 'cache' };
     } catch (_) {
       cacheState = 'error';
     }
@@ -132,7 +135,7 @@ export class PublicReadService {
     const data = await this.fetchSource(type, { limit, offset, id, ids: normalizedIds, organizerId });
 
     try {
-      await this.cache.set(cacheKey, data, this.ttl[type] || 30);
+      if (!['profile', 'profiles'].includes(type)) await this.cache.set(cacheKey, data, this.ttl[type] || 30);
     } catch (_) {
       if (cacheState !== 'disabled') cacheState = 'error';
     }
@@ -176,7 +179,7 @@ export class PublicReadService {
     }
 
     if (type === 'profile') {
-      const rows = await this.supabase.get('profiles', {
+      const rows = await this.supabase.get('public_profiles_v2', {
         select: PROFILE_SELECT,
         id: `eq.${id}`,
         limit: 1,
@@ -186,7 +189,7 @@ export class PublicReadService {
 
     if (!ids.length) return [];
 
-    const rows = await this.supabase.get('profiles', {
+    const rows = await this.supabase.get('public_profiles_v2', {
       select: PROFILE_SELECT,
       id: `in.(${ids.join(',')})`,
       limit: ids.length,
