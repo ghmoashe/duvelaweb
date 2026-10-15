@@ -102,7 +102,7 @@
         return;
       }
       try {
-        const { data } = await supa.from('profiles').select('id,full_name,avatar_url,city').ilike('full_name', '%' + query.replace(/[%,()]/g, '') + '%').limit(6);
+        const { data } = await window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,city').ilike('full_name', '%' + query.replace(/[%,()]/g, '') + '%').limit(6);
         box.innerHTML = (data || []).map((profile) => '<div class="conv" data-add-student="' + esc(profile.id) + '"><div class="avatar">' + avatarInner(profile.full_name, profile.avatar_url) + '</div><div><h3>' + esc(profile.full_name || 'Duvela') + '</h3><p>' + esc(profile.city || '') + '</p></div><div>+</div></div>').join('') || '<div class="empty">' + esc(tr('No people found.', 'Люди не найдены.')) + '</div>';
       } catch (error) {
         box.innerHTML = '';

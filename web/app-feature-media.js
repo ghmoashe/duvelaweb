@@ -111,7 +111,7 @@
         if (!visible.length) return;
         const authorIds = Array.from(new Set(visible.map((item) => item.user_id).filter(Boolean)));
         const { data: authors } = authorIds.length
-          ? await supa.from('profiles').select('id,full_name,avatar_url').in('id', authorIds)
+          ? await window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url').in('id', authorIds)
           : { data: [] };
         const byId = new Map((authors || []).map((author) => [author.id, author]));
         state.videos = visible.map((item) => {
@@ -222,7 +222,7 @@
         const rows = comments.data || [];
         const authorIds = Array.from(new Set(rows.map((row) => row.user_id).filter(Boolean)));
         const { data: authors } = authorIds.length
-          ? await supa.from('profiles').select('id,full_name,avatar_url').in('id', authorIds)
+          ? await window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url').in('id', authorIds)
           : { data: [] };
         const byId = new Map((authors || []).map((author) => [author.id, author]));
         box.innerHTML =

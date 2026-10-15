@@ -30,7 +30,7 @@
         const ids = Object.keys(counts);
         let teachers = [];
         if (ids.length) {
-          const { data: profiles } = await supa.from('profiles').select('id,full_name,avatar_url,city,country').in('id', ids);
+          const { data: profiles } = await window.DuvelaWebConfig.relatedProfiles(supa, ids, 'id,full_name,avatar_url,city,country');
           teachers = (profiles || []).map((profile) => {
             const teacherSlots = (slots || []).filter((slot) => String(slot.teacher_id) === String(profile.id));
             return { ...profile, slots: counts[profile.id] || 0, next_slots: teacherSlots.slice(0, 4), first_slot: teacherSlots[0] || null };
@@ -40,7 +40,7 @@
         // Booking ownership is not readable from teacher_slots: the RPC returns only the caller's own bookings.
         const { data: mine } = await supa.rpc('get_my_booked_slots');
         const teacherIds = Array.from(new Set((mine || []).map((slot) => slot.teacher_id)));
-        const { data: teacherProfiles } = teacherIds.length ? await supa.from('profiles').select('id,full_name,avatar_url,city,country').in('id', teacherIds) : { data: [] };
+        const { data: teacherProfiles } = teacherIds.length ? await window.DuvelaWebConfig.relatedProfiles(supa, teacherIds, 'id,full_name,avatar_url,city,country') : { data: [] };
         const teacherMap = new Map((teacherProfiles || []).map((profile) => [profile.id, profile]));
         state.myBookings = (mine || []).map((slot) => ({ ...slot, teacher_profile: teacherMap.get(slot.teacher_id) || null, teacher_name: (teacherMap.get(slot.teacher_id) || {}).full_name || tr('Teacher', '\u041f\u0440\u0435\u043f\u043e\u0434\u0430\u0432\u0430\u0442\u0435\u043b\u044c') }));
       } catch (error) {

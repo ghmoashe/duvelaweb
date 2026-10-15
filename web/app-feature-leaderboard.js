@@ -69,7 +69,7 @@
     }
 
     function looksOrganization(row) {
-      if (row?.last_web_role === 'organization') return true;
+      if (row?.registered_web_role === 'organization' || row?.last_web_role === 'organization') return true;
       const targets = Array.isArray(row?.learning_targets) ? row.learning_targets : [];
       return targets.some((target) => target && typeof target === 'object' && (target.organization_type || Array.isArray(target.audience)));
     }
@@ -274,13 +274,14 @@
     }
 
     async function loadRows() {
-      const { data, error } = await supa.from('profiles')
-        .select('id,full_name,avatar_url,score,is_teacher,is_organizer,is_verified,last_web_role,learning_languages,teaches_languages,learning_targets,language_level,city,country,bio,specialization')
+      let query = window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,score,is_teacher,is_organizer,is_verified,last_web_role,learning_languages,teaches_languages,learning_targets,language_level,city,country,bio,specialization');
+      if (window.DuvelaWebConfig.securityReadV2) query = query.not('score', 'is', null);
+      const { data, error } = await query
         .order('score', { ascending: false })
         .limit(800);
       if (error) {
-        const fallback = await supa.from('profiles')
-          .select('id,full_name,avatar_url,score,is_teacher,is_organizer,is_verified,learning_languages,teaches_languages,learning_targets,language_level,city,country,bio,specialization')
+        if (window.DuvelaWebConfig.securityReadV2) throw error;
+        const fallback = await window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,score,is_teacher,is_organizer,is_verified,learning_languages,teaches_languages,learning_targets,language_level,city,country,bio,specialization')
           .order('score', { ascending: false })
           .limit(800);
         if (fallback.error) throw fallback.error;

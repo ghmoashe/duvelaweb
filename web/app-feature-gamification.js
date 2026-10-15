@@ -149,7 +149,7 @@
         const ids = participants.map((item) => item.user_id);
         const [progress, profiles] = await Promise.all([
           supa.from('challenge_progress').select('user_id,dialogs_done,words_done,writing_done,listening_min_done,live_min_done').eq('challenge_id', id).in('user_id', ids),
-          supa.from('profiles').select('id,full_name').in('id', ids)
+          window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name').in('id', ids)
         ]);
         const names = new Map((profiles.data || []).map((item) => [item.id, item.full_name]));
         const scores = new Map();

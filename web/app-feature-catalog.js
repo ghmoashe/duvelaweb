@@ -60,8 +60,8 @@
       let views = 0;
       try {
         const [{ data: org }, { count }, { data: mine }, { data: rsvps }, viewResult] = await Promise.all([
-          item.organizer_id ? supa.from('profiles').select('full_name').eq('id', item.organizer_id).maybeSingle() : Promise.resolve({ data: null }),
-          supa.from('event_rsvps').select('event_id', { count: 'exact', head: true }).eq('event_id', id).eq('status', 'going'),
+          item.organizer_id ? window.DuvelaWebConfig.publicProfiles(supa, 'full_name').eq('id', item.organizer_id).maybeSingle() : Promise.resolve({ data: null }),
+          window.DuvelaWebConfig.eventCount(supa, id),
           supa.from('event_rsvps').select('status').eq('event_id', id).eq('user_id', ctx.user.id).maybeSingle(),
           item.organizer_id === ctx.user.id ? supa.from('event_rsvps').select('user_id,status').eq('event_id', id).eq('status', 'going') : Promise.resolve({ data: [] }),
           supa.rpc('track_event_view', { target_event_id: id })
@@ -72,7 +72,7 @@
         views = Number(viewResult && viewResult.data) || 0;
         if (rsvps && rsvps.length) {
           const ids = rsvps.map((entry) => entry.user_id);
-          const { data: profiles } = await supa.from('profiles').select('id,full_name').in('id', ids);
+          const { data: profiles } = await window.DuvelaWebConfig.relatedProfiles(supa, ids, 'id,full_name');
           participants = rsvps.map((entry) => ({ ...entry, name: (profiles || []).find((profile) => profile.id === entry.user_id)?.full_name || tr('Student', 'Ученик') }));
         }
       } catch (error) {
@@ -230,7 +230,7 @@
         }
         const capacity = Number(eventRow.max_participants) || 0;
         if (!going && capacity) {
-          const { count, error: countError } = await supa.from('event_rsvps').select('event_id', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'going');
+          const { count, error: countError } = await window.DuvelaWebConfig.eventCount(supa, eventId);
           if (countError) throw countError;
           if ((count || 0) >= capacity) {
             alert(tr('This event is full.', 'На это событие мест больше нет.'));
@@ -977,7 +977,7 @@
       host.querySelectorAll('[data-open-challenge]').forEach(card=>card.onclick=e=>{e.preventDefault();ctx.openChallenge(card.dataset.openChallenge);});
       host.querySelectorAll('[data-save-event]').forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();const id=btn.dataset.saveEvent;if(favorites.has(id))favorites.delete(id);else favorites.add(id);localStorage.setItem('duvela.learner.eventFavorites',JSON.stringify([...favorites]));btn.classList.toggle('active',favorites.has(id));});
       host.querySelectorAll('[data-home-rsvp]').forEach(btn=>btn.onclick=async e=>{e.preventDefault();e.stopPropagation();btn.disabled=true;await toggleRsvp(btn.dataset.homeRsvp);btn.textContent=tr('Joined ✓','Участвуете ✓');btn.disabled=false;void hydrateEventCounts();});
-      async function hydrateEventCounts(){const ids=events.map(x=>x.id).filter(Boolean);if(!ids.length)return;try{const {data}=await supa.from('event_rsvps').select('event_id,user_id').in('event_id',ids).eq('status','going');ids.forEach(id=>{const count=(data||[]).filter(x=>x.event_id===id).length,node=host.querySelector('[data-event-going="'+CSS.escape(id)+'"]');if(node)node.textContent='◉ '+count+' '+tr('going','участников');});}catch(_){} }void hydrateEventCounts();
+      async function hydrateEventCounts(){const ids=events.map(x=>x.id).filter(Boolean);if(!ids.length)return;try{const counts=await window.DuvelaWebConfig.eventGoingCounts(supa,ids);ids.forEach(id=>{const count=counts[id]||0,node=host.querySelector('[data-event-going="'+CSS.escape(id)+'"]');if(node)node.textContent='◉ '+count+' '+tr('going','участников');});}catch(_){} }void hydrateEventCounts();
       apply();
     }
 

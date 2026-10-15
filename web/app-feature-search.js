@@ -21,7 +21,7 @@
       const like = '%' + query.replace(/[%,()]/g, '') + '%';
       try {
         const [peopleResult, coursesResult, eventsResult, practicesResult] = await Promise.all([
-          supa.from('profiles').select('id,full_name,avatar_url,city').ilike('full_name', like).neq('id', ctx.user.id).limit(6),
+          window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,city').ilike('full_name', like).neq('id', ctx.user.id).limit(6),
           supa.from('courses').select('id,title,description,cover_image_url,level,price,currency,schedule,status').eq('status', 'active').ilike('title', like).limit(6),
           supa.from('events').select(ctx.getEventColumns()).ilike('title', like).limit(6),
           supa.from('teacher_practices').select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count').eq('status', 'published').ilike('title', like).limit(6)

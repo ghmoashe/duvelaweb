@@ -173,11 +173,77 @@
       return select;
     }
 
+    function renderPublicationConsent(host) {
+      const existing = document.getElementById('publicationConsentPanel');
+      if (existing) existing.remove();
+      const runtime = window.DuvelaRuntimeConfig || {};
+      const intake = runtime.publicationIntake === true;
+      if (!host || (!intake && (runtime.publicationConsent !== true || !window.DuvelaWebConfig.securityReadV2)) || !ctx.user?.id) return;
+      const owner = ctx.user.id;
+      const section = document.createElement('section');
+      section.id = 'publicationConsentPanel'; section.className = 'card';
+      const heading = document.createElement('h3'); heading.textContent = tr('Public profile', 'Публичный профиль'); section.append(heading);
+      const notice = document.createElement('p');
+      notice.textContent = tr('Selected information will be visible to anyone, including people without an account. Choose only information you want to publish. City, social-link and ranking privacy settings still apply. Select the matching discovery field to appear as a teacher or organizer. You can withdraw at any time. Copies already downloaded by others cannot be recalled.', 'Выбранные сведения будут доступны всем, в том числе без аккаунта. Выберите только то, что хотите опубликовать. Настройки скрытия города, соцсетей и рейтинга продолжают действовать. Для поиска преподавателей или организаторов выберите соответствующее поле. Согласие можно отозвать. Уже скачанные другими людьми копии отозвать невозможно.'); section.append(notice);
+      const status = document.createElement('p'); status.setAttribute('role', 'status'); status.textContent = tr('Loading…', 'Загрузка…'); section.append(status);
+      if (intake) {
+        notice.textContent = tr('Choose the information you agree to make visible to anyone in the upcoming privacy update. Nothing is selected by default. Your future choice does not change current public visibility; existing public reads have not yet switched. You can change or withdraw this future approval before the switch. Contact support for a current removal request. City, social and ranking privacy flags will still apply. Copies already downloaded cannot be recalled.', 'Выберите сведения, которые согласны сделать доступными всем после обновления приватности. По умолчанию ничего не выбрано. Ваш будущий выбор не меняет текущую публичную видимость: старые публичные чтения ещё не переключены. До переключения будущий выбор можно изменить или отменить. Для удаления текущей публикации обратитесь в поддержку. Флаги скрытия города, соцсетей и рейтинга продолжат действовать. Уже скачанные копии отозвать невозможно.');
+        const support = document.createElement('a'); support.href = 'mailto:support@vela.cafe?subject=Public%20profile%20removal'; support.textContent = tr('Contact support about current publication', 'Написать в поддержку о текущей публикации'); section.append(support);
+      }
+      const options = [
+        ['full_name','Name','Имя'],['avatar_url','Profile photo','Фото профиля'],['cover_url','Cover photo','Обложка'],
+        ['city','City','Город'],['country','Country','Страна'],['bio','Biography (full text)','Биография (весь текст)'],
+        ['teaches_languages','Teaching languages','Языки преподавания'],['explanation_languages','Explanation languages','Языки объяснения'],
+        ['qualifications','Qualifications','Квалификации'],['specialization','Specializations','Специализации'],
+        ['teaching_experience','Teaching experience','Опыт преподавания'],['teacher_audience','Teaching audience','Аудитория преподавания'],
+        ['is_teacher','Teacher discovery','Поиск преподавателей'],['is_organizer','Organizer discovery','Поиск организаторов'],
+        ['registered_web_role','Profile category','Категория профиля'],['is_verified','Verification badge','Знак проверки'],
+        ['score','Ranking score','Баллы рейтинга'],['language','Profile language','Язык профиля'],['language_level','Language level','Уровень языка'],
+        ['instagram','Instagram','Instagram'],['tiktok','TikTok','TikTok'],['youtube','YouTube','YouTube'],
+        ['facebook','Facebook','Facebook'],['linkedin','LinkedIn','LinkedIn'],['website','Website','Сайт'],
+      ];
+      const boxes = options.map(([key,en,ru]) => {
+        const label = document.createElement('label'); label.style.display = 'block';
+        const input = document.createElement('input'); input.type = 'checkbox'; input.value = key; input.disabled = true;
+        label.append(input, document.createTextNode(' ' + tr(en,ru))); section.append(label); return input;
+      });
+      const publish = document.createElement('button'); publish.type = 'button'; publish.disabled = true;
+      publish.textContent = tr('I agree — publish selected fields', 'Согласен — опубликовать выбранные поля');
+      const revoke = document.createElement('button'); revoke.type = 'button'; revoke.disabled = true;
+      revoke.textContent = tr('Withdraw publication consent', 'Отозвать согласие на публикацию'); section.append(publish,revoke);
+      if (intake) { publish.textContent = tr('Agree to future publication of selected fields', 'Согласен на будущую публикацию выбранных полей'); revoke.textContent = tr('Do not approve future publication', 'Не согласен на будущую публикацию'); }
+      host.append(section);
+      let current = null; let busy = false;
+      function refresh() { boxes.forEach(box => { box.disabled = busy || !current; }); publish.disabled = busy || !current || !boxes.some(b => b.checked); revoke.disabled = busy || !current || (!intake && !current.published); }
+      function apply(data) {
+        if (!data || typeof data.published !== 'boolean' || !Array.isArray(data.approved_fields) || data.approved_fields.some(f => !options.some(([key]) => key === f))) throw new Error('Invalid consent response');
+        current = data; boxes.forEach(box => { box.checked = data.approved_fields.includes(box.value); });
+        status.textContent = intake ? (data.published ? tr('Future publication approved', 'Будущая публикация согласована') : tr('No future publication approval', 'Согласия на будущую публикацию нет')) : data.published ? tr('Published', 'Опубликован') : tr('Not published', 'Не опубликован'); refresh();
+      }
+      boxes.forEach(box => box.addEventListener('change', refresh));
+      async function save(value) {
+        if (busy || ctx.user?.id !== owner) return;
+        busy = true; refresh();
+        try {
+          const result = await supa.rpc(intake ? 'set_my_publication_intake_v2' : 'set_my_profile_publication_v2', { publish: value, public_fields: value ? boxes.filter(b => b.checked).map(b => b.value) : [], notice_version: intake ? 'profile-publication-intake-v1' : 'profile-publication-v1', expected_profile_id: owner });
+          if (result.error) throw result.error;
+          if (section.isConnected && ctx.user?.id === owner) apply(result.data);
+        } catch { status.textContent = tr('Could not save. Publication status has not been confirmed.', 'Не удалось сохранить. Статус публикации не подтверждён.'); }
+        finally { busy = false; refresh(); }
+      }
+      publish.addEventListener('click', () => void save(true)); revoke.addEventListener('click', () => void save(false));
+      void supa.rpc(intake ? 'get_my_publication_intake_v2' : 'get_my_profile_publication_v2').then(result => {
+        if (!section.isConnected || ctx.user?.id !== owner) return;
+        if (result.error) throw result.error; apply(result.data);
+      }).catch(() => { status.textContent = tr('Could not load publication settings. Reopen your profile to retry.', 'Не удалось загрузить настройки публикации. Откройте профиль заново для повтора.'); });
+    }
+
     function renderProfile() {
       // Business gets the mobile-style profile view (which owns its own Edit and
       // Verification screens internally); learners keep the plain editable form.
       const pv = document.getElementById('profileView');
       const pe = document.getElementById('profileEdit');
+      renderPublicationConsent(pe?.parentElement || pv?.parentElement);
       if (ctx.isBusiness() && ctx.profileView) {
         if (pe) pe.classList.remove('learner-profile-edit');
         if (pv) pv.hidden = false;
@@ -616,7 +682,7 @@
     }
 
     function targetLooksOrganization(row) {
-      if (row?.last_web_role === 'organization') return true;
+      if (row?.registered_web_role === 'organization' || row?.last_web_role === 'organization') return true;
       const targets = Array.isArray(row?.learning_targets) ? row.learning_targets : [];
       return targets.some((target) => target && typeof target === 'object' && (target.organization_type || Array.isArray(target.audience)));
     }
@@ -660,11 +726,11 @@
       const scopeState = activeLeaderboardScope(config);
       const selectedScope = scopeState.selected;
       try {
-        let scopedQuery = supa.from('profiles')
-          .select('id,full_name,avatar_url,score,is_teacher,is_organizer,last_web_role,learning_languages,teaches_languages,learning_targets,specialization')
+        let scopedQuery = window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,score,is_teacher,is_organizer,last_web_role,learning_languages,teaches_languages,learning_targets,specialization')
           .order('score', { ascending: false })
           .limit(300);
         scopedQuery = applyRoleQuery(scopedQuery, config);
+        if (window.DuvelaWebConfig.securityReadV2) scopedQuery = scopedQuery.not('score', 'is', null);
         const { data } = await scopedQuery;
         const scopedRows = (data || [])
           .filter((row) => matchesLeaderboardRole(row, config))

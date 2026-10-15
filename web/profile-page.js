@@ -81,8 +81,7 @@
     return '<div class="public-empty"><i>+</i><b>' + esc(text) + '</b></div>';
   }
 
-  supa.from('profiles')
-    .select('id,full_name,avatar_url,cover_url,city,country,bio,is_teacher,is_organizer,language,language_level')
+  window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,cover_url,city,country,bio,is_teacher,is_organizer,language,language_level')
     .eq('id', id).maybeSingle()
     .then(function (res) {
       var p = res.data;
@@ -257,7 +256,7 @@
         var rows = res.data || [];
         if (!rows.length) return;
         var ids = rows.map(function (r) { return r.user_id; });
-        supa.from('profiles').select('id,full_name,avatar_url').in('id', ids)
+        window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url').in('id', ids)
           .then(function (pr) {
             var profiles = pr.data || [];
             var byId = {};

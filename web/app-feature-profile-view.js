@@ -90,9 +90,13 @@
       let students = 0;
       const evIdsRes = await safe(supa.from('events').select('id').eq('organizer_id', uid));
       const evIds = ((evIdsRes && evIdsRes.data) || []).map(function (r) { return r.id; });
-      if (evIds.length) {
-        const rs = await safe(supa.from('event_rsvps').select('user_id').in('event_id', evIds).eq('status', 'going'));
-        students = new Set(((rs && rs.data) || []).map(function (r) { return r.user_id; }).filter(Boolean)).size;
+      if (window.DuvelaWebConfig.securityReadV2) {
+        const result = await safe(supa.rpc('teacher_public_stats', { p_teacher: uid }));
+        if (!result) throw new Error('Teacher statistics unavailable.');
+        students = Number(result.data?.[0]?.students || 0);
+      } else if (evIds.length) {
+        const rs = await safe(supa.rpc('event_distinct_going_users_v3', { event_ids: evIds }));
+        students = Number(rs && rs.data) || 0;
       }
       const ratings = ((rev && rev.data) || []).map(function (r) { return Number(r.rating); }).filter(function (n) { return n >= 1 && n <= 5; });
       stats = {

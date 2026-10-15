@@ -174,20 +174,11 @@
       const auth = await supa.auth.getUser();
       const userId = auth && auth.data && auth.data.user && auth.data.user.id;
       if (!userId) return;
-      let xp = 0;
-      if (state.room && state.room.id) {
-        const rpc = await supa.rpc('award_live_duel_xp', { p_room_id: state.room.id });
-        if (!rpc.error) xp = Number(rpc.data || 0);
-        else if (!/award_live_duel_xp/i.test(String(rpc.error.message || ''))) throw rpc.error;
-      }
-      if (!xp) {
-        const rank = state.players.findIndex(function (player) { return player.id === state.player.id; });
-        xp = playerXp(state.player, rank < 0 ? 99 : rank);
-        const profile = await supa.from('profiles').select('score').eq('id', userId).maybeSingle();
-        const current = Number(profile && profile.data && profile.data.score || 0);
-        const updated = await supa.from('profiles').update({ score: current + xp }).eq('id', userId);
-        if (updated.error) throw updated.error;
-      }
+      if (!state.room || !state.room.id) return;
+      const rpc = await supa.rpc('award_live_duel_xp', { p_room_id: state.room.id });
+      if (rpc.error) throw rpc.error;
+      const xp = Number(rpc.data || 0);
+      if (!Number.isFinite(xp) || xp <= 0) return;
       state.awardedXp = xp;
       render();
     } catch (error) { /* XP is best-effort */ }

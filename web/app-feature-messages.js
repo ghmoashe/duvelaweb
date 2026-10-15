@@ -68,7 +68,7 @@
         const decryptedMsgs = await decryptMessages(msgs || []);
         const otherIds = Array.from(new Set((parts || []).map((part) => part.user_id).filter((id) => id !== ctx.user.id)));
         const { data: profs } = otherIds.length
-          ? await supa.from('profiles').select(CHAT_PROFILE_FIELDS).in('id', otherIds)
+          ? await window.DuvelaWebConfig.relatedProfiles(supa, otherIds, CHAT_PROFILE_FIELDS)
           : { data: [] };
         const { data: identities } = otherIds.length ? await supa.from('chat_e2ee_identities').select('user_id,last_seen_at').in('user_id', otherIds) : { data: [] };
         const lastSeenById = new Map((identities || []).map((item) => [item.user_id, item.last_seen_at]));
@@ -543,7 +543,7 @@
         if (!rpc.error && rpc.data) {
           results = rpc.data;
         } else {
-          let request = supa.from('profiles').select(CHAT_PROFILE_FIELDS).neq('id', ctx.user.id).limit(20);
+          let request = window.DuvelaWebConfig.publicProfiles(supa, CHAT_PROFILE_FIELDS).neq('id', ctx.user.id).limit(20);
           if (q) request = request.or('full_name.ilike.%' + q.replace(/[%,()]/g, '') + '%,city.ilike.%' + q.replace(/[%,()]/g, '') + '%');
           const fallback = await request;
           results = (fallback.data || []).filter((person) => person.id !== ctx.user.id);

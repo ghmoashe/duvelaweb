@@ -237,9 +237,7 @@
         .eq('is_private', false)
         .order('started_at', { ascending: false })
         .limit(12) : Promise.resolve({ data: [], error: null }),
-      supa
-        .from('profiles')
-        .select('id,full_name,avatar_url,city,country,bio,is_teacher,language,language_level,website,telegram,instagram,tiktok,facebook,linkedin,youtube')
+      window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,city,country,bio,is_teacher,language,language_level,website,telegram,instagram,tiktok,facebook,linkedin,youtube')
         .eq('is_teacher', true)
         .limit(12),
       publicRowsEnabled ? supa
