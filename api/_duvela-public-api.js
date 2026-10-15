@@ -60,10 +60,14 @@ const eventSelect = [
   'created_at',
 ].join(',');
 
-// Public projection ONLY: this handler can run with the service key (RLS
-// bypassed) and answers unauthenticated requests for any profile id. Private
-// columns (phone, dob, is_admin, app_access, coins, rewards, goals, progress)
-// must never be listed here — clients read their own profile with a session.
+// Reviewed publication view only; never read the base profile table here.
+// This handler can run with the service key (RLS bypassed) and answers
+// unauthenticated requests for any profile id, so the only thing standing
+// between a profile's private fields and any caller is reading from
+// public_profiles_v2 instead of profiles: that view already encodes the
+// owner's reviewed publication consent and their approved-field selection.
+// Clients read their OWN profile straight from Supabase with the user's
+// session instead.
 const profileSelect = [
   'id',
   'full_name',
@@ -71,28 +75,26 @@ const profileSelect = [
   'cover_url',
   'city',
   'country',
+  'bio',
   'language',
   'language_level',
-  'learning_languages',
-  'practice_languages',
   'teaches_languages',
-  'profile_interests',
-  'bio',
-  'registered_web_role',
-  'registered_web_role_confirmed',
-  'is_organizer',
+  'explanation_languages',
+  'qualifications',
+  'specialization',
+  'teaching_experience',
+  'teacher_audience',
   'is_teacher',
+  'is_organizer',
   'is_verified',
   'score',
-  'learning_targets',
+  'registered_web_role',
   'instagram',
   'tiktok',
   'youtube',
   'facebook',
   'linkedin',
   'website',
-  'teacher_audience',
-  'created_at',
 ].join(',');
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -241,17 +243,19 @@ async function readPublicData(type, { limit, offset, id, ids, organizerId }) {
     normalizedIds.join(','),
     organizerId || '',
   ].join(':');
-  let cacheState = 'miss';
+  let cacheState = 'disabled';
   let cacheStore = 'memory';
 
-  try {
-    const cached = await cacheGet(cacheKey);
-    cacheState = cached.state;
-    cacheStore = cached.store;
-    if (cached.value) return { data: cached.value, cacheState, cacheStore };
-  } catch (_) {
-    cacheState = 'error';
-    metrics.cache.error += 1;
+  if (type !== 'profile' && type !== 'profiles') {
+    try {
+      const cached = await cacheGet(cacheKey);
+      cacheState = cached.state;
+      cacheStore = cached.store;
+      if (cached.value) return { data: cached.value, cacheState, cacheStore };
+    } catch (_) {
+      cacheState = 'error';
+      metrics.cache.error += 1;
+    }
   }
 
   let data;
@@ -279,12 +283,12 @@ async function readPublicData(type, { limit, offset, id, ids, organizerId }) {
   } else if (type === 'event') {
     data = await supabaseGet('events', { select: eventSelect, id: `eq.${id}`, limit: 1 });
   } else if (type === 'profile') {
-    data = await supabaseGet('profiles', { select: profileSelect, id: `eq.${id}`, limit: 1 });
+    data = await supabaseGet('public_profiles_v2', { select: profileSelect, id: `eq.${id}`, limit: 1 });
   } else if (type === 'profiles') {
     if (normalizedIds.length === 0) {
       data = [];
     } else {
-      data = await supabaseGet('profiles', { select: profileSelect, id: `in.(${normalizedIds.join(',')})`, limit: normalizedIds.length });
+      data = await supabaseGet('public_profiles_v2', { select: profileSelect, id: `in.(${normalizedIds.join(',')})`, limit: normalizedIds.length });
     }
   } else {
     const error = new Error('Unsupported type.');
@@ -292,7 +296,12 @@ async function readPublicData(type, { limit, offset, id, ids, organizerId }) {
     throw error;
   }
 
-  await cacheSet(cacheKey, data, type === 'profile' ? 300 : type === 'feed' ? 30 : 120).catch(() => {});
+  // Profile responses are never cached (memory, Redis, CDN or browser): the
+  // owner's reviewed publication choice can be revoked at any time, and a
+  // shared cache would keep serving a withdrawn projection.
+  if (type !== 'profile' && type !== 'profiles') {
+    await cacheSet(cacheKey, data, type === 'feed' ? 30 : 120).catch(() => {});
+  }
   return { data, cacheState, cacheStore };
 }
 
