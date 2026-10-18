@@ -186,10 +186,6 @@
       const notice = document.createElement('p');
       notice.textContent = tr('Selected information will be visible to anyone, including people without an account. Choose only information you want to publish. City, social-link and ranking privacy settings still apply. Select the matching discovery field to appear as a teacher or organizer. You can withdraw at any time. Copies already downloaded by others cannot be recalled.', 'Выбранные сведения будут доступны всем, в том числе без аккаунта. Выберите только то, что хотите опубликовать. Настройки скрытия города, соцсетей и рейтинга продолжают действовать. Для поиска преподавателей или организаторов выберите соответствующее поле. Согласие можно отозвать. Уже скачанные другими людьми копии отозвать невозможно.'); section.append(notice);
       const status = document.createElement('p'); status.setAttribute('role', 'status'); status.textContent = tr('Loading…', 'Загрузка…'); section.append(status);
-      if (intake) {
-        notice.textContent = tr('Choose the information you agree to make visible to anyone in the upcoming privacy update. Nothing is selected by default. Your future choice does not change current public visibility; existing public reads have not yet switched. You can change or withdraw this future approval before the switch. Contact support for a current removal request. City, social and ranking privacy flags will still apply. Copies already downloaded cannot be recalled.', 'Выберите сведения, которые согласны сделать доступными всем после обновления приватности. По умолчанию ничего не выбрано. Ваш будущий выбор не меняет текущую публичную видимость: старые публичные чтения ещё не переключены. До переключения будущий выбор можно изменить или отменить. Для удаления текущей публикации обратитесь в поддержку. Флаги скрытия города, соцсетей и рейтинга продолжат действовать. Уже скачанные копии отозвать невозможно.');
-        const support = document.createElement('a'); support.href = 'mailto:support@vela.cafe?subject=Public%20profile%20removal'; support.textContent = tr('Contact support about current publication', 'Написать в поддержку о текущей публикации'); section.append(support);
-      }
       const options = [
         ['full_name','Name','Имя'],['avatar_url','Profile photo','Фото профиля'],['cover_url','Cover photo','Обложка'],
         ['city','City','Город'],['country','Country','Страна'],['bio','Biography (full text)','Биография (весь текст)'],
@@ -210,17 +206,26 @@
       const publish = document.createElement('button'); publish.type = 'button'; publish.disabled = true;
       publish.textContent = tr('I agree — publish selected fields', 'Согласен — опубликовать выбранные поля');
       const revoke = document.createElement('button'); revoke.type = 'button'; revoke.disabled = true;
-      revoke.textContent = tr('Withdraw publication consent', 'Отозвать согласие на публикацию'); section.append(publish,revoke);
-      if (intake) { publish.textContent = tr('Agree to future publication of selected fields', 'Согласен на будущую публикацию выбранных полей'); revoke.textContent = tr('Do not approve future publication', 'Не согласен на будущую публикацию'); }
+      section.append(publish,revoke);
       host.append(section);
       let current = null; let busy = false;
-      function refresh() { boxes.forEach(box => { box.disabled = busy || !current; }); publish.disabled = busy || !current || !boxes.some(b => b.checked); revoke.disabled = busy || !current || (!intake && !current.published); }
+      function refresh() {
+        boxes.forEach(box => { box.disabled = busy || !current; });
+        publish.disabled = busy || !current || !boxes.some(b => b.checked);
+        revoke.disabled = busy || !current || (!intake && !current.published);
+        revoke.textContent = current?.published
+          ? tr('Withdraw publication consent', 'Отозвать согласие на публикацию')
+          : tr('Keep my profile closed', 'Оставить профиль закрытым');
+      }
+      // Since the base profiles table closed, this choice decides live public
+      // visibility — so the status reads as current, not as a "future" approval.
       function apply(data) {
         if (!data || typeof data.published !== 'boolean' || !Array.isArray(data.approved_fields) || data.approved_fields.some(f => !options.some(([key]) => key === f))) throw new Error('Invalid consent response');
         current = data; boxes.forEach(box => { box.checked = data.approved_fields.includes(box.value); });
-        status.textContent = intake ? (data.published ? tr('Future publication approved', 'Будущая публикация согласована') : tr('No future publication approval', 'Согласия на будущую публикацию нет')) : data.published ? tr('Published', 'Опубликован') : tr('Not published', 'Не опубликован'); refresh();
+        status.textContent = data.published ? tr('Published', 'Опубликован') : tr('Not published', 'Не опубликован'); refresh();
       }
       boxes.forEach(box => box.addEventListener('change', refresh));
+      refresh();
       async function save(value) {
         if (busy || ctx.user?.id !== owner) return;
         busy = true; refresh();
@@ -236,6 +241,179 @@
         if (!section.isConnected || ctx.user?.id !== owner) return;
         if (result.error) throw result.error; apply(result.data);
       }).catch(() => { status.textContent = tr('Could not load publication settings. Reopen your profile to retry.', 'Не удалось загрузить настройки публикации. Откройте профиль заново для повтора.'); });
+    }
+
+    // What "Open profile" publishes for each role (same bundles as the Hub and
+    // Business apps). City and social links still follow show_city /
+    // show_social_links.
+    const PROFESSIONAL_FIELDS = [
+      'full_name', 'avatar_url', 'cover_url', 'city', 'country', 'bio', 'teaches_languages',
+      'explanation_languages', 'qualifications', 'specialization', 'teaching_experience',
+      'teacher_audience', 'registered_web_role', 'is_verified', 'language',
+      'instagram', 'tiktok', 'youtube', 'facebook', 'linkedin', 'website',
+    ];
+    const OPEN_PROFILE_FIELDS = {
+      teacher: PROFESSIONAL_FIELDS.concat('is_teacher'),
+      organizer: PROFESSIONAL_FIELDS.concat('is_organizer'),
+      learner: ['full_name', 'avatar_url', 'language', 'language_level', 'score'],
+    };
+
+    // One-time "open or closed profile" choice for signed-in users who never
+    // made one — since the base profiles table closed, nobody appears in search,
+    // the marketplace or rankings without it. Both options are equal and nothing
+    // is preselected, so "open" is an affirmative consent. Waits until the
+    // onboarding wizard is done and the profile has a name.
+    function promptPublicationChoice() {
+      const runtime = window.DuvelaRuntimeConfig || {};
+      const owner = ctx.user?.id;
+      const profile = ctx.profile;
+      if (runtime.publicationIntake !== true || !owner || !profile || !String(profile.full_name || '').trim()) return;
+      let onboardingDone = false;
+      try { onboardingDone = Boolean(localStorage.getItem('duvela.onboarding.' + owner)); } catch (_) { onboardingDone = true; }
+      if (!onboardingDone || document.getElementById('publicationChoiceModal')) return;
+      void supa.rpc('my_publication_decided').then(({ data, error }) => {
+        if (error || data !== false || ctx.user?.id !== owner) return;
+        const role = profile.is_teacher ? 'teacher' : profile.is_organizer ? 'organizer' : 'learner';
+        openPublicationChoiceModal(owner, role);
+      }).catch(() => {});
+    }
+
+    function openPublicationChoiceModal(owner, role) {
+      const isLearner = role === 'learner';
+      const overlay = document.createElement('div');
+      overlay.id = 'publicationChoiceModal';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'publicationChoiceTitle');
+      Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '10000', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', padding: '16px', background: 'rgba(20, 12, 38, 0.55)',
+      });
+      const sheet = document.createElement('div');
+      Object.assign(sheet.style, {
+        width: '100%', maxWidth: '520px', maxHeight: '92vh', overflowY: 'auto', background: '#FFFFFF',
+        borderRadius: '22px', padding: '22px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px',
+        color: '#211A2D', fontFamily: 'inherit',
+      });
+      const title = document.createElement('h2');
+      title.id = 'publicationChoiceTitle';
+      title.textContent = tr('Your profile on Duvela', 'Ваш профиль на Duvela');
+      Object.assign(title.style, { margin: '0', fontSize: '21px', fontWeight: '900' });
+      const lead = document.createElement('p');
+      lead.textContent = isLearner
+        ? tr('Choose whether other learners can see you in rankings, duels and among friends.', 'Выберите, видят ли вас другие ученики в рейтингах, дуэлях и среди друзей.')
+        : tr('Choose whether students can find you in search and on the marketplace and open your page.', 'Выберите, могут ли ученики найти вас в поиске и на маркетплейсе и открыть вашу страницу.');
+      Object.assign(lead.style, { margin: '0', color: '#4A4258', lineHeight: '1.45' });
+
+      let choice = null;
+      const optionButtons = [];
+      function option(value, heading, subtitle, details) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.setAttribute('role', 'radio');
+        button.setAttribute('aria-checked', 'false');
+        Object.assign(button.style, {
+          textAlign: 'left', border: '1.5px solid #E5DDF5', borderRadius: '16px', background: '#FFFFFF',
+          padding: '14px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '4px', font: 'inherit', color: 'inherit',
+        });
+        const strong = document.createElement('strong');
+        strong.textContent = heading;
+        strong.style.fontSize = '16px';
+        const sub = document.createElement('span');
+        sub.textContent = subtitle;
+        sub.style.color = '#4A4258';
+        button.append(strong, sub);
+        if (details) {
+          const small = document.createElement('small');
+          small.textContent = details;
+          small.style.color = '#7A7088';
+          button.append(small);
+        }
+        button.addEventListener('click', () => {
+          choice = value;
+          optionButtons.forEach(({ value: v, el }) => {
+            const active = v === value;
+            el.setAttribute('aria-checked', active ? 'true' : 'false');
+            el.style.borderColor = active ? '#683FDC' : '#E5DDF5';
+            el.style.background = active ? '#F6F1FE' : '#FFFFFF';
+          });
+          save.disabled = false;
+          save.style.opacity = '1';
+        });
+        optionButtons.push({ value, el: button });
+        return button;
+      }
+      const openOption = option(
+        'open',
+        tr('Open profile', 'Открытый профиль'),
+        isLearner
+          ? tr('Others see you in rankings, duels and friend lists.', 'Вас видят в рейтингах, дуэлях и у друзей.')
+          : role === 'organizer'
+            ? tr('You appear in organizer search and people can open your page.', 'Вы появляетесь в поиске организаторов, вашу страницу можно открыть.')
+            : tr('Students find you in teacher search and the marketplace.', 'Ученики находят вас в поиске преподавателей и на маркетплейсе.'),
+        isLearner
+          ? tr('Visible: name, photo, language, level and ranking score.', 'Видно: имя, фото, язык, уровень и баллы рейтинга.')
+          : tr('Visible: name, photos, city and country, bio, languages, qualifications, experience, social links and the verification badge.', 'Видно: имя, фото и обложка, город и страна, о себе, языки, квалификации и опыт, соцсети и знак проверки.'),
+      );
+      const closedOption = option(
+        'closed',
+        tr('Closed profile', 'Закрытый профиль'),
+        isLearner
+          ? tr('Only you see your profile. You won’t appear in rankings or search.', 'Профиль видите только вы. В рейтингах и поиске вас не будет.')
+          : tr('Only you see your profile. Students won’t find you in search or on the marketplace.', 'Профиль видите только вы. Ученики не найдут вас в поиске и на маркетплейсе.'),
+      );
+      const legal = document.createElement('p');
+      legal.textContent = tr(
+        'Information in an open profile is visible to anyone, including people without an account. City and social links follow your privacy settings. You can change or withdraw this at any time in your profile → Public profile.',
+        'Сведения открытого профиля видны всем, в том числе без аккаунта. Город и соцсети показываются по вашим настройкам приватности. Изменить или отозвать можно в любой момент: Профиль → Публичный профиль.',
+      );
+      Object.assign(legal.style, { margin: '0', fontSize: '12px', color: '#7A7088', lineHeight: '1.4' });
+      const errorLine = document.createElement('p');
+      errorLine.setAttribute('role', 'alert');
+      Object.assign(errorLine.style, { margin: '0', color: '#A02020', fontWeight: '700', display: 'none' });
+      errorLine.textContent = tr('Could not save. Check your connection and try again.', 'Не удалось сохранить. Проверьте соединение и попробуйте ещё раз.');
+      const save = document.createElement('button');
+      save.type = 'button';
+      save.disabled = true;
+      save.textContent = tr('Save', 'Сохранить');
+      Object.assign(save.style, {
+        font: 'inherit', border: '0', borderRadius: '14px', padding: '14px', background: '#683FDC',
+        color: '#FFFFFF', fontWeight: '900', fontSize: '16px', cursor: 'pointer', opacity: '0.45',
+      });
+      const customise = document.createElement('button');
+      customise.type = 'button';
+      customise.textContent = tr('Choose fields in detail', 'Настроить поля подробно');
+      Object.assign(customise.style, { border: '0', background: 'transparent', color: '#683FDC', fontWeight: '800', cursor: 'pointer', font: 'inherit' });
+
+      save.addEventListener('click', async () => {
+        if (!choice || save.disabled) return;
+        save.disabled = true;
+        errorLine.style.display = 'none';
+        try {
+          const publish = choice === 'open';
+          const result = await supa.rpc('set_my_publication_intake_v2', {
+            publish,
+            public_fields: publish ? OPEN_PROFILE_FIELDS[role] : [],
+            notice_version: 'profile-publication-intake-v1',
+            expected_profile_id: owner,
+          });
+          if (result.error) throw result.error;
+          overlay.remove();
+          if (document.getElementById('publicationConsentPanel')) renderProfile();
+        } catch (_) {
+          errorLine.style.display = 'block';
+          save.disabled = false;
+        }
+      });
+      customise.addEventListener('click', () => {
+        overlay.remove();
+        window.location.hash = '#profile';
+      });
+
+      sheet.append(title, lead, openOption, closedOption, legal, errorLine, save, customise);
+      overlay.append(sheet);
+      document.body.append(overlay);
+      openOption.focus();
     }
 
     function renderProfile() {
@@ -762,6 +940,7 @@
       deleteAccount,
       deletePortfolioItem,
       ensureAppLanguageField,
+      promptPublicationChoice,
       renderProfile,
       renderProgressCard,
       saveProfile

@@ -316,6 +316,7 @@
       ]);
       ctx.renderAll();
       if (onboarding) onboarding.openIfNeeded();
+      if (ctx.promptPublicationChoice) ctx.promptPublicationChoice();
       ctx.syncRoleOptions();
       $('#loading').style.display = 'none';
       $('#app').style.display = 'grid';

@@ -560,6 +560,7 @@
     loadPractices,
     loadProfile,
     loadPublicData,
+    promptPublicationChoice: () => profileFeature.promptPublicationChoice(),
     loadSchedule,
     loadVideos,
     loadWallet,
