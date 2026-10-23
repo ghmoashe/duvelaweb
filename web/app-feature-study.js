@@ -509,7 +509,7 @@
       ]
     };
 
-    const SPEECH_LOCALE = { de: 'de-DE', en: 'en-US', es: 'es-ES' };
+    const SPEECH_LOCALE = { de: 'de-DE', en: 'en-US', es: 'es-ES', fa: 'fa-IR' };
     const SUPPORTED_LANGUAGE_TARGETS = ['de', 'en', 'es'];
     const LANGUAGE_TARGET_ALIASES = {
       de: 'de', deutsch: 'de', german: 'de', germanic: 'de', немецкий: 'de', nemetskij: 'de',
@@ -681,6 +681,11 @@
     );
     TOOLS.push(
       { id:'liveTeacher',icon:'▣',category:'coach',accent:'red',premium:true,title:tr('Practice LIVE with Teacher','LIVE-практика с преподавателем'),desc:tr('Speaking, questions and real-time feedback','Говорение, вопросы и обратная связь в реальном времени') },
+      { id:'germanAlphabet',icon:'Ää',category:'vocabulary',accent:'teal',title:tr('German alphabet','Немецкий алфавит'),desc:tr('30 letters and 19 letter combinations','30 букв и 19 сочетаний') },
+      { id:'persianAlphabet',icon:'الف',category:'vocabulary',accent:'teal',title:tr('Persian alphabet','Персидский алфавит'),desc:tr('32 letters, their shapes and sounds','32 буквы, их формы и звуки') },
+      { id:'persianReading',icon:'📖',category:'skills',accent:'blue',title:tr('Reading & letters','Чтение и буквы'),desc:tr('Read words with and without vowel marks, build words from letters','Чтение с огласовками и без, сборка слов из букв') },
+      { id:'persianListening',icon:'🎧',category:'skills',accent:'teal',title:tr('Listening','Аудирование'),desc:tr('NOVA says a word: pick it or spell it','NOVA говорит слово: выберите или соберите его') },
+      { id:'persianNumbers',icon:'۱۲۳',category:'vocabulary',accent:'purple',title:tr('Numbers, time, money','Числа, время, деньги'),desc:tr('Persian digits, telling the time and prices','Персидские цифры, время и цены') },
       { id:'chess',icon:'♞',category:'chess',accent:'purple',title:'Chess',desc:tr('Play and train focus between lessons','Играйте и тренируйте концентрацию между уроками') }
     );
 
@@ -1049,14 +1054,19 @@
       if (isLanguageTarget(target)) return '🌐';
       return SUBJECT_TARGET_ICONS[target] || '🎯';
     }
+    var PERSIAN_TOOLS = ['persianAlphabet','persianReading','persianListening','persianNumbers'];
     function toolsForTarget(target) {
       if (target === 'chess') return TOOLS.filter(function(tool){return tool.id === 'chess';});
+      if (target === 'fa') {
+        var persianTools = ['ai','liveTeacher','persianAlphabet','persianReading','persianListening','persianNumbers','dictionary','history','calendar','achievements','ranking','settings'];
+        return TOOLS.filter(function(tool){ return persianTools.indexOf(tool.id) >= 0; });
+      }
       if (!isSupportedLanguageTarget(target)) {
         var subjectTools = ['ai','liveTeacher','dictionary','history','calendar','achievements','ranking','settings'];
         return TOOLS.filter(function(tool){ return subjectTools.indexOf(tool.id) >= 0; });
       }
-      var germanOnly = ['articles','wquestion','perfekt'];
-      return TOOLS.filter(function(tool){return tool.id !== 'chess' && (target === 'de' || germanOnly.indexOf(tool.id) < 0);});
+      var germanOnly = ['articles','wquestion','perfekt','germanAlphabet'];
+      return TOOLS.filter(function(tool){return tool.id !== 'chess' && PERSIAN_TOOLS.indexOf(tool.id) < 0 && (target === 'de' || germanOnly.indexOf(tool.id) < 0);});
     }
 
     // ---- public: tools grid in learner workspace ----
@@ -1084,7 +1094,13 @@
       const activeLabel=targetData.labels[activeTarget]||targetLabel(activeTarget),activeLevel=targetData.levels[activeTarget]||prefs.levels[activeTarget]||ctx.profile&&ctx.profile.language_level||'A1';
       const fullLanguagePractice=isSupportedLanguageTarget(activeTarget),languageTarget=isLanguageTarget(activeTarget);
       const targetCompleted=targetTools.filter(function(tool){return p[tool.id];}).length;
-      if(!fullLanguagePractice&&activeTarget!=='chess') {
+      if(activeTarget==='fa') {
+        dailyPlan=[
+          {tool:'persianAlphabet',title:tr('Persian alphabet','Персидский алфавит'),meta:activeLabel+' · '+activeLevel,reason:tr('Letters, shapes and sounds','Буквы, формы и звуки')},
+          {tool:'persianReading',title:tr('Reading & letters','Чтение и буквы'),meta:activeLabel,reason:tr('Read real words','Читайте настоящие слова')},
+          {tool:'ai',title:tr('Practise with GRAMMI and NOVA','Практика с GRAMMI и NOVA'),meta:activeLabel,reason:tr('Grammar and pronunciation in Persian','Грамматика и произношение на персидском')}
+        ];
+      } else if(!fullLanguagePractice&&activeTarget!=='chess') {
         dailyPlan=[
           {tool:'liveTeacher',title:tr('Practice with a teacher','Практика с преподавателем'),meta:activeLabel+' · '+activeLevel,reason:tr('Best for this direction now','Лучший вариант для этого направления сейчас')},
           {tool:'ai',title:tr('Ask Duvela AI coach','Спросить AI-тренера Duvela'),meta:activeLabel,reason:tr('Get explanations and examples','Получить объяснения и примеры')},
@@ -1116,6 +1132,7 @@
       var languageTail=activeTarget==='de'
         ? [
             sourceCard('articles','articles','file',false,'Guess Article','Article practice','Practice der, die, and das with German words from your level.','Continue'),
+            sourceCard('germanAlphabet','germanAlphabet','file',false,'German Alphabet','30 letters · 19 combinations','Every letter and combination with its sound and examples, read by ELSA — then a quiz.','Start'),
             sourceCard('memory','flashcards','stack',false,'Memory Cards','Vocabulary training','Learn and remember words with interactive cards.','Continue')
           ]
         : [
@@ -1386,8 +1403,9 @@
       stopDuelChatIngest();
       ensureOverlay();
       if (id !== 'ai') aiChatState = null;
-      var germanOnly = ['articles','wquestion','perfekt'].indexOf(id) >= 0;
-      var sessionLang=germanOnly?'de':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
+      var germanOnly = ['articles','wquestion','perfekt','germanAlphabet'].indexOf(id) >= 0;
+      var persianOnly = PERSIAN_TOOLS.indexOf(id) >= 0;
+      var sessionLang=germanOnly?'de':persianOnly?'fa':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
       var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
       studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:1,skillDirect:!!(restored&&restored.skillDirect),progressDirect:!!(restored&&restored.progressDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now() };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
@@ -1401,7 +1419,7 @@
 
     function renderTool() {
       var body = $('#studyOverlayBody');
-      var showPicker = ['mistakes','ai','articles','wquestion','perfekt'].indexOf(studyState.tool) < 0;
+      var showPicker = ['mistakes','ai','articles','wquestion','perfekt','germanAlphabet'].concat(PERSIAN_TOOLS).indexOf(studyState.tool) < 0;
       var pickerRow = showPicker ? '<div class="practice-language-row">' + langPicker() + '</div>' : '';
       var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || (studyState.tool==='examplan'?{icon:'🎯',title:tr('Exam plan','План к экзамену'),desc:tr('A personal route to exam day','Персональный маршрут до экзамена')}:{icon:'⚔️',title:tr('Learner duel','Дуэль учеников'),desc:tr('Answer faster and more accurately','Отвечайте быстрее и точнее')});
       body.innerHTML = '<div class="practice-stage-intro"><span>' + (tool.icon || '✦') + '</span><div><small>' + esc(tr('TRAINING MODE','ТРЕНИРОВОЧНЫЙ РЕЖИМ')) + '</small><h3>' + esc(tool.title || '') + '</h3><p>' + esc(tool.desc || '') + '</p></div></div>' +
@@ -1449,6 +1467,11 @@
         case 'ranking': return renderPracticeRanking();
         case 'settings': return renderPracticeSettings();
         case 'essentials': return renderEssentials();
+        case 'germanAlphabet': return window.DuvelaPracticeExtras.renderAlphabet($('#studyToolBody'), 'german', practiceExtrasOptions());
+        case 'persianAlphabet': return window.DuvelaPracticeExtras.renderAlphabet($('#studyToolBody'), 'persian', practiceExtrasOptions());
+        case 'persianReading': return window.DuvelaPracticeExtras.renderPersianReading($('#studyToolBody'), practiceExtrasOptions());
+        case 'persianListening': return window.DuvelaPracticeExtras.renderPersianListening($('#studyToolBody'), practiceExtrasOptions());
+        case 'persianNumbers': return window.DuvelaPracticeExtras.renderPersianNumbers($('#studyToolBody'), practiceExtrasOptions());
         case 'ai': return renderAiPractice();
       }
     }
@@ -2050,6 +2073,49 @@
         try { listeningAudio.pause(); } catch (e) { /* already stopped */ }
         listeningAudio = null;
       }
+    }
+
+    var practiceClipAudio = null;
+    function playPracticeClip(path, text, voiceId, languageCode) {
+      try { if (practiceClipAudio) practiceClipAudio.pause(); } catch (e) { /* already stopped */ }
+      function browserVoice() {
+        try {
+          if (!window.speechSynthesis || !text) return;
+          var utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = languageCode || 'de-DE';
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utterance);
+        } catch (e) { /* speech synthesis unavailable */ }
+      }
+      function fishVoice() {
+        fetchFishAudioBlob({ action: 'speak', text: String(text || '').slice(0, 400), voiceId: voiceId || '' })
+          .then(function (blob) {
+            var url = URL.createObjectURL(blob);
+            practiceClipAudio = new Audio(url);
+            practiceClipAudio.onended = function () { URL.revokeObjectURL(url); };
+            return practiceClipAudio.play();
+          })
+          .catch(browserVoice);
+      }
+      var url = listeningStorageUrl(path);
+      if (!url) return fishVoice();
+      practiceClipAudio = new Audio(url);
+      practiceClipAudio.play().catch(fishVoice);
+    }
+
+    // Shared helpers for the screens in app-feature-practice-extras.js.
+    function practiceExtrasOptions() {
+      return {
+        esc: esc,
+        tr: tr,
+        isRu: !!ctx.isRu,
+        playClip: playPracticeClip,
+        finish: function (correct, total, label) {
+          studyState.score = correct;
+          studyState.data = new Array(total);
+          finishTool(label + ': ' + correct + ' / ' + total, correct >= Math.ceil(total / 2) ? 8 : 2);
+        }
+      };
     }
 
     function listeningStorageUrl(path) {
@@ -4252,8 +4318,53 @@
       { id: 'lina', name: 'LINA', role: 'roleplay', voiceId: 'c103d063793d4262910d6f4b9775f8c3', crop: 'head', accent: '#E5484D', avatar: './web/assets/duvi/friends/lina.png?v=3', tagline: { en: 'Role-play scenarios — restaurant, doctor, interview', ru: 'Ролевые сценарии — ресторан, врач, интервью' } }
     ];
 
+    AI_PARTNERS.push({ id: 'stella', name: 'STELLA', role: 'sentences', voiceId: '1a349d6ebed24d27a97c58318ec75df1', crop: 'head', accent: '#7B47E6', avatar: './web/assets/duvi/friends/stella-avatar.jpg?v=1', tagline: { en: 'A word card — you build a sentence, I score it', ru: 'Карточка со словом — ты составляешь предложение, я оцениваю' } });
+
+    // Persian learners get only GRAMMI and NOVA, with their Persian voices; STELLA has
+    // word banks for German, English and Spanish.
+    function aiPartnersForLang(lang) {
+      if (lang === 'fa') {
+        var persianVoices = { grammi: 'fe5c93fde6f44d65a05aedea38b88837', nova: 'e29dfaf012b9453c9a8d781f8f6696c3' };
+        return AI_PARTNERS.filter(function (bot) { return persianVoices[bot.id]; })
+          .map(function (bot) { return Object.assign({}, bot, { voiceId: persianVoices[bot.id] }); });
+      }
+      return AI_PARTNERS.filter(function (bot) { return bot.id !== 'stella' || ['de', 'en', 'es'].indexOf(lang) >= 0; });
+    }
+
+    function renderStellaPractice() {
+      var lang = aiChatState.lang && ['de', 'en', 'es'].indexOf(aiChatState.lang) >= 0 ? aiChatState.lang : 'de';
+      window.DuvelaPracticeExtras.renderStella($('#studyToolBody'), {
+        esc: esc,
+        tr: tr,
+        isRu: !!ctx.isRu,
+        lang: lang,
+        level: currentPracticeLevel(lang),
+        locale: SPEECH_LOCALE[lang] || 'de-DE',
+        nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US',
+        supa: supa,
+        avatarHtml: function () { return aiAvatarHtml(aiChatState.partner, 'sm', false); },
+        speak: function (text) { speakAi(text); },
+        isSaved: function (word) { return isWordSaved(lang, word); },
+        saveWord: function (word, translation) {
+          if (isWordSaved(lang, word)) return;
+          toggleSavedWord(lang, word, translation);
+          syncPracticeData();
+        },
+        awardXp: function () {},
+        onEnd: function (results) {
+          stopAiVoice();
+          var good = results.filter(function (item) { return item.score >= 70; }).length;
+          aiChatState = null;
+          studyState.score = good;
+          studyState.data = new Array(Math.max(1, results.length));
+          finishTool(tr('Sentences with STELLA', 'Предложения со STELLA') + ': ' + good + ' / ' + results.length, Math.min(30, good * 5));
+        }
+      });
+    }
+
     function aiRoleMeta(role) {
       switch (role) {
+        case 'sentences': return { label: tr('Sentences', 'Предложения'), instruction: '' };
         case 'grammar': return { label: tr('Grammar', 'Грамматика'), instruction: 'Act as a GRAMMAR coach. Focus on grammar: give short targeted exercises, correct the learner\'s grammar (word order, cases, articles, verb forms) and briefly explain the rule. One step at a time.' };
         case 'pronunciation': return { label: tr('Pronunciation', 'Произношение'), instruction: 'Run a PRONUNCIATION drill. Give ONE short, simple sentence at a time to read aloud, then brief friendly pronunciation feedback and the next short sentence.' };
         case 'roleplay': return { label: tr('Role-play', 'Ролевая игра'), instruction: 'Run a ROLE-PLAY. Pick a realistic everyday scenario (restaurant, doctor, shopping, job interview, etc.) and play the other person. Stay in the scene, keep it interactive, one exchange at a time.' };
@@ -4332,7 +4443,7 @@
           '<div class="ai-partner-head">' + esc(tr('Practice with AI', 'Практика с AI')) + '</div>' +
           '<div class="ai-partner-sub">' + esc(tr('Each partner has its own focus — pick one and start', 'У каждого собеседника своя роль — выбери и начни')) + '</div>' +
           '<div class="ai-partner-list">' +
-          AI_PARTNERS.map(function (bot) {
+          aiPartnersForLang(aiChatState.lang).map(function (bot) {
             return '<div class="ai-partner-card">' +
               '<div class="ai-partner-row">' +
                 aiAvatarHtml(bot, 'lg', true) +
@@ -4344,7 +4455,12 @@
           '</div>';
         Array.prototype.forEach.call(host.querySelectorAll('[data-partner]'), function (btn) {
           btn.addEventListener('click', function () {
-            aiChatState.partner = AI_PARTNERS.find(function (b) { return b.id === btn.getAttribute('data-partner'); }) || null;
+            aiChatState.partner = aiPartnersForLang(aiChatState.lang).find(function (b) { return b.id === btn.getAttribute('data-partner'); }) || null;
+            if (aiChatState.partner && aiChatState.partner.id === 'stella') {
+              aiChatState.started = true;
+              renderStellaPractice();
+              return;
+            }
             aiChatState.topic = tr('a friendly everyday conversation', 'дружеская повседневная беседа');
             aiChatState.started = true;
             renderAiPractice();
@@ -4354,6 +4470,7 @@
         return;
       }
 
+      if (aiChatState.partner && aiChatState.partner.id === 'stella') return renderStellaPractice();
       var partnerRole = aiChatState.partner ? aiChatState.partner.role : 'conversation';
       var modePron = partnerRole === 'pronunciation';
       var roleLabel = aiRoleMeta(partnerRole).label;
