@@ -34,6 +34,11 @@
     'What to improve': 'چه چیزی را بهبود دهید',
     'New exam': 'آزمون جدید',
     'Say a few sentences about each point': 'درباره‌ی هر مورد چند جمله بگویید',
+    'Tell one connected story on this topic': 'دربارهٔ این موضوع به‌صورت پیوسته صحبت کنید',
+    'The points are hints — speak in one monologue, no need to answer each one separately.':
+      'نکته‌ها فقط راهنما هستند — یکجا و پیوسته صحبت کنید؛ لازم نیست به هر نکته جداگانه پاسخ دهید.',
+    'ELSA notes': 'یادداشت‌های ELSA',
+    'Better: ': 'بهتر است بگویید: ',
   };
 
   function createElsaExam(ctx) {
@@ -61,7 +66,7 @@
     const PART_SUMMARIES = {
       goethe: {
         A1: ['Sich vorstellen', 'Informationen erfragen und geben', 'Bitten und darauf reagieren'],
-        A2: ['Fragen zur Person', 'Über ein Thema sprechen', 'Gemeinsam etwas aushandeln'],
+        A2: ['Fragen zur Person', 'Von sich erzählen', 'Gemeinsam etwas planen'],
         B1: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben', 'Ein Thema präsentieren', 'Über die Präsentation sprechen'],
         B2: ['Einen Standpunkt vortragen', 'Diskutieren und argumentieren'],
         C1: ['Freien Vortrag halten', 'Anspruchsvoll diskutieren'],
@@ -139,8 +144,33 @@
     function pickPresentationTopic() {
       return PRESENTATION_TOPIC_POOL[Math.floor(Math.random() * PRESENTATION_TOPIC_POOL.length)];
     }
+    // Goethe A2 Teil 2 ("Von sich erzählen"): a topic question on top and four Stichpunkte
+    // under it; the candidate tells one connected story. Mirrored from the Hub's
+    // A2_TALK_TOPICS in shared/ai-practice-exams.ts — one card is picked per attempt.
+    const A2_TALK_TOPICS = [
+      { topic: 'Wie lernen Sie Deutsch?', cues: ['Wo?', 'Wie oft?', 'Mit wem?', 'Was ist schwer?'] },
+      { topic: 'Was machen Sie am Wochenende?', cues: ['Was?', 'Wo?', 'Mit wem?', 'Warum gern?'] },
+      { topic: 'Wie feiern Sie Ihren Geburtstag?', cues: ['Wo?', 'Mit wem?', 'Essen und Trinken?', 'Geschenke?'] },
+      { topic: 'Wohin reisen Sie gern?', cues: ['Wohin?', 'Wann?', 'Mit wem?', 'Warum?'] },
+      { topic: 'Was essen Sie gern?', cues: ['Was?', 'Wann?', 'Wo?', 'Selbst kochen?'] },
+      { topic: 'Wie wohnen Sie?', cues: ['Wo?', 'Wie groß?', 'Mit wem?', 'Was gefällt Ihnen?'] },
+      { topic: 'Was machen Sie in Ihrer Freizeit?', cues: ['Was?', 'Wie oft?', 'Mit wem?', 'Warum?'] },
+      { topic: 'Wie war Ihr letzter Urlaub?', cues: ['Wohin?', 'Wann?', 'Mit wem?', 'Was haben Sie gemacht?'] },
+      { topic: 'Wie sieht Ihr Arbeitstag aus?', cues: ['Wann?', 'Wo?', 'Was genau?', 'Was gefällt Ihnen?'] },
+      { topic: 'Wie kaufen Sie ein?', cues: ['Wo?', 'Wie oft?', 'Was?', 'Online oder im Geschäft?'] },
+    ];
+    function pickTalkTopic() {
+      return A2_TALK_TOPICS[Math.floor(Math.random() * A2_TALK_TOPICS.length)];
+    }
+    // The monologue part is Teil 2 (index 1), only on Goethe A2.
+    function isTalkTopicPart(partIndex) {
+      return partIndex === 1 && state.board === 'goethe' && state.level === 'A2';
+    }
     function cuesForPart(partIndex) {
       if (state.board === 'dtz') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES][partIndex] || null;
+      if (state.board === 'goethe' && state.level === 'A2') {
+        return [SELF_INTRO_CUES, state.talkTopic ? state.talkTopic.cues : null, PLANNING_CUES][partIndex] || null;
+      }
       if (state.board === 'goethe' && state.level === 'B1') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES, PRESENTATION_CUES, null][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'A1' && partIndex === 0) return SELF_INTRO_CUES;
       return null;
@@ -149,8 +179,9 @@
     function isPictureTaskPart(partIndex) {
       return partIndex === 2 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
     }
-    // The "Gemeinsam etwas planen" part is always Teil 2 (index 1) wherever it exists.
+    // "Gemeinsam etwas planen": Teil 2 (index 1) on DTZ and Goethe B1, Teil 3 (index 2) on Goethe A2.
     function isPlanningTaskPart(partIndex) {
+      if (state.board === 'goethe' && state.level === 'A2') return partIndex === 2;
       return partIndex === 1 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
     }
     // The "Ein Thema präsentieren" part is always Teil 4 (index 3), only on Goethe B1.
@@ -246,6 +277,11 @@
               ' Nutze das ausschließlich, um am Ende zu beurteilen, ob die Beschreibung des Kandidaten zum Foto passt — verrate ihm nicht, was auf dem Foto ist.'
             : '';
           cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat ein Foto auf dem Bildschirm. Sage zu Beginn dieses Teils nur eine kurze, natürliche Aufforderung wie „Bitte beschreiben Sie das Bild, das Sie sehen, und erzählen Sie von eigenen Erfahrungen dazu." — lies die folgenden Punkte NICHT als Liste vor, nutze sie nur als Grundlage für deine Nachfrage am Ende, falls der Kandidat etwas davon nicht von selbst erwähnt: ' + cues.join(' ') + photoLine;
+        } else if (isTalkTopicPart(i) && state.talkTopic) {
+          // A monologue part: the candidate tells one connected story about the topic; the
+          // Stichpunkte only suggest what to cover, they are not separate questions.
+          cueLines += ' In Teil ' + (i + 1) + ' sieht der Kandidat eine Themenkarte mit der Frage „' + state.talkTopic.topic + '" und diesen Stichpunkten: ' + cues.join(' ') +
+            ' Bitte ihn zu Beginn dieses Teils, zu GENAU dieser Frage zusammenhängend und frei zu erzählen — als EIN Monolog, nicht Punkt für Punkt; er muss nicht jeden Punkt einzeln beantworten. Unterbrich ihn nicht. Erst wenn er fertig ist: eine kurze Rückfrage zu einem Punkt, den er nicht erwähnt hat.';
         } else if (isPresentationTaskPart(i) && state.topic) {
           // The card shows one fixed topic for this attempt — ELSA must present on exactly
           // that topic, not invent or pick a different one.
@@ -375,6 +411,7 @@
       state.skills = { sprechen: null };
       state.photo = pickExamPhoto();
       state.topic = pickPresentationTopic();
+      state.talkTopic = pickTalkTopic();
       renderExam();
       await sendTurn('Guten Tag, ich bin bereit für die Prüfung.', true);
     }
@@ -393,6 +430,13 @@
           history: state.messages.slice(-6).map(function (m) { return { role: m.role, text: m.text }; }),
         }, lessonParams(isKickoff ? 0 : answersGiven())));
         state.conversationId = reply.conversationId || state.conversationId;
+        const coach = reply.coach || {};
+        const correction = String(coach.quickCorrection || '').trim();
+        const better = String(coach.betterVersion || '').trim();
+        const lastAnswer = state.messages[state.messages.length - 1];
+        if (!isKickoff && lastAnswer && lastAnswer.role === 'user' && (correction || better)) {
+          lastAnswer.notes = { correction: correction, better: better };
+        }
         state.messages.push({ role: 'assistant', text: reply.text || '(…)' });
       } catch (e) {
         state.error = e.message;
@@ -412,15 +456,34 @@
       function cueHtmlFor(cues, partIndex) {
         if (!cues) return '';
         const presenting = isPresentationTaskPart(partIndex);
-        const hint = presenting
-          ? tr('Prepare a short talk covering these points', 'Подготовьте короткое выступление по этим пунктам')
-          : tr('Say a few sentences about each point', 'Расскажите о каждом пункте подробнее');
-        const topicHtml = presenting && state.topic
-          ? '<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:6px">' + esc(tr('Topic', 'Тема')) + ': ' + esc(state.topic) + '</div>'
+        const talking = isTalkTopicPart(partIndex) && state.talkTopic;
+        const hint = talking
+          ? tr('Tell one connected story on this topic', 'Расскажите связно на эту тему')
+          : presenting
+            ? tr('Prepare a short talk covering these points', 'Подготовьте короткое выступление по этим пунктам')
+            : tr('Say a few sentences about each point', 'Расскажите о каждом пункте подробнее');
+        const cardTopic = talking ? state.talkTopic.topic : presenting ? state.topic : '';
+        const topicHtml = cardTopic
+          ? '<div style="font-size:15px;font-weight:900;color:var(--ink);margin-bottom:6px">' + esc(tr('Topic', 'Тема')) + ': ' + esc(cardTopic) + '</div>'
+          : '';
+        const subHtml = talking
+          ? '<div style="font-size:12px;font-weight:600;color:var(--soft);margin-bottom:6px">' +
+            esc(tr('The points are hints — speak in one monologue, no need to answer each one separately.', 'Пункты — подсказка: говорите одним рассказом, не нужно отвечать на каждый отдельно.')) + '</div>'
           : '';
         return '<div style="max-width:70%;margin:0 0 10px;padding:10px 16px 4px;border-radius:14px;background:var(--panel-soft);border:1px solid var(--line)">' +
-          '<div style="font-size:12px;font-weight:800;color:var(--teal);margin-bottom:4px">' + esc(hint) + '</div>' + topicHtml +
+          '<div style="font-size:12px;font-weight:800;color:var(--teal);margin-bottom:4px">' + esc(hint) + '</div>' + topicHtml + subHtml +
           cues.map(function (c, i) { return '<div style="text-align:center;padding:9px 0;font-size:16px;font-weight:900;' + (i ? 'border-top:1px solid currentColor' : '') + '">' + esc(c) + '</div>'; }).join('') + '</div>';
+      }
+      // ELSA's written correction of an answer, shown under it and never spoken.
+      function notesHtml(m) {
+        if (m.role !== 'user' || !m.notes) return '';
+        return '<div style="max-width:82%;margin:-2px 0 10px auto;padding:8px 12px;border-radius:12px;background:var(--panel-soft);border:1px solid var(--line);border-left:3px solid #6D3DF5;line-height:1.45">' +
+          '<div style="font-size:11px;font-weight:900;color:#6D3DF5;text-transform:uppercase;margin-bottom:2px">' + esc(tr('ELSA notes', 'Заметки ELSA')) + '</div>' +
+          (m.notes.correction ? '<div style="font-weight:600">' + esc(m.notes.correction) + '</div>' : '') +
+          (m.notes.better
+            ? '<div style="font-weight:600"><b style="color:#2FA36B">' + esc(tr('Better: ', 'Лучше сказать: ')) + '</b>' + esc(m.notes.better) + '</div>'
+            : '') +
+          '</div>';
       }
       let assistantOrdinal = -1;
       const log = state.messages.map(function (m) {
@@ -445,7 +508,7 @@
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
           '<div style="max-width:82%;padding:9px 13px;border-radius:14px;font-weight:600;line-height:1.45;' +
           (m.role === 'user' ? 'background:var(--teal);color:#fff' : 'background:var(--panel-soft);border:1px solid var(--line)') + '">' + esc(m.text) + '</div></div>' +
-          cueHtml;
+          notesHtml(m) + cueHtml;
       }).join('') + (state.sending ? '<div style="color:var(--soft);font-weight:700">…</div>' : '');
       body().innerHTML =
         '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--soft);margin-bottom:10px">' +
@@ -527,13 +590,12 @@
     }
 
     function elsaExamCardHtml() {
-      return '<button class="study-tile" id="elsaExamLaunch" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin-bottom:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(90deg,#7B47E6,#A231C9);color:#fff">' +
-        '<span style="font-size:26px">🎓</span><span style="flex:1"><b style="font-size:15px">ELSA · ' + esc(tr('Mock exam', 'Пробный экзамен')) + '</b><br><small style="opacity:.9">' + esc(tr('Goethe / telc / ÖSD / DTZ — speaking, reading, listening, writing', 'Goethe / telc / ÖSD / DTZ — говорение, чтение, аудирование, письмо')) + '</small></span><span style="font-size:20px">›</span></button>';
+      return '';
     }
-    function bindElsaExamCard() {
-      const btn = document.getElementById('elsaExamLaunch');
-      if (btn) btn.addEventListener('click', open);
-    }
+    function bindElsaExamCard() {}
+
+    document.addEventListener('duvela-open-elsa-exam', open);
+    window.DuvelaOpenElsaExam = open;
 
     return { open: open, elsaExamCardHtml: elsaExamCardHtml, bindElsaExamCard: bindElsaExamCard };
   }
