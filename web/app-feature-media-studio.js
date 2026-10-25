@@ -6,7 +6,7 @@
   function createMediaStudio(ctx) {
     const { tr, esc, supa } = ctx;
     const LEVELS = ['A1-A2', 'A2-B1', 'B1-B2', 'B2-C1', 'C1-C2'];
-    let activeTab = 'videos';
+    let activeTab = 'all';
     let ytLevel = null;
     let ytValue = '';
     let notice = '';
@@ -16,6 +16,12 @@
     let mediaLikes = new Map();
     let mediaViews = new Map();
     let loadedFor = null;
+    let librarySearch = '';
+    let libraryLanguage = '';
+    let libraryLevel = '';
+    let libraryCategory = '';
+    let libraryStatus = '';
+    let librarySort = 'newest';
 
     function parseYouTubeId(url) {
       if (!url) return '';
@@ -24,13 +30,14 @@
     }
 
     async function safe(p) {
-      try { const r = await p; return (r && r.error) ? { data: [] } : r; } catch (e) { return { data: [] }; }
+      try { const r = await p; return (r && r.error) ? { data: [], error: r.error } : r; } catch (e) { return { data: [], error: e }; }
     }
 
     async function loadPosts(uid) {
-      const r = await safe(supa.from('posts')
-        .select('id,media_url,media_type,caption,cover_url,bunny_video_guid,bunny_thumbnail_url,mux_playback_id,mux_thumbnail_url,language_level,duration_seconds,shorts_hidden,shorts_deleted_at,created_at')
+      let r = await safe(supa.from('posts')
+        .select('id,media_url,media_type,media_kind,caption,description,language,category,visibility,content_status,cefr_levels,tags,course_id,challenge_id,cover_url,bunny_video_guid,bunny_thumbnail_url,mux_playback_id,mux_thumbnail_url,language_level,duration_seconds,shorts_hidden,shorts_deleted_at,created_at')
         .eq('user_id', uid).order('created_at', { ascending: false }).limit(100));
+      if (!r || (!r.data && r.error)) r = await safe(supa.from('posts').select('id,media_url,media_type,media_kind,caption,cover_url,bunny_video_guid,bunny_thumbnail_url,mux_playback_id,mux_thumbnail_url,language_level,duration_seconds,shorts_hidden,shorts_deleted_at,created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(100));
       posts = ((r && r.data) || []).filter(function (p) { return !p.shorts_deleted_at; });
       mediaComments = new Map();
       mediaLikes = new Map();
@@ -80,15 +87,19 @@
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>'
     };
     const TABS = [
+      { id: 'all', label: tr('All', 'Все'), icon: IC.play },
       { id: 'videos', label: tr('Videos', 'Видео'), icon: IC.yt },
       { id: 'shorts', label: tr('Shorts', 'Shorts'), icon: IC.play },
-      { id: 'photos', label: tr('Photos', 'Фото'), icon: IC.photo }
+      { id: 'photos', label: tr('Photos', 'Фото'), icon: IC.photo },
+      { id: 'drafts', label: tr('Drafts', 'Черновики'), icon: IC.photo }
     ];
 
     function countByTab(tab) {
       var list = posts || [];
+      if (tab === 'all') return list.filter(function (p) { return (p.content_status || 'published') === 'published'; }).length;
+      if (tab === 'drafts') return list.filter(function (p) { return p.content_status === 'draft'; }).length;
       if (tab === 'videos') return list.filter(function (p) { return p.media_type === 'youtube'; }).length;
-      if (tab === 'shorts') return list.filter(function (p) { return p.media_type === 'video'; }).length;
+      if (tab === 'shorts') return list.filter(function (p) { return p.media_type === 'video' && (p.media_kind === 'short' || p.media_kind === 'shorts'); }).length;
       return list.filter(function (p) { return p.media_type === 'image'; }).length;
     }
 
@@ -99,8 +110,43 @@
       }).join('') + '</div>';
     }
 
+    function filteredLibrary() {
+      var list = (posts || []).filter(function (p) {
+        var status = p.content_status || 'published';
+        if (activeTab === 'videos' && p.media_type !== 'youtube') return false;
+        if (activeTab === 'shorts' && p.media_type !== 'video') return false;
+        if (activeTab === 'photos' && p.media_type !== 'image') return false;
+        if (activeTab === 'drafts' && status !== 'draft') return false;
+        if (activeTab === 'all' && status === 'draft') return false;
+        if (libraryStatus && status !== libraryStatus) return false;
+        if (libraryLanguage && p.language !== libraryLanguage) return false;
+        if (libraryLevel && (p.language_level || (p.cefr_levels || [])[0]) !== libraryLevel) return false;
+        if (libraryCategory && p.category !== libraryCategory) return false;
+        if (librarySearch) {
+          var needle = librarySearch.toLowerCase();
+          if ((p.caption || '').toLowerCase().indexOf(needle) < 0 && (p.description || '').toLowerCase().indexOf(needle) < 0) return false;
+        }
+        return true;
+      });
+      return list.sort(function (a, b) {
+        if (librarySort === 'title') return String(a.caption || '').localeCompare(String(b.caption || ''));
+        if (librarySort === 'views') return (mediaViews.get(b.id) || 0) - (mediaViews.get(a.id) || 0);
+        return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+      });
+    }
+
+    function libraryToolbar() {
+      var langs = Array.from(new Set((posts || []).map(function (p) { return p.language; }).filter(Boolean))).sort();
+      return '<div class="ms-library-toolbar"><input data-ms-search type="search" value="' + esc(librarySearch) + '" placeholder="' + esc(tr('Search content', 'Поиск по контенту')) + '">' +
+        '<select data-ms-language><option value="">' + esc(tr('All languages', 'Все языки')) + '</option>' + langs.map(function (l) { return '<option value="' + esc(l) + '"' + (libraryLanguage === l ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') + '</select>' +
+        '<select data-ms-filter-level><option value="">' + esc(tr('All levels', 'Все уровни')) + '</option>' + ['A1','A2','B1','B2','C1','C2'].map(function (l) { return '<option value="' + l + '"' + (libraryLevel === l ? ' selected' : '') + '>' + l + '</option>'; }).join('') + '</select>' +
+        '<select data-ms-category><option value="">' + esc(tr('All categories', 'Все категории')) + '</option>' + ['Vocabulary','Grammar','Speaking','Listening','Reading','Writing','Exam Preparation','Everyday Conversations','Culture','Other'].map(function (c) { return '<option value="' + esc(c) + '"' + (libraryCategory === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select>' +
+        '<select data-ms-status><option value="">' + esc(tr('All statuses', 'Все статусы')) + '</option><option value="published"' + (libraryStatus === 'published' ? ' selected' : '') + '>' + esc(tr('Published', 'Опубликовано')) + '</option><option value="draft"' + (libraryStatus === 'draft' ? ' selected' : '') + '>' + esc(tr('Draft', 'Черновик')) + '</option><option value="processing"' + (libraryStatus === 'processing' ? ' selected' : '') + '>' + esc(tr('Processing', 'Обработка')) + '</option></select>' +
+        '<select data-ms-sort><option value="newest"' + (librarySort === 'newest' ? ' selected' : '') + '>' + esc(tr('Newest first', 'Сначала новые')) + '</option><option value="title"' + (librarySort === 'title' ? ' selected' : '') + '>' + esc(tr('Title', 'По названию')) + '</option><option value="views"' + (librarySort === 'views' ? ' selected' : '') + '>' + esc(tr('Most viewed', 'По просмотрам')) + '</option></select></div>';
+    }
+
     function analytics() {
-      var total = (posts || []).length;
+      var total = (posts || []).filter(function (p) { return (p.content_status || 'published') === 'published'; }).length;
       var videos = countByTab('videos');
       var shorts = countByTab('shorts');
       var comments = Array.from(mediaComments.values()).reduce(function (sum, value) { return sum + value; }, 0);
@@ -146,18 +192,20 @@
 
     function grid(items, kind) {
       return '<div class="ms-grid ms-grid-pro">' + items.map(function (p) {
-        var title = p.caption || (kind === 'videos' ? tr('Learning video', '\u0423\u0447\u0435\u0431\u043d\u043e\u0435 \u0432\u0438\u0434\u0435\u043e') : kind === 'shorts' ? tr('Short video', '\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u0435 \u0432\u0438\u0434\u0435\u043e') : tr('Teacher photo', '\u0424\u043e\u0442\u043e \u0443\u0447\u0438\u0442\u0435\u043b\u044f'));
+        var cardKind = p.media_type === 'youtube' ? 'videos' : p.media_type === 'image' ? 'photos' : 'shorts';
+        var title = p.caption || (cardKind === 'videos' ? tr('Learning video', '\u0423\u0447\u0435\u0431\u043d\u043e\u0435 \u0432\u0438\u0434\u0435\u043e') : cardKind === 'shorts' ? tr('Short video', '\u041a\u043e\u0440\u043e\u0442\u043a\u043e\u0435 \u0432\u0438\u0434\u0435\u043e') : tr('Teacher photo', '\u0424\u043e\u0442\u043e \u0443\u0447\u0438\u0442\u0435\u043b\u044f'));
         var comments = mediaComments.get(p.id) || 0;
         var likes = mediaLikes.get(p.id) || 0;
         var views = mediaViews.get(p.id) || 0;
-        var duration = p.duration_seconds ? fmtDuration(p.duration_seconds) : (kind === 'photos' ? 'Photo' : '&mdash;');
+        var duration = p.duration_seconds ? fmtDuration(p.duration_seconds) : (cardKind === 'photos' ? 'Photo' : '&mdash;');
+        var status = p.content_status || 'published';
         return '<article class="ms-item ms-item-pro">' +
-          '<div class="ms-thumb" data-ms-play="' + esc(p.id) + '">' + thumbFor(p, kind) +
-            (kind !== 'photos' ? '<span class="ms-thumb-play">' + IC.play + '</span>' : '') +
+          '<div class="ms-thumb" data-ms-play="' + esc(p.id) + '">' + thumbFor(p, cardKind) +
+            (cardKind !== 'photos' ? '<span class="ms-thumb-play">' + IC.play + '</span>' : '') +
             '<span class="ms-duration">' + duration + '</span></div>' +
-          '<div class="ms-item-body"><div class="ms-item-tags"><span class="ok">' + esc(tr('Published', '\u041e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043e')) + '</span>' + (p.language_level ? '<span>' + esc(p.language_level) + '</span>' : '') + '<span>' + esc(tr('German', '\u041d\u0435\u043c\u0435\u0446\u043a\u0438\u0439')) + '</span></div>' +
+          '<div class="ms-item-body"><div class="ms-item-tags"><span class="' + (status === 'published' ? 'ok' : '') + '">' + esc(status === 'draft' ? tr('Draft', '\u0427\u0435\u0440\u043d\u043e\u0432\u0438\u043a') : status === 'processing' ? tr('Processing', '\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430') : tr('Published', '\u041e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043e')) + '</span>' + (p.language_level ? '<span>' + esc(p.language_level) + '</span>' : '') + '<span>' + esc(p.language || tr('German', '\u041d\u0435\u043c\u0435\u0446\u043a\u0438\u0439')) + '</span></div>' +
             '<h3>' + esc(title) + '</h3><div class="ms-item-stats"><span>&#9673; ' + esc(fmtCount(views)) + '</span><span>&#9825; ' + esc(fmtCount(likes)) + '</span><span>&#9634; ' + esc(fmtCount(comments)) + '</span></div></div>' +
-          '<div class="ms-item-actions"><button type="button" data-ms-play="' + esc(p.id) + '">' + esc(tr('Edit', '\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c')) + '</button><button type="button">' + esc(tr('Analytics', '\u0410\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0430')) + '</button><button type="button">' + esc(tr('Share', '\u041f\u043e\u0434\u0435\u043b\u0438\u0442\u044c\u0441\u044f')) + '</button><button type="button" class="danger" data-ms-del="' + esc(p.id) + '">' + IC.trash + '</button></div>' +
+          '<div class="ms-item-actions"><button type="button" data-ms-edit="' + esc(p.id) + '">' + esc(tr('Edit', '\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c')) + '</button><button type="button">' + esc(tr('Analytics', '\u0410\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0430')) + '</button><button type="button">' + esc(tr('Share', '\u041f\u043e\u0434\u0435\u043b\u0438\u0442\u044c\u0441\u044f')) + '</button><button type="button" class="danger" data-ms-del="' + esc(p.id) + '">' + IC.trash + '</button></div>' +
           '</article>';
       }).join('') + '</div>';
     }
@@ -178,25 +226,15 @@
     }
 
     function body() {
-      if (!posts) return '<div class="ms-loading">' + esc(tr('Loading...', '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430...')) + '</div>';
-      if (activeTab === 'videos') {
-        var yt = posts.filter(function (p) { return p.media_type === 'youtube'; });
-        return ytComposer() + sectionHead(tr('Your videos', '\u0412\u0430\u0448\u0438 \u0432\u0438\u0434\u0435\u043e'), tr('Manage, edit and track your content.', '\u0423\u043f\u0440\u0430\u0432\u043b\u044f\u0439\u0442\u0435 \u043a\u043e\u043d\u0442\u0435\u043d\u0442\u043e\u043c \u0438 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u043e\u0439.'), tr('Search videos...', '\u041f\u043e\u0438\u0441\u043a \u0432\u0438\u0434\u0435\u043e...')) + (yt.length
-          ? grid(yt, 'videos')
-          : emptyCard(IC.yt, tr('No YouTube videos yet', '\u041f\u043e\u043a\u0430 \u043d\u0435\u0442 \u0432\u0438\u0434\u0435\u043e YouTube'), tr('Paste a YouTube link above to add it to your profile.', '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 YouTube \u0441\u0441\u044b\u043b\u043a\u0443 \u0432\u044b\u0448\u0435, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0432\u0438\u0434\u0435\u043e \u0432 \u043f\u0440\u043e\u0444\u0438\u043b\u044c.')));
+      if (!posts) return '<div class="ms-loading">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
+      var items = filteredLibrary();
+      if (!items.length) {
+        var hasFilters = librarySearch || libraryLanguage || libraryLevel || libraryCategory || libraryStatus || activeTab !== 'all';
+        return libraryToolbar() + emptyCard(IC.photo, hasFilters ? tr('No content matches these filters.', 'По этим фильтрам ничего не найдено.') : tr('Your content library is empty.', 'Ваша библиотека контента пуста.'), hasFilters ? tr('Try changing the search or filters.', 'Измените поиск или фильтры.') : tr('Upload your first lesson, create a Short or share an educational photo.', 'Загрузите первый урок, создайте Short или поделитесь учебным фото.')) + '<button type="button" class="ms-empty-cta" data-ms-create>' + esc(tr('Create Content', 'Создать контент')) + '</button>';
       }
-      if (activeTab === 'shorts') {
-        var sh = posts.filter(function (p) { return p.media_type === 'video'; });
-        return uploadCard('shorts') + (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (uploadProgress !== null ? renderProgressBar(uploadProgress) : '') + sectionHead(tr('Your shorts', '\u0412\u0430\u0448\u0438 Shorts'), tr('Short videos for the vertical feed.', '\u041a\u043e\u0440\u043e\u0442\u043a\u0438\u0435 \u0432\u0438\u0434\u0435\u043e \u0434\u043b\u044f \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u043e\u0439 \u043b\u0435\u043d\u0442\u044b.'), tr('Search shorts...', '\u041f\u043e\u0438\u0441\u043a Shorts...')) + (sh.length
-          ? grid(sh, 'shorts')
-          : emptyCard(IC.play, tr('No shorts yet', '\u041f\u043e\u043a\u0430 \u043d\u0435\u0442 Shorts'), tr('Upload a short video to show on your profile.', '\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 \u043a\u043e\u0440\u043e\u0442\u043a\u043e\u0435 \u0432\u0438\u0434\u0435\u043e \u0434\u043b\u044f \u043f\u0440\u043e\u0444\u0438\u043b\u044f.')));
-      }
-      var ph = posts.filter(function (p) { return p.media_type === 'image'; });
-      return uploadCard('photos') + (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (uploadProgress !== null ? renderProgressBar(uploadProgress) : '') + sectionHead(tr('Your photos', '\u0412\u0430\u0448\u0438 \u0444\u043e\u0442\u043e'), tr('Build a visual gallery for learners.', '\u0421\u043e\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0438\u0437\u0443\u0430\u043b\u044c\u043d\u0443\u044e \u0433\u0430\u043b\u0435\u0440\u0435\u044e \u0434\u043b\u044f \u0443\u0447\u0435\u043d\u0438\u043a\u043e\u0432.'), tr('Search photos...', '\u041f\u043e\u0438\u0441\u043a \u0444\u043e\u0442\u043e...')) + (ph.length
-        ? grid(ph, 'photos')
-        : emptyCard(IC.photo, tr('No photos yet', '\u041f\u043e\u043a\u0430 \u043d\u0435\u0442 \u0444\u043e\u0442\u043e'), tr('Add photos to build your gallery.', '\u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u0444\u043e\u0442\u043e, \u0447\u0442\u043e\u0431\u044b \u0441\u043e\u0431\u0440\u0430\u0442\u044c \u0433\u0430\u043b\u0435\u0440\u0435\u044e.')));
-    }
-    function sidePanel() {
+      var kind = activeTab === 'videos' ? 'videos' : activeTab === 'photos' ? 'photos' : 'shorts';
+      return libraryToolbar() + '<div class="ms-library-meta"><div><h2>' + esc(tr('Content library', 'Библиотека контента')) + '</h2><p>' + esc(tr('Manage lessons, Shorts and photos from one place.', 'Управляйте уроками, Shorts и фото в одном месте.')) + '</p></div><span>' + esc(String(items.length)) + ' ' + esc(tr('items', 'материалов')) + '</span></div>' + grid(items, kind);
+    }    function sidePanel() {
       var top = (posts || []).slice(0, 3);
       return '<aside class="ms-side"><section class="ms-side-card"><div class="ms-side-head"><h3>' + esc(tr('Recent media', '\u041d\u0435\u0434\u0430\u0432\u043d\u0438\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b')) + '</h3><a>' + esc(tr('View all', '\u0412\u0441\u0435')) + ' &rarr;</a></div>' +
         (top.length ? top.map(function (p, i) {
@@ -215,7 +253,7 @@
     function paint() {
       const host = document.getElementById('mediaStudio');
       if (!host) return;
-      host.innerHTML = '<div class="ms-shell"><main class="ms-main">' + analytics() + tabBar() + body() + '</main>' + sidePanel() + '</div>';
+      host.innerHTML = '<div class="ms-studio-head"><div><span>DUVELA / CREATOR STUDIO</span><h1>' + esc(tr('Create and publish learning media', 'Создавайте и публикуйте учебный контент')) + '</h1><p>' + esc(tr('Build videos, Shorts and photos in one guided workflow.', 'Создавайте видео, Shorts и фото в одном рабочем процессе.')) + '</p></div><div><button type="button" class="ms-create-content" data-ms-create>+ ' + esc(tr('Create content', 'Создать контент')) + '</button>' + (ctx.contentWizard && ctx.contentWizard.hasDraft() ? '<button type="button" class="ms-resume-content" data-ms-resume>' + esc(tr('Resume draft', 'Продолжить черновик')) + '</button>' : '') + '</div></div><div class="ms-shell"><main class="ms-main">' + analytics() + tabBar() + body() + '</main>' + sidePanel() + '</div>';
       bind(host);
     }
 
@@ -331,6 +369,18 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-ms-tab]'), function (b) {
         b.addEventListener('click', function () { activeTab = b.getAttribute('data-ms-tab'); notice = ''; paint(); });
       });
+      var search = host.querySelector('[data-ms-search]');
+      if (search) search.addEventListener('input', function () { librarySearch = search.value.trim(); paint(); });
+      var language = host.querySelector('[data-ms-language]');
+      if (language) language.addEventListener('change', function () { libraryLanguage = language.value; paint(); });
+      var levelFilter = host.querySelector('[data-ms-filter-level]');
+      if (levelFilter) levelFilter.addEventListener('change', function () { libraryLevel = levelFilter.value; paint(); });
+      var category = host.querySelector('[data-ms-category]');
+      if (category) category.addEventListener('change', function () { libraryCategory = category.value; paint(); });
+      var statusFilter = host.querySelector('[data-ms-status]');
+      if (statusFilter) statusFilter.addEventListener('change', function () { libraryStatus = statusFilter.value; paint(); });
+      var sort = host.querySelector('[data-ms-sort]');
+      if (sort) sort.addEventListener('change', function () { librarySort = sort.value; paint(); });
       Array.prototype.forEach.call(host.querySelectorAll('[data-ms-level]'), function (b) {
         b.addEventListener('click', function () { ytLevel = b.getAttribute('data-ms-level'); paint(); });
       });
@@ -354,6 +404,13 @@
       Array.prototype.forEach.call(host.querySelectorAll('[data-ms-upload]'), function (b) {
         b.addEventListener('click', function () { pickFile(b.getAttribute('data-ms-upload')); });
       });
+      var create = host.querySelector('[data-ms-create]');
+      if (create && ctx.contentWizard) create.addEventListener('click', function () { ctx.contentWizard.open(); });
+      var resume = host.querySelector('[data-ms-resume]');
+      if (resume && ctx.contentWizard) resume.addEventListener('click', function () { ctx.contentWizard.open(); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-ms-edit]'), function (b) {
+        b.addEventListener('click', function () { var post = (posts || []).filter(function (p) { return String(p.id) === String(b.getAttribute('data-ms-edit')); })[0]; if (ctx.contentWizard && post) ctx.contentWizard.open(post); });
+      });
     }
 
     function render() {
@@ -366,6 +423,11 @@
         loadPosts(uid).then(paint).catch(function () { posts = []; paint(); });
       }
     }
+
+    window.addEventListener('duvela:media-changed', function () {
+      if (!ctx.user || !ctx.user.id) return;
+      loadPosts(ctx.user.id).then(paint).catch(function () { paint(); });
+    });
 
     return { render };
   }

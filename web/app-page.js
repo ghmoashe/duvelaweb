@@ -100,7 +100,9 @@
       workspace: tr('Practice', 'Практика'),
       schedule: tr('Schedule', 'Расписание'),
       leaderboard: tr('Rankings', 'Рейтинги'),
-      duel: tr('Practice for LIVE', 'Практика для LIVE'),
+      settings: tr('Settings', 'Настройки'),
+      wallet: tr('Wallet', 'Кошелёк'),
+      duel: tr('LIVE Arena', 'LIVE Arena'),
       profile: tr('Profile', 'Профиль')
     },
     bus: {
@@ -115,7 +117,7 @@
       workspace: tr('Notes', 'Заметки'),
       schedule: tr('Schedule', 'Расписание'),
       leaderboard: tr('Rankings', 'Рейтинги'),
-      duel: tr('Practice for LIVE', 'Практика для LIVE'),
+      duel: tr('LIVE Arena', 'LIVE Arena'),
       profile: tr('Profile', 'Профиль')
     }
   };
@@ -131,8 +133,10 @@
       workspace: [tr('Practice', 'Практика'), tr('Daily tools for level, speaking and vocabulary work.', 'Ежедневные инструменты для уровня, speaking и vocabulary.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Book a lesson with a teacher and see your bookings.', 'Забронируйте урок у преподавателя и смотрите свои записи.')],
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
-      duel: [tr('Practice for LIVE', 'Практика для LIVE'), tr('Real-time match with a learner at your level — 10 questions, whoever scores more on the clock wins.', 'Матч в реальном времени с учеником вашего уровня — 10 вопросов на скорость, победит тот, кто наберёт больше.')],
-      profile: [tr('Profile', 'Профиль'), tr('Your Duvela account and public profile.', 'Ваш аккаунт Duvela и публичный профиль.')]
+      settings: [tr('Settings', 'Настройки'), tr('Public profile, privacy and account preferences.', 'Публичный профиль, приватность и настройки аккаунта.')],
+      wallet: [tr('Duvela Wallet', 'Кошелёк Duvela'), tr('Buy DC, review your balance and send gifts to teachers.', 'Покупайте DC, проверяйте баланс и дарите подарки учителям.')],
+      duel: [tr('LIVE Arena', 'LIVE Arena'), tr('Create language duels, manage rooms and review verified results.', 'Создавайте языковые дуэли, управляйте комнатами и смотрите подтверждённые результаты.')],
+      profile: [tr('Profile', 'Профиль'), tr('Your learning journey, achievements and account privacy.', 'Ваш учебный путь, достижения и приватность аккаунта.')]
     },
     bus: {
       home: [tr('Dashboard', 'Dashboard'), tr('Your web workspace for live lessons, courses and community activity.', 'Веб-кабинет для эфиров, курсов и работы с аудиторией.')],
@@ -146,7 +150,9 @@
       workspace: [tr('Notes', 'Заметки'), tr('Plan lessons, events, content and team follow-ups.', 'Планируйте уроки, события, контент и задачи команды.')],
       schedule: [tr('Schedule', 'Расписание'), tr('Open lesson slots for learners and see who booked.', 'Открывайте слоты для учеников и смотрите записи.')],
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
-      duel: [tr('Practice for LIVE', 'Практика для LIVE'), tr('Run a live duel with your learners or preview the deck before class.', 'Проведите живую дуэль с учениками или посмотрите вопросы перед уроком.')],
+      settings: [tr('Settings', 'Настройки'), tr('Public profile, privacy and account preferences.', 'Публичный профиль, приватность и настройки аккаунта.')],
+      earnings: [tr('Earnings & Finance', 'Доходы и финансы'), tr('Manage verified income, coins and payouts.', 'Управляйте подтверждёнными доходами, монетами и выплатами.')],
+      duel: [tr('LIVE Arena', 'LIVE Arena'), tr('Run a live duel with your learners or preview the deck before class.', 'Проводите дуэли с учениками и открывайте колоду перед уроком.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
   };
@@ -323,6 +329,7 @@
         window.dispatchEvent(new CustomEvent('duvela-language-change', { detail: { locale: normalizedLang } }));
         window.location.reload();
       },
+      setView,
       liveUrl,
       teacherLiveUrl,
       row,
@@ -376,6 +383,8 @@
   featureContext.busDashboard = busDashboardFeature;
   const managementFeature = window.DuvelaBusinessManagement.create(featureContext);
   featureContext.management = managementFeature;
+  const contentWizardFeature = window.DuvelaContentWizard.create(featureContext);
+  featureContext.contentWizard = contentWizardFeature;
   const mediaStudioFeature = window.DuvelaBusinessMediaStudio.create(featureContext);
   featureContext.mediaStudio = mediaStudioFeature;
   const profileViewFeature = window.DuvelaBusinessProfileView.create(featureContext);
@@ -407,6 +416,109 @@
   async function submitPractice() { return practiceBuilderFeature.submitPractice(); }
 
   function renderProfile() { return profileFeature.renderProfile(); }
+  function renderSettings() {
+    profileFeature.renderProfile();
+    const select = document.getElementById('settingsLangSelect');
+    if (select) {
+      select.innerHTML = supportedLocales.map((locale) => '<option value="' + esc(locale.code) + '">' + esc(locale.name || locale.code) + '</option>').join('');
+      select.value = featureContext.getAppLang();
+      select.onchange = () => featureContext.setAppLang(select.value);
+    }
+    document.querySelectorAll('[data-settings-profile]').forEach((button) => { button.onclick = () => { setView('profile'); renderProfile(); }; });
+    document.querySelectorAll('[data-settings-edit]').forEach((button) => {
+      button.onclick = () => {
+        setView('profile');
+        renderProfile();
+        setTimeout(() => document.querySelector('[data-pv-act="edit"]')?.click(), 0);
+      };
+    });
+    document.querySelectorAll('[data-settings-delete]').forEach((button) => { button.onclick = () => deleteAccount(); });
+    const theme = localStorage.getItem('duvela.theme') || 'light';
+    document.body.classList.toggle('theme-dark', theme === 'dark');
+    document.querySelectorAll('[data-settings-theme]').forEach((button) => {
+      const active = button.dataset.settingsTheme === theme;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      button.onclick = () => {
+        const next = button.dataset.settingsTheme === 'dark' ? 'dark' : 'light';
+        localStorage.setItem('duvela.theme', next);
+        document.body.classList.toggle('theme-dark', next === 'dark');
+        document.querySelectorAll('[data-settings-theme]').forEach((item) => {
+          const selected = item.dataset.settingsTheme === next;
+          item.classList.toggle('active', selected);
+          item.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+      };
+    });
+    const settingsStatus = document.querySelector('[data-settings-status]');
+    const showSettingsStatus = (message, isError = false) => {
+      if (!settingsStatus) return;
+      settingsStatus.textContent = message;
+      settingsStatus.classList.toggle('is-error', isError);
+    };
+    const settingsUserId = user?.id || profile?.id;
+    const notificationFields = ['push_notifications_enabled', 'email_notifications_enabled', 'lesson_reminders_enabled'];
+    const notificationInputs = notificationFields.map((field) => document.querySelector('[data-account-setting="' + field + '"]')).filter(Boolean);
+    if (settingsUserId && notificationInputs.length) {
+      supa.from('profiles').select(notificationFields.join(',')).eq('id', settingsUserId).maybeSingle().then(({ data, error }) => {
+        if (error) { showSettingsStatus('Could not load notification settings.', true); return; }
+        notificationInputs.forEach((input) => { input.checked = data?.[input.dataset.accountSetting] !== false; });
+      }).catch(() => showSettingsStatus('Could not load notification settings.', true));
+    }
+    notificationInputs.forEach((input) => {
+      input.onchange = async () => {
+        const currentUserId = user?.id || profile?.id;
+        if (!currentUserId) { showSettingsStatus('Sign in to save notification settings.', true); return; }
+        input.disabled = true;
+        showSettingsStatus('Saving…');
+        const payload = { [input.dataset.accountSetting]: input.checked };
+        const { error } = await supa.from('profiles').update(payload).eq('id', currentUserId);
+        input.disabled = false;
+        showSettingsStatus(error ? 'Could not save this setting.' : 'Saved', Boolean(error));
+      };
+    });
+    document.querySelectorAll('[data-settings-action="invite"]').forEach((button) => {
+      button.onclick = async () => {
+        const inviteUrl = window.location.origin + '/index.html?teacher_invite=' + encodeURIComponent(settingsUserId || '');
+        try {
+          await navigator.clipboard.writeText(inviteUrl);
+          showSettingsStatus('Invite link copied');
+        } catch (_) {
+          showSettingsStatus(inviteUrl);
+        }
+      };
+    });
+    document.querySelectorAll('[data-settings-action="wallet"]').forEach((button) => {
+      button.hidden = false;
+      const label = button.querySelector('[data-wallet-settings-label]');
+      if (label) label.textContent = isBusiness() ? tr('Wallet & earnings', 'Кошелёк и доходы') : tr('Duvela Wallet', 'Кошелёк Duvela');
+      button.onclick = async () => {
+        if (isBusiness()) {
+          setView('earnings');
+          await renderEarnings();
+        } else {
+          setView('wallet');
+          await loadWallet();
+        }
+      };
+    });
+    document.querySelectorAll('[data-settings-signout]').forEach((button) => {
+      button.onclick = async () => {
+        button.disabled = true;
+        await supa.auth.signOut();
+        window.location.href = './index.html?login=1';
+      };
+    });
+  }
+  function renderEarnings() {
+    const host = document.getElementById('earningsView');
+    if (!isBusiness()) {
+      if (host) host.replaceChildren();
+      return Promise.resolve();
+    }
+    return busDashboardFeature.renderEarnings();
+  }
+  function renderLearnerWallet() { return gamificationFeature.renderWalletPage(); }
   async function saveProfile(event) { return profileFeature.saveProfile(event); }
   async function deleteAccount() { return profileFeature.deleteAccount(); }
   async function deletePortfolioItem(id) { return profileFeature.deletePortfolioItem(id); }
@@ -477,6 +589,9 @@
     renderAccessNotice();
     syncRoleOptions();
     renderProfile();
+    renderSettings();
+    renderEarnings();
+    renderLearnerWallet();
     renderHome();
     renderVideos();
     renderLive();
@@ -530,7 +645,7 @@
     practiceFeature,
     gamesFeature,
     messagingFeature,
-    onboarding: onboardingApi ? onboardingApi.create({ $, supa, session: sessionState, getUser: () => user, getProfile: () => profile, setProfile: (value) => { profile = value; }, uploadToBucket, renderAll }) : null,
+    onboarding: onboardingApi ? onboardingApi.create({ $, supa, session: sessionState, tr, getUser: () => user, getProfile: () => profile, setProfile: (value) => { profile = value; }, uploadToBucket, renderAll }) : null,
     addBuilderItem,
     addClassStudent,
     addLesson,
@@ -586,6 +701,8 @@
     renderManagement,
     renderLive,
     renderProfile,
+    renderEarnings,
+    renderSettings,
     renderLeaderboardPage,
     renderSchedule,
     renderVideos,

@@ -30,11 +30,30 @@
     return code;
   }
 
+  function publicAppOrigin() {
+    // Invitations may only be generated when the deployment explicitly
+    // provides a public HTTPS origin. Never turn localhost into a QR code:
+    // it points a student's phone back at the student's own device.
+    const runtime = window.DuvelaRuntimeConfig || {};
+    const configured = runtime.publicAppUrl
+      || window.DUVELA_PUBLIC_APP_URL
+      || (window.DuvelaWebConfig && window.DuvelaWebConfig.publicAppUrl)
+      || '';
+    if (!configured) return '';
+    try {
+      const parsed = new URL(String(configured), window.location.href);
+      if (parsed.protocol !== 'https:') return '';
+      return parsed.origin;
+    } catch (error) {
+      return '';
+    }
+  }
+
   function joinUrl(joinCode) {
     const code = String(joinCode || '').trim().toUpperCase();
-    const origin = window.location.origin;
-    const path = window.location.pathname || '/app.html';
-    return origin + path + '?duel=' + encodeURIComponent(code) + '#duel';
+    const origin = publicAppOrigin();
+    if (!code || !origin) return '';
+    return origin + '/app.html?duel=' + encodeURIComponent(code) + '#duel';
   }
 
   // ── Teacher side ───────────────────────────────────────────────────────────
@@ -536,6 +555,7 @@
   window.DuvelaDuelRoom = {
     generateJoinCode,
     joinUrl,
+    hasPublicInviteOrigin: function () { return !!publicAppOrigin(); },
     createRoom,
     findMyActiveRoom,
     ensureLobbyRoom,

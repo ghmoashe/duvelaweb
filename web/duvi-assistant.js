@@ -1,7 +1,8 @@
 ﻿(function attachDuviAssistant(global) {
   'use strict';
 
-  const ASSET_ROOT = '/web/assets/duvi/';
+  const ASSET_ROOT = './web/assets/duvi/';
+  const DUVI_FALLBACK = './assets/duvi-faq.webp';
   const WELCOME_KEY = 'duvela.duvi.welcome.v1';
   const VOICE_KEY = 'duvela.duvi.voice.v1';
   const RTL = new Set(['ar', 'fa']);
@@ -257,6 +258,7 @@
       img.className = 'duvi-msg-avatar';
       img.alt = '';
       img.src = assetFor(avatarType || 'home');
+      img.onerror = function () { img.onerror = null; img.src = DUVI_FALLBACK; };
       row.append(img);
     }
     const bubble = document.createElement('p');
@@ -348,7 +350,7 @@
           '<button class="duvi-send" type="submit" aria-label="' + ui('send') + '" title="' + ui('send') + '">➤</button>' +
         '</form>' +
       '</section>' +
-      '<button class="duvi-launcher" type="button" aria-label="DUVI" title="DUVI"><img alt="" src="' + DUVI_AVATAR + '"></button>';
+      '<button class="duvi-launcher" type="button" aria-label="DUVI" title="DUVI"><img alt="" src="' + DUVI_AVATAR + '" onerror="this.onerror=null;this.src=\'' + DUVI_FALLBACK + '\'"></button>';
     document.body.append(root);
     panel = root.querySelector('.duvi-panel');
     thread = root.querySelector('.duvi-thread');
@@ -384,7 +386,8 @@
       updateVoiceButton();
     });
 
-    if (options.autoWelcome !== false && !localStorage.getItem(WELCOME_KEY)) {
+    const wideEnoughForWelcome = !global.matchMedia || global.matchMedia('(min-width: 721px)').matches;
+    if (wideEnoughForWelcome && options.autoWelcome !== false && !localStorage.getItem(WELCOME_KEY)) {
       localStorage.setItem(WELCOME_KEY, '1');
       setTimeout(() => show('welcome'), Number(options.welcomeDelay || 1200));
     }

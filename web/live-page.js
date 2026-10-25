@@ -12,8 +12,10 @@
   var intlLocale = liveI18n?.intlLocale || (isRu ? 'ru-RU' : 'en-GB');
   liveI18n?.applyDocument?.();
   window.DuvelaLiveI18n = liveI18n || { appLang: appLang, isRu: isRu, intlLocale: intlLocale, tr: tr };
+  var studio4Metadata = null;
   var sessionId = params.get('s') || '';
   var teacher = params.get('t') || '';
+  var isPrivateInvitation = params.get('invite') === '1' && !isHostMode;
   var isHostMode = params.get('mode') === 'host';
   document.body.classList.toggle('host-mode', isHostMode);
   var isBusiness = params.get('app') === 'business' || isHostMode;
@@ -520,7 +522,8 @@
     if (!session?.id) return '';
     var url = new URL('./live.html', window.location.href);
     url.searchParams.set('s', session.id);
-    if (session.teacher_name) url.searchParams.set('t', session.teacher_name);
+    if (session.is_private) url.searchParams.set('invite', '1');
+    else if (session.teacher_name) url.searchParams.set('t', session.teacher_name);
     return url.href;
   }
   function buildHostUrl(session) {
@@ -866,11 +869,14 @@
     return 'duvelahub://native/live-stream?mode=student' + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : '');
   }
   function updateShareLink(session) {
-    if (!session?.id || session?.is_private || session?.status === 'ended') {
+    if (!session?.id || session?.status === 'ended') {
       el('shareBox').classList.remove('visible');
       el('shareUrl').value = '';
       return;
     }
+    document.querySelector('label[for="shareUrl"]').textContent = session.is_private
+      ? tr('Private invitation link', 'Ссылка-приглашение в закрытый эфир')
+      : tr('Student watch link', 'Ссылка для просмотра ученикам');
     el('shareUrl').value = buildShareUrl(session);
     el('shareBox').classList.add('visible');
   }
@@ -1284,7 +1290,7 @@
   function hostSessionPayload(user, status, startedAt, existingSession) {
     var now = new Date().toISOString();
     var topic = el('topicInput').value.trim() || tr('Live lesson', 'Живой урок');
-    return {
+    var payload = {
       channel_name: existingSession?.channel_name || createChannelName(user.id),
       ended_at: status === 'ended' ? now : null,
       heartbeat_at: now,
@@ -1301,6 +1307,8 @@
       teacher_name: displayName(user),
       topic: topic
     };
+    if (studio4Metadata) Object.assign(payload, studio4Metadata);
+    return payload;
   }
   async function createLiveSession(user) {
     var payload = hostSessionPayload(user, 'live', new Date().toISOString(), null);
@@ -1315,6 +1323,12 @@
     return result.data;
   }
   async function updateHostSession(user, session, status, startedAt) {
+    if (!!session.is_private !== !!el('privateInput').checked) {
+      throw new Error(tr('Create a new LIVE to change its privacy.', 'Чтобы изменить приватность, создайте новый эфир.'));
+    }
+    if (session.status === 'live' && status === 'scheduled') {
+      throw new Error(tr('End this LIVE before scheduling another.', 'Завершите текущий эфир перед планированием нового.'));
+    }
     var payload = hostSessionPayload(user, status, startedAt, session);
     var result = await supa
       .from('live_sessions')
@@ -1547,6 +1561,8 @@
       var createdFreshSession = false;
       var authSession = await requireSessionForHost();
       currentUser = authSession.user;
+      if (!window.DuvelaSessionGuard) throw new Error('Session safety check is unavailable. Reload the studio.');
+      await window.DuvelaSessionGuard.assertFree(supa, currentUser.id, 'broadcast', sessionId);
       var uid = createAgoraUid(currentUser.id);
       teacherAgoraUid = uid;
       currentSession = sessionId ? await loadLiveSession(sessionId) : await createLiveSession(currentUser);
@@ -1561,7 +1577,8 @@
         throw new Error(tr('This LIVE belongs to another teacher.', 'Этот эфир принадлежит другому преподавателю.'));
       }
       if (!createdFreshSession) {
-        currentSession = await updateHostSession(currentUser, currentSession, 'live', new Date().toISOString());
+        currentSession = await updateHostSession(currentUser, currentSession, 'live',
+          currentSession.status === 'live' ? currentSession.started_at : new Date().toISOString());
       }
 
       var tokenResult = await getPublisherToken(currentSession.channel_name, uid);
@@ -2277,10 +2294,26 @@
       } catch (e) {}
     };
   }
+  function applyStudio4Setup(user) {
+    if(params.get('setup')!=='studio4'||!isHostMode||sessionId)return;
+    try {
+      var setup=JSON.parse(sessionStorage.getItem('duvela.live.setup.v4')||'null');
+      if(!setup||setup.teacherId!==user.id||Date.now()-setup.createdAt>1800000)return;
+      if(setup.metadataEnabled) studio4Metadata={category:String(setup.category||'').slice(0,80),thumbnail_url:/^https?:\/\//i.test(setup.thumbnailUrl||'')?String(setup.thumbnailUrl).slice(0,2048):null};
+      el('topicInput').value=String(setup.title||'').slice(0,160);
+      el('languageInput').value=setup.language||'';
+      el('levelInput').value=setup.level||'';
+      el('privateInput').checked=false;
+      el('allowViewerRequests').checked=!!setup.guests;
+      el('audience18Plus').checked=!!setup.adult;
+      sessionStorage.removeItem('duvela.live.setup.v4');
+    }catch(error){setNote(error.message);}
+  }
   async function preloadHostSession() {
     try {
       var authSession = await requireSessionForHost();
       currentUser = authSession.user;
+      applyStudio4Setup(currentUser);
       await loadHostTimeline();
       void loadRestreamTargets();
       if (!sessionId) return;
@@ -2448,8 +2481,12 @@
     el('stageChipPrimary').textContent = tr('Viewer playback', 'Просмотр зрителя');
     el('stageChipSecondary').textContent = tr('Live room access', 'Доступ к комнате эфира');
     el('sideKicker').textContent = tr('Room panel', 'Панель комнаты');
-    el('mainAction').textContent = tr('Watch now', 'Смотреть');
-      el('mainAction').addEventListener('click', watchLiveViewer);
+    el('mainAction').textContent = isPrivateInvitation
+      ? tr('Open the app to request access', 'Открыть приложение и запросить вход')
+      : tr('Watch now', 'Смотреть');
+    el('mainAction').addEventListener('click', isPrivateInvitation
+      ? function () { window.location.href = makeDeepLink(); }
+      : watchLiveViewer);
     el('dashboardLink').href = './app.html?role=learner#live';
     el('backLink').href = './app.html?role=learner#live';
     el('sideTitle').textContent = tr('Live room', 'Комната эфира');
@@ -2489,9 +2526,11 @@
     renderViewerBalance();
     renderViewerMessages();
     setViewerControlsEnabled(false);
-    setStatus(sessionId ? tr('Ready to watch', 'Готово к просмотру') : tr('No session selected', 'Сессия не выбрана'), sessionId ? 'ready' : '');
+    setStatus(isPrivateInvitation ? tr('Private invitation', 'Приглашение в закрытый эфир') : sessionId ? tr('Ready to watch', 'Готово к просмотру') : tr('No session selected', 'Сессия не выбрана'), sessionId ? 'ready' : '');
     renderWorkspace({ teacher_name: teacher || '', level: '', language: '', is_private: false });
-    if (sessionId) setTimeout(function () { void watchLiveViewer(); }, 250);
+    if (isPrivateInvitation) {
+      setStage('', tr('Open this invitation in the Duvela Hub app and sign in to request access. The teacher must approve before media starts.', 'Откройте приглашение в приложении Duvela Hub и войдите в аккаунт. Видео и звук станут доступны только после одобрения преподавателя.'));
+    } else if (sessionId) setTimeout(function () { void watchLiveViewer(); }, 250);
   }
 
   window.DuvelaLiveStudioApi = {

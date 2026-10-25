@@ -9,6 +9,7 @@
     const chatGroupSel = new Map();
     let lastPeopleResults = [];
     let showingArchive = false;
+    let showingUnread = false;
     let typingTimer = null;
     const e2ee = window.DuvelaChatE2EE;
     let currentMessages = [];
@@ -24,8 +25,10 @@
       const search = $('#chatSearchInput');
       if (search) search.placeholder = tr('Search chats...', 'Поиск по чатам...');
       if ($('#archiveToggle')) $('#archiveToggle').textContent = showingArchive ? tr('Chats', 'Чаты') : tr('Archive', 'Архив');
+      if ($('#unreadToggle')) { $('#unreadToggle').textContent = tr('Unread', 'Непрочитанные'); $('#unreadToggle').classList.toggle('active', showingUnread); }
       if ($('#blockedListBtn')) $('#blockedListBtn').textContent = tr('Blocked', 'Заблокированные');
       if ($('#newChatBtnLabel')) $('#newChatBtnLabel').textContent = tr('New chat', 'Новый чат');
+      if ($('#groupModeBtn')) $('#groupModeBtn').textContent = chatGroupMode ? tr('Direct chat', 'Личный чат') : tr('Create group', 'Создать группу');
       if ($('#threadTitle') && !state.activeConversationId) $('#threadTitle').textContent = tr('Select a conversation', 'Выберите диалог');
       const body = $('#threadBody');
       if (body && !state.activeConversationId && !body.querySelector('.bubble')) body.innerHTML = emptyThreadHtml();
@@ -136,7 +139,7 @@
       if (label) label.textContent = tr('New chat', 'Новый чат');
 
       const query = (search && search.value.trim().toLowerCase()) || '';
-      const archiveFiltered = state.conversations.filter((conversation) => conversation.archived === showingArchive);
+      const archiveFiltered = state.conversations.filter((conversation) => conversation.archived === showingArchive && (!showingUnread || conversation.unread > 0));
       const visible = query
         ? archiveFiltered.filter((conversation) =>
             (conversation.name || '').toLowerCase().indexOf(query) >= 0 ||
@@ -172,6 +175,20 @@
           '</div>' +
         '</div>'
       ).join('');
+    }
+
+    function renderStudentContext(conversation) {
+      const card = document.querySelector('.msg-info-col .msg-info-card');
+      if (!card) return;
+      const profile = card.querySelector('.msg-student');
+      if (!profile) return;
+      card.querySelectorAll('.msg-progress-list,.msg-side-primary,.msg-side-actions,.msg-info-card.compact').forEach(function (node) { node.style.display = 'none'; });
+      if (!conversation) {
+        profile.innerHTML = '<span class="msg-student-avatar">—</span><h4>' + esc(tr('Select a conversation', 'Выберите диалог')) + '</h4><p>—</p><small>' + esc(tr('Verified student context appears after you select a conversation.', 'Проверенная информация появится после выбора диалога.')) + '</small>';
+        return;
+      }
+      const seen = conversation.otherLastSeenAt ? new Date(conversation.otherLastSeenAt).toLocaleString() : tr('Presence unavailable', 'Статус недоступен');
+      profile.innerHTML = '<span class="msg-student-avatar">' + avatarInner(conversation.name, conversation.avatarUrl) + '</span><h4>' + esc(conversation.name) + '</h4><p><span></span> ' + esc(conversation.otherLastSeenAt ? tr('Recently active', 'Недавно был(а) в сети') : tr('Contact', 'Контакт')) + '</p><small>' + esc(seen) + '</small>';
     }
 
     function renderThread(messages) {
@@ -579,6 +596,7 @@
 
     function renderMessages() {
       localizeMessagesShell();
+      renderStudentContext(null);
       renderConversations();
     }
 
@@ -593,6 +611,7 @@
         const id = action.dataset.id;
         const conversation = state.conversations.find((item) => item.id === id);
         if (!conversation) return;
+      renderStudentContext(conversation);
         if (action.dataset.convAction === 'pin') updateConversationPreference(id, { is_pinned: !conversation.pinned });
         if (action.dataset.convAction === 'archive') updateConversationPreference(id, { is_archived: !conversation.archived });
         if (action.dataset.convAction === 'block') updateConversationPreference(id, { is_blocked: !conversation.ownBlocked });
@@ -627,6 +646,7 @@
         $('#archiveToggle').textContent = showingArchive ? tr('Chats', 'Чаты') : tr('Archive', 'Архив');
         renderConversations();
       });
+      if ($('#unreadToggle')) $('#unreadToggle').addEventListener('click', () => { showingUnread = !showingUnread; renderConversations(); });
       $('#blockedListBtn').addEventListener('click', () => {
         const blocked = state.conversations.filter((item) => item.ownBlocked);
         if (!blocked.length) return alert(tr('The blocked list is empty.', 'Список заблокированных пуст.'));
@@ -644,6 +664,7 @@
         searchPeople('');
         setTimeout(() => $('#chatSearch').focus(), 50);
       });
+      if ($('#groupModeBtn')) $('#groupModeBtn').addEventListener('click', () => { $('#groupToggle').checked = !$('#groupToggle').checked; setGroupMode($('#groupToggle').checked); });
       $('#groupToggle').addEventListener('change', (event) => setGroupMode(event.target.checked));
       $('#createGroupBtn').addEventListener('click', createGroupChat);
       $('#newChatClose').addEventListener('click', () => $('#newChatOverlay').classList.remove('open'));

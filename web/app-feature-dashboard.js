@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   // Rich business "Dashboard" home for the web workspace — mirrors the mobile Bus
   // dashboard: profile + rating, Go Live banner, quick actions, My Business (LIVE
   // earnings in DUVELA coins), Manage events, My Gifts, Recent LIVE sessions and
@@ -9,6 +9,7 @@
     let lastUserId = null;
     let lastData = null;
     let inflight = null;
+    let revenuePeriod = 30;
 
     function num(value) {
       return Math.max(0, Math.floor(Number(value) || 0)).toLocaleString(locale);
@@ -60,14 +61,16 @@
       monthStart.setHours(0, 0, 0, 0);
       const weekStart = dayKeys()[0] + 'T00:00:00.000Z';
 
-      const [eventsRes, reviewsRes, postsRes, followersRes, earningsRes, giftsRes, coursesRes] = await Promise.all([
+      const [eventsRes, reviewsRes, postsRes, followersRes, earningsRes, giftsRes, coursesRes, classesRes, sessionsRes] = await Promise.all([
         safe(supa.from('events').select('id,title,created_at,is_paid,price_amount,organizer_id', { count: 'exact' }).eq('organizer_id', uid), { data: [], count: 0 }),
         safe(supa.from('teacher_reviews').select('rating,created_at').eq('teacher_id', uid), { data: [] }),
         safe(supa.from('posts').select('id,created_at').eq('user_id', uid), { data: [] }),
         safe(supa.from('user_follows').select('id', { count: 'exact', head: true }).eq('following_id', uid), { count: 0 }),
         safe(supa.from('live_teacher_earnings').select('amount,source,label,session_id,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(200), { data: [] }),
         safe(supa.from('live_gifts').select('gift_name,cost,sender_name,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(200), { data: [] }),
-        safe(supa.from('courses').select('id,title,price,currency,status,created_at').eq('created_by', uid).neq('status', 'archived').limit(500), { data: [] })
+        safe(supa.from('courses').select('id,title,description,language,level,price,currency,status,cover_image_url,created_at').eq('created_by', uid).neq('status', 'archived').limit(500), { data: [] }),
+        safe(supa.from('classes').select('id,course_id,name,language,level').eq('teacher_id', uid).limit(500), { data: [] }),
+        safe(supa.from('class_sessions').select('id,class_id,title,starts_at,ends_at,duration_min,status,provider').eq('created_by', uid).order('starts_at', { ascending: true }).limit(100), { data: [] })
       ]);
       const membershipsRes = await safe(supa.from('organization_memberships').select('organization_id').eq('user_id', uid).eq('status', 'active'), { data: [] });
       const orgIds = Array.from(new Set(((membershipsRes && membershipsRes.data) || []).map((row) => row.organization_id).filter(Boolean)));
@@ -114,30 +117,36 @@
       ]);
 
       const [enrollmentsRes, rsvpsRes] = await Promise.all([
-        paidCourses.length
-          ? safe(supa.from('course_enrollments').select('id,course_id,status,full_name,email,created_at').in('course_id', paidCourses.map((course) => course.id)).in('status', ['confirmed', 'pending']), { data: [] })
+        courseRows.length
+          ? safe(supa.from('course_enrollments').select('id,course_id,user_id,status,full_name,email,created_at').in('course_id', courseRows.map((course) => course.id)).in('status', ['confirmed', 'pending']), { data: [] })
           : { data: [] },
         paidEvents.length
           ? safe(supa.from('event_rsvps').select('event_id,user_id,status,created_at').in('event_id', paidEvents.map((event) => event.id)).eq('status', 'going'), { data: [] })
           : { data: [] }
       ]);
       const courseById = new Map(paidCourses.map((course) => [course.id, course]));
+      const allCourseById = new Map(courseRows.map((course) => [course.id, course]));
       const eventById = new Map(paidEvents.map((event) => [event.id, event]));
       let coursePendingCount = 0;
       let courseSalesCount = 0;
       let courseSalesTotal = 0;
       const pendingEnrollments = [];
       const courseSales = [];
-      ((enrollmentsRes && enrollmentsRes.data) || []).forEach((enrollment) => {
-        const course = courseById.get(enrollment.course_id);
+      const enrollmentRows = (enrollmentsRes && enrollmentsRes.data) || [];
+      const activeStudentKeys = new Set();
+      enrollmentRows.forEach((enrollment) => {
+        const course = allCourseById.get(enrollment.course_id);
         if (!course) return;
         if (enrollment.status === 'pending') {
           coursePendingCount += 1;
           pendingEnrollments.push({ id: enrollment.id, course_id: enrollment.course_id, course_title: course.title, full_name: enrollment.full_name, email: enrollment.email, created_at: enrollment.created_at });
         } else if (enrollment.status === 'confirmed') {
+          activeStudentKeys.add(enrollment.user_id || enrollment.email || enrollment.id);
+          const paidCourse = courseById.get(enrollment.course_id);
+          if (!paidCourse) return;
           courseSalesCount += 1;
-          courseSalesTotal += Number(course.price || 0);
-          courseSales.push({ id: enrollment.id, title: course.title, amount: Number(course.price || 0), currency: course.currency || 'EUR', created_at: enrollment.created_at });
+          courseSalesTotal += Number(paidCourse.price || 0);
+          courseSales.push({ id: enrollment.id, title: paidCourse.title, amount: Number(paidCourse.price || 0), currency: paidCourse.currency || 'EUR', created_at: enrollment.created_at });
         }
       });
       let eventSalesCount = 0;
@@ -185,6 +194,11 @@
       const topViewers = aggregateByName(gifts.map((item) => ({ name: item.sender_name, value: item.cost })));
       const courseMonthSalesTotal = sum(courseSales.filter((item) => afterMonth(item.created_at)), (item) => item.amount);
       const eventMonthSalesTotal = sum(eventSales.filter((item) => afterMonth(item.created_at)), (item) => item.amount);
+      const salesByCurrency = [...courseSales, ...eventSales].reduce((totals, item) => {
+        const currency = String(item.currency || 'EUR').toUpperCase();
+        totals[currency] = (totals[currency] || 0) + Number(item.amount || 0);
+        return totals;
+      }, {});
       const weekSalesByDay = new Map(dayKeys().map((key) => [key, 0]));
       const addSaleDay = (item) => {
         const key = (item.created_at || '').slice(0, 10);
@@ -210,6 +224,20 @@
       addRows(earnings.filter((item) => item.created_at >= weekStart).map((item) => ({ created_at: item.created_at })));
       const activity = keys.map((key) => counts.get(key) || 0);
 
+      const classRows = (classesRes && classesRes.data) || [];
+      const classById = new Map(classRows.map((row) => [row.id, row]));
+      const studentsByCourse = new Map();
+      enrollmentRows.filter((row) => row.status === 'confirmed').forEach((row) => {
+        const set = studentsByCourse.get(row.course_id) || new Set();
+        set.add(row.user_id || row.email || row.id);
+        studentsByCourse.set(row.course_id, set);
+      });
+      courseRows.forEach((course) => { course.studentCount = (studentsByCourse.get(course.id) || new Set()).size; });
+      const sessions = ((sessionsRes && sessionsRes.data) || []).map((session) => {
+        const group = classById.get(session.class_id) || {};
+        const course = allCourseById.get(group.course_id) || {};
+        return Object.assign({}, session, { class_name: group.name, course_id: group.course_id, course_title: course.title, participants: (studentsByCourse.get(group.course_id) || new Set()).size });
+      });
       return {
         rating,
         eventsCount,
@@ -218,7 +246,13 @@
         commentsCount,
         viewsCount,
         followersCount: (followersRes && followersRes.count) || 0,
-        coursesCount: Math.max(courseRows.length, (ctx.state.courses || []).length),
+        coursesCount: courseRows.length,
+        publishedCoursesCount: courseRows.filter((course) => ['active', 'published'].includes(String(course.status || '').toLowerCase())).length,
+        activeStudentsCount: activeStudentKeys.size,
+        courseRows,
+        sessions,
+        earnings,
+        gifts,
         assignmentsCount: 0,
         giftsTotal,
         total,
@@ -241,6 +275,7 @@
         eventSalesTotal,
         courseEventSalesTotal: courseSalesTotal + eventSalesTotal,
         salesCurrency,
+        salesByCurrency,
         pendingEnrollments,
         courseSales,
         eventSales
@@ -277,6 +312,24 @@
       host.querySelectorAll('[data-business-pending]').forEach((button) => {
         button.onclick = function () { openBusinessModal('pending'); };
       });
+      host.querySelectorAll('[data-dashboard-period]').forEach((button) => {
+        button.onclick = function () {
+          revenuePeriod = Number(button.dataset.dashboardPeriod) || 30;
+          if (lastData) {
+            host.innerHTML = shell((ctx.profile && ctx.profile.full_name) || (ctx.user && ctx.user.email) || 'Duvela Academy', ctx.profile || {}, ctx.teacherLiveUrl(), lastData);
+            bindBusinessActions(host);
+          }
+        };
+      });
+      host.querySelectorAll('[data-dashboard-create-course]').forEach((button) => {
+        button.onclick = function () {
+          if (ctx.management && ctx.management.openCourseModal) ctx.management.openCourseModal();
+          else location.hash = 'courses';
+        };
+      });
+      host.querySelectorAll('[data-dashboard-notifications]').forEach((button) => {
+        button.onclick = function () { const bell = document.getElementById('notifBell'); if (bell) bell.click(); };
+      });
     }
 
     function modalRows(rows, emptyText) {
@@ -288,14 +341,14 @@
       const data = lastData || {};
       const canWithdraw = Number(data.total || 0) > 0;
       const currency = data.salesCurrency || 'EUR';
-      const courseRows = (data.courseSales || []).map((item) => ({ title: item.title, meta: item.created_at ? ctx.timeAgo(item.created_at) : '', value: money(item.amount, item.currency || currency) }));
-      const eventRows = (data.eventSales || []).map((item) => ({ title: item.title, meta: tr('Event sale', 'Продажа события'), value: money(item.amount, item.currency || currency) }));
+      const courseRows = [];
+      const eventRows = [];
       const liveRows = (data.recent || []).map((item) => ({ title: item.label || (item.source === 'gift' ? tr('Gift received', 'Получен подарок') : tr('LIVE earning', 'Доход LIVE')), meta: ctx.timeAgo(item.created_at), value: '+' + dc(item.amount) }));
       const pendingRows = data.pendingEnrollments || [];
       const sourcesTotal = [
         { title: tr('LIVE balance', 'LIVE баланс'), value: dc(data.total || 0) },
-        { title: tr('Course sales', 'Продажи курсов'), value: money(data.courseSalesTotal || 0, currency) },
-        { title: tr('Event sales', 'Продажи событий'), value: money(data.eventSalesTotal || 0, currency) },
+        { title: tr('Course sales', 'Продажи курсов'), value: '—' },
+        { title: tr('Event sales', 'Продажи событий'), value: '—' },
         { title: tr('Gifts', 'Подарки'), value: dc(data.giftsTotal || 0) },
         { title: tr('Paid LIVE', 'Платный LIVE'), value: dc(data.paidMinutesTotal || 0) }
       ];
@@ -313,8 +366,8 @@
         overlay.querySelectorAll('[data-bd-tab]').forEach((b) => b.classList.toggle('active', b.dataset.bdTab === nextTab));
         if (nextTab === 'details') {
           body.innerHTML = '<div class="bd-source-grid">' + sourcesTotal.map((item) => '<div><span>' + esc(item.title) + '</span><b>' + esc(item.value) + '</b></div>').join('') + '</div>' +
-            '<h3>' + esc(tr('Course sales', 'Продажи курсов')) + '</h3>' + modalRows(courseRows, tr('No course sales yet.', 'Продаж курсов пока нет.')) +
-            '<h3>' + esc(tr('Event sales', 'Продажи событий')) + '</h3>' + modalRows(eventRows, tr('No event sales yet.', 'Продаж событий пока нет.')) +
+            '<h3>' + esc(tr('Course sales', 'Продажи курсов')) + '</h3>' + modalRows(courseRows, tr('Payment ledger is not connected.', 'Платёжный реестр не подключён.')) +
+            '<h3>' + esc(tr('Event sales', 'Продажи событий')) + '</h3>' + modalRows(eventRows, tr('Payment ledger is not connected.', 'Платёжный реестр не подключён.')) +
             '<h3>' + esc(tr('Recent LIVE income', 'Недавний LIVE доход')) + '</h3>' + modalRows(liveRows, tr('No LIVE income yet.', 'LIVE дохода пока нет.'));
         } else if (nextTab === 'pending') {
           body.innerHTML = pendingRows.length ? pendingRows.map((item) => '<div class="bd-modal-row"><div><b>' + esc(item.course_title || tr('Course', 'Курс')) + '</b><span>' + esc([item.full_name, item.email].filter(Boolean).join(' · ') || tr('Learner', 'Ученик')) + '</span></div><div class="bd-row-actions"><button type="button" data-enroll-approve="' + esc(item.id) + '">' + esc(tr('Approve', 'Подтвердить')) + '</button><button type="button" data-enroll-reject="' + esc(item.id) + '">' + esc(tr('Reject', 'Отклонить')) + '</button></div></div>').join('') : '<div class="bd-modal-empty">' + esc(tr('No pending enrollments.', 'Нет заявок на подтверждение.')) + '</div>';
@@ -402,191 +455,94 @@
 
     function shell(name, profile, liveUrl, data) {
       const ready = Boolean(data);
-      const rating = data && typeof data.rating === 'number' ? data.rating.toFixed(1) : null;
       const v = (value) => ready ? value : '—';
-      const canWithdraw = Boolean(data && data.total > 0);
-      const salesCurrency = (data && data.salesCurrency) || 'EUR';
-      const realMoney = (amount) => ready ? money(amount, salesCurrency) : '—';
-
-      const ic = {
-        live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg>',
-        cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>',
-        add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
-        book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 012-2h13v16H6.5A2.5 2.5 0 004 21.5"/></svg>',
-        trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v4a6 6 0 01-12 0zM4 5h2M18 5h2M9 21h6M12 15v6"/></svg>',
-        bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12c1 1 1 2 1 3h6c0-1 0-2 1-3a7 7 0 00-4-12z"/></svg>',
-        eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-        heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z"/></svg>',
-        chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg>',
-        follow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M18 8v6M15 11h6"/></svg>',
-        people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 4a4 4 0 010 8"/></svg>',
-        doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>',
-        gem: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6"/></svg>'
+      const rating = data && typeof data.rating === 'number' ? data.rating.toFixed(1) : null;
+      const notifications = (ctx.state && ctx.state.notifications) || [];
+      const unread = notifications.filter((item) => !item.read);
+      const now = Date.now();
+      const courses = (data && data.courseRows) || [];
+      const sessions = ((data && data.sessions) || []).filter((item) => {
+        const status = String(item.status || '').toLowerCase();
+        return !['canceled', 'cancelled', 'ended', 'completed'].includes(status) && Date.parse(item.ends_at || item.starts_at) > now;
+      }).sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
+      const published = courses.filter((course) => ['active', 'published'].includes(String(course.status || '').toLowerCase()));
+      const shownCourses = (published.length ? published : courses).slice(0, 3);
+      const localeDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+      const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date());
+      const paths = {
+        plus: '<path d="M12 5v14M5 12h14"/>', live: '<rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3z"/>',
+        users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+        book: '<path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5"/><path d="M8 7h7"/>',
+        coin: '<circle cx="8" cy="8" r="6"/><path d="M18.1 8.7A6 6 0 1 1 8.7 18.1"/>', star: '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2l-5-4.9 6.9-1z"/>',
+        calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>', message: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>',
+        gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/>',
+        arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>'
       };
+      const icon = (key) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths[key] + '</svg>';
+      const fmtDate = (value) => value ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : tr('Time not set', 'Время не указано');
+      const cover = (course, index) => course.cover_image_url ? '<img src="' + esc(course.cover_image_url) + '" alt="">' : '<span class="td4-course-fallback tone-' + (index % 3) + '"><small>DUVELA</small><b>' + esc(course.level || 'COURSE') + '</b></span>';
+      function kpi(iconName, label, value, note, tone) { return '<article class="td4-kpi ' + tone + '"><span class="td4-kpi-icon">' + icon(iconName) + '</span><div><small>' + esc(label) + '</small><strong>' + esc(value) + '</strong><em>' + esc(note) + '</em></div></article>'; }
+      function emptyState(title, copy, href, action) { return '<div class="td4-empty"><span>' + icon('calendar') + '</span><div><b>' + esc(title) + '</b><p>' + esc(copy) + '</p></div>' + (href ? '<a href="' + href + '" data-go="' + href.slice(1) + '">' + esc(action) + ' →</a>' : '') + '</div>'; }
 
-      // Profile card
-      let html = '<div class="bd-profile">' +
-        '<div class="bd-profile-left">' +
-        '<span class="bd-avatar">' + ctx.avatarInner(name, profile.avatar_url) + '</span>' +
-        '<span class="bd-profile-name"><b>' + esc(name) + '</b>' +
-        '<span class="bd-teacher-badge">' + esc(tr('Teacher', 'Преподаватель')) + '</span></span>' +
-        '</div>' +
-        '<span class="bd-rating">★ <b>' + esc(rating || '—') + '</b></span>' +
-        '</div>';
+      let html = '<div class="td4-page">';
+      html += '<header class="td4-welcome"><div class="td4-identity"><span class="td4-avatar">' + ctx.avatarInner(name, profile.avatar_url) + '</span><div><span class="td4-eyebrow">DUVELA / TEACHER WORKSPACE</span><h1>' + esc(tr('Welcome back', 'С возвращением')) + ', ' + esc(name.split(/\s+/)[0]) + '</h1><p><span class="td4-online"></span>' + esc(tr('Teacher · Online', 'Преподаватель · В сети')) + '<i></i>' + esc(localeDate) + '</p></div></div><div class="td4-head-actions"><a class="td4-btn td4-btn-light" href="#schedule" data-go="schedule">' + icon('calendar') + esc(tr('Create Lesson', 'Создать урок')) + '</a><a class="td4-btn td4-btn-green" href="#live" data-go="live">' + icon('live') + esc(tr('Go LIVE', 'Выйти в LIVE')) + '</a></div></header>';
+      html += '<section class="td4-kpis" aria-label="' + esc(tr('Teaching overview', 'Обзор преподавания')) + '">' + kpi('users', tr('Active Students', 'Активные ученики'), v(num(data && data.activeStudentsCount)), tr('Confirmed course enrollments', 'Подтверждённые записи на курсы'), 'green') + kpi('book', tr('Published Courses', 'Опубликованные курсы'), v(num(data && data.publishedCoursesCount)), tr('Visible active courses', 'Активные опубликованные курсы'), 'violet') + kpi('coin', tr('Monthly Revenue', 'Доход за месяц'), ready ? dc(data.monthTotal) : '—', tr('Verified LIVE ledger · ', 'Подтверждённый LIVE · ') + monthLabel, 'navy') + kpi('star', tr('Average Rating', 'Средний рейтинг'), rating || '—', rating ? tr('Verified teacher reviews', 'Подтверждённые отзывы') : tr('No reviews yet', 'Отзывов пока нет'), 'amber') + '</section>';
 
-      // Go Live banner
-      html += '<a class="bd-golive" href="' + esc(liveUrl) + '">' +
-        '<span class="bd-golive-dot"></span>' +
-        '<span class="bd-golive-copy"><b>' + esc(tr('Start Teaching LIVE', 'Начать преподавать в эфире')) + '</b>' +
-        '<span>' + esc(tr('Connect with students in real-time', 'Общайтесь с учениками в реальном времени')) + '</span></span>' +
-        '<span class="bd-golive-btn">' + ic.live + esc(tr('Go Live', 'В эфир')) + '</span>' +
-        '</a>';
+      const lessons = !ready ? '<div class="td4-loading"><i></i><i></i><i></i></div>' : sessions.length ? sessions.slice(0, 3).map((session) => '<article class="td4-lesson"><time><b>' + esc(new Date(session.starts_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })) + '</b><span>' + esc(new Date(session.starts_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })) + '</span></time><div class="td4-lesson-main"><strong>' + esc(session.title || session.course_title || tr('Classroom lesson', 'Урок в классе')) + '</strong><p>' + esc(session.course_title || session.class_name || tr('Independent lesson', 'Самостоятельный урок')) + '</p><span>' + esc((session.duration_min || 60) + ' ' + tr('min', 'мин')) + ' · ' + esc(num(session.participants)) + ' ' + esc(tr('participants', 'участников')) + '</span></div><a href="./classroom.html?s=' + encodeURIComponent(session.id) + '">' + esc(tr('Join classroom', 'Войти в класс')) + ' ' + icon('arrow') + '</a></article>').join('') : emptyState(tr('No lessons scheduled today', 'На сегодня уроков нет'), tr('Schedule a lesson and invite students from your course.', 'Запланируйте урок и пригласите учеников курса.'), '#schedule', tr('Schedule lesson', 'Запланировать'));
+      html += '<div class="td4-two"><section class="td4-card td4-teaching"><header><div><span class="td4-eyebrow">' + esc(tr("TODAY'S TEACHING", 'СЕГОДНЯШНИЕ УРОКИ')) + '</span><h2>' + esc(tr('Your teaching schedule', 'Ваше расписание')) + '</h2></div><a href="#schedule" data-go="schedule">' + esc(tr('Full schedule', 'Всё расписание')) + ' →</a></header><div class="td4-lesson-list">' + lessons + '</div></section>';
+      html += '<section class="td4-card td4-quick"><header><div><span class="td4-eyebrow">' + esc(tr('QUICK ACTIONS', 'БЫСТРЫЕ ДЕЙСТВИЯ')) + '</span><h2>' + esc(tr('Keep your day moving', 'Управляйте рабочим днём')) + '</h2></div></header><div class="td4-quick-grid"><button type="button" data-dashboard-create-course><span>' + icon('plus') + '</span><b>' + esc(tr('Create Course', 'Создать курс')) + '</b><small>' + esc(tr('Build and publish', 'Создать и опубликовать')) + '</small></button><a href="#schedule" data-go="schedule"><span>' + icon('calendar') + '</span><b>' + esc(tr('Schedule Lesson', 'Запланировать урок')) + '</b><small>' + esc(tr('Add to your calendar', 'Добавить в календарь')) + '</small></a><a href="#live" data-go="live"><span>' + icon('live') + '</span><b>' + esc(tr('Start Public LIVE', 'Начать публичный LIVE')) + '</b><small>' + esc(tr('Open LIVE Studio', 'Открыть LIVE Studio')) + '</small></a><a href="#courses" data-go="courses"><span>' + icon('users') + '</span><b>' + esc(tr('Manage Students', 'Управлять учениками')) + '</b><small>' + esc(tr('Open course workspaces', 'Открыть кабинеты курсов')) + '</small></a></div></section></div>';
 
-
-      html += '<div class="bd-top-metrics">' +
-        '<div class="income"><span>' + ic.gem + '</span><div><small>' + esc(tr('Monthly income', 'Доход за месяц')) + '</small><b>' + v(money(data && data.monthRevenueTotal, salesCurrency)) + '</b><em>' + esc(tr('real data', 'реальные данные')) + '</em></div></div>' +
-        '<div class="students"><span>' + ic.people + '</span><div><small>' + esc(tr('Students', 'Ученики')) + '</small><b>' + v(num(data && data.clientsCount)) + '</b><em>' + esc(tr('event clients', 'по событиям')) + '</em></div></div>' +
-        '<div class="rating"><span>' + ic.trophy + '</span><div><small>' + esc(tr('Rating', 'Рейтинг')) + '</small><b>' + esc(rating || '—') + '</b><em>' + esc(rating ? tr('from reviews', 'из отзывов') : tr('no reviews', 'нет отзывов')) + '</em></div></div>' +
-        '<div class="views"><span>' + ic.eye + '</span><div><small>' + esc(tr('Views', 'Просмотры')) + '</small><b>' + v(num(data && data.viewsCount)) + '</b><em>' + esc(tr('posts total', 'по постам')) + '</em></div></div>' +
-      '</div>';
-
-      // Two-column body on wide screens: actions/business on the left, insights on the right.
-      html += '<div class="bd-grid"><div class="bd-col">';
-
-      // Quick actions
-      html += '<div class="bd-quick-grid">' +
-        quick('management', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир'), 'live') +
-        quick('schedule', 'var(--teal-soft)', ic.cal, tr('Schedule', 'Расписание')) +
-        quick('events', 'var(--purple-soft)', ic.add, tr('Create Event', 'Создать событие')) +
-        quick('events', 'var(--purple-soft)', ic.cal, tr('My Events', 'Мои события')) +
-        quick('courses', 'var(--purple-soft)', ic.book, tr('My Courses', 'Мои курсы')) +
-        quick('courses', 'var(--teal-soft)', ic.book, tr('Add Courses', 'Добавить курсы')) +
-        quick('management', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи'), 'challenges') +
-        quick('duel', 'var(--teal-soft)', ic.bulb, tr('My practices', 'Мои практики')) +
-        '</div>';
-
-      // My Business balance card.
-      var weekLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-      var weekValues = ready && data.weekRevenueByDay ? data.weekRevenueByDay : [0, 0, 0, 0, 0, 0, 0];
-      var weekMax = Math.max.apply(null, weekValues.concat([1]));
-      var weekBars = weekValues.map(function (amount, index) {
-        var height = amount === 0 ? 4 : Math.max(18, Math.round(amount / weekMax * 100));
-        return '<span><i style="height:' + height + '%"></i><b>' + weekLabels[index] + '</b>' + (amount > 0 ? '<em>' + esc(money(amount, salesCurrency)) + '</em>' : '') + '</span>';
-      }).join('');
-      html += '<div class="bd-section">' +
-        '<div class="bd-business bd-business-balance">' +
-          '<div class="bd-business-balance-top"><h3>' + esc(tr('My Business', 'Мой бизнес')) + '</h3><button type="button">' + esc(tr('Last 7 days', 'Последние 7 дней')) + '⌄</button></div>' +
-          '<div class="bd-income-tiles">' +
-            '<div><span>' + ic.book + '</span><small>' + esc(tr('Courses', 'Курсы')) + '</small><b>' + realMoney(data && data.monthCourseSalesTotal) + '</b></div>' +
-            '<div><span class="red">' + ic.live + '</span><small>LIVE</small><b>' + (ready ? dc(data && data.monthTotal) : '—') + '</b></div>' +
-            '<div><span>' + ic.cal + '</span><small>' + esc(tr('Events', 'События')) + '</small><b>' + realMoney(data && data.monthEventSalesTotal) + '</b></div>' +
-            '<div><span>' + ic.gem + '</span><small>' + esc(tr('Gifts', 'Подарки')) + '</small><b>' + (ready ? dc(data && data.giftsTotal) : '—') + '</b></div>' +
-          '</div>' +
-          '<div class="bd-business-chart-row"><div class="bd-business-chart"><div class="bd-y-axis"><span>' + esc(money(weekMax, salesCurrency)) + '</span><span>' + esc(money(weekMax * .66, salesCurrency)) + '</span><span>' + esc(money(weekMax * .33, salesCurrency)) + '</span><span>' + esc(money(0, salesCurrency)) + '</span></div><div class="bd-week-bars">' + weekBars + '</div></div>' +
-          '<div class="bd-business-total"><small>' + esc(tr('Total for 7 days', 'Всего за 7 дней')) + '</small><b>' + realMoney(data && data.weekRevenueTotal) + '</b><em>' + esc(tr('courses, events and LIVE', 'курсы, события и LIVE')) + '</em></div></div>' +
-          '<div class="bd-business-actions"><button class="bd-btn-outline" type="button" data-business-details>' + esc(tr('Details', 'Подробнее')) + '</button><button class="bd-btn-solid" type="button" data-business-withdraw>' + esc(tr('Withdraw', 'Вывести')) + '</button></div>' +
-        '</div></div>';
-
-      // Manage events
-      html += section(tr('Manage events', 'Управление событиями'), null,
-        '<div class="bd-manage">' +
-          manageRow('events', 'var(--purple-soft)', ic.cal, tr('Events', 'События'), tr('Plan and publish events', 'Планируйте и публикуйте события')) +
-          manageRow('courses', 'var(--teal-soft)', ic.book, tr('Courses', 'Курсы'), tr('Manage Courses', 'Управление курсами')) +
-          manageRow('management', 'var(--red-soft)', ic.live, tr('Schedule Live', 'Запланировать эфир'), tr('Sessions with students', 'Сессии с учениками'), 'live') +
-          manageRow('management', 'var(--purple-soft)', ic.trophy, tr('Challenges', 'Челленджи'), tr('Motivate students', 'Мотивируйте учеников'), 'challenges') +
-        '</div>');
-
-      // Right column: insights (gifts + recent sessions + analytics).
-      html += '</div><div class="bd-col">';
-
-      // My Gifts
+      const courseHtml = !ready ? '<div class="td4-loading"><i></i><i></i><i></i></div>' : shownCourses.length ? shownCourses.map((course, index) => '<article class="td4-course"><div class="td4-course-cover">' + cover(course, index) + '</div><div><span class="td4-status ' + (['active','published'].includes(String(course.status).toLowerCase()) ? 'active' : '') + '">' + esc(['active','published'].includes(String(course.status).toLowerCase()) ? tr('Published', 'Опубликован') : tr('Draft', 'Черновик')) + '</span><h3>' + esc(course.title || tr('Untitled course', 'Курс без названия')) + '</h3><p>' + esc([course.language, course.level].filter(Boolean).join(' · ') || tr('Language and level not set', 'Язык и уровень не указаны')) + '</p><small>' + esc(num(course.studentCount)) + ' ' + esc(tr('students', 'учеников')) + '</small></div><a href="#courses" data-go="courses" aria-label="' + esc(tr('Manage course', 'Управлять курсом')) + '">' + icon('arrow') + '</a></article>').join('') : emptyState(tr('No courses yet', 'Курсов пока нет'), tr('Create your first course to organize lessons and students.', 'Создайте первый курс, чтобы организовать уроки и учеников.'), '#courses', tr('Open Courses', 'Открыть курсы'));
       const topGift = data && data.topGifts && data.topGifts[0];
-      const topViewer = data && data.topViewers && data.topViewers[0];
-      html += section(tr('My Gifts', 'Мои подарки'), null,
-        '<div class="bd-gifts">' +
-          '<div class="bd-gifts-head">' +
-            '<span class="bd-gifts-ic">' + ic.gem + '</span>' +
-            '<div><span class="bd-gifts-label">' + esc(tr('Total Coins', 'Всего монет')) + '</span>' +
-            '<div class="bd-gifts-coin"><b>' + v(num(data && data.giftsTotal)) + '</b><span>' + esc(tr('LIVE gifts', 'подарки LIVE')) + '</span></div></div>' +
-          '</div>' +
-          '<div class="bd-gifts-stats">' +
-            '<div class="bd-gift-stat"><span>' + esc(tr('Top Gift', 'Топ подарок')) + '</span><b>' + esc(topGift ? topGift.name : '—') + '</b>' +
-              (topGift ? '<small>x' + num(topGift.count) + '</small>' : '') + '</div>' +
-            '<div class="bd-gift-stat"><span>' + esc(tr('Top User', 'Топ зритель')) + '</span><b>' + esc(topViewer ? topViewer.name : '—') + '</b>' +
-              (topViewer ? '<small>' + dc(topViewer.total) + '</small>' : '') + '</div>' +
-          '</div>' +
-          '<div class="bd-business-actions">' +
-            '<button class="bd-btn-outline dark" type="button" data-business-details>' + esc(tr('Details', 'Подробнее')) + '</button>' +
-            '<button class="bd-btn-solid dark" type="button" data-business-withdraw>' + esc(tr('Withdraw', 'Вывести')) + '</button>' +
-          '</div>' +
-        '</div>');
+      html += '<div class="td4-two td4-mid"><section class="td4-card td4-courses"><header><div><span class="td4-eyebrow">' + esc(tr('COURSES OVERVIEW', 'ОБЗОР КУРСОВ')) + '</span><h2>' + esc(tr('Active teaching programs', 'Активные учебные программы')) + '</h2></div><a href="#courses" data-go="courses">' + esc(tr('All courses', 'Все курсы')) + ' →</a></header><div class="td4-course-list">' + courseHtml + '</div></section><section class="td4-wallet"><span class="td4-eyebrow">' + esc(tr('GIFTS & COINS', 'ПОДАРКИ И МОНЕТЫ')) + '</span><div class="td4-wallet-title"><span>' + icon('gift') + '</span><div><small>' + esc(tr('Available DUVELA balance', 'Доступный баланс DUVELA')) + '</small><strong>' + (ready ? dc(data.total) : '—') + '</strong></div></div><div class="td4-wallet-grid"><div><span>' + esc(tr('LIVE income', 'Доход LIVE')) + '</span><b>' + (ready ? dc(data.paidMinutesTotal) : '—') + '</b></div><div><span>' + esc(tr('Gift balance', 'Подарки')) + '</span><b>' + (ready ? dc(data.giftsTotal) : '—') + '</b></div></div><div class="td4-currency-row"><div><span>EUR</span><b>' + (ready ? money(data.salesByCurrency?.EUR || 0, 'EUR') : '—') + '</b></div><div><span>USD</span><b>' + (ready ? money(data.salesByCurrency?.USD || 0, 'USD') : '—') + '</b></div></div><p>' + esc(topGift ? tr('Most received: ', 'Чаще всего: ') + topGift.name + ' ×' + topGift.count : tr('Gifts from LIVE sessions will appear here.', 'Подарки из LIVE-сессий появятся здесь.')) + '</p><div class="td4-wallet-actions"><button type="button" data-business-details>' + esc(tr('View ledger', 'Открыть историю')) + '</button><button type="button" class="primary" data-business-withdraw' + (ready && data.total > 0 ? '' : ' disabled') + '>' + esc(tr('Withdraw', 'Вывести')) + '</button></div><small class="td4-wallet-note">' + esc(tr('DC, EUR and USD are shown separately. No currency conversion is applied.', 'DC, EUR и USD показываются отдельно. Конвертация валют не выполняется.')) + '</small></section></div>';
 
-      // Recent LIVE sessions
-      const recent = (data && data.recent) || [];
-      let recentBody;
-      if (recent.length > 0) {
-        recentBody = recent.map((item) => {
-          const isGift = item.source === 'gift';
-          return '<div class="bd-session"><span class="bd-session-ic">' + (isGift ? '🎁' : ic.live) + '</span>' +
-            '<span class="bd-session-copy"><b>' + esc(item.label || (isGift ? tr('Gift received', 'Получен подарок') : tr('LIVE session', 'LIVE сессия'))) + '</b>' +
-            '<span>' + esc(ctx.timeAgo(item.created_at)) + '</span></span>' +
-            '<span class="bd-session-amount">+' + dc(item.amount) + '</span></div>';
-        }).join('');
-      } else {
-        recentBody = '<div class="bd-empty">' + ic.live +
-          '<div><b>' + esc(tr('No sessions yet', 'Пока нет сессий')) + '</b>' +
-          '<span>' + esc(tr('Your completed LIVE sessions will appear here with earnings and duration.', 'Ваши завершённые эфиры появятся здесь с доходом и длительностью.')) + '</span></div>' +
-          '<a class="bd-btn-solid" href="' + esc(liveUrl) + '">' + esc(tr('Go Live now', 'В эфир сейчас')) + '</a></div>';
-      }
-      html += section(tr('Recent LIVE Sessions', 'Недавние LIVE сессии'), null,
-        '<div class="bd-card">' + recentBody + '</div>');
+      const periodStart = now - revenuePeriod * 86400000;
+      const earnings = ((data && data.earnings) || []).filter((item) => Date.parse(item.created_at) >= periodStart);
+      const directGifts = ((data && data.gifts) || []).filter((item) => Date.parse(item.created_at) >= periodStart);
+      const nonGift = earnings.filter((item) => item.source !== 'gift').reduce((sum, item) => sum + item.amount, 0);
+      const earningsGifts = earnings.filter((item) => item.source === 'gift').reduce((sum, item) => sum + item.amount, 0);
+      const giftTotal = Math.max(earningsGifts, directGifts.reduce((sum, item) => sum + item.cost, 0));
+      const ledger = earnings.filter((item) => item.source !== 'gift').map((item) => ({ at: item.created_at, amount: item.amount })).concat((directGifts.length ? directGifts.map((item) => ({ at: item.created_at, amount: item.cost })) : earnings.filter((item) => item.source === 'gift').map((item) => ({ at: item.created_at, amount: item.amount }))));
+      const bucketSize = revenuePeriod * 86400000 / 7;
+      const bucketValues = Array.from({ length: 7 }, (_, index) => ledger.filter((item) => { const age = now - Date.parse(item.at); return age >= bucketSize * (6 - index) && age < bucketSize * (7 - index); }).reduce((sum, item) => sum + item.amount, 0));
+      const maxBucket = Math.max.apply(null, bucketValues.concat([1]));
+      const bars = bucketValues.map((value, index) => '<span><i style="height:' + (value ? Math.max(12, Math.round(value / maxBucket * 100)) : 4) + '%"></i><b>' + esc(index === 6 ? tr('Now', 'Сейчас') : '-' + Math.round((6 - index) * revenuePeriod / 7) + tr('d', 'д')) + '</b></span>').join('');
+      html += '<section class="td4-card td4-revenue"><header><div><span class="td4-eyebrow">' + esc(tr('REVENUE ANALYTICS', 'АНАЛИТИКА ДОХОДА')) + '</span><h2>' + esc(tr('Verified LIVE revenue', 'Подтверждённый доход LIVE')) + '</h2><p>' + esc(tr('Values come from the LIVE earnings and gifts ledgers.', 'Значения получены из реестров LIVE-доходов и подарков.')) + '</p></div><div class="td4-periods">' + [7,30,90].map((days) => '<button type="button" data-dashboard-period="' + days + '" class="' + (revenuePeriod === days ? 'active' : '') + '">' + days + esc(tr('D', 'Д')) + '</button>').join('') + '</div></header><div class="td4-revenue-body"><div class="td4-chart"><div class="td4-chart-bars">' + bars + '</div></div><div class="td4-revenue-summary"><div><span>' + esc(tr('LIVE income', 'Доход LIVE')) + '</span><b>' + dc(nonGift) + '</b><small>' + esc(tr('Verified earnings ledger', 'Подтверждённый реестр')) + '</small></div><div><span>' + esc(tr('Gift income', 'Доход от подарков')) + '</span><b>' + dc(giftTotal) + '</b><small>' + esc(tr('Verified gift records', 'Подтверждённые подарки')) + '</small></div><div class="unavailable"><span>' + esc(tr('Course earnings', 'Доход от курсов')) + '</span><b>—</b><small>' + esc(tr('Payment ledger not connected', 'Платёжный реестр не подключён')) + '</small></div></div></div></section>';
 
-      // Analytics
-      const barMax = data && data.activity ? Math.max.apply(null, data.activity.concat([1])) : 1;
-      const bars = (data && data.activity ? data.activity : [0, 0, 0, 0, 0, 0, 0]).map((value) => {
-        const height = value === 0 ? 4 : Math.max(14, Math.round((value / barMax) * 100));
-        return '<span class="bd-bar' + (value === 0 ? ' empty' : '') + '" style="height:' + height + '%"></span>';
-      }).join('');
-      const activityTotal = (data && data.activity ? data.activity : []).reduce((sum, value) => sum + value, 0);
-
-      html += section(tr('Analytics', 'Аналитика'), null,
-        '<div class="bd-card bd-analytics">' +
-          '<div class="bd-metric-grid">' +
-            statTile(ic.eye, tr('Video Views', 'Просмотры видео'), v(num(data && data.viewsCount))) +
-            statTile(ic.heart, tr('Likes', 'Лайки'), v(num(data && data.likesCount))) +
-            statTile(ic.chat, tr('Comments', 'Комментарии'), v(num(data && data.commentsCount))) +
-            statTile(ic.follow, tr('Followers', 'Подписчики'), v(num(data && data.followersCount))) +
-            statTile(ic.people, tr('Clients', 'Клиенты'), v(num(data && data.clientsCount))) +
-            statTile(ic.cal, tr('Events', 'События'), v(num(data && data.eventsCount))) +
-            statTile(ic.book, tr('Courses', 'Курсы'), v(num(data && data.coursesCount))) +
-            statTile(ic.doc, tr('Assignments', 'Задания'), v(num(data && data.assignmentsCount))) +
-          '</div>' +
-          '<div class="bd-progress">' +
-            '<div class="bd-progress-head"><span>' + esc(tr('Avg. Rating', 'Средний рейтинг')) + '</span><b>' + esc(rating ? rating + ' / 5' : '—') + '</b></div>' +
-            '<div class="bd-progress-track"><span style="width:' + (rating ? (parseFloat(rating) / 5 * 100) : 0) + '%"></span></div>' +
-          '</div>' +
-          '<div class="bd-activity">' +
-            '<div class="bd-progress-head"><span>' + esc(tr('Activity (7 days)', 'Активность (7 дней)')) + '</span><b>' + num(activityTotal) + '</b></div>' +
-            '<div class="bd-bars">' + bars + '</div>' +
-          '</div>' +
-        '</div>');
-
-      html += '</div></div>'; // close right column + grid
-
+      const activity = [];
+      (data && data.pendingEnrollments || []).slice(0, 2).forEach((item) => activity.push({ icon: 'users', title: tr('New enrollment request', 'Новая заявка на курс'), copy: (item.full_name || item.email || tr('Student', 'Ученик')) + ' · ' + (item.course_title || ''), time: item.created_at, action: '<button type="button" data-business-pending>' + esc(tr('Review', 'Проверить')) + '</button>' }));
+      unread.slice(0, 2).forEach((item) => activity.push({ icon: 'bell', title: item.title || tr('New notification', 'Новое уведомление'), copy: item.body || tr('Open notifications to view details.', 'Откройте уведомления для подробностей.'), time: item.created_at, action: '<button type="button" data-dashboard-notifications>' + esc(tr('Open', 'Открыть')) + '</button>' }));
+      sessions.slice(0, 1).forEach((item) => activity.push({ icon: 'calendar', title: tr('Lesson reminder', 'Напоминание об уроке'), copy: (item.title || item.course_title || tr('Classroom lesson', 'Урок в классе')) + ' · ' + fmtDate(item.starts_at), time: item.starts_at, action: '<a href="#schedule" data-go="schedule">' + esc(tr('Schedule', 'Расписание')) + '</a>' }));
+      (data && data.recent || []).slice(0, 1).forEach((item) => activity.push({ icon: 'live', title: item.label || tr('LIVE session activity', 'Активность LIVE-сессии'), copy: '+' + dc(item.amount), time: item.created_at, action: '<a href="#live" data-go="live">' + esc(tr('Studio', 'Студия')) + '</a>' }));
+      const activityHtml = !ready ? '<div class="td4-loading"><i></i><i></i><i></i></div>' : activity.length ? activity.slice(0, 5).map((item) => '<article class="td4-activity-row"><span>' + icon(item.icon) + '</span><div><b>' + esc(item.title) + '</b><p>' + esc(item.copy) + '</p><small>' + esc(item.time ? ctx.timeAgo(item.time) : '') + '</small></div>' + item.action + '</article>').join('') : emptyState(tr('You are all caught up', 'Все задачи выполнены'), tr('Enrollment requests, reminders and LIVE activity will appear here.', 'Заявки, напоминания и LIVE-активность появятся здесь.'), '', '');
+      html += '<section class="td4-card td4-activity"><header><div><span class="td4-eyebrow">' + esc(tr('ACTIVITY CENTER', 'ЦЕНТР АКТИВНОСТИ')) + '</span><h2>' + esc(tr('What needs your attention', 'Что требует внимания')) + '</h2></div><button type="button" data-dashboard-notifications>' + icon('bell') + esc(tr('Notifications', 'Уведомления')) + (unread.length ? '<i>' + unread.length + '</i>' : '') + '</button></header><div>' + activityHtml + '</div></section>';
+      html += '<footer class="td4-footer"><span>DUVELA TEACHER WORKSPACE 4.0</span><small>' + esc(tr('Teach · Create · Grow', 'Обучайте · Создавайте · Развивайтесь')) + '</small></footer></div>';
       return html;
     }
-
     function section(title, icon, body) {
       return '<div class="bd-section">' +
         '<div class="bd-section-head">' + (icon ? '<span class="bd-section-ic">' + icon + '</span>' : '') +
         '<h3>' + esc(title) + '</h3></div>' + body + '</div>';
     }
 
-    return { render };
+    async function renderEarnings() {
+      const host = document.getElementById('earningsView');
+      if (!host) return;
+      if (!ctx.isBusiness()) { host.replaceChildren(); return; }
+      const data = lastData;
+      if (!data) { host.innerHTML = '<div class="be4-loading">Loading verified financial data…</div>'; render(); setTimeout(renderEarnings, 250); return; }
+      const eur = Number(data.salesByCurrency?.EUR || 0), usd = Number(data.salesByCurrency?.USD || 0);
+      const courseRevenue = (data.courseSales || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const eventRevenue = (data.eventSales || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const rows = [...(data.courseSales || []).map((item) => ({ label: item.title, amount: item.amount, currency: item.currency || 'EUR', date: item.created_at })), ...(data.eventSales || []).map((item) => ({ label: item.title, amount: item.amount, currency: item.currency || 'EUR', date: item.created_at }))].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+      const payoutRes = await safe(supa.from('business_withdrawal_requests').select('amount,currency,method,status,created_at').eq('user_id', ctx.user.id).order('created_at', { ascending: false }).limit(50), { data: [] });
+      const payouts = payoutRes.data || [];
+      host.innerHTML = '<div class="be4-page"><header class="be4-header"><div><span class="be4-eyebrow">DUVELA BUSINESS</span><h1>Earnings &amp; Finance</h1><p>Manage your teaching income, gifts and payouts.</p></div><span class="be4-header-icon">▣</span></header><div class="be4-kpis"><article><span>Course Revenue</span><strong>' + (courseRevenue ? money(courseRevenue, data.salesCurrency || 'EUR') : '—') + '</strong></article><article><span>Event Revenue</span><strong>' + (eventRevenue ? money(eventRevenue, 'EUR') : '—') + '</strong></article><article><span>LIVE Balance</span><strong>' + dc(data.total || 0) + '</strong></article><article><span>Gift Balance</span><strong>' + dc(data.giftsTotal || 0) + '</strong></article><article><span>EUR sales</span><strong>' + money(eur, 'EUR') + '</strong></article><article><span>USD sales</span><strong>' + money(usd, 'USD') + '</strong></article></div><section class="be4-status"><b>ⓘ Payment integration status</b><p>' + (courseRevenue || eventRevenue ? 'Verified course and event sales are available.' : 'The payment ledger is not connected. Course and event sales data cannot currently be displayed.') + '</p><span>' + (courseRevenue || eventRevenue ? 'Connected' : 'Integration required') + '</span></section><section class="be4-ledger"><nav><button class="active" type="button" data-be4-tab="transactions">Transactions</button><button type="button" data-be4-tab="payouts">Payouts</button><button type="button" data-be4-tab="coins">Coins &amp; Gifts</button><button type="button" data-be4-export="1">Export CSV</button></nav>' + (rows.length ? rows.map((row) => '<div class="be4-row"><div><b>' + esc(row.label || 'Sale') + '</b><small>' + esc(ctx.timeAgo(row.date)) + '</small></div><strong>' + esc(money(row.amount, row.currency)) + '</strong></div>').join('') : '<div class="be4-empty"><b>Transactions unavailable</b><p>This section will display verified records when its associated backend service is connected.</p></div>') + '</section></div>';
+      host.querySelectorAll('[data-be4-tab]').forEach((button) => { button.onclick = () => { host.querySelectorAll('[data-be4-tab]').forEach((item) => item.classList.toggle('active', item === button)); const ledger = host.querySelector('.be4-ledger'); if (!ledger) return; if (button.dataset.be4Tab === 'payouts') ledger.insertAdjacentHTML('beforeend', payouts.length ? payouts.map((item) => '<div class="be4-row"><div><b>' + esc(item.method || 'Payout') + '</b><small>' + esc(item.status || 'pending') + ' · ' + esc(ctx.timeAgo(item.created_at)) + '</small></div><strong>' + esc(money(item.amount, item.currency || 'DC')) + '</strong></div>').join('') : '<div class="be4-empty"><b>No payouts yet</b><p>Verified payout requests will appear here.</p></div>'); else if (button.dataset.be4Tab === 'coins') ledger.insertAdjacentHTML('beforeend', '<div class="be4-empty"><b>Coins &amp; Gifts</b><p>Duvela Coins and gift records remain separate from EUR and USD revenue.</p></div>'); }; });
+      const exportButton = host.querySelector('[data-be4-export]'); if (exportButton) exportButton.onclick = () => { const csv = ['Type,Label,Amount,Currency,Date'].concat(rows.map((item) => ['Transaction', item.label, item.amount, item.currency, item.date].map((value) => '"' + String(value || '').replaceAll('"', '""') + '"').join(','))).join('\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'duvela-earnings.csv'; link.click(); URL.revokeObjectURL(link.href); };
+    }
+    return { render, renderEarnings };
   }
 
   window.DuvelaBusinessDashboard = { create: createBusinessDashboard };
 })();
-
-
-

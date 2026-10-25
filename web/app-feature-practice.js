@@ -2,6 +2,9 @@
   function createPracticeFeature(ctx) {
     const { $, $$, tr, esc, state, supa } = ctx;
     let practiceState = null;
+    let practicesLoaded = false;
+    let practicesLoading = false;
+    let practicesError = '';
 
     const TARGET_ALIASES = {
       de:'de', deutsch:'de', german:'de', en:'en', english:'en', englisch:'en', es:'es', spanish:'es', spanisch:'es', espanol:'es', español:'es',
@@ -101,12 +104,17 @@
     }
 
     async function loadPractices() {
+      if(practicesLoading)return;
+      practicesLoading=true;practicesError='';
       try {
         const [practiceResult, assignmentResult, feedbackResult] = await Promise.all([
           supa.from('teacher_practices').select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count').eq('status', 'published').order('rating_avg', { ascending: false }).limit(30),
           supa.from('practice_assignments').select('practice_id,due_at,status,created_at').eq('student_id', ctx.user.id),
           supa.from('practice_feedback').select('practice_id,score,feedback,created_at').eq('user_id', ctx.user.id).order('created_at', { ascending: false })
         ]);
+        if(practiceResult.error)throw practiceResult.error;
+        if(assignmentResult.error)console.warn('practice assignments load failed',assignmentResult.error);
+        if(feedbackResult.error)console.warn('practice feedback load failed',feedbackResult.error);
         state.practices = (practiceResult.data || []).filter(matchesLearner);
         state.practiceAssignments = assignmentResult.data || [];
         state.practiceFeedback = feedbackResult.data || [];
@@ -122,12 +130,16 @@
           state.practiceAttempts = attempts || [];
         }
       } catch (error) {
+        practicesError=tr('Check your connection and try again.','Проверьте соединение и повторите попытку.');
         console.warn('practices load failed', error);
-      }
+      } finally {practicesLoading=false;practicesLoaded=true;}
     }
 
     function practicesHtml() {
       const criteria = learnerCriteria();
+      if(!navigator.onLine)return '<div class="practice-catalog-state offline" role="status"><span>↯</span><b>'+esc(tr('Teacher practices are unavailable offline','Практики преподавателей недоступны офлайн'))+'</b><p>'+esc(tr('Your built-in exercises and saved progress remain available.','Встроенные упражнения и сохранённый прогресс остаются доступны.'))+'</p></div>';
+      if(!practicesLoaded||practicesLoading)return '<div class="practice-catalog-state loading" role="status" aria-live="polite"><i></i><b>'+esc(tr('Loading matching teacher practices…','Загружаем подходящие практики преподавателей…'))+'</b></div>';
+      if(practicesError)return '<div class="practice-catalog-state error" role="alert"><span>!</span><b>'+esc(tr('Teacher practices could not be loaded','Не удалось загрузить практики преподавателей'))+'</b><p>'+esc(practicesError)+'</p><button type="button" data-practice-load-retry>'+esc(tr('Try again','Повторить'))+'</button></div>';
       if (!criteria.target) {
         return '<div class="empty rich-empty practice-empty"><span>🎯</span><b>' + esc(tr('Choose a learning direction first', 'Сначала выберите направление обучения')) + '</b><p>' + esc(tr('Teacher practices are shown only for the exact direction saved in your learner profile.', 'Практики преподавателей показываются только для направления, сохранённого в профиле ученика.')) + '</p><a class="btn" href="#profile" data-go="profile">' + esc(tr('Open profile', 'Открыть профиль')) + '</a></div>';
       }
@@ -319,6 +331,8 @@
         applyPracticeFilters(event.target.closest('[data-panel="workspace"]'));
       });
       document.addEventListener('click', (event) => {
+        const retry=event.target.closest('[data-practice-load-retry]');
+        if(retry){retry.disabled=true;practicesLoaded=false;loadPractices().then(()=>ctx.renderWorkspace());return;}
         const tab = event.target.closest('[data-practice-tab]');
         if (tab) {
           const host = tab.closest('[data-panel="workspace"]');

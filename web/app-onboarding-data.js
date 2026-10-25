@@ -161,9 +161,10 @@
       { id: 'personalDevelopment', label: 'Personal development' }
     ],
     SUBCATEGORIES: {
+      languages: ['Speaking', 'Grammar', 'Pronunciation', 'Exam preparation', 'Business language', 'Conversation', 'Writing'],
       art: ['Drawing', 'Painting', 'Sculpture', 'Animation', 'Graphic design', 'Crafts', 'Art history'],
       career: ['Interview preparation', 'AI interview'],
-      digital: ['Programming', 'Web development', 'Mobile development', 'UI/UX', 'Figma', 'Video editing', 'Content creation', 'Audio & podcast', 'Digital marketing', 'Social media', 'SEO'],
+      digital: ['Programming', 'Web development', 'AI', 'Cybersecurity', 'Design', 'Data analysis', 'Mobile development', 'UI/UX', 'Figma', 'Video editing', 'Content creation', 'Audio & podcast', 'Digital marketing', 'Social media', 'SEO'],
       education: ['Math', 'Physics', 'Chemistry', 'Biology', 'Logic'],
       life: ['Sign language', 'Cooking', 'Personal finance', 'Home organization'],
       personalDevelopment: ['Mindfulness', 'Communication', 'Productivity', 'Confidence'],

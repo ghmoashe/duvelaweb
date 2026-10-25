@@ -74,6 +74,20 @@
       window.location.href = appUrl(targetRole, hash || defaultHashForRole(targetRole));
     }
 
+    function requestedReturnUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('return_to') || sessionStorage.getItem('duvela.return_to') || document.referrer || '';
+        if (!raw) return '';
+        const target = new URL(raw, window.location.origin);
+        if (target.origin !== window.location.origin || !target.pathname.endsWith('/app.html')) return '';
+        sessionStorage.removeItem('duvela.return_to');
+        return target.href;
+      } catch (_) {
+        return '';
+      }
+    }
+
     function teacherInviteRef() {
       try {
         const fromQuery = new URLSearchParams(window.location.search).get('teacher_invite');
@@ -170,6 +184,11 @@
         return;
       }
 
+      const returnUrl = requestedReturnUrl();
+      if (returnUrl) {
+        window.location.href = returnUrl;
+        return;
+      }
       authUi.setCurrentRole(LOGIN_ROLE);
       await goToDetectedWebApp(sessionUser);
     }
@@ -274,6 +293,11 @@
 
       if (data.user) await upsertWebProfile(data.user.id, email, locale);
       rememberCompletedOnboarding(data.user?.id, await loadExistingProfile(data.user?.id));
+      const returnUrl = requestedReturnUrl();
+      if (returnUrl) {
+        window.location.href = returnUrl;
+        return;
+      }
       await goToDetectedWebApp(data.user);
     }
 
@@ -405,6 +429,8 @@
       supa.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
           setNavUser(session.user);
+          const returnUrl = requestedReturnUrl();
+          if (returnUrl) window.location.href = returnUrl;
         }
       });
     }

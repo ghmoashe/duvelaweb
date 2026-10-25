@@ -12,6 +12,7 @@
     const RTL_LANGS = new Set(
       LANG_DATA.filter((locale) => locale.dir === 'rtl').map((locale) => locale.code)
     );
+    const localeLoader = window.DUVELA_HOME_LOCALES;
 
     const langBtn = document.getElementById('langBtn');
     const langMenu = document.getElementById('langMenu');
@@ -21,9 +22,15 @@
     let dict = Object.assign({}, I18N.en, I18N_EXTRA.en);
     const WEB_APP_COPY = {
       en: {
+        navVideo: 'Product',
+        navHow: 'How it Works',
+        navBusiness: 'For Teachers',
+        navPricing: 'Pricing',
+        heroTitle: 'Learn more. Connect more. <span class="grad-text">Become more.</span>',
+        heroSub: 'Learn languages and new skills with real teachers, interactive LIVE lessons, videos and personalized practice.',
         getApp: 'Open Web App',
-        btnDownload: 'Start learning free',
-        btnHow: 'Start teaching',
+        btnDownload: 'Start Learning',
+        btnHow: 'Start Teaching',
         heroClarity: 'Works in your browser. No download required.',
         heroMeta: '<b>Web app available now</b><br>Learners and teachers use the same account.',
         appsKicker: 'Two workspaces, one web app',
@@ -37,11 +44,23 @@
         phoneGreeting: 'Welcome to Duvela',
         phoneStreak: 'Daily practice',
         levelTestCheck: 'Set your CEFR level',
-        f2p: 'Join public LIVE sessions, ask questions in real time, practice speaking and send supported Duvela Coin gifts.',
+        f1t: 'Real Teachers',
+        f1p: 'Discover public teacher profiles, published courses and LIVE sessions using information teachers choose to share.',
+        f1g: 'Human learning',
+        f2t: 'Smart Video Feed',
+        f2p: 'Explore short educational videos organized around your selected language, interests and current level.',
+        f2g: 'Personalized',
         f3t: 'CEFR Level Setup',
         f3p: 'Choose or update your CEFR level from A1 to C2. Duvela uses it to organize relevant learning content.',
-        f6p: 'Daily goals, XP, achievements and leaderboards track progress. Duvela Coins support eligible in-app gifts and rewards.',
-        f7p: 'The practice hub includes 15+ tools for grammar, listening, writing, reading and review. Premium AI Coach adds guided dialogue and corrections.',
+        f4t: 'Interactive LIVE Learning',
+        f4p: 'Join scheduled sessions, interact with teachers and practice speaking in the DUVELA LIVE experience.',
+        f4g: 'Real-time',
+        f5t: 'AI Practice',
+        f5p: 'Use guided tools for grammar, listening, writing, reading and review alongside teacher-led learning.',
+        f5g: 'Practice tools',
+        f6t: 'Courses & Community',
+        f6p: 'Follow structured courses, join events and stay connected with teachers, learners and organizers.',
+        f6g: 'Connected learning',
         f10p: 'Track eligible LIVE, course, event and gift income in the Business workspace.',
         earningFacts: '<div><dt>Balance</dt><dd>DC</dd></div><div><dt>Minimum request</dt><dd>100 DC</dd></div><div><dt>Methods</dt><dd>Bank, PayPal, Wise</dd></div><div><dt>Fees and conversion</dt><dd>Not yet published</dd></div>',
         s1p: 'Choose your current CEFR level from A1 to C2 and update it later as your learning goals change.',
@@ -50,11 +69,32 @@
         biz2: '<b>✓</b> Track eligible LIVE and gift income',
         mobileAppsKicker: 'Mobile apps',
         mobileAppsTitle: 'Download Duvela on your phone',
-        storeNote: 'Store links will be enabled after the iOS and Android releases are published.'
+        storeNote: 'Store links will be enabled after the iOS and Android releases are published.',
+        menuOpen: 'Menu',
+        menuClose: 'Close',
+        productShowcaseKicker: 'See DUVELA in action',
+        productShowcaseTitle: 'One platform. Five connected experiences.',
+        productShowcaseSub: 'Explore real DUVELA workflows for learning, teaching and managing courses.',
+        productVideosTitle: 'Learn from short, level-aware content',
+        productVideosText: 'Open the DUVELA feed, choose your level and continue with videos selected for your learning context.',
+        productLiveTitle: 'Join interactive lessons with real teachers',
+        productLiveText: 'Discover scheduled sessions and enter the LIVE learning experience from the learner workspace.',
+        productPracticeTitle: 'Turn learning into active practice',
+        productPracticeText: 'Use DUVELA practice tools, challenges and guided activities to reinforce what you learn.',
+        productCoursesTitle: 'Follow structured teacher-led courses',
+        productCoursesText: 'Browse published courses with their real schedule, level and price information.',
+        productWorkspaceTitle: 'Create, teach and manage from one place',
+        productWorkspaceText: 'Publish content, prepare courses, host LIVE sessions and manage learners in the DUVELA Business workspace.'
       },
       ru: {
+        navVideo: 'Продукт',
+        navHow: 'Как это работает',
+        navBusiness: 'Для преподавателей',
+        navPricing: 'Цены',
+        heroTitle: 'Учитесь. Общайтесь. <span class="grad-text">Открывайте больше возможностей.</span>',
+        heroSub: 'Изучайте языки и новые навыки с настоящими преподавателями, интерактивными LIVE-уроками, видео и персональной практикой.',
         getApp: 'Открыть веб-приложение',
-        btnDownload: 'Начать бесплатно',
+        btnDownload: 'Начать обучение',
         btnHow: 'Начать преподавать',
         heroClarity: 'Работает в браузере. Скачивание не требуется.',
         heroMeta: '<b>Веб-приложение уже доступно</b><br>Ученики и преподаватели используют один аккаунт.',
@@ -69,11 +109,23 @@
         phoneGreeting: 'Добро пожаловать в Duvela',
         phoneStreak: 'Ежедневная практика',
         levelTestCheck: 'Укажите свой уровень CEFR',
-        f2p: 'Подключайтесь к публичным LIVE-эфирам, задавайте вопросы, практикуйте речь и отправляйте доступные подарки за монеты Duvela.',
+        f1t: 'Настоящие преподаватели',
+        f1p: 'Открывайте публичные профили преподавателей, опубликованные курсы и LIVE-сессии только с доступной публичной информацией.',
+        f1g: 'Живое обучение',
+        f2t: 'Умная лента видео',
+        f2p: 'Смотрите короткие образовательные видео с учётом выбранного языка, интересов и текущего уровня.',
+        f2g: 'Персонализация',
         f3t: 'Настройка уровня CEFR',
         f3p: 'Выберите или обновите уровень CEFR от A1 до C2. Duvela использует его для организации подходящего учебного контента.',
-        f6p: 'Ежедневные цели, XP, достижения и рейтинг показывают прогресс. Монеты Duvela используются для доступных подарков и наград.',
-        f7p: 'В разделе практики доступно более 15 тренажёров: грамматика, аудирование, письмо, чтение и повторение. Premium AI Coach добавляет диалоги и исправления.',
+        f4t: 'Интерактивное LIVE-обучение',
+        f4p: 'Подключайтесь к запланированным сессиям, общайтесь с преподавателями и практикуйте речь в DUVELA LIVE.',
+        f4g: 'В реальном времени',
+        f5t: 'AI-практика',
+        f5p: 'Используйте тренажёры грамматики, аудирования, письма, чтения и повторения вместе с обучением у преподавателей.',
+        f5g: 'Практика',
+        f6t: 'Курсы и сообщество',
+        f6p: 'Проходите структурированные курсы, участвуйте в событиях и оставайтесь на связи с преподавателями и учениками.',
+        f6g: 'Связанное обучение',
         f10p: 'Отслеживайте доступный доход от LIVE, курсов, событий и подарков в Business-пространстве.',
         earningFacts: '<div><dt>Баланс</dt><dd>DC</dd></div><div><dt>Минимальная заявка</dt><dd>100 DC</dd></div><div><dt>Способы</dt><dd>Банк, PayPal, Wise</dd></div><div><dt>Комиссия и конвертация</dt><dd>Ещё не опубликованы</dd></div>',
         s1p: 'Выберите текущий уровень CEFR от A1 до C2 и обновляйте его по мере изменения учебных целей.',
@@ -82,18 +134,30 @@
         biz2: '<b>✓</b> Учёт доступного LIVE-дохода и подарков',
         mobileAppsKicker: 'Мобильные приложения',
         mobileAppsTitle: 'Скачайте Duvela на телефон',
-        storeNote: 'Ссылки будут активированы после публикации приложений для iOS и Android.'
+        storeNote: 'Ссылки будут активированы после публикации приложений для iOS и Android.',
+        menuOpen: 'Меню',
+        menuClose: 'Закрыть',
+        productShowcaseKicker: 'Посмотрите DUVELA в действии',
+        productShowcaseTitle: 'Одна платформа. Пять связанных возможностей.',
+        productShowcaseSub: 'Изучите реальные сценарии DUVELA для обучения, преподавания и управления курсами.',
+        productVideosTitle: 'Учитесь по коротким видео своего уровня',
+        productVideosText: 'Откройте ленту DUVELA, выберите уровень и продолжайте обучение с подходящими материалами.',
+        productLiveTitle: 'Участвуйте в интерактивных уроках с преподавателями',
+        productLiveText: 'Найдите запланированные занятия и присоединитесь к LIVE-уроку из пространства ученика.',
+        productPracticeTitle: 'Закрепляйте знания активной практикой',
+        productPracticeText: 'Используйте упражнения, задания и интерактивные тренажёры DUVELA.',
+        productCoursesTitle: 'Проходите структурированные курсы преподавателей',
+        productCoursesText: 'Выбирайте опубликованные курсы с реальным расписанием, уровнем и ценой.',
+        productWorkspaceTitle: 'Создавайте и управляйте обучением в одном месте',
+        productWorkspaceText: 'Публикуйте материалы, готовьте курсы, проводите LIVE-занятия и управляйте учениками.'
       }
     };
 
     const I18N_MAP = [
       ['.nav-links li:nth-child(1) a', 'navVideo'],
-      ['.nav-links li:nth-child(2) a', 'navFeatures'],
-      ['.nav-links li:nth-child(3) a', 'navHow'],
-      ['.nav-links li:nth-child(4) a', 'navLevels'],
-      ['.nav-links li:nth-child(5) a', 'navApps'],
-      ['.nav-links li:nth-child(6) a', 'navPricing'],
-      ['.nav-links li:nth-child(7) a', 'navBusiness'],
+      ['.nav-links li:nth-child(2) a', 'navHow'],
+      ['.nav-links li:nth-child(3) a', 'navBusiness'],
+      ['.nav-links li:nth-child(4) a', 'navPricing'],
       ['#openLogin', 'signIn'],
       ['.nav-cta', 'getApp'],
       ['header.hero h1', 'heroTitle', true],
@@ -154,17 +218,17 @@
       ['.btn-white', 'ctaGet'],
       ['.btn-outline-w', 'ctaExplore'],
       ['.foot-brand p', 'footBrand'],
-      ['.foot-inner > div:nth-child(2) h4', 'footProduct'],
+      ['.foot-inner > div:nth-child(2) h3', 'footProduct'],
       ['.foot-inner > div:nth-child(2) a:nth-of-type(1)', 'footFeatures'],
       ['.foot-inner > div:nth-child(2) a:nth-of-type(2)', 'footHow'],
       ['.foot-inner > div:nth-child(2) a:nth-of-type(3)', 'footLevels'],
       ['.foot-inner > div:nth-child(2) a:nth-of-type(4)', 'footDownload'],
-      ['.foot-inner > div:nth-child(3) h4', 'footTeachers'],
+      ['.foot-inner > div:nth-child(3) h3', 'footTeachers'],
       ['.foot-inner > div:nth-child(3) a:nth-of-type(1)', 'footBiz'],
       ['.foot-inner > div:nth-child(3) a:nth-of-type(2)', 'footLive'],
       ['.foot-inner > div:nth-child(3) a:nth-of-type(3)', 'footCourses'],
       ['.foot-inner > div:nth-child(3) a:nth-of-type(4)', 'footAnalytics'],
-      ['.foot-inner > div:nth-child(4) h4', 'footCompany'],
+      ['.foot-inner > div:nth-child(4) h3', 'footCompany'],
       ['#footAbout', 'footAbout'],
       ['#footContact', 'footContact'],
       ['#footPrivacy', 'footPrivacy'],
@@ -357,7 +421,96 @@
       ['.teacher-contact-links .tc-email b', 'contactEmail']
     ];
 
+    function stripMarkup(value) {
+      const node = document.createElement('span');
+      node.innerHTML = value || '';
+      return node.textContent || '';
+    }
+
+    function updateHomepageV6Copy(code) {
+      const exact = WEB_APP_COPY[code] || {};
+      const menu = {
+        open: exact.menuOpen || 'Menu',
+        close: exact.menuClose || dict.closeLabel || 'Close'
+      };
+      const productCopy = {
+        locale: code,
+        menu,
+        section: {
+          kicker: exact.productShowcaseKicker || dict.footProduct || dict.navVideo,
+          title: exact.productShowcaseTitle || stripMarkup(dict.featTitle),
+          sub: exact.productShowcaseSub || dict.featSub
+        },
+        items: {
+          videos: {
+            tab: dict.navVideo,
+            kicker: dict.navVideo,
+            title: exact.productVideosTitle || stripMarkup(dict.f1t),
+            text: exact.productVideosText || dict.f1p,
+            href: './app.html?role=learner#workspace',
+            cta: dict.ctaExplore || dict.getApp,
+            label: 'CEFR · A1–C2',
+            preview: stripMarkup(dict.f1t)
+          },
+          live: {
+            tab: 'LIVE',
+            kicker: 'LIVE',
+            title: exact.productLiveTitle || stripMarkup(dict.f2t),
+            text: exact.productLiveText || dict.f2p,
+            href: './app.html?role=learner#live',
+            cta: dict.footLive || 'LIVE',
+            label: 'LIVE · DUVELA',
+            preview: stripMarkup(dict.f2t)
+          },
+          practice: {
+            tab: dict.navPractice || dict.practiceTitle,
+            kicker: dict.practiceTitle || dict.navPractice,
+            title: exact.productPracticeTitle || stripMarkup(dict.practiceTitle),
+            text: exact.productPracticeText || dict.s2p || dict.f3p,
+            href: './app.html?role=learner#practice',
+            cta: dict.ctaExplore || dict.getApp,
+            label: 'PRACTICE · DUVELA',
+            preview: stripMarkup(dict.f5t)
+          },
+          courses: {
+            tab: dict.price2Title || dict.footCourses,
+            kicker: dict.footCourses,
+            title: exact.productCoursesTitle || stripMarkup(dict.price2Title || dict.f5t),
+            text: exact.productCoursesText || dict.price2Text || dict.f5p,
+            href: './app.html?role=learner#courses',
+            cta: dict.price2Button || dict.ctaExplore,
+            label: 'COURSES · DUVELA',
+            preview: stripMarkup(dict.price2Title || dict.f5t)
+          },
+          workspace: {
+            tab: dict.footTeachers,
+            kicker: dict.footTeachers,
+            title: exact.productWorkspaceTitle || stripMarkup(dict.appsTitle),
+            text: exact.productWorkspaceText || dict.bizP,
+            href: './app.html?role=teacher#workspace',
+            cta: dict.price3Button || dict.btnHow,
+            label: 'DUVELA BUSINESS',
+            preview: stripMarkup(dict.appsTitle)
+          }
+        }
+      };
+
+      window.DUVELA_HOME_V6_COPY = productCopy;
+      const toggle = document.getElementById('navMenuToggle');
+      if (toggle) {
+        const open = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.textContent = open ? menu.close : menu.open;
+        toggle.setAttribute('aria-label', open ? menu.close : menu.open);
+      }
+      window.dispatchEvent(new CustomEvent('duvela-home-v6-copy', { detail: productCopy }));
+    }
+
     function detectWebLanguage() {
+      const requested = new URLSearchParams(window.location.search).get('lang');
+      if (requested) {
+        const code = requested.toLowerCase().split('-')[0];
+        if (SUPPORTED_LANGS.includes(code)) return code;
+      }
       const saved = localStorage.getItem(LANG_STORAGE_KEY);
       if (saved && SUPPORTED_LANGS.includes(saved)) return saved;
 
@@ -380,9 +533,22 @@
       document.documentElement.lang = code;
       document.documentElement.dir = RTL_LANGS.has(code) ? 'rtl' : 'ltr';
       document.title = dict.metaTitle;
+      const localizedUrl = code === 'en'
+        ? 'https://www.vela.cafe/'
+        : 'https://www.vela.cafe/?lang=' + encodeURIComponent(code);
+      const canonical = document.querySelector('link[rel="canonical"]');
+      const openGraphUrl = document.querySelector('meta[property="og:url"]');
+      if (canonical) canonical.href = localizedUrl;
+      if (openGraphUrl) openGraphUrl.content = localizedUrl;
 
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) metaDescription.content = dict.metaDescription;
+      document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]').forEach((meta) => {
+        meta.content = dict.metaTitle;
+      });
+      document.querySelectorAll('meta[property="og:description"],meta[name="twitter:description"]').forEach((meta) => {
+        meta.content = dict.metaDescription;
+      });
 
       document.getElementById('closeLogin').setAttribute('aria-label', dict.closeLabel);
       langBtn.setAttribute('aria-label', dict.languageLabel);
@@ -440,6 +606,8 @@
       const heroMeta = document.querySelector('.hero-meta p');
       if (heroMeta) heroMeta.innerHTML = dict.heroMeta;
 
+      updateHomepageV6Copy(code);
+
       document.getElementById('loginEmail').placeholder = dict.phEmail;
       document.getElementById('loginPassword').placeholder = dict.phPassword;
 
@@ -472,7 +640,12 @@
         li.setAttribute('aria-selected', String(active));
       });
       localStorage.setItem(LANG_STORAGE_KEY, entry.code);
-      if (userChoice) localStorage.setItem('duvela.webLang.userChoice', '1');
+      if (userChoice) {
+        localStorage.setItem('duvela.webLang.userChoice', '1');
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', entry.code);
+        window.history.replaceState({}, '', url);
+      }
       applyWebLanguage(entry.code);
     }
 
@@ -490,7 +663,9 @@
         langMenu.classList.remove('open');
         langBtn.classList.remove('open');
         langBtn.setAttribute('aria-expanded', 'false');
-        setLang(item.dataset.val, true);
+        const code = item.dataset.val;
+        const ready = localeLoader?.ensure ? localeLoader.ensure(code) : Promise.resolve();
+        ready.then(() => setLang(code, true)).catch((error) => console.error('[duvela-i18n]', error));
       });
 
       document.addEventListener('click', () => {
@@ -509,8 +684,15 @@
       renderLanguageMenu();
       bindEvents();
       const initialLang = detectWebLanguage();
-      setLang(initialLang);
-      window.DUVELA_CONSENT.init(initialLang);
+      const ready = localeLoader?.ensure ? localeLoader.ensure(initialLang) : Promise.resolve();
+      return ready.catch((error) => {
+        console.error('[duvela-i18n]', error);
+        return localeLoader?.ensure ? localeLoader.ensure('en') : undefined;
+      }).then(() => {
+        const resolvedLang = I18N[initialLang] ? initialLang : 'en';
+        setLang(resolvedLang);
+        window.DUVELA_CONSENT.init(resolvedLang);
+      });
     }
 
     return {

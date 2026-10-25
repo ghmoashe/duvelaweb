@@ -9500,7 +9500,7 @@
     },
     {
       "id": "ga",
-      "title": "Vercel Web Analytics",
+      "title": "Vercel Analytics & Speed Insights",
       "purpose": "analytics",
       "required": false
     },

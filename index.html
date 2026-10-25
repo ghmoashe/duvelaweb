@@ -4,11 +4,47 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="./web/inline/index-1.js"></script>
+<script src="./locales/homepage-locales.js?v=20261020-2"></script>
 <title>Duvela — Learn with Real Teachers</title>
 <meta name="description" content="Duvela Academy — languages, arts, school subjects & more. Watch level-matched videos, join live lessons and events with real teachers.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#6D3FE0">
 <link rel="canonical" href="https://www.vela.cafe/">
+<link rel="alternate" hreflang="x-default" href="https://www.vela.cafe/">
+<link rel="alternate" hreflang="en" href="https://www.vela.cafe/?lang=en">
+<link rel="alternate" hreflang="de" href="https://www.vela.cafe/?lang=de">
+<link rel="alternate" hreflang="es" href="https://www.vela.cafe/?lang=es">
+<link rel="alternate" hreflang="fr" href="https://www.vela.cafe/?lang=fr">
+<link rel="alternate" hreflang="it" href="https://www.vela.cafe/?lang=it">
+<link rel="alternate" hreflang="pt" href="https://www.vela.cafe/?lang=pt">
+<link rel="alternate" hreflang="nl" href="https://www.vela.cafe/?lang=nl">
+<link rel="alternate" hreflang="sv" href="https://www.vela.cafe/?lang=sv">
+<link rel="alternate" hreflang="no" href="https://www.vela.cafe/?lang=no">
+<link rel="alternate" hreflang="da" href="https://www.vela.cafe/?lang=da">
+<link rel="alternate" hreflang="fi" href="https://www.vela.cafe/?lang=fi">
+<link rel="alternate" hreflang="bg" href="https://www.vela.cafe/?lang=bg">
+<link rel="alternate" hreflang="bs" href="https://www.vela.cafe/?lang=bs">
+<link rel="alternate" hreflang="hr" href="https://www.vela.cafe/?lang=hr">
+<link rel="alternate" hreflang="mk" href="https://www.vela.cafe/?lang=mk">
+<link rel="alternate" hreflang="ro" href="https://www.vela.cafe/?lang=ro">
+<link rel="alternate" hreflang="sr" href="https://www.vela.cafe/?lang=sr">
+<link rel="alternate" hreflang="sl" href="https://www.vela.cafe/?lang=sl">
+<link rel="alternate" hreflang="pl" href="https://www.vela.cafe/?lang=pl">
+<link rel="alternate" hreflang="cs" href="https://www.vela.cafe/?lang=cs">
+<link rel="alternate" hreflang="sq" href="https://www.vela.cafe/?lang=sq">
+<link rel="alternate" hreflang="tr" href="https://www.vela.cafe/?lang=tr">
+<link rel="alternate" hreflang="ru" href="https://www.vela.cafe/?lang=ru">
+<link rel="alternate" hreflang="uk" href="https://www.vela.cafe/?lang=uk">
+<link rel="alternate" hreflang="kk" href="https://www.vela.cafe/?lang=kk">
+<link rel="alternate" hreflang="az" href="https://www.vela.cafe/?lang=az">
+<link rel="alternate" hreflang="uz" href="https://www.vela.cafe/?lang=uz">
+<link rel="alternate" hreflang="tg" href="https://www.vela.cafe/?lang=tg">
+<link rel="alternate" hreflang="fa" href="https://www.vela.cafe/?lang=fa">
+<link rel="alternate" hreflang="ar" href="https://www.vela.cafe/?lang=ar">
+<link rel="alternate" hreflang="vi" href="https://www.vela.cafe/?lang=vi">
+<link rel="alternate" hreflang="zh" href="https://www.vela.cafe/?lang=zh">
+<link rel="alternate" hreflang="ja" href="https://www.vela.cafe/?lang=ja">
+<link rel="alternate" hreflang="ko" href="https://www.vela.cafe/?lang=ko">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Duvela">
 <meta property="og:url" content="https://www.vela.cafe/">
@@ -25,14 +61,17 @@
 <link rel="icon" href="./logo.webp" type="image/webp">
 <link rel="stylesheet" href="./web/duvi-assistant.css?v=20260816duvinew2">
 <link rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co" crossorigin>
-<link rel="preload" href="./logo2.png" as="image">
-<script src="./web/vendor/supabase-js-v2.js"></script>
-<script defer src="./web/vendor/lucide.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="./assets/product/duvela-logo-480.webp" as="image" type="image/webp">
+<link rel="preload" href="./assets/product/duvela-live-duel-en-480.webp" as="image" type="image/webp" imagesrcset="./assets/product/duvela-live-duel-en-480.webp 480w, ./assets/product/duvela-live-duel-en-960.webp 960w" imagesizes="(max-width:560px) calc(100vw - 60px), 423px" fetchpriority="high">
 <link rel="stylesheet" href="./legal/legal.css">
 <style>
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-cyrillic.woff2') format('woff2'); unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-cyrillic-ext.woff2') format('woff2'); unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F; }
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-greek.woff2') format('woff2'); unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF; }
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-greek-ext.woff2') format('woff2'); unicode-range:U+1F00-1FFF; }
+  @font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; font-display:optional; src:url('./web/fonts/inter-vietnamese.woff2') format('woff2'); unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB; }
   :root {
     --bg: #F6F5FA;
     --card: #FFFFFF;
@@ -956,7 +995,7 @@
   footer { margin-top: 100px; background: var(--dark); color: rgba(255,255,255,.7); }
   .foot-inner { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 36px; padding: 60px 0 40px; }
   .foot-brand p { margin-top: 14px; font-size: 14px; font-weight: 600; line-height: 1.65; max-width: 290px; }
-  .foot-col h4 { color: #fff; font-size: 14.5px; font-weight: 700; margin-bottom: 16px; letter-spacing: .4px; }
+  .foot-col h3 { color: #fff; font-size: 14.5px; font-weight: 700; margin-bottom: 16px; letter-spacing: .4px; }
   .foot-col a { display: block; color: rgba(255,255,255,.6); text-decoration: none; font-size: 14px; font-weight: 600; padding: 5px 0; transition: .2s; }
   .foot-col a:hover { color: #C9A8FF; }
   .foot-bottom {
@@ -1081,6 +1120,7 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   .h-anim { opacity: 0; animation: fadeInUp .65s ease forwards; }
+  .hero .h-anim { opacity:1; animation:none; transform:none; }
   .h-d1 { animation-delay: .05s; }
   .h-d2 { animation-delay: .18s; }
   .h-d3 { animation-delay: .32s; }
@@ -1222,11 +1262,17 @@
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization",
+      "@type": ["Organization", "EducationalOrganization"],
       "@id": "https://www.vela.cafe/#organization",
       "name": "Duvela",
       "url": "https://www.vela.cafe/",
-      "logo": "https://www.vela.cafe/logo2.png"
+      "logo": "https://www.vela.cafe/logo2.png",
+      "email": "info@duvela.de",
+      "telephone": "+49 163 4212982",
+      "sameAs": [
+        "https://www.instagram.com/duvela_academy_global",
+        "https://www.tiktok.com/@duvelaacademy"
+      ]
     },
     {
       "@type": "WebSite",
@@ -1242,11 +1288,226 @@
       "operatingSystem": "Any modern web browser",
       "url": "https://www.vela.cafe/app.html",
       "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.vela.cafe/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is DUVELA free to use?",
+          "acceptedAnswer": {"@type": "Answer", "text": "DUVELA includes free learning and practice features. Teachers and organizers may also offer paid courses, lessons and events."}
+        },
+        {
+          "@type": "Question",
+          "name": "What can I learn on DUVELA?",
+          "acceptedAnswer": {"@type": "Answer", "text": "DUVELA focuses on language learning with short videos, LIVE lessons, practice, courses and community learning."}
+        },
+        {
+          "@type": "Question",
+          "name": "Can I teach on DUVELA?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Teachers can create a public profile, publish videos, host LIVE lessons and offer courses or events."}
+        }
+      ]
     }
   ]
 }
 </script>
 <link rel="stylesheet" href="./web/index-hero-v2.css?v=20260925-h8">
+
+<style id="homepage-v6-overrides">
+  :root { --v5-navy:#0B1220; --v5-green:#16A36A; --v5-purple:#713CEF; --v5-bg:#F5F7FB; }
+  html,body { max-width:100%; overflow-x:hidden; }
+  body { background:var(--v5-bg); color:var(--v5-navy); }
+  :where(a,button,input,select,textarea,[tabindex]):focus-visible { outline:3px solid #16A36A; outline-offset:3px; }
+  .skip-link:focus { position:fixed; top:10px; left:10px; z-index:9999; width:auto; height:auto; padding:10px 14px; overflow:visible; clip:auto; color:#fff; background:#0B1220; border-radius:10px; }
+  .nav { position:sticky; top:0; z-index:50; margin-top:0; padding:10px 18px; background:rgba(245,247,251,.88); backdrop-filter:blur(16px); border-bottom:1px solid rgba(11,18,32,.08); }
+  .nav .nav-inner { max-width:1240px; min-height:58px!important; border:1px solid #E7ECF2; background:#fff; border-radius:18px; padding:8px 14px 8px 18px!important; box-shadow:0 10px 30px rgba(11,18,32,.06); }
+  .nav .logo-img { height:34px!important; width:auto!important; }
+  .nav .logo { min-width:auto!important; min-height:auto!important; flex:0 0 auto; margin-right:20px; padding-right:24px; }
+  .nav .nav-links { gap:2px!important; margin-right:auto; }
+  .nav .nav-links a { min-height:40px!important; color:#344054; border-radius:10px!important; padding:9px 10px!important; font-size:12.5px!important; font-weight:700!important; }
+  .nav-links a:hover { color:var(--v5-green); background:#EEF8F3; }
+  .nav .lang-btn { min-height:40px!important; padding:8px 11px!important; font-size:13px!important; }
+  .nav .nav-signin { min-height:40px!important; padding:9px 14px!important; font-size:13px!important; color:var(--v5-navy); border-color:#D9E2EC; background:#fff; }
+  .nav .nav-cta { min-height:40px!important; padding:10px 16px!important; font-size:13px!important; }
+  .nav-cta, .btn-primary { background:var(--v5-green); box-shadow:0 10px 22px rgba(22,163,106,.2); }
+  .nav-cta:hover, .btn-primary:hover { background:#128456; }
+  .hero { padding:74px 0 50px; background:radial-gradient(circle at 85% 20%, rgba(113,60,239,.10), transparent 32%), linear-gradient(180deg,#fff 0%,var(--v5-bg) 72%); overflow:hidden; }
+  .hero-grid { grid-template-columns:minmax(0,1.02fr) minmax(360px,.98fr); gap:54px; align-items:center; }
+  .hero h1 { max-width:650px; color:var(--v5-navy); font-size:clamp(44px,5.3vw,76px); line-height:1.02; letter-spacing:-.055em; }
+  .grad-text { background:linear-gradient(100deg,var(--v5-green),var(--v5-purple)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero-sub { max-width:600px; color:#52637A; font-size:18px; line-height:1.6; }
+  .hero-badge { color:#08784C; background:#E9F8F1; border-color:#B9E8D3; }
+  .hero-personas { gap:12px; }
+  .hero-persona { background:#fff; border:1px solid #E1E8F0; box-shadow:0 12px 28px rgba(11,18,32,.06); }
+  .hero-persona-biz { border-color:#B9E8D3; }
+  .hero-actions { gap:12px; }
+  .btn-primary,.btn-ghost { min-height:48px; padding:14px 20px; border-radius:12px; font-weight:750; }
+  .btn-ghost { color:var(--v5-navy); border:1px solid #D9E2EC; background:#fff; }
+  .phone { box-shadow:0 28px 70px rgba(11,18,32,.22); border-color:#DCE5EE; }
+  .preview-note { color:#607086; }
+  .product-shot-frame {
+    position:relative;
+    display:block;
+    margin:0;
+    padding:34px 14px 14px;
+    border:1px solid #DDE5ED;
+    border-radius:24px;
+    background:#fff;
+    box-shadow:0 28px 70px rgba(11,18,32,.18);
+    overflow:hidden;
+    transform:rotate(1deg);
+    min-height:0!important;
+    align-self:center!important;
+  }
+  .product-shot-frame::before {
+    content:"";
+    position:absolute;
+    top:13px;
+    left:18px;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#FF6B6B;
+    box-shadow:14px 0 #F7C948,28px 0 #16A36A;
+  }
+  .product-shot-frame::after { content:none!important; }
+  .product-shot-frame .preview-note {
+    position:absolute;
+    top:9px;
+    right:14px;
+    z-index:2;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .product-shot-frame picture { display:block; width:100%; }
+  .product-shot-image {
+    display:block;
+    width:100%;
+    height:auto;
+    aspect-ratio:4 / 3;
+    object-fit:cover;
+    object-position:top center;
+    border-radius:15px;
+  }
+  .nav-menu-toggle { display:none; border:1px solid #D9E2EC; background:#fff; border-radius:10px; padding:9px 11px; color:var(--v5-navy); font:inherit; font-weight:700; }
+  #mainContent { display:flex; flex-direction:column; }
+  #mainContent > .hero { order:1; }
+  #mainContent > #apps { order:2; }
+  #mainContent > #video { order:3; }
+  #mainContent > #teachers { order:4; }
+  #mainContent > #how { order:5; }
+  #mainContent > #levels { order:6; }
+  #mainContent > #friends { order:7; }
+  #mainContent > #features { order:8; }
+  #mainContent > #pricing { order:9; }
+  #mainContent > #trust { order:10; }
+  #mainContent > #faq { order:11; }
+  #mainContent > section:not([id]) { order:12; }
+  section { scroll-margin-top:94px; }
+  #apps,#video,#teachers,#how,#levels,#friends,#features,#pricing,#trust,#faq { padding-top:88px; padding-bottom:88px; }
+  #teachers,#how,#levels,#friends,#features,#pricing,#trust,#faq { content-visibility:auto; contain-intrinsic-size:auto 760px; }
+  #apps { background:#fff; }
+  #apps .mobile-downloads { display:none; }
+  .apps-grid { gap:20px; }
+  .app-card { min-height:440px; border-radius:28px; box-shadow:0 24px 56px rgba(11,18,32,.10); }
+  .app-hub { background:linear-gradient(145deg,#111C31,#172A49); }
+  .app-biz { background:linear-gradient(145deg,#0B392A,#126547); }
+  .product-showcase-head { max-width:760px; margin-left:auto; margin-right:auto; text-align:center; }
+  .product-tabs { display:flex; gap:8px; width:max-content; max-width:100%; margin:30px auto 18px; padding:6px; overflow-x:auto; border:1px solid #E4EAF1; border-radius:16px; background:#fff; box-shadow:0 10px 24px rgba(11,18,32,.05); }
+  .product-tab { flex:0 0 auto; border:0; border-radius:11px; padding:11px 16px; background:transparent; color:#65748A; font:inherit; font-weight:700; cursor:pointer; }
+  .product-tab:hover { color:#0B1220; background:#F0F4F8; }
+  .product-tab.is-active { color:#fff; background:#0B1220; }
+  .product-tab-panel { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.75fr); gap:28px; align-items:center; margin:0 auto 30px; padding:28px; max-width:980px; border:1px solid #E3EAF1; border-radius:24px; background:#fff; box-shadow:0 24px 60px rgba(11,18,32,.08); }
+  .product-tab-panel h3 { margin-top:8px; font-size:clamp(26px,3vw,38px); letter-spacing:-.035em; }
+  .product-tab-panel p { margin-top:12px; color:#69768A; font-size:16px; line-height:1.65; }
+  .product-tab-panel a { display:inline-flex; margin-top:18px; color:#128456; font-weight:800; }
+  .product-tab-kicker { color:#7947EA; font-size:11px; font-weight:850; letter-spacing:.13em; }
+  .product-tab-preview { display:flex; min-height:220px; flex-direction:column; justify-content:flex-end; gap:7px; padding:24px; border-radius:19px; color:#fff; background:radial-gradient(circle at 80% 15%,rgba(121,71,234,.75),transparent 32%),linear-gradient(145deg,#0B1220,#183454); }
+  .product-tab-preview span { color:#83E1B5; font-size:11px; font-weight:800; letter-spacing:.12em; }
+  .product-tab-preview strong { font-size:24px; }
+  .product-tab-preview small { color:#CBD5E1; }
+  #video .pre-video-area { display:none; }
+  #video .video-frame { max-width:980px; margin:0 auto; border-radius:24px; box-shadow:0 24px 64px rgba(11,18,32,.16); }
+  #friends .crew-flow,#friends .friend-stickers { display:none; }
+  #friends .crew-showcase { max-width:760px; margin-left:auto; margin-right:auto; text-align:center; }
+  #friends .friends-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  #friends .friend-card:nth-child(n+5) { display:none; }
+  #features .feat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  #features .feat:nth-child(n+7),#features .why-duvela__brand,#features .why-duvela__handwriting { display:none; }
+  #features .feat { border:1px solid #E4EAF1; background:#fff; box-shadow:0 14px 36px rgba(11,18,32,.06); }
+  #teachers { background:#fff; }
+  #trust { padding-top:40px; }
+  .consent-banner { width:min(760px,calc(100% - 24px)); padding:14px 16px; border-radius:16px; border-color:#DDE5ED; box-shadow:0 18px 48px rgba(11,18,32,.18); }
+  .consent-banner-title { font-size:14px; }
+  .consent-banner-copy { margin-top:3px; font-size:12px; line-height:1.4; }
+  .consent-actions { margin-top:10px; }
+  .consent-button { border-radius:10px; padding:8px 12px; font-size:12px; }
+  .consent-button.primary { background:#16A36A; }
+  .consent-button.primary { background:#08784C; }
+  .socials .web-footer-link { color:#fff!important; border-color:rgba(255,255,255,.35); }
+  .consent-modal { border-radius:20px; }
+  @media (max-width:900px) {
+    .nav { padding:8px 10px; }
+    .nav-inner { position:relative; flex-wrap:wrap; }
+    .logo { margin-right:0; padding-right:0; }
+    .nav-menu-toggle { display:inline-flex; margin-left:auto; }
+    .nav-right { order:3; margin-left:auto; }
+    .nav-links { display:none; width:100%; flex-direction:column; padding:8px 0 2px; border-top:1px solid #E7ECF2; margin-top:8px; }
+    .nav-links.is-open { display:flex; }
+    .nav-links a { width:100%; }
+    .hero-grid { grid-template-columns:1fr; gap:42px; }
+    .hero-copy { text-align:center; }
+    .hero h1,.hero-sub { margin-left:auto; margin-right:auto; }
+    .hero-actions,.hero-personas { justify-content:center; }
+    .product-tab-panel { grid-template-columns:1fr; }
+    #friends .friends-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    #features .feat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width:560px) {
+    .nav { width:100%; padding:8px; }
+    .nav .nav-inner { flex-wrap:nowrap; gap:5px; min-height:54px!important; padding:7px 8px 7px 12px!important; }
+    .nav .logo { min-width:108px!important; margin-right:0!important; padding-right:0!important; }
+    .nav .logo-img { height:30px!important; max-width:108px; object-fit:contain; }
+    .nav-menu-toggle { order:3; margin-left:0; padding:8px 9px; font-size:12px; }
+    .nav-right { order:2; margin-left:auto; gap:4px; }
+    .nav .lang-btn { width:38px; height:38px; min-height:38px!important; justify-content:center; padding:0!important; }
+    .lang-btn #langBtnCode,.lang-btn .lang-btn-arrow { display:none; }
+    .hero { padding:44px 0 28px; }
+    .wrap { width:100%; max-width:100%; }
+    .hero-grid { display:block; min-width:0; width:100%; }
+    .hero-copy,.phone-area { min-width:0; width:100%; }
+    .hero-copy { max-width:100%!important; margin-inline:auto; overflow:visible; }
+    .hero h1 { width:100%!important; max-width:100%!important; font-size:clamp(27px,8vw,32px)!important; line-height:1.08!important; letter-spacing:-.045em; overflow-wrap:normal; word-break:normal; text-wrap:balance; }
+    .hero-sub { width:100%!important; max-width:100%!important; font-size:14px!important; }
+    .hero-personas { grid-template-columns:1fr; }
+    .hero-actions { flex-direction:column; }
+    .hero-actions a { width:100%; }
+    .phone-area { max-width:360px; margin:34px auto 0; transform:none; }
+    .product-shot-frame { padding:28px 8px 8px; border-radius:18px; }
+    .product-shot-frame .preview-note { top:7px; font-size:9px; }
+    #apps,#video,#teachers,#how,#levels,#friends,#features,#pricing,#trust,#faq { padding-top:58px; padding-bottom:58px; }
+    .product-tabs { width:100%; justify-content:flex-start; }
+    .product-tab-panel { padding:20px; }
+    .product-tab-preview { min-height:170px; }
+    #friends .friends-grid,#features .feat-grid { grid-template-columns:1fr; }
+    .nav-cta { display:none; }
+    .consent-banner { inset-inline:8px; bottom:8px; width:auto; padding:12px; }
+    .consent-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+    .consent-button { width:100%; min-width:0; min-height:40px; padding:7px 5px; font-size:11px; white-space:normal; overflow-wrap:anywhere; }
+    .consent-button.primary { grid-column:1 / -1; }
+    .duvi-launcher { display:none!important; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    html { scroll-behavior:auto; }
+    *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+    .reveal,.h-anim { opacity:1!important; transform:none!important; }
+  }
+</style>
+
 </head>
 <body>
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -1256,17 +1517,15 @@
 <nav class="nav">
   <div class="nav-inner">
     <a class="logo" href="./">
-      <img src="./logo3.png" alt="Duvela" class="logo-img">
+      <img src="./assets/product/duvela-logo-480.webp" alt="Duvela" class="logo-img" width="480" height="192">
     </a>
-    <ul class="nav-links">
-      <li><a href="#video">Video</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#levels">Levels</a></li>
-      <li><a href="#apps">Apps</a></li>
+    <ul class="nav-links" id="primaryNav">
+      <li><a href="#video">Product</a></li>
+      <li><a href="#how">How it Works</a></li>
+      <li><a href="#teachers">For Teachers</a></li>
       <li><a href="#pricing">Pricing</a></li>
-      <li><a href="./business.html">For business</a></li>
     </ul>
+    <button class="nav-menu-toggle" id="navMenuToggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
     <div class="nav-right">
       <div class="lang-drop" id="langDrop">
         <button class="lang-btn" id="langBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
@@ -1277,6 +1536,7 @@
         <ul class="lang-menu" id="langMenu" role="listbox"></ul>
       </div>
       <button class="nav-signin" id="openLogin" type="button">Sign In</button>
+      <a class="nav-cta" href="?login=1" data-auth-open="signup" data-signup-role="learner">Get Started</a>
       <button class="nav-signin-mob" id="openLoginMob" type="button" aria-label="Sign In">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </button>
@@ -1307,14 +1567,13 @@
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <span class="hero-badge is-idle h-anim h-d1" id="heroLiveBadge"><span class="dot"></span> New live lessons are being scheduled</span>
-      <h1 class="h-anim h-d2">Languages, arts &amp; more — with <span class="grad-text">real teachers</span></h1>
+      <h1 class="h-anim h-d2">Learn more. Connect more. <span class="grad-text">Become more.</span></h1>
       <p class="hero-sub h-anim h-d3">
-        Watch short videos at your level, join live lessons, explore school subjects,
-        creative arts and language skills — all in one academy.
+        Learn languages and new skills with real teachers, interactive LIVE lessons, videos and personalized practice.
       </p>
       <div class="hero-personas h-anim h-d4">
-        <a class="hero-persona hero-persona-learn" href="?login=1" data-auth-open="signin">
-          <span class="hero-persona-kicker">For learners</span>
+        <a class="hero-persona hero-persona-learn" href="?login=1" data-auth-open="signup" data-signup-role="learner">
+          <span class="hero-persona-kicker">For students</span>
           <strong class="hero-persona-title">Duvela Hub</strong>
           <p class="hero-persona-text">Your personal learning feed — videos at your level, live lessons, practice, streaks and events.</p>
         </a>
@@ -1325,224 +1584,21 @@
         </a>
       </div>
       <div class="hero-actions h-anim h-d5">
-        <a class="btn-primary" href="?login=1" data-auth-open="signup" data-signup-role="learner">Start learning free</a>
-        <a class="btn-ghost" href="?login=1" data-auth-open="signup" data-signup-role="teacher">Start teaching</a>
+        <a class="btn-primary" href="?login=1" data-auth-open="signup" data-signup-role="learner">Start Learning</a>
+        <a class="btn-ghost" href="?login=1" data-auth-open="signup" data-signup-role="teacher">Start Teaching</a>
       </div>
       <p class="hero-clarity h-anim h-d6">Works in your browser. No download required.</p>
     </div>
 
-    <!-- phone mockup: Videos feed like the app -->
-    <div class="phone-area" aria-label="Duvela web app interface preview with sample content">
-      <span class="preview-note">Interface preview · sample data</span>
-      <div class="hero-duvi-bubble">Hi! I'm <b>DUVI</b> 👋</div>
-      <img class="hero-duvi" src="./assets/hero-v2/duvi-green.webp" alt="DUVI, the Duvela assistant" width="150" height="247">
+    <!-- Real DUVELA product screen supplied from the working LIVE Duel route. -->
+    <figure class="phone-area product-shot-frame" aria-labelledby="productShotCaption">
+      <span class="preview-note" id="productShotCaption">DUVELA LIVE Duel</span>
+      <picture>
+        <source type="image/webp" srcset="./assets/product/duvela-live-duel-en-480.webp 480w, ./assets/product/duvela-live-duel-en-960.webp 960w" sizes="(max-width:560px) calc(100vw - 60px), 423px">
+        <img class="product-shot-image" src="./assets/product/duvela-live-duel-en.jpg" alt="DUVELA LIVE Duel teacher game setup" width="960" height="757" fetchpriority="high" decoding="async">
+      </picture>
+    </figure>
 
-
-      <div class="phone">
-        <div class="phone-notch"></div>
-        <div class="phone-screen">
-
-          <!-- 1 · HOME -->
-          <div class="p-page dark active">
-            <div class="lp-header">
-              <div>
-                <div class="lp-hi">Welcome to Duvela</div>
-                <div class="lp-sub">What do we learn today?</div>
-              </div>
-              <div class="lp-bell">🔔</div>
-            </div>
-            <div class="lp-chiprow">
-              <span class="lp-chip">🔥 12-day streak</span>
-              <span class="lp-chip">📖 Grammar</span>
-              <span class="lp-chip">🧠 Vocabulary</span>
-              <span class="lp-chip">🗣 Speaking</span>
-            </div>
-            <div class="lp-card lp-card-continue">
-              <div class="lp-play-mini">▶</div>
-              <div style="flex:1;min-width:0">
-                <div class="lp-label">CONTINUE LEARNING</div>
-                <div class="lp-card-title" style="margin-top:5px">German · Unit 4: Past Tense</div>
-                <div class="lp-bar"><div class="lp-fill" style="width:64%"></div></div>
-                <div class="lp-card-meta">Continue where you stopped</div>
-              </div>
-            </div>
-            <div class="lp-label" style="margin-top:2px">Popular now</div>
-            <div class="p-card">
-              <div class="p-thumb t1"><div class="p-play">▶</div></div>
-              <div class="p-body">
-                <div class="p-title">German Stories — Weg 2</div>
-                <div class="p-meta">German · Berlin, Germany</div>
-              </div>
-            </div>
-            <div class="p-card">
-              <div class="p-thumb t2"><div class="p-play">▶</div></div>
-              <div class="p-body">
-                <div class="p-title">English Speaking Club</div>
-                <div class="p-meta">English · London, UK</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2 · VIDEOS -->
-          <div class="p-page dark">
-            <div class="p-tabs">
-              <div class="p-tab">⚡ Media</div>
-              <div class="p-tab active">▶ Videos</div>
-              <div class="p-tab">Live<span class="reddot"></span></div>
-            </div>
-            <div class="p-card">
-              <div class="p-thumb t1"><div class="p-play">▶</div><span class="p-yt">YouTube</span></div>
-              <div class="p-body">
-                <div class="p-title-row"><span class="p-title">German Stories — Weg 2</span><span class="p-level">A2-B1</span></div>
-                <div class="p-meta">German · Berlin, Germany</div>
-                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
-              </div>
-            </div>
-            <div class="p-card">
-              <div class="p-thumb t2"><div class="p-play">▶</div><span class="p-yt">YouTube</span></div>
-              <div class="p-body">
-                <div class="p-title-row"><span class="p-title">English Speaking Club</span><span class="p-level">B1-B2</span></div>
-                <div class="p-meta">English · London, UK</div>
-                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
-              </div>
-            </div>
-            <div class="p-card">
-              <div class="p-thumb t3"><div class="p-play">▶</div></div>
-              <div class="p-body">
-                <div class="p-title-row"><span class="p-title">Sketching Basics</span><span class="p-level" style="background:#F97316">Art</span></div>
-                <div class="p-meta">Drawing · Online</div>
-                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
-              </div>
-            </div>
-            <div class="p-card">
-              <div class="p-thumb t1"><div class="p-play">▶</div><span class="p-yt">YouTube</span></div>
-              <div class="p-body">
-                <div class="p-title-row"><span class="p-title">Math Made Easy — Ch.3</span><span class="p-level" style="background:#17B58B">Math</span></div>
-                <div class="p-meta">School · Khan-style · Online</div>
-                <div class="p-eng"><span>Sample lesson</span><span>Video</span></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3 · LIVE -->
-          <div class="p-page dark">
-            <div class="p-tabs">
-              <div class="p-tab">⚡ Media</div>
-              <div class="p-tab">▶ Videos</div>
-              <div class="p-tab active">Live<span class="reddot"></span></div>
-            </div>
-            <div class="p-live">
-              <div class="p-live-dot"><i></i></div>
-              <div>
-                <div class="p-live-title">Duvela LIVE</div>
-                <div class="p-live-sub">Join a live lesson with a teacher</div>
-              </div>
-              <div style="margin-left:auto;color:#fff;font-weight:900">›</div>
-            </div>
-            <div style="color:rgba(255,255,255,.5);font-size:9px;font-weight:900;letter-spacing:1px;margin-top:2px">LIVE NOW</div>
-            <div class="lv-row">
-              <div class="lv-av">T<span class="lv-dot"></span></div>
-              <div><div class="lv-name">Duvela teacher</div><div class="lv-topic">German small talk · B1</div><span class="lv-chip"><i></i>LIVE</span></div>
-              <span class="lv-join">Join</span>
-            </div>
-            <div class="lv-row">
-              <div class="lv-av" style="background:#DC3FB5">J<span class="lv-dot"></span></div>
-              <div><div class="lv-name">Duvela teacher</div><div class="lv-topic">IELTS speaking · B2-C1</div><span class="lv-chip"><i></i>LIVE</span></div>
-              <span class="lv-join">Join</span>
-            </div>
-            <div class="lv-row">
-              <div class="lv-av" style="background:#17B58B">S<span class="lv-dot"></span></div>
-              <div><div class="lv-name">Duvela teacher</div><div class="lv-topic">Spanish for travel · A2</div><span class="lv-chip"><i></i>LIVE</span></div>
-              <span class="lv-join">Join</span>
-            </div>
-          </div>
-
-          <!-- 4 · PRACTICE -->
-          <div class="p-page light">
-            <div class="lp-hi">Practice</div>
-            <div class="lp-card">
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span class="lp-label">DAILY GOAL</span>
-                <span style="color:#683FDC;font-size:10px;font-weight:900">30 / 50 XP</span>
-              </div>
-              <div class="lp-bar"><div class="lp-fill teal" style="width:60%"></div></div>
-              <div class="lp-card-meta">🔥 Keep the streak alive — 20 XP to go!</div>
-            </div>
-            <div class="lp-skills">
-              <div class="lp-card"><div class="lp-card-title">📖 Grammar</div><div class="lp-bar"><div class="lp-fill" style="width:72%"></div></div><div class="lp-card-meta">72%</div></div>
-              <div class="lp-card"><div class="lp-card-title">🧠 Vocabulary</div><div class="lp-bar"><div class="lp-fill" style="width:64%"></div></div><div class="lp-card-meta">64%</div></div>
-              <div class="lp-card"><div class="lp-card-title">🗣 Speaking</div><div class="lp-bar"><div class="lp-fill" style="width:41%"></div></div><div class="lp-card-meta">41%</div></div>
-              <div class="lp-card"><div class="lp-card-title">🎓 Exam</div><div class="lp-bar"><div class="lp-fill" style="width:33%"></div></div><div class="lp-card-meta">33%</div></div>
-            </div>
-            <div class="pf-test">
-              <span style="font-size:15px">🎯</span>
-              <div style="flex:1">
-                <div style="font-size:11.5px;font-weight:900">Level Test</div>
-                <div style="font-size:9px;opacity:.85;font-weight:700">Set your CEFR level</div>
-              </div>
-              <span style="font-weight:900">›</span>
-            </div>
-          </div>
-
-          <!-- 5 · INBOX -->
-          <div class="p-page light">
-            <div class="lp-hi">Inbox</div>
-            <div class="ib-row">
-              <div class="ib-av" style="background:#7C3AED">M</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">Duvela teacher</div><div class="ib-msg">Great progress today! See you at…</div></div>
-              <div class="ib-right"><div class="ib-time">2m</div><span class="ib-badge">2</span></div>
-            </div>
-            <div class="ib-row">
-              <div class="ib-av" style="background:#DC3FB5">J</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">Duvela teacher</div><div class="ib-msg">Your essay is checked</div></div>
-              <div class="ib-right"><div class="ib-time">1h</div><span class="ib-badge">1</span></div>
-            </div>
-            <div class="ib-row">
-              <div class="ib-av" style="background:#17B58B">S</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">Duvela teacher</div><div class="ib-msg">Ready for the next lesson?</div></div>
-              <div class="ib-right"><div class="ib-time">3h</div></div>
-            </div>
-            <div class="ib-row">
-              <div class="ib-av" style="background:#F59E0B">D</div>
-              <div style="flex:1;min-width:0"><div class="ib-name">Duvela Team</div><div class="ib-msg">🎉 You unlocked a new achievement!</div></div>
-              <div class="ib-right"><div class="ib-time">1d</div></div>
-            </div>
-          </div>
-
-          <!-- 6 · PROFILE -->
-          <div class="p-page light">
-            <div class="pf-av">A</div>
-            <div class="pf-name">Learner profile</div>
-            <div class="pf-loc">Learning German</div>
-            <div class="pf-stats">
-              <div class="pf-stat"><b>XP</b><span>PROGRESS</span></div>
-              <div class="pf-stat"><b>DAY</b><span>STREAK</span></div>
-              <div class="pf-stat"><b>LEVEL</b><span>CEFR</span></div>
-            </div>
-            <div class="lp-card" style="display:flex;align-items:center;gap:9px">
-              <div style="width:34px;height:34px;border-radius:11px;background:#EDE6FF;display:grid;place-items:center;font-size:14px">🏅</div>
-              <div style="flex:1">
-                <div class="lp-card-title">Current level</div>
-                <div class="lp-card-meta">German · Intermediate</div>
-              </div>
-              <span style="background:#683FDC;color:#fff;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:900">B1</span>
-            </div>
-            <div class="pf-test">
-              <span style="font-size:15px">🎯</span>
-              <div style="flex:1">
-                <div style="font-size:11.5px;font-weight:900">Retake Level Test</div>
-                <div style="font-size:9px;opacity:.85;font-weight:700">Feed adapts to your level</div>
-              </div>
-              <span style="font-weight:900">›</span>
-            </div>
-          </div>
-
-          <div class="p-nav">
-            <span>Home</span><span class="on">Media</span><span>Practice</span><span>Inbox</span><span>Profile</span>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="wrap hero-preview-wrap h-anim h-d7" id="heroLivePreview" hidden>
@@ -1564,6 +1620,31 @@
 <!-- ── FEATURES ───────────────────────────────────── -->
 <section class="video-sec" id="video">
   <div class="wrap">
+    <div class="sec-head reveal product-showcase-head">
+      <span class="sec-kicker">See DUVELA in action</span>
+      <h2 class="sec-title">One platform. <span class="grad-text">Five connected experiences.</span></h2>
+      <p class="sec-sub">Explore real DUVELA workflows for learning, teaching and managing courses.</p>
+    </div>
+    <div class="product-tabs reveal" role="tablist" aria-label="DUVELA product areas">
+      <button class="product-tab is-active" id="productTabVideos" type="button" role="tab" aria-selected="true" aria-controls="productTabPanel" tabindex="0" data-product-tab="videos">Videos</button>
+      <button class="product-tab" id="productTabLive" type="button" role="tab" aria-selected="false" aria-controls="productTabPanel" tabindex="-1" data-product-tab="live">LIVE</button>
+      <button class="product-tab" id="productTabPractice" type="button" role="tab" aria-selected="false" aria-controls="productTabPanel" tabindex="-1" data-product-tab="practice">Practice</button>
+      <button class="product-tab" id="productTabCourses" type="button" role="tab" aria-selected="false" aria-controls="productTabPanel" tabindex="-1" data-product-tab="courses">Courses</button>
+      <button class="product-tab" id="productTabWorkspace" type="button" role="tab" aria-selected="false" aria-controls="productTabPanel" tabindex="-1" data-product-tab="workspace">Teacher Workspace</button>
+    </div>
+    <div class="product-tab-panel reveal" id="productTabPanel" role="tabpanel" aria-live="polite" aria-labelledby="productTabVideos">
+      <div>
+        <span class="product-tab-kicker">VIDEOS</span>
+        <h3>Learn from short, level-aware content</h3>
+        <p>Open the DUVELA feed, choose your level and continue with videos selected for your learning context.</p>
+        <a href="./app.html?role=learner#workspace">Open Practice Hub →</a>
+      </div>
+      <div class="product-tab-preview" aria-hidden="true">
+        <span>CEFR · A1–C2</span>
+        <strong>Video learning feed</strong>
+        <small>Real DUVELA workspace</small>
+      </div>
+    </div>
     <div class="pre-video-area">
       <div class="hero-trust feature-pills h-anim h-d6">
         <div class="hero-trust-item feature-pill" id="trustTeachers"><b>Open</b><span>Public teacher profiles</span></div>
@@ -1596,7 +1677,7 @@
         <span>⛶</span>
         <span>⋮</span>
       </div>
-      <video class="video-poster" src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" playsinline preload="none" poster="./video-poster.jpg"
+      <video class="video-poster" src="https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/media/Duvela.mp4" playsinline preload="none" poster="./assets/product/duvela-video-poster.webp"
              style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;"></video>
     </div>
   </div>
@@ -1614,61 +1695,61 @@
 
     <div class="feat-grid">
       <div class="feat reveal">
-        <div class="feat-icon fi-purple"><i data-lucide="clapperboard"></i></div>
-        <h3>Media &amp; Videos by Level</h3>
-        <p>Every video is tagged A1-A2 to C1-C2. Your feed automatically ranks content closest to your level first.</p>
-        <span class="feat-tag">Smart Feed</span>
+        <div class="feat-icon fi-purple"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="clapperboard" aria-hidden="true" class="lucide lucide-clapperboard"><path d="m12.296 3.464 3.02 3.956"></path><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="m6.18 5.276 3.1 3.899"></path></svg></div>
+        <h3>Real Teachers</h3>
+        <p>Discover public teacher profiles, published courses and LIVE sessions using information teachers choose to share.</p>
+        <span class="feat-tag">Human learning</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-red"><i data-lucide="radio"></i></div>
-        <h3>Live Lessons</h3>
-        <p>Join public LIVE sessions, ask questions in real time, practice speaking and send supported Duvela Coin gifts.</p>
-        <span class="feat-tag">Real-time</span>
+        <div class="feat-icon fi-red"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="radio" aria-hidden="true" class="lucide lucide-radio"><path d="M16.247 7.761a6 6 0 0 1 0 8.478"></path><path d="M19.075 4.933a10 10 0 0 1 0 14.134"></path><path d="M4.925 19.067a10 10 0 0 1 0-14.134"></path><path d="M7.753 16.239a6 6 0 0 1 0-8.478"></path><circle cx="12" cy="12" r="2"></circle></svg></div>
+        <h3>Smart Video Feed</h3>
+        <p>Explore short educational videos organized around your selected language, interests and current level.</p>
+        <span class="feat-tag">Personalized</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-teal"><i data-lucide="gauge"></i></div>
+        <div class="feat-icon fi-teal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="gauge" aria-hidden="true" class="lucide lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg></div>
         <h3>CEFR Level Setup</h3>
         <p>Choose or update your CEFR level from A1 to C2. Duvela uses it to organize relevant learning content.</p>
         <span class="feat-tag">A1 → C2</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-pink"><i data-lucide="calendar-days"></i></div>
-        <h3>Events &amp; Meetups</h3>
-        <p>Language exchanges, speaking clubs and workshops near you — online and offline, hosted by real organizers.</p>
-        <span class="feat-tag">Community</span>
+        <div class="feat-icon fi-pink"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="calendar-days" aria-hidden="true" class="lucide lucide-calendar-days"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg></div>
+        <h3>Interactive LIVE Learning</h3>
+        <p>Join scheduled sessions, interact with teachers and practice speaking in the DUVELA LIVE experience.</p>
+        <span class="feat-tag">Real-time</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-gold"><i data-lucide="book-open"></i></div>
-        <h3>Courses from Teachers</h3>
-        <p>Structured courses with schedules, levels and pricing — created by verified teachers on the platform.</p>
-        <span class="feat-tag">Structured</span>
+        <div class="feat-icon fi-gold"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="book-open" aria-hidden="true" class="lucide lucide-book-open"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div>
+        <h3>AI Practice</h3>
+        <p>Use guided tools for grammar, listening, writing, reading and review alongside teacher-led learning.</p>
+        <span class="feat-tag">Practice tools</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-blue"><i data-lucide="flame"></i></div>
-        <h3>Streaks, XP &amp; Coins</h3>
-        <p>Daily goals, XP, achievements and leaderboards track progress. Duvela Coins support eligible in-app gifts and rewards.</p>
-        <span class="feat-tag">Gamified</span>
+        <div class="feat-icon fi-blue"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="flame" aria-hidden="true" class="lucide lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg></div>
+        <h3>Courses &amp; Community</h3>
+        <p>Follow structured courses, join events and stay connected with teachers, learners and organizers.</p>
+        <span class="feat-tag">Connected learning</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-indigo"><i data-lucide="bot"></i></div>
+        <div class="feat-icon fi-indigo"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="bot" aria-hidden="true" class="lucide lucide-bot"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg></div>
         <h3>AI Practice</h3>
         <p>The practice hub includes 15+ tools for grammar, listening, writing, reading and review. Premium AI Coach adds guided dialogue and corrections.</p>
         <span class="feat-tag">AI Tutors</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-green"><i data-lucide="palette"></i></div>
+        <div class="feat-icon fi-green"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="palette" aria-hidden="true" class="lucide lucide-palette"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"></path><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle></svg></div>
         <h3>Arts &amp; School Subjects</h3>
         <p>Drawing, music, math, history and more — find expert teachers for any subject, not just languages. All in the same app.</p>
         <span class="feat-tag">Any Subject</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-orange"><i data-lucide="building-2"></i></div>
+        <div class="feat-icon fi-orange"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="building-2" aria-hidden="true" class="lucide lucide-building-2"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg></div>
         <h3>Organizations &amp; Organizers</h3>
         <p>Schools and organizers run their whole team from one place — manage teachers, host events and grow a brand on Duvela.</p>
         <span class="feat-tag">For Teams</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-gold"><i data-lucide="wallet"></i></div>
+        <div class="feat-icon fi-gold"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="wallet" aria-hidden="true" class="lucide lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"></path><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path></svg></div>
         <h3>Earn as a Teacher</h3>
         <p>Track eligible LIVE, course, event and gift income in the Business workspace.</p>
         <dl class="earning-facts" id="earningFacts">
@@ -1680,31 +1761,31 @@
         <span class="feat-tag">Monetize</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-blue"><i data-lucide="messages-square"></i></div>
+        <div class="feat-icon fi-blue"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="messages-square" aria-hidden="true" class="lucide lucide-messages-square"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"></path></svg></div>
         <h3>Messages &amp; Chat</h3>
         <p>Built-in messaging connects learners, teachers and organizers — ask questions, book lessons and stay in touch in real time.</p>
         <span class="feat-tag">Connected</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-teal"><i data-lucide="presentation"></i></div>
+        <div class="feat-icon fi-teal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="presentation" aria-hidden="true" class="lucide lucide-presentation"><path d="M2 3h20"></path><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"></path><path d="m7 21 5-5 5 5"></path></svg></div>
         <h3>Duvela Classroom</h3>
         <p>Private group video lessons in a dedicated classroom — camera, microphone, raise hand and shared lesson materials.</p>
         <span class="feat-tag">Group lessons</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-indigo"><i data-lucide="graduation-cap"></i></div>
+        <div class="feat-icon fi-indigo"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="graduation-cap" aria-hidden="true" class="lucide lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></div>
         <h3>Exam Practice</h3>
         <p>Take full telc-style German exams — Hören, Lesen, Schreiben and Sprechen. Auto-scored, with AI feedback and a full answer review.</p>
         <span class="feat-tag">telc-style</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-red"><i data-lucide="swords"></i></div>
+        <div class="feat-icon fi-red"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="swords" aria-hidden="true" class="lucide lucide-swords"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"></polyline><line x1="13" x2="19" y1="19" y2="13"></line><line x1="16" x2="20" y1="16" y2="20"></line><line x1="19" x2="21" y1="21" y2="19"></line><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"></polyline><line x1="5" x2="9" y1="14" y2="18"></line><line x1="7" x2="4" y1="17" y2="20"></line><line x1="3" x2="5" y1="19" y2="21"></line></svg></div>
         <h3>Language Duels</h3>
         <p>Challenge another learner at your level to a real-time duel — timed questions, live scoring and XP for the winner.</p>
         <span class="feat-tag">Compete</span>
       </div>
       <div class="feat reveal">
-        <div class="feat-icon fi-purple"><i data-lucide="sparkles"></i></div>
+        <div class="feat-icon fi-purple"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles" aria-hidden="true" class="lucide lucide-sparkles"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg></div>
         <h3>DUVI Assistant</h3>
         <p>Your in-app helper answers questions by voice or text, explains errors and guides you around Duvela — in your language.</p>
         <span class="feat-tag">AI Helper</span>
@@ -1986,7 +2067,7 @@
           <li>XP, streaks &amp; Duvela Coins</li>
         </ul>
         <div class="store-row">
-          <a class="web-app-btn" href="./app.html?role=learner#home">Open learner workspace</a>
+          <a class="web-app-btn" href="./app.html?role=learner#workspace">Open learner workspace</a>
           <a class="web-app-btn" href="?login=1" data-auth-open="signup" data-signup-role="learner">Create learner account</a>
         </div>
       </div>
@@ -2205,21 +2286,21 @@
         <p>Languages, arts &amp; school subjects — level-matched videos, live lessons and events with real teachers, all in one academy.</p>
       </div>
       <div class="foot-col">
-        <h4>Product</h4>
+        <h3>Product</h3>
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
         <a href="#levels">Levels</a>
         <a href="./app.html">Web App</a>
       </div>
       <div class="foot-col">
-        <h4>For Teachers</h4>
+        <h3>For Teachers</h3>
         <a href="./app.html?role=teacher#workspace">Duvela Business</a>
         <a href="./app.html?role=teacher#live">Go LIVE</a>
         <a href="./app.html?role=teacher#courses">Create Courses</a>
         <a href="./app.html?role=teacher#workspace">Analytics</a>
       </div>
       <div class="foot-col">
-        <h4>Company</h4>
+        <h3>Company</h3>
         <a href="#features" id="footAbout">About</a>
         <a href="mailto:support@vela.cafe" id="footContact">Contact</a>
         <a href="./legal.html?doc=privacy" id="footPrivacy">Privacy Policy</a>
@@ -2238,7 +2319,7 @@
 </footer>
 
 <!-- ── LOGIN MODAL ────────────────────────────────── -->
-<div class="login-overlay" id="loginOverlay" aria-hidden="true">
+<div class="login-overlay" id="loginOverlay" aria-hidden="true" inert>
   <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="login-head">
       <div class="login-title" id="loginTitle">Sign in to Duvela</div>
@@ -2291,47 +2372,13 @@
   </div>
 </div>
 
-<script src="./locales/web-locales.js"></script>
-<script src="./locales/landing-2026-copy.js?v=20260925-i18n39"></script>
-<script src="./locales/landing-2026-auto.js?v=20260925-i18n39"></script>
-<script src="./legal/legal-content.js"></script>
+<script src="./legal/consent-content.js?v=20261020-1"></script>
 <script src="./legal/consent.js"></script>
-<script src="./web/duvela-runtime-config.js"></script>
-<script src="./web/duvela-web-config.js"></script>
-<script src="./web/duvela-web-roles.js?v=20260815-role5"></script>
-<script src="./web/duvela-web-ui.js"></script>
-<script src="./web/duvela-web-profile-writes.js?v=20260814-role1"></script>
+<script src="./web/consent-bootstrap.js?v=20261019-1"></script>
 <script src="./web/index-i18n.js?v=20260925-i18n39"></script>
-<script src="./web/index-auth-ui.js?v=20260815-role5"></script>
-<script src="./web/index-auth.js?v=20260815-role5"></script>
-<script src="./web/index-public-data.js?v=20260801-1"></script>
 <script src="./web/index-page.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var items = Array.prototype.slice.call(document.querySelectorAll('#faq [data-faq-item]'));
-    if (!items.length) return;
-    function setOpen(active) {
-      items.forEach(function (item) {
-        var isOpen = item === active;
-        var button = item.querySelector('.faq-q');
-        var icon = item.querySelector('.faq-arr');
-        item.classList.toggle('open', isOpen);
-        if (button) button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        if (icon) icon.textContent = isOpen ? '−' : '+';
-      });
-    }
-    items.forEach(function (item) {
-      var button = item.querySelector('.faq-q');
-      if (!button) return;
-      button.addEventListener('click', function () {
-        setOpen(item);
-      });
-    });
-    setOpen(items.find(function (item) { return item.classList.contains('open'); }) || items[0]);
-  });
-</script>
-<script src="./web/duvi-assistant.js?v=20260816duvinew2"></script>
 <script src="./web/inline/index-2.js"></script>
-<script src="./web/cookie-consent.js?v=20260906-consent1"></script>
+<script src="./web/homepage-v6.js?v=20261019-1"></script>
+
 </body>
 </html>

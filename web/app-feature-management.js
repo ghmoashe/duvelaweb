@@ -631,6 +631,7 @@
     }
 
     async function openCourseModal(id) {
+      if (!data && ctx.user && ctx.user.id) await load(ctx.user.id);
       courseEditing = id ? Object.assign({}, data.courses.find(function (item) { return String(item.id) === String(id); }) || null) : null;
       if (courseEditing && courseEditing.zoom_enabled) {
         var linkedGroup = ((state && state.orgClasses) || []).find(function (group) { return String(group.course_id) === String(id); });
@@ -900,6 +901,7 @@
       await load(ctx.user.id);
       activeTab = 'courses';
       paint();
+      window.dispatchEvent(new CustomEvent('duvela:courses-changed'));
     }
 
     function pickCourseExcel() {
@@ -1238,7 +1240,7 @@
       return null;
     }
 
-    return { render, paint };
+    return { render, paint, openCourseModal, archiveCourse, ensureOrg };
   }
 
   window.DuvelaBusinessManagement = { create: createManagement };

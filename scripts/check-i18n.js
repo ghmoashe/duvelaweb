@@ -138,13 +138,14 @@ function validateCatalog(catalog, source) {
 }
 
 function validateHtml(html, indexPageSource, indexI18nSource, catalog) {
-  const externalScript = '<script src="./locales/web-locales.js"></script>';
-  const externalIndex = html.indexOf(externalScript);
+  const externalMatch = html.match(/<script src="\.\/locales\/(?:web-locales|homepage-locales)\.js(?:\?[^\"]*)?"><\/script>/);
+  const externalScript = externalMatch ? externalMatch[0] : '';
+  const externalIndex = externalScript ? html.indexOf(externalScript) : -1;
   const i18nScriptMatch = html.slice(externalIndex + externalScript.length).match(/<script src="\.\/web\/index-i18n\.js(?:\?[^"]*)?"><\/script>/u);
   const i18nScriptIndex = i18nScriptMatch ? externalIndex + externalScript.length + i18nScriptMatch.index : -1;
   const pageScript = '<script src="./web/index-page.js"></script>';
   const pageScriptIndex = html.indexOf(pageScript, i18nScriptIndex + (i18nScriptMatch ? i18nScriptMatch[0].length : 0));
-  if (externalIndex < 0) fail('index.html does not load locales/web-locales.js.');
+  if (externalIndex < 0) fail('index.html does not load a supported locale catalog.');
   if (i18nScriptIndex < externalIndex) fail('index.html must load web/index-i18n.js after the locale catalog.');
   if (pageScriptIndex < externalIndex) fail('Locale catalog must load before the main page script.');
 
@@ -159,7 +160,7 @@ function validateHtml(html, indexPageSource, indexI18nSource, catalog) {
       fail(`${id} must link to legal.html instead of "#".`);
     }
   }
-  if (!indexI18nSource.includes('window.DUVELA_CONSENT.init(initialLang);')) {
+  if (!/window\.DUVELA_CONSENT\.init\((?:initialLang|resolvedLang)\);/.test(indexI18nSource)) {
     fail('Cookie consent is not initialized from the active web language.');
   }
 

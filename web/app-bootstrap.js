@@ -76,9 +76,8 @@
       $$('[data-sidebar-action]').forEach((button) => button.addEventListener('click', () => {
         const action = button.dataset.sidebarAction;
         if (action === 'settings') {
-          ctx.setView('profile');
-          ctx.renderProfile();
-          setTimeout(() => document.querySelector('#profileActionsTitle, #profileForm, #pfName')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+          ctx.setView('settings');
+          if (ctx.renderSettings) ctx.renderSettings();
           return;
         }
         if (action === 'language') {
@@ -93,11 +92,15 @@
 
       const sidebarToggle = document.querySelector('.sidebar-toggle');
       if (sidebarToggle) {
+        const compactViewport = window.matchMedia('(min-width: 981px)');
         const applySidebarState = () => {
-          const compact = localStorage.getItem('duvela.sidebar.compact') === '1';
+          const compact = compactViewport.matches && localStorage.getItem('duvela.sidebar.compact') === '1';
           document.body.classList.toggle('sidebar-compact', compact);
           sidebarToggle.textContent = compact ? '››' : '‹‹';
           sidebarToggle.setAttribute('aria-pressed', compact ? 'true' : 'false');
+          const label = compact ? tr('Expand sidebar', 'Развернуть меню') : tr('Collapse sidebar', 'Свернуть меню');
+          sidebarToggle.setAttribute('aria-label', label);
+          sidebarToggle.title = label;
         };
         applySidebarState();
         sidebarToggle.addEventListener('click', () => {
@@ -105,6 +108,7 @@
           localStorage.setItem('duvela.sidebar.compact', compact ? '1' : '0');
           applySidebarState();
         });
+        if (compactViewport.addEventListener) compactViewport.addEventListener('change', applySidebarState);
       }
 
       // Duel + Practice-for-LIVE panels launch the existing study feature as
@@ -136,6 +140,30 @@
       });
 
       document.addEventListener('click', (event) => {
+        const noteCreate = event.target.closest('#noteCreate');
+        if (noteCreate) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          document.dispatchEvent(new CustomEvent('duvela-notes-create'));
+          return;
+        }
+        const arenaTemplate = event.target.closest('[data-arena-template]');
+        if (arenaTemplate) {
+          event.preventDefault();
+          document.querySelectorAll('[data-arena-template]').forEach((node) => node.classList.toggle('active', node === arenaTemplate));
+          try {
+            const key = 'duvela.study.duelTeacherKit';
+            const current = JSON.parse(localStorage.getItem(key) || '{}');
+            localStorage.setItem(key, JSON.stringify(Object.assign({}, current, { mode: arenaTemplate.dataset.arenaTemplate === 'bot' ? 'class' : 'teacher' })));
+          } catch (_) {}
+          return;
+        }
+        const arenaCreate = event.target.closest('[data-arena-create]');
+        if (arenaCreate) {
+          event.preventDefault();
+          document.getElementById('duelStartFromNav')?.click();
+          return;
+        }
         const go = event.target.closest('[data-go]');
         if (go) {
           event.preventDefault();
@@ -178,7 +206,8 @@
         const video = event.target.closest('[data-video]');
         if (video) { ctx.openVideo(video.dataset.video); return; }
         const course = event.target.closest('[data-course]');
-        if (course) { ctx.openCourseDetail(course.dataset.course); return; }
+        const courseControl = event.target.closest('[data-course-save],[data-course-teacher],[data-course-open]');
+        if (course && !courseControl) { ctx.openCourseDetail(course.dataset.course); return; }
         const addLesson = event.target.closest('[data-add-lesson]');
         if (addLesson) { event.preventDefault(); ctx.addLesson(runtime.currentCourseId); return; }
         const addTask = event.target.closest('[data-add-task]');
@@ -227,7 +256,7 @@
         if (eventCard) { ctx.openEventDetail(eventCard.dataset.event); return; }
         const like = event.target.closest('[data-like]');
         if (like) { event.preventDefault(); ctx.toggleLike(like.dataset.like); return; }
-      });
+      }, true);
 
       $('#profileForm').addEventListener('submit', ctx.saveProfile);
       const legacyLanguageSelect = $('#langSelect');
@@ -288,22 +317,37 @@
     }
 
     async function init() {
+      const withTimeout = (promise, ms, fallback) => Promise.race([
+        promise,
+        new Promise((resolve) => setTimeout(() => resolve(fallback), ms))
+      ]);
       ctx.localizeStaticUI();
       session.selectedRole = ctx.normalizeRole(session.selectedRole);
       localStorage.setItem(ctx.storage.roleKey, session.selectedRole);
-      const sessionResult = await supa.auth.getSession();
+      const sessionResult = await withTimeout(supa.auth.getSession(), 10000, { data: { session: null } });
       const authSession = sessionResult.data.session;
       if (!authSession?.user) {
-        window.location.href = './index.html?login=1';
+        try {
+          sessionStorage.setItem('duvela.return_to', window.location.pathname + window.location.search + window.location.hash);
+        } catch (_) {}
+        const loginUrl = new URL('./index.html', window.location.href);
+        loginUrl.searchParams.set('login', '1');
+        loginUrl.searchParams.set('return_to', window.location.pathname + window.location.search + window.location.hash);
+        window.location.href = loginUrl.href;
         return;
       }
       session.user = authSession.user;
       const requestedEventId = new URLSearchParams(window.location.search).get('event');
       bindEvents();
-      await ctx.loadProfile();
+      try {
+        await withTimeout(ctx.loadProfile(), 10000, null);
+      } catch (error) {
+        console.warn('profile loading skipped', error);
+      }
       localStorage.setItem(ctx.storage.roleKey, session.role);
-      history.replaceState(null, '', './app.html?role=' + encodeURIComponent(session.role) + (requestedEventId ? '&event=' + encodeURIComponent(requestedEventId) : '') + (window.location.hash || '#home'));
-      await Promise.all([
+      const defaultView = session.role === 'learner' ? '#workspace' : '#home';
+      history.replaceState(null, '', './app.html?role=' + encodeURIComponent(session.role) + (requestedEventId ? '&event=' + encodeURIComponent(requestedEventId) : '') + (window.location.hash || defaultView));
+      await withTimeout(Promise.allSettled([
         ctx.loadPublicData(),
         ctx.loadEnrollments(),
         ctx.loadVideos(),
@@ -313,14 +357,19 @@
         ctx.loadBusinessWorkspace(),
         ctx.loadWallet(),
         ctx.loadChallenges()
-      ]);
-      ctx.renderAll();
+      ]), 12000, []);
+      try {
+        ctx.renderAll();
+      } catch (error) {
+        console.warn('workspace render partially skipped', error);
+        try { ctx.renderHome(); } catch (_) {}
+      }
       if (onboarding) onboarding.openIfNeeded();
       if (ctx.promptPublicationChoice) ctx.promptPublicationChoice();
-      ctx.syncRoleOptions();
+      try { ctx.syncRoleOptions(); } catch (error) { console.warn('role UI sync skipped', error); }
       $('#loading').style.display = 'none';
       $('#app').style.display = 'grid';
-      const initialView = (window.location.hash || '#home').slice(1);
+      const initialView = (window.location.hash || defaultView).slice(1);
       ctx.setView(initialView);
       if (requestedEventId) ctx.openEventDetail(requestedEventId);
       if (initialView === 'management' && ctx.isBusiness()) ctx.renderManagement();

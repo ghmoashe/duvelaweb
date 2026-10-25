@@ -8,6 +8,7 @@ const outDir = path.join(root, 'dist');
 const files = [
   'index.html',
   'app.html',
+  'app-premium.html',
   'aussprache.html',
   'live.html',
   'profile.html',

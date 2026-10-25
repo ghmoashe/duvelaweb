@@ -1,0 +1,33 @@
+/* DUVELA Teacher Messenger 4.0 */
+body.business-mode [data-panel="messages"]{background:#f5f7fb}
+body.business-mode [data-panel="messages"] .msg-wrap{grid-template-columns:minmax(260px,320px) minmax(0,1fr) minmax(260px,300px);gap:16px;align-items:stretch}
+body.business-mode [data-panel="messages"] .msg-list-col,body.business-mode [data-panel="messages"] .thread-col,body.business-mode [data-panel="messages"] .msg-info-card{border:1px solid #e7ecf2;border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(11,18,32,.05)}
+body.business-mode [data-panel="messages"] .msg-list-col{padding:14px;min-width:0;overflow:hidden}
+body.business-mode [data-panel="messages"] .msg-toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin:0 0 12px}
+body.business-mode [data-panel="messages"] .msg-search{grid-column:1/-1;order:0;height:42px;margin:0;border:1px solid #e1e7ee;border-radius:11px;box-shadow:none;background:#f8fafc;padding:0 12px}
+body.business-mode [data-panel="messages"] .msg-search input{font-size:12px;padding:10px 0}
+body.business-mode [data-panel="messages"] .msg-filter{order:0;min-height:36px;padding:0 11px;border:1px solid #e1e7ee;border-radius:10px;background:#fff;color:#667085;font-size:11px;font-weight:800}
+body.business-mode [data-panel="messages"] .msg-filter.active{border-color:#16a36a;background:#e9f8f0;color:#0d7d50}
+body.business-mode [data-panel="messages"] .msg-filter#blockedListBtn{font-size:0;padding:0;width:36px}
+body.business-mode [data-panel="messages"] .msg-filter#blockedListBtn:after{content:'•••';font-size:15px}
+body.business-mode [data-panel="messages"] .msg-newchat{grid-column:1/-1;order:0;justify-content:center;min-height:42px;padding:0 14px;border-radius:10px;background:#16a36a;box-shadow:none;font-size:12px}
+body.business-mode [data-panel="messages"] .msg-newchat:hover{background:#0d7d50}
+body.business-mode [data-panel="messages"] .conv{border:1px solid transparent;border-radius:12px;padding:10px 8px;transition:.18s}
+body.business-mode [data-panel="messages"] .conv:hover{background:#f6faf8;border-color:#d9f1e4}
+body.business-mode [data-panel="messages"] .conv.active{background:#e9f8f0;border-color:#bfe8d0;box-shadow:none}
+body.business-mode [data-panel="messages"] .conv h3{font-size:12px;color:#172338}.business-mode [data-panel="messages"] .conv p{font-size:11px;color:#718096}
+body.business-mode [data-panel="messages"] .conv-time{font-size:10px;color:#98a2b3}.business-mode [data-panel="messages"] .unread{background:#16a36a}
+body.business-mode [data-panel="messages"] .conv-actions summary{color:#98a2b3}
+body.business-mode [data-panel="messages"] .thread-col{display:flex;min-width:0;min-height:670px;overflow:hidden}
+body.business-mode [data-panel="messages"] .thread-head{border-bottom:1px solid #e7ecf2;padding:14px 16px;background:#fff}
+body.business-mode [data-panel="messages"] .thread-heading span:first-child{font-size:15px;color:#0b1220}.business-mode [data-panel="messages"] .thread-typing{color:#16a36a;font-size:11px}
+body.business-mode [data-panel="messages"] .thread-tools button{border:1px solid #e1e7ee;background:#fff;color:#667085;border-radius:9px;width:32px;height:32px}
+body.business-mode [data-panel="messages"] .thread-body{padding:22px 20px;background:#fbfcfe;gap:12px}
+body.business-mode [data-panel="messages"] .bubble{max-width:min(76%,520px);border:1px solid #e7ecf2;box-shadow:0 5px 14px rgba(11,18,32,.04);border-radius:15px;padding:10px 12px}.business-mode [data-panel="messages"] .bubble.me{background:#e9f8f0;border-color:#bfe8d0}.business-mode [data-panel="messages"] .bubble.them{background:#fff}
+body.business-mode [data-panel="messages"] .thread-compose{border-top:1px solid #e7ecf2;padding:12px;background:#fff;gap:7px}
+body.business-mode [data-panel="messages"] .thread-compose input{min-height:42px;border:1px solid #e1e7ee;border-radius:11px;padding:0 12px}.business-mode [data-panel="messages"] .thread-compose .btn.primary{background:#16a36a;border-radius:10px}
+body.business-mode [data-panel="messages"] .msg-info-col{display:grid;gap:12px;align-content:start;min-width:0}.business-mode [data-panel="messages"] .msg-info-card{padding:16px}.business-mode [data-panel="messages"] .msg-info-head h3,.business-mode [data-panel="messages"] .msg-info-card h3{color:#172338;font-size:14px}.business-mode [data-panel="messages"] .msg-student-avatar{background:#e9f8f0;color:#0d7d50;border-color:#fff;box-shadow:0 0 0 1px #bfe8d0}.business-mode [data-panel="messages"] .msg-student p{color:#16a36a}.business-mode [data-panel="messages"] .msg-student p span{background:#16a36a}.business-mode [data-panel="messages"] .msg-side-primary{background:#16a36a;border-radius:10px}.business-mode [data-panel="messages"] .msg-side-actions button,.business-mode [data-panel="messages"] .msg-info-card.compact button{border-color:#e1e7ee;color:#344054}.business-mode [data-panel="messages"] .msg-progress-list em{background:#e9f8f0;color:#0d7d50}
+@media(max-width:1380px){body.business-mode [data-panel="messages"] .msg-wrap{grid-template-columns:300px minmax(0,1fr)}body.business-mode [data-panel="messages"] .msg-info-col{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){body.business-mode [data-panel="messages"] .msg-wrap{grid-template-columns:1fr}body.business-mode [data-panel="messages"] .msg-info-col{display:none}body.business-mode [data-panel="messages"] .thread-col{min-height:calc(100dvh - 180px)}body.business-mode [data-panel="messages"] .msg-wrap.thread-open .msg-list-col{display:none}}
+@media(max-width:560px){body.business-mode [data-panel="messages"] .msg-wrap{margin:0 -4px}body.business-mode [data-panel="messages"] .msg-list-col{padding:10px}body.business-mode [data-panel="messages"] .thread-head{padding:11px 12px}body.business-mode [data-panel="messages"] .thread-body{padding:14px 10px}body.business-mode [data-panel="messages"] .bubble{max-width:88%}body.business-mode [data-panel="messages"] .thread-compose{position:sticky;bottom:0;padding:8px}.business-mode [data-panel="messages"] .thread-compose .btn{min-width:34px;padding:0 8px}}
+#groupModeBtn{border:1px solid #bfe8d0;border-radius:9px;background:#e9f8f0;color:#0d7d50;font:inherit;font-size:11px;font-weight:850;padding:8px 10px;cursor:pointer}#groupModeBtn:hover{background:#d8f3e3}.overlay-head #newChatClose{flex:none}

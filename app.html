@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
 <title>Duvela Web App</title>
 <meta name="description" content="Duvela web application for learning, live lessons, courses, events, messages and profile management.">
 <link rel="icon" href="./logo.webp" type="image/webp">
@@ -13,11 +14,19 @@
 <script src="./web/vendor/xlsx-0.18.5.full.min.js"></script>
 <script src="./web/vendor/chess-0.10.3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="web/event-cards.css" rel="stylesheet">
-<link href="web/practice-hub.css?v=20260905-duel-pack-hidden" rel="stylesheet">
+<link href="web/event-cards.css?v=20261021-challenge-layout2" rel="stylesheet">
+<link href="web/practice-hub.css?v=20261023-ai-practice6" rel="stylesheet">
+<link href="web/learner-profile4.css?v=20261020-profile4b" rel="stylesheet">
 <link href="web/app-media-layout.css?v=20260729audit1" rel="stylesheet">
+<link href="web/app-media-hub5.css?v=20261022-mediahub5b" rel="stylesheet">
 <link href="web/duvi-assistant.css?v=20260816duvinew2" rel="stylesheet">
-<link href="web/app-inline.css?v=20260926-profile-mobile2" rel="stylesheet">
+<link href="web/app-inline.css?v=20261021-learner-wallet1" rel="stylesheet">
+<link href="web/app-student-wallet.css?v=20261021-student-wallet2" rel="stylesheet">
+<link href="web/app-messages4.css?v=4.0.0" rel="stylesheet">
+<link href="web/app-schedule4.css?v=4.0.0" rel="stylesheet">
+<link href="web/app-leaderboard4.css?v=4.0.0" rel="stylesheet">
+<link href="web/app-profile4.css?v=4.0.1" rel="stylesheet">
+<link href="web/app-notes4.css?v=4.0.0" rel="stylesheet">
 <link href="web/app-live.css?v=20260913-live-studio6" rel="stylesheet">
 <script src="./web/inline/app-1.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -78,10 +87,88 @@
   .ai-bubble-say{flex:0 0 auto;align-self:flex-end;width:26px;height:26px;border-radius:50%;border:1px solid #e6e1f2;background:#fff;font-size:12px;line-height:1;cursor:pointer;color:var(--soft)}
   .ai-bubble-say:hover{border-color:#d9cffb;background:var(--purple-soft)}
 </style>
-<script src="./web/inline/csp-safe-handlers.js"></script></head>
-<body>
+<script src="./web/inline/csp-safe-handlers.js"></script><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style id="duvela-premium-theme">/* DUVELA Teacher Workspace 3.0 — Premium Edition. Presentation only. */
+body.premium-workspace{--bg:#f6f8fb;--panel:#fff;--panel-soft:#f0f7f4;--ink:#172b3b;--soft:#607589;--muted:#748598;--line:#e4eceb;--purple:#078566;--purple-soft:#e4f5ed;--teal:#078566;--teal-soft:#e4f5ed;--shadow:0 10px 35px #163b4210;background:var(--bg);font-family:'DM Sans','Inter',system-ui,sans-serif}
+.premium-workspace .sidebar{background:linear-gradient(175deg,#0d1f2b,#102c32);color:#d3e1e5;border-right:0;padding:23px 14px;gap:14px}
+.premium-workspace .sidebar .brand{color:#fff;letter-spacing:1.3px;font-weight:800;text-transform:uppercase}
+.premium-workspace .sidebar .brand img{border-radius:11px;padding:3px;background:#effcf6}
+.premium-workspace .sidebar .side-profile{background:#ffffff08;border:1px solid #ffffff12;border-radius:15px;padding:13px;color:#fff}
+.premium-workspace .sidebar .side-profile-copy b{font-size:14px}.premium-workspace .sidebar .side-profile-copy small{color:#adbfca;font-size:11px}.premium-workspace .sidebar .side-profile-copy em{font-size:10px;color:#70dfb6}.premium-workspace .sidebar .side-profile-arrow{color:#91b2b8;font-size:23px}
+.premium-workspace .sidebar .nav button,.premium-workspace .sidebar .nav a{color:#b5c8d2;border-radius:11px;font-size:12px;font-weight:650;min-height:44px}
+.premium-workspace .sidebar .nav button:hover{background:#203b45;color:#fff}.premium-workspace .sidebar .nav button.active{background:#254b4c;color:#fff;box-shadow:inset 3px 0 #59dfb1}
+.premium-workspace .sidebar .nav::before,.premium-workspace .sidebar .nav button::before{color:#7e9aa7;font-size:9px;letter-spacing:1.7px}
+.premium-workspace .sidebar .role-select{background:#183743;color:#E8F2F5;border-color:#29414D}.premium-workspace .sidebar .role-badge{background:#183f39;color:#a6e7ce;border:1px solid #2a5b4c}.premium-workspace .sidebar .side-settings-row{color:#E8F2F5}.premium-workspace .sidebar .side-foot{border-color:#29414D}
+.premium-workspace .main{padding:28px 34px 60px;min-width:0}.premium-workspace .topbar{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 22px;margin-bottom:26px;box-shadow:var(--shadow)}
+.premium-workspace h1,.premium-workspace h2,.premium-workspace h3{font-family:Manrope,Inter,system-ui,sans-serif;letter-spacing:-.035em}.premium-workspace h1{font-size:27px}.premium-workspace .title-wrap p{color:var(--soft)}
+.premium-workspace .card,.premium-workspace .mg-side-card,.premium-workspace .ms-side-card,.premium-workspace .note-card{border-color:var(--line);border-radius:18px;background:var(--panel);box-shadow:var(--shadow)}
+.premium-workspace .bus-dash{max-width:1480px}.premium-workspace .btn,.premium-workspace .mg-btn-solid,.premium-workspace .mg-btn-outline,.premium-workspace .pv-btn-solid,.premium-workspace .pv-btn-outline{border-radius:10px;min-height:40px;font-weight:750}
+.premium-workspace .btn.primary,.premium-workspace .mg-btn-solid,.premium-workspace .pv-btn-solid{background:#078566;color:#fff;border-color:#078566;box-shadow:0 5px 16px #0785661c}
+.premium-workspace .mg-btn-solid.purple{background:#078566}.premium-workspace .mg-tab.active,.premium-workspace .ms-tab.active{color:#078566;background:#e4f5ed;border-color:#b8dfcf}
+.premium-workspace .mode-chip{background:#e4f5ed;color:#087657;border-color:#c6e7d9}.premium-workspace .bell-btn{background:#f4f8f7;border-color:var(--line);border-radius:11px}
+.premium-workspace .overlay-card,.premium-workspace .onboarding-card{border-radius:22px;border:1px solid var(--line);box-shadow:0 24px 80px #102d3833}
+.premium-workspace input:not([type=checkbox]):not([type=radio]):not([type=file]),.premium-workspace textarea,.premium-workspace select{border-radius:10px;border-color:#dce7e4}
+.premium-workspace .notes-hero,.premium-workspace .teacher-duel-hero{background:linear-gradient(120deg,#102d38,#236559);color:#fff;border-radius:22px}.premium-workspace .notes-hero p,.premium-workspace .teacher-duel-hero p{color:#c4dbd7}
+.premium-workspace a:focus-visible,.premium-workspace button:focus-visible,.premium-workspace input:focus-visible,.premium-workspace textarea:focus-visible,.premium-workspace select:focus-visible{outline:3px solid #70d9b6;outline-offset:3px}
+@media(max-width:900px){.premium-workspace .main{padding:18px 18px 85px}.premium-workspace .topbar{padding:14px 16px}.premium-workspace h1{font-size:23px}}
+@media(max-width:600px){.premium-workspace .main{padding:12px 12px 90px}.premium-workspace .topbar{gap:8px;padding:13px}.premium-workspace h1{font-size:21px}.premium-workspace .mode-chip{font-size:10px}.premium-workspace .sidebar{padding:12px}}
+@media(prefers-reduced-motion:reduce){.premium-workspace *{scroll-behavior:auto!important;transition:none!important}}
+</style><style id="duvela-layout-repair">/* Layout repair: consistent grids and readable navigation at narrow widths. */
+body.premium-workspace.business-mode .main{min-width:0;width:100%;max-width:1600px;margin-inline:auto}
+body.premium-workspace.business-mode .bd-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:20px;align-items:start}
+body.premium-workspace.business-mode .bd-col{display:grid;gap:20px;min-width:0}
+body.premium-workspace.business-mode .bd-top-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+body.premium-workspace.business-mode .bd-quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+body.premium-workspace.business-mode .bd-quick{min-width:0;min-height:82px;padding:14px;line-height:1.4}
+body.premium-workspace.business-mode .bd-card{border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);background:white;min-width:0}
+body.premium-workspace.business-mode .bd-golive{background:linear-gradient(125deg,#102d38,#236559);border-radius:20px;padding:28px;color:white}
+body.premium-workspace.business-mode .bd-golive-copy{min-width:0}
+body.premium-workspace.business-mode .bd-golive-copy small{color:#c4ded6}
+body.premium-workspace.business-mode .bd-section-head{gap:12px;flex-wrap:wrap}
+body.premium-workspace.business-mode .bd-section-head h3{font-size:18px}
+body.premium-workspace.business-mode .bd-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body.premium-workspace.business-mode .bd-manage-row{min-height:72px;gap:12px}
+body.premium-workspace.business-mode .bd-manage-copy{min-width:0}
+body.premium-workspace.business-mode .bd-manage-copy small{line-height:1.5}
+@media(min-width:981px){body.premium-workspace.business-mode .app{grid-template-columns:250px minmax(0,1fr)}body.premium-workspace.business-mode.sidebar-compact .app{grid-template-columns:96px minmax(0,1fr)}body.premium-workspace.business-mode .sidebar{width:auto}body.premium-workspace.business-mode .nav button{font-size:13px;min-height:44px}}
+@media(max-width:1150px){body.premium-workspace.business-mode .bd-grid{grid-template-columns:1fr}body.premium-workspace.business-mode .bd-top-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:980px){
+body.premium-workspace.business-mode .app,body.premium-workspace.business-mode.sidebar-compact .app{display:block;grid-template-columns:1fr}
+body.premium-workspace.business-mode .sidebar,body.premium-workspace.business-mode.sidebar-compact .sidebar{position:relative;height:auto;max-height:none;width:100%;padding:12px 14px;gap:10px;overflow:visible;display:flex;align-items:stretch}
+body.premium-workspace.business-mode .sidebar-head,body.premium-workspace.business-mode.sidebar-compact .sidebar-head{display:flex;justify-content:space-between;width:100%}
+body.premium-workspace.business-mode .sidebar .brand span,body.premium-workspace.business-mode.sidebar-compact .sidebar .brand span{display:block!important;font-size:16px}
+body.premium-workspace.business-mode .sidebar .brand img{width:30px;height:30px}
+body.premium-workspace.business-mode .sidebar .side-profile,body.premium-workspace.business-mode .sidebar .side-foot,body.premium-workspace.business-mode .sidebar>.role-badge,body.premium-workspace.business-mode .sidebar>.role-select,body.premium-workspace.business-mode .sidebar-toggle{display:none!important}
+body.premium-workspace.business-mode .sidebar .nav,body.premium-workspace.business-mode.sidebar-compact .sidebar .nav{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:7px;width:100%;padding:2px 1px 8px;align-items:stretch;scrollbar-width:thin;scrollbar-color:#5b9285 transparent}
+body.premium-workspace.business-mode .sidebar .nav::before,body.premium-workspace.business-mode .sidebar .nav button::before{display:none!important}
+body.premium-workspace.business-mode .sidebar .nav button,body.premium-workspace.business-mode.sidebar-compact .sidebar .nav button{flex:0 0 auto;width:auto;min-width:92px;height:auto;min-height:54px;margin:0;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;line-height:1.3;border-radius:10px}
+body.premium-workspace.business-mode .sidebar .nav button span:not(.nav-icon),body.premium-workspace.business-mode.sidebar-compact .sidebar .nav button span:not(.nav-icon){display:inline!important}
+body.premium-workspace.business-mode .sidebar .nav-icon{width:18px;height:18px;flex-shrink:0}
+body.premium-workspace.business-mode .main{padding:18px 16px 80px;overflow-x:clip}
+body.premium-workspace.business-mode .topbar{margin:0 0 20px;padding:16px;min-height:auto;height:auto;flex-wrap:wrap}
+body.premium-workspace.business-mode .title-wrap{flex:1 1 220px;min-width:0}
+body.premium-workspace.business-mode .title-wrap p{line-height:1.5;font-size:12px}
+body.premium-workspace.business-mode .bd-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.premium-workspace.business-mode .bd-golive{padding:22px;gap:16px;flex-wrap:wrap}
+body.premium-workspace.business-mode .bd-golive-btn{min-height:42px}
+body.premium-workspace.business-mode .bd-card{padding:18px}
+}
+@media(max-width:480px){body.premium-workspace.business-mode .bd-source-grid,body.premium-workspace.business-mode .bd-income-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}body.premium-workspace.business-mode .bd-metric-value{font-size:23px}body.premium-workspace.business-mode .bd-profile{flex-wrap:wrap;gap:10px}}
+@media(max-width:980px){body.premium-workspace.business-mode .topbar{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px}body.premium-workspace.business-mode .title-wrap{flex:1 1 calc(100% - 100px);width:auto}body.premium-workspace.business-mode .mode-chip{order:4;flex:0 0 auto;margin:0}body.premium-workspace.business-mode .bell-btn{flex:0 0 36px;width:36px;height:36px}body.premium-workspace.business-mode .topbar .title-wrap p{max-width:420px}}
+body.premium-workspace.business-mode .bd-gifts{min-width:0;width:100%;max-width:100%}
+body.premium-workspace.business-mode .bd-section{min-width:0;max-width:100%}
+body.premium-workspace.business-mode .bd-section-head::before{background:#078566}
+body.premium-workspace.business-mode .app>.main{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important}
+body.premium-workspace.business-mode #busDashboard{width:100%!important;min-width:0!important;max-width:100%!important}
+@media(max-width:980px){body.premium-workspace.business-mode .bd-top-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.premium-workspace.business-mode .bd-golive{width:100%;min-width:0}body.premium-workspace.business-mode .bd-golive-copy{flex:1 1 200px}body.premium-workspace.business-mode .bd-golive-btn{flex:0 0 auto}body.premium-workspace.business-mode .bd-grid{grid-template-columns:minmax(0,1fr)!important}}
+@media(max-width:980px){body.premium-workspace.business-mode #app{grid-template-columns:minmax(0,1fr)!important;grid-auto-columns:minmax(0,1fr);width:100%!important;max-width:100%!important}body.premium-workspace.business-mode #app>.main{grid-column:1;min-width:0!important}body.premium-workspace.business-mode #app>.sidebar{grid-column:1;min-width:0!important}}
+body.premium-workspace.business-mode .mg-tabs{background:#e6f2ee;border:1px solid #cce3d9;border-radius:14px;padding:6px;gap:6px}
+body.premium-workspace.business-mode .mg-tabs .mg-tab{color:#3b6659;min-height:44px;border-radius:10px;line-height:1.4}
+body.premium-workspace.business-mode .mg-tabs .mg-tab.active{background:#078566;color:white;border-color:#078566}
+@media(max-width:760px){body.premium-workspace.business-mode .mg-tabs{display:flex;flex-wrap:wrap}body.premium-workspace.business-mode .mg-tabs .mg-tab{flex:1 1 130px;white-space:normal;padding:10px;justify-content:center}}
+</style><link rel="stylesheet" href="./web/app-live-studio4.css?v=4.0.1"><link rel="stylesheet" href="./web/app-live-arena4.css?v=4.0.0"><link rel="stylesheet" href="./web/app-courses4.css?v=4.0.0"><link rel="stylesheet" href="./web/app-courses5.css?v=20261023-courses5f"><link rel="stylesheet" href="./web/app-events5.css?v=20261023-events5"><link rel="stylesheet" href="./web/app-challenges4.css?v=4.0.1"><link rel="stylesheet" href="./web/app-dashboard4.css?v=4.0.0"><link rel="stylesheet" href="./web/app-content-wizard.css?v=4.0.0"><link rel="stylesheet" href="./web/app-media-content4.css?v=4.0.0"><link rel="stylesheet" href="./web/app-notes4.css?v=4.1.0"><link rel="stylesheet" href="./web/app-settings.css?v=4.1.0"><link rel="stylesheet" href="./web/app-onboarding4.css?v=4.5.0"></head>
+<body class="premium-workspace">
 <div id="loading" class="loading">Opening Duvela Web...</div>
-<div class="onboarding-overlay" id="onboardingOverlay" aria-hidden="true"><section class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle"><div class="onboarding-top"><div><div class="onboarding-kicker" id="onboardingKicker">Duvela · Step 1 of 4</div><h2 id="onboardingTitle">Let’s make your space yours</h2><p class="lead" id="onboardingLead">Choose how you want to use Duvela.</p></div><div class="role-badge" id="onboardingRoleBadge">Learner</div></div><div class="onboarding-steps"><i class="onboarding-step active"></i><i class="onboarding-step"></i><i class="onboarding-step"></i><i class="onboarding-step"></i></div><div class="onboarding-role" id="onboardingRoles"></div><form class="onboarding-form" id="onboardingForm"></form><div class="onboarding-error" id="onboardingError"></div><div class="onboarding-actions"><div class="onboarding-actions-start"><button class="btn onboarding-exit" type="button" id="onboardingSignOut" data-t="signOut">Sign out</button><button class="btn" type="button" id="onboardingBack" style="display:none">← Back</button></div><span class="onboarding-note" id="onboardingNote">You can update this later in Profile.</span><button class="btn primary" type="submit" form="onboardingForm" id="onboardingSubmit">Continue →</button></div></section></div>
+<div class="onboarding-overlay" id="onboardingOverlay" aria-hidden="true"><section class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle"><header class="onboarding-top"><div><div class="onboarding-kicker" id="onboardingKicker">DUVELA · STEP 1 OF 4</div><h2 id="onboardingTitle">Choose your workspace</h2><p class="lead" id="onboardingLead">Choose how you want to use DUVELA.</p></div><div class="onboarding-account"><button class="onboarding-account-button" type="button" id="onboardingAccountButton" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu">•••</button><div class="onboarding-account-menu" id="onboardingAccountMenu" role="menu" hidden><button type="button" id="onboardingSaveExit" role="menuitem">Save &amp; exit</button><button type="button" id="onboardingSignOut" role="menuitem" data-t="signOut">Sign out</button></div></div></header><div class="onboarding-steps" aria-label="Onboarding progress"><i class="onboarding-step active"></i><i class="onboarding-step"></i><i class="onboarding-step"></i><i class="onboarding-step"></i></div><div class="onboarding-role-context" id="onboardingRoleContext"></div><div class="onboarding-scroll"><div class="onboarding-role" id="onboardingRoles"></div><form class="onboarding-form" id="onboardingForm"></form><div class="onboarding-error" id="onboardingError" role="alert"></div></div><footer class="onboarding-actions"><button class="btn" type="button" id="onboardingBack" style="display:none">← Back</button><span class="onboarding-note" id="onboardingNote" aria-live="polite">Draft saved locally.</span><button class="btn primary" type="submit" form="onboardingForm" id="onboardingSubmit">Continue →</button></footer></section></div>
 
 <div class="app" id="app" style="display:none">
   <aside class="sidebar">
@@ -109,7 +196,7 @@
       <button data-view="courses" aria-label="Courses"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 012-2h13v16H6.5A2.5 2.5 0 004 21.5"/><path d="M8 7h7"/></svg></span><span>Courses</span></button>
       <button data-view="live" aria-label="Live"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg></span><span>Live</span></button>
       <button data-view="events" aria-label="Events"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span>Events</span></button>
-      <button data-view="challenges" class="nav-business-only nav-challenges" aria-label="Challenges"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v4a6 6 0 01-12 0z"/><path d="M4 5h2M18 5h2M9 21h6M12 15v6"/></svg></span><span>Челленджи</span></button>
+      <button data-view="challenges" class="nav-challenges learner-challenges-enabled" aria-label="Challenges"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v4a6 6 0 01-12 0z"/><path d="M4 5h2M18 5h2M9 21h6M12 15v6"/></svg></span><span>Челленджи</span></button>
       <button data-view="messages" aria-label="Messages"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span><span>Messages</span></button>
       <button data-view="workspace" id="workspaceNav" aria-label="Practice"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span><span id="workspaceNavLabel">Practice</span></button>
       <button data-view="schedule" aria-label="Schedule"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg></span><span id="scheduleNavLabel">Schedule</span></button>
@@ -234,7 +321,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
               <input id="chatSearchInput" type="search" autocomplete="off" placeholder="Search chats...">
             </div>
-            <button class="msg-filter" id="archiveToggle" type="button">Archive</button>
+            <button class="msg-filter" id="archiveToggle" type="button">Archive</button><button class="msg-filter" id="unreadToggle" type="button">Unread</button>
             <button class="msg-filter" id="blockedListBtn" type="button">Blocked</button>
             <button class="msg-newchat" id="newChatBtn" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
@@ -322,58 +409,54 @@
     </section>
 
     <section class="panel" data-panel="duel">
-      <div class="teacher-duel-shell" id="duelLaunchCard">
-        <div class="teacher-duel-hero">
-          <div class="teacher-duel-copy">
-            <span class="teacher-duel-eyebrow">DUVELA LIVE ARENA</span>
-            <h2 data-t="duelPageTitle">Practice for LIVE</h2>
-            <p data-t="duelPageLead">Run a fast 10-question duel built for TikTok LIVE: teacher controls, topic generator, A/B/C/D chat poll, join code, class-vs-bot mode and a shareable winner screen.</p>
-            <div class="teacher-duel-actions">
-              <button class="btn primary" type="button" id="duelQuickStart" data-t="duelQuickStart" title="Skip settings — reuse last-used mode, topic, levels, timer and start now">⚡ Start now</button>
-              <button class="btn" type="button" id="duelStartFromNav" data-t="duelStartFromNav">Room settings</button>
-              <button class="btn ghost" type="button" id="duelOpenPractice" data-t="duelOpenPractice">Preview deck</button>
-            </div>
-            <!-- Learners join the teacher's room from the same screen: the
-                 code is read off the stream and typed here. -->
-            <form class="duel-join" id="duelJoinForm">
-              <label for="duelJoinCode" data-t="duelJoinLabel">Joining a teacher's duel? Enter the code</label>
-              <div class="duel-join-row">
-                <input id="duelJoinCode" name="duelJoinCode" maxlength="12" autocomplete="off"
-                       spellcheck="false" placeholder="DUEL4K7P" aria-label="Duel code">
-                <input id="duelJoinName" name="duelJoinName" maxlength="60" autocomplete="name"
-                       placeholder="Your name" aria-label="Your name">
-                <button class="btn" type="submit" id="duelJoinSubmit" data-t="duelJoinSubmit">Join</button>
-              </div>
-              <p class="duel-join-status" id="duelJoinStatus" role="status"></p>
-            </form>
-          </div>
-          <div class="teacher-duel-preview" aria-hidden="true">
-            <div class="tdp-top"><b>DUVELA</b><span><i></i> LIVE</span></div>
-            <h3>LANGUAGE DUEL</h3>
-            <div class="tdp-score"><strong>D</strong><b>2</b><em>VS</em><b>3</b><strong>🤖</strong></div>
-            <div class="tdp-question">Ich gehe ___ Schule.</div>
-            <div class="tdp-answers">
-              <span><b>A</b> zur</span>
-              <span><b>B</b> zum</span>
-              <span><b>C</b> im</span>
-              <span><b>D</b> am</span>
-            </div>
-          </div>
+      <div class="arena-page" id="duelLaunchCard">
+        <header class="arena-header">
+          <div><span class="arena-eyebrow">DUVELA / INTERACTIVE LEARNING</span><h2>LIVE Arena</h2><p>Создавайте языковые дуэли, управляйте комнатой и показывайте прогресс ученикам.</p></div>
+          <div class="arena-header-actions"><button class="btn primary" type="button" id="duelStartFromNav">+ Создать дуэль</button><button class="btn" type="button" id="duelQuickStart">⚡ Быстрый запуск</button><button class="btn ghost" type="button" id="duelOpenPractice">Просмотр колоды</button></div>
+        </header>
+
+        <div class="arena-stats" aria-label="Статистика LIVE Arena">
+          <article><span class="arena-stat-icon">⚔</span><b>—</b><small>Дуэли</small><em>Реальные записи появятся после первой комнаты</em></article>
+          <article><span class="arena-stat-icon green">◎</span><b>—</b><small>Участники</small><em>Синхронизация из комнат</em></article>
+          <article><span class="arena-stat-icon gold">♛</span><b>—</b><small>Победы</small><em>Подтверждённые результаты</em></article>
+          <article><span class="arena-stat-icon blue">◷</span><b>—</b><small>Вопросов сыграно</small><em>Без расчётных значений</em></article>
         </div>
-        <div class="teacher-duel-metrics">
-          <span><b>CTRL</b><small>Teacher control panel</small></span>
-          <span><b>POLL</b><small>A/B/C/D chat votes</small></span>
-          <span><b>TEAM</b><small>Class vs Bot modes</small></span>
-          <span><b>CODE</b><small>Student join code</small></span>
+
+        <div class="arena-grid">
+          <section class="arena-card arena-create-card">
+            <div class="arena-card-head"><div><span class="arena-kicker">УПРАВЛЕНИЕ УЧИТЕЛЯ</span><h3>Создать языковую дуэль</h3><p>Выберите уровень, тему и формат. Настройки откроются перед созданием комнаты.</p></div><span class="arena-card-mark">✦</span></div>
+            <div class="arena-mode-grid"><button type="button" class="arena-mode active" data-arena-template="class"><b>👥 Класс против класса</b><small>Командная игра с участниками комнаты</small></button><button type="button" class="arena-mode" data-arena-template="bot"><b>🤖 Класс против Duvela Bot</b><small>Тренировка с автоматическим соперником</small></button></div>
+            <button class="btn primary arena-create-action" type="button" data-arena-create>Открыть настройки комнаты <span>→</span></button>
+          </section>
+
+          <aside class="arena-side-stack">
+            <section class="arena-card arena-join-card"><div class="arena-card-head compact"><div><span class="arena-kicker">ВХОД В КОМНАТУ</span><h3>Войти по коду</h3></div><span class="arena-card-mark">⌁</span></div><p>Ученики могут подключиться к комнате учителя с телефона.</p><form class="duel-join" id="duelJoinForm"><div class="duel-join-row"><input id="duelJoinCode" name="duelJoinCode" maxlength="12" autocomplete="off" spellcheck="false" placeholder="DUEL4K7P" aria-label="Код комнаты"><input id="duelJoinName" name="duelJoinName" maxlength="60" autocomplete="name" placeholder="Ваше имя" aria-label="Ваше имя"><button class="btn" type="submit" id="duelJoinSubmit">Войти</button></div><p class="duel-join-status" id="duelJoinStatus" role="status"></p></form></section>
+            <section class="arena-card arena-recent-card"><div class="arena-card-head compact"><div><span class="arena-kicker">ПОСЛЕДНИЕ ДУЭЛИ</span><h3>Последние дуэли</h3></div><span class="arena-card-mark">↗</span></div><div class="arena-empty"><span>◌</span><b>Пока нет завершённых дуэлей</b><small>Результаты появятся после подтверждённой игры.</small></div></section>
+          </aside>
         </div>
-        <div class="teacher-duel-flow">
-          <span><b>1</b> Pick level/topic</span>
-          <span><b>2</b> Поделитесь кодом входа</span>
-          <span><b>3</b> Run chat poll</span>
-          <span><b>4</b> Show winner screen</span>
+
+        <section class="arena-card arena-steps"><div><span>1</span><b>Setup</b><small>Язык, CEFR и тема</small></div><i>→</i><div><span>2</span><b>Room</b><small>Код и участники</small></div><i>→</i><div><span>3</span><b>LIVE Game</b><small>Вопросы и таймер</small></div><i>→</i><div><span>4</span><b>Results</b><small>Счёт и победитель</small></div></section>
+      </div>
+    </section>
+
+    <section class="panel settings-panel" data-panel="settings">
+      <div class="settings-page">
+        <div class="settings-header"><div><span class="settings-eyebrow">DUVELA ACCOUNT</span><h1>Settings</h1><p>Manage your public presence, language, privacy and account preferences.</p></div></div>
+        <div class="settings-grid">
+          <div class="settings-main">
+            <section class="settings-card" id="settingsPublicProfile"><div class="settings-loading">Loading public profile settings…</div></section>
+            <section class="settings-card"><div class="settings-card-head"><div><span class="settings-icon">◎</span><h2>Preferences</h2><p>Choose how Duvela works for you on this device.</p></div></div><div class="settings-preference-row"><div><b>Interface language</b><small>Applies across Duvela Academy Bus and Hub.</small></div><select id="settingsLangSelect" class="role-select"></select></div><div class="settings-preference-row"><div><b>Notifications</b><small>Lesson reminders and account updates.</small></div><span class="settings-status">Managed by your account</span></div></section>
+            <section class="settings-card"><div class="settings-card-head"><div><span class="settings-icon">◐</span><h2>Appearance</h2><p>Choose how the workspace looks on this device.</p></div></div><div class="settings-choice-row"><b>Theme</b><div class="settings-segment" role="group" aria-label="Theme"><button type="button" data-settings-theme="light">☀ Light</button><button type="button" data-settings-theme="dark">◐ Dark</button></div></div></section>
+            <section class="settings-card"><div class="settings-card-head"><div><span class="settings-icon">◌</span><h2>Notifications</h2><p>These settings are saved to your Duvela account.</p></div></div><div class="settings-toggle-row"><div><b>Push notifications</b><small>Important workspace and message updates.</small></div><input type="checkbox" data-account-setting="push_notifications_enabled" checked></div><div class="settings-toggle-row"><div><b>Email notifications</b><small>Account and teaching activity by email.</small></div><input type="checkbox" data-account-setting="email_notifications_enabled" checked></div><div class="settings-toggle-row"><div><b>Lesson reminders</b><small>Reminders before scheduled lessons.</small></div><input type="checkbox" data-account-setting="lesson_reminders_enabled" checked></div><p class="settings-inline-status" data-settings-status role="status"></p></section>
+            <section class="settings-card"><div class="settings-card-head"><div><span class="settings-icon">◇</span><h2>Account &amp; tools</h2><p>Shortcuts available for your Duvela account.</p></div></div><div class="settings-link-list"><button type="button" data-settings-action="invite">Invite friends <span>›</span></button><button type="button" data-settings-action="wallet"><span data-wallet-settings-label>Duvela Wallet</span> <span>›</span></button></div></section>
+          </div>
+          <aside class="settings-side"><section class="settings-card"><span class="settings-icon">♙</span><h2>Account</h2><p>Your profile details and sign-in options stay in Profile.</p><button type="button" class="btn" data-settings-edit>Редактировать профиль</button><button type="button" class="btn ghost" data-settings-profile>Открыть профиль</button><button type="button" class="btn ghost" data-settings-delete>Удалить аккаунт</button><button type="button" class="btn ghost" data-settings-signout>Sign out</button></section><section class="settings-card"><span class="settings-icon">?</span><h2>Help &amp; Support</h2><p>Need help with your workspace or privacy settings?</p><div class="settings-support-links"><a href="mailto:info@duvela.de?subject=Duvela%20Support">Contact support</a><a href="./legal.html?doc=terms" target="_blank" rel="noopener">Terms of use</a><a href="./legal.html?doc=privacy" target="_blank" rel="noopener">Privacy policy</a></div></section></aside>
         </div>
       </div>
     </section>
+
+    <section class="panel bus-only" data-panel="earnings"><div id="earningsView"></div></section>
+    <section class="panel" data-panel="wallet"><div id="learnerWalletView"></div></section>
 
     <section class="panel" data-panel="profile">
       <div id="profileView" class="pv-wrap" hidden></div>
@@ -409,8 +492,8 @@
             <div class="field"><label data-t="city">City</label><input id="pfCity" maxlength="80"></div>
             <div class="field"><label data-t="country">Country</label><input id="pfCountry" maxlength="80"></div>
             <div class="field"><label id="pfNativeLanguageLabel">Native language</label><input id="pfLanguage" maxlength="60"></div>
-            <div class="field"><label data-t="level">Language level</label><select id="pfLevel" class="role-select"><option value="">Select level</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
-            <div class="field" id="pfGoalField"><label id="pfGoalLabel">Student Goal</label><select id="pfGoal" class="role-select"><option value="">Select goal</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></div>
+            <div class="field"><label data-t="level">Language level</label><select id="pfLevel" class="role-select"><option value="">Select level</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option></select></div>
+            <div class="field" id="pfGoalField"><label id="pfGoalLabel">Student Goal</label><select id="pfGoal" class="role-select"><option value="">Select goal</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option></select></div>
             <input id="pfAvatar" type="hidden">
           </div>
           </div>
@@ -463,7 +546,7 @@
 
 <div class="overlay" id="newChatOverlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="newChatTitle">
   <div class="overlay-card">
-    <div class="overlay-head"><h2 id="newChatTitle" data-t="startNewChat">Start a new chat</h2><button type="button" id="newChatClose" aria-label="Close">✕</button></div>
+    <div class="overlay-head"><h2 id="newChatTitle" data-t="startNewChat">Start a new chat</h2><div style="display:flex;align-items:center;gap:8px"><button type="button" id="groupModeBtn" class="btn">Create group</button><button type="button" id="newChatClose" aria-label="Close">✕</button></div></div>
     <div class="overlay-body">
       <label style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;margin-bottom:10px"><input type="checkbox" id="groupToggle"> <span id="groupToggleLabel">Group chat</span></label>
       <input class="search" id="groupTitle" placeholder="Group name" style="display:none" autocomplete="off">
@@ -599,52 +682,66 @@
 <script src="./web/app-i18n.js?v=20260805-i18n2"></script>
 <script src="./web/app-management-i18n.js?v=20260805-management-i18n1"></script>
 <script src="./web/app-messages-i18n.js?v=20260805-messages-i18n1"></script>
-<script src="./web/app-student-goal.js?v=20260815-goal1"></script>
+<script src="./web/app-student-goal.js?v=20261020-levels1"></script>
 <script src="./web/duvela-web-roles.js?v=20260815-role5"></script>
 <script src="./web/duvela-web-ui.js"></script>
 <script src="./web/duvela-web-profile-writes.js?v=20260814-role1"></script>
 <script src="./web/app-store.js"></script>
-<script src="./web/app-router.js?v=20260904-nav-duel3"></script>
-<script src="./web/app-bootstrap.js?v=20260914-sidebar-actions1"></script>
+<script src="./web/app-router.js?v=20261021-student-wallet2"></script>
+<script src="./web/app-bootstrap.js?v=20261023-courses5"></script>
 <script src="./web/app-role-access.js?v=20260814-role3"></script>
 <script src="./web/app-static-ui.js"></script>
 <script src="./web/app-public-data.js"></script>
 <script src="./web/app-feature-media.js?v=20260722-3"></script>
-<script src="./web/app-feature-media-platform.js?v=20260913-media-analytics1"></script>
-<script src="./web/app-feature-profile.js?v=20260815-goal1"></script>
-<script src="./web/app-feature-leaderboard.js?v=20260915-real-data1"></script>
+<script src="./web/app-feature-media-platform.js?v=20261022-mediahub5b"></script>
+<script src="./web/app-feature-profile.js?v=20261021-sidebar-footer1"></script>
+<script src="./web/app-feature-leaderboard.js?v=20261019-leaderboard4b"></script>
 <script src="./web/app-feature-practice-builder.js"></script>
-<script src="./web/app-feature-workspace-shell.js?v=20260913-notes-rich1"></script>
-<script src="./web/app-feature-dashboard.js?v=20260915-real-data1"></script>
+<script src="./web/app-feature-workspace-shell.js?v=20261020-profile-title1"></script>
+<script src="./web/app-feature-dashboard.js?v=20261021-learner-wallet1"></script>
 <script src="./web/app-feature-management.js?v=20260915-real-data1"></script>
 <script src="./web/app-bunny-upload.js"></script>
+<script src="./web/app-content-wizard.js?v=4.0.0"></script>
 <script src="./web/app-feature-media-studio.js?v=20260915-media-stats1"></script>
-<script src="./web/app-feature-profile-view.js?v=20260926-profile-mobile1"></script>
+<script src="./web/app-feature-profile-view.js?v=20261020-teacher-marketplace1"></script>
 <script src="./web/app-feature-business.js"></script>
 <script src="./web/app-feature-classes.js"></script>
-<script src="./web/app-feature-catalog.js?v=20260915-real-data1"></script>
-<script src="./web/app-feature-schedule.js?v=20260915-real-data1"></script>
-<script src="./web/app-feature-gamification.js?v=20260721-2"></script>
+<script src="./web/app-live-studio4.js?v=4.0.1"></script>
+<script src="./web/app-courses4.js?v=4.0.0"></script>
+<script src="./web/app-challenges4.js?v=4.0.1"></script>
+<script src="./web/app-feature-catalog.js?v=20261018-challenges4"></script>
+<script src="./web/app-courses5.js?v=20261023-courses5f"></script>
+<script src="./web/app-events5.js?v=20261023-events5"></script>
+<script src="./web/app-feature-schedule.js?v=20261019-schedule4"></script>
+<script src="./web/app-feature-gamification.js?v=20261021-student-wallet2"></script>
 <script src="./web/app-feature-search.js"></script>
 <script src="./web/app-chat-e2ee.js"></script>
 <script src="./web/app-feature-messages.js?v=20260913-messages1"></script>
 <script src="./web/app-feature-notifications.js"></script>
-<script src="./web/app-feature-practice.js?v=20260730practice1"></script>
+<script src="./web/app-feature-practice.js?v=20261020-elsa-ai2"></script>
 <script src="./web/duel-room.js?v=20260905-duel-fair"></script>
 <script src="./web/duel-live-fx.js?v=20260905-duel-p2"></script>
 <script src="./web/duel-player.js?v=20260905-duel-handoff-icon"></script>
+<script src="./web/content/reading-lab-bank.js?v=20261022-reading6"></script>
+<script src="./web/content/german-grammar-mobile-bank.js?v=20261023-grammar-aktiv1"></script>
+<script src="./web/content/mobile-article-bank.js?v=20261023-articles-mobile1"></script>
 <script src="./web/app-feature-practice-extras.js?v=20261023-extras1"></script>
-<script src="./web/app-feature-study.js?v=20261023-extras1"></script>
-<script src="./web/app-feature-elsa-exam.js?v=20261023-elsa-notes"></script>
+<script src="./web/app-feature-study.js?v=20261025-mistake-center"></script>
+<script src="./web/app-feature-elsa-exam.js?v=20261023-elsa-exam63"></script>
 <script src="./web/app-feature-games.js"></script>
 <script src="./web/app-onboarding-data.js?v=20260728organization3"></script>
-<script src="./web/app-onboarding.js?v=20260815-nofocus"></script>
+<script src="./web/app-onboarding.js?v=4.5.0"></script>
 <script src="./web/app-onboarding-location.js?v=20260805ioslocation2"></script>
 <script src="./web/app-remove-age-confirmation.js"></script>
-<script src="./web/app-page.js?v=20260914-sidebar-avatar1"></script>
-<script src="./web/duvi-assistant.js?v=20260816duvinew2"></script>
+<link rel="stylesheet" href="./web/app-earnings4.css?v=4.0.0"><script src="./web/app-page.js?v=20261021-student-wallet2"></script>
+<script src="./web/duvi-assistant.js?v=20261022-relative-assets"></script>
 <script src="./web/inline/app-2.js"></script>
 <script src="./web/inline/app-3.js"></script>
 <script src="./web/cookie-consent.js?v=20260906-consent1"></script>
 </body>
 </html>
+
+
+
+
+

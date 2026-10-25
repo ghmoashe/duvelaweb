@@ -14,6 +14,9 @@
     const rowScore = (row) => GOALS.reduce((sum, goal) => sum + Number(row[goal[1]] || 0), 0);
     const targetScore = (challenge) => GOALS.reduce((sum, goal) => sum + Number(challenge[goal[0]] || 0), 0);
     const dayComplete = (challenge, row) => GOALS.every((goal) => !Number(challenge[goal[0]]) || Number(row[goal[1]] || 0) >= Number(challenge[goal[0]]));
+    let premiumChallenges = null;
+    let walletBalance = null;
+    let walletLoadError = '';
 
     function statsFor(challenge, rows) {
       const finish = challenge.ends_at && new Date(challenge.ends_at) < new Date() ? challenge.ends_at : day();
@@ -29,14 +32,27 @@
     }
 
     async function loadWallet() {
+      walletLoadError = '';
       try {
-        const { data } = await supa.from('coin_transactions').select('amount,balance_after,source,label,created_at').eq('user_id', ctx.user.id).order('created_at', { ascending: false }).limit(8);
-        state.walletTx = data || [];
-      } catch (error) { console.warn('wallet load failed', error); }
+        const [balanceResult, transactionsResult] = await Promise.all([
+          supa.rpc('get_my_coin_balance'),
+          supa.from('coin_transactions').select('amount,balance_after,source,label,created_at').eq('user_id', ctx.user.id).order('created_at', { ascending: false }).limit(20)
+        ]);
+        if (balanceResult.error) throw balanceResult.error;
+        if (transactionsResult.error) throw transactionsResult.error;
+        walletBalance = typeof balanceResult.data === 'number' ? balanceResult.data : Number(ctx.profile?.vela_coin_balance || 0);
+        state.walletTx = transactionsResult.data || [];
+      } catch (error) {
+        walletLoadError = error?.message || tr('Wallet data is unavailable.', 'Данные кошелька недоступны.');
+        walletBalance = Number(ctx.profile?.vela_coin_balance || 0);
+        state.walletTx = [];
+        console.warn('wallet load failed', error);
+      }
+      renderWalletPage();
     }
 
     function walletHtml() {
-      const balance = (ctx.profile?.vela_coin_balance ?? 0).toLocaleString();
+      const balance = Number(walletBalance ?? ctx.profile?.vela_coin_balance ?? 0).toLocaleString();
       const rows = state.walletTx.length ? state.walletTx.map((item) => {
         const amount = Number(item.amount || 0);
         return '<div class="rank-row" style="grid-template-columns:minmax(0,1fr) auto"><div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(item.label || item.source || tr('Transaction', 'Операция')) + '<div style="color:var(--muted);font-size:11px">' + esc(timeAgo(item.created_at)) + '</div></div><div style="font-weight:900;color:' + (amount >= 0 ? 'var(--teal)' : 'var(--red)') + '">' + (amount >= 0 ? '+' : '') + amount + '</div></div>';
@@ -44,12 +60,49 @@
       return '<div class="section-head" style="margin-top:16px"><h2>' + esc(tr('Duvela Coins', 'Монеты Duvela')) + '</h2><span>' + balance + '</span></div>' + rows + '<p style="color:var(--muted);font-size:12px;font-weight:700;margin-top:10px">' + esc(tr('Buying coins is available in the Duvela mobile app.', 'Покупка монет доступна в мобильном приложении Duvela.')) + '</p>';
     }
 
+    function renderWalletPage() {
+      const host = document.getElementById('learnerWalletView');
+      if (!host || (typeof ctx.isBusiness === 'function' && ctx.isBusiness())) return;
+      const balance = Number(walletBalance ?? ctx.profile?.vela_coin_balance ?? 0).toLocaleString();
+      const activity = walletLoadError
+        ? '<div class="student-wallet-state error"><b>' + esc(tr('Could not load wallet activity', 'Не удалось загрузить операции')) + '</b><span>' + esc(walletLoadError) + '</span></div>'
+        : state.walletTx.length
+          ? state.walletTx.map((item) => {
+              const amount = Number(item.amount || 0);
+              return '<div class="student-wallet-transaction"><div><b>' + esc(item.label || item.source || tr('Coin transaction', 'Операция с монетами')) + '</b><span>' + esc(timeAgo(item.created_at)) + '</span></div><strong class="' + (amount >= 0 ? 'positive' : 'negative') + '">' + (amount >= 0 ? '+' : '') + amount + ' DC</strong></div>';
+            }).join('')
+          : '<div class="student-wallet-state"><b>' + esc(tr('No coin activity yet', 'Операций с монетами пока нет')) + '</b><span>' + esc(tr('Purchases and LIVE gifts will appear here.', 'Пополнения и подарки в LIVE появятся здесь.')) + '</span></div>';
+      host.innerHTML =
+        '<div class="student-wallet">' +
+          '<section class="student-wallet-hero"><div><span class="student-wallet-kicker">DUVELA HUB · WALLET</span><h2>' + esc(tr('Duvela Wallet', 'Кошелёк Duvela')) + '</h2><p>' + esc(tr('Buy Duvela Coins and use them to send gifts to teachers during LIVE lessons.', 'Покупайте Duvela Coins и отправляйте подарки учителям во время LIVE-уроков.')) + '</p></div><button class="student-wallet-refresh" type="button" data-wallet-refresh aria-label="' + esc(tr('Refresh wallet', 'Обновить кошелёк')) + '">↻</button></section>' +
+          '<div class="student-wallet-grid"><main>' +
+            '<section class="student-wallet-balance"><span>' + esc(tr('Available balance', 'Доступный баланс')) + '</span><strong>' + balance + ' <small>DC</small></strong><p>' + esc(tr('Your confirmed server balance.', 'Подтверждённый сервером баланс.')) + '</p></section>' +
+            '<section class="student-wallet-card"><div class="student-wallet-card-head"><div><span class="student-wallet-icon">＋</span><div><h3>' + esc(tr('Buy Duvela Coins', 'Купить Duvela Coins')) + '</h3><p>' + esc(tr('Top up your wallet before sending a gift.', 'Пополните кошелёк перед отправкой подарка.')) + '</p></div></div><span class="student-wallet-status">' + esc(tr('Mobile app', 'Мобильное приложение')) + '</span></div><div class="student-wallet-notice"><b>' + esc(tr('Purchase in the Duvela mobile app', 'Покупка в мобильном приложении Duvela')) + '</b><p>' + esc(tr('Web checkout for DC is not connected yet. Your purchased balance will appear here automatically after the mobile payment is confirmed.', 'Веб-оплата DC пока не подключена. После подтверждения покупки в мобильном приложении баланс автоматически появится здесь.')) + '</p><button class="btn" type="button" data-wallet-buy>' + esc(tr('Buy DC in mobile app', 'Купить DC в приложении')) + '</button></div></section>' +
+            '<section class="student-wallet-card"><div class="student-wallet-card-head"><div><span class="student-wallet-icon">↗</span><div><h3>' + esc(tr('Coin activity', 'История монет')) + '</h3><p>' + esc(tr('Confirmed purchases, rewards and gifts.', 'Подтверждённые покупки, награды и подарки.')) + '</p></div></div></div><div class="student-wallet-activity">' + activity + '</div></section>' +
+          '</main><aside>' +
+            '<section class="student-wallet-card student-wallet-gift"><span class="student-wallet-icon">♡</span><h3>' + esc(tr('Send a gift to a teacher', 'Подарить учителю')) + '</h3><p>' + esc(tr('Open a LIVE lesson, choose a gift and confirm it. DC is deducted only after the server accepts the transaction.', 'Откройте LIVE-урок, выберите подарок и подтвердите его. DC списываются только после подтверждения сервером.')) + '</p><button class="btn primary" type="button" data-wallet-live>' + esc(tr('Go to LIVE', 'Перейти в LIVE')) + ' →</button></section>' +
+            '<section class="student-wallet-card student-wallet-rules"><h3>' + esc(tr('How DC works', 'Как работают DC')) + '</h3><ul><li>' + esc(tr('DC is an internal coin, not EUR or USD.', 'DC — внутренняя монета, не EUR и не USD.')) + '</li><li>' + esc(tr('Balance and gift payments are verified by the server.', 'Баланс и оплата подарков подтверждаются сервером.')) + '</li><li>' + esc(tr('Every confirmed change appears in coin activity.', 'Каждое подтверждённое изменение появляется в истории.')) + '</li></ul></section>' +
+          '</aside></div>' +
+        '</div>';
+      host.querySelector('[data-wallet-refresh]')?.addEventListener('click', async (event) => {
+        event.currentTarget.disabled = true;
+        await loadWallet();
+      });
+      host.querySelector('[data-wallet-buy]')?.addEventListener('click', () => {
+        const mobileUrl = window.DuvelaWebConfig?.mobileAppUrl;
+        if (mobileUrl) { window.open(mobileUrl, '_blank', 'noopener'); return; }
+        alert(tr('Open the Duvela mobile app and choose Wallet → Buy DC. Web checkout will be added after the payment backend is connected.', 'Откройте мобильное приложение Duvela и выберите «Кошелёк → Купить DC». Веб-оплата появится после подключения платёжного сервера.'));
+      });
+      host.querySelector('[data-wallet-live]')?.addEventListener('click', () => ctx.setView ? ctx.setView('live') : (window.location.hash = '#live'));
+    }
+
     async function loadChallenges() {
       try {
-        const { data } = await supa.from('challenges').select('id,title,target_level,exam_type,started_at,ends_at,daily_min_dialogs,daily_min_words,daily_min_writing,daily_min_listening_min,daily_min_live_min,cover_url').order('created_at', { ascending: false }).limit(20);
+        const { data } = await supa.from('challenges').select('id,title,target_level,exam_type,started_at,ends_at,daily_min_dialogs,daily_min_words,daily_min_writing,daily_min_listening_min,daily_min_live_min,cover_url,created_by,organization_id,created_at').order('created_at', { ascending: false }).limit(20);
         state.challenges = data || [];
         const { data: mine } = await supa.from('challenge_participants').select('challenge_id').eq('user_id', ctx.user.id);
         state.myChallengeIds = new Set((mine || []).map((item) => String(item.challenge_id)));
+        if (premiumChallenges) premiumChallenges.render();
       } catch (error) { console.warn('challenges load failed', error); }
     }
 
@@ -66,11 +119,17 @@
           '<div class="challenge-catalog-cover">' + (challenge.cover_url ? '<img src="' + esc(challenge.cover_url) + '" alt="">' : '<span>♕</span>') + '<b>' + esc(joined ? tr('Joined', 'Участвую') : tr('Challenge', 'Челлендж')) + '</b></div>' +
           '<div class="challenge-catalog-body"><span class="catalog-eyebrow">' + esc(challenge.exam_type || tr('Daily practice', 'Ежедневная практика')) + '</span><h3>' + esc(challenge.title) + '</h3><p>' + esc(challenge.ends_at ? tr('Complete the daily goals until ', 'Выполняйте ежедневные цели до ') + formatDate(challenge.ends_at) : tr('Complete daily goals and keep your streak.', 'Выполняйте ежедневные цели и сохраняйте серию.')) + '</p>' +
           '<div class="challenge-catalog-tags"><span>' + esc(challenge.target_level || tr('Any level', 'Любой уровень')) + '</span>' + goals.map((goal) => '<span>' + esc(goal) + '</span>').join('') + '</div>' +
-          '<div class="challenge-catalog-foot"><strong>XP + 🏅</strong><button class="btn ' + (joined ? '' : 'primary') + '" type="button">' + esc(joined ? tr('Continue', 'Продолжить') : tr('View challenge', 'Подробнее')) + '</button></div></div></article>';
+          '<div class="challenge-catalog-foot"><strong>' + esc(tr('Rewards planned', 'Награды запланированы')) + '</strong><button class="btn ' + (joined ? '' : 'primary') + '" type="button">' + esc(joined ? tr('Continue', 'Продолжить') : tr('View challenge', 'Подробнее')) + '</button></div></div></article>';
       }).join('') + '</div>';
     }
 
     function renderChallengesPage() {
+      const canCreatePremium = typeof ctx.isBusiness === 'function' && ctx.isBusiness() && window.DuvelaChallenges4;
+      if (canCreatePremium) {
+        if (!premiumChallenges) premiumChallenges = window.DuvelaChallenges4.create(ctx, { open: openChallenge, create: openChallengeCreate, reload: loadChallenges });
+        premiumChallenges.render();
+        return;
+      }
       const head = document.querySelector('[data-panel="challenges"] .section-head');
       const list = $('#challengeList');
       if (!list) return;
@@ -102,7 +161,7 @@
             '<p class="catalog-description">' + esc(challenge.ends_at ? tr('Complete the daily goals until ', 'Выполняйте ежедневные цели до ') + formatDate(challenge.ends_at) : tr('A clear goal that keeps learners active and visible.', 'Понятная цель, которая держит учеников в активности.')) + '</p>' +
             '<div class="catalog-facts"><span><b>◎</b>' + esc(challenge.target_level || tr('Any level', 'Любой уровень')) + '</span><span><b>□</b>' + esc(challenge.started_at ? formatDate(challenge.started_at) : tr('Start today', 'Начните сегодня')) + '</span>' + (goals[0] ? '<span><b>✓</b>' + esc(goals[0]) + '</span>' : '') + '</div>' +
             (joined ? '<div class="mg-progress"><i style="width:' + progress + '%"></i></div>' : '') +
-            '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Reward', 'Награда')) + '</small><strong>XP + 🏅</strong></div><button class="btn primary catalog-open" type="button">' + esc(joined ? tr('Continue', 'Продолжить') : tr('View challenge', 'Подробнее')) + '</button></div>' +
+            '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Gamification', 'Геймификация')) + '</small><strong>' + esc(tr('Planned', 'Запланировано')) + '</strong></div><button class="btn primary catalog-open" type="button">' + esc(joined ? tr('Continue', 'Продолжить') : tr('View challenge', 'Подробнее')) + '</button></div>' +
           '</div></article>';
       }).join('');
       list.innerHTML =
@@ -172,14 +231,13 @@
       const todayProgress = details.rows.find((row) => day(row.day) === day()) || {};
       const stats = statsFor(challenge, details.rows);
       const totalDays = daysBetween(challenge.started_at || day(), challenge.ends_at || day());
-      const rewardXp = Math.max(100, Math.min(1000, totalDays * 25));
       const status = challenge.ends_at && new Date(challenge.ends_at) < new Date() ? tr('Completed', 'Завершён') : challenge.started_at && new Date(challenge.started_at) > new Date() ? tr('Starts soon', 'Скоро начнётся') : tr('Active', 'Активный');
       const reminder = localStorage.getItem(reminderKey(id)) === '1';
       body.innerHTML =
         (challenge.cover_url ? '<img src="' + esc(challenge.cover_url) + '" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:18px;margin-bottom:14px">' : '') +
         '<div style="display:flex;gap:7px;flex-wrap:wrap"><span class="tag teal">' + esc(status) + '</span><span class="tag">' + esc(challenge.target_level || tr('Any level', 'Любой уровень')) + '</span><span class="tag">' + esc(challenge.exam_type || tr('General language', 'Общий язык')) + '</span></div>' +
         '<p style="font-weight:700;color:var(--soft);margin:12px 0">' + esc(tr('Complete daily goals, keep your streak and reach the finish together with other learners.', 'Выполняйте ежедневные задания, сохраняйте серию и дойдите до финиша вместе с другими учениками.')) + '</p>' +
-        '<div class="form-grid"><div class="card"><b>' + esc(formatDate(challenge.started_at || day())) + '</b><p>' + esc(tr('Start', 'Начало')) + '</p></div><div class="card"><b>' + esc(formatDate(challenge.ends_at || day())) + '</b><p>' + esc(tr('Finish', 'Завершение')) + '</p></div><div class="card"><b>' + details.participants.length + '</b><p>' + esc(tr('Participants', 'Участники')) + '</p></div><div class="card"><b>+' + rewardXp + ' XP · 🏅</b><p>' + esc(tr('Completion reward', 'Награда за завершение')) + '</p></div></div>' +
+        '<div class="form-grid"><div class="card"><b>' + esc(formatDate(challenge.started_at || day())) + '</b><p>' + esc(tr('Start', 'Начало')) + '</p></div><div class="card"><b>' + esc(formatDate(challenge.ends_at || day())) + '</b><p>' + esc(tr('Finish', 'Завершение')) + '</p></div><div class="card"><b>' + details.participants.length + '</b><p>' + esc(tr('Participants', 'Участники')) + '</p></div><div class="card"><b>' + esc(tr('Planned', 'Запланировано')) + '</b><p>' + esc(tr('XP, badges and certificates', 'XP, значки и сертификаты')) + '</p></div></div>' +
         (joined ? '<div class="card" style="margin:12px 0"><div style="display:flex;justify-content:space-between"><b>' + esc(tr('Overall progress', 'Общий прогресс')) + '</b><b>' + stats.percent + '%</b></div><div style="height:10px;background:var(--purple-soft);border-radius:99px;overflow:hidden;margin:9px 0"><span style="display:block;width:' + stats.percent + '%;height:100%;background:linear-gradient(90deg,var(--purple),#c52bd8)"></span></div><small>🔥 ' + stats.streak + ' ' + esc(tr('day streak', 'дней подряд')) + ' · ✓ ' + stats.completed + '/' + stats.elapsed + ' ' + esc(tr('days completed', 'дней выполнено')) + '</small></div>' : '') +
         '<div style="margin:10px 0;display:flex;gap:6px;flex-wrap:wrap">' + GOALS.filter((goal) => Number(challenge[goal[0]]) > 0).map((goal) => '<span class="tag">' + esc(tr(goal[2][0], goal[2][1])) + ': ' + challenge[goal[0]] + '</span>').join('') + '</div>' +
         (joined ? '<h3 style="font-size:15px;margin:14px 0 7px">' + esc(tr("Today's tasks", 'Задания на сегодня')) + '</h3><div class="form-grid">' + GOALS.filter((goal) => Number(challenge[goal[0]]) > 0).map((goal) => '<div class="field"><label>' + esc(tr(goal[2][0], goal[2][1])) + ' / ' + challenge[goal[0]] + '</label><input id="cg-' + goal[1] + '" type="number" min="0" value="' + Number(todayProgress[goal[1]] || 0) + '"></div>').join('') + '</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn primary" data-save-challenge="' + esc(id) + '">' + esc(tr('Save progress', 'Сохранить прогресс')) + '</button><button class="btn" id="challengeReminder">' + esc(reminder ? tr('Reminder on', 'Напоминание включено') : tr('Remind me', 'Напомнить мне')) + '</button></div>' : '<button class="btn primary" data-join-challenge="' + esc(id) + '" style="margin-top:8px">' + esc(tr('Join challenge', 'Участвовать')) + '</button>') +
@@ -215,7 +273,7 @@
     function openChallengeCreate() {
       if (!state.myOrg) { alert(tr('Create an organization first.', 'Сначала создайте организацию.')); return; }
       $('#challengeOverlayTitle').textContent = tr('New challenge', 'Новый челлендж');
-      $('#challengeOverlayBody').innerHTML = '<form id="chCreateForm"><div class="field"><label>' + esc(tr('Title', 'Название')) + '</label><input id="chTitle" maxlength="140" required></div><div class="form-grid"><div class="field"><label>' + esc(tr('Target level', 'Целевой уровень')) + '</label><input id="chLevel" placeholder="B1" maxlength="10"></div><div class="field"><label>' + esc(tr('Language / exam', 'Язык / экзамен')) + '</label><input id="chExam" maxlength="40"></div><div class="field"><label>' + esc(tr('Ends on', 'Дата окончания')) + '</label><input id="chEnds" type="date"></div><div class="field"><label>' + esc(tr('Daily dialogs', 'Диалогов в день')) + '</label><input id="chDialogs" type="number" min="0" value="0"></div><div class="field"><label>' + esc(tr('Daily words', 'Слов в день')) + '</label><input id="chWords" type="number" min="0" value="0"></div></div><button class="btn primary" type="submit" style="margin-top:10px">' + esc(tr('Create challenge', 'Создать челлендж')) + '</button></form>';
+      $('#challengeOverlayBody').innerHTML = '<form id="chCreateForm" class="ch4-create-form"><div class="ch4-form-intro"><b>' + esc(tr('Build a focused learning sprint', 'Создайте учебный спринт')) + '</b><p>' + esc(tr('Set the schedule and only the daily goals your students need.', 'Укажите сроки и только те ежедневные цели, которые нужны ученикам.')) + '</p></div><div class="field"><label>' + esc(tr('Challenge title', 'Название челленджа')) + '</label><input id="chTitle" maxlength="140" placeholder="' + esc(tr('Example: B1 Speaking Sprint', 'Например: Разговорный спринт B1')) + '" required></div><div class="form-grid"><div class="field"><label>' + esc(tr('Target level', 'Целевой уровень')) + '</label><input id="chLevel" placeholder="B1" maxlength="10"></div><div class="field"><label>' + esc(tr('Language / exam', 'Язык / экзамен')) + '</label><input id="chExam" placeholder="German · TELC" maxlength="40"></div><div class="field"><label>' + esc(tr('Starts on', 'Дата начала')) + '</label><input id="chStarts" type="date" value="' + day() + '"></div><div class="field"><label>' + esc(tr('Ends on', 'Дата окончания')) + '</label><input id="chEnds" type="date"></div></div><div class="ch4-goal-heading"><b>' + esc(tr('Daily goals', 'Ежедневные цели')) + '</b><span>' + esc(tr('Use 0 to disable a goal', '0 отключает цель')) + '</span></div><div class="form-grid ch4-goal-fields"><div class="field"><label>' + esc(tr('Dialogs', 'Диалоги')) + '</label><input id="chDialogs" type="number" min="0" value="0"></div><div class="field"><label>' + esc(tr('New words', 'Новые слова')) + '</label><input id="chWords" type="number" min="0" value="0"></div><div class="field"><label>' + esc(tr('Writing tasks', 'Письменные задания')) + '</label><input id="chWriting" type="number" min="0" value="0"></div><div class="field"><label>' + esc(tr('Listening minutes', 'Минуты аудирования')) + '</label><input id="chListening" type="number" min="0" value="0"></div><div class="field"><label>' + esc(tr('LIVE minutes', 'Минуты LIVE')) + '</label><input id="chLive" type="number" min="0" value="0"></div></div><div class="ch4-form-actions"><button class="btn primary" type="submit">' + esc(tr('Create challenge', 'Создать челлендж')) + '</button></div></form>';
       $('#challengeOverlay').classList.add('open');
       $('#chCreateForm').addEventListener('submit', createChallenge);
     }
@@ -225,7 +283,7 @@
       const title = $('#chTitle').value.trim();
       if (!title) return;
       try {
-        const { error } = await supa.from('challenges').insert({ organization_id: state.myOrg.id, created_by: ctx.user.id, title, target_level: $('#chLevel').value.trim() || null, exam_type: $('#chExam').value.trim() || null, started_at: day(), ends_at: $('#chEnds').value || null, daily_min_dialogs: Number($('#chDialogs').value) || 0, daily_min_words: Number($('#chWords').value) || 0 });
+        const { error } = await supa.from('challenges').insert({ organization_id: state.myOrg.id, created_by: ctx.user.id, title, target_level: $('#chLevel').value.trim() || null, exam_type: $('#chExam').value.trim() || null, started_at: $('#chStarts').value || day(), ends_at: $('#chEnds').value || null, daily_min_dialogs: Number($('#chDialogs').value) || 0, daily_min_words: Number($('#chWords').value) || 0, daily_min_writing: Number($('#chWriting').value) || 0, daily_min_listening_min: Number($('#chListening').value) || 0, daily_min_live_min: Number($('#chLive').value) || 0 });
         if (error) throw error;
         $('#challengeOverlay').classList.remove('open');
         await loadChallenges();
@@ -233,7 +291,7 @@
       } catch (error) { alert(error.message || tr('Could not create the challenge.', 'Не удалось создать челлендж.')); }
     }
 
-    return { challengesHtml, joinChallenge, loadChallenges, loadWallet, openChallenge, openChallengeCreate, renderChallengesPage, saveChallengeProgress, walletHtml };
+    return { challengesHtml, joinChallenge, loadChallenges, loadWallet, openChallenge, openChallengeCreate, renderChallengesPage, renderWalletPage, saveChallengeProgress, walletHtml };
   }
   window.DuvelaAppGamification = { create: createGamificationFeature };
 })();

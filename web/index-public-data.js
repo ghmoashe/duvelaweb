@@ -209,7 +209,7 @@
         <article class="tch-card-big reveal in">
           <div class="tch-card-head">
             <div class="tch-av-big" style="background:linear-gradient(135deg,#6D3FE0,#0F9F7A)">${avatar}</div>
-            <span class="tch-online" aria-label="Online"></span>
+            <span class="tch-online" role="status" aria-label="Online"></span>
           </div>
           <div class="tch-name-big">${safe(name)}</div>
           ${location ? `<div class="tch-stats-big"><span>${safe(location)}</span></div>` : ''}
@@ -255,8 +255,10 @@
   }
 
   global.addEventListener('duvela-language-change', () => load().catch(() => {}));
-  document.addEventListener('DOMContentLoaded', () => load().catch(() => {
+  const start = () => load().catch(() => {
     renderLive([]);
     renderTeachers([]);
-  }));
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
 })(window);

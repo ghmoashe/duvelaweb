@@ -55,6 +55,10 @@ function json(status: number, body: unknown) {
   });
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 function sse(eventType: string, payload: unknown) {
   return textEncoder.encode(`event: ${eventType}\ndata: ${JSON.stringify(payload)}\n\n`);
 }
@@ -681,7 +685,11 @@ function buildCoachVisibleText(
 // questions", but the model still stacks 2-3 questions, most often on the
 // opening turn ("Wie geht es dir heute? Hast du einen guten Tag? Tee oder
 // Kaffee?"). These are the modes where dropping extra questions is desired.
-const SINGLE_QUESTION_MODES = new Set(["roleplay", "conversation", "examiner"]);
+// Reply budget for practice chat turns. The JSON carries the reply plus coach fields, and
+// reasoning models spend part of the budget before writing — 320 cut replies off mid-word.
+const PRACTICE_REPLY_MAX_TOKENS = 1000;
+
+const SINGLE_QUESTION_MODES = new Set(["roleplay", "conversation", "examiner", "exam_coach"]);
 
 // Some partners restate or stack questions in one reply even with prompt rules
 // against it. For single-question modes, deterministically keep the first
@@ -989,6 +997,54 @@ function buildNativeHelpInstruction(nativeHelp: boolean, nativeLocale: string, l
   ].join(" ");
 }
 
+// Persian learners usually cannot read the script yet, and most of them study
+// it from Russian/English, so the generic "reply only in the learning
+// language" rules leave an A1 learner with text they cannot read. These rules
+// come last in the prompt and override the language rules above for Persian.
+function buildPersianLearnerInstruction(locale: string, nativeLocale: string, practiceMode: string, levelRange: string) {
+  if (getLanguageName(locale) !== "Persian") {
+    return "";
+  }
+
+  const nativeName = nativeLocale.trim() && getLanguageName(nativeLocale) !== "Persian"
+    ? getLanguageName(nativeLocale)
+    : "English";
+  const beginner = /A1|A2/i.test(levelRange);
+  const mode = practiceMode.trim().toLowerCase();
+
+  const rules = [
+    "PERSIAN LEARNER RULES (these override the language rules above):",
+    "Write all Persian in Persian script, and after every Persian sentence or phrase add its Latin transliteration in parentheses, e.g. سلام، حالت چطوره؟ (salâm, hâlet chetore?).",
+    "Transliteration: standard Tehran pronunciation; â for the long a (آ / ا), a e o for short vowels, i and u for long vowels, kh for خ, gh for غ and ق, sh, ch, zh for ژ, ' for ع, and -e / -ye for ezâfe (ketâb-e man, khâne-ye bozorg).",
+    "assistant_reply and next_question contain only Persian with transliteration — they are read aloud by a Persian voice.",
+    `Put every explanation, rule and translation in ${nativeName} inside quick_correction, better_version or pronunciation_tip, never in assistant_reply.`,
+    "Always include a short meaning of your Persian sentence in " + nativeName + " in pronunciation_tip when the learner is A1-A2, e.g. «salâm = привет».",
+    "Use standard modern Iranian Persian. Teach the written form, and when the spoken Tehran form differs a lot (e.g. ast → -e, mi-ravam → miram), mention it once in " + nativeName + ".",
+    "Persian has no articles, no grammatical gender and no noun cases; never invent them. The verb goes at the end (subject – object – verb).",
+    beginner
+      ? "The learner is a beginner: use at most one or two very short Persian sentences per turn, with everyday words only."
+      : "",
+  ];
+
+  if (mode === "grammar" || mode === "grammar-speaking") {
+    rules.push(
+      "As GRAMMI, teach Persian grammar step by step. Pick the next point that fits the level from: hastan / ast (to be), personal pronouns, ezâfe (noun + adjective, possession), word order SOV, plural -hâ / -ân, numbers + singular noun, present tense mi- + stem, negation ne- / na-, questions (chi, kojâ, key, chetor, cherâ), the object marker râ, simple past (past stem + ending), possessive suffixes -am -et -esh, the subjunctive be- (after khâstan, bâyad, tâ), future khâham + past stem, comparative -tar and superlative -tarin, progressive with dâshtan, imperative be-, relative clauses with ke, present perfect, conditionals with agar, the passive with shodan.",
+      "Each turn: state the point in one line in " + nativeName + " (in quick_correction), show one Persian example with transliteration, then give the learner one tiny task to answer (fill a gap, choose a form, or translate a short phrase from " + nativeName + ").",
+      "When the learner answers, say if it is right, give the correct Persian form with transliteration, and explain the rule in one line in " + nativeName + ".",
+    );
+  }
+
+  if (mode === "pronunciation") {
+    rules.push(
+      "As NOVA, coach Persian sounds: long â vs short a, kh and gh (غ / ق), the ezâfe -e / -ye linking, the trilled or tapped r, the glottal stop ' (ع, ء), long i and u, and the stress on the last syllable of most words and on the prefix mi- / na- of verbs.",
+      "When you ask the learner to repeat, put only the Persian-script phrase inside the quotation marks and the transliteration right after the closing quote, e.g. \"خیلی ممنون\" (kheyli mamnun).",
+      "Learner speech arrives as a transcript in Persian script. Compare it with the phrase you asked for and name at most one sound to fix, explained in " + nativeName + " in pronunciation_tip.",
+    );
+  }
+
+  return rules.filter(Boolean).join(" ");
+}
+
 function buildPracticeModeInstruction(practiceMode: string, practiceTopic: string) {
   const normalizedMode = practiceMode.trim().toLowerCase();
   const normalizedTopic = practiceTopic.trim();
@@ -1052,6 +1108,26 @@ function buildPracticeModeInstruction(practiceMode: string, practiceTopic: strin
         "Give the learner room to answer fully; keep your own turns short — a brief neutral acknowledgement, then the next single question.",
         "Do not interrupt to correct small mistakes; only correct when a mistake blocks understanding, and otherwise save issues for the final assessment.",
         "Grade strictly against the exact CEFR level of this exam. The final assessment must be honest — never inflate the score to be nice. For a part with a keyword card, factor into that part's score and feedback whether every keyword was actually addressed by the end of the part.",
+        "Private notes for the learner (shown as a small card under their answer, never spoken): whenever the learner has just answered, fill quick_correction with the single most important grammar or word mistake in that answer and its fix in one short line (e.g. „mit mein Freund → mit meinem Freund“), and fill better_version with a corrected, natural version of their whole answer at this exam level. Leave both empty only if the answer had no mistakes. assistant_reply itself stays the neutral examiner turn and never contains corrections.",
+        "For a monologue part (the task says to tell one connected story): do not ask about each Stichpunkt separately and do not demand point-by-point answers. If the answer was very short, ask once for more detail on the topic as a whole.",
+      ].join(" ");
+    case "exam_coach":
+      // Same exam content and part/topic structure as "examiner" (reused
+      // verbatim below), but run as a warm coach instead of a silent grader:
+      // this is the mode used when the learner taps "Keep practicing with
+      // ELSA" after already seeing their scored result for this exam, so the
+      // goal here is active in-session correction and praise, not realism.
+      return [
+        "Run the session as realistic formal mock oral exam PRACTICE (Goethe / telc / ÖSD / DTZ style) in the learning language, using the exam's real parts and topics, but as an encouraging coach, not a silent grader.",
+        topicInstruction,
+        "Stay warm, specific, and encouraging — never cold or purely neutral like a real exam, but still focused on this exam's actual tasks.",
+        "Run it part by part in order. When a new part begins, first give the learner the concrete task and any material for that part (e.g. the exact topic to present, the situation to plan together, or a picture described in words) before asking them to speak.",
+        "Only when the task text above for the CURRENT part literally contains the word 'Stichwortkarte' followed by its own list of keywords: your very first message for that part must welcome the learner and then invite them to speak about exactly those keywords, in the order given there, as ONE statement with no question mark (for instance 'Bitte erzählen Sie mir etwas zu diesen Punkten: <the keywords from that list>.'). Copy the keywords from that list verbatim — never invent, add, or reuse a different keyword list for a part whose task text has no 'Stichwortkarte'. Do not phrase it as separate questions.",
+        "If the current part's task has NO 'Stichwortkarte' in its text (most parts, including any 'gemeinsam planen', presentation, or discussion task), do not mention Name/Alter/Land/Wohnort/Sprachen/Beruf/Hobby or any other keyword card at all — open instead with the exact scenario or topic described in that part's task text.",
+        "After EVERY answer from the learner, react to their language first, before anything else: if it was correct and well-formed, give one short, genuine, specific praise (what exactly was good — word choice, a correct case, good structure) rather than a generic 'well done'. If it had a grammar, word-order, or vocabulary mistake, give the correction plus a one-line reason immediately — never stay silent on a mistake and never save it only for a later summary.",
+        "Choose specific, realistic topics and vary them every session — never reuse the same example twice.",
+        "After praising or correcting, ask ONE realistic follow-up question that a real examiner would ask for this part (for a detail, a reason, an example, or the other side of the argument) before moving to the next part.",
+        "Give the learner room to answer fully; keep your own turns short — the praise or correction, then the next single question.",
       ].join(" ");
     case "roleplay":
       return [
@@ -1296,6 +1372,7 @@ function buildInstructions(
     "The summary object, when used, must contain arrays named strengths, focus_next, new_phrases, homework.",
     "The score object, when used, must contain overall, fluency, accuracy, vocabulary, pronunciation, goal_completion, final_feedback.",
     "If a field is not needed, return an empty string or an empty array.",
+    buildPersianLearnerInstruction(locale, nativeLocale, practiceMode, levelRange),
   ].filter(Boolean).join(" ");
 }
 
@@ -1376,7 +1453,7 @@ function buildOpenAiRequestBody(input: {
       input.partnerRole ?? ""
     ),
     conversation: input.conversationId ?? undefined,
-    max_output_tokens: 320,
+    max_output_tokens: PRACTICE_REPLY_MAX_TOKENS,
     store: true,
     stream: input.stream === true ? true : undefined,
   };
@@ -1513,7 +1590,7 @@ async function createOpenAiChatCompletion(input: {
       ],
       response_format: { type: "json_object" },
       temperature: 0.35,
-      max_tokens: 320,
+      max_tokens: PRACTICE_REPLY_MAX_TOKENS,
     }),
   });
 }
@@ -1582,7 +1659,7 @@ async function createOpenAiChatCompletionStream(input: {
       ],
       response_format: { type: "json_object" },
       temperature: 0.35,
-      max_tokens: 320,
+      max_tokens: PRACTICE_REPLY_MAX_TOKENS,
       stream: true,
     }),
     signal: input.signal,
@@ -1841,6 +1918,7 @@ async function handleExamEvaluation(input: {
   const level = input.level.trim().toUpperCase() || "B1";
   const targetName = getLanguageName(input.locale || "de");
   const nativeName = getLanguageName(input.nativeLocale || "en");
+  const partLabelWord = boardKey === "oesd" || boardKey === "dtz" ? "Aufgabe" : "Teil";
 
   const prompt = [
     `You are a strict, fair ${boardName} ${level} oral examiner.`,
@@ -1853,8 +1931,8 @@ async function handleExamEvaluation(input: {
     `Write final_feedback, each improve tip, each part 'feedback' and each mistake 'note' only in ${nativeName}. Keep the mistake 'wrong' and 'correction' snippets in ${targetName}.`,
     `passed is true when the overall performance would pass a real ${boardName} ${level} oral exam (roughly overall >= 60).`,
     "band is the CEFR level the performance actually demonstrates (for example A2, B1, B2).",
-    "For 'parts': one object per exam part (Teil) that appears in the transcript, each { label (e.g. 'Teil 1'), score (0-100), feedback (one short sentence) }.",
-    "The transcript may start with a bracketed note like '[Hinweis für die Bewertung: Das gezeigte Foto zeigt tatsächlich: ...]' describing what a photo shown to the candidate actually depicted. Use it ONLY to judge whether that Teil's picture-description turn was accurate to the photo — a description that invents things not in it, or misses what is clearly there, should lower that Teil's score and say so in its feedback. Never quote, mention, or reveal the note itself anywhere in your output; the candidate never saw it.",
+    `For 'parts': one object per exam part the examiner introduced, in order, each { label, score (0-100), feedback (one short sentence) }. This board (${boardName}) labels its parts '${partLabelWord} 1', '${partLabelWord} 2', '${partLabelWord} 3', and so on — use exactly that short label for each part in order (never a full sentence, never the examiner's task description, never a board's label that doesn't match this one). Identify where each part starts by the examiner moving on to a new task, not by them saying the label aloud — they often don't. Cover every part, even if the candidate's answer to it was empty or off-topic — a missing or minimal answer still gets its own low-scored part entry, it does not get dropped from 'parts'.`,
+    "The transcript may start with a bracketed note like '[Hinweis für die Bewertung: Das gezeigte Foto zeigt tatsächlich: ...]' describing what a photo shown to the candidate actually depicted. Use it ONLY to judge whether that part's picture-description turn was accurate to the photo — a description that invents things not in it, or misses what is clearly there, should lower that part's score and say so in its feedback. Never quote, mention, or reveal the note itself anywhere in your output; the candidate never saw it.",
     "For 'mistakes': up to 5 concrete SPOKEN-language mistakes the learner actually made — wrong grammar, conjugation, word order, case, gender, or vocabulary. Do NOT include punctuation, capitalization, or sentence-boundary issues; if there are no real language mistakes, return an empty array. Each item is { wrong (their phrase), correction (the fixed phrase), note (why, one short clause) }.",
     "Return valid JSON only with keys: overall, fluency, accuracy, vocabulary, pronunciation, goal_completion, passed, band, final_feedback, improve (array of 1-3 short strings), parts (array), mistakes (array).",
     "",
@@ -2097,7 +2175,7 @@ async function handleGenerateExamModule(input: {
       questions: parseQuestions(parsed.questions),
     });
   } catch (error) {
-    return json(500, { error: getErrorMessage(error, "Could not generate the exam module.") });
+    return json(500, { error: error instanceof Error ? error.message : "Could not generate the exam module." });
   }
 }
 
@@ -2146,7 +2224,62 @@ async function handleEvaluateExamWriting(input: {
       mistakes,
     });
   } catch (error) {
-    return json(500, { error: getErrorMessage(error, "Could not grade the writing.") });
+    return json(500, { error: error instanceof Error ? error.message : "Could not grade the writing." });
+  }
+}
+
+// Writing Lab (web): formative CEFR feedback on a learner text. Free tool — not Premium-gated.
+async function handleFormativeWritingEvaluation(input: {
+  language: string;
+  level: string;
+  prompt: string;
+  text: string;
+  nativeLocale: string;
+}) {
+  const text = input.text.replace(/\s+/g, " ").trim().slice(0, 8000);
+  const task = input.prompt.replace(/\s+/g, " ").trim().slice(0, 1500);
+  if (!text) return json(400, { error: "text is required." });
+  if (!task) return json(400, { error: "prompt is required." });
+  const level = CEFR_LEVELS.includes(input.level.trim().toUpperCase() as typeof CEFR_LEVELS[number])
+    ? input.level.trim().toUpperCase()
+    : "A1";
+  const language = getLanguageName(input.language || "de");
+  const feedbackLanguage = getLanguageName(input.nativeLocale || "en");
+  const prompt = [
+    `You are a supportive CEFR ${level} writing tutor evaluating a learner's ${language} practice.`,
+    `Writing task: ${task}`,
+    `Learner text: ${text}`,
+    `Write all explanations and formative feedback in ${feedbackLanguage}. Keep quoted original and corrected phrases in ${language}.`,
+    "Judge only this task and this CEFR level. Short, simple writing can score well when it is appropriate for the level.",
+    "This is automated formative feedback, never an official exam or certification result.",
+    "Identify only errors actually present. Preserve the learner's meaning and never silently rewrite their text.",
+    "Return JSON only with keys: overall (0-100), summary, criteria { taskCompletion, grammar, vocabulary, structure } (0-100), strengths (array up to 3), corrections (array up to 8 of { original, corrected, explanation }), improvedVersion, nextStep.",
+  ].join("\n");
+  try {
+    const parsed = await callJsonModel(prompt, 1300);
+    const str = (value: unknown) => typeof value === "string" ? value.trim() : "";
+    const list = (value: unknown) => Array.isArray(value) ? value.map(str).filter(Boolean).slice(0, 3) : [];
+    const criteria = parsed.criteria && typeof parsed.criteria === "object" ? parsed.criteria as JsonRecord : {};
+    const corrections = (Array.isArray(parsed.corrections) ? parsed.corrections : []).map((item) => {
+      const row = item && typeof item === "object" ? item as JsonRecord : {};
+      return { original:str(row.original), corrected:str(row.corrected), explanation:str(row.explanation) };
+    }).filter((item) => item.original && item.corrected).slice(0, 8);
+    return json(200, { evaluation:{
+      overall:normalizeScoreValue(parsed.overall),
+      summary:str(parsed.summary),
+      criteria:{
+        taskCompletion:normalizeScoreValue(criteria.taskCompletion),
+        grammar:normalizeScoreValue(criteria.grammar),
+        vocabulary:normalizeScoreValue(criteria.vocabulary),
+        structure:normalizeScoreValue(criteria.structure),
+      },
+      strengths:list(parsed.strengths),
+      corrections,
+      improvedVersion:str(parsed.improvedVersion),
+      nextStep:str(parsed.nextStep),
+    }, model:openAiChatModel.trim() || "gpt-4.1-mini" });
+  } catch (error) {
+    return json(500, { error:getErrorMessage(error, "Could not evaluate the writing.") });
   }
 }
 
@@ -2512,6 +2645,94 @@ async function handleGermanSpeakingEvaluation(input: {
   return json(200, parseGermanSpeakingEvaluation(extractChatCompletionContent(payload), spokenText));
 }
 
+// STELLA: the learner writes or says one sentence with a given word; grade it like a
+// kind but honest teacher and always hand back a better sentence to learn from.
+async function handleWordSentenceEvaluation(input: {
+  level: string;
+  locale: string;
+  meaning: string;
+  nativeLocale: string;
+  partOfSpeech: string;
+  sentence: string;
+  word: string;
+}) {
+  const word = input.word.replace(/\s+/g, " ").trim().slice(0, 80);
+  const sentence = input.sentence.replace(/\s+/g, " ").trim().slice(0, 400);
+  if (!word || !sentence) {
+    return json(400, { error: "Word and sentence are required." });
+  }
+
+  const targetName = getLanguageName(input.locale || "de-DE");
+  const nativeName = getLanguageName(input.nativeLocale || "en");
+  const level = (input.level || "A1").toUpperCase();
+  const prompt = [
+    `You are STELLA, a warm but honest ${targetName} teacher. The learner (CEFR ${level}) was asked to write ONE sentence in ${targetName} using the word card below.`,
+    `Word card: "${word}"${input.partOfSpeech ? ` (${input.partOfSpeech})` : ""}${input.meaning ? ` — meaning: ${input.meaning}` : ""}.`,
+    `Learner sentence: "${sentence}"`,
+    "Check: (1) the word is used — any correct inflected form counts, for nouns with the right article/case; (2) grammar, word order, spelling and capitalisation; (3) the sentence makes sense and uses the word with its real meaning.",
+    `Grade for a ${level} learner: a short, correct, natural sentence deserves a high score; do not demand complex sentences at A1-A2.`,
+    "score 0-100: 90-100 correct and natural; 70-89 understandable with small mistakes; 40-69 several mistakes or the word used awkwardly; 0-39 the word is missing, the sentence is not in the learning language, or it makes no sense.",
+    "verdict: \"great\" (90+), \"good\" (70-89), \"fix\" (40-69) or \"retry\" (below 40).",
+    "uses_word: true only if the card's word (in any correct form) is in the sentence.",
+    `meaning: a short translation of the card's word into ${nativeName}.`,
+    `correction: the single most important mistake and its fix, in ${nativeName}, quoting the corrected ${targetName} words; an empty string if there is no mistake.`,
+    `better_version: one natural ${targetName} sentence with the word at about ${level} level — the corrected learner sentence, or, if it was already perfect, a slightly richer sentence with the same word to learn from.`,
+    `comment: one short, encouraging sentence from STELLA in ${nativeName} about this answer. Honest, never empty praise.`,
+    "Return valid JSON only with keys: score, verdict, uses_word, meaning, correction, better_version, comment.",
+  ].join("\n");
+
+  const response = await fetchOpenAiWithRetry("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${openAiApiKey.trim()}`,
+    },
+    body: JSON.stringify({
+      model: openAiChatModel.trim() || "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: "Return strict JSON only. Do not wrap it in markdown." },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_object" },
+      // Reasoning models spend part of this before the JSON — keep headroom.
+      max_tokens: 1200,
+    }),
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as JsonRecord;
+  if (!response.ok) {
+    return json(response.status, {
+      error: getOpenAiErrorMessage(response.status, payload, "Sentence check failed."),
+    });
+  }
+
+  return json(200, parseWordSentenceEvaluation(extractChatCompletionContent(payload)));
+}
+
+function parseWordSentenceEvaluation(text: string) {
+  let payload: JsonRecord = {};
+  try {
+    payload = JSON.parse(text) as JsonRecord;
+  } catch {
+    payload = {};
+  }
+  const readText = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+  const score = clampScore(payload.score, 0);
+  const verdicts = ["great", "good", "fix", "retry"];
+  const verdict = verdicts.includes(readText(payload.verdict))
+    ? readText(payload.verdict)
+    : score >= 90 ? "great" : score >= 70 ? "good" : score >= 40 ? "fix" : "retry";
+  return {
+    score,
+    verdict,
+    usesWord: payload.uses_word !== false,
+    meaning: readText(payload.meaning),
+    correction: readText(payload.correction),
+    betterVersion: readText(payload.better_version),
+    comment: readText(payload.comment),
+  };
+}
+
 function getAudioExtension(mimeType: string) {
   const normalized = mimeType.toLowerCase();
   if (normalized.includes("mpeg") || normalized.includes("mp3")) return "mp3";
@@ -2545,9 +2766,14 @@ function levenshtein(a: string, b: string): number {
   return previous[b.length];
 }
 
+// Languages the practice transcription endpoint accepts (ISO-639-1). Persian
+// is here because iOS has no on-device speech recognition for it.
+const PRACTICE_TRANSCRIPTION_LANGUAGES = new Set(["fa"]);
+
 async function transcribeGermanAudio(input: {
   audioBase64: string;
   mimeType: string;
+  language?: string;
 }) {
   const audioBase64 = input.audioBase64.trim();
   if (!audioBase64) {
@@ -2559,7 +2785,7 @@ async function transcribeGermanAudio(input: {
   const extension = getAudioExtension(mimeType);
   const formData = new FormData();
   formData.append("model", "gpt-4o-mini-transcribe");
-  formData.append("language", "de");
+  formData.append("language", input.language ?? "de");
   formData.append("file", new Blob([binary], { type: mimeType }), `speaking-answer.${extension}`);
 
   const response = await fetchOpenAiWithRetry("https://api.openai.com/v1/audio/transcriptions", {
@@ -2972,6 +3198,57 @@ async function withinQuota(userId: string, bucket: string, limit: number): Promi
   }
 }
 
+// Premium-only work here mirrors the Hub Practice-tab Premium cards: the AI
+// practice-partner chat (DUVELA AI) and Exam Mode. Free tools (Writing Lab,
+// word usage, sentence translate, grammar rules, pronunciation check, reading
+// and speaking evaluation) send their own practiceMode/action and stay open.
+const PREMIUM_PARTNER_MODES = new Set([
+  "daily", "topic", "conversation", "roleplay", "grammar", "grammar-speaking", "pronunciation", "interview",
+]);
+const PREMIUM_EXAM_MODES = new Set(["examiner", "exam_coach"]);
+const PREMIUM_EXAM_ACTIONS = new Set(["evaluate_exam", "generate_exam_module", "evaluate_exam_writing"]);
+
+function requiredPremiumFeatures(action: string, body: JsonRecord): string[] {
+  if (PREMIUM_EXAM_ACTIONS.has(action)) return ["exam"];
+  if (action === "suggest_replies" || action === "transcribe_practice_audio" || action === "evaluate_word_sentence") {
+    return ["duvela"];
+  }
+  if (action === "respond" || action === "stream") {
+    // Same default as the handler below: a missing mode runs the daily chat.
+    const mode =
+      typeof body.practiceMode === "string" && body.practiceMode.trim()
+        ? body.practiceMode.trim().toLowerCase()
+        : "daily";
+    if (PREMIUM_EXAM_MODES.has(mode)) return ["duvela", "exam"];
+    if (PREMIUM_PARTNER_MODES.has(mode)) return ["duvela"];
+  }
+  return [];
+}
+
+// premium_feature_active (service role): true while enforcement is off, for
+// Premium users, or within 3h of a free-trial start of one of the features.
+// Fails open like withinQuota so a counter outage never takes AI down.
+async function premiumFeatureActive(userId: string, features: string[]): Promise<boolean> {
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!url || !key) return true;
+  try {
+    const admin = createClient(url, key, { auth: { persistSession: false } });
+    const { data, error } = await admin.rpc("premium_feature_active", {
+      p_user: userId,
+      p_features: features,
+    });
+    if (error) {
+      console.error("premium_feature_active failed", error.message);
+      return true;
+    }
+    return data !== false;
+  } catch (error) {
+    console.error("premium_feature_active threw", error instanceof Error ? error.message : error);
+    return true;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     if (req.method === "OPTIONS") {
@@ -3006,10 +3283,18 @@ Deno.serve(async (req) => {
       action !== "evaluate_exam" &&
       action !== "generate_exam_module" &&
       action !== "evaluate_exam_writing" &&
+      action !== "evaluate_writing" &&
       action !== "check_pronunciation" &&
-      action !== "suggest_replies"
+      action !== "transcribe_practice_audio" &&
+      action !== "suggest_replies" &&
+      action !== "evaluate_word_sentence"
     ) {
       return json(400, { error: "Unsupported action." });
+    }
+
+    const premiumFeatures = requiredPremiumFeatures(action, body);
+    if (premiumFeatures.length && !(await premiumFeatureActive(user.id, premiumFeatures))) {
+      return json(402, { error: "Premium required.", code: "premium_required", features: premiumFeatures });
     }
 
     if (action === "suggest_replies") {
@@ -3048,6 +3333,16 @@ Deno.serve(async (req) => {
       return handleEvaluateExamWriting({
         board: typeof body.board === "string" ? body.board : "goethe",
         level: typeof body.level === "string" ? body.level : "B1",
+        prompt: typeof body.prompt === "string" ? body.prompt : "",
+        text: typeof body.text === "string" ? body.text : "",
+        nativeLocale: typeof body.nativeLocale === "string" ? body.nativeLocale : "en",
+      });
+    }
+
+    if (action === "evaluate_writing") {
+      return handleFormativeWritingEvaluation({
+        language: typeof body.language === "string" ? body.language : "de",
+        level: typeof body.level === "string" ? body.level : "A1",
         prompt: typeof body.prompt === "string" ? body.prompt : "",
         text: typeof body.text === "string" ? body.text : "",
         nativeLocale: typeof body.nativeLocale === "string" ? body.nativeLocale : "en",
@@ -3110,6 +3405,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "evaluate_word_sentence") {
+      return handleWordSentenceEvaluation({
+        level: typeof body.level === "string" ? body.level : "A1",
+        locale: typeof body.locale === "string" ? body.locale : "de-DE",
+        meaning: typeof body.meaning === "string" ? body.meaning : "",
+        nativeLocale: typeof body.nativeLocale === "string" ? body.nativeLocale : "en",
+        partOfSpeech: typeof body.partOfSpeech === "string" ? body.partOfSpeech : "",
+        sentence: typeof body.sentence === "string" ? body.sentence : "",
+        word: typeof body.word === "string" ? body.word : "",
+      });
+    }
+
     if (action === "evaluate_german_speaking_audio") {
       return handleGermanSpeakingAudioEvaluation({
         audioBase64: typeof body.audioBase64 === "string" ? body.audioBase64 : "",
@@ -3119,6 +3426,26 @@ Deno.serve(async (req) => {
         prompt: typeof body.prompt === "string" ? body.prompt : "",
         scenario: typeof body.scenario === "string" ? body.scenario : "",
       });
+    }
+
+    if (action === "transcribe_practice_audio") {
+      const audioBase64 = typeof body.audioBase64 === "string" ? body.audioBase64 : "";
+      const mimeType = typeof body.mimeType === "string" ? body.mimeType : "audio/m4a";
+      const language = typeof body.language === "string" ? body.language.trim().toLowerCase() : "";
+      if (!audioBase64 || !PRACTICE_TRANSCRIPTION_LANGUAGES.has(language)) {
+        return json(400, { error: "audioBase64 and a supported language are required." });
+      }
+      if (audioBase64.length > 8_000_000) {
+        return json(413, { error: "Recording is too long." });
+      }
+      try {
+        const transcript = await transcribeGermanAudio({ audioBase64, mimeType, language });
+        return json(200, { transcript });
+      } catch (error) {
+        return json(500, {
+          error: error instanceof Error ? error.message : "Transcription failed.",
+        });
+      }
     }
 
     if (action === "check_pronunciation") {

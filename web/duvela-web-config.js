@@ -17,6 +17,9 @@
     bunnyCdnHostname: 'vz-5ae2a0b6-259.b-cdn.net',
     supabaseUrl: runtimeConfig.supabaseUrl || 'https://ohtkryanqcnwghcnipsr.supabase.co',
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9odGtyeWFucWNud2doY25pcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjA1NDEsImV4cCI6MjA4NjM5NjU0MX0.YjPRrv4grr-17PaWqCwwR464rxMJRYI7BDvjMi9gdnU',
+    // Optional deployment-provided HTTPS origin for student invitations.
+    // Empty on local development so localhost can never leak into a QR code.
+    publicAppUrl: String(runtimeConfig.publicAppUrl || '').replace(/\/+$/, ''),
     publicReadApiUrl: String(runtimeConfig.securityReadV2 === true
       ? (runtimeConfig.securityReadV2PublicReadApiUrl || '')
       : (runtimeConfig.publicReadApiUrl || localBackendApiUrl || '')).replace(/\/+$/, ''),

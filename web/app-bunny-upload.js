@@ -54,9 +54,15 @@
     return new URL(location, create.tusEndpoint).toString();
   }
 
-  function tusPatch(create, uploadUrl, file, onProgress) {
+  function tusPatch(create, uploadUrl, file, onProgress, signal) {
     return new Promise(function (resolve, reject) {
       var xhr = new XMLHttpRequest();
+      var cancelled = false;
+      var cancel = function () { cancelled = true; try { xhr.abort(); } catch (_) {} reject(new Error('Upload cancelled.')); };
+      if (signal) {
+        if (signal.aborted) return cancel();
+        signal.addEventListener('abort', cancel, { once: true });
+      }
       xhr.open('PATCH', uploadUrl);
       Object.keys(create.tusHeaders || {}).forEach(function (k) {
         xhr.setRequestHeader(k, create.tusHeaders[k]);
@@ -70,10 +76,12 @@
         }
       };
       xhr.onload = function () {
+        if (cancelled) return;
         if (xhr.status >= 200 && xhr.status < 300) resolve();
         else reject(new Error('Bunny TUS PATCH ' + xhr.status + ': ' + (xhr.responseText || '').slice(0, 200)));
       };
-      xhr.onerror = function () { reject(new Error('Bunny upload network error')); };
+      xhr.onerror = function () { if (!cancelled) reject(new Error('Bunny upload network error')); };
+      xhr.onabort = function () { if (!cancelled) reject(new Error('Upload cancelled.')); };
       xhr.send(file);
     });
   }
@@ -84,7 +92,7 @@
     var opts = options || {};
     var created = await createBunnyVideo(supa, opts.title);
     var uploadUrl = await tusCreate(created, file, opts.title);
-    await tusPatch(created, uploadUrl, file, opts.onProgress);
+    await tusPatch(created, uploadUrl, file, opts.onProgress, opts.signal);
     return {
       videoGuid: created.videoGuid,
       playbackUrl: created.playbackUrl,

@@ -1,3 +1,4 @@
+import '../web/duvela-session-guard.js';
 import './style.css';
 import '../web/duvi-assistant.css';
 
@@ -736,7 +737,13 @@ async function join() {
       }, 3000);
       return;
     }
-    roomRole = auth.role || 'participant';
+    roomRole = auth.role === 1 || auth.role === 'host' ? 'host' : 'participant';
+    if (auth.role === 1 || auth.role === 'host') {
+      await window.DuvelaSessionGuard.assertFree(supa, me.id, 'classroom', sessionId);
+      const startResult = await supa.functions.invoke('zoom-video-token', { body: { action: 'start', sessionId } });
+      if (startResult.error || !startResult.data?.started) throw new Error(startResult.data?.error || startResult.error?.message || tr('The classroom could not start.','Не удалось запустить класс.'));
+      studioStartClaimed = classSession.status !== 'live';
+    }
     await loadZoomClient();
     await client.init('en-US', 'Global', { patchJsMedia: true, stayAwake: true });
     bindZoomEvents();
@@ -744,21 +751,6 @@ async function join() {
     media = client.getMediaStream();
     joined = true;
     if (roomRole === 'host') {
-      // Mark the class live via the edge function (service-role update) instead
-      // of a direct table UPDATE. The direct update was scoped by
-      // .eq('created_by', me.id) and RLS silently dropped the row when the
-      // course belonged to an organization (created_by !== teacher), leaving
-      // learners stuck on "Учитель ещё не открыл комнату".
-      try {
-        const startResult = await supa.functions.invoke('zoom-video-token', {
-          body: { action: 'start', sessionId },
-        });
-        if (startResult.error) {
-          console.warn('Failed to mark Zoom class session live.', startResult.error);
-        }
-      } catch (startInvokeError) {
-        console.warn('Failed to invoke zoom-video-token start action.', startInvokeError);
-      }
       await renderWaitingRoom();
       waitingTimer = setInterval(renderWaitingRoom, 3000);
       $('addMaterialBtn').hidden = false;

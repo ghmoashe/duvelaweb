@@ -48,25 +48,17 @@
       ['finance', '💵', tr('Finance', 'Финансы')]
     ];
 
-    const AWARDS = [
-      { key: 'first-100-teachers', title: 'First 100 Teachers', text: 'With Duvela from the start.', img: './awards/first-100-teachers.png', unlocked: true },
-      { key: 'first-lesson', title: 'First Lesson', text: 'Created or hosted the first lesson.', img: './awards/first-lesson.png', unlocked: true },
-      { key: '10-lessons-together', title: '10 Lessons Together', text: 'Built steady learning rhythm.', img: './awards/10-lessons-together.png', unlocked: false },
-      { key: 'duvela-author', title: 'Duvela Author', text: 'Published learning media for students.', img: './awards/duvela-author.png', unlocked: true },
-      { key: 'live-teacher', title: 'Live Teacher', text: 'Hosted the first LIVE lesson.', img: './awards/live-teacher.png', unlocked: false }
-    ];
-
     let activeTab = 'about';
     let mode = 'view'; // 'view' | 'edit' | 'verify'
     let stats = null;
     let reviews = null;
+    let offers = null;
     let loadedFor = null;
     let saving = false;
     let saveNotice = '';
     let draft = null;
     let verifyNote = '';
     let verifyBusy = false;
-    let selectedAwardKey = localStorage.getItem('duvela.teacher.selectedAward') || 'first-100-teachers';
 
     async function safe(p) { try { const r = await p; return (r && r.error) ? null : r; } catch (e) { return null; } }
 
@@ -109,6 +101,20 @@
     async function loadReviews(uid) {
       const r = await safe(supa.from('teacher_reviews').select('id,rating,comment,created_at').eq('teacher_id', uid).order('created_at', { ascending: false }).limit(20));
       reviews = (r && r.data) || [];
+    }
+
+    async function loadOffers(uid) {
+      const now = new Date().toISOString();
+      const results = await Promise.all([
+        safe(supa.from('courses').select('id,title,level,language,status,delivery_mode,price,currency,starts_on,schedule').eq('created_by', uid).eq('status', 'active').order('created_at', { ascending: false }).limit(4)),
+        safe(supa.from('live_sessions').select('id,topic,language,level,status,started_at').eq('teacher_id', uid).in('status', ['live', 'scheduled']).order('started_at', { ascending: true }).limit(4)),
+        safe(supa.from('events').select('id,title,format,event_date,event_time,status,language').eq('organizer_id', uid).gte('event_date', now.slice(0, 10)).order('event_date', { ascending: true }).limit(4))
+      ]);
+      offers = {
+        courses: (results[0] && results[0].data) || [],
+        live: (results[1] && results[1].data) || [],
+        events: ((results[2] && results[2].data) || []).filter(function (item) { return !item.status || ['published', 'active', 'scheduled', 'live'].indexOf(item.status) >= 0; })
+      };
     }
 
     function socialUrl(kind, val) {
@@ -157,26 +163,139 @@
     function chips(items, cls) {
       return '<div class="pv-chips">' + items.map(function (t) { return '<span class="pv-chip ' + (cls || '') + '">' + esc(t) + '</span>'; }).join('') + '</div>';
     }
-    function selectedAward() {
-      return AWARDS.find(function (a) { return a.key === selectedAwardKey && a.unlocked; }) || AWARDS.find(function (a) { return a.unlocked; }) || AWARDS[0];
-    }
-    function awardBadge(cls) {
-      const award = selectedAward();
-      return '<span class="pv-award-badge ' + (cls || '') + '"><img src="' + esc(award.img) + '" alt=""><span>' + esc(award.title) + '</span></span>';
+
+    function renderMarketplaceView(data) {
+      const p = data.profile;
+      const notSet = tr('Not specified yet', 'Пока не указано');
+      const teachingLanguages = data.teaches;
+      const explanationLanguages = prettyList(p.explanation_languages);
+      const specializations = data.specialization;
+      const learningGoals = prettyList(p.learning_targets);
+      const qualifications = prettyList(p.qualifications);
+      const rawLevel = String(p.language_level || '').trim();
+      const levelMatches = rawLevel.toUpperCase().match(/[ABC][12]/g) || [];
+      const levels = Array.from(new Set(levelMatches.length ? levelMatches : prettyList(rawLevel)));
+      const audienceMap = {
+        b2c: tr('Individual learners', 'Частные ученики'),
+        b2b: tr('Companies and teams', 'Компании и команды'),
+        both: tr('Learners, companies and teams', 'Ученики, компании и команды')
+      };
+      const audience = audienceMap[String(p.teacher_audience || '').toLowerCase()] || prettyList(p.teacher_audience)[0] || notSet;
+      const teachingFormats = [];
+      function addFormat(value) {
+        const text = String(value || '').trim();
+        if (!text) return;
+        const key = text.toLowerCase().replace(/[_-]+/g, ' ');
+        const label = key === 'online' ? tr('Online', 'Онлайн')
+          : key === 'offline' || key === 'in person' ? tr('Offline', 'Офлайн')
+          : key === 'hybrid' ? tr('Hybrid', 'Гибрид')
+          : key === 'live' ? 'LIVE'
+          : /^(1:1|one to one|individual)$/.test(key) ? '1:1'
+          : /group/.test(key) ? tr('Group', 'Группа')
+          : '';
+        if (label && teachingFormats.indexOf(label) < 0) teachingFormats.push(label);
+      }
+      ((offers && offers.courses) || []).forEach(function (item) { addFormat(item.delivery_mode); });
+      if (offers && offers.live && offers.live.length) { addFormat('live'); addFormat('online'); }
+      ((offers && offers.events) || []).forEach(function (item) { addFormat(item.format); });
+      specializations.forEach(function (item) {
+        const lower = item.toLowerCase();
+        if (/\b(1:1|one.to.one|individual|group|live|online|offline|hybrid)\b/.test(lower)) addFormat(lower.match(/1:1|one.to.one|individual|group|live|online|offline|hybrid/)[0]);
+      });
+
+      const subjectText = teachingLanguages.join(', ') || notSet;
+      const levelText = levels.join('–') || notSet;
+      const headlineParts = [];
+      if (teachingLanguages.length) headlineParts.push(subjectText + ' ' + tr('Teacher', 'Преподаватель'));
+      if (levels.length) headlineParts.push(levelText);
+      specializations.slice(0, 3).forEach(function (item) { headlineParts.push(item); });
+      if (teachingFormats.length) headlineParts.push(teachingFormats[0]);
+      const headline = headlineParts.join(' · ') || tr('Add what you teach so students can choose you with confidence.', 'Добавьте, чему вы учите, чтобы ученики могли уверенно выбрать вас.');
+      const ratingValue = stats && stats.rating ? stats.rating.toFixed(1) : '—';
+      const reviewCount = reviews ? reviews.length : 0;
+      const bioText = p.bio || tr('Add a clear teacher bio: who you help, how lessons work and what students can achieve.', 'Добавьте понятное описание: кому вы помогаете, как проходят уроки и какого результата могут достичь ученики.');
+      const experienceText = p.teaching_experience || tr('Add your teaching focus, methods and experience.', 'Добавьте направление, методы и опыт преподавания.');
+      const allOffers = [];
+      ((offers && offers.courses) || []).forEach(function (item) { allOffers.push({ kind: tr('Course', 'Курс'), title: item.title, meta: [item.language, item.level, item.delivery_mode].filter(Boolean).join(' · '), action: 'courses' }); });
+      ((offers && offers.live) || []).forEach(function (item) { allOffers.push({ kind: item.status === 'live' ? 'LIVE NOW' : tr('Scheduled LIVE', 'Запланированный LIVE'), title: item.topic || tr('LIVE lesson', 'LIVE-урок'), meta: [item.language, item.level, item.started_at ? new Date(item.started_at).toLocaleString(ctx.isRu ? 'ru-RU' : 'en-US') : ''].filter(Boolean).join(' · '), action: 'live' }); });
+      ((offers && offers.events) || []).forEach(function (item) { allOffers.push({ kind: tr('Event', 'Событие'), title: item.title, meta: [item.language, item.format, item.event_date].filter(Boolean).join(' · '), action: 'events' }); });
+
+      const readinessFields = [p.full_name, p.avatar_url, p.bio, teachingLanguages.length, levels.length, specializations.length, p.teaching_experience, p.teacher_audience];
+      const readinessDone = readinessFields.filter(Boolean).length;
+      const readiness = Math.round((readinessDone / readinessFields.length) * 100);
+      const missing = [];
+      if (!teachingLanguages.length) missing.push(tr('teaching subject', 'предмет преподавания'));
+      if (!levels.length) missing.push(tr('CEFR level', 'уровень CEFR'));
+      if (!specializations.length) missing.push(tr('specialization', 'специализацию'));
+      if (!p.bio) missing.push(tr('teacher bio', 'описание преподавателя'));
+
+      const presetCover = data.cover;
+      let html = '<div class="pv-desktop pv-marketplace"><main class="pv-main">';
+      html += '<section class="pv-teacher-hero" style="' + presetCover + '"><button type="button" class="pv-cover-edit" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Изменить обложку')) + '">' + IC.cam + '</button>' +
+        '<div class="pv-teacher-hero-top"><span class="pv-market-avatar">' + ctx.avatarInner(data.name, p.avatar_url) + '<button type="button" class="pv-avatar-cam" id="pvAvatarCam" aria-label="' + esc(tr('Change photo', 'Изменить фото')) + '">' + IC.cam + '</button></span>' +
+        '<div class="pv-market-intro"><div class="pv-market-name-row"><h2>' + esc(data.name) + '</h2>' + (p.is_verified ? '<span class="pv-verified-badge">' + IC.shield + esc(tr('Verified', 'Проверен')) + '</span>' : '') + '</div>' +
+        (data.location ? '<div class="pv-hero-loc">' + IC.loc + '<span>' + esc(data.location) + '</span></div>' : '') +
+        '<p class="pv-value-headline">' + esc(headline) + '</p>' +
+        '<div class="pv-market-badges">' + (teachingLanguages.length ? teachingLanguages.slice(0, 3).map(function (item) { return '<span>' + esc(item) + '</span>'; }).join('') : '') + levels.map(function (item) { return '<span>' + esc(item) + '</span>'; }).join('') + specializations.slice(0, 4).map(function (item) { return '<span>' + esc(item) + '</span>'; }).join('') + teachingFormats.slice(0, 3).map(function (item) { return '<span>' + esc(item) + '</span>'; }).join('') + '</div></div>' +
+        '<div class="pv-market-proof"><span class="pv-rating-badge">★ <b>' + esc(ratingValue) + '</b><small>' + esc(reviewCount + ' ' + tr('reviews', 'отзывов')) + '</small></span><button type="button" class="pv-hero-edit" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit profile', 'Изменить профиль')) + '</span></button></div></div>' +
+        '<div class="pv-conversion-actions"><button type="button" class="primary" data-pv-act="book">' + esc(tr('Book Lesson', 'Забронировать урок')) + '</button><button type="button" data-pv-act="message">' + esc(tr('Message Teacher', 'Написать преподавателю')) + '</button><button type="button" data-pv-act="courses">' + esc(tr('View Courses', 'Смотреть курсы')) + '</button><button type="button" data-pv-act="live">' + esc(tr('Join LIVE', 'Присоединиться к LIVE')) + '</button><button type="button" data-pv-act="schedule">' + esc(tr('View Schedule', 'Смотреть расписание')) + '</button></div>' +
+        '<input type="file" id="pvAvatarFile" accept="image/*" hidden><input type="file" id="pvCoverFile" accept="image/*" hidden></section>';
+
+      html += '<section class="pv-profile-stats-card pv-market-stats"><div><span class="students">' + IC.chat + '</span><b>' + esc(stats ? String(stats.students) : '…') + '</b><small>' + esc(tr('Students', 'Ученики')) + '</small></div><div><span class="lessons">' + IC.cap + '</span><b>' + esc(stats ? String(stats.lessons) : '…') + '</b><small>' + esc(tr('Lessons', 'Уроки')) + '</small></div><div><span class="rating">' + IC.medal + '</span><b>' + esc(ratingValue) + '</b><small>' + esc(tr('Average rating', 'Средняя оценка')) + '</small></div></section>';
+
+      html += '<section class="pv-card pv-teaching-card"><div class="pv-section-heading"><div><span class="pv-section-kicker">' + esc(tr('TEACHING PROFILE', 'ПРОФИЛЬ ПРЕПОДАВАТЕЛЯ')) + '</span><h3>' + esc(tr('What I teach', 'Чему я обучаю')) + '</h3><p>' + esc(tr('Subjects, levels and lesson focus at a glance.', 'Предметы, уровни и направления занятий — сразу и понятно.')) + '</p></div><button type="button" class="pv-link-btn" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit teaching details', 'Изменить данные')) + '</span></button></div>' +
+        '<div class="pv-teaching-groups"><div><small>' + esc(tr('Subject', 'Предмет')) + '</small>' + (teachingLanguages.length ? chips(teachingLanguages, 'subject') : '<p class="pv-field-empty">' + esc(notSet) + '</p>') + '</div><div><small>' + esc(tr('Specializations and topics', 'Специализации и темы')) + '</small>' + (specializations.length ? chips(specializations, 'focus') : '<p class="pv-field-empty">' + esc(notSet) + '</p>') + '</div><div><small>' + esc(tr('Lesson formats', 'Форматы занятий')) + '</small>' + (teachingFormats.length ? chips(teachingFormats, 'format') : '<p class="pv-field-empty">' + esc(notSet) + '</p>') + '</div></div></section>';
+
+      html += '<section class="pv-card pv-structured-card"><div class="pv-section-heading"><div><span class="pv-section-kicker">' + esc(tr('LESSON DETAILS', 'ДЕТАЛИ ЗАНЯТИЙ')) + '</span><h3>' + esc(tr('Teaching information', 'Информация о преподавании')) + '</h3></div></div><div class="pv-structured-grid">' +
+        '<div><small>' + esc(tr('Teaching language(s)', 'Языки преподавания')) + '</small><b>' + esc(subjectText) + '</b></div>' +
+        '<div><small>' + esc(tr('Explanation language(s)', 'Языки объяснения')) + '</small><b>' + esc(explanationLanguages.join(', ') || notSet) + '</b></div>' +
+        '<div><small>' + esc(tr('CEFR levels', 'Уровни CEFR')) + '</small><b>' + esc(levelText) + '</b></div>' +
+        '<div><small>' + esc(tr('Audience', 'Аудитория')) + '</small><b>' + esc(audience) + '</b></div>' +
+        '<div class="wide"><small>' + esc(tr('Format', 'Формат')) + '</small><b>' + esc(teachingFormats.join(' · ') || notSet) + '</b></div></div></section>';
+
+      html += '<div class="pv-market-grid"><section class="pv-card pv-teaching-goals"><div class="pv-section-heading"><div><span class="pv-section-kicker">' + esc(tr('APPROACH', 'ПОДХОД')) + '</span><h3>' + esc(tr('Teaching focus and methods', 'Фокус и методика')) + '</h3></div></div><p class="pv-readable-copy">' + esc(experienceText) + '</p><dl class="pv-method-list"><div><dt>' + esc(tr('Teaching focus', 'Фокус')) + '</dt><dd>' + esc(specializations.join(', ') || notSet) + '</dd></div><div><dt>' + esc(tr('Learning goals', 'Цели обучения')) + '</dt><dd>' + esc(learningGoals.join(', ') || notSet) + '</dd></div><div><dt>' + esc(tr('Supported levels', 'Поддерживаемые уровни')) + '</dt><dd>' + esc(levelText) + '</dd></div><div><dt>' + esc(tr('Qualifications', 'Квалификация')) + '</dt><dd>' + esc(qualifications.join(', ') || notSet) + '</dd></div></dl></section>' +
+        '<section class="pv-card pv-bio-card"><div class="pv-section-heading"><div><span class="pv-section-kicker">' + esc(tr('ABOUT', 'ОБО МНЕ')) + '</span><h3>' + esc(tr('About me', 'Обо мне')) + '</h3></div><button type="button" class="pv-link-btn" data-pv-act="edit">' + esc(tr('Edit', 'Изменить')) + '</button></div><p class="pv-readable-copy">' + esc(bioText) + '</p></section></div>';
+
+      html += '<section class="pv-card pv-offers-card"><div class="pv-section-heading"><div><span class="pv-section-kicker">' + esc(tr('AVAILABLE NOW', 'ДОСТУПНО СЕЙЧАС')) + '</span><h3>' + esc(tr('Courses, LIVE and lesson offers', 'Курсы, LIVE и занятия')) + '</h3><p>' + esc(tr('Only active and scheduled offers are shown.', 'Показаны только активные и запланированные предложения.')) + '</p></div><button type="button" class="pv-link-btn" data-pv-act="courses">' + esc(tr('Manage offers', 'Управлять')) + '</button></div>';
+      if (!offers) html += '<div class="pv-offer-empty">' + esc(tr('Loading offers…', 'Загружаем предложения…')) + '</div>';
+      else if (!allOffers.length) html += '<div class="pv-offer-empty"><b>' + esc(tr('No active offers published yet.', 'Пока нет активных предложений.')) + '</b><p>' + esc(tr('Publish a course, schedule a LIVE class or add an event to make it visible here.', 'Опубликуйте курс, запланируйте LIVE или добавьте событие — они появятся здесь.')) + '</p><button type="button" data-pv-act="courses">' + esc(tr('Create or publish an offer', 'Создать или опубликовать')) + '</button></div>';
+      else html += '<div class="pv-offer-list">' + allOffers.slice(0, 6).map(function (item) { return '<button type="button" data-pv-act="' + item.action + '"><span>' + esc(item.kind) + '</span><b>' + esc(item.title || tr('Untitled offer', 'Без названия')) + '</b><small>' + esc(item.meta || tr('Open details', 'Открыть детали')) + '</small><i>→</i></button>'; }).join('') + '</div>';
+      html += '</section>';
+
+      html += '<section class="pv-card pv-reviews-card pv-market-reviews"><div class="pv-section-heading"><div><span class="pv-section-kicker">' + esc(tr('STUDENT FEEDBACK', 'ОТЗЫВЫ УЧЕНИКОВ')) + '</span><h3>' + esc(tr('Reviews', 'Отзывы')) + '</h3></div><div class="pv-review-summary"><b>★ ' + esc(ratingValue) + '</b><span>' + esc(reviewCount + ' ' + tr('reviews', 'отзывов')) + '</span></div></div>';
+      if (!reviews) html += '<div class="pv-review-empty"><i>' + IC.chat + '</i><b>' + esc(tr('Loading reviews…', 'Загружаем отзывы…')) + '</b></div>';
+      else if (!reviews.length) html += '<div class="pv-review-empty"><i>' + IC.chat + '</i><b>' + esc(tr('No reviews yet', 'Пока нет отзывов')) + '</b><p>' + esc(tr('Verified student reviews will appear after completed lessons.', 'Отзывы учеников появятся после завершённых занятий.')) + '</p></div>';
+      else html += '<div class="pv-review-list">' + reviews.slice(0, 4).map(function (item) { return '<article class="pv-review"><div class="pv-review-top"><b>' + '★'.repeat(Math.max(1, Math.min(5, Number(item.rating) || 0))) + '</b><span>' + esc(new Date(item.created_at).toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-US')) + '</span></div>' + (item.comment ? '<p>' + esc(item.comment) + '</p>' : '') + '</article>'; }).join('') + '</div>';
+      html += '</section>';
+
+      html += '<details class="pv-account-details"><summary>' + esc(tr('Account and identity details', 'Данные аккаунта')) + '</summary><div class="pv-id-grid"><div><span>E-Mail</span><b>' + esc(ctx.user.email || '') + '</b></div><div><span>' + esc(tr('Role', 'Роль')) + '</span><b>' + esc(tr('Teacher', 'Преподаватель')) + '</b></div><div><span>' + esc(tr('Full name', 'Имя')) + '</span><b>' + esc(data.name) + '</b></div><div><span>' + esc(tr('City', 'Город')) + '</span><b>' + esc(data.location || notSet) + '</b></div></div></details>';
+      html += '</main><aside class="pv-side"><div class="pv-side-card pv-readiness"><div class="pv-readiness-head"><div><span>' + esc(tr('Profile readiness', 'Готовность профиля')) + '</span><b>' + readiness + '%</b></div><i>' + readinessDone + '/' + readinessFields.length + '</i></div><div class="pv-readiness-track"><span style="width:' + readiness + '%"></span></div>' + (missing.length ? '<p>' + esc(tr('Add ', 'Добавьте: ')) + esc(missing.join(', ')) + '.</p><button type="button" class="pv-readiness-edit" data-pv-act="edit">' + esc(tr('Complete teaching profile', 'Заполнить профиль')) + '</button>' : '<div class="pv-ready-note">' + IC.shield + '<span>' + esc(tr('Students can clearly understand your teaching offer.', 'Ученикам понятно ваше предложение.')) + '</span></div>') + '</div></aside></div>';
+      if (saveNotice) html += '<div class="pv-toast">' + esc(saveNotice) + '</div>';
+      return html;
     }
 
     function renderDesktopView(data) {
       const p = data.profile;
       const name = data.name;
       const location = data.location;
-      const teachText = data.teaches.join(', ') || tr('German, English', 'German, English');
+      const notSet = tr('Not set', 'Не указано');
+      const teachText = data.teaches.join(', ') || notSet;
       const nativeText = prettyList(p.language)[0] || tr('Not set', 'Not set');
-      const levelText = p.language_level || 'A1';
-      const ratingText = stats && stats.rating ? stats.rating.toFixed(1) : '0.0';
-      const studentsText = stats ? String(stats.students) : '0';
-      const lessonsText = stats ? String(stats.lessons) : '0';
+      const levelText = p.language_level || notSet;
+      const ratingText = stats ? (stats.rating ? stats.rating.toFixed(1) : '—') : '…';
+      const studentsText = stats ? String(stats.students) : '…';
+      const lessonsText = stats ? String(stats.lessons) : '…';
       const bioText = p.bio || tr('Tell students who you help, what level you teach, and how your lessons feel.', 'Расскажите ученикам, кому вы помогаете, какой у вас уровень и как проходят ваши уроки.');
-      const spec = data.specialization.length ? data.specialization : ['Conversation', 'Grammar', 'Pronunciation'];
+      const spec = data.specialization;
+      const readinessFields = [p.full_name, p.avatar_url, p.bio, data.teaches.length, p.language, p.language_level, data.specialization.length, p.teaching_experience];
+      const readinessDone = readinessFields.filter(Boolean).length;
+      const readiness = Math.round((readinessDone / readinessFields.length) * 100);
+      const missing = [];
+      if (!p.avatar_url) missing.push(tr('Profile photo', 'Фото профиля'));
+      if (!p.bio) missing.push(tr('About me', 'О себе'));
+      if (!data.teaches.length) missing.push(tr('Teaching languages', 'Языки преподавания'));
+      if (!p.language_level) missing.push(tr('Teaching level', 'Уровень преподавания'));
+      if (!data.specialization.length) missing.push(tr('Specialization', 'Специализация'));
       const nameParts = String(name || tr('Duvela', 'Duvela')).trim().split(/\s+/);
       const heroFirstName = nameParts.shift() || name;
       const heroLastName = nameParts.join(' ');
@@ -192,20 +311,21 @@
       const activeCover = String(p.cover_url || 'preset:duvela').replace(/^preset:/, '') || 'duvela';
       let html = '<div class="pv-desktop"><main class="pv-main">';
       html += '<section class="pv-hero" style="' + data.cover + '">' +
-        '<p class="pv-quote">"' + esc(tr('Languages open doors - good teaching makes the way easier.', 'Languages open doors - good teaching makes the way easier.')) + '"</p>' +
+        '<p class="pv-quote">' + esc(tr('Teacher profile', 'Профиль учителя')) + '</p>' +
         '<button type="button" class="pv-hero-edit" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit Profile', 'Edit Profile')) + '</span></button>' +
         '<div class="pv-identity-row">' +
           '<span class="pv-hero-avatar">' + ctx.avatarInner(name, p.avatar_url) +
             '<button type="button" class="pv-avatar-cam" id="pvAvatarCam" aria-label="' + esc(tr('Change photo', 'Change photo')) + '">' + IC.cam + '</button>' +
           '</span>' +
-          '<div class="pv-hero-main"><h2><span>' + esc(heroFirstName) + '</span>' + (heroLastName ? '<span>' + esc(heroLastName) + '</span>' : '') + '</h2>' + awardBadge('hero') +
+          '<div class="pv-hero-main"><h2><span>' + esc(heroFirstName) + '</span>' + (heroLastName ? '<span>' + esc(heroLastName) + '</span>' : '') + '</h2>' +
+            (p.is_verified ? '<span class="pv-verified-badge">' + IC.shield + esc(tr('Verified teacher', 'Проверенный учитель')) + '</span>' : '') +
             (heroLocation ? '<div class="pv-hero-loc">' + IC.loc + '<span>' + esc(heroLocation) + '</span></div>' : '') +
           '</div>' +
         '</div>' +
         '<div class="pv-avatar-panel"><button type="button" class="pv-cover-cam" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Change cover')) + '">' + IC.cam + '</button><b>' + esc(tr('Avatar & cover', 'Avatar & cover')) + '</b><span>JPG, PNG, WebP</span><div class="pv-media-actions"><button type="button" class="pv-small-outline" id="pvAvatarPick">' + esc(tr('Change avatar', 'Change avatar')) + '</button><button type="button" class="pv-small-outline" id="pvCoverPick">' + esc(tr('Change cover', 'Change cover')) + '</button><button type="button" class="pv-small-danger" id="pvAvatarRemove"' + (!p.avatar_url ? ' disabled' : '') + '>' + esc(tr('Remove avatar', 'Remove avatar')) + '</button><button type="button" class="pv-small-danger" id="pvCoverRemove"' + (!p.cover_url ? ' disabled' : '') + '>' + esc(tr('Remove cover', 'Remove cover')) + '</button></div><div class="pv-cover-presets"><button type="button" class="pv-cover-preset duvela" data-cover-preset="duvela"><i></i>Duvela</button><button type="button" class="pv-cover-preset ocean" data-cover-preset="ocean"><i></i>Ocean</button><button type="button" class="pv-cover-preset sunset" data-cover-preset="sunset"><i></i>Sunset</button><button type="button" class="pv-cover-preset premium" data-cover-preset="premium"><i></i>Pro</button><button type="button" class="pv-cover-preset fresh" data-cover-preset="fresh"><i></i>Fresh</button></div></div>' +
         (featureChips.length ? '<div class="pv-hero-tags pv-reference-tags">' + featureChips.map(function (chip) { return '<span class="pv-feature-chip ' + chip.type + '"><i>' + chip.icon + '</i>' + esc(chip.label) + '</span>'; }).join('') + '</div>' : '') +
-        '<div class="pv-hero-tags"><span><i>' + IC.cap + '</i>Teacher</span><span><i>' + IC.globe + '</i>' + esc(nativeText) + '</span><span><i>*</i>' + esc(ratingText + ' rating') + '</span><span><i>G</i>' + esc(studentsText + ' students') + '</span><span><i>B</i>' + esc(lessonsText + ' lessons') + '</span></div>' +
-        '<div class="pv-hero-tags pv-hero-tags-soft"><span><i>' + IC.lang + '</i>' + esc(teachText) + '</span><span><i>A</i>' + esc(levelText) + '</span>' + spec.slice(0, 4).map(function (x) { return '<span><i>✓</i>' + esc(x) + '</span>'; }).join('') + '</div>' +
+        '<div class="pv-hero-tags"><span><i>' + IC.cap + '</i>Teacher</span>' + (p.language ? '<span><i>' + IC.globe + '</i>' + esc(nativeText) + '</span>' : '') + (stats && stats.rating ? '<span><i>*</i>' + esc(ratingText + ' rating') + '</span>' : '') + '</div>' +
+        (featureChips.length ? '<div class="pv-hero-tags pv-hero-tags-soft"><span><i>' + IC.lang + '</i>' + esc(teachText) + '</span>' + (p.language_level ? '<span><i>A</i>' + esc(levelText) + '</span>' : '') + spec.slice(0, 4).map(function (x) { return '<span><i>✓</i>' + esc(x) + '</span>'; }).join('') + '</div>' : '') +
         '<p class="pv-hero-bio">' + esc(bioText) + '</p>' +
         '<input type="file" id="pvCoverFile" accept="image/*" hidden><input type="file" id="pvAvatarFile" accept="image/*" hidden>' +
         '</section>';
@@ -215,19 +335,15 @@
         '<div><span class="rating">' + IC.medal + '</span><b>' + esc(stats && stats.rating ? ratingText : '-') + '</b><small>' + esc(tr('Rating', 'Rating')) + '</small></div>' +
         '</section>';
 
-      const sideHtml = '<aside class="pv-side">' +
-        '<div class="pv-side-card"><div class="pv-mini-stats"><div><i>*</i><b>' + esc(ratingText) + '</b><span>' + esc(tr('Rating', 'Rating')) + '</span></div><div><i>G</i><b>' + esc(studentsText) + '</b><span>' + esc(tr('Students', 'Students')) + '</span></div><div><i>B</i><b>' + esc(lessonsText) + '</b><span>' + esc(tr('Lessons', 'Lessons')) + '</span></div><div><i>Z</i><b>98%</b><span>' + esc(tr('Response', 'Response')) + '</span></div></div>' +
-        '<h3>' + esc(tr('Your performance', 'Your performance')) + '</h3><div class="pv-bars"><span><b>' + esc(tr('Teaching quality', 'Teaching quality')) + '</b><i>92%</i></span><em><u style="width:92%"></u></em><span><b>' + esc(tr('Punctuality', 'Punctuality')) + '</b><i>96%</i></span><em><u style="width:96%"></u></em><span><b>' + esc(tr('Speaking practice', 'Speaking practice')) + '</b><i>88%</i></span><em><u style="width:88%"></u></em></div></div>' +
-        '<div class="pv-side-card pv-coins"><img src="./assets/coins/duvela-coin.png" alt=""><div><b>2,450</b><span>Duvela Coins</span><p>' + esc(tr('Earn coins from lessons, events and active engagement.', 'Earn coins from lessons, events and active engagement.')) + '</p></div></div>' +
-        '<div class="pv-side-card"><h3>' + esc(tr('Latest activity', 'Latest activity')) + '</h3><div class="pv-activity"><span>LIVE</span><b>' + esc(tr('Live lesson finished', 'Live lesson finished')) + '</b><i>+80</i></div><div class="pv-activity"><span>NEW</span><b>' + esc(tr('New student joined', 'New student joined')) + '</b><i>+1</i></div></div>' +
-        '</aside>';
+      const sideHtml = '<aside class="pv-side"><div class="pv-side-card pv-readiness">' +
+        '<div class="pv-readiness-head"><div><span>' + esc(tr('Profile readiness', 'Готовность профиля')) + '</span><b>' + readiness + '%</b></div><i>' + readinessDone + '/' + readinessFields.length + '</i></div>' +
+        '<div class="pv-readiness-track"><span style="width:' + readiness + '%"></span></div>' +
+        (missing.length ? '<p>' + esc(tr('Complete these details to help students understand your offer.', 'Заполните эти данные, чтобы ученикам было легче выбрать вас.')) + '</p><div class="pv-missing-list">' + missing.slice(0, 4).map(function (item) { return '<span>' + esc(item) + '</span>'; }).join('') + '</div><button type="button" class="pv-readiness-edit" data-pv-act="edit">' + esc(tr('Complete profile', 'Заполнить профиль')) + '</button>' : '<div class="pv-ready-note">' + IC.shield + '<span>' + esc(tr('Your profile information is complete.', 'Информация профиля заполнена.')) + '</span></div>') +
+        '</div></aside>';
 
       html += '<section class="pv-card pv-identity"><h3>' + esc(tr('Identity', 'Identity')) + '</h3><button type="button" class="pv-link-btn" data-pv-act="edit">' + IC.edit + '<span>' + esc(tr('Edit details', 'Edit details')) + '</span></button><div class="pv-id-grid"><div><span>E-Mail</span><b>' + esc(ctx.user.email || '') + '</b></div><div><span>' + esc(tr('Role', 'Role')) + '</span><b>Teacher</b></div><div><span>' + esc(tr('Full name', 'Full name')) + '</span><b>' + esc(name) + '</b></div><div><span>' + esc(tr('City', 'City')) + '</span><b>' + esc(location || '-') + '</b></div></div></section>';
-      html += '<div class="pv-lower-grid"><section class="pv-card pv-goals"><h3>' + esc(tr('Teaching & goals', 'Teaching & goals')) + '</h3><p class="pv-about">' + esc(p.teaching_experience || tr('Help learners move from first confidence to clear results with structured lessons.', 'Help learners move from first confidence to clear results with structured lessons.')) + '</p><div class="pv-check-list"><span>' + esc(teachText) + '</span><span>' + esc(levelText) + '</span><span>Live teaching</span></div></section>';
+      html += '<div class="pv-lower-grid"><section class="pv-card pv-goals"><h3>' + esc(tr('Teaching & goals', 'Преподавание и цели')) + '</h3><p class="pv-about">' + esc(p.teaching_experience || tr('Add your teaching experience and approach.', 'Добавьте опыт преподавания и свой подход.')) + '</p><div class="pv-check-list">' + (data.teaches.length ? '<span>' + esc(teachText) + '</span>' : '') + (p.language_level ? '<span>' + esc(levelText) + '</span>' : '') + '</div></section>';
       html += '<section class="pv-card pv-about-card"><h3>' + esc(tr('About me', 'About me')) + '</h3><button type="button" class="pv-link-btn" data-pv-act="edit"><span>' + esc(tr('Edit', 'Edit')) + '</span></button><p class="pv-about">' + esc(bioText) + '</p>' + chips(spec.slice(0, 6), '') + '</section></div>';
-      html += '<section class="pv-card pv-awards-card"><div class="pv-awards-head"><div><h3>' + esc(tr('Awards', 'Awards')) + '</h3><p>' + esc(tr('Choose which badge appears next to your name.', 'Choose which badge appears next to your name.')) + '</p></div>' + awardBadge('selected') + '</div><div class="pv-awards-grid">' + AWARDS.map(function (a) {
-        return '<button type="button" class="pv-award-tile' + (a.key === selectedAwardKey ? ' active' : '') + (!a.unlocked ? ' locked' : '') + '" data-award-select="' + esc(a.key) + '"' + (!a.unlocked ? ' disabled' : '') + '><img src="' + esc(a.img) + '" alt=""><b>' + esc(a.title) + '</b><span>' + esc(a.text) + '</span></button>';
-      }).join('') + '</div></section>';
       html += '<section class="pv-card pv-reviews-card"><h3>' + esc(tr('Reviews', 'Reviews')) + '</h3>';
       if (!reviews) {
         html += '<div class="pv-review-empty"><i>' + IC.chat + '</i><b>' + esc(tr('Loading reviews...', 'Loading reviews...')) + '</b><p>' + esc(tr('Reviews will appear here after your first meetup, session, or business exchange.', 'Reviews will appear here after your first meetup, session, or business exchange.')) + '</p></div>';
@@ -252,11 +368,11 @@
     function render() {
       const uid = ctx.user && ctx.user.id;
       if (!uid) return;
-      if (loadedFor !== uid) { stats = null; reviews = null; mode = 'view'; }
+      if (loadedFor !== uid) { stats = null; reviews = null; offers = null; mode = 'view'; }
       paint();
       if (loadedFor !== uid) {
         loadedFor = uid;
-        Promise.all([loadStats(uid), loadReviews(uid)]).then(paint).catch(paint);
+        Promise.all([loadStats(uid), loadReviews(uid), loadOffers(uid)]).then(paint).catch(paint);
       }
     }
 
@@ -290,7 +406,7 @@
       const cover = presetCover || (p.cover_url
         ? 'background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.25)),url(' + esc(p.cover_url) + ');background-size:cover;background-position:center;'
         : 'background:linear-gradient(135deg,#18A4EE 0%,#176CE8 48%,#352E99 100%);');
-      return renderDesktopView({ profile: p, name: name, location: location, teaches: teaches, specialization: specialization, cover: cover });
+      return renderMarketplaceView({ profile: p, name: name, location: location, teaches: teaches, specialization: specialization, cover: cover });
       let html = '<div class="pv-cover" style="' + cover + '">' +
         (p.is_verified ? '<span class="pv-certified">' + esc(tr('Certified Teacher', 'Сертифицированный учитель')) + '</span>' : '') +
         '<button type="button" class="pv-cover-cam" id="pvCoverCam" aria-label="' + esc(tr('Change cover', 'Изменить обложку')) + '">' + IC.cam + '</button>' +
@@ -437,8 +553,8 @@
       const d = draft;
       const name = (d.full_name || (ctx.user.email || 'Duvela').split('@')[0]).trim();
       const location = [d.city, d.country].filter(Boolean).join(', ');
-      const teaches = d.teaches_languages.map(function (id) { return TEACH_LANGUAGE_LABELS[id] || id; }).join(', ') || tr('German, English', 'German, English');
-      const spec = d.specialization.length ? d.specialization : ['Conversation', 'Grammar', 'Pronunciation'];
+      const teaches = d.teaches_languages.map(function (id) { return TEACH_LANGUAGE_LABELS[id] || id; }).join(', ') || tr('Not set', 'Не указано');
+      const spec = d.specialization;
       let html = '<div class="pv-edit-shell">';
       html += '<div class="pv-edit-top"><button type="button" class="pv-backlink" id="pvEditCancel">' + IC.back + '<span>' + esc(tr('Back to profile', 'Back to profile')) + '</span></button>' +
         '<div><h2>' + esc(tr('Edit Profile', 'Edit Profile')) + '</h2><p>' + esc(tr('Keep your public teacher profile clear, polished and ready for students.', 'Keep your public teacher profile clear, polished and ready for students.')) + '</p></div></div>';
@@ -745,15 +861,16 @@
             else ctx.alert(link);
             return;
           }
+          if (['courses', 'book', 'message', 'live', 'schedule', 'events'].indexOf(act) >= 0) {
+            const view = act === 'book' || act === 'schedule' ? 'schedule'
+              : act === 'message' ? 'messages'
+              : act;
+            const nav = document.querySelector('.nav button[data-view="' + view + '"]');
+            if (nav) nav.click();
+            return;
+          }
           if (act === 'signout') { document.getElementById('signOut')?.click(); return; }
           if (act === 'delete') { document.getElementById('deleteAccountBtn')?.click(); }
-        });
-      });
-      Array.prototype.forEach.call(host.querySelectorAll('[data-award-select]'), function (b) {
-        b.addEventListener('click', function () {
-          selectedAwardKey = b.getAttribute('data-award-select') || selectedAwardKey;
-          localStorage.setItem('duvela.teacher.selectedAward', selectedAwardKey);
-          paint();
         });
       });
     }

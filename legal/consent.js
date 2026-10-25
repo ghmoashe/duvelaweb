@@ -5,6 +5,7 @@
   let locale = 'en';
   let banner;
   let overlay;
+  let previousFocus;
   let serviceInputs = new Map();
 
   function catalog() {
@@ -26,15 +27,24 @@
   }
 
   function applyAnalyticsConsent(consent) {
-    if (!consent?.ga || document.getElementById('duvela-vercel-insights')) return;
+    if (!consent?.ga) return;
     global.va = global.va || function queueVercelInsight() {
       (global.vaq = global.vaq || []).push(arguments);
     };
-    const script = document.createElement('script');
-    script.id = 'duvela-vercel-insights';
-    script.defer = true;
-    script.src = '/_vercel/insights/script.js';
-    document.head.appendChild(script);
+    if (!document.getElementById('duvela-vercel-insights')) {
+      const analytics = document.createElement('script');
+      analytics.id = 'duvela-vercel-insights';
+      analytics.defer = true;
+      analytics.src = '/_vercel/insights/script.js';
+      document.head.appendChild(analytics);
+    }
+    if (!document.getElementById('duvela-vercel-speed-insights')) {
+      const speed = document.createElement('script');
+      speed.id = 'duvela-vercel-speed-insights';
+      speed.defer = true;
+      speed.src = '/_vercel/speed-insights/script.js';
+      document.head.appendChild(speed);
+    }
   }
 
   function saveConsent(next) {
@@ -43,7 +53,7 @@
       JSON.stringify({ ...next, necessary: true, updatedAt: new Date().toISOString() }),
     );
     banner.hidden = true;
-    overlay.hidden = true;
+    closeSettings();
     applyAnalyticsConsent(next);
     global.dispatchEvent(new CustomEvent('duvela-consent-change', { detail: next }));
   }
@@ -78,6 +88,7 @@
     setText('[data-consent="save"]', copy.save);
     setText('[data-consent="modal-decline"]', copy.decline);
     setText('[data-consent="modal-accept"]', copy.acceptAll);
+    banner?.setAttribute('aria-label', copy.consentModal.title);
 
     for (const service of catalog().services) {
       setText(`[data-service-title="${service.id}"]`, service.title);
@@ -99,16 +110,23 @@
 
   function openSettings() {
     syncInputs();
+    previousFocus = document.activeElement;
     overlay.hidden = false;
+    global.requestAnimationFrame(() => {
+      overlay.querySelector('button:not([disabled]),input:not([disabled])')?.focus();
+    });
   }
 
   function closeSettings() {
     overlay.hidden = true;
+    if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+    previousFocus = null;
   }
 
   function build() {
     banner = document.createElement('aside');
     banner.className = 'consent-banner';
+    banner.setAttribute('role', 'region');
     banner.innerHTML = `
       <div class="consent-banner-title" data-consent="notice-title"></div>
       <div class="consent-banner-copy" data-consent="notice-copy"></div>
@@ -123,9 +141,9 @@
     overlay.className = 'consent-overlay';
     overlay.hidden = true;
     overlay.innerHTML = `
-      <section class="consent-modal" role="dialog" aria-modal="true">
-        <div class="consent-modal-title" data-consent="modal-title"></div>
-        <div class="consent-modal-copy" data-consent="modal-copy"></div>
+      <section class="consent-modal" role="dialog" aria-modal="true" aria-labelledby="duvelaConsentTitle" aria-describedby="duvelaConsentDescription">
+        <div class="consent-modal-title" id="duvelaConsentTitle" data-consent="modal-title"></div>
+        <div class="consent-modal-copy" id="duvelaConsentDescription" data-consent="modal-copy"></div>
         <div class="consent-service-list"></div>
         <div class="consent-actions">
           <button class="consent-button" type="button" data-consent="modal-decline"></button>
@@ -178,6 +196,27 @@
     });
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) closeSettings();
+    });
+    overlay.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSettings();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(
+        overlay.querySelectorAll('button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])')
+      ).filter((element) => !element.hidden);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     });
   }
 

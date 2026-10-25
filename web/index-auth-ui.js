@@ -115,6 +115,7 @@
 
     function openLogin() {
       previouslyFocused = document.activeElement;
+      overlay.removeAttribute('inert');
       overlay.classList.add('open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
@@ -125,6 +126,7 @@
       if (!overlay.classList.contains('open')) return;
       overlay.classList.remove('open');
       overlay.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('inert', '');
       document.body.style.overflow = '';
       clearNote();
       if (previouslyFocused && typeof previouslyFocused.focus === 'function') {

@@ -1,1 +1,1 @@
-window.DuvelaDUVI?.mount({context:'public',autoWelcome:true});
+window.DuvelaDUVI?.mount({context:'public',autoWelcome:false});

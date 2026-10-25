@@ -39,3 +39,6 @@ supabase/.temp/
 
 .vercel
 .env*.local
+
+# Local screenshots, browser profiles and logs from redesign work
+work/

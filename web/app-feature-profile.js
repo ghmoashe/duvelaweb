@@ -2,11 +2,11 @@
   function createProfileFeature(ctx) {
     const { $, tr, esc, alert, supa, state, avatarHtml, avatarInner, timeAgo, roleLabels } = ctx;
     const studentGoal = window.DuvelaStudentGoal || {
-      LEVELS: ['A2', 'B1', 'B2', 'C1'],
+      LEVELS: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
       normalize: (value, fallback) => {
         const raw = String(value || '').trim().toUpperCase();
         const safeFallback = String(fallback || '').trim().toUpperCase();
-        return ['A2', 'B1', 'B2', 'C1'].includes(raw) ? raw : (['A2', 'B1', 'B2', 'C1'].includes(safeFallback) ? safeFallback : 'A2');
+        return ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(raw) ? raw : (['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(safeFallback) ? safeFallback : 'A2');
       },
       fromProfile: function (profile, fallback) { return this.normalize(profile && profile.goal_level, fallback); },
       legacyPatch: function (value) {
@@ -19,6 +19,8 @@
     const AVATAR_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
     let avatarPreviewUrl = '';
     let removeAvatarOnSave = false;
+    let businessProfileTab = 'profile';
+    let learnerProfileTab = 'overview';
     const localeNames = {
       en: 'English',
       de: 'Deutsch',
@@ -154,7 +156,6 @@
       field = document.createElement('div');
       field.className = 'field';
       field.id = 'sidebarLanguageField';
-      field.style.marginTop = '14px';
       field.innerHTML =
         '<label for="profileLangSelect">' + esc(tr('Switch language', 'Сменить язык')) + '</label>' +
         '<select id="profileLangSelect" class="role-select" aria-label="' + esc(tr('Switch language', 'Сменить язык')) + '"></select>';
@@ -187,21 +188,24 @@
       notice.textContent = tr('Selected information will be visible to anyone, including people without an account. Choose only information you want to publish. City, social-link and ranking privacy settings still apply. Select the matching discovery field to appear as a teacher or organizer. You can withdraw at any time. Copies already downloaded by others cannot be recalled.', 'Выбранные сведения будут доступны всем, в том числе без аккаунта. Выберите только то, что хотите опубликовать. Настройки скрытия города, соцсетей и рейтинга продолжают действовать. Для поиска преподавателей или организаторов выберите соответствующее поле. Согласие можно отозвать. Уже скачанные другими людьми копии отозвать невозможно.'); section.append(notice);
       const status = document.createElement('p'); status.setAttribute('role', 'status'); status.textContent = tr('Loading…', 'Загрузка…'); section.append(status);
       const options = [
-        ['full_name','Name','Имя'],['avatar_url','Profile photo','Фото профиля'],['cover_url','Cover photo','Обложка'],
-        ['city','City','Город'],['country','Country','Страна'],['bio','Biography (full text)','Биография (весь текст)'],
-        ['teaches_languages','Teaching languages','Языки преподавания'],['explanation_languages','Explanation languages','Языки объяснения'],
-        ['qualifications','Qualifications','Квалификации'],['specialization','Specializations','Специализации'],
-        ['teaching_experience','Teaching experience','Опыт преподавания'],['teacher_audience','Teaching audience','Аудитория преподавания'],
-        ['is_teacher','Teacher discovery','Поиск преподавателей'],['is_organizer','Organizer discovery','Поиск организаторов'],
-        ['registered_web_role','Profile category','Категория профиля'],['is_verified','Verification badge','Знак проверки'],
-        ['score','Ranking score','Баллы рейтинга'],['language','Profile language','Язык профиля'],['language_level','Language level','Уровень языка'],
-        ['instagram','Instagram','Instagram'],['tiktok','TikTok','TikTok'],['youtube','YouTube','YouTube'],
-        ['facebook','Facebook','Facebook'],['linkedin','LinkedIn','LinkedIn'],['website','Website','Сайт'],
+        ['Basic information','full_name','Name','Имя'],['Basic information','avatar_url','Profile photo','Фото профиля'],['Basic information','cover_url','Cover photo','Обложка'],
+        ['Basic information','city','City','Город'],['Basic information','country','Country','Страна'],['Basic information','bio','Biography (full text)','Биография (весь текст)'],
+        ['Professional information','teaches_languages','Teaching languages','Языки преподавания'],['Professional information','explanation_languages','Explanation languages','Языки объяснения'],
+        ['Professional information','qualifications','Qualifications','Квалификации'],['Professional information','specialization','Specializations','Специализации'],
+        ['Professional information','teaching_experience','Teaching experience','Опыт преподавания'],['Professional information','teacher_audience','Teaching audience','Аудитория преподавания'],
+        ['Search & discovery','is_teacher','Teacher discovery','Поиск преподавателей'],['Search & discovery','is_organizer','Organizer discovery','Поиск организаторов'],
+        ['Search & discovery','registered_web_role','Profile category','Категория профиля'],['Search & discovery','is_verified','Verification badge','Знак проверки'],
+        ['Search & discovery','score','Ranking score','Баллы рейтинга'],['Search & discovery','language','Profile language','Язык профиля'],['Search & discovery','language_level','Language level','Уровень языка'],
+        ['Social links','instagram','Instagram','Instagram'],['Social links','tiktok','TikTok','TikTok'],['Social links','youtube','YouTube','YouTube'],
+        ['Social links','facebook','Facebook','Facebook'],['Social links','linkedin','LinkedIn','LinkedIn'],['Social links','website','Website','Сайт'],
       ];
-      const boxes = options.map(([key,en,ru]) => {
-        const label = document.createElement('label'); label.style.display = 'block';
+      const groupLabels = { 'Basic information': ['Basic information', 'Основная информация'], 'Professional information': ['Professional information', 'Профессиональная информация'], 'Search & discovery': ['Search & discovery', 'Поиск и обнаружение'], 'Social links': ['Social links', 'Социальные ссылки'] };
+      const groups = {};
+      options.forEach(([group]) => { if (!groups[group]) { const wrap = document.createElement('div'); wrap.className = 'publication-field-group'; const title = document.createElement('h4'); title.textContent = tr(groupLabels[group][0], groupLabels[group][1]); wrap.append(title); section.append(wrap); groups[group] = wrap; } });
+      const boxes = options.map(([group,key,en,ru]) => {
+        const label = document.createElement('label');
         const input = document.createElement('input'); input.type = 'checkbox'; input.value = key; input.disabled = true;
-        label.append(input, document.createTextNode(' ' + tr(en,ru))); section.append(label); return input;
+        label.append(input, document.createTextNode(tr(en,ru))); groups[group].append(label); return input;
       });
       const publish = document.createElement('button'); publish.type = 'button'; publish.disabled = true;
       publish.textContent = tr('I agree — publish selected fields', 'Согласен — опубликовать выбранные поля');
@@ -220,7 +224,7 @@
       // Since the base profiles table closed, this choice decides live public
       // visibility — so the status reads as current, not as a "future" approval.
       function apply(data) {
-        if (!data || typeof data.published !== 'boolean' || !Array.isArray(data.approved_fields) || data.approved_fields.some(f => !options.some(([key]) => key === f))) throw new Error('Invalid consent response');
+        if (!data || typeof data.published !== 'boolean' || !Array.isArray(data.approved_fields) || data.approved_fields.some(f => !options.some(([,key]) => key === f))) throw new Error('Invalid consent response');
         current = data; boxes.forEach(box => { box.checked = data.approved_fields.includes(box.value); });
         status.textContent = data.published ? tr('Published', 'Опубликован') : tr('Not published', 'Не опубликован'); refresh();
       }
@@ -241,6 +245,69 @@
         if (!section.isConnected || ctx.user?.id !== owner) return;
         if (result.error) throw result.error; apply(result.data);
       }).catch(() => { status.textContent = tr('Could not load publication settings. Reopen your profile to retry.', 'Не удалось загрузить настройки публикации. Откройте профиль заново для повтора.'); });
+    }
+
+    function ensureBusinessProfileTabs() {
+      const panel = document.querySelector('[data-panel="profile"]');
+      if (!panel || !ctx.isBusiness()) return null;
+      let tabs = panel.querySelector('#teacherProfileTabs');
+      if (!tabs) {
+        tabs = document.createElement('div');
+        tabs.id = 'teacherProfileTabs';
+        tabs.className = 'teacher-profile-tabs';
+        tabs.setAttribute('role', 'tablist');
+        tabs.innerHTML = '<button type="button" role="tab" data-profile-tab="profile">' + esc(tr('Profile', 'Профиль')) + '</button>' +
+          '<button type="button" role="tab" data-profile-tab="visibility">' + esc(tr('Visibility & privacy', 'Видимость и приватность')) + '</button>' +
+          '<button type="button" role="tab" data-profile-tab="preview">' + esc(tr('Student preview', 'Просмотр ученика')) + '</button>';
+        panel.insertBefore(tabs, panel.firstElementChild);
+        tabs.querySelectorAll('[data-profile-tab]').forEach((button) => button.addEventListener('click', () => {
+          businessProfileTab = button.dataset.profileTab || 'profile';
+          renderProfile();
+        }));
+      }
+      tabs.querySelectorAll('[data-profile-tab]').forEach((button) => {
+        const active = button.dataset.profileTab === businessProfileTab;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      return tabs;
+    }
+
+    function renderBusinessProfileTabContent() {
+      if (!ctx.isBusiness()) return;
+      const panel = document.querySelector('[data-panel="profile"]');
+      const profileView = document.getElementById('profileView');
+      const profileEdit = document.getElementById('profileEdit');
+      if (!panel || !profileView || !profileEdit) return;
+      let host = panel.querySelector('#profileVisibilityWorkspace');
+      if (!host) {
+        host = document.createElement('section');
+        host.id = 'profileVisibilityWorkspace';
+        host.className = 'profile-privacy-workspace';
+        panel.appendChild(host);
+      }
+      let preview = panel.querySelector('#profileStudentPreview');
+      if (!preview) {
+        preview = document.createElement('section');
+        preview.id = 'profileStudentPreview';
+        preview.className = 'profile-student-preview';
+        panel.appendChild(preview);
+      }
+      profileView.hidden = businessProfileTab !== 'profile';
+      profileEdit.hidden = true;
+      host.hidden = businessProfileTab !== 'visibility';
+      preview.hidden = businessProfileTab !== 'preview';
+      if (businessProfileTab === 'visibility') {
+        host.innerHTML = '<div class="profile-tab-heading"><span class="settings-eyebrow">DUVELA / TEACHER WORKSPACE</span><h2>' + esc(tr('Public Profile & Privacy', 'Публичный профиль и приватность')) + '</h2><p>' + esc(tr('Control what students and visitors can discover about you.', 'Управляйте тем, что ученики и посетители могут узнать о вас.')) + '</p></div><div id="profileVisibilityConsent"></div>';
+        renderPublicationConsent(host.querySelector('#profileVisibilityConsent'));
+      } else if (businessProfileTab === 'preview') {
+        const id = ctx.profile?.id || ctx.user?.id || '';
+        preview.innerHTML = '<div class="profile-tab-heading"><span class="settings-eyebrow">DUVELA / STUDENT VIEW</span><h2>' + esc(tr('How students see your profile', 'Как ученики видят ваш профиль')) + '</h2><p>' + esc(tr('This preview uses the real public profile route and current visibility rules.', 'Предпросмотр использует реальный публичный маршрут и текущие правила видимости.')) + '</p></div>' +
+          (id ? '<iframe title="' + esc(tr('Student profile preview', 'Предпросмотр профиля для ученика')) + '" src="./profile.html?id=' + encodeURIComponent(id) + '" loading="lazy"></iframe>' : '<div class="profile-preview-empty">' + esc(tr('Complete your profile to preview it.', 'Заполните профиль, чтобы увидеть предпросмотр.')) + '</div>');
+      } else {
+        host.innerHTML = '';
+        preview.innerHTML = '';
+      }
     }
 
     // What "Open profile" publishes for each role (same bundles as the Hub and
@@ -421,7 +488,10 @@
       // Verification screens internally); learners keep the plain editable form.
       const pv = document.getElementById('profileView');
       const pe = document.getElementById('profileEdit');
-      renderPublicationConsent(pe?.parentElement || pv?.parentElement);
+      ensureBusinessProfileTabs();
+      // Public publication controls belong to the account Settings workspace;
+      // keep Profile focused on identity and editable account details.
+      renderPublicationConsent(document.getElementById('settingsPublicProfile'));
       if (ctx.isBusiness() && ctx.profileView) {
         if (pe) pe.classList.remove('learner-profile-edit');
         if (pv) pv.hidden = false;
@@ -433,6 +503,7 @@
           pe.hidden = false;
           pe.classList.add('learner-profile-edit');
         }
+        ensureLearnerProfileWorkspace();
       }
       const appLanguageSelect = ensureAppLanguageField();
       if ($('#profileKicker')) $('#profileKicker').textContent = tr('Profile', 'Профиль');
@@ -464,7 +535,7 @@
       setInput('#pfLevel', ctx.profile?.language_level);
       setInput('#pfGoal', studentGoal.fromProfile(ctx.profile, ''));
       setInput('#pfAvatar', ctx.profile?.avatar_url);
-      if ($('#pfNativeLanguageLabel')) $('#pfNativeLanguageLabel').textContent = tr('Native language', 'Родной язык');
+      if ($('#pfNativeLanguageLabel')) $('#pfNativeLanguageLabel').textContent = ctx.isBusiness() ? tr('Native language', 'Родной язык') : tr('Learning language', 'Язык обучения');
       if ($('#pfGoalLabel')) $('#pfGoalLabel').textContent = tr('Student Goal', 'Цель ученика');
       if ($('#pfGoalField')) $('#pfGoalField').style.display = ctx.isBusiness() ? 'none' : '';
       if ($('#avatarRemoveBtn')) $('#avatarRemoveBtn').textContent = tr('Remove avatar', 'Удалить аватар');
@@ -484,6 +555,7 @@
         $('#publicProfileLink').style.display = 'inline-flex';
       }
       renderProgressCard();
+      renderBusinessProfileTabContent();
     }
 
     function learnerGoalItems() {
@@ -543,6 +615,184 @@
       const location = $('#profileMeta');
       if (name) name.textContent = displayName;
       if (location) location.textContent = meta;
+    }
+
+    function ensureLearnerProfileWorkspace() {
+      const host = $('#profileEdit');
+      if (!host || ctx.isBusiness()) return null;
+      let workspace = $('#learnerProfileWorkspace');
+      if (!workspace) {
+        const legacyGrid = $('#profileForm')?.closest('.grid-2');
+        if (!legacyGrid) return null;
+        workspace = document.createElement('div');
+        workspace.id = 'learnerProfileWorkspace';
+        workspace.className = 'lp-workspace';
+        workspace.innerHTML =
+          '<header class="lp-page-head"><div><span>' + esc(tr('DUVELA HUB · LEARNER', 'DUVELA HUB · УЧЕНИК')) + '</span><h2>' + esc(tr('My Learning Profile', 'Мой учебный профиль')) + '</h2><p>' + esc(tr('Your progress, achievements and learning journey.', 'Ваш прогресс, достижения и учебный путь.')) + '</p></div></header>' +
+          '<nav class="lp-tabs" role="tablist" aria-label="' + esc(tr('Learner profile sections', 'Разделы профиля ученика')) + '">' +
+            '<button type="button" role="tab" data-lp-tab="overview">' + esc(tr('Overview', 'Обзор')) + '</button>' +
+            '<button type="button" role="tab" data-lp-tab="achievements">' + esc(tr('Achievements', 'Достижения')) + '</button>' +
+            '<button type="button" role="tab" data-lp-tab="account">' + esc(tr('Account & Privacy', 'Аккаунт и приватность')) + '</button>' +
+          '</nav>' +
+          '<section class="lp-pane" data-lp-pane="overview" role="tabpanel"><div class="lp-loading">' + esc(tr('Loading your learning journey…', 'Загружаем ваш учебный путь…')) + '</div></section>' +
+          '<section class="lp-pane" data-lp-pane="achievements" role="tabpanel"><div class="lp-loading">' + esc(tr('Loading achievements…', 'Загружаем достижения…')) + '</div></section>' +
+          '<section class="lp-pane" data-lp-pane="account" role="tabpanel"><header class="lp-account-head"><div><span class="lp-eyebrow">' + esc(tr('ACCOUNT & PRIVACY', 'АККАУНТ И ПРИВАТНОСТЬ')) + '</span><h3>' + esc(tr('Profile details and visibility', 'Данные профиля и видимость')) + '</h3><p>' + esc(tr('Private account fields stay in this section. Public visibility remains controlled by your Duvela privacy settings.', 'Личные данные находятся в этом разделе. Публичность профиля по-прежнему управляется настройками приватности Duvela.')) + '</p></div><a class="btn" href="#settings" data-go="settings"><i data-lucide="shield"></i>' + esc(tr('Privacy settings', 'Настройки приватности')) + '</a></header></section>';
+        host.insertBefore(workspace, legacyGrid);
+        workspace.querySelector('[data-lp-pane="account"]').appendChild(legacyGrid);
+        workspace.addEventListener('click', (event) => {
+          const tab = event.target.closest('[data-lp-tab]');
+          const edit = event.target.closest('[data-lp-edit]');
+          if (tab) setLearnerProfileTab(tab.dataset.lpTab);
+          if (edit) setLearnerProfileTab('account');
+        });
+      }
+      setLearnerProfileTab(learnerProfileTab);
+      return workspace;
+    }
+
+    function setLearnerProfileTab(tab) {
+      const workspace = $('#learnerProfileWorkspace');
+      if (!workspace) return;
+      learnerProfileTab = ['overview', 'achievements', 'account'].includes(tab) ? tab : 'overview';
+      workspace.querySelectorAll('[data-lp-tab]').forEach((button) => {
+        const active = button.dataset.lpTab === learnerProfileTab;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+      });
+      workspace.querySelectorAll('[data-lp-pane]').forEach((pane) => {
+        pane.hidden = pane.dataset.lpPane !== learnerProfileTab;
+      });
+    }
+
+    async function learnerProfileQuery(factory) {
+      try {
+        const result = await factory();
+        return result && !result.error ? { available: true, data: result.data } : { available: false, data: null };
+      } catch (_) {
+        return { available: false, data: null };
+      }
+    }
+
+    async function loadLearnerProfileInsights() {
+      if (!ctx.user?.id) return {};
+      const userId = ctx.user.id;
+      const [practice, streak, achievements, languageProfiles, coins, challenges] = await Promise.all([
+        learnerProfileQuery(() => supa.from('practice_progress').select('tool_id,sessions,xp,best_score,correct,attempted').eq('user_id', userId)),
+        learnerProfileQuery(() => supa.from('practice_streaks').select('current_streak,longest_streak,today_sessions,daily_goal').eq('user_id', userId).maybeSingle()),
+        learnerProfileQuery(() => supa.from('practice_achievements').select('achievement_id,unlocked_at,metadata').eq('user_id', userId).order('unlocked_at', { ascending: false })),
+        learnerProfileQuery(() => supa.from('learner_language_profiles').select('language,current_level,goal_level,is_active,practice_progress,score').eq('user_id', userId)),
+        learnerProfileQuery(() => supa.from('coin_transactions').select('amount,balance_after,source,label,created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(8)),
+        learnerProfileQuery(() => supa.from('challenge_participants').select('challenge_id,status').eq('user_id', userId))
+      ]);
+      return { practice, streak, achievements, languageProfiles, coins, challenges };
+    }
+
+    function verifiedPercent(value) {
+      if (value === null || value === undefined || value === '') return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? Math.max(0, Math.min(100, number)) : null;
+    }
+
+    function learnerSkillRow(label, value) {
+      const percent = verifiedPercent(value);
+      if (percent === null) {
+        return '<div class="lp-skill unavailable"><div><span>' + esc(label) + '</span><em>' + esc(tr('No verified data yet', 'Подтверждённых данных пока нет')) + '</em></div><div class="lp-progress"><i></i></div></div>';
+      }
+      return '<div class="lp-skill"><div><span>' + esc(label) + '</span><b>' + percent + '%</b></div><div class="lp-progress"><i style="width:' + percent + '%"></i></div></div>';
+    }
+
+    function learnerLevelTimeline(current, target, achievements) {
+      const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      const completed = new Set();
+      (achievements || []).forEach((row) => {
+        const metadata = row?.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+        const explicit = metadata.completed_level || (metadata.completed === true ? metadata.level : '');
+        if (levels.includes(String(explicit || '').toUpperCase())) completed.add(String(explicit).toUpperCase());
+      });
+      return '<div class="lp-level-track">' + levels.map((level) => {
+        const classes = [level === current ? 'current' : '', level === target ? 'target' : '', completed.has(level) ? 'completed' : ''].filter(Boolean).join(' ');
+        const note = level === current ? tr('Current', 'Сейчас') : level === target ? tr('Target', 'Цель') : completed.has(level) ? tr('Verified', 'Подтверждено') : '';
+        return '<div class="' + classes + '"><span>' + level + '</span>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+
+    function learnerMetric(icon, value, label, help) {
+      return '<article class="lp-metric"><i data-lucide="' + icon + '"></i><div><strong>' + esc(value) + '</strong><span>' + esc(label) + '</span>' + (help ? '<small>' + esc(help) + '</small>' : '') + '</div></article>';
+    }
+
+    function formatAchievementName(value) {
+      return String(value || tr('Learning milestone', 'Учебная цель')).replace(/[-_]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+
+    function renderLearnerProfileWorkspace(insights) {
+      const workspace = ensureLearnerProfileWorkspace();
+      if (!workspace) return;
+      const overview = workspace.querySelector('[data-lp-pane="overview"]');
+      const achievementsPane = workspace.querySelector('[data-lp-pane="achievements"]');
+      const displayName = ctx.profile?.full_name || ctx.user.user_metadata?.full_name || (ctx.user.email || tr('Duvela learner', 'Ученик Duvela')).split('@')[0];
+      const goals = learnerGoalItems();
+      const activeLanguageProfile = (insights.languageProfiles?.data || []).find((item) => item?.is_active) || (insights.languageProfiles?.data || [])[0] || {};
+      const firstGoal = goals[0] || {};
+      const language = activeLanguageProfile.language || firstGoal.language || ctx.profile?.language || tr('Learning language not set', 'Язык обучения не выбран');
+      const current = String(activeLanguageProfile.current_level || firstGoal.currentLevel || ctx.profile?.language_level || 'A1').toUpperCase();
+      const target = String(activeLanguageProfile.goal_level || firstGoal.targetLevel || studentGoal.fromProfile(ctx.profile, current) || current).toUpperCase();
+      const xp = ctx.profile?.score;
+      const coins = ctx.profile?.vela_coin_balance;
+      const progressValue = verifiedPercent(activeLanguageProfile.practice_progress?.overall ?? activeLanguageProfile.practice_progress);
+      const achievementRows = insights.achievements?.data || [];
+      const streak = insights.streak?.data || null;
+      const city = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ');
+      const bio = String(ctx.profile?.bio || '').trim();
+      const recommendation = target !== current
+        ? tr('Continue ', 'Продолжить ') + language + ' ' + current + tr(' practice', ' — практика')
+        : tr('Keep building your ', 'Продолжайте развивать ') + language + ' ' + current;
+      const nextText = target !== current
+        ? tr('Your next verified target is ', 'Следующая подтверждённая цель — ') + target + '.'
+        : tr('Choose a new target in Account & Privacy when you are ready.', 'Когда будете готовы, выберите новую цель в разделе «Аккаунт и приватность».');
+
+      overview.innerHTML =
+        '<div class="lp-overview-grid"><main class="lp-main-column">' +
+          '<section class="lp-hero"><div class="lp-avatar" id="lpAvatar"></div><div class="lp-hero-copy"><span class="lp-eyebrow">' + esc(tr('LEARNER PROFILE', 'ПРОФИЛЬ УЧЕНИКА')) + '</span><h2>' + esc(displayName) + '</h2><p class="lp-hero-line">' + esc(language + ' · ' + current + ' → ' + target) + '</p>' + (bio ? '<p class="lp-bio">' + esc(bio) + '</p>' : '') + '<div class="lp-chips"><span>' + esc(language) + '</span><span>' + esc(tr('Current ', 'Сейчас ') + current) + '</span><span>' + esc(tr('Goal ', 'Цель ') + target) + '</span>' + (city ? '<span>' + esc(city) + '</span>' : '') + '</div></div><button type="button" class="btn primary" data-lp-edit><i data-lucide="pencil"></i>' + esc(tr('Edit Profile', 'Редактировать профиль')) + '</button></section>' +
+          '<section class="lp-card lp-journey"><div class="lp-card-head"><div><span class="lp-eyebrow">' + esc(tr('LEARNING JOURNEY', 'УЧЕБНЫЙ ПУТЬ')) + '</span><h3>' + esc(language + ' · ' + current + ' → ' + target) + '</h3></div><span class="lp-status">' + esc(tr('Recommended next: ', 'Следующий шаг: ') + (target !== current ? target : tr('keep practising', 'продолжать практику'))) + '</span></div>' + learnerLevelTimeline(current, target, achievementRows) + '<p class="lp-data-note"><i data-lucide="shield-check"></i>' + esc(tr('Completed levels appear only after a verified milestone is recorded.', 'Завершённые уровни отмечаются только после подтверждённой учебной цели.')) + '</p></section>' +
+          '<section class="lp-card"><div class="lp-card-head"><div><span class="lp-eyebrow">' + esc(tr('LEARNING ANALYTICS', 'УЧЕБНАЯ АНАЛИТИКА')) + '</span><h3>' + esc(tr('Skill progress', 'Прогресс навыков')) + '</h3></div></div><div class="lp-skills">' +
+            learnerSkillRow(tr('Grammar', 'Грамматика'), ctx.profile?.grammar_progress) + learnerSkillRow(tr('Speaking', 'Разговорная речь'), ctx.profile?.speaking_progress) + learnerSkillRow(tr('Vocabulary', 'Словарный запас'), ctx.profile?.vocabulary_progress) + learnerSkillRow(tr('Exam preparation', 'Подготовка к экзамену'), ctx.profile?.exam_progress) +
+          '</div></section>' +
+          '<section class="lp-continue"><div><span class="lp-eyebrow">' + esc(tr('CONTINUE LEARNING', 'ПРОДОЛЖИТЬ ОБУЧЕНИЕ')) + '</span><h3>' + esc(recommendation) + '</h3><p>' + esc(nextText) + '</p></div><div><a class="btn primary" href="#workspace" data-go="workspace">' + esc(tr('Open Practice', 'Открыть практику')) + '</a><a class="btn" href="#courses" data-go="courses">' + esc(tr('View Courses', 'Посмотреть курсы')) + '</a><a class="btn" href="#live" data-go="live">' + esc(tr('Upcoming LIVE', 'Ближайшие LIVE')) + '</a></div></section>' +
+        '</main><aside class="lp-side-column"><section class="lp-metrics">' +
+          learnerMetric('zap', xp === null || xp === undefined ? '—' : Number(xp).toLocaleString(), 'XP', xp === null || xp === undefined ? tr('Not reported', 'Нет данных') : '') +
+          learnerMetric('coins', coins === null || coins === undefined ? '—' : Number(coins).toLocaleString(), tr('Duvela Coins', 'Монеты Duvela'), tr('Internal balance', 'Внутренний баланс')) +
+          learnerMetric('target', target, tr('Goal level', 'Целевой уровень'), '') +
+          learnerMetric('chart-no-axes-column-increasing', progressValue === null ? '—' : progressValue + '%', tr('Learning progress', 'Прогресс обучения'), progressValue === null ? tr('Awaiting verified activity', 'Ожидается подтверждённая активность') : '') +
+        '</section><section class="lp-card lp-personal-goal"><span class="lp-eyebrow">' + esc(tr('CURRENT GOAL', 'ТЕКУЩАЯ ЦЕЛЬ')) + '</span><h3>' + esc(target !== current ? tr('Reach ', 'Достичь ') + target : tr('Strengthen ', 'Закрепить ') + current) + '</h3><p>' + esc(firstGoal.goal || nextText) + '</p></section>' + leaderboardShellHtml() + '</aside></div>';
+      avatarHtml('#lpAvatar', displayName, ctx.profile?.avatar_url);
+
+      const practiceRows = insights.practice?.data || [];
+      const coinRows = insights.coins?.data || [];
+      const completedChallenges = (insights.challenges?.data || []).filter((row) => String(row?.status || '').toLowerCase() === 'completed');
+      achievementsPane.innerHTML =
+        '<div class="lp-achievement-grid"><main>' +
+          '<section class="lp-achievement-hero"><div><span class="lp-eyebrow">' + esc(tr('ACHIEVEMENTS', 'ДОСТИЖЕНИЯ')) + '</span><h2>' + esc(tr('Your verified learning record', 'Ваши подтверждённые результаты')) + '</h2><p>' + esc(tr('Only activity stored in your Duvela account appears here.', 'Здесь отображается только активность, сохранённая в вашем аккаунте Duvela.')) + '</p></div><div class="lp-streak"><i data-lucide="flame"></i><strong>' + esc(streak ? String(Number(streak.current_streak || 0)) : '—') + '</strong><span>' + esc(tr('day streak', 'дней подряд')) + '</span></div></section>' +
+          '<section class="lp-card"><div class="lp-card-head"><div><span class="lp-eyebrow">' + esc(tr('BADGES & MILESTONES', 'ЗНАЧКИ И ЦЕЛИ')) + '</span><h3>' + esc(tr('Unlocked achievements', 'Полученные достижения')) + '</h3></div></div>' +
+            (achievementRows.length ? '<div class="lp-badge-grid">' + achievementRows.map((row) => '<article><i data-lucide="award"></i><div><b>' + esc(formatAchievementName(row.achievement_id)) + '</b><span>' + esc(row.unlocked_at ? new Date(row.unlocked_at).toLocaleDateString() : tr('Verified', 'Подтверждено')) + '</span></div></article>').join('') + '</div>' : '<div class="lp-empty">' + esc(insights.achievements?.available ? tr('No verified achievements yet. Complete practice activities to unlock your first milestone.', 'Подтверждённых достижений пока нет. Выполняйте упражнения, чтобы открыть первую цель.') : tr('Achievements are currently unavailable.', 'Достижения сейчас недоступны.')) + '</div>') +
+          '</section><section class="lp-card"><div class="lp-card-head"><div><span class="lp-eyebrow">' + esc(tr('XP ACTIVITY', 'АКТИВНОСТЬ XP')) + '</span><h3>' + esc(tr('Practice record', 'История практики')) + '</h3></div></div>' +
+            (practiceRows.length ? '<div class="lp-activity-list">' + practiceRows.map((row) => '<article><div><b>' + esc(formatAchievementName(row.tool_id)) + '</b><span>' + esc(Number(row.sessions || 0) + ' ' + tr('sessions', 'занятий')) + '</span></div><strong>+' + Number(row.xp || 0).toLocaleString() + ' XP</strong></article>').join('') + '</div>' : '<div class="lp-empty">' + esc(insights.practice?.available ? tr('No practice XP history yet.', 'Истории XP за практику пока нет.') : tr('XP history is currently unavailable.', 'История XP сейчас недоступна.')) + '</div>') +
+          '</section></main><aside><section class="lp-card"><span class="lp-eyebrow">' + esc(tr('STREAK', 'СЕРИЯ')) + '</span><div class="lp-streak-details"><div><strong>' + esc(streak ? String(Number(streak.current_streak || 0)) : '—') + '</strong><span>' + esc(tr('Current', 'Текущая')) + '</span></div><div><strong>' + esc(streak ? String(Number(streak.longest_streak || 0)) : '—') + '</strong><span>' + esc(tr('Best', 'Лучшая')) + '</span></div></div></section>' +
+          '<section class="lp-card"><span class="lp-eyebrow">' + esc(tr('CHALLENGES', 'ЧЕЛЛЕНДЖИ')) + '</span><h3>' + esc(completedChallenges.length ? completedChallenges.length + ' ' + tr('completed', 'завершено') : tr('No completed challenges yet', 'Завершённых челленджей пока нет')) + '</h3><a href="#challenges" data-go="challenges">' + esc(tr('Open challenges', 'Открыть челленджи')) + ' →</a></section>' +
+          '<section class="lp-card"><span class="lp-eyebrow">' + esc(tr('COIN ACTIVITY', 'ОПЕРАЦИИ С МОНЕТАМИ')) + '</span><h3>' + esc(coins === null || coins === undefined ? tr('Balance unavailable', 'Баланс недоступен') : Number(coins).toLocaleString() + ' DC') + '</h3><p class="lp-data-note">' + esc(tr('Duvela Coins are an internal balance and are not EUR.', 'Монеты Duvela — внутренний баланс, а не EUR.')) + '</p>' +
+            (coinRows.length ? '<div class="lp-coin-list">' + coinRows.slice(0, 5).map((row) => '<div><span>' + esc(row.label || row.source || tr('Coin activity', 'Операция')) + '</span><b class="' + (Number(row.amount) >= 0 ? 'positive' : '') + '">' + (Number(row.amount) >= 0 ? '+' : '') + Number(row.amount || 0).toLocaleString() + '</b></div>').join('') + '</div>' : '<div class="lp-empty compact">' + esc(insights.coins?.available ? tr('No coin activity yet.', 'Операций с монетами пока нет.') : tr('Coin history is unavailable.', 'История монет недоступна.')) + '</div>') + '</section></aside></div>';
+
+      const filter = $('#rankFilter');
+      if (filter && !filter.dataset.lpBound) {
+        filter.dataset.lpBound = 'true';
+        filter.addEventListener('change', () => {
+          state.leaderScope = filter.value;
+          renderLeaderboard();
+        });
+      }
+      renderLeaderboard();
+      if (window.lucide?.createIcons) window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
+      setLearnerProfileTab(learnerProfileTab);
     }
 
     async function saveProfile(event) {
@@ -730,36 +980,13 @@
         if (verificationForm) verificationForm.addEventListener('submit', submitVerification);
         return;
       }
-      if (profileGrid) profileGrid.style.gridTemplateColumns = '';
-      card.style.display = '';
-      card.classList.add('learner-progress-card');
-      const bars = [
-        [tr('Grammar', 'Грамматика'), ctx.profile?.grammar_progress ?? 0],
-        [tr('Speaking', 'Speaking'), ctx.profile?.speaking_progress ?? 0],
-        [tr('Vocabulary', 'Словарь'), ctx.profile?.vocabulary_progress ?? 0],
-        [tr('Exam', 'Экзамен'), ctx.profile?.exam_progress ?? 0]
-      ];
-      card.innerHTML =
-        '<div class="section-head"><h2>' + esc(tr('Your progress', 'Ваш прогресс')) + '</h2><span>' + esc((ctx.profile?.score ?? 0).toLocaleString() + ' XP · ' + (ctx.profile?.vela_coin_balance ?? 0).toLocaleString() + ' ' + tr('coins', 'монет')) + '</span></div>' +
-        bars.map(([label, value]) => {
-          const pct = Math.max(0, Math.min(100, Number(value) || 0));
-          return '<div class="prog-row"><div class="prog-label"><span>' + esc(label) + '</span><span>' + pct + '%</span></div><div class="prog-bar"><i style="width:' + pct + '%"></i></div></div>';
-        }).join('') +
-        ctx.walletHtml() +
-        leaderboardShellHtml();
-      card.insertAdjacentHTML('afterbegin',
-        '<div class="learner-stat-grid">' +
-          '<div><b>' + Number(ctx.profile?.score || 0).toLocaleString() + '</b><span>XP</span></div>' +
-          '<div><b>' + Number(ctx.profile?.vela_coin_balance || 0).toLocaleString() + '</b><span>' + esc(tr('Coins', 'Монеты')) + '</span></div>' +
-          '<div><b>' + esc(ctx.profile?.language_level || 'A1') + '</b><span>' + esc(tr('Level', 'Уровень')) + '</span></div>' +
-          '<div><b>' + esc(studentGoal.fromProfile(ctx.profile, 'A1')) + '</b><span>' + esc(tr('Goal', 'Цель')) + '</span></div>' +
-        '</div>');
-      const filter = $('#rankFilter');
-      if (filter) filter.addEventListener('change', () => {
-        state.leaderScope = filter.value;
-        renderLeaderboard();
-      });
-      renderLeaderboard();
+      if (profileGrid) profileGrid.style.gridTemplateColumns = 'minmax(0, 1fr)';
+      card.style.display = 'none';
+      const workspace = ensureLearnerProfileWorkspace();
+      if (workspace) {
+        const insights = await loadLearnerProfileInsights();
+        renderLearnerProfileWorkspace(insights);
+      }
     }
 
     function listFrom(value) {

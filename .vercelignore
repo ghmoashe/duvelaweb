@@ -3,6 +3,7 @@ node_modules
 .classroom-build
 dist
 tmp
+work
 .sites-package-*
 *.tar.gz
 *.mp4

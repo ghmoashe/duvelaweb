@@ -1,16 +1,35 @@
 (function () {
   const indexI18nApi = window.DuvelaIndexI18n;
-  const indexAuthApi = window.DuvelaIndexAuth;
-  const indexAuthUiApi = window.DuvelaIndexAuthUi;
+  const loadedScripts = new Map();
 
-  function renderLucideIcons() {
-    if (window.lucide?.createIcons) {
-      window.lucide.createIcons({ attrs: { 'aria-hidden': 'true' } });
-    }
+  function loadScript(src) {
+    if (loadedScripts.has(src)) return loadedScripts.get(src);
+    const promise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(`Unable to load ${src}`));
+      document.head.appendChild(script);
+    });
+    loadedScripts.set(src, promise);
+    return promise;
   }
 
-  renderLucideIcons();
-  document.addEventListener('DOMContentLoaded', renderLucideIcons, { once: true });
+  let corePromise = null;
+  function ensureCore() {
+    if (!corePromise) {
+      corePromise = [
+        './web/vendor/supabase-js-v2.js',
+        './web/duvela-runtime-config.js',
+        './web/duvela-web-config.js',
+        './web/duvela-web-roles.js?v=20260925-rbac1',
+        './web/duvela-web-ui.js',
+        './web/duvela-web-profile-writes.js?v=20260926-1'
+      ].reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve());
+    }
+    return corePromise;
+  }
 
   const revealItems = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
@@ -53,8 +72,9 @@
 
   function startRotate() {
     clearInterval(pTimer);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || pPages.length < 2) return;
-    pTimer = setInterval(() => showPage((pIdx + 1) % pPages.length), 4000);
+    // Keep the first preview stable. Automatic rotation continually introduces
+    // new LCP candidates and can distract keyboard and screen-reader users.
+    // The preview navigation remains fully interactive.
   }
 
   pNavItems.forEach((item, index) => {
@@ -93,16 +113,73 @@
     }
   });
 
-  authFeature = indexAuthApi.create({
-    config: window.DuvelaWebConfig,
-    rolesApi: window.DuvelaWebRoles,
-    profileWritesApi: window.DuvelaWebProfileWrites,
-    authUiApi: indexAuthUiApi,
-    getDict: () => i18nFeature.getDict()
-  });
-
-  authFeature.init();
   i18nFeature.init();
+
+  let authPromise = null;
+  function ensureAuth() {
+    if (!authPromise) {
+      authPromise = ensureCore()
+        .then(() => loadScript('./web/index-auth-ui.js?v=20260925-authui1'))
+        .then(() => loadScript('./web/index-auth.js?v=20260925-auth3'))
+        .then(() => {
+          authFeature = window.DuvelaIndexAuth.create({
+            config: window.DuvelaWebConfig,
+            rolesApi: window.DuvelaWebRoles,
+            profileWritesApi: window.DuvelaWebProfileWrites,
+            authUiApi: window.DuvelaIndexAuthUi,
+            getDict: () => i18nFeature.getDict()
+          });
+          authFeature.init();
+          return authFeature;
+        });
+    }
+    return authPromise;
+  }
+
+  let replayingAuthClick = false;
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('#openLogin, #openLoginMob, [data-auth-open]');
+    if (!trigger || authFeature || replayingAuthClick) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    ensureAuth().then(() => {
+      replayingAuthClick = true;
+      trigger.click();
+      replayingAuthClick = false;
+    }).catch((error) => console.error('[duvela-auth]', error));
+  }, true);
+
+  const query = new URLSearchParams(window.location.search);
+  if (query.get('login') === '1' || query.get('auth') === '1') ensureAuth().catch(() => {});
+
+  let publicDataPromise = null;
+  function ensurePublicData() {
+    if (!publicDataPromise) {
+      publicDataPromise = ensureCore().then(() => loadScript('./web/index-public-data.js?v=20260925-public4'));
+    }
+    return publicDataPromise;
+  }
+
+  const publicDataTarget = document.getElementById('teachers');
+  if (publicDataTarget && 'IntersectionObserver' in window) {
+    const publicDataObserver = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      publicDataObserver.disconnect();
+      ensurePublicData().catch(() => {});
+    }, { rootMargin: '500px 0px' });
+    publicDataObserver.observe(publicDataTarget);
+  } else if (publicDataTarget) {
+    ensurePublicData().catch(() => {});
+  }
+
+  let assistantRequested = false;
+  function ensureAssistant() {
+    if (assistantRequested) return;
+    assistantRequested = true;
+    loadScript('./web/duvi-assistant.js?v=20261016duvifix1').catch(() => {});
+  }
+  window.addEventListener('pointerdown', ensureAssistant, { once: true, passive: true });
+  window.addEventListener('keydown', ensureAssistant, { once: true });
 
   const scrollBar = document.getElementById('scrollBar');
   window.addEventListener('scroll', () => {

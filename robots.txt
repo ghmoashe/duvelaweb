@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /app.html
+Disallow: /classroom.html
+Disallow: /api/
 
 Sitemap: https://www.vela.cafe/sitemap.xml

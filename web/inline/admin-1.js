@@ -1,9 +1,14 @@
-  if (!window.DuvelaWebConfig) {
+﻿  if (!window.DuvelaWebConfig) {
     document.body.innerHTML = '<div class="wrap"><div class="card"><h2>Config missing</h2><p class="lead">duvela-web-config.js failed to load.</p></div></div>';
     throw new Error('Missing DuvelaWebConfig');
   }
   var client = window.DuvelaWebConfig.createSupabaseClient();
   var currentUser = null;
+  var idleTimer = null;
+  var adminIdleMs = 30 * 60 * 1000;
+  var lastActivity = Date.now();
+  var pendingMfaFactor = null;
+  var adminAccess = { role:'', capabilities:{moderation:false,finance:false,bulk:false,media:false,audit:false,support:false} };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
@@ -15,6 +20,98 @@
     el.className = 'msg ' + (kind || 'ok'); el.textContent = text;
     if (kind === 'ok') setTimeout(function () { el.className = 'msg'; }, 3500);
   }
+
+  function resetAdminIdle() {
+    lastActivity = Date.now();
+    if (idleTimer) clearTimeout(idleTimer);
+    if (currentUser) idleTimer = setTimeout(function () {
+      if (Date.now() - lastActivity >= adminIdleMs) {
+        client.auth.signOut();
+        location.reload();
+      } else resetAdminIdle();
+    }, adminIdleMs + 250);
+  }
+  ['click','keydown','pointerdown','mousemove','touchstart'].forEach(function (eventName) {
+    document.addEventListener(eventName, function () { if (currentUser) resetAdminIdle(); }, { passive:true });
+  });
+  function confirmAdminAction(message) { return window.confirm(message || 'Confirm this administrative action?'); }
+  async function loadAdminAccess() {
+    try {
+      var result = await client.rpc('admin_get_access');
+      if (result.error || !result.data || !result.data[0]) throw (result.error || new Error('No access profile'));
+      var row = result.data[0];
+      adminAccess = { role: row.role || '', capabilities: { moderation: !!row.can_moderate, finance: !!row.can_view_finance, bulk: !!row.can_manage_bulk, media: !!row.can_manage_media, audit: !!row.can_view_audit, support: ['super_admin','support_admin'].indexOf(row.role) !== -1 } };
+    } catch (error) {
+      adminAccess = { role:'', capabilities:{moderation:false,finance:false,bulk:false,media:false,audit:false,support:false} };
+      var securityText = document.getElementById('adminSecurityText');
+      if (securityText) securityText.textContent = 'Access profile unavailable';
+      document.getElementById('signedIn').style.display = 'none';
+      document.getElementById('notAdmin').style.display = 'block';
+      return;
+    }
+    document.querySelectorAll('[data-capability]').forEach(function (tab) { tab.hidden = !adminAccess.capabilities[tab.dataset.capability]; });
+    document.querySelectorAll('[data-super-admin-only]').forEach(function (el) { el.hidden = adminAccess.role !== 'super_admin'; });
+    var text = document.getElementById('adminSecurityText');
+    if (text && currentUser) text.textContent = 'Admin session protected · ' + adminAccess.role.replace('_',' ');
+  }
+  async function updateMfaStatus() {
+    var box = document.getElementById('adminSecurityStatus');
+    var text = document.getElementById('adminSecurityText');
+    if (!box || !text || !currentUser || !client.auth.mfa || !client.auth.mfa.listFactors) return;
+    try {
+      var result = await client.auth.mfa.listFactors();
+      var factors = (result.data && result.data.all || []);
+      var verified = factors.some(function (factor) { return factor.status === 'verified'; });
+      box.classList.toggle('warn', !verified);
+      text.textContent = verified ? 'Protected admin session · MFA verified' : 'MFA is not enabled for this admin account';
+      mfaRefresh.textContent = verified ? 'MFA enabled' : 'Set up MFA';
+      mfaRefresh.disabled = verified;
+    } catch (error) { box.classList.add('warn'); text.textContent = 'Admin session active · MFA status unavailable'; }
+  }
+  var mfaRefresh = document.getElementById('adminMfaRefresh');
+  async function beginMfaSetup() {
+    var dialog = document.getElementById('mfaDialog'), state = document.getElementById('mfaSetupState'), qr = document.getElementById('mfaQr');
+    if (!dialog || !client.auth.mfa) return;
+    state.textContent = 'Preparing MFA setup…'; qr.hidden = true; document.getElementById('mfaCode').value = ''; dialog.showModal();
+    try {
+      var listed = await client.auth.mfa.listFactors();
+      var existing = (listed.data && listed.data.all || []).find(function (factor) { return factor.factor_type === 'totp' && factor.status !== 'verified'; });
+      var result = existing ? { data: { id: existing.id, totp: null } } : await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'DUVELA Admin' });
+      if (result.error) throw result.error;
+      pendingMfaFactor = result.data;
+      if (result.data.totp && result.data.totp.qr_code) { qr.src = result.data.totp.qr_code; qr.hidden = false; }
+      state.textContent = result.data.totp && result.data.totp.secret ? 'Secret: ' + result.data.totp.secret : 'Use the existing authenticator enrollment, then enter its current code.';
+    } catch (error) { state.textContent = ''; msg('mfaMsg', error.message || 'Could not start MFA setup.', 'err'); }
+  }
+  if (mfaRefresh) mfaRefresh.addEventListener('click', beginMfaSetup);
+  document.getElementById('mfaCancel').addEventListener('click', function () { document.getElementById('mfaDialog').close(); });
+  document.getElementById('mfaVerify').addEventListener('click', async function () {
+    var code = document.getElementById('mfaCode').value.trim();
+    if (!pendingMfaFactor || !/^\d{6}$/.test(code)) { msg('mfaMsg', 'Enter the six-digit authenticator code.', 'err'); return; }
+    var button = this; button.disabled = true;
+    try {
+      var challenge = await client.auth.mfa.challenge({ factorId: pendingMfaFactor.id });
+      if (challenge.error) throw challenge.error;
+      var verified = await client.auth.mfa.verify({ factorId: pendingMfaFactor.id, challengeId: challenge.data.id, code: code });
+      if (verified.error) throw verified.error;
+      msg('mfaMsg', 'MFA verified successfully.', 'ok');
+      setTimeout(function () { document.getElementById('mfaDialog').close(); updateMfaStatus(); }, 700);
+    } catch (error) { msg('mfaMsg', error.message || 'MFA verification failed.', 'err'); }
+    button.disabled = false;
+  });
+
+  var adminRoleSave = document.getElementById('adminRoleSave');
+  if (adminRoleSave) adminRoleSave.addEventListener('click', async function () {
+    var userId = document.getElementById('adminRoleUserId').value.trim();
+    var role = document.getElementById('adminRoleValue').value;
+    if (!/^[0-9a-f-]{36}$/i.test(userId)) { msg('adminRoleMsg', 'Enter a valid user UUID.', 'err'); return; }
+    if (!confirmAdminAction('Change this administrator access role?')) return;
+    adminRoleSave.disabled = true;
+    var result = await client.rpc('admin_set_access_role', { target_user: userId, target_role: role });
+    adminRoleSave.disabled = false;
+    if (result.error) { msg('adminRoleMsg', result.error.message || 'Could not save access role.', 'err'); return; }
+    msg('adminRoleMsg', 'Access role saved and audited.', 'ok');
+  });
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   document.querySelectorAll('.tab').forEach(function (t) {
@@ -28,6 +125,7 @@
       if (name === 'overview')   { loadKpis(); loadSignups(); }
       if (name === 'leads')      { loadLeads(); }
       if (name === 'accounts')   { loadAccounts(); }
+      if (name === 'users')      { loadVerificationRequests(); }
       if (name === 'moderation') { loadReports(); }
       if (name === 'finance')    { loadFinance(); }
       if (name === 'bulk')       { loadBulkAccounts(); }
@@ -35,6 +133,8 @@
       if (name === 'audit')      { loadAudit(); }
     });
   });
+  var overviewDays = document.getElementById('overviewDays');
+  if (overviewDays) overviewDays.addEventListener('change', function () { loadSignups(); });
 
   // ── Media (Bunny Stream) ─────────────────────────────────────────────────
   async function loadBunny() {
@@ -183,18 +283,21 @@
   }
 
   document.getElementById('modHideBtn').addEventListener('click', async function () {
+    if (!confirmAdminAction('Hide this post and write an audit record?')) return;
     var id = document.getElementById('modPostId').value.trim();
     if (!id) return;
     var r = await client.rpc('admin_hide_post', { post_id: id, reason: document.getElementById('modHideReason').value.trim() || null });
     msg('modMsg', r.error ? r.error.message : '✓ Post hidden', r.error ? 'err' : 'ok');
   });
   document.getElementById('modUnhideBtn').addEventListener('click', async function () {
+    if (!confirmAdminAction('Unhide this post?')) return;
     var id = document.getElementById('modPostId').value.trim();
     if (!id) return;
     var r = await client.rpc('admin_unhide_post', { post_id: id });
     msg('modMsg', r.error ? r.error.message : '✓ Post unhidden', r.error ? 'err' : 'ok');
   });
   document.getElementById('modBanBtn').addEventListener('click', async function () {
+    if (!confirmAdminAction('Ban this user and write an audit record?')) return;
     var id = document.getElementById('modUserId').value.trim();
     var reason = document.getElementById('modBanReason').value.trim() || 'abuse';
     if (!id) return;
@@ -202,6 +305,7 @@
     msg('modMsg', r.error ? r.error.message : '✓ User banned', r.error ? 'err' : 'ok');
   });
   document.getElementById('modUnbanBtn').addEventListener('click', async function () {
+    if (!confirmAdminAction('Unban this user?')) return;
     var id = document.getElementById('modUserId').value.trim();
     if (!id) return;
     var r = await client.rpc('admin_unban_user', { target_user: id });
@@ -297,6 +401,7 @@
     var btn = e.target.closest('[data-payout-act]');
     if (!btn) return;
     var status = btn.dataset.payoutAct;
+    if (!confirmAdminAction(status === 'paid' ? 'Mark this payout as paid?' : 'Reject this payout and refund the balance?')) return;
     var note = status === 'rejected' ? window.prompt('Reason for rejecting (optional):') : window.prompt('Payout reference / note (optional):');
     if (note === null) return; // cancelled
     btn.disabled = true;
@@ -324,6 +429,7 @@
     if (!accId) { msg('bulkMsg', 'Choose an account first.', 'err'); return; }
     var emails = document.getElementById('bulkEmails').value.split(/[\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
     if (!emails.length) return;
+    if (!confirmAdminAction('Invite ' + emails.length + ' people to this corporate account?')) return;
     var r = await client.rpc('admin_bulk_invite_seats', { target_account: accId, emails: emails });
     if (r.error) { msg('bulkMsg', r.error.message, 'err'); return; }
     var tbl = document.getElementById('bulkResults');
@@ -344,6 +450,8 @@
     var s = await client.auth.getSession();
     currentUser = s.data.session ? s.data.session.user : null;
     if (!currentUser) {
+      if (idleTimer) clearTimeout(idleTimer);
+      document.getElementById('signedIn').classList.remove('admin-authorized');
       document.getElementById('signedOut').style.display = 'block';
       document.getElementById('signedIn').style.display = 'none';
       document.getElementById('notAdmin').style.display = 'none';
@@ -351,6 +459,8 @@
     }
     var check = await client.rpc('is_admin');
     if (check.error || !check.data) {
+      if (idleTimer) clearTimeout(idleTimer);
+      document.getElementById('signedIn').classList.remove('admin-authorized');
       document.getElementById('signedOut').style.display = 'none';
       document.getElementById('signedIn').style.display = 'none';
       document.getElementById('notAdmin').style.display = 'block';
@@ -362,6 +472,10 @@
     document.getElementById('signedOut').style.display = 'none';
     document.getElementById('notAdmin').style.display = 'none';
     document.getElementById('signedIn').style.display = 'block';
+    document.getElementById('signedIn').classList.add('admin-authorized');
+    resetAdminIdle();
+    await loadAdminAccess();
+    updateMfaStatus();
     document.getElementById('who').innerHTML =
       esc(currentUser.email) + ' · <strong>admin</strong>' +
       '<button id="signOutBtn">Sign out</button>';
@@ -412,23 +526,37 @@
   }
 
   async function loadSignups() {
-    var r = await client.rpc('admin_list_recent_signups', { days_back: 7 });
+    var days = parseInt((document.getElementById('overviewDays') || {}).value, 10) || 30;
+    var r = await client.rpc('admin_list_recent_signups', { days_back: days });
     var body = document.getElementById('signupsBody');
+    var heading = document.getElementById('signupsHeading');
+    if (heading) heading.textContent = 'Recent signups · last ' + days + ' days';
     // Distinguish "no rows in the window" from "RPC failed" — the previous
     // check collapsed both into the empty state, hiding real bugs (RLS
     // rejection, function rename, timeout) behind a misleading message.
     if (r.error) {
       body.innerHTML = '<tr><td colspan="3" class="empty">Failed to load: ' + esc(r.error.message || 'unknown error') + '</td></tr>';
+      renderSignupTrend([]);
       return;
     }
     if (!r.data || r.data.length === 0) {
-      body.innerHTML = '<tr><td colspan="3" class="empty">No signups in the last 7 days.</td></tr>'; return;
+      body.innerHTML = '<tr><td colspan="3" class="empty">No signups in the last ' + days + ' days.</td></tr>'; renderSignupTrend([]); return;
     }
+    renderSignupTrend(r.data);
     body.innerHTML = r.data.map(function (u) {
       return '<tr><td><strong>' + esc(u.full_name || '(no name)') + '</strong></td>' +
              '<td>' + esc(u.email || '') + '</td>' +
              '<td class="tight">' + fmtDate(u.created_at) + '</td></tr>';
     }).join('');
+  }
+
+  function renderSignupTrend(rows) {
+    var host = document.getElementById('signupTrend'); if (!host) return;
+    var counts = {}, max = 1, now = new Date();
+    (rows || []).forEach(function (row) { var key = new Date(row.created_at).toISOString().slice(0,10); counts[key] = (counts[key] || 0) + 1; max = Math.max(max, counts[key]); });
+    var out = [];
+    for (var i = 13; i >= 0; i--) { var d = new Date(now); d.setHours(0,0,0,0); d.setDate(d.getDate() - i); var key = d.toISOString().slice(0,10); var count = counts[key] || 0; out.push('<div class="trend-bar" title="' + key + ': ' + count + '"><b>' + (count || '') + '</b><i style="height:' + Math.max(4, Math.round(count / max * 58)) + 'px"></i><em>' + key.slice(5) + '</em></div>'); }
+    host.innerHTML = out.join('');
   }
 
   // ── Leads ────────────────────────────────────────────────────────────────
@@ -577,17 +705,21 @@
 
   // ── Users ────────────────────────────────────────────────────────────────
   document.getElementById('searchUsersBtn').addEventListener('click', loadUsers);
+  document.getElementById('refreshVerificationRequests').addEventListener('click', loadVerificationRequests);
   document.getElementById('userQuery').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); loadUsers(); }
   });
   async function loadUsers() {
     var q = document.getElementById('userQuery').value.trim();
     var body = document.getElementById('usersBody');
-    body.innerHTML = '<tr><td colspan="6" class="empty">Searching…</td></tr>';
-    var r = await client.rpc('admin_search_users', { query: q, page_size: 30 });
-    if (r.error) { body.innerHTML = '<tr><td colspan="6" class="empty">' + esc(r.error.message) + '</td></tr>'; return; }
+    body.innerHTML = '<tr><td colspan="7" class="empty">Searching…</td></tr>';
+    var r = await client.rpc('admin_search_users_v2', { query: q, page_size: 30 });
+    if (r.error && /admin_search_users_v2|schema cache|function/i.test(r.error.message || '')) {
+      r = await client.rpc('admin_search_users', { query: q, page_size: 30 });
+    }
+    if (r.error) { body.innerHTML = '<tr><td colspan="7" class="empty">' + esc(r.error.message) + '</td></tr>'; return; }
     if (!r.data || r.data.length === 0) {
-      body.innerHTML = '<tr><td colspan="6" class="empty">No matches.</td></tr>'; return;
+      body.innerHTML = '<tr><td colspan="7" class="empty">No matches.</td></tr>'; return;
     }
     body.innerHTML = r.data.map(function (u) {
       function chk(f, v) {
@@ -599,6 +731,7 @@
       // trigger and can't be toggled directly), so those two show as a role
       // dropdown. is_verified / is_admin stay as independent checkboxes.
       function roleSelect(uid, current) {
+        if (adminAccess.role !== 'super_admin') return '<strong style="text-transform:capitalize">' + esc(current || 'learner') + '</strong>';
         var roles = ['learner', 'teacher', 'organizer', 'organization'];
         return '<select data-role-user="' + uid + '" style="font-size:12px; padding:3px 6px; border-radius:6px;">' +
           roles.map(function (rr) {
@@ -607,13 +740,14 @@
         '</select>';
       }
       return '<tr>' +
-        '<td><strong>' + esc(u.full_name || '(no name)') + '</strong></td>' +
-        '<td>' + esc(u.email || '—') + '</td>' +
+        '<td><strong>' + esc(u.full_name || '(no name)') + '</strong><br><span style="color:var(--ink-muted);font-size:11px">' + esc(u.id) + '</span></td>' +
+        '<td>' + esc(u.email || '—') + '<br><span style="color:var(--ink-muted);font-size:11px">' + esc(u.provider || (u.phone ? 'phone' : 'email')) + (u.email_confirmed === false ? ' · unverified' : '') + '</span></td>' +
         '<td>' + esc([u.city, u.country].filter(Boolean).join(', ') || '—') + '</td>' +
         '<td>' + roleSelect(u.id, u.registered_web_role) +
-                 '<div style="margin-top:6px;">' + chk('is_verified', u.is_verified) + chk('is_admin', u.is_admin) + '</div></td>' +
-        '<td>' + esc(u.teacher_audience || '—') + '</td>' +
-        '<td class="tight">' + fmtDate(u.created_at) + '</td>' +
+                 '<div style="margin-top:6px;">' + (adminAccess.role === 'super_admin' ? chk('is_verified', u.is_verified) + chk('is_admin', u.is_admin) : '<span class="pill ' + (u.is_verified ? 'active' : 'paused') + '">' + (u.is_verified ? 'verified' : 'not verified') + '</span>') + (u.is_banned ? ' <span class="pill cancelled">banned</span>' : '') + '</div></td>' +
+        '<td>' + esc([u.language, u.language_level, u.goal_level ? '→ ' + u.goal_level : ''].filter(Boolean).join(' · ') || u.teacher_audience || '—') + '</td>' +
+        '<td class="tight">' + fmtDateTime(u.last_sign_in_at) + '<br><span style="color:var(--ink-muted);font-size:11px">Joined ' + fmtDate(u.created_at) + '</span></td>' +
+        '<td><button class="btn small ghost" type="button" data-user-details="' + esc(u.id) + '">Full details</button></td>' +
       '</tr>';
     }).join('');
     body.querySelectorAll('input[data-flag]').forEach(function (chk) {
@@ -632,6 +766,123 @@
         });
         if (res.error) { alert(res.error.message); sel.value = prev; }
         else { prev = sel.value; }
+      });
+    });
+    body.querySelectorAll('[data-user-details]').forEach(function (button) {
+      button.addEventListener('click', function () { openUserDetails(button.dataset.userDetails); });
+    });
+  }
+
+  function detailValue(value) {
+    if (value == null || value === '' || (Array.isArray(value) && !value.length)) return '—';
+    if (Array.isArray(value)) return value.join(', ');
+    if (typeof value === 'object') return Object.keys(value).length ? JSON.stringify(value) : '—';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    return String(value);
+  }
+  function detailRows(items) {
+    return '<div class="user-detail-list">' + items.map(function (item) {
+      return '<div class="user-detail-row"><span>' + esc(item[0]) + '</span><b>' + esc(detailValue(item[1])) + '</b></div>';
+    }).join('') + '</div>';
+  }
+  async function openUserDetails(userId) {
+    var dialog = document.getElementById('userDetailDialog');
+    var host = document.getElementById('userDetailBody');
+    host.innerHTML = '<div class="empty">Loading user information…</div>';
+    dialog.showModal();
+    var result = await client.rpc('admin_get_user_details_v1', { target_user: userId });
+    if (result.error) {
+      host.innerHTML = '<div class="msg err" style="display:block">' + esc(result.error.message || 'Could not load user details.') + '</div>';
+      return;
+    }
+    var data = result.data || {}, p = data.profile || {}, a = data.auth || {};
+    var statuses = [
+      '<span class="pill ' + (p.is_verified ? 'active' : 'paused') + '">' + (p.is_verified ? 'Verified' : 'Not verified') + '</span>',
+      p.is_teacher ? '<span class="pill active">Teacher</span>' : '',
+      p.is_organizer ? '<span class="pill active">Organizer</span>' : '',
+      p.is_admin ? '<span class="pill open">Administrator</span>' : '',
+      p.is_banned ? '<span class="pill cancelled">Banned</span>' : '',
+      a.email_confirmed_at ? '<span class="pill active">Email confirmed</span>' : '<span class="pill trial">Email pending</span>'
+    ].filter(Boolean).join('');
+    host.innerHTML =
+      '<div class="user-detail-head"><div><h2 id="userDetailTitle">' + esc(p.full_name || a.email || 'Duvela user') + '</h2><p>' + esc(a.email || 'No email') + '</p><div class="user-statuses">' + statuses + '</div></div><span class="user-detail-role">' + esc(p.registered_web_role || 'learner') + '</span></div>' +
+      '<div class="user-detail-grid">' +
+        '<section class="user-detail-section"><h3>Account & authentication</h3>' + detailRows([
+          ['User ID', p.id], ['Email', a.email], ['Phone', a.phone], ['Provider', a.provider], ['Providers', a.providers],
+          ['Registered', fmtDateTime(a.created_at || p.created_at)], ['Last sign in', fmtDateTime(a.last_sign_in_at)],
+          ['Email confirmed', fmtDateTime(a.email_confirmed_at)], ['Phone confirmed', fmtDateTime(a.phone_confirmed_at)],
+          ['SSO account', a.is_sso_user], ['Banned until', fmtDateTime(a.banned_until)]
+        ]) + '</section>' +
+        '<section class="user-detail-section"><h3>Profile</h3>' + detailRows([
+          ['Full name', p.full_name], ['City', p.city], ['Country', p.country], ['Account role', p.registered_web_role],
+          ['Role request', p.role_request_status], ['Profile updated', fmtDateTime(p.updated_at)], ['Biography', p.bio]
+        ]) + '</section>' +
+        '<section class="user-detail-section"><h3>Learning</h3>' + detailRows([
+          ['Learning language', p.language], ['Native language', p.native_language], ['Current level', p.language_level],
+          ['Goal level', p.goal_level], ['Learning targets', p.learning_targets], ['Score / XP', p.score], ['Duvela Coins', p.vela_coin_balance]
+        ]) + '</section>' +
+        '<section class="user-detail-section"><h3>Teaching</h3>' + detailRows([
+          ['Specialization', p.specialization], ['Audience', p.teacher_audience], ['Experience', p.teaching_experience],
+          ['Teaching languages', p.teaches_languages], ['Explanation languages', p.explanation_languages], ['Qualifications', p.qualifications]
+        ]) + '</section>' +
+        '<section class="user-detail-section wide"><h3>Public contacts</h3>' + detailRows([
+          ['Telegram', p.telegram], ['Instagram', p.instagram], ['TikTok', p.tiktok], ['Website', p.website],
+          ['Ban reason', p.banned_reason], ['Banned at', fmtDateTime(p.banned_at)]
+        ]) + '</section>' +
+      '</div>';
+  }
+  document.getElementById('userDetailClose').addEventListener('click', function () { document.getElementById('userDetailDialog').close(); });
+
+  async function loadVerificationRequests() {
+    var body = document.getElementById('verificationRequestsBody');
+    var status = document.getElementById('verificationRequestsStatus');
+    body.innerHTML = '<tr><td colspan="5" class="empty">Loading…</td></tr>';
+    var result = await client.rpc('admin_list_verification_requests_v1');
+    if (result.error) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">' + esc(result.error.message) + '</td></tr>';
+      return;
+    }
+    var requests = result.data || [];
+    if (!requests.length) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">No pending documents.</td></tr>';
+      return;
+    }
+    body.innerHTML = requests.map(function (item, index) {
+      return '<tr data-verification-request="' + index + '">' +
+        '<td>' + esc(item.user_id) + '</td><td>' + fmtDateTime(item.created_at) + '</td>' +
+        '<td>' + esc(item.account_role || 'Unknown') + '</td>' +
+        '<td>' + (item.document_path ? '<button class="btn" type="button" data-open-verification="' + index + '">Open private document</button>' : 'Missing document') + '</td>' +
+        '<td><button class="btn" type="button" data-review-verification="' + index + '" data-approve="true">Approve document</button> ' +
+        '<button class="btn" type="button" data-review-verification="' + index + '" data-approve="false">Reject document</button></td></tr>';
+    }).join('');
+    body.querySelectorAll('[data-open-verification]').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        var item = requests[Number(button.dataset.openVerification)];
+        var tab = window.open('', '_blank');
+        var signed = await client.storage.from('verification').createSignedUrl(item.document_path, 300);
+        if (signed.error || !signed.data?.signedUrl) {
+          if (tab) tab.close();
+          status.textContent = signed.error?.message || 'Could not open private document.';
+          status.className = 'msg err'; return;
+        }
+        if (tab) { tab.opener = null; tab.location.href = signed.data.signedUrl; }
+        else { status.textContent = 'Allow pop-ups to open the document.'; status.className = 'msg err'; }
+      });
+    });
+    body.querySelectorAll('[data-review-verification]').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        var item = requests[Number(button.dataset.reviewVerification)];
+        var approve = button.dataset.approve === 'true';
+        var note = prompt(approve ? 'Confirm you reviewed the document. Add a review note:' : 'Reason for rejecting this document:', '');
+        if (note === null || !note.trim()) return;
+        button.disabled = true;
+        var review = await client.rpc('admin_review_verification_request_v1', {
+          verification_id: item.verification_id, approve: approve, reviewer_note: note,
+        });
+        if (review.error) { status.textContent = review.error.message; status.className = 'msg err'; button.disabled = false; return; }
+        status.textContent = approve ? 'Verification approved. The account role is unchanged.' : 'Document rejected. The applicant may resubmit.';
+        status.className = 'msg ok';
+        await loadVerificationRequests();
       });
     });
   }

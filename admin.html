@@ -94,12 +94,76 @@
   .dialog-body { padding: 24px; }
   .dialog-body h2 { font-size: 17px; font-weight: 700; }
   .dialog-actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+  #userDetailDialog { max-width: 900px; }
+  .user-detail-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding-bottom:18px; border-bottom:1px solid var(--lav-line); }
+  .user-detail-head h2 { font-size:24px; letter-spacing:-.03em; }
+  .user-detail-head p { margin-top:5px; color:var(--ink-soft); }
+  .user-detail-role { padding:7px 11px; border-radius:999px; background:#E9F8F1; color:#087A50; font-size:12px; font-weight:800; text-transform:capitalize; }
+  .user-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px; }
+  .user-detail-section { border:1px solid var(--lav-line); border-radius:14px; padding:16px; background:#FBFCFE; min-width:0; }
+  .user-detail-section.wide { grid-column:1/-1; }
+  .user-detail-section h3 { margin:0 0 11px; font-size:13px; color:var(--green); text-transform:uppercase; letter-spacing:.06em; }
+  .user-detail-list { display:grid; gap:9px; }
+  .user-detail-row { display:grid; grid-template-columns:minmax(110px,.7fr) minmax(0,1.3fr); gap:12px; align-items:start; }
+  .user-detail-row span { color:var(--ink-soft); font-size:12px; }
+  .user-detail-row b { min-width:0; overflow-wrap:anywhere; font-size:12.5px; font-weight:650; }
+  .user-statuses { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .user-statuses .pill { text-transform:none; }
+  @media(max-width:650px){.user-detail-grid{grid-template-columns:1fr}.user-detail-section.wide{grid-column:auto}.user-detail-head{flex-direction:column}.user-detail-row{grid-template-columns:1fr}.user-detail-row b{margin-top:-5px}}
 
   @media (max-width: 900px) {
     .kpi-grid { grid-template-columns: 1fr 1fr; }
     .row { grid-template-columns: 1fr; }
     table { font-size: 12px; }
   }
+
+  /* Admin Control Center 4.0: operational shell */
+  :root { --bg:#F5F7FB; --card:#fff; --ink:#0B1220; --ink-soft:#64748B; --ink-muted:#94A3B8; --green:#16A36A; --purple:#7040D8; --lav-line:#E7ECF2; --lav-soft:#EEF8F3; --radius:16px; --shadow:0 12px 32px rgba(11,18,32,.06); }
+  body { background:var(--bg); color:var(--ink); }
+  .wrap { max-width:1480px; padding:24px 28px 64px; }
+  header.top { padding:14px 18px; margin-bottom:20px; border:1px solid var(--lav-line); border-radius:18px; background:rgba(255,255,255,.9); box-shadow:var(--shadow); }
+  .brand-title { color:var(--ink); letter-spacing:.01em; }
+  .brand-title small { color:var(--green); }
+  .who { color:var(--ink-soft); }
+  .who button { color:var(--green); border-color:#B9E8D3; }
+  #signedIn.admin-authorized { display:grid!important; grid-template-columns:236px minmax(0,1fr); align-items:start; gap:22px; }
+  #signedIn.admin-authorized > .tabs { grid-column:1; grid-row:1; display:flex; flex-direction:column; align-items:stretch; gap:6px; margin:0; padding:12px; border:1px solid var(--lav-line); border-radius:18px; background:#0B1220; box-shadow:0 18px 35px rgba(11,18,32,.14); position:sticky; top:18px; overflow:visible; }
+  #signedIn.admin-authorized > .tabs:before { content:'DUVELA CONTROL CENTER'; color:#8BE0B8; font-size:10px; font-weight:800; letter-spacing:.15em; padding:8px 10px 12px; }
+  #signedIn.admin-authorized > .tabs .tab { width:100%; text-align:left; border:0; border-radius:10px; padding:11px 12px; color:#CBD5E1; background:transparent; font-size:13px; }
+  #signedIn.admin-authorized > .tabs .tab:hover { color:#fff; background:rgba(255,255,255,.08); border:0; }
+  #signedIn.admin-authorized > .tabs .tab.active { color:#fff; background:var(--green); box-shadow:0 8px 18px rgba(22,163,106,.28); }
+  #signedIn.admin-authorized > .tab-panel { grid-column:2; grid-row:1; min-width:0; }
+  #signedIn.admin-authorized > .tab-panel[hidden] { display:none; }
+  #adminSecurityStatus { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border:1px solid #B9E8D3; border-radius:12px; background:#F0FBF5; color:#176B4A; font-size:12px; }
+  #adminSecurityStatus.warn { border-color:#F5D49A; background:#FFF8EA; color:#9A5B00; }
+  #adminSecurityStatus button { border:0; background:transparent; color:inherit; font:inherit; font-weight:800; cursor:pointer; text-decoration:underline; }
+  .mfa-qr { display:block; width:180px; height:180px; margin:16px auto; padding:10px; border:1px solid var(--lav-line); border-radius:12px; background:#fff; }
+  .card { border-color:var(--lav-line); border-radius:18px; box-shadow:var(--shadow); padding:24px; }
+  .card h2 { color:var(--ink); text-transform:none; letter-spacing:-.02em; font-size:19px; }
+  .card p.lead { color:var(--ink-soft); }
+  .kpi-grid { grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .kpi { background:var(--lav-soft); border:1px solid #D9F0E5; border-radius:14px; padding:16px; }
+  .kpi-num { color:var(--ink); font-size:24px; }
+  .kpi-label { color:var(--ink-soft); }
+  .trend-grid { display:grid; grid-template-columns:repeat(14,minmax(0,1fr)); gap:5px; align-items:end; min-height:96px; margin-top:18px; padding-top:12px; border-top:1px solid var(--lav-line); }
+  .trend-bar { display:flex; flex-direction:column; align-items:center; justify-content:end; gap:4px; min-width:0; height:82px; color:var(--ink-muted); font-size:9px; }
+  .trend-bar i { display:block; width:100%; max-width:22px; min-height:4px; border-radius:5px 5px 2px 2px; background:var(--green); }
+  .trend-bar em { font-style:normal; overflow:hidden; text-overflow:ellipsis; }
+  .btn { background:var(--green); box-shadow:0 6px 16px rgba(22,163,106,.22); }
+  .btn:hover { box-shadow:0 10px 22px rgba(22,163,106,.28); }
+  .btn.ghost { color:var(--green); border-color:#B9E8D3; }
+  .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(22,163,106,.13); }
+  th { color:var(--ink-soft); }
+  th,td { border-bottom-color:var(--lav-line); }
+  .empty { color:var(--ink-muted); }
+  @media(max-width:900px){
+    #signedIn.admin-authorized { display:block!important; }
+    #signedIn.admin-authorized > .tabs { position:sticky; top:8px; z-index:5; flex-direction:row; overflow-x:auto; padding:8px; border-radius:14px; margin-bottom:16px; }
+    #signedIn.admin-authorized > .tabs:before { display:none; }
+    #signedIn.admin-authorized > .tabs .tab { width:auto; flex:0 0 auto; text-align:center; }
+    #signedIn.admin-authorized > .tab-panel { width:100%; }
+  }
+  @media(max-width:560px){ .wrap{padding:12px 12px 40px}.card{padding:16px}.brand-title{font-size:15px}.who{font-size:11px}.kpi-grid{grid-template-columns:1fr 1fr} table{display:block;overflow-x:auto;white-space:nowrap} }
 </style>
 </head>
 <body>
@@ -108,7 +172,7 @@
   <header class="top">
     <a href="./index.html" class="brand">
       <img src="./logo2.png" alt="Duvela">
-      <span class="brand-title">Duvela<small>ADMIN</small></span>
+      <span class="brand-title">Admin Control Center</span>
     </a>
     <div class="who" id="who"></div>
   </header>
@@ -141,16 +205,17 @@
   </div>
 
   <div id="signedIn" style="display:none;">
+    <div id="adminSecurityStatus" role="status"><span id="adminSecurityText">Admin session protected.</span><button type="button" id="adminMfaRefresh">Check MFA</button></div>
     <div class="tabs">
       <button class="tab active" data-tab="overview">Overview</button>
-      <button class="tab" data-tab="leads">Leads</button>
-      <button class="tab" data-tab="accounts">Corporate accounts</button>
-      <button class="tab" data-tab="users">Users</button>
-      <button class="tab" data-tab="moderation">Moderation</button>
-      <button class="tab" data-tab="finance">Finance</button>
-      <button class="tab" data-tab="bulk">Bulk ops</button>
-      <button class="tab" data-tab="media">Media (Bunny)</button>
-      <button class="tab" data-tab="audit">Audit log</button>
+      <button class="tab" data-tab="leads" data-capability="support">Leads</button>
+      <button class="tab" data-tab="accounts" data-capability="support">Corporate accounts</button>
+      <button class="tab" data-tab="users" data-capability="support">Users</button>
+      <button class="tab" data-tab="moderation" data-capability="moderation">Moderation</button>
+      <button class="tab" data-tab="finance" data-capability="finance">Finance</button>
+      <button class="tab" data-tab="bulk" data-capability="bulk">Bulk ops</button>
+      <button class="tab" data-tab="media" data-capability="media">Media (Bunny)</button>
+      <button class="tab" data-tab="audit" data-capability="audit">Audit log</button>
     </div>
 
     <!-- OVERVIEW -->
@@ -158,14 +223,17 @@
       <div class="card">
         <h2>Platform KPIs</h2>
         <p class="lead">Real-time snapshot across users, teachers, corporate accounts, and MRR.</p>
+        <div class="field" style="max-width:220px; margin-top:14px;"><label for="overviewDays">Analytics window</label><select id="overviewDays"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last year</option></select></div>
         <div class="kpi-grid" id="kpiGrid"><div class="empty">Loading…</div></div>
+        <div id="signupTrend" class="trend-grid" aria-label="Signup trend"></div>
       </div>
       <div class="card">
-        <h2>Recent signups (last 7 days)</h2>
+        <h2 id="signupsHeading">Recent signups</h2>
         <table><thead><tr><th>Name</th><th>Email</th><th class="tight">Joined</th></tr></thead>
           <tbody id="signupsBody"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
+      <div class="card"><h2>Platform health</h2><p class="lead">Live checks from the protected admin session and configured services.</p><div class="kpi-grid" id="healthGrid"><div class="kpi"><div class="kpi-num">●</div><div class="kpi-label">Admin session protected</div></div><div class="kpi"><div class="kpi-num">●</div><div class="kpi-label">Supabase configured</div></div><div class="kpi"><div class="kpi-num">—</div><div class="kpi-label">Bunny sync status</div></div></div></div>
     </div>
 
     <!-- LEADS -->
@@ -214,7 +282,7 @@
     <div class="tab-panel" data-panel="users" hidden>
       <div class="card">
         <h2>User search</h2>
-        <p class="lead">Search by name or email. Toggle flags directly (is_teacher, is_verified, is_admin, is_organizer).</p>
+        <p class="lead">Search by name or email. Account roles are chosen at registration; document verification is separate.</p>
         <div class="row" style="grid-template-columns: 2fr auto;">
           <div class="field">
             <label>Query</label>
@@ -225,8 +293,28 @@
           </div>
         </div>
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Role &amp; flags</th><th>Audience</th><th></th></tr></thead>
-          <tbody id="usersBody"><tr><td colspan="6" class="empty">Type a query and hit Search.</td></tr></tbody>
+          <thead><tr><th>User</th><th>Account</th><th>Location</th><th>Role &amp; status</th><th>Learning</th><th>Last active</th><th></th></tr></thead>
+          <tbody id="usersBody"><tr><td colspan="7" class="empty">Type a query and hit Search.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card" data-super-admin-only hidden>
+        <h2>Administrative access roles</h2>
+        <p class="lead">Only super administrators can assign administrative capabilities. The change is validated and audited on the server.</p>
+        <div class="row" style="grid-template-columns: 2fr 1fr auto; align-items:end;">
+          <div class="field"><label for="adminRoleUserId">Administrator user ID</label><input id="adminRoleUserId" placeholder="UUID"></div>
+          <div class="field"><label for="adminRoleValue">Access role</label><select id="adminRoleValue"><option value="super_admin">Super admin</option><option value="moderator">Moderator</option><option value="finance_admin">Finance admin</option><option value="support_admin">Support admin</option></select></div>
+          <button class="btn" id="adminRoleSave">Save access role</button>
+        </div>
+        <div class="msg" id="adminRoleMsg" role="status"></div>
+      </div>
+      <div class="card">
+        <h2>Document verification</h2>
+        <p class="lead">Review submitted documents to approve or reject verification. The account's chosen role stays unchanged.</p>
+        <button class="btn" id="refreshVerificationRequests">Refresh documents</button>
+        <div id="verificationRequestsStatus" class="msg" role="status"></div>
+        <table>
+          <thead><tr><th>Applicant</th><th>Submitted</th><th>Account role</th><th>Document</th><th>Decision</th></tr></thead>
+          <tbody id="verificationRequestsBody"><tr><td colspan="5" class="empty">Open the Users tab to load documents.</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -467,6 +555,25 @@
   </div>
 </dialog>
 
-<script src="./web/inline/admin-1.js"></script>
+<dialog id="mfaDialog">
+  <div class="dialog-body">
+    <h2>Secure admin account with MFA</h2>
+    <p class="lead" style="margin-top:6px;">Scan this QR code in an authenticator app, then enter the six-digit code to verify the factor.</p>
+    <div id="mfaSetupState" class="empty">Preparing MFA setup…</div>
+    <img id="mfaQr" class="mfa-qr" alt="MFA QR code" hidden>
+    <div class="field"><label for="mfaCode">Authenticator code</label><input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></div>
+    <div class="msg" id="mfaMsg"></div>
+    <div class="dialog-actions"><button class="btn ghost" id="mfaCancel">Cancel</button><button class="btn" id="mfaVerify">Verify MFA</button></div>
+  </div>
+</dialog>
+
+<dialog id="userDetailDialog" aria-labelledby="userDetailTitle">
+  <div class="dialog-body">
+    <div id="userDetailBody"><div class="empty">Loading user information…</div></div>
+    <div class="dialog-actions"><button class="btn ghost" id="userDetailClose" type="button">Close</button></div>
+  </div>
+</dialog>
+
+<script src="./web/inline/admin-1.js?v=20261021-user-details1"></script>
 </body>
 </html>

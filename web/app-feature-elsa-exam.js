@@ -67,7 +67,7 @@
       goethe: {
         A1: ['Sich vorstellen', 'Informationen erfragen und geben', 'Bitten und darauf reagieren'],
         A2: ['Fragen zur Person', 'Von sich erzählen', 'Gemeinsam etwas planen'],
-        B1: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben', 'Ein Thema präsentieren', 'Über die Präsentation sprechen'],
+        B1: ['Gemeinsam etwas planen', 'Ein Thema präsentieren', 'Über ein Thema sprechen'],
         B2: ['Einen Standpunkt vortragen', 'Diskutieren und argumentieren'],
         C1: ['Freien Vortrag halten', 'Anspruchsvoll diskutieren'],
         C2: ['Vortrag auf C2-Niveau', 'Kontroverse Diskussion'],
@@ -89,8 +89,8 @@
         C2: ['Anspruchsvoller Vortrag', 'Debatte'],
       },
       dtz: {
-        A2: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben'],
-        B1: ['Über sich sprechen', 'Gemeinsam etwas planen', 'Ein Bild beschreiben'],
+        A2: ['Sich vorstellen', 'Ein Foto beschreiben', 'Gemeinsam etwas planen'],
+        B1: ['Sich vorstellen', 'Ein Foto beschreiben', 'Gemeinsam etwas planen'],
       },
     };
     function partSummariesForCurrent() {
@@ -109,12 +109,18 @@
         board: 'goethe',
         level: 'B1',
         selectedPart: null,
+        trainingMode: 'exam',
+        micStatus: 'unchecked',
         phase: 'setup',
         messages: [],
         conversationId: null,
         sending: false,
         evaluation: null,
         skills: { sprechen: null },
+        runId: 0,
+        endedEarly: false,
+        voiceConversation: false,
+        speakerEnabled: true,
       };
     }
 
@@ -134,12 +140,11 @@
     const PLANNING_CUES = ['Wann?', 'Wohin?', 'Mit wem?', 'Wie viel?', 'Was brauchen wir?', 'Nächste Schritte?'];
     // Structure for the free-presentation part — the same three-step shape a real Goethe B1
     // topic card uses (experience → pros/cons → opinion), for whichever topic gets picked.
-    const PRESENTATION_CUES = ['Erzählen Sie von einer eigenen Erfahrung dazu.', 'Nennen Sie Vor- und Nachteile.', 'Sagen Sie Ihre Meinung dazu.'];
+    const PRESENTATION_CUES = ['Stellen Sie Ihr Thema und die Struktur vor.', 'Berichten Sie von einer persönlichen Erfahrung.', 'Beschreiben Sie die Situation in Ihrem Heimatland.', 'Nennen Sie Vor- und Nachteile und Ihre Meinung.', 'Bedanken Sie sich bei den Zuhörenden.'];
     // Topic pool for the presentation part (only Goethe B1 Teil 4 uses it today), mirrored from
     // the Hub's TOPIC_POOL.B1 in shared/ai-practice-exams.ts.
     const PRESENTATION_TOPIC_POOL = [
-      'Soziale Medien', 'Umwelt und Müll', 'Gesunde Ernährung', 'Reisen früher und heute',
-      'Sport im Alltag', 'Leben in der Stadt oder auf dem Land', 'Online lernen', 'Ehrenamt',
+      'Brauchen Kinder Mobiltelefone?', 'Sehen Kinder zu viel fern?',
     ];
     function pickPresentationTopic() {
       return PRESENTATION_TOPIC_POOL[Math.floor(Math.random() * PRESENTATION_TOPIC_POOL.length)];
@@ -167,26 +172,28 @@
       return partIndex === 1 && state.board === 'goethe' && state.level === 'A2';
     }
     function cuesForPart(partIndex) {
-      if (state.board === 'dtz') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES][partIndex] || null;
+      if (state.board === 'dtz') return [SELF_INTRO_CUES, PICTURE_CUES, PLANNING_CUES][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'A2') {
         return [SELF_INTRO_CUES, state.talkTopic ? state.talkTopic.cues : null, PLANNING_CUES][partIndex] || null;
       }
-      if (state.board === 'goethe' && state.level === 'B1') return [SELF_INTRO_CUES, PLANNING_CUES, PICTURE_CUES, PRESENTATION_CUES, null][partIndex] || null;
+      if (state.board === 'goethe' && state.level === 'B1') return [PLANNING_CUES, PRESENTATION_CUES, null][partIndex] || null;
       if (state.board === 'goethe' && state.level === 'A1' && partIndex === 0) return SELF_INTRO_CUES;
       return null;
     }
-    // The "Ein Bild beschreiben" part is always Teil 3 (index 2) wherever it exists.
+    // Picture description is supported only by DTZ Teil 2 in this simulator.
+    // Goethe B1 follows its three official tasks: planning, presentation, discussion.
     function isPictureTaskPart(partIndex) {
-      return partIndex === 2 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
+      return state.board === 'dtz' && partIndex === 1;
     }
-    // "Gemeinsam etwas planen": Teil 2 (index 1) on DTZ and Goethe B1, Teil 3 (index 2) on Goethe A2.
+    // Planning is Goethe B1 Teil 1, DTZ Teil 3 and Goethe A2 Teil 3.
     function isPlanningTaskPart(partIndex) {
+      if (state.board === 'goethe' && state.level === 'B1') return partIndex === 0;
       if (state.board === 'goethe' && state.level === 'A2') return partIndex === 2;
-      return partIndex === 1 && (state.board === 'dtz' || (state.board === 'goethe' && state.level === 'B1'));
+      return state.board === 'dtz' && partIndex === 2;
     }
-    // The "Ein Thema präsentieren" part is always Teil 4 (index 3), only on Goethe B1.
+    // Goethe B1 Teil 2 is the structured presentation task.
     function isPresentationTaskPart(partIndex) {
-      return partIndex === 3 && state.board === 'goethe' && state.level === 'B1';
+      return partIndex === 1 && state.board === 'goethe' && state.level === 'B1';
     }
     // Fixed designed graphic for the planning part (same every attempt, unlike EXAM_PHOTOS),
     // shown above the usual plain text cue card.
@@ -312,8 +319,8 @@
         nativeHelp: false,
         lessonTemplate: BOARD_LABEL[state.board] + ' ' + state.level,
         lessonGoal: state.selectedPart != null
-          ? 'Conduct only Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam, with one realistic follow-up.'
-          : 'Conduct the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam part by part with one follow-up per part.',
+          ? (state.trainingMode==='practice' ? 'Conduct only Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam. After each learner response, provide at most one brief learning correction.' : 'Conduct only Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam. Do not give hints or corrections during responses.')
+          : 'Conduct the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam part by part. Do not give hints or corrections during assessed responses.',
         lessonTurnIndex: turnIndex,
         lessonTurnTarget: activePartIndices().length * 2,
       };
@@ -327,7 +334,7 @@
       overlay.id = 'elsaExamOverlay';
       overlay.className = 'overlay';
       overlay.innerHTML =
-        '<div class="overlay-card" style="width:min(560px,100%);max-height:88vh;display:flex;flex-direction:column">' +
+        '<div class="overlay-card elsa-exam-overlay-card" style="width:min(820px,100%);max-height:88vh;display:flex;flex-direction:column">' +
         '<div class="overlay-head"><h2 id="elsaExamTitle">ELSA · ' + esc(tr('Examiner', 'Экзаменатор')) + '</h2>' +
         '<button type="button" id="elsaExamClose" aria-label="Close">✕</button></div>' +
         '<div class="overlay-body" id="elsaExamBody" style="overflow:auto"></div>' +
@@ -352,54 +359,69 @@
     function body() { return document.getElementById('elsaExamBody'); }
 
     // ---- setup ----
+    function voiceRecognition() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+    function startVoiceInput(input, button) {
+      const Recognition = voiceRecognition();
+      if (!Recognition || !input) return;
+      let recognition;
+      try { recognition = new Recognition(); } catch (error) { return; }
+      let finalText = '';
+      recognition.lang = 'de-DE';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+      button.disabled = true;
+      button.setAttribute('aria-pressed', 'true');
+      button.textContent = '■';
+      recognition.onresult = function (event) {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const phrase = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalText += phrase + ' ';
+          else interim += phrase;
+        }
+        input.value = (finalText || interim).trim();
+      };
+      recognition.onerror = function () {
+        button.title = tr('Voice input could not start. Type your answer instead.', 'Не удалось включить голосовой ввод. Введите ответ текстом.');
+      };
+      recognition.onend = function () {
+        button.disabled = false;
+        button.setAttribute('aria-pressed', 'false');
+        button.textContent = '🎙';
+      };
+      try { recognition.start(); } catch (error) { recognition.onend(); }
+    }
+
+    function microphoneCheck() {
+      var Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!Recognition){state.micStatus='unsupported';renderSetup();return;}
+      try {
+        var recognition=new Recognition();
+        state.micStatus='checking';renderSetup();
+        recognition.lang='de-DE';
+        recognition.onstart=function(){state.micStatus='ready';renderSetup();try{recognition.stop();}catch(error){}};
+        recognition.onerror=function(event){state.micStatus=event && event.error==='not-allowed'?'denied':'unavailable';renderSetup();};
+        recognition.onend=function(){if(state.micStatus==='checking'){state.micStatus='unavailable';renderSetup();}};
+        recognition.start();
+      } catch(error) { state.micStatus='unavailable';renderSetup(); }
+    }
+
+    function expectedExamMinutes() { return activePartIndices().length * (state.trainingMode==='exam'?4:3); }
+
     function renderSetup() {
-      state.phase = 'setup';
-      const boardBtns = BOARDS.map(function (b) {
-        return '<button type="button" class="btn opt-btn' + (state.board === b ? ' primary' : '') + '" data-board="' + b + '" style="flex:1;min-width:120px">' + esc(BOARD_LABEL[b]) + '</button>';
-      }).join('');
-      const levelBtns = LEVELS_BY_BOARD[state.board].map(function (lv) {
-        return '<button type="button" class="btn opt-btn' + (state.level === lv ? ' primary' : '') + '" data-level="' + lv + '" style="min-width:52px">' + lv + '</button>';
-      }).join('');
-      const partRows = partSummariesForCurrent().map(function (summary, i) {
-        const active = state.selectedPart === i;
-        return '<div data-part="' + i + '" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;' +
-          (active ? 'background:var(--panel-soft)' : '') + '">' +
-          '<span style="width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;' +
-          (active ? 'background:var(--teal);color:#fff' : 'background:var(--panel-soft)') + '">' + (i + 1) + '</span>' +
-          '<span style="flex:1;font-weight:700;font-size:13px">Teil ' + (i + 1) + '<br><small style="color:var(--soft);font-weight:600">' + esc(summary) + '</small></span>' +
-          (active ? '<span style="color:var(--teal);font-weight:900">✓</span>' : '') + '</div>';
-      }).join('');
-      body().innerHTML =
-        '<p style="font-weight:800;margin:0 0 6px">' + esc(tr('Mock oral exam', 'Пробный устный экзамен')) + '</p>' +
-        '<p style="color:var(--soft);font-weight:600;margin:0 0 14px">' + esc(tr('Pick an exam and level. ELSA runs it part by part and grades you.', 'Выберите экзамен и уровень. ELSA проведёт его по частям и оценит.')) + '</p>' +
-        '<div style="font-weight:800;margin-bottom:8px">' + esc(tr('Exam', 'Экзамен')) + '</div>' +
-        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + boardBtns + '</div>' +
-        '<div style="font-weight:800;margin-bottom:8px">' + esc(tr('Level', 'Уровень')) + '</div>' +
-        '<div id="elsaLevels" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' + levelBtns + '</div>' +
-        '<div style="font-size:12px;font-weight:600;color:var(--soft);margin-bottom:8px">' +
-        esc(tr('Tap a part to practise just that part with ELSA, or leave none selected for the full sequence.', 'Нажмите на часть, чтобы отработать только её с ELSA, или не выбирайте ничего для полной последовательности.')) +
-        '</div>' +
-        '<div id="elsaParts" style="margin-bottom:16px">' + partRows + '</div>' +
-        '<button class="btn primary" id="elsaStart" style="width:100%">🎤 ' + esc(tr('Start exam', 'Начать экзамен')) + '</button>';
-      Array.prototype.forEach.call(body().querySelectorAll('[data-board]'), function (btn) {
-        btn.addEventListener('click', function () {
-          state.board = btn.getAttribute('data-board');
-          if (LEVELS_BY_BOARD[state.board].indexOf(state.level) < 0) state.level = LEVELS_BY_BOARD[state.board][0];
-          state.selectedPart = null;
-          renderSetup();
-        });
-      });
-      Array.prototype.forEach.call(body().querySelectorAll('[data-level]'), function (btn) {
-        btn.addEventListener('click', function () { state.level = btn.getAttribute('data-level'); state.selectedPart = null; renderSetup(); });
-      });
-      Array.prototype.forEach.call(body().querySelectorAll('[data-part]'), function (row) {
-        row.addEventListener('click', function () {
-          const i = Number(row.getAttribute('data-part'));
-          state.selectedPart = state.selectedPart === i ? null : i;
-          renderSetup();
-        });
-      });
-      body().querySelector('#elsaStart').addEventListener('click', startExam);
+      state.phase='setup';
+      const boardBtns=BOARDS.map(function(board){return '<button type="button" class="elsa-choice '+(state.board===board?'active':'')+'" data-board="'+board+'">'+esc(BOARD_LABEL[board])+'</button>';}).join('');
+      const levelBtns=LEVELS_BY_BOARD[state.board].map(function(level){return '<button type="button" class="elsa-level '+(state.level===level?'active':'')+'" data-level="'+level+'">'+level+'</button>';}).join('');
+      const partRows=partSummariesForCurrent().map(function(summary,index){var active=state.selectedPart===index;return '<button type="button" class="elsa-part '+(active?'active':'')+'" data-part="'+index+'"><span>Teil '+(index+1)+'</span><b>'+esc(summary)+'</b>'+(active?'<i>✓</i>':'')+'</button>';}).join('');
+      const micText={unchecked:tr(voiceRecognition()?'Voice input is available during the session.':'Text practice selected',voiceRecognition()?'Голосовой ввод доступен во время занятия.':'Выбрана текстовая практика'),checking:tr('Checking microphone permission…','Проверяем доступ к микрофону…'),ready:tr('Microphone access confirmed for voice input.','Доступ к микрофону подтверждён для голосового ввода.'),denied:tr('Microphone permission was denied. Continue with text practice.','Доступ к микрофону отклонён. Продолжайте текстовую практику.'),unsupported:tr('Voice input is unavailable in this browser.','Голосовой ввод недоступен в этом браузере.'),unavailable:tr('Microphone is unavailable. Continue with text practice.','Микрофон недоступен. Продолжайте текстовую практику.')};
+      const single=state.trainingMode==='practice';
+      body().innerHTML='<section class="elsa-setup"><header><div><small>DUVELA · ELSA EXAMINER</small><h2>'+esc(tr('Speaking exam practice','Практика устного экзамена'))+'</h2><p>'+esc(tr('A structured AI practice simulation, not an official certification.','Структурированная AI-симуляция, не официальная сертификация.'))+'</p></div><span>'+esc(tr('AI practice','AI-практика'))+'</span></header><div class="elsa-setup-grid"><div class="elsa-setup-main"><section><h3>1. '+esc(tr('Choose your exam','Выберите экзамен'))+'</h3><div class="elsa-choice-grid">'+boardBtns+'</div></section><section><h3>2. '+esc(tr('Choose level','Выберите уровень'))+'</h3><div class="elsa-level-row">'+levelBtns+'</div>'+(state.board==='dtz'?'<p class="elsa-helper">'+esc(tr('DTZ assesses the A2–B1 range.','DTZ оценивает диапазон A2–B1.'))+'</p>':'')+'</section><section><h3>3. '+esc(tr('Training mode','Режим тренировки'))+'</h3><div class="elsa-mode-row"><button type="button" data-mode="exam" class="'+(state.trainingMode==='exam'?'active':'')+'"><b>'+esc(tr('Full exam simulation','Полная симуляция экзамена'))+'</b><small>'+esc(tr('No hints while you respond. Feedback comes after the session.','Без подсказок во время ответа. Разбор — после занятия.'))+'</small></button><button type="button" data-mode="practice" class="'+(single?'active':'')+'"><b>'+esc(tr('Practise one part','Отработать одну часть'))+'</b><small>'+esc(tr('Choose a part and receive learning feedback.','Выберите часть и получите учебную обратную связь.'))+'</small></button></div></section>'+(single?'<section><h3>4. '+esc(tr('Choose exam part','Выберите часть экзамена'))+'</h3><div class="elsa-part-list">'+partRows+'</div></section>':'<section class="elsa-sequence"><b>'+esc(tr('Full sequence','Полная последовательность'))+'</b><span>'+partSummariesForCurrent().map(function(summary,index){return 'Teil '+(index+1)+' · '+summary;}).join('  •  ')+'</span></section>')+'</div><aside class="elsa-setup-side"><section class="elsa-mic"><small>'+esc(tr('VOICE INPUT','ГОЛОСОВОЙ ВВОД'))+'</small><b>'+esc(micText[state.micStatus])+'</b><p>'+esc(tr('This simulator currently evaluates the submitted transcript. It does not rate pronunciation without recorded audio evidence.','Симулятор оценивает отправленный текст. Произношение не оценивается без записанного аудио.'))+'</p><button type="button" id="elsaMicCheck" '+(state.micStatus==='checking'?'disabled':'')+'>'+esc(state.micStatus==='ready'?tr('Check again','Проверить снова'):tr('Check microphone','Проверить микрофон'))+'</button></section><section class="elsa-preview"><small>'+esc(tr('SELECTED SESSION','ВЫБРАННОЕ ЗАНЯТИЕ'))+'</small><b>'+esc(BOARD_LABEL[state.board])+' · '+state.level+'</b><span>'+esc(single?(partSummariesForCurrent()[state.selectedPart]||tr('Select one part','Выберите одну часть')):tr('Full exam sequence','Полная последовательность экзамена'))+'</span><span>'+expectedExamMinutes()+' '+esc(tr('min estimated','мин ориентировочно'))+'</span></section></aside></div><footer><span>'+esc(tr('AI feedback is a practice estimate, not an official exam result.','AI-обратная связь — учебная оценка, не официальный экзаменационный результат.'))+'</span><button type="button" class="btn primary" id="elsaStart" '+(single&&state.selectedPart==null?'disabled':'')+'>'+esc(single?tr('Start part practice','Начать практику части'):tr('Start full exam','Начать полный экзамен'))+' →</button></footer></section>';
+      Array.prototype.forEach.call(body().querySelectorAll('[data-board]'),function(button){button.onclick=function(){state.board=button.getAttribute('data-board');if(LEVELS_BY_BOARD[state.board].indexOf(state.level)<0)state.level=LEVELS_BY_BOARD[state.board][0];state.selectedPart=null;renderSetup();};});
+      Array.prototype.forEach.call(body().querySelectorAll('[data-level]'),function(button){button.onclick=function(){state.level=button.getAttribute('data-level');state.selectedPart=null;renderSetup();};});
+      Array.prototype.forEach.call(body().querySelectorAll('[data-mode]'),function(button){button.onclick=function(){state.trainingMode=button.getAttribute('data-mode');if(state.trainingMode==='practice'&&state.selectedPart==null)state.selectedPart=0;if(state.trainingMode==='exam')state.selectedPart=null;renderSetup();};});
+      Array.prototype.forEach.call(body().querySelectorAll('[data-part]'),function(button){button.onclick=function(){state.selectedPart=Number(button.getAttribute('data-part'));renderSetup();};});
+      body().querySelector('#elsaMicCheck').onclick=microphoneCheck;
+      body().querySelector('#elsaStart').onclick=startExam;
     }
 
     // ---- speaking ----
@@ -409,6 +431,8 @@
       state.conversationId = null;
       state.evaluation = null;
       state.skills = { sprechen: null };
+      state.endedEarly = false;
+      state.runId += 1;
       state.photo = pickExamPhoto();
       state.topic = pickPresentationTopic();
       state.talkTopic = pickTalkTopic();
@@ -420,6 +444,7 @@
 
     async function sendTurn(text, isKickoff) {
       if (!isKickoff) state.messages.push({ role: 'user', text: text });
+      const runId = state.runId;
       state.sending = true;
       renderExam();
       try {
@@ -429,15 +454,18 @@
           conversationId: state.conversationId,
           history: state.messages.slice(-6).map(function (m) { return { role: m.role, text: m.text }; }),
         }, lessonParams(isKickoff ? 0 : answersGiven())));
+        if (runId !== state.runId) return;
         state.conversationId = reply.conversationId || state.conversationId;
         const coach = reply.coach || {};
         const correction = String(coach.quickCorrection || '').trim();
         const better = String(coach.betterVersion || '').trim();
         const lastAnswer = state.messages[state.messages.length - 1];
-        if (!isKickoff && lastAnswer && lastAnswer.role === 'user' && (correction || better)) {
+        if (state.trainingMode==='practice' && !isKickoff && lastAnswer && lastAnswer.role === 'user' && (correction || better)) {
           lastAnswer.notes = { correction: correction, better: better };
         }
-        state.messages.push({ role: 'assistant', text: reply.text || '(…)' });
+        var assistantReply = reply.text || '(…)';
+        state.messages.push({ role: 'assistant', text: assistantReply });
+        if (state.voiceConversation && state.speakerEnabled) speak(assistantReply);
       } catch (e) {
         state.error = e.message;
       }
@@ -510,21 +538,24 @@
           (m.role === 'user' ? 'background:var(--teal);color:#fff' : 'background:var(--panel-soft);border:1px solid var(--line)') + '">' + esc(m.text) + '</div></div>' +
           notesHtml(m) + cueHtml;
       }).join('') + (state.sending ? '<div style="color:var(--soft);font-weight:700">…</div>' : '');
-      body().innerHTML =
-        '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--soft);margin-bottom:10px">' +
-        '<span>' + esc(BOARD_LABEL[state.board]) + ' ' + state.level + '</span><span>' + esc(tr('Part', 'Часть')) + ' ' + part + '/' + total + '</span></div>' +
-        '<div id="elsaLog"' + LTR + ' style="max-height:44vh;overflow:auto;margin-bottom:10px">' + log + '</div>' +
-        (state.error ? '<div style="color:#d64545;font-weight:700;margin-bottom:8px">' + esc(state.error) + '</div>' : '') +
-        (done ? '<button class="btn primary" id="elsaFinish" style="width:100%;margin-bottom:8px">🏁 ' + esc(tr('Finish & get result', 'Завершить и узнать результат')) + '</button>' : '') +
-        '<div style="display:flex;gap:8px"><input id="elsaInput"' + LTR + ' class="search" placeholder="' + esc(tr('Type your answer…', 'Напишите ответ…')) + '" style="flex:1;margin:0"><button class="btn primary" id="elsaSend">➤</button></div>' +
-        '<button class="btn" id="elsaEndEarly" style="width:100%;margin-top:8px">' + esc(tr('End early & get result', 'Завершить досрочно')) + '</button>';
+      const activeIndex = indices[Math.min(indices.length - 1, Math.floor(answersGiven() / 2))];
+      const activeMedia = isPictureTaskPart(activeIndex) && state.photo
+        ? '<img src="' + esc(state.photo.src) + '" alt="" class="elsa-task-photo">'
+        : isPlanningTaskPart(activeIndex) ? '<img src="' + esc(PLANNING_CARD_IMAGE) + '" alt="" class="elsa-task-photo">' : '';
+      const activeTitle = partSummariesForCurrent()[activeIndex] || tr('Speaking task', 'Устное задание');
+      body().classList.add('elsa-active-body');
+      body().innerHTML = '<section class="elsa-active-exam"><aside class="elsa-task-panel"><small>DUVELA · ELSA EXAMINER</small><div class="elsa-task-head"><h3>' + esc(BOARD_LABEL[state.board]) + ' · ' + state.level + '</h3><span>' + esc(tr('Part', 'Часть')) + ' ' + part + '/' + total + '</span></div><h2>' + esc(activeTitle) + '</h2>' + activeMedia + '<div class="elsa-task-instructions">' + cueHtmlFor(cuesForPart(activeIndex), activeIndex) + '</div><p>' + esc(state.trainingMode==='exam' ? tr('Exam mode: ELSA gives no hints or grammar corrections while you answer.','Экзаменационный режим: ELSA не даёт подсказок и исправлений во время ответа.') : tr('Practice mode: learning feedback is shown after your answer.','Режим практики: учебная обратная связь показывается после ответа.')) + '</p></aside><section class="elsa-dialog-panel"><header><div><b>ELSA · ' + esc(tr('Examiner', 'Экзаменатор')) + '</b><small>' + esc(state.trainingMode==='exam'?tr('Exam simulation','Симуляция экзамена'):tr('Part practice','Практика части')) + '</small></div><span>' + esc(tr('Text-based practice','Текстовая практика')) + '</span></header><div id="elsaLog"' + LTR + ' class="elsa-dialog-log">' + log + '</div>' + (state.error ? '<div class="elsa-dialog-error">' + esc(state.error) + '</div>' : '') + (done ? '<button class="btn primary" id="elsaFinish">🏁 ' + esc(tr('View feedback', 'Посмотреть разбор')) + '</button>' : '') + '<div class="elsa-dialog-composer"><input id="elsaInput"' + LTR + ' class="search" placeholder="' + esc(tr('Type your answer…', 'Напишите ответ…')) + '">' + (voiceRecognition() ? '<button type="button" class="elsa-voice-input" id="elsaVoice" aria-label="' + esc(tr('Speak your answer', 'Продиктовать ответ')) + '" aria-pressed="' + (state.voiceConversation ? 'true' : 'false') + '" title="' + esc(tr('Speak your answer', 'Продиктовать ответ')) + '">🎙</button><button type="button" class="elsa-speaker-toggle" id="elsaSpeaker" aria-label="' + esc(tr('Toggle ELSA voice', 'Включить или выключить голос ELSA')) + '">' + (state.speakerEnabled ? '🔊' : '🔇') + '</button>' : '') + '<button class="btn primary" id="elsaSend">➤</button></div><button class="elsa-end-session" id="elsaEndEarly">' + esc(tr('End session', 'Завершить сессию')) + '</button></section></section>';
       const logEl = document.getElementById('elsaLog'); if (logEl) logEl.scrollTop = logEl.scrollHeight;
       const input = document.getElementById('elsaInput');
       const send = function () { const v = input.value.trim(); if (v && !state.sending) { input.value = ''; void sendTurn(v, false); } };
+      const voiceButton = document.getElementById('elsaVoice');
+      if (voiceButton) voiceButton.addEventListener('click', function () { state.voiceConversation = true; startVoiceInput(input, voiceButton); });
+      var speakerButton = document.getElementById('elsaSpeaker');
+      if (speakerButton) speakerButton.addEventListener('click', function () { state.speakerEnabled = !state.speakerEnabled; if (!state.speakerEnabled && window.speechSynthesis) window.speechSynthesis.cancel(); renderExam(); });
       document.getElementById('elsaSend').addEventListener('click', send);
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
       if (document.getElementById('elsaFinish')) document.getElementById('elsaFinish').addEventListener('click', finishExam);
-      document.getElementById('elsaEndEarly').addEventListener('click', finishExam);
+      document.getElementById('elsaEndEarly').addEventListener('click', function () { if (!confirm(tr('End this session and view partial practice feedback?', 'Завершить сессию и посмотреть частичный разбор?'))) return; state.endedEarly = true; state.runId += 1; state.sending = false; finishExam(); });
     }
 
     async function finishExam() {
@@ -569,11 +600,11 @@
           '<b style="width:28px;text-align:right">' + (val == null ? '—' : val) + '</b></div>';
       };
       let html = '<div style="text-align:center;margin-bottom:14px">' +
-        '<span style="display:inline-block;padding:6px 18px;border-radius:999px;color:#fff;font-weight:900;letter-spacing:1px;background:' + (ev.passed ? '#2FA36B' : '#D94F72') + '">' + (ev.passed ? esc(tr('PASSED', 'СДАН')) : esc(tr('NOT PASSED', 'НЕ СДАН'))) + '</span>' +
+        '<span style="display:inline-block;padding:6px 18px;border-radius:999px;color:#fff;font-weight:900;letter-spacing:1px;background:' + (state.endedEarly ? '#7947EA' : ev.passed ? '#2FA36B' : '#D94F72') + '">' + (state.endedEarly ? esc(tr('PARTIAL PRACTICE FEEDBACK', 'ЧАСТИЧНЫЙ РАЗБОР ПРАКТИКИ')) : ev.passed ? esc(tr('UNOFFICIAL AI ESTIMATE', 'НЕОФИЦИАЛЬНАЯ ОЦЕНКА AI')) : esc(tr('UNOFFICIAL AI ESTIMATE', 'НЕОФИЦИАЛЬНАЯ ОЦЕНКА AI'))) + '</span>' +
         '<div style="font-size:40px;font-weight:900;margin-top:10px">' + ev.score.overall + '/100</div>' +
         '<div style="color:var(--soft);font-weight:700">' + esc(BOARD_LABEL[state.board]) + ' ' + state.level + ' · ' + esc(ev.band) + '</div></div>';
       html += '<div class="card" style="margin-bottom:12px">' + bar(tr('Fluency', 'Беглость'), ev.score.fluency) + bar(tr('Accuracy', 'Точность'), ev.score.accuracy) +
-        bar(tr('Vocabulary', 'Лексика'), ev.score.vocabulary) + bar(tr('Pronunciation', 'Произношение'), ev.score.pronunciation) + '</div>';
+        bar(tr('Vocabulary', 'Лексика'), ev.score.vocabulary) + '</div><p style="color:var(--soft);font-size:12px;margin:0 0 12px">' + esc(tr('Pronunciation is not scored because this text simulation has no recorded audio evidence.','Произношение не оценивается: у текстовой симуляции нет записанного аудио.')) + '</p>';
       if (ev.parts && ev.parts.length) {
         html += '<div class="card" style="margin-bottom:12px"><b>' + esc(tr('By part', 'По частям')) + '</b>' +
           ev.parts.map(function (p) { return '<div style="display:flex;justify-content:space-between;margin-top:8px"><span>' + esc(p.label) + '</span><b>' + p.score + '/100</b></div>' + (p.feedback ? '<small style="color:var(--soft)">' + esc(p.feedback) + '</small>' : ''); }).join('') + '</div>';
