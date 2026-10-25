@@ -6,6 +6,7 @@
     const PREFS_KEY = 'duvela.study.preferences';
     const OFFLINE_QUEUE_KEY = 'duvela.study.offlineQueue';
     const EXAM_GOAL_KEY = 'duvela.study.examGoal';
+    const ADAPTIVE_PLAN_KEY = 'duvela.study.adaptivePlan.v1';
     const DUEL_LIVE_KEY = 'duvela.study.duelLiveMode';
     const DUEL_TEACHER_KEY = 'duvela.study.duelTeacherKit';
     // Anti-repeat: remember which questions have been shown by this teacher in
@@ -833,7 +834,8 @@
           supa.from('practice_language_settings').select('language,level,active').eq('user_id',uid()),
           supa.from('practice_resume').select('tool_id,language,level,current_step,score,state,client_session_id,updated_at').eq('user_id',uid()).maybeSingle(),
           supa.from('practice_exam_goals').select('exam_type,exam_date,days_per_week,minutes_per_day,updated_at').eq('user_id',uid()).maybeSingle(),
-          supa.from('learner_language_profiles').select('language,current_level,goal_level,is_active,practice_progress,score').eq('user_id',uid())
+          supa.from('learner_language_profiles').select('language,current_level,goal_level,is_active,practice_progress,score').eq('user_id',uid()),
+          supa.from('adaptive_learning_plans').select('plan_date,language,current_level,target_level,plan_version,signal,route,status,updated_at').eq('user_id',uid()).eq('plan_date',new Date().toISOString().slice(0,10)).order('updated_at',{ascending:false}).limit(1).maybeSingle()
         ]);
         var progress = loadProgress();
         (results[0].data || []).forEach(function (row) { progress[row.tool_id] = Math.max(Number(progress[row.tool_id] || 0),Number(row.sessions || 0)); });
@@ -849,6 +851,7 @@
         if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime(),cloudLevel=normalizePracticeLevel(cloud.level,'A1'),cloudState=cloud.state||{};if(cloud.language===currentLang()&&cloudLevel===currentPracticeLevel(cloud.language)&&(!local||cloudAt>Number(local.at||0)))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,level:cloudLevel,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloudState.startedAt||Date.now(),writingDraft:cloudState.writingDraft||'',writingTaskId:cloudState.writingTaskId||'',checked:cloudState.checked||{},writingVersions:cloudState.writingVersions||[],flashData:cloudState.flashData||[],flashStats:cloudState.flashStats||{},flashFlipped:!!cloudState.flashFlipped,at:cloudAt})); }
         if(results[9]&&results[9].data){var exam=results[9].data;localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify({exam:exam.exam_type,date:exam.exam_date,daysPerWeek:exam.days_per_week,minutes:exam.minutes_per_day}));}
         if(results[10]&&(results[10].data||[]).length){var languagePrefs=loadPrefs();languagePrefs.levels=languagePrefs.levels||{};languagePrefs.goalLevels=languagePrefs.goalLevels||{};(results[10].data||[]).forEach(function(row){var target=normalizePracticeTarget(row.language);if(!target)return;languagePrefs.levels[target]=String(row.current_level||'A1').toUpperCase();if(row.goal_level)languagePrefs.goalLevels[target]=STUDENT_GOAL.normalize(row.goal_level,languagePrefs.levels[target]||'A1');if(row.is_active){languagePrefs.practiceTarget=target;languagePrefs.practiceLang=target;if(ctx.profile&&row.goal_level)ctx.profile.goal_level=STUDENT_GOAL.normalize(row.goal_level,ctx.profile.goal_level||'A1');}});savePrefs(languagePrefs);}
+        if(results[11]&&results[11].data){var cloudPlan=results[11].data,localPlan=loadAdaptivePlan(),cloudUpdated=new Date(cloudPlan.updated_at||0).getTime(),localUpdated=Number(localPlan&&localPlan.updatedAt||0),route=cloudPlan.route||{};if(!localPlan||cloudUpdated>localUpdated)localStorage.setItem(ADAPTIVE_PLAN_KEY,JSON.stringify({version:Number(cloudPlan.plan_version||1),learnerId:uid(),date:cloudPlan.plan_date,lang:cloudPlan.language,level:cloudPlan.current_level,targetLevel:cloudPlan.target_level,signal:cloudPlan.signal||'',steps:Array.isArray(route.steps)?route.steps:[],stats:route.stats||{},weakTopic:route.weakTopic||null,updatedAt:cloudUpdated,createdAt:cloudUpdated}));}
         if ((results[1].data || []).length) {
           // Server rows first; local mistakes that have not been uploaded yet are kept.
           var serverMistakes = results[1].data.map(mistakeFromRow).filter(Boolean);
@@ -1639,7 +1642,7 @@
       var persianOnly = PERSIAN_TOOLS.indexOf(id) >= 0;
       var sessionLang=germanOnly?'de':persianOnly?'fa':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
       var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
-      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:1,skillDirect:id==='listening'||id==='reading'||id==='writing'||!!(restored&&restored.skillDirect),progressDirect:id==='mistakes'||!!(restored&&restored.progressDirect),clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now(),writingDraft:canRestore&&restored.writingDraft||'',writingTaskId:canRestore&&restored.writingTaskId||'',checked:canRestore&&restored.checked||{},writingVersions:canRestore&&restored.writingVersions||[],data:id==='flashcards'&&canRestore&&Array.isArray(restored.flashData)?restored.flashData:null,flashStats:id==='flashcards'&&canRestore?restored.flashStats||null:null,flashFlipped:id==='flashcards'&&canRestore&&!!restored.flashFlipped };
+      studyState = { tool:id,lang:sessionLang,level:sessionLevel,idx:canRestore?(restored.idx||0):0,score:canRestore?(restored.score||0):0,streak:0,lives:3,answers:[],timerEnabled:false,speechRate:1,skillDirect:id==='listening'||id==='reading'||id==='writing'||!!(restored&&restored.skillDirect),progressDirect:id==='mistakes'||!!(restored&&restored.progressDirect),adaptivePlanStepId:restored&&restored.adaptivePlanStepId||'',clientSessionId:canRestore&&restored.clientSessionId||sessionId(),startedAt:canRestore&&restored.startedAt||Date.now(),writingDraft:canRestore&&restored.writingDraft||'',writingTaskId:canRestore&&restored.writingTaskId||'',checked:canRestore&&restored.checked||{},writingVersions:canRestore&&restored.writingVersions||[],data:id==='flashcards'&&canRestore&&Array.isArray(restored.flashData)?restored.flashData:null,flashStats:id==='flashcards'&&canRestore?restored.flashStats||null:null,flashFlipped:id==='flashcards'&&canRestore&&!!restored.flashFlipped };
       $('#studyOverlayTitle').textContent = tool.icon + ' ' + tool.title;
       $('#studyOverlayKicker').textContent = String(tool.category || 'practice').toUpperCase() + ' · ' + studyState.level;
       $('#studyOverlay').setAttribute('data-practice-tool', id);
@@ -1651,6 +1654,11 @@
 
     function renderTool() {
       var body = $('#studyOverlayBody');
+      if (studyState.tool === 'adaptive') {
+        body.innerHTML = '<div id="studyToolBody" class="practice-workspace adaptive-workspace"></div>';
+        renderToolBody();
+        return;
+      }
       var showPicker = ['mistakes','ai','articles','wquestion','perfekt','germanAlphabet'].concat(PERSIAN_TOOLS).indexOf(studyState.tool) < 0;
       var pickerRow = showPicker ? '<div class="practice-language-row">' + langPicker() + '</div>' : '';
       var tool = TOOLS.find(function (item) { return item.id === studyState.tool; }) || (studyState.tool==='examplan'?{icon:'🎯',title:tr('Exam plan','План к экзамену'),desc:tr('A personal route to exam day','Персональный маршрут до экзамена')}:{icon:'⚔️',title:tr('Learner duel','Дуэль учеников'),desc:tr('Answer faster and more accurately','Отвечайте быстрее и точнее')});
@@ -1997,18 +2005,133 @@
       });
     }
 
-    function renderAdaptivePath() {
-      var mistakes = loadMistakes();
-      var recommended = mistakes.length ? 'mistakes' : (currentLang() === 'de' ? 'grammar' : 'vocabulary');
-      var target = TOOLS.find(function (tool) { return tool.id === recommended; }) || TOOLS[1];
-      var progress = loadProgress();
-      var host = $('#studyToolBody');
-      host.innerHTML = '<div class="adaptive-path"><span class="adaptive-orbit">✦</span><small>' + esc(tr('PERSONAL NEXT STEP', 'ПЕРСОНАЛЬНЫЙ СЛЕДУЮЩИЙ ШАГ')) + '</small><h2>' + esc(target.title) + '</h2><p>' + esc(mistakes.length ? tr('We found topics worth repeating from your recent mistakes.', 'Мы нашли темы, которые стоит повторить по недавним ошибкам.') : tr('Start with a focused activity selected for your language.', 'Начните с практики, подобранной для вашего языка.')) + '</p><div><span>' + mistakes.length + ' ' + esc(tr('mistakes to review', 'ошибок на повторение')) + '</span><span>' + (progress.xp || 0) + ' XP</span></div><button class="btn primary" id="adaptiveStart">' + esc(tr('Start recommended practice', 'Начать рекомендованную практику')) + '</button></div>';
-      $('#adaptiveStart').onclick = function () {
-        studyState = { tool:recommended,lang:currentLang(),idx:0,score:0 };
-        $('#studyOverlayTitle').textContent = target.icon + ' ' + target.title;
-        renderTool();
+    // Keep the web plan aligned with Academy Hub: recommendations are based on the
+    // learner's actual recorded mistakes, review dates and practice progress.
+    // The plan only points to existing web trainers; it never invents a lesson.
+    function adaptiveSourceKind(mistake) {
+      var source = String(mistake.sourceTool || mistake.kind || '').toLowerCase();
+      if (/listen/.test(source)) return 'listening';
+      if (/read/.test(source)) return 'reading';
+      if (/writ/.test(source)) return 'writing';
+      if (/exam/.test(source)) return 'exam';
+      if (/wordusage|vocab|flashcard|memory|categor/.test(source)) return 'vocabulary';
+      if (/article|wquestion|perfekt|grammar|sentence/.test(source)) return 'grammar';
+      return 'grammar';
+    }
+    function adaptiveFoundationKind(score, lang) {
+      if (score < 90) return lang === 'de' ? 'grammar' : 'vocabulary';
+      if (score < 180) return 'listening';
+      if (score < 300) return 'writing';
+      return 'exam';
+    }
+    function adaptiveDueAt(value) { var numeric=Number(value); return Number.isFinite(numeric) ? numeric : new Date(value || 0).getTime(); }
+    function adaptiveSupports(kind) {
+      return ({ grammar:['essentials','writing'], vocabulary:['writing','ai'], listening:['reading','vocabulary'], reading:['vocabulary','writing'], writing:['grammar','vocabulary'], exam:['listening','grammar'], mistakes:['grammar','reading'], ai:['listening','vocabulary'], essentials:['writing','vocabulary'] }[kind] || ['vocabulary','grammar']);
+    }
+    function adaptiveStep(kind, reason) {
+      var map = {
+        mistakes:{ icon:'!', minutes:6 }, grammar:{ icon:'📘', minutes:10 }, vocabulary:{ icon:'Aa', minutes:7 },
+        listening:{ icon:'🎧', minutes:8 }, reading:{ icon:'📖', minutes:9 }, writing:{ icon:'📝', minutes:12 },
+        ai:{ icon:'✦', minutes:8 }, exam:{ icon:'⏱', minutes:15 }, essentials:{ icon:'📗', minutes:8 }
       };
+      var tool = TOOLS.find(function (item) { return item.id === kind; });
+      return tool ? { tool:kind, icon:map[kind].icon, minutes:map[kind].minutes, reason:reason, title:tool.title, description:tool.desc } : null;
+    }
+    function buildAdaptivePlan(lang, level, progress, allMistakes) {
+      var mistakes = allMistakes.filter(function (item) { return !item.lang || item.lang === lang; });
+      var now = Date.now();
+      var due = mistakes.filter(function (item) { return !item.dueAt || adaptiveDueAt(item.dueAt) <= now; });
+      var repeated = mistakes.filter(function (item) { return Number(item.attemptsIncorrect || 1) > 1; });
+      var weights = {};
+      var topics = {};
+      mistakes.forEach(function (item) {
+        var kind = adaptiveSourceKind(item);
+        var weight = 2 + (!item.dueAt || adaptiveDueAt(item.dueAt) <= now ? 5 : 0) + Math.max(0, Number(item.attemptsIncorrect || 1) - 1) * 3;
+        var topic = mistakeTopic(item);
+        weights[kind] = (weights[kind] || 0) + weight;
+        if (topic.tool && TOOLS.some(function (tool) { return tool.id === topic.tool; })) {
+          topics[topic.id] = topics[topic.id] || { id:topic.id, label:topic.label, tool:topic.tool, score:0 };
+          topics[topic.id].score += weight;
+        }
+      });
+      var ranked = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; });
+      var focus = ranked[0] || adaptiveFoundationKind(Number(progress.xp || 0), lang);
+      var topicRank = Object.keys(topics).map(function (key) { return topics[key]; }).sort(function (a, b) { return b.score - a.score; });
+      var weakTopic = topicRank[0] || null;
+      var candidates = [];
+      if (mistakes.length) candidates.push(adaptiveStep('mistakes', 'review'));
+      var focusStep = adaptiveStep(weakTopic ? weakTopic.tool : focus, mistakes.length ? 'review' : 'foundation');
+      if (focusStep && weakTopic) { focusStep.topicId = weakTopic.id; focusStep.topicLabel = weakTopic.label; focusStep.reasonText = tr('Recommended because you recently missed questions on ', 'Рекомендуется: недавно были ошибки по теме ') + weakTopic.label + '.'; }
+      candidates.push(focusStep);
+      adaptiveSupports(focus).forEach(function (kind) { candidates.push(adaptiveStep(kind, 'practice')); });
+      candidates.push(adaptiveStep(Number(progress.xp || 0) >= 180 || /^(B1|B2|C1|C2)$/.test(level) ? 'exam' : 'ai', 'test'));
+      ['grammar','vocabulary','listening','reading','writing','ai','exam'].forEach(function (kind) { candidates.push(adaptiveStep(kind, 'practice')); });
+      var seen = {};
+      var steps = candidates.filter(function (step) { if (!step || seen[step.tool]) return false; seen[step.tool] = true; return true; }).slice(0, 4);
+      return { due:due.length, focus:focus, mistakes:mistakes.length, repeated:repeated.length, steps:steps, weakTopic:weakTopic, signature:[lang,level,mistakes.map(function (item) { return mistakeKey(item) + ':' + item.attemptsIncorrect + ':' + item.dueAt; }).sort().join(',')].join('|') };
+    }
+    function adaptiveToday() { return new Date().toISOString().slice(0, 10); }
+    function loadAdaptivePlan() { try { return JSON.parse(localStorage.getItem(ADAPTIVE_PLAN_KEY) || 'null'); } catch (e) { return null; } }
+    function saveAdaptivePlan(plan) { try { localStorage.setItem(ADAPTIVE_PLAN_KEY, JSON.stringify(plan)); } catch (e) {} void syncAdaptivePlan(plan); }
+    async function syncAdaptivePlan(plan) {
+      if (!uid() || !navigator.onLine || !plan || plan.learnerId !== uid()) return;
+      try {
+        await supa.from('adaptive_learning_plans').upsert({
+          user_id:uid(), plan_date:plan.date, language:plan.lang, current_level:plan.level,
+          target_level:plan.targetLevel, plan_version:plan.version, signal:plan.signal || '',
+          route:{ steps:plan.steps || [], stats:plan.stats || {}, weakTopic:plan.weakTopic || null },
+          status:(plan.steps || []).every(function (step) { return step.status === 'completed'; }) ? 'completed' : 'active',
+          updated_at:new Date().toISOString()
+        }, { onConflict:'user_id,plan_date,language' });
+      } catch (e) { /* local route remains available offline and retries on the next update */ }
+    }
+    function resolveAdaptivePlan(lang, level, targetLevel, generated) {
+      var saved = loadAdaptivePlan(), hasInProgress = saved && Array.isArray(saved.steps) && saved.steps.some(function (step) { return step.status === 'in-progress'; });
+      var reusable = saved && saved.version === 1 && saved.date === adaptiveToday() && saved.learnerId === (uid() || 'local') && saved.lang === lang && saved.level === level && saved.targetLevel === targetLevel && (saved.signal === generated.signature || hasInProgress);
+      if (reusable) return saved;
+      var minutes = 0, steps = generated.steps.filter(function (step) {
+        if (minutes && minutes + step.minutes > 40) return false;
+        minutes += step.minutes; return true;
+      }).map(function (step, index) { return Object.assign({ id:'adaptive-' + adaptiveToday() + '-' + index, status:index === 0 ? 'current' : 'not-started' }, step); });
+      var plan = { version:1, learnerId:uid() || 'local', date:adaptiveToday(), lang:lang, level:level, targetLevel:targetLevel, signal:generated.signature, createdAt:Date.now(), updatedAt:Date.now(), steps:steps, stats:{ due:generated.due, mistakes:generated.mistakes, repeated:generated.repeated }, weakTopic:generated.weakTopic };
+      saveAdaptivePlan(plan); return plan;
+    }
+    function markAdaptivePlanStep(stepId, status) {
+      var plan = loadAdaptivePlan(); if (!plan || !Array.isArray(plan.steps)) return;
+      var changed = false;
+      plan.steps.forEach(function (step) { if (step.id === stepId) { step.status = status; changed = true; } });
+      if (changed && status === 'completed') {
+        var next = plan.steps.find(function (step) { return step.status === 'not-started' || step.status === 'current'; });
+        if (next) next.status = 'current';
+      }
+      plan.updatedAt = Date.now(); saveAdaptivePlan(plan);
+    }
+    function renderAdaptivePath() {
+      var lang = currentLang();
+      var level = currentPracticeLevel(lang);
+      var progress = loadProgress();
+      var targetLevel = studentGoalLevelForTarget(lang, level);
+      var generated = buildAdaptivePlan(lang, level, progress, loadMistakes());
+      var plan = resolveAdaptivePlan(lang, level, targetLevel, generated);
+      var totalMinutes = plan.steps.reduce(function (total, step) { return total + step.minutes; }, 0);
+      var focus = plan.steps.find(function (step) { return step.status === 'current' || step.status === 'in-progress'; }) || plan.steps[0];
+      var reasonCopy = {
+        foundation:tr('Foundation for your current progress','Основа для вашего текущего прогресса'),
+        review:tr('Based on your recorded mistakes','На основе сохранённых ошибок'),
+        practice:tr('Supports the focus skill','Закрепляет ключевой навык'),
+        test:tr('Checks what you can use independently','Проверяет самостоятельное применение')
+      };
+      var host = $('#studyToolBody');
+      host.innerHTML = '<section class="adaptive-path" aria-label="' + esc(tr('Adaptive learning path','Адаптивный маршрут')) + '">' +
+        '<header class="adaptive-path-head"><div><small>' + esc(tr('DUVELA / PERSONAL LEARNING','DUVELA / ПЕРСОНАЛЬНОЕ ОБУЧЕНИЕ')) + '</small><h2>' + esc(tr('Your Learning Path','Ваш учебный маршрут')) + '</h2><p>' + esc(String(lang).toUpperCase() + ' · ' + String(level).toUpperCase() + ' → ' + String(targetLevel).toUpperCase()) + '</p></div><span>' + esc(tr('Today','Сегодня')) + '</span></header>' +
+        '<div class="adaptive-summary"><div><small>✦ ' + esc(tr('TODAY’S MISSION','ЗАДАЧА НА СЕГОДНЯ')) + '</small><h3>' + esc(focus ? focus.title : tr('Practice','Практика')) + '</h3><p>' + esc(focus && focus.reasonText ? focus.reasonText : focus ? reasonCopy[focus.reason] : '') + '</p></div><b>◷ ' + esc(String(totalMinutes)) + ' ' + esc(tr('min','мин')) + '</b><dl><div><dt>' + plan.steps.filter(function (step) { return step.status === 'completed'; }).length + '/' + plan.steps.length + '</dt><dd>' + esc(tr('completed','завершено')) + '</dd></div><div><dt>' + plan.stats.due + '</dt><dd>' + esc(tr('due now','сейчас')) + '</dd></div><div><dt>' + plan.stats.repeated + '</dt><dd>' + esc(tr('repeated','повторных')) + '</dd></div></dl></div>' +
+        '<div class="adaptive-route-head"><div><small>' + esc(tr('TODAY’S LEARNING ROUTE','МАРШРУТ НА СЕГОДНЯ')) + '</small><h3>' + esc(tr('Continue with the current step','Продолжите с текущего шага')) + '</h3></div><span>' + plan.steps.length + ' ' + esc(tr('steps','шага')) + '</span></div>' +
+        '<ol class="adaptive-step-list">' + plan.steps.map(function (step, index) { var current=step.status==='current'||step.status==='in-progress', completed=step.status==='completed', statusLabel=completed?tr('Completed','Завершено'):current?(step.status==='in-progress'?tr('In progress','В процессе'):tr('Current','Текущий')):tr('Next','Далее'); return '<li class="' + (current ? 'is-next ' : '') + (completed ? 'is-complete' : '') + '"><span class="adaptive-step-index">' + (completed ? '✓' : index + 1) + '</span><span class="adaptive-step-icon">' + esc(step.icon) + '</span><div><small>' + esc(step.reasonText || reasonCopy[step.reason]) + '</small><h4>' + esc(step.title) + (step.topicLabel ? ' · ' + esc(step.topicLabel) : '') + '</h4><p>' + esc(step.description) + '</p></div><button type="button" data-adaptive-tool="' + esc(step.tool) + '" data-adaptive-step="' + esc(step.id) + '"' + (completed ? ' disabled' : '') + '>' + esc(completed ? statusLabel : current ? (step.status==='in-progress'?tr('Continue','Продолжить'):tr('Start lesson','Начать урок')) : tr('Open','Открыть')) + (completed ? '' : ' <em>→</em>') + '</button><b>' + esc(statusLabel) + ' · ' + step.minutes + ' ' + esc(tr('min','мин')) + '</b></li>'; }).join('') + '</ol>' +
+        (!plan.stats.mistakes ? '<aside class="adaptive-empty">✦ ' + esc(tr('No recorded mistakes yet. This is a transparent level-based starter route.','Пока нет сохранённых ошибок. Это прозрачный стартовый маршрут для вашего уровня.')) + '</aside>' : '') +
+        '</section>';
+      Array.prototype.forEach.call(host.querySelectorAll('[data-adaptive-tool]'), function (button) {
+        button.onclick = function () { var stepId=button.getAttribute('data-adaptive-step'); markAdaptivePlanStep(stepId, 'in-progress'); openStudyTool(button.getAttribute('data-adaptive-tool'), { lang:lang, level:level, adaptivePlanStepId:stepId }); };
+      });
     }
 
     function renderProgressHub() {
@@ -5428,6 +5551,9 @@
         } catch (e) { queueOfflineSession(completionPayload); }
       }
       else if (uid()) queueOfflineSession(completionPayload);
+      // A path step becomes completed only after this activity has reached its normal
+      // completion flow (and, for signed-in learners, the backend confirmed it).
+      if (finished.adaptivePlanStepId && completionConfirmed) markAdaptivePlanStep(finished.adaptivePlanStepId, 'completed');
       var flashcardSession = finished.tool === 'flashcards';
       var serverAuthoritative = finished.tool === 'listening' || finished.tool === 'reading' || finished.tool === 'writing';
       var locallyCountedXp = serverAuthoritative ? (uid() && awarded ? xp : 0) : xp;
@@ -5451,7 +5577,7 @@
       wireAgain();
       var harder=$('#tryHarder'),next=$('#nextPractice');
       if(harder)harder.onclick=function(){var prefs=loadPrefs(),levels=['A1','A2','B1','B2','C1','C2'],current=(prefs.levels||{})[finished.lang]||'A1',index=levels.indexOf(current);prefs.levels=prefs.levels||{};prefs.levels[finished.lang]=levels[Math.min(levels.length-1,index+1)];savePrefs(prefs);openStudyTool(finished.tool);};
-      if(next)next.onclick=function(){var order=['flashcards','grammar','listening','speaking','reading','writing'],current=order.indexOf(finished.tool);openStudyTool(order[(current+1+order.length)%order.length]);};
+      if(next)next.onclick=function(){var plan=loadAdaptivePlan(),nextStep=plan&&Array.isArray(plan.steps)&&plan.steps.find(function(step){return step.status==='current'||step.status==='not-started';});if(nextStep){markAdaptivePlanStep(nextStep.id,'in-progress');openStudyTool(nextStep.tool,{lang:finished.lang,level:finished.level,adaptivePlanStepId:nextStep.id});return;}var order=['flashcards','grammar','listening','speaking','reading','writing'],current=order.indexOf(finished.tool);openStudyTool(order[(current+1+order.length)%order.length]);};
     }
 
     return {
