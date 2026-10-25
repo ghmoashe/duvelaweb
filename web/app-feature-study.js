@@ -1718,7 +1718,10 @@
             logMistake('fa', task.prompt + '\n' + task.sentence, task.options, task.options.indexOf(task.answer), 'mcq', { sourceTool:'persianGrammar', questionId:'persian-grammar:' + task.id, level:level, explanation:task.explanation, selectedAnswer:answer });
           }
         }));
-        case 'persianWordCards': return window.DuvelaPracticeExtras.renderPersianWordCards($('#studyToolBody'), practiceExtrasOptions());
+        case 'persianWordCards': return window.DuvelaPracticeExtras.renderPersianWordCards($('#studyToolBody'), Object.assign(practiceExtrasOptions(), {
+          isSaved: function (word) { return isWordSaved('fa', word); },
+          saveWord: function (word, translation) { if (!isWordSaved('fa', word)) { toggleSavedWord('fa', word, translation); syncPracticeData(); } }
+        }));
         case 'ai': return renderAiPractice();
       }
     }

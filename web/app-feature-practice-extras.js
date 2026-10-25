@@ -912,6 +912,13 @@
 
       function play(word) { opts.playClip(word.audio, word.speech, PERSIAN_VOICE, 'fa-IR'); }
 
+      // opts.isSaved / opts.saveWord connect the card to My words, as in STELLA.
+      function saveChip(word) {
+        if (!opts.saveWord) return '';
+        if (opts.isSaved(word.fa)) return '<div><span class="st-chip done">✓ ' + esc(tr('In My words', 'В моих словах')) + '</span></div>';
+        return '<div><button type="button" class="st-chip" id="pxSave">＋ ' + esc(tr('Save to My words', 'В мои слова')) + '</button></div>';
+      }
+
       function render() {
         var word = state.queue[0];
         host.innerHTML =
@@ -921,7 +928,7 @@
             '<div class="px-q fa" dir="rtl">' + esc(word.fa) + '</div>' +
             '<button type="button" class="st-chip" id="pxPlay">🔊 ' + esc(tr('Listen', 'Слушать')) + '</button>' +
             (state.revealed
-              ? '<div class="px-feedback ok" style="font-size:20px">' + esc(word.translit) + '</div><div class="px-note" style="font-size:16px">' + esc(localized(word.meaning, opts)) + '</div>'
+              ? '<div class="px-feedback ok" style="font-size:20px">' + esc(word.translit) + '</div><div class="px-note" style="font-size:16px">' + esc(localized(word.meaning, opts)) + '</div>' + saveChip(word)
               : '') +
           '</div>' +
           (state.revealed
@@ -952,6 +959,8 @@
         if (know) know.onclick = function () { next(true); };
         var again = host.querySelector('#pxAgain');
         if (again) again.onclick = function () { next(false); };
+        var save = host.querySelector('#pxSave');
+        if (save) save.onclick = function () { opts.saveWord(word.fa, word.translit + ' — ' + localized(word.meaning, opts)); render(); };
       }
 
       render();

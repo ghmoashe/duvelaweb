@@ -21,3 +21,10 @@ test('the Mistake Center review card can play a listening mistake again', () => 
   assert.match(study, /prepareListeningFish\(item\.audioText, item\.lang, 1\)/);
   assert.ok(styles.includes('.mistake-listen{'));
 });
+
+test('Persian word cards can save a word to My words', () => {
+  const extras = fs.readFileSync(path.join(root, 'web/app-feature-practice-extras.js'), 'utf8');
+  assert.ok(extras.includes("id=\"pxSave\""));
+  assert.match(extras, /opts\.saveWord\(word\.fa, word\.translit \+ ' — ' \+ localized\(word\.meaning, opts\)\)/);
+  assert.match(study, /isSaved: function \(word\) \{ return isWordSaved\('fa', word\); \}/);
+});
