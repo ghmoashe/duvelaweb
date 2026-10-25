@@ -662,6 +662,8 @@
       { id:'persianReading',icon:'📖',category:'skills',accent:'blue',title:tr('Reading & letters','Чтение и буквы'),desc:tr('Read words with and without vowel marks, build words from letters','Чтение с огласовками и без, сборка слов из букв') },
       { id:'persianListening',icon:'🎧',category:'skills',accent:'teal',title:tr('Listening','Аудирование'),desc:tr('NOVA says a word: pick it or spell it','NOVA говорит слово: выберите или соберите его') },
       { id:'persianNumbers',icon:'۱۲۳',category:'vocabulary',accent:'purple',title:tr('Numbers, time, money','Числа, время, деньги'),desc:tr('Persian digits, telling the time and prices','Персидские цифры, время и цены') },
+      { id:'persianGrammar',icon:'دستور',category:'grammar',accent:'blue',title:tr('Mini grammar','Мини-грамматика'),desc:tr('Short Persian grammar tasks for your level, A1–C1','Короткие задания по персидской грамматике для вашего уровня, A1–C1') },
+      { id:'persianWordCards',icon:'🃏',category:'vocabulary',accent:'teal',title:tr('Word cards','Карточки слов'),desc:tr('Read, listen and repeat until you know the word','Читайте, слушайте и повторяйте, пока не запомните') },
       { id:'chess',icon:'♞',category:'chess',accent:'purple',title:'Chess',desc:tr('Play and train focus between lessons','Играйте и тренируйте концентрацию между уроками') }
     );
 
@@ -714,7 +716,7 @@
       if(source==='vocabulary'||source==='wordusage'||source==='flashcards'||source==='memory'||source==='categories')return {id:'vocabulary',category:'vocabulary',label:tr('Vocabulary','Словарный запас'),tool:'wordusage'};
       if(source==='wquestion'||source==='questions')return {id:'questions',category:'grammar',label:tr('Question words','Вопросительные слова'),tool:'wquestion'};
       if(source==='perfekt'||/\b(perfekt|gefahren|gelernt|gelesen|gekommen)\b/.test(text))return {id:'perfekt',category:'grammar',label:'Perfekt',tool:'perfekt'};
-      if(source==='sentence'||source==='sentences'||source==='grammar'||source==='persiangrammar')return {id:'grammar',category:'grammar',label:tr('Grammar','Грамматика'),tool:source==='sentences'?'sentences':'grammar'};
+      if(source==='sentence'||source==='sentences'||source==='grammar'||source==='persiangrammar')return {id:'grammar',category:'grammar',label:tr('Grammar','Грамматика'),tool:source==='sentences'?'sentences':source==='persiangrammar'?'persianGrammar':'grammar'};
       /* Legacy generic MCQs are intentionally not called grammar without source metadata. */
       return {id:'other',category:'other',label:tr('Other verified practice','Другая проверенная практика'),tool:''};
     }
@@ -1207,11 +1209,11 @@
       if (isLanguageTarget(target)) return '🌐';
       return SUBJECT_TARGET_ICONS[target] || '🎯';
     }
-    var PERSIAN_TOOLS = ['persianAlphabet','persianReading','persianListening','persianNumbers'];
+    var PERSIAN_TOOLS = ['persianAlphabet','persianReading','persianListening','persianNumbers','persianGrammar','persianWordCards'];
     function toolsForTarget(target) {
       if (target === 'chess') return TOOLS.filter(function(tool){return tool.id === 'chess';});
       if (target === 'fa') {
-        var persianTools = ['ai','liveTeacher','persianAlphabet','persianReading','persianListening','persianNumbers','dictionary','history','calendar','achievements','ranking','settings'];
+        var persianTools = ['ai','liveTeacher','persianAlphabet','persianReading','persianListening','persianNumbers','persianGrammar','persianWordCards','dictionary','history','calendar','achievements','ranking','settings'];
         return TOOLS.filter(function(tool){ return persianTools.indexOf(tool.id) >= 0; });
       }
       if (!isSupportedLanguageTarget(target)) {
@@ -1702,6 +1704,13 @@
         case 'persianReading': return window.DuvelaPracticeExtras.renderPersianReading($('#studyToolBody'), practiceExtrasOptions());
         case 'persianListening': return window.DuvelaPracticeExtras.renderPersianListening($('#studyToolBody'), practiceExtrasOptions());
         case 'persianNumbers': return window.DuvelaPracticeExtras.renderPersianNumbers($('#studyToolBody'), practiceExtrasOptions());
+        case 'persianGrammar': return window.DuvelaPracticeExtras.renderPersianGrammar($('#studyToolBody'), Object.assign(practiceExtrasOptions(), {
+          level: currentPracticeLevel('fa'),
+          onMistake: function (task, answer, level) {
+            logMistake('fa', task.prompt + '\n' + task.sentence, task.options, task.options.indexOf(task.answer), 'mcq', { sourceTool:'persianGrammar', questionId:'persian-grammar:' + task.id, level:level, explanation:task.explanation, selectedAnswer:answer });
+          }
+        }));
+        case 'persianWordCards': return window.DuvelaPracticeExtras.renderPersianWordCards($('#studyToolBody'), practiceExtrasOptions());
         case 'ai': return renderAiPractice();
       }
     }
