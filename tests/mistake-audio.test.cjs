@@ -28,3 +28,8 @@ test('Persian word cards can save a word to My words', () => {
   assert.match(extras, /opts\.saveWord\(word\.fa, word\.translit \+ ' — ' \+ localized\(word\.meaning, opts\)\)/);
   assert.match(study, /isSaved: function \(word\) \{ return isWordSaved\('fa', word\); \}/);
 });
+
+test('the web adaptive route keeps progress made in the app by activityId', () => {
+  assert.match(study, /activityId:kind, tool:kind/);
+  assert.match(study, /\(item\.activityId \|\| item\.tool\) === step\.activityId/);
+});

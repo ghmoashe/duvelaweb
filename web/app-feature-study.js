@@ -2095,7 +2095,12 @@
       var minutes = 0, steps = generated.steps.filter(function (step) {
         if (minutes && minutes + step.minutes > 40) return false;
         minutes += step.minutes; return true;
-      }).map(function (step, index) { return Object.assign({ id:'adaptive-' + adaptiveToday() + '-' + index, status:index === 0 ? 'current' : 'not-started' }, step); });
+      }).map(function (step, index) { return Object.assign({ id:'adaptive-' + adaptiveToday() + '-' + index, status:'not-started' }, step); });
+      // Progress made today (here or in the Academy Hub app) carries over by activityId.
+      var earlier = saved && saved.date === adaptiveToday() && saved.lang === lang && Array.isArray(saved.steps) ? saved.steps : [];
+      steps.forEach(function (step) { var before = earlier.find(function (item) { return (item.activityId || item.tool) === step.activityId; }); if (before && before.status !== 'current') step.status = before.status; });
+      var currentStep = steps.find(function (step) { return step.status === 'in-progress'; }) || steps.find(function (step) { return step.status !== 'completed'; });
+      if (currentStep && currentStep.status === 'not-started') currentStep.status = 'current';
       var plan = { version:1, learnerId:uid() || 'local', date:adaptiveToday(), lang:lang, level:level, targetLevel:targetLevel, signal:generated.signature, createdAt:Date.now(), updatedAt:Date.now(), steps:steps, stats:{ due:generated.due, mistakes:generated.mistakes, repeated:generated.repeated }, weakTopic:generated.weakTopic };
       saveAdaptivePlan(plan); return plan;
     }
