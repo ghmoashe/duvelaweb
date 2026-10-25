@@ -21,10 +21,17 @@ test('web Reading Lab is synchronized from the Academy Hub bank', () => {
 });
 
 test('Reading bank is available when app.html is opened directly from disk', () => {
+  const loader = fs.readFileSync(path.join(root, 'web/reading-bank-loader.js'), 'utf8');
   assert.match(browserBank, /^window\.DuvelaReadingLabBank=/);
-  assert.match(app, /reading-lab-bank\.js\?v=20261022-reading6/);
-  assert.ok(app.indexOf('reading-lab-bank.js') < app.indexOf('app-feature-study.js'));
+  assert.match(loader, /location\.protocol === 'file:'/);
+  assert.match(loader, /reading-lab-bank\.js\?v=20261022-reading6/);
+  assert.ok(app.indexOf('reading-bank-loader.js') < app.indexOf('app-feature-study.js'));
   assert.match(study, /location\.protocol==='file:'\)\?Promise\.resolve\(embedded\)/);
+});
+
+test('Online, app.html does not load the 3.4 MB reading bank script up front', () => {
+  assert.doesNotMatch(app, /<script src="\.\/web\/content\/reading-lab-bank\.js/);
+  assert.match(study, /fetch\('\.\/web\/content\/reading-lab-bank\.json'/);
 });
 
 test('every published reading task has authoritative answer data', () => {
