@@ -9,6 +9,7 @@ const practiceSource = fs.readFileSync(path.join(root, 'web/app-feature-practice
 const workspaceSource = fs.readFileSync(path.join(root, 'web/app-feature-workspace-shell.js'), 'utf8');
 const aiBannerSource = fs.readFileSync(path.join(root, 'web/app-feature-elsa-exam.js'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'web/practice-hub.css'), 'utf8');
+const articleBank = fs.readFileSync(path.join(root, 'web/content/mobile-article-bank.js'), 'utf8');
 
 test('practice hub renders a desktop workspace with main content and context rail', () => {
   for (const marker of [
@@ -208,9 +209,23 @@ test('W-questions validates a selected answer before feedback and explains the c
 });
 
 test('Mistake Center keeps the Academy Hub due queue and advances only after checked answers', () => {
-  for (const marker of ['mistakeIntervalDays', 'mistakeDueLabel', 'data-mistake-start', 'data-mistake-check', 'data-mistake-next', "studyState.mistakePhase='review'", 'clearMistake(item.lang,item.prompt)', 'logMistake(item.lang,item.prompt,item.opts,item.a,item.kind)']) assert.ok(source.includes(marker), `missing ${marker}`);
+  for (const marker of ['mistakeIntervalDays', 'mistakeDueLabel', 'mistakeCorrectAnswer', 'data-mistake-start', 'data-mistake-check', 'data-mistake-next', "studyState.mistakePhase='review'", 'clearMistake(item.lang,item.questionId||item.prompt)', 'logMistake(item.lang,item.prompt,item.opts,correctIndex,item.kind,{']) assert.ok(source.includes(marker), `missing ${marker}`);
   assert.ok(source.includes("progressDirect:id==='mistakes'"));
   assert.ok(styles.includes('.mistake-center'));
   assert.ok(styles.includes('.mistake-review'));
   assert.ok(styles.includes('.mistake-options'));
+});
+
+test('Mistake Center preserves original attempt data, resets wrong answers, and avoids generic grammar classification', () => {
+  for (const marker of ['attemptsIncorrect', 'selectedAnswer', 'history:', "reviewStep:0", "source==='vocabulary'", "source==='listening'", "source==='reading'", "Other verified practice", 'data-mistake-expand', 'data-mistake-retry', 'data-mistake-topic']) assert.ok(source.includes(marker), `missing ${marker}`);
+  assert.ok(source.includes('next>3'), 'four 1/3/7/14 review stages should complete before removal');
+  assert.ok(styles.includes('.mistake-entry-detail'));
+  assert.ok(styles.includes('.mistake-filters'));
+});
+
+test('shared answer resolver supports stored answer schemas and prevents undefined review feedback', () => {
+  for (const marker of ['function resolveExerciseAnswer', "['a','correctIndex','correct_index','answerIndex']", "['correctAnswer','correct_answer','sourceAnswer','answer','correctOptionId','correct_option_id']", 'missing-or-unmatched-answer', 'reviewDiagnostic', 'mistakeCorrectAnswer(item)', 'reviewIntervalLabel']) assert.ok(source.includes(marker), `missing ${marker}`);
+  assert.match(articleBank, /"noun":"Stimme","article":"die"/, 'the actual source-backed Stimme record must remain die');
+  assert.doesNotMatch(source, /Correct answer: '\s*\+item\.opts\[item\.a\]/, 'review feedback must use the resolver instead of a raw index');
+  assert.ok(styles.includes('.mistake-validation'));
 });

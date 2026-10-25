@@ -704,7 +704,20 @@
       groups.forEach(function(group){var rows=sessions.filter(function(row){return (SKILL_GROUP[row.tool_id]||row.tool_id)===group;}).slice(0,12),attempted=rows.reduce(function(sum,row){return sum+Number(row.total||0);},0),correct=rows.reduce(function(sum,row){return sum+Number(row.score||0);},0);result[group]=attempted?Math.round(correct/attempted*100):0;});
       result.overall=Math.round(groups.reduce(function(sum,key){return sum+result[key];},0)/groups.length);return result;
     }
-    function mistakeTopic(item){var text=String(item.prompt||'').toLowerCase();if(item.kind==='pronunciation')return {id:'pronunciation',label:tr('Pronunciation','Произношение'),tool:'speaking'};if(/der|die|das|article|артик/.test(text))return {id:'articles',label:'der / die / das',tool:'articles'};if(/perfekt|gefahren|gelernt|gelesen|gekommen/.test(text))return {id:'perfekt',label:'Perfekt',tool:'perfekt'};if(/wer|wie|wo|warum|wann/.test(text))return {id:'questions',label:tr('Question words','Вопросительные слова'),tool:'wquestion'};if(item.kind==='sentence')return {id:'word-order',label:tr('Word order','Порядок слов'),tool:'sentences'};return {id:'forms',label:tr('Verb forms and grammar','Формы глаголов и грамматика'),tool:'grammar'};}
+    function mistakeTopic(item){
+      var source=String(item&&((item.sourceTool||item.toolId||item.kind)||'')).toLowerCase(),text=String(item&&item.prompt||'').toLowerCase();
+      if(source==='article'||source==='articles')return {id:'articles',category:'articles',label:'der / die / das',tool:'articles'};
+      if(source==='listening')return {id:'listening',category:'listening',label:tr('Listening','Аудирование'),tool:'listening'};
+      if(source==='reading')return {id:'reading',category:'reading',label:tr('Reading','Чтение'),tool:'reading'};
+      if(source==='writing')return {id:'writing',category:'writing',label:tr('Writing','Письмо'),tool:'writing'};
+      if(source==='pronunciation'||source==='speaking')return {id:'speaking',category:'other',label:tr('Pronunciation','Произношение'),tool:'speaking'};
+      if(source==='vocabulary'||source==='wordusage'||source==='flashcards'||source==='memory'||source==='categories')return {id:'vocabulary',category:'vocabulary',label:tr('Vocabulary','Словарный запас'),tool:'wordusage'};
+      if(source==='wquestion'||source==='questions')return {id:'questions',category:'grammar',label:tr('Question words','Вопросительные слова'),tool:'wquestion'};
+      if(source==='perfekt'||/\b(perfekt|gefahren|gelernt|gelesen|gekommen)\b/.test(text))return {id:'perfekt',category:'grammar',label:'Perfekt',tool:'perfekt'};
+      if(source==='sentence'||source==='sentences'||source==='grammar'||source==='persiangrammar')return {id:'grammar',category:'grammar',label:tr('Grammar','Грамматика'),tool:source==='sentences'?'sentences':'grammar'};
+      /* Legacy generic MCQs are intentionally not called grammar without source metadata. */
+      return {id:'other',category:'other',label:tr('Other verified practice','Другая проверенная практика'),tool:''};
+    }
     function weakTopics(){var grouped={};loadMistakes().forEach(function(item){var topic=mistakeTopic(item);if(!grouped[topic.id])grouped[topic.id]={id:topic.id,label:topic.label,tool:topic.tool,count:0};grouped[topic.id].count++;});return Object.keys(grouped).map(function(key){return grouped[key];}).sort(function(a,b){return b.count-a.count;}).slice(0,4);}
     function bumpProgress(toolId, xp) {
       const p = loadProgress();
@@ -775,8 +788,16 @@
     async function syncPracticeData() {
       if (!uid() || !navigator.onLine) return;
       try {
-        var mistakes = loadMistakes().map(function (m) { return { user_id:uid(),mistake_key:m.lang + '|' + m.prompt,language:m.lang,tool_id:m.kind || 'mcq',topic_id:mistakeTopic(m).id,prompt:m.prompt,options:m.opts || [],correct_index:m.a,review_step:Number(m.reviewStep||0),due_at:new Date(m.dueAt||Date.now()).toISOString(),updated_at:new Date(m.at || Date.now()).toISOString() }; });
-        if (mistakes.length) await supa.from('practice_mistakes').upsert(mistakes, { onConflict:'user_id,mistake_key' });
+        // Mistakes made on the web become their own rows; mistakes that came from the app
+        // only get their review schedule updated, so the app's own fields stay intact.
+        var localMistakes = loadMistakes();
+        var mistakes = localMistakes.filter(function (m) { return !m.hubOrigin; }).map(mistakeRow);
+        if (mistakes.length) await supa.from('practice_mistakes').upsert(mistakes, { onConflict:'user_id,item_key' });
+        for (var mi = 0; mi < localMistakes.length; mi++) {
+          var hubItem = localMistakes[mi];
+          if (!hubItem.hubOrigin || !hubItem.remoteKey) continue;
+          await supa.from('practice_mistakes').update({ review_step:Number(hubItem.reviewStep||0), due_at:new Date(hubItem.dueAt||Date.now()).toISOString(), review_due_at:hubItem.dueAt?new Date(hubItem.dueAt).toISOString():null, updated_at:new Date().toISOString() }).eq('user_id',uid()).eq('item_key',hubItem.remoteKey);
+        }
         var words = loadSavedWords().map(function (w) { return { user_id:uid(),language:w.lang,word:w.w,translation:w.t,box:Number(w.box||1),ease:Number(w.ease||2.5),repetitions:Number(w.reps||0),due_at:w.dueAt||new Date().toISOString(),scheduler_version:w.scheduler||null,last_reviewed_at:w.lastReviewedAt||null,review_history:Array.isArray(w.history)?w.history:[],updated_at:new Date().toISOString() }; });
         if (words.length) await supa.from('practice_saved_words').upsert(words, { onConflict:'user_id,language,word' });
         var queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'), pending=[];
@@ -801,7 +822,7 @@
       try {
         var results = await Promise.all([
           supa.from('practice_progress').select('tool_id,sessions,xp,best_score,correct,attempted').eq('user_id',uid()),
-          supa.from('practice_mistakes').select('language,prompt,options,correct_index,tool_id,review_step,due_at,updated_at').eq('user_id',uid()).is('mastered_at',null),
+          supa.from('practice_mistakes').select('item_key,source,target,level,title,prompt,answer_given,correct_answer,explanation,attempts,details,review_step,due_at,updated_at').eq('user_id',uid()),
           supa.from('practice_saved_words').select('language,word,translation,box,ease,repetitions,due_at,scheduler_version,last_reviewed_at,review_history').eq('user_id',uid()),
           supa.from('practice_streaks').select('current_streak,longest_streak,today_sessions,daily_goal').eq('user_id',uid()).maybeSingle(),
           supa.from('practice_sessions').select('tool_id,language,score,total,xp_awarded,completed_at,duration_seconds').eq('user_id',uid()).eq('status','completed').order('completed_at',{ ascending:false }).limit(90),
@@ -826,7 +847,13 @@
         if (results[8].data) { var cloud=results[8].data,local=readResume(),cloudAt=new Date(cloud.updated_at||0).getTime(),cloudLevel=normalizePracticeLevel(cloud.level,'A1'),cloudState=cloud.state||{};if(cloud.language===currentLang()&&cloudLevel===currentPracticeLevel(cloud.language)&&(!local||cloudAt>Number(local.at||0)))localStorage.setItem(RESUME_KEY,JSON.stringify({tool:cloud.tool_id,lang:cloud.language,level:cloudLevel,idx:cloud.current_step||0,score:cloud.score||0,clientSessionId:cloud.client_session_id,startedAt:cloudState.startedAt||Date.now(),writingDraft:cloudState.writingDraft||'',writingTaskId:cloudState.writingTaskId||'',checked:cloudState.checked||{},writingVersions:cloudState.writingVersions||[],flashData:cloudState.flashData||[],flashStats:cloudState.flashStats||{},flashFlipped:!!cloudState.flashFlipped,at:cloudAt})); }
         if(results[9]&&results[9].data){var exam=results[9].data;localStorage.setItem(EXAM_GOAL_KEY,JSON.stringify({exam:exam.exam_type,date:exam.exam_date,daysPerWeek:exam.days_per_week,minutes:exam.minutes_per_day}));}
         if(results[10]&&(results[10].data||[]).length){var languagePrefs=loadPrefs();languagePrefs.levels=languagePrefs.levels||{};languagePrefs.goalLevels=languagePrefs.goalLevels||{};(results[10].data||[]).forEach(function(row){var target=normalizePracticeTarget(row.language);if(!target)return;languagePrefs.levels[target]=String(row.current_level||'A1').toUpperCase();if(row.goal_level)languagePrefs.goalLevels[target]=STUDENT_GOAL.normalize(row.goal_level,languagePrefs.levels[target]||'A1');if(row.is_active){languagePrefs.practiceTarget=target;languagePrefs.practiceLang=target;if(ctx.profile&&row.goal_level)ctx.profile.goal_level=STUDENT_GOAL.normalize(row.goal_level,ctx.profile.goal_level||'A1');}});savePrefs(languagePrefs);}
-        if ((results[1].data || []).length) saveMistakes(results[1].data.map(function (row) { return { lang:row.language,prompt:row.prompt,opts:row.options || [],a:row.correct_index,kind:row.tool_id,reviewStep:Number(row.review_step||0),dueAt:new Date(row.due_at||Date.now()).getTime(),at:new Date(row.updated_at).getTime() }; }));
+        if ((results[1].data || []).length) {
+          // Server rows first; local mistakes that have not been uploaded yet are kept.
+          var serverMistakes = results[1].data.map(mistakeFromRow).filter(Boolean);
+          var serverKeys = {};
+          serverMistakes.forEach(function (item) { serverKeys[mistakeKey(item)] = true; });
+          saveMistakes(serverMistakes.concat(loadMistakes().filter(function (item) { return !serverKeys[mistakeKey(item)]; })));
+        }
         if ((results[2].data || []).length) { var localWords=loadSavedWords(), localByKey={};localWords.forEach(function(word){localByKey[word.lang+'|'+word.w]=word;});localStorage.setItem(SAVED_WORDS_KEY,JSON.stringify(results[2].data.map(function (row) { var local=localByKey[row.language+'|'+row.word]||{};return Object.assign({},local,{ lang:row.language,w:row.word,t:row.translation,box:row.box,ease:row.ease,reps:row.repetitions,dueAt:row.due_at,scheduler:row.scheduler_version||local.scheduler,lastReviewedAt:row.last_reviewed_at||local.lastReviewedAt,history:Array.isArray(row.review_history)&&row.review_history.length?row.review_history:local.history }); })) ); }
         if(ctx.renderWorkspace)ctx.renderWorkspace();
       } catch (e) { practiceSyncState='error';if(ctx.renderWorkspace)ctx.renderWorkspace(); }
@@ -915,17 +942,71 @@
     function saveMistakes(list) {
       try { localStorage.setItem(MISTAKE_KEY, JSON.stringify(list.slice(-60))); } catch (e) { /* ignore */ }
     }
-    function logMistake(lang, prompt, opts, correctIdx, kind) {
-      var list = loadMistakes();
-      var key = lang + '|' + prompt;
-      list = list.filter(function (m) { return (m.lang + '|' + m.prompt) !== key; });
-      var previous=loadMistakes().find(function(m){return (m.lang+'|'+m.prompt)===key;}),step=Math.min(3,Number(previous&&previous.reviewStep||0));
-      list.push({ lang:lang,prompt:prompt,opts:opts,a:correctIdx,kind:kind||'mcq',at:Date.now(),reviewStep:step,dueAt:Date.now()+[1,3,7,14][step]*86400000 });
-      saveMistakes(list);
+    function mistakeKey(item) { return item && (item.key || item.lang+'|'+(item.questionId||item.prompt)); }
+
+    // practice_mistakes is shared with the Hub app: item_key, source (exam, grammar,
+    // listening, reading, writing), target (german, english, …), prompt, answers and
+    // explanation, plus the web's options and history in details.
+    var MISTAKE_TARGETS = { de:'german', en:'english', es:'spanish', fa:'persian' };
+    var MISTAKE_LANGS = { german:'de', english:'en', spanish:'es', persian:'fa' };
+    function mistakeRow(m) {
+      var tool = String(m.sourceTool || m.kind || 'mcq');
+      var opts = Array.isArray(m.opts) ? m.opts : [];
+      var selected = typeof m.selectedAnswer === 'number' ? opts[m.selectedAnswer] : m.selectedAnswer;
+      var dueAt = m.dueAt ? new Date(m.dueAt).toISOString() : null;
+      return {
+        user_id: uid(),
+        item_key: m.remoteKey || 'web:' + mistakeKey(m),
+        source: ['listening','reading','writing','exam'].indexOf(tool.toLowerCase()) >= 0 ? tool.toLowerCase() : 'grammar',
+        target: MISTAKE_TARGETS[m.lang] || m.lang,
+        level: String(m.level || currentPracticeLevel(m.lang) || 'A1').toUpperCase(),
+        title: mistakeTopic(m).label,
+        topic_id: mistakeTopic(m).id,
+        prompt: String(m.prompt || ''),
+        answer_given: selected == null ? '' : String(selected),
+        correct_answer: opts[m.a] == null ? '' : String(opts[m.a]),
+        explanation: String(m.explanation || ''),
+        attempts: Math.max(1, Number(m.attemptsIncorrect || 1)),
+        review_step: Number(m.reviewStep || 0),
+        review_due_at: dueAt,
+        due_at: dueAt || new Date().toISOString(),
+        details: { web:true, key:mistakeKey(m), lang:m.lang, options:opts, correctIndex:m.a, tool:tool, kind:m.kind || 'mcq', questionId:m.questionId || '', selectedAnswer:m.selectedAnswer, history:Array.isArray(m.history) ? m.history.slice(-30) : [] },
+        updated_at: new Date(m.at || Date.now()).toISOString()
+      };
+    }
+    function mistakeFromRow(row) {
+      var details = row.details || {};
+      var common = { remoteKey:row.item_key, level:row.level || '', explanation:row.explanation || '', attemptsIncorrect:Number(row.attempts || 1), reviewStep:Number(row.review_step || 0), dueAt:row.due_at ? new Date(row.due_at).getTime() : Date.now(), at:new Date(row.updated_at || Date.now()).getTime() };
+      if (details.web) {
+        return Object.assign(common, { key:details.key, lang:details.lang, prompt:row.prompt, opts:Array.isArray(details.options) ? details.options : [], a:details.correctIndex, kind:details.kind || 'mcq', sourceTool:details.tool || row.source, questionId:details.questionId || '', selectedAnswer:details.selectedAnswer, history:Array.isArray(details.history) ? details.history : [] });
+      }
+      // A mistake recorded in the app: review it here as "the right answer or the one you gave".
+      var lang = MISTAKE_LANGS[row.target];
+      var correct = String(row.correct_answer || '');
+      if (!lang || !correct) return null;
+      var given = String(row.answer_given || '');
+      var opts = given && given !== correct ? [correct, given] : [correct];
+      if (opts.length > 1 && String(row.item_key).length % 2) opts.reverse();
+      return Object.assign(common, { key:'hub|' + row.item_key, hubOrigin:true, lang:lang, prompt:row.prompt || row.title || '', opts:opts, a:opts.indexOf(correct), kind:row.source, sourceTool:row.source, questionId:row.item_key, selectedAnswer:given, history:[] });
+    }
+    function logMistake(lang, prompt, opts, correctIdx, kind, details) {
+      var now=Date.now(), meta=details||{}, key=lang+'|'+(meta.questionId||prompt), old=loadMistakes(), previous=old.find(function(m){return mistakeKey(m)===key;}), history=(previous&&Array.isArray(previous.history)?previous.history:[]).concat([{at:now,outcome:'incorrect',selectedAnswer:meta.selectedAnswer}]).slice(-30);
+      var item={key:key,lang:lang,prompt:prompt,opts:opts,a:correctIdx,kind:kind||'mcq',sourceTool:meta.sourceTool||kind||'mcq',questionId:meta.questionId||'',level:meta.level||currentPracticeLevel(lang),explanation:meta.explanation||'',selectedAnswer:meta.selectedAnswer,attemptsIncorrect:Number(previous&&previous.attemptsIncorrect||0)+1,lastAttemptAt:now,at:now,reviewStep:0,dueAt:now+86400000,history:history};
+      saveMistakes(old.filter(function(m){return mistakeKey(m)!==key;}).concat([item]));
+      return item;
     }
     function clearMistake(lang, prompt) {
-      var list=loadMistakes().map(function(m){if((m.lang+'|'+m.prompt)!==(lang+'|'+prompt))return m;var next=Math.min(3,Number(m.reviewStep||0)+1);return Object.assign({},m,{reviewStep:next,dueAt:Date.now()+[1,3,7,14][next]*86400000,mastered:next>=3});}).filter(function(m){return !m.mastered;});
-      saveMistakes(list);
+      var now=Date.now(),target=lang+'|'+prompt,list=loadMistakes().map(function(m){
+        if(mistakeKey(m)!==target && (m.lang+'|'+m.prompt)!==target)return m;
+        var next=Number(m.reviewStep||0)+1,history=(Array.isArray(m.history)?m.history:[]).concat([{at:now,outcome:'correct'}]).slice(-30);
+        return Object.assign({},m,{reviewStep:next,dueAt:next>3?null:now+[1,3,7,14][next]*86400000,lastAttemptAt:now,history:history,mastered:next>3});
+      });
+      if (uid() && navigator.onLine) {
+        list.filter(function (m) { return m.mastered; }).forEach(function (m) {
+          supa.from('practice_mistakes').delete().eq('user_id', uid()).eq('item_key', m.remoteKey || 'web:' + mistakeKey(m)).then(function () {}, function () {});
+        });
+      }
+      saveMistakes(list.filter(function(m){return !m.mastered;}));
     }
 
     function loadSavedWords() {
@@ -1658,8 +1739,29 @@
         : '<b>🧠 ' + esc(tr('Why?','Почему?')) + '</b><p>' + esc(tr('The correct answer follows the grammar form and meaning required by this context. After answering, the exact solution is added to your review list.','Правильный ответ соответствует грамматической форме и смыслу этого контекста. После ответа точное решение добавляется в повторение.')) + '</p>';
     }
 
+    /* One answer adapter for Academy, Article, W-question, Word Usage and review records.
+       It accepts the source schemas already present in DUVELA but never treats a missing
+       answer as a correct one. */
+    function resolveExerciseAnswer(item) {
+      var question=item||{},rawChoices=Array.isArray(question.opts)?question.opts:Array.isArray(question.options)?question.options:Array.isArray(question.choices)?question.choices:[];
+      var choices=rawChoices.map(function(choice,index){
+        if(choice&&typeof choice==='object')return {index:index,id:String(choice.id||choice.optionId||choice.value||''),label:String(choice.label||choice.text||choice.value||'')};
+        return {index:index,id:String(choice),label:String(choice)};
+      });
+      var indexFields=['a','correctIndex','correct_index','answerIndex'],index=-1;
+      for(var i=0;i<indexFields.length;i++){var value=question[indexFields[i]];if(Number.isInteger(value)&&value>=0&&value<choices.length){index=value;break;}}
+      var answerFields=['correctAnswer','correct_answer','sourceAnswer','answer','correctOptionId','correct_option_id'];
+      var answerValue='';
+      if(index<0)for(var j=0;j<answerFields.length;j++){var candidate=question[answerFields[j]];if(candidate!==undefined&&candidate!==null&&candidate!==''){answerValue=String(candidate);var found=choices.find(function(choice){return choice.id===answerValue||choice.label===answerValue;});if(found){index=found.index;break;}}}
+      if(index<0&&(String(question.sourceTool||question.kind||'').toLowerCase()==='article'||String(question.sourceTool||question.kind||'').toLowerCase()==='articles')){
+        var source=mobileArticleBank().find(function(row){return String(row.id||'')===String(question.questionId||'')||String(row.noun||'').toLocaleLowerCase()===String(question.prompt||question.noun||'').toLocaleLowerCase();});
+        if(source){var article=String(source.article||source.art||''),articleChoice=choices.find(function(choice){return choice.id===article||choice.label===article;});if(articleChoice){index=articleChoice.index;answerValue=article;}}
+      }
+      if(index<0)return {valid:false,index:-1,value:'',reason:'missing-or-unmatched-answer',choices:choices};
+      return {valid:true,index:index,value:choices[index].label,choiceId:choices[index].id,choices:choices};
+    }
     function answerExplanation(item) {
-      var correct = String(item && item.sourceAnswer || item && item.opts && item.opts[item.a] || '');
+      var resolved=resolveExerciseAnswer(item),correct=resolved.valid?resolved.value:'';
       // Grammar feedback belongs to the exact source exercise. If an imported label is
       // ever out of sync, show only the verified answer instead of a misleading rule.
       if (item && item.sourceId && item.explanation && correct && item.explanation.indexOf(correct) >= 0) return item.explanation;
@@ -1672,7 +1774,7 @@
       return tr('Compare the correct option with the complete sentence and repeat it aloud once.','Сравните правильный вариант с полным предложением и один раз произнесите его вслух.');
     }
     function explanationPanel(item,chosen,ok){
-      var correct=item.opts[item.a],base=answerExplanation(item),prompt=String(item.q||'');
+      var resolved=resolveExerciseAnswer(item),correct=resolved.valid?resolved.value:tr('Answer unavailable','Ответ недоступен'),base=answerExplanation(item),prompt=String(item.q||'');
       var rule=/___/.test(prompt)?tr('The form must match the person, tense and sentence meaning.','Форма должна соответствовать лицу, времени и смыслу предложения.'):tr('Use the complete sentence to identify the intended meaning.','Используйте полное предложение, чтобы определить нужный смысл.');
       var tip=studyState.lang==='de'?tr('Read the complete German sentence aloud with the correct option.','Прочитайте полное немецкое предложение вслух с правильным вариантом.'):tr('Say the corrected sentence aloud once.','Один раз произнесите исправленное предложение вслух.');
       return '<div class="why-panel '+(ok?'ok':'bad')+'"><header><span>'+(ok?'✓':'!')+'</span><div><small>'+esc(ok?tr('CORRECT','ВЕРНО'):tr('LET’S UNDERSTAND','РАЗБЕРЁМ ОШИБКУ'))+'</small><b>'+esc(ok?tr('You recognised the pattern','Вы распознали правило'):tr('You chose ','Вы выбрали ')+chosen)+'</b></div></header>'+(!ok?'<article><small>'+esc(tr('WHY IT DOES NOT FIT','ПОЧЕМУ НЕ ПОДХОДИТ'))+'</small><p>'+esc(tr('This option does not match the form or meaning required in this exact sentence.','Этот вариант не соответствует форме или смыслу, который нужен именно в этом предложении.'))+'</p></article>':'')+'<article><small>'+esc(tr('WHY THIS IS CORRECT','ПОЧЕМУ ЭТО ВЕРНО'))+'</small><p><b>'+esc(correct)+'</b> — '+esc(base)+'</p></article><article><small>'+esc(tr('RULE','ПРАВИЛО'))+'</small><p>'+esc(rule)+'</p></article><article class="why-tip"><small>'+esc(tr('MEMORY TIP','КАК ЗАПОМНИТЬ'))+'</small><p>'+esc(tip)+'</p></article></div>';
@@ -1807,8 +1909,8 @@
           clearTimeout(studyState.articleSpeedTimer);
           var ok = chosen === item.art;
           feedback(ok,{prompt:'___ '+item.noun,chosen:chosen,correct:item.art+' '+item.noun,explanation:answerExplanation(item)});
-          if (ok) { studyState.score++; clearMistake(studyState.lang, item.noun); }
-          else logMistake(studyState.lang, item.noun, ['der', 'die', 'das'], ['der', 'die', 'das'].indexOf(item.art), 'article');
+          if (ok) { studyState.score++; clearMistake(studyState.lang, item.id||item.noun); }
+          else logMistake(studyState.lang, item.noun, ['der', 'die', 'das'], ['der', 'die', 'das'].indexOf(item.art), 'article',{sourceTool:'articles',questionId:item.id||item.noun,level:item.level||studyState.level,explanation:answerExplanation(item),selectedAnswer:chosen});
           var gender=item.art==='der'?tr('masculine','мужской род'):item.art==='die'?tr('feminine','женский род'):tr('neuter','средний род');
           $('#artFb').innerHTML = '<div class="article-feedback '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Correct!','Верно!'):tr('Correct answer: ','Правильный ответ: ')+item.art+' '+item.noun)+'</b><p>'+esc(gender)+(item.hint?' · '+esc(item.hint):'')+'</p><small>'+esc(tr('Learn every German noun together with its article.','Запоминайте каждое немецкое существительное вместе с артиклем.'))+'</small></div><div class="article-feedback-actions"><button type="button" data-article-save>'+esc(saved?tr('Saved','Сохранено'):tr('Save to Flashcards','Сохранить во Flashcards'))+'</button><button type="button" class="article-continue" id="artContinue">'+esc(tr('Continue','Продолжить'))+' →</button></div>';
           Array.prototype.forEach.call(host.querySelectorAll('[data-art]'), function (b) { b.disabled = true;b.classList.toggle('correct',b.getAttribute('data-art')===item.art);b.classList.toggle('wrong',b.getAttribute('data-art')===chosen&&!ok); });
@@ -1965,8 +2067,8 @@
         var chosen = studyState.wQuestionSelected, ok = chosen === item.a;
         studyState.wQuestionChecked = true;
         feedback(ok, { prompt:item.q, chosen:item.opts[chosen], correct:answer, explanation:item.explanation[locale] || item.explanation.en });
-        if (ok) { studyState.score++; clearMistake(studyState.lang, item.q); }
-        else logMistake(studyState.lang, item.q, item.opts, item.a, 'mcq');
+        if (ok) { studyState.score++; clearMistake(studyState.lang, 'wquestion:'+item.q); }
+        else logMistake(studyState.lang, item.q, item.opts, item.a, 'mcq',{sourceTool:'wquestion',questionId:'wquestion:'+item.q,level:studyState.level,explanation:item.explanation[locale] || item.explanation.en,selectedAnswer:item.opts[chosen]});
         renderWQuestions();
       };
       var continueButton = host.querySelector('[data-w-continue]');
@@ -2263,7 +2365,7 @@
           var chosen = Number(button.getAttribute('data-grammar-option')), ok = chosen === correctIndex, explanation = answerExplanation(item);
           feedback(ok,{prompt:item.q,chosen:options[chosen],correct:options[correctIndex],explanation:explanation});
           recordGrammarTopicAnswer(item, ok);
-          if (ok) { studyState.score++; clearMistake(studyState.lang, item.q); } else logMistake(studyState.lang, item.q, options, correctIndex, 'mcq');
+          if (ok) { studyState.score++; clearMistake(studyState.lang, item.q); } else logMistake(studyState.lang, item.q, options, correctIndex, 'mcq',{sourceTool:'grammar',questionId:item.q,level:studyState.level,explanation:explanation,selectedAnswer:options[chosen]});
           Array.prototype.forEach.call(host.querySelectorAll('[data-grammar-option]'), function (option, index) { option.disabled = true; option.classList.toggle('correct', index === correctIndex); option.classList.toggle('wrong', index === chosen && !ok); });
           var panel = host.querySelector('.grammar-exercise-feedback');
           panel.innerHTML = '<div class="grammar-answer-feedback ' + (ok ? 'ok' : 'bad') + '"><b>' + esc(ok ? tr('Correct','Верно') : tr('Correct answer: ','Правильный ответ: ') + options[correctIndex]) + '</b><p>' + esc(explanation) + '</p></div><button type="button" class="grammar-exercise-continue" data-grammar-continue>' + esc(tr('Continue','Продолжить')) + ' →</button>';
@@ -2291,7 +2393,7 @@
           feedback(ok,{prompt:item.q,chosen:item.opts[chosen],correct:item.opts[item.a],explanation:answerExplanation(item)});
           recordGrammarTopicAnswer(item, ok);
           if (ok) { studyState.score++; clearMistake(studyState.lang, item.q); }
-          else logMistake(studyState.lang, item.q, item.opts, item.a, 'mcq');
+          else logMistake(studyState.lang, item.q, item.opts, item.a, 'mcq',{sourceTool:studyState.tool==='wordusage'?'wordusage':'grammar',questionId:item.q,level:studyState.level,explanation:answerExplanation(item),selectedAnswer:item.opts[chosen]});
           Array.prototype.forEach.call(host.querySelectorAll('[data-opt]'), function (b, i) {
             b.disabled = true;
             if (i === item.a) b.style.background = 'rgba(37,178,150,.16)';
@@ -4845,21 +4947,45 @@
     // ---- 10. Mistake center: same local-first spaced-review record as Academy Hub. ----
     function mistakeIntervalDays(item) { return [1,3,7,14][Math.min(3,Math.max(0,Number(item && item.reviewStep || 0)))] || 1; }
     function mistakeDueLabel(item) { var due=Number(item && item.dueAt || 0),now=Date.now();if(!due||due<=now)return tr('Due now','Повторить сейчас');var days=Math.max(1,Math.ceil((due-now)/86400000));return tr('In '+days+' day'+(days===1?'':'s'),'Через '+days+' '+(days===1?'день':'дня')); }
+    function mistakeDate(value) { return value ? new Date(Number(value)).toLocaleDateString(ctx.isRu?'ru-RU':'en-GB') : '—'; }
+    function mistakeExplanation(item) { return item.explanation || tr('No explanation was recorded for this earlier attempt.','Для этой ранней попытки объяснение не было сохранено.'); }
+    function mistakeCorrectIndex(item) {
+      return resolveExerciseAnswer(item).index;
+    }
+    function mistakeCorrectAnswer(item) {
+      var resolved=resolveExerciseAnswer(item),answer=resolved.value;
+      if (!resolved.valid) return tr('Correct answer was not recorded for this older item.','Правильный ответ не был сохранён для этой старой записи.');
+      return (mistakeTopic(item).id==='articles'?answer+' '+item.prompt:answer);
+    }
+    function reviewDiagnostic(item, resolved) {
+      console.warn('duvela.mistake-review.unavailable',{questionId:item&&item.questionId||null,source:item&&(item.sourceTool||item.kind)||null,reason:resolved&&resolved.reason||'unknown'});
+    }
+    function reviewIntervalLabel(days) { return tr(days+' day'+(days===1?'':'s'),days+' '+(days===1?'день':days<5?'дня':'дней')); }
     function renderMistakes() {
       var host=$('#studyToolBody'),all=loadMistakes(),now=Date.now(),due=all.filter(function(item){return !item.dueAt||Number(item.dueAt)<=now;}),later=all.filter(function(item){return item.dueAt&&Number(item.dueAt)>now;}),topics=weakTopics();
       if(!studyState.mistakePhase){
-        host.innerHTML='<section class="mistake-center"><header><div><small>DUVELA · REVIEW</small><h2>'+esc(tr('Mistake Center','Центр ошибок'))+'</h2><p>'+esc(tr('Review the exact tasks you missed. Correct answers advance the same 1 · 3 · 7 · 14 day schedule used by Duvela Academy Hub.','Повторяйте именно те задания, где была ошибка. Верные ответы продвигают по графику 1 · 3 · 7 · 14 дней, как в Duvela Academy Hub.'))+'</p></div><span>'+due.length+' '+esc(tr('due','на сегодня'))+'</span></header><div class="mistake-stats"><article><b>'+due.length+'</b><small>'+esc(tr('Due now','Повторить сейчас'))+'</small></article><article><b>'+later.length+'</b><small>'+esc(tr('Scheduled','Запланировано'))+'</small></article><article><b>'+topics.length+'</b><small>'+esc(tr('Topics','Темы'))+'</small></article></div>'+(topics.length?'<section class="mistake-topics"><h3>'+esc(tr('Focus areas','Темы для разбора'))+'</h3><div>'+topics.map(function(topic){return '<span>'+esc(topic.label)+' <b>'+topic.count+'</b></span>';}).join('')+'</div></section>':'')+(all.length?'<section class="mistake-queue"><div><h3>'+esc(due.length?tr('Ready to review','Готово к повторению'):tr('Next scheduled mistakes','Следующие повторения'))+'</h3><p>'+esc(due.length?tr('Start with the tasks due today.','Начните с заданий, которые нужно повторить сегодня.'):tr('There are no tasks due right now; you can still preview the upcoming queue.','Сейчас нет заданий к повторению, но можно пройти ближайшую очередь.'))+'</p></div><button type="button" class="mistake-start" data-mistake-start="'+(due.length?'due':'all')+'">'+esc(due.length?tr('Review '+due.length+' now','Повторить сейчас: '+due.length):tr('Review upcoming','Открыть очередь'))+' →</button></section><ol class="mistake-preview">'+all.slice().sort(function(a,b){return Number(a.dueAt||0)-Number(b.dueAt||0);}).slice(0,5).map(function(item){var topic=mistakeTopic(item);return '<li><div><b>'+esc(topic.label)+'</b><span>'+esc(item.prompt)+'</span></div><small>'+esc(mistakeDueLabel(item))+' · '+esc(tr('step ','шаг '))+(Number(item.reviewStep||0)+1)+'/4</small></li>';}).join('')+'</ol>':'<section class="mistake-empty"><b>✓</b><h3>'+esc(tr('No recorded mistakes','Нет сохранённых ошибок'))+'</h3><p>'+esc(tr('When an answer is incorrect in a supported practice, it will appear here for spaced review.','Когда в поддерживаемой практике будет ошибка, она появится здесь для интервального повторения.'))+'</p></section>')+'</section>';
-        var start=host.querySelector('[data-mistake-start]');if(start)start.onclick=function(){studyState.mistakePhase='review';studyState.mistakeMode=start.getAttribute('data-mistake-start');studyState.data=shuffle((studyState.mistakeMode==='due'&&due.length?due:all).slice(0,20));studyState.idx=0;studyState.score=0;studyState.mistakeSelected=null;studyState.mistakeChecked=false;renderMistakes();};return;
+        var filter=studyState.mistakeFilter||'all', topicFilter=studyState.mistakeTopicFilter||'',langFilter=studyState.mistakeLangFilter||'',levelFilter=studyState.mistakeLevelFilter||'';
+        var shown=all.filter(function(item){var topic=mistakeTopic(item),isDue=!item.dueAt||Number(item.dueAt)<=now,reviewed=(item.history||[]).some(function(h){return h.outcome==='correct';});return (filter==='all'||filter==='due'&&isDue||filter==='scheduled'&&!isDue||filter==='reviewed'&&reviewed)&&(!topicFilter||topic.id===topicFilter)&&(!langFilter||item.lang===langFilter)&&(!levelFilter||item.level===levelFilter);}).sort(function(a,b){return Number(a.dueAt||0)-Number(b.dueAt||0);});
+        var filterButton=function(id,label,count){return '<button type="button" class="'+(filter===id?'active':'')+'" data-mistake-filter="'+id+'">'+esc(label)+(count===undefined?'':' <b>'+count+'</b>')+'</button>';};
+        var optionList=function(values,selected,empty){return '<option value="">'+esc(empty)+'</option>'+values.map(function(value){return '<option value="'+esc(value)+'"'+(value===selected?' selected':'')+'>'+esc(value)+'</option>';}).join('');};
+        var rows=shown.map(function(item){var topic=mistakeTopic(item),key=mistakeKey(item),open=studyState.mistakeExpandedKey===key,wrong=item.selectedAnswer===undefined||item.selectedAnswer===null?tr('Not recorded for this earlier attempt','Не записан для этой ранней попытки'):item.selectedAnswer;return '<article class="mistake-entry '+(open?'open':'')+'"><button type="button" class="mistake-entry-head" data-mistake-expand="'+esc(key)+'"><span><b>'+esc(topic.label)+'</b><small>'+esc((item.sourceTool||item.kind||'mcq')+' · '+String(item.lang||'').toUpperCase()+(item.level?' · '+item.level:''))+'</small><strong>'+esc(item.prompt)+'</strong></span><em>'+esc(mistakeDueLabel(item))+' · '+esc(tr('Step ','Шаг '))+(Number(item.reviewStep||0)+1)+'/4</em></button>'+(open?'<div class="mistake-entry-detail"><dl><div><dt>'+esc(tr('Question ID','ID вопроса'))+'</dt><dd>'+esc(item.questionId||tr('Not recorded','Не записан'))+'</dd></div><div><dt>'+esc(tr('Your answer','Ваш ответ'))+'</dt><dd>'+esc(wrong)+'</dd></div><div><dt>'+esc(tr('Correct answer','Правильный ответ'))+'</dt><dd>'+esc(mistakeCorrectAnswer(item))+'</dd></div><div><dt>'+esc(tr('Incorrect attempts','Неверных попыток'))+'</dt><dd>'+Number(item.attemptsIncorrect||1)+'</dd></div><div><dt>'+esc(tr('Last attempt','Последняя попытка'))+'</dt><dd>'+esc(mistakeDate(item.lastAttemptAt||item.at))+'</dd></div><div><dt>'+esc(tr('Next review','Следующее повторение'))+'</dt><dd>'+esc(mistakeDueLabel(item))+'</dd></div></dl><p><b>'+esc(tr('Explanation','Объяснение'))+':</b> '+esc(mistakeExplanation(item))+'</p><div class="mistake-entry-actions"><button type="button" data-mistake-retry="'+esc(key)+'">'+esc(tr('Retry exact question','Повторить это задание'))+'</button>'+(topic.tool?'<button type="button" data-mistake-topic="'+esc(topic.tool)+'">'+esc(tr('Open learning topic','Открыть тему'))+'</button>':'')+'</div></div>':'')+'</article>';}).join('');
+        host.innerHTML='<section class="mistake-center"><header><div><small>DUVELA · REVIEW</small><h2>'+esc(tr('Mistake Center','Центр ошибок'))+'</h2><p>'+esc(tr('Review the exact tasks you missed. Correct answers advance the 1 · 3 · 7 · 14 day schedule.','Повторяйте именно те задания, где была ошибка. Верные ответы продвигают по графику 1 · 3 · 7 · 14 дней.'))+'</p></div><span>'+due.length+' '+esc(tr('due','на сегодня'))+'</span></header><div class="mistake-stats"><article><b>'+due.length+'</b><small>'+esc(tr('Due now','Повторить сейчас'))+'</small></article><article><b>'+later.length+'</b><small>'+esc(tr('Scheduled','Запланировано'))+'</small></article><article><b>'+topics.length+'</b><small>'+esc(tr('Topics','Темы'))+'</small></article></div>'+(all.length?'<section class="mistake-queue"><div><h3>'+esc(tr('Review due mistakes','Повторить ошибки на сегодня'))+'</h3><p>'+esc(tr('The session contains only actual due records and gives XP only for checked correct answers.','Сессия содержит только реальные задания на сегодня; XP начисляется лишь за проверенные верные ответы.'))+'</p></div><button type="button" class="mistake-start" data-mistake-start="due"'+(due.length?'':' disabled')+'>'+esc(tr('Review '+due.length+' now','Повторить сейчас: '+due.length))+' →</button></section><div class="mistake-validation" aria-live="polite">'+(studyState.mistakeValidationError?esc(studyState.mistakeValidationError):'')+'</div><nav class="mistake-filters">'+filterButton('all',tr('All','Все'),all.length)+filterButton('due',tr('Due now','На сегодня'),due.length)+filterButton('scheduled',tr('Scheduled','Запланировано'),later.length)+filterButton('reviewed',tr('Reviewed','Повторенные'))+'<select data-mistake-topic-filter>'+optionList(topics.map(function(t){return t.id;}),topicFilter,tr('All topics','Все темы'))+'</select><select data-mistake-lang-filter>'+optionList(Array.from(new Set(all.map(function(m){return m.lang;}))),langFilter,tr('All languages','Все языки'))+'</select><select data-mistake-level-filter>'+optionList(Array.from(new Set(all.map(function(m){return m.level;}).filter(Boolean))),levelFilter,tr('All levels','Все уровни'))+'</select></nav><section class="mistake-library">'+(rows||'<p class="mistake-empty-filter">'+esc(tr('No mistakes match these filters.','Нет ошибок по выбранным фильтрам.'))+'</p>')+'</section>':'<section class="mistake-empty"><b>✓</b><h3>'+esc(tr('No recorded mistakes','Нет сохранённых ошибок'))+'</h3><p>'+esc(tr('When an answer is incorrect in a supported practice, it will appear here for spaced review.','Когда в поддерживаемой практике будет ошибка, она появится здесь для интервального повторения.'))+'</p></section>')+'</section>';
+        Array.prototype.forEach.call(host.querySelectorAll('[data-mistake-filter]'),function(button){button.onclick=function(){studyState.mistakeFilter=button.getAttribute('data-mistake-filter');renderMistakes();};});
+        Array.prototype.forEach.call(host.querySelectorAll('[data-mistake-expand]'),function(button){button.onclick=function(){var key=button.getAttribute('data-mistake-expand');studyState.mistakeExpandedKey=studyState.mistakeExpandedKey===key?'':key;renderMistakes();};});
+        [['[data-mistake-topic-filter]','mistakeTopicFilter'],['[data-mistake-lang-filter]','mistakeLangFilter'],['[data-mistake-level-filter]','mistakeLevelFilter']].forEach(function(pair){var select=host.querySelector(pair[0]);if(select)select.onchange=function(){studyState[pair[1]]=select.value;renderMistakes();};});
+        var start=host.querySelector('[data-mistake-start]');if(start)start.onclick=function(){if(!due.length)return;var candidates=due.slice(0,20),valid=candidates.filter(function(item){var resolved=resolveExerciseAnswer(item);if(!resolved.valid)reviewDiagnostic(item,resolved);return resolved.valid;}),invalid=candidates.length-valid.length;studyState.mistakeValidationError=invalid?tr(invalid+' question could not be validated and was skipped. Its review date was not changed.',invalid+' вопрос(а) не прошли проверку и пропущены. Дата повторения не изменена.'):'';if(!valid.length){renderMistakes();return;}studyState.mistakePhase='review';studyState.data=shuffle(valid);studyState.mistakeSkipped=invalid;studyState.idx=0;studyState.score=0;studyState.mistakeSelected=null;studyState.mistakeChecked=false;renderMistakes();};
+        Array.prototype.forEach.call(host.querySelectorAll('[data-mistake-retry]'),function(button){button.onclick=function(){var key=button.getAttribute('data-mistake-retry'),item=all.find(function(m){return mistakeKey(m)===key;}),resolved=resolveExerciseAnswer(item);if(!item||!resolved.valid){if(item)reviewDiagnostic(item,resolved);studyState.mistakeValidationError=tr('This saved question cannot be validated yet. It was not scheduled or rewarded.','Эту сохранённую задачу пока нельзя проверить. Расписание и награда не изменены.');renderMistakes();return;}studyState.mistakePhase='review';studyState.data=[item];studyState.idx=0;studyState.score=0;studyState.mistakeSelected=null;studyState.mistakeChecked=false;renderMistakes();};});
+        Array.prototype.forEach.call(host.querySelectorAll('[data-mistake-topic]'),function(button){button.onclick=function(){openStudyTool(button.getAttribute('data-mistake-topic'));};});return;
       }
       var deck=studyState.data||[];
       if(!deck.length){studyState.mistakePhase=null;return renderMistakes();}
-      if(studyState.idx>=deck.length)return finishTool(studyState.score+' / '+deck.length,deck.length*2);
-      var item=deck[studyState.idx],selected=Number.isInteger(studyState.mistakeSelected)?studyState.mistakeSelected:null,checked=!!studyState.mistakeChecked,ok=checked&&selected===item.a,topic=mistakeTopic(item);
-      var nextInterval=mistakeIntervalDays({reviewStep:ok?Math.min(3,Number(item.reviewStep||0)+1):Number(item.reviewStep||0)});
-      var feedbackHtml=checked?'<section class="mistake-feedback '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Correct — moved to the next review step.','Верно — задание перенесено на следующий шаг повторения.'):tr('Correct answer: ','Правильный ответ: ')+item.opts[item.a])+'</b><p>'+esc(tr('Topic: ','Тема: '))+esc(topic.label)+' · '+esc(tr('Next interval: ','Следующий интервал: '))+nextInterval+' '+esc(tr('days','дней'))+'</p></section>':'';
-      host.innerHTML='<section class="mistake-review"><header><button type="button" data-mistake-back>← '+esc(tr('All mistakes','Все ошибки'))+'</button><span>'+esc(tr('Review ','Повторение '))+(studyState.idx+1)+' / '+deck.length+'</span></header><i aria-hidden="true"><em style="width:'+Math.round((studyState.idx+1)/deck.length*100)+'%"></em></i><main><small>'+esc(topic.label.toUpperCase())+'</small><h2>'+esc(item.prompt)+'</h2><div class="mistake-options">'+(item.opts||[]).map(function(opt,index){var state=checked?(index===item.a?'correct':index===selected?'wrong':''):selected===index?'selected':'';return '<button type="button" class="'+state+'" data-mistake-option="'+index+'"'+(checked?' disabled':'')+'>'+esc(opt)+'</button>';}).join('')+'</div>'+feedbackHtml+'<footer>'+(checked?'<button type="button" class="mistake-next" data-mistake-next>'+esc(tr('Continue','Продолжить'))+' →</button>':'<button type="button" class="mistake-check" data-mistake-check'+(selected===null?' disabled':'')+'>'+esc(tr('Check answer','Проверить ответ'))+'</button>')+'</footer></main></section>';
+      if(studyState.idx>=deck.length)return finishTool(studyState.score+' / '+deck.length,studyState.score*2);
+      var item=deck[studyState.idx],correctIndex=mistakeCorrectIndex(item),selected=Number.isInteger(studyState.mistakeSelected)?studyState.mistakeSelected:null,checked=!!studyState.mistakeChecked,ok=checked&&selected===correctIndex,topic=mistakeTopic(item);
+      var nextInterval=mistakeIntervalDays({reviewStep:ok?Math.min(3,Number(item.reviewStep||0)+1):0});
+      var feedbackHtml=checked?'<section class="mistake-feedback '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Correct — moved to the next review step.','Верно — задание перенесено на следующий шаг повторения.'):tr('Correct answer: ','Правильный ответ: ')+mistakeCorrectAnswer(item))+'</b>'+(!ok?'<p>'+esc(tr('Your answer: ','Ваш ответ: '))+esc((item.opts||[])[selected]||'—')+'</p>':'')+'<p>'+esc(mistakeExplanation(item))+'</p><p>'+esc(tr('Topic: ','Тема: '))+esc(topic.label)+' · '+esc(tr('Next review: ','Следующее повторение: '))+esc(reviewIntervalLabel(nextInterval))+'</p></section>':'';
+      host.innerHTML='<section class="mistake-review"><header><button type="button" data-mistake-back>← '+esc(tr('All mistakes','Все ошибки'))+'</button><span>'+esc(tr('Review ','Повторение '))+(studyState.idx+1)+' / '+deck.length+'</span></header><i aria-hidden="true"><em style="width:'+Math.round((studyState.idx+1)/deck.length*100)+'%"></em></i><main><small>'+esc(topic.label.toUpperCase())+'</small><h2>'+esc(item.prompt)+'</h2><div class="mistake-options">'+(item.opts||[]).map(function(opt,index){var state=checked?(index===correctIndex?'correct':index===selected?'wrong':''):selected===index?'selected':'';return '<button type="button" class="'+state+'" data-mistake-option="'+index+'"'+(checked?' disabled':'')+'>'+esc(opt)+'</button>';}).join('')+'</div>'+feedbackHtml+'<footer>'+(checked?'<button type="button" class="mistake-next" data-mistake-next>'+esc(tr('Continue','Продолжить'))+' →</button>':'<button type="button" class="mistake-check" data-mistake-check'+(selected===null||correctIndex<0?' disabled':'')+'>'+esc(tr('Check answer','Проверить ответ'))+'</button>')+'</footer></main></section>';
       Array.prototype.forEach.call(host.querySelectorAll('[data-mistake-option]'),function(button){button.onclick=function(){studyState.mistakeSelected=Number(button.getAttribute('data-mistake-option'));renderMistakes();};});
-      var check=host.querySelector('[data-mistake-check]');if(check)check.onclick=function(){var chosen=studyState.mistakeSelected;studyState.mistakeChecked=true;var correct=chosen===item.a;feedback(correct,{prompt:item.prompt,chosen:item.opts[chosen],correct:item.opts[item.a]});if(correct){studyState.score++;clearMistake(item.lang,item.prompt);}else logMistake(item.lang,item.prompt,item.opts,item.a,item.kind);syncPracticeData();renderMistakes();};
+      var check=host.querySelector('[data-mistake-check]');if(check)check.onclick=function(){if(studyState.mistakeChecked||correctIndex<0)return;var chosen=studyState.mistakeSelected;studyState.mistakeChecked=true;var correct=chosen===correctIndex;feedback(correct,{prompt:item.prompt,chosen:item.opts[chosen],correct:mistakeCorrectAnswer(item)});if(correct){studyState.score++;clearMistake(item.lang,item.questionId||item.prompt);}else logMistake(item.lang,item.prompt,item.opts,correctIndex,item.kind,{sourceTool:item.sourceTool||item.kind,questionId:item.questionId,level:item.level,explanation:item.explanation,selectedAnswer:item.opts[chosen]});syncPracticeData();renderMistakes();};
       var next=host.querySelector('[data-mistake-next]');if(next)next.onclick=function(){studyState.idx++;studyState.mistakeSelected=null;studyState.mistakeChecked=false;renderMistakes();};
       var back=host.querySelector('[data-mistake-back]');if(back)back.onclick=function(){studyState.mistakePhase=null;studyState.data=null;studyState.idx=0;renderMistakes();};
     }

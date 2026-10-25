@@ -143,6 +143,8 @@ create table if not exists public.practice_mock_exams (
 create index if not exists practice_ai_evaluations_user_idx on public.practice_ai_evaluations(user_id,created_at desc);
 create index if not exists practice_mock_exams_user_idx on public.practice_mock_exams(user_id,created_at desc);
 alter table public.practice_mistakes add column if not exists topic_id text;
+alter table public.practice_mistakes add column if not exists level text;
+alter table public.practice_mistakes add column if not exists details jsonb not null default '{}'::jsonb;
 alter table public.practice_mistakes add column if not exists review_step integer not null default 0;
 alter table public.practice_mistakes add column if not exists due_at timestamptz not null default now();
 alter table public.practice_mistakes add column if not exists last_reviewed_at timestamptz;
