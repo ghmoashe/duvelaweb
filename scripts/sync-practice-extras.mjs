@@ -121,6 +121,24 @@ const persianTrack = {
   })),
 };
 
+// Mini grammar, A1–C1 (50 tasks per level), with prompt/topic/explanation in English
+// and Russian. Options keep the bank order (answer first); the screen shuffles them.
+persianTrack.grammar = {};
+for (const locale of ['en', 'ru']) {
+  persianTrack.grammar[locale] = {};
+  for (const level of ['A1', 'A2', 'B1', 'B2', 'C1']) {
+    persianTrack.grammar[locale][level] = persian.getPersianGrammarTasks(level, locale).map((task) => ({
+      id: task.id,
+      prompt: task.prompt,
+      sentence: task.sentence,
+      options: task.options,
+      answer: task.answer,
+      explanation: task.explanation,
+      topic: task.topic,
+    }));
+  }
+}
+
 const payload = {
   schemaVersion: 1,
   source: 'vela-academy-hub/shared (stella-word-bank, german-alphabet-data, persian-*)',
@@ -139,6 +157,7 @@ console.log(
   `practice-extras.js: STELLA de ${count(stellaBank.de)} / en ${count(stellaBank.en)} / es ${count(stellaBank.es)} words,`,
   `German ${germanAlphabet.letters.length} letters + ${germanAlphabet.combos.length} combos,`,
   `Persian ${persianTrack.alphabet.length} letters, ${persianTrack.readingWords.length} reading,`,
-  `${persianTrack.listeningWords.length} listening, ${persianTrack.numbers.length} numbers;`,
+  `${persianTrack.listeningWords.length} listening, ${persianTrack.numbers.length} numbers,`,
+  `${Object.values(persianTrack.grammar.en).reduce((sum, list) => sum + list.length, 0)} grammar tasks;`,
   `${Math.round(json.length / 1024)} KB`,
 );

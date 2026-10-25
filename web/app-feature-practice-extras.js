@@ -5,7 +5,7 @@
   // web/content/practice-extras.js (scripts/sync-practice-extras.mjs), loaded on first
   // use. app-feature-study.js owns the overlay; these functions only fill its body.
 
-  var DATA_URL = './web/content/practice-extras.js?v=20261023-extras1';
+  var DATA_URL = './web/content/practice-extras.js?v=20261025-extras2';
   var dataPromise = null;
 
   function ensureData() {
@@ -816,6 +816,148 @@
     }).catch(function (error) { host.innerHTML = '<div class="empty">' + opts.esc(error.message) + '</div>'; });
   }
 
+  // ── Persian: mini grammar ─────────────────────────────────────────────────────
+  var PERSIAN_GRAMMAR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+
+  // opts: base opts + { level, onMistake(task, answer) }
+  function renderPersianGrammar(host, opts) {
+    injectStyle();
+    loading(host, opts);
+    ensureData().then(function (data) {
+      var esc = opts.esc, tr = opts.tr;
+      var bank = data.persian.grammar[opts.isRu ? 'ru' : 'en'];
+      var startLevel = String(opts.level || 'A1').toUpperCase();
+      if (startLevel === 'C2') startLevel = 'C1';
+      if (PERSIAN_GRAMMAR_LEVELS.indexOf(startLevel) < 0) startLevel = 'A1';
+      var state = { level: startLevel, tasks: [], index: 0, options: [], picked: null, answered: 0, correct: 0 };
+
+      function startLevelRound(level) {
+        state.level = level;
+        state.tasks = shuffle(bank[level] || []);
+        state.index = 0;
+        state.answered = 0;
+        state.correct = 0;
+        prepareTask();
+      }
+      function prepareTask() {
+        // The bank lists the answer first; shuffle so position gives nothing away.
+        state.options = shuffle(state.tasks[state.index].options);
+        state.picked = null;
+      }
+
+      function render() {
+        var task = state.tasks[state.index];
+        var ok = state.picked === task.answer;
+        host.innerHTML =
+          '<div class="px-switch">' + PERSIAN_GRAMMAR_LEVELS.map(function (level) {
+            return '<button type="button" data-level="' + level + '" class="' + (state.level === level ? 'on' : '') + '">' + level + '</button>';
+          }).join('') + '</div>' +
+          '<div class="px-score"><span>' + esc(tr('Score', 'Очки')) + ': ' + state.correct * 10 + '</span><span>' + state.answered + '/10</span></div>' +
+          '<div class="px-card"><div class="px-note" style="margin:0 0 6px">' + esc(task.topic) + '</div>' +
+            '<div class="px-prompt">' + esc(task.prompt) + '</div>' +
+            // The bank stores "Persian line\ntransliteration": Persian right-to-left, the
+            // transliteration as its own left-to-right line.
+            '<div class="px-q fa long" dir="rtl" style="font-size:30px">' + esc(task.sentence.split('\n')[0]) + '</div>' +
+            (task.sentence.split('\n')[1] ? '<div class="px-note" dir="ltr" style="margin:-6px 0 4px">' + esc(task.sentence.split('\n').slice(1).join(' ')) + '</div>' : '') +
+            '<div class="px-options">' + state.options.map(function (option, i) {
+              var cls = state.picked === null ? '' : option === task.answer ? 'ok' : option === state.picked ? 'bad' : '';
+              return '<button type="button" dir="auto" data-option="' + i + '" class="' + cls + '"' + (state.picked !== null ? ' disabled' : '') + '>' + esc(option) + '</button>';
+            }).join('') + '</div>' +
+            (state.picked !== null
+              ? '<div class="px-feedback ' + (ok ? 'ok' : 'bad') + '">' + esc(ok ? tr('Correct!', 'Верно!') : tr('Not quite — the answer is ', 'Не совсем — правильно: ') + task.answer) + '</div>' +
+                '<div class="px-note">' + esc(task.explanation) + '</div>'
+              : '') +
+          '</div>' +
+          '<button type="button" class="btn primary" id="pxNextQ" style="width:100%"' + (state.picked === null ? ' disabled' : '') + '>' + esc(tr('Next', 'Дальше')) + ' →</button>';
+        wire();
+      }
+
+      function wire() {
+        Array.prototype.forEach.call(host.querySelectorAll('[data-level]'), function (b) {
+          b.onclick = function () { startLevelRound(b.getAttribute('data-level')); render(); };
+        });
+        Array.prototype.forEach.call(host.querySelectorAll('[data-option]'), function (b) {
+          b.onclick = function () {
+            if (state.picked !== null) return;
+            var task = state.tasks[state.index];
+            state.picked = state.options[Number(b.getAttribute('data-option'))];
+            state.answered += 1;
+            if (state.picked === task.answer) state.correct += 1;
+            else if (opts.onMistake) opts.onMistake(task, state.picked, state.level);
+            render();
+          };
+        });
+        var next = host.querySelector('#pxNextQ');
+        if (next) next.onclick = function () {
+          if (state.answered >= 10) return opts.finish(state.correct, 10, tr('Persian grammar round', 'Раунд персидской грамматики'));
+          state.index = (state.index + 1) % state.tasks.length;
+          prepareTask();
+          render();
+        };
+      }
+
+      startLevelRound(state.level);
+      render();
+    }).catch(function (error) { host.innerHTML = '<div class="empty">' + opts.esc(error.message) + '</div>'; });
+  }
+
+  // ── Persian: word cards ───────────────────────────────────────────────────────
+  function renderPersianWordCards(host, opts) {
+    injectStyle();
+    loading(host, opts);
+    ensureData().then(function (data) {
+      var esc = opts.esc, tr = opts.tr;
+      var ROUND = 10;
+      var state = { queue: shuffle(data.persian.listeningWords).slice(0, ROUND), revealed: false, known: 0, seen: 0 };
+
+      function play(word) { opts.playClip(word.audio, word.speech, PERSIAN_VOICE, 'fa-IR'); }
+
+      function render() {
+        var word = state.queue[0];
+        host.innerHTML =
+          '<p class="px-hint">' + esc(tr('Read the word, say it, then check. Words you mark “Again” come back later in the round.', 'Прочитайте слово, произнесите его, потом проверьте. Слова с отметкой «Повторить» вернутся позже в этом раунде.')) + '</p>' +
+          '<div class="px-score"><span>' + esc(tr('Known', 'Знаю')) + ': ' + state.known + '</span><span>' + state.known + '/' + ROUND + '</span></div>' +
+          '<div class="px-card">' +
+            '<div class="px-q fa" dir="rtl">' + esc(word.fa) + '</div>' +
+            '<button type="button" class="st-chip" id="pxPlay">🔊 ' + esc(tr('Listen', 'Слушать')) + '</button>' +
+            (state.revealed
+              ? '<div class="px-feedback ok" style="font-size:20px">' + esc(word.translit) + '</div><div class="px-note" style="font-size:16px">' + esc(localized(word.meaning, opts)) + '</div>'
+              : '') +
+          '</div>' +
+          (state.revealed
+            ? '<div class="px-actions"><button type="button" class="btn" id="pxAgain">🔁 ' + esc(tr('Again', 'Повторить')) + '</button><button type="button" class="btn primary" id="pxKnow">✓ ' + esc(tr('I know it', 'Знаю')) + '</button></div>'
+            : '<button type="button" class="btn primary" id="pxReveal" style="width:100%">' + esc(tr('Show', 'Показать')) + '</button>');
+        wire(word);
+      }
+
+      function next(knew) {
+        var word = state.queue.shift();
+        state.seen += 1;
+        if (knew) state.known += 1;
+        else state.queue.push(word);
+        // Ends when every card was known once, or after three passes' worth of cards.
+        if (state.known >= ROUND || !state.queue.length || state.seen >= ROUND * 3) {
+          return opts.finish(state.known, ROUND, tr('Persian word cards', 'Карточки персидских слов'));
+        }
+        state.revealed = false;
+        render();
+      }
+
+      function wire(word) {
+        var playBtn = host.querySelector('#pxPlay');
+        if (playBtn) playBtn.onclick = function () { play(word); };
+        var reveal = host.querySelector('#pxReveal');
+        if (reveal) reveal.onclick = function () { state.revealed = true; play(word); render(); };
+        var know = host.querySelector('#pxKnow');
+        if (know) know.onclick = function () { next(true); };
+        var again = host.querySelector('#pxAgain');
+        if (again) again.onclick = function () { next(false); };
+      }
+
+      render();
+    }).catch(function (error) { host.innerHTML = '<div class="empty">' + opts.esc(error.message) + '</div>'; });
+  }
+
   window.DuvelaPracticeExtras = {
     ensureData: ensureData,
     renderAlphabet: renderAlphabet,
@@ -823,5 +965,7 @@
     renderPersianListening: renderPersianListening,
     renderPersianNumbers: renderPersianNumbers,
     renderStella: renderStella,
+    renderPersianGrammar: renderPersianGrammar,
+    renderPersianWordCards: renderPersianWordCards,
   };
 })();
