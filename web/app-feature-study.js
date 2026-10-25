@@ -975,7 +975,7 @@
         review_step: Number(m.reviewStep || 0),
         review_due_at: dueAt,
         due_at: dueAt || new Date().toISOString(),
-        details: { web:true, key:mistakeKey(m), lang:m.lang, options:opts, correctIndex:m.a, tool:tool, kind:m.kind || 'mcq', questionId:m.questionId || '', selectedAnswer:m.selectedAnswer, history:Array.isArray(m.history) ? m.history.slice(-30) : [] },
+        details: { web:true, key:mistakeKey(m), lang:m.lang, options:opts, correctIndex:m.a, tool:tool, kind:m.kind || 'mcq', questionId:m.questionId || '', selectedAnswer:m.selectedAnswer, audioClip:m.audioClip || null, audioText:m.audioText || '', history:Array.isArray(m.history) ? m.history.slice(-30) : [] },
         updated_at: new Date(m.at || Date.now()).toISOString()
       };
     }
@@ -983,7 +983,7 @@
       var details = row.details || {};
       var common = { remoteKey:row.item_key, level:row.level || '', explanation:row.explanation || '', attemptsIncorrect:Number(row.attempts || 1), reviewStep:Number(row.review_step || 0), dueAt:row.due_at ? new Date(row.due_at).getTime() : Date.now(), at:new Date(row.updated_at || Date.now()).getTime() };
       if (details.web) {
-        return Object.assign(common, { key:details.key, lang:details.lang, prompt:row.prompt, opts:Array.isArray(details.options) ? details.options : [], a:details.correctIndex, kind:details.kind || 'mcq', sourceTool:details.tool || row.source, questionId:details.questionId || '', selectedAnswer:details.selectedAnswer, history:Array.isArray(details.history) ? details.history : [] });
+        return Object.assign(common, { key:details.key, lang:details.lang, prompt:row.prompt, opts:Array.isArray(details.options) ? details.options : [], a:details.correctIndex, kind:details.kind || 'mcq', sourceTool:details.tool || row.source, questionId:details.questionId || '', selectedAnswer:details.selectedAnswer, audioClip:details.audioClip || null, audioText:details.audioText || '', history:Array.isArray(details.history) ? details.history : [] });
       }
       // A mistake recorded in the app: review it here as "the right answer or the one you gave".
       var lang = MISTAKE_LANGS[row.target];
@@ -996,7 +996,7 @@
     }
     function logMistake(lang, prompt, opts, correctIdx, kind, details) {
       var now=Date.now(), meta=details||{}, key=lang+'|'+(meta.questionId||prompt), old=loadMistakes(), previous=old.find(function(m){return mistakeKey(m)===key;}), history=(previous&&Array.isArray(previous.history)?previous.history:[]).concat([{at:now,outcome:'incorrect',selectedAnswer:meta.selectedAnswer}]).slice(-30);
-      var item={key:key,lang:lang,prompt:prompt,opts:opts,a:correctIdx,kind:kind||'mcq',sourceTool:meta.sourceTool||kind||'mcq',questionId:meta.questionId||'',level:meta.level||currentPracticeLevel(lang),explanation:meta.explanation||'',selectedAnswer:meta.selectedAnswer,attemptsIncorrect:Number(previous&&previous.attemptsIncorrect||0)+1,lastAttemptAt:now,at:now,reviewStep:0,dueAt:now+86400000,history:history};
+      var item={key:key,lang:lang,prompt:prompt,opts:opts,a:correctIdx,kind:kind||'mcq',sourceTool:meta.sourceTool||kind||'mcq',questionId:meta.questionId||'',level:meta.level||currentPracticeLevel(lang),explanation:meta.explanation||'',selectedAnswer:meta.selectedAnswer,audioClip:meta.audioClip||null,audioText:meta.audioText||'',attemptsIncorrect:Number(previous&&previous.attemptsIncorrect||0)+1,lastAttemptAt:now,at:now,reviewStep:0,dueAt:now+86400000,history:history};
       saveMistakes(old.filter(function(m){return mistakeKey(m)!==key;}).concat([item]));
       return item;
     }
@@ -2937,6 +2937,28 @@
       window.speechSynthesis.speak(utterance);
     }
 
+    async function playMistakeAudio(item, button) {
+      stopListeningPlayback();
+      var runId = listeningPlaybackRun;
+      button.disabled = true;
+      try {
+        var prepared = null;
+        if (item.audioClip) { try { prepared = await prepareListeningRecording(item.audioClip); } catch (e) { prepared = null; } }
+        if (!prepared && item.audioText) prepared = await prepareListeningFish(item.audioText, item.lang, 1);
+        if (!prepared) throw new Error('audio unavailable');
+        await playListeningAudio(prepared, 1, runId, function () {});
+      } catch (error) {
+        if (runId === listeningPlaybackRun && item.audioText && window.speechSynthesis) {
+          var utterance = new SpeechSynthesisUtterance(item.audioText);
+          utterance.lang = SPEECH_LOCALE[item.lang] || 'de-DE';
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utterance);
+        }
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     function setListeningButtonState(button, state, label) {
       if (!button) return;
       button.dataset.state = state;
@@ -3066,7 +3088,7 @@
         if(!ok&&remaining>0){var diff=listeningAnswerDiff(rawValue,expectedAnswer);feedbackHost.className='listening-feedback bad retry';feedbackHost.innerHTML='<div><span>!</span><div><b>'+esc(tr('Not quite. Listen once more and try again.','Пока неточно. Прослушайте ещё раз и повторите.'))+'</b>'+(mode==='type'?'<p class="listening-diff">'+diff.html+'</p><small>'+diff.missing+' '+esc(tr('missing','пропущено'))+' · '+diff.extra+' '+esc(tr('extra','лишних'))+'</small>':'')+'</div></div>';$('#lsCheck').textContent=tr('Check again','Проверить ещё раз');if(input){input.focus();input.select();}else{var selected=host.querySelector('input[name="listening-answer"]:checked');if(selected)selected.checked=false;$('#lsCheck').disabled=true;}return;}
         if(ok)studyState.score++;
         feedback(ok,{kind:'listening',prompt:item.prompt||item.hint,chosen:rawValue,correct:expectedAnswer,attemptsUsed:attemptState.used,mode:mode});
-        if(ok)clearMistake(studyState.lang,item.prompt||item.hint||expectedAnswer);else logMistake(studyState.lang,item.prompt||item.hint||expectedAnswer,item.options&&item.options.length?item.options:[expectedAnswer],0,'listening');
+        if(ok)clearMistake(studyState.lang,item.prompt||item.hint||expectedAnswer);else logMistake(studyState.lang,item.prompt||item.hint||expectedAnswer,item.options&&item.options.length?item.options:[expectedAnswer],0,'listening',{sourceTool:'listening',audioClip:item.audioClip||null,audioText:item.text||''});
         feedbackHost.className='listening-feedback '+(ok?'ok':'bad');feedbackHost.innerHTML='<div><span>'+(ok?'✓':'!')+'</span><div><b>'+esc(ok?tr('Correct — you heard it accurately.','Верно — вы точно распознали фразу.'):tr('Review the answer before continuing.','Разберите ответ перед продолжением.'))+'</b>'+(!ok?'<p><strong>'+esc(tr('Expected: ','Правильный ответ: '))+'</strong>'+esc(expectedAnswer)+'</p>':'')+'</div></div><button class="btn primary" id="lsContinue" type="button">'+esc(tr('Continue','Продолжить'))+'</button>';
         $('#lsCheck').disabled=true;if(input)input.disabled=true;choices.forEach(function(choice){choice.disabled=true;});$('#lsPlay').disabled=true;$('#lsReplay').disabled=true;$('#lsRate').disabled=true;$('#lsHint').disabled=true;persistResume();
         $('#lsContinue').addEventListener('click',function(){studyState.idx++;persistResume();renderListening();});$('#lsContinue').focus();
@@ -5115,9 +5137,10 @@
       var item=deck[studyState.idx],correctIndex=mistakeCorrectIndex(item),selected=Number.isInteger(studyState.mistakeSelected)?studyState.mistakeSelected:null,checked=!!studyState.mistakeChecked,ok=checked&&selected===correctIndex,topic=mistakeTopic(item);
       var nextInterval=mistakeIntervalDays({reviewStep:ok?Math.min(3,Number(item.reviewStep||0)+1):0});
       var feedbackHtml=checked?'<section class="mistake-feedback '+(ok?'ok':'bad')+'"><b>'+esc(ok?tr('Correct — moved to the next review step.','Верно — задание перенесено на следующий шаг повторения.'):tr('Correct answer: ','Правильный ответ: ')+mistakeCorrectAnswer(item))+'</b>'+(!ok?'<p>'+esc(tr('Your answer: ','Ваш ответ: '))+esc((item.opts||[])[selected]||'—')+'</p>':'')+'<p>'+esc(mistakeExplanation(item))+'</p><p>'+esc(tr('Topic: ','Тема: '))+esc(topic.label)+' · '+esc(tr('Next review: ','Следующее повторение: '))+esc(reviewIntervalLabel(nextInterval))+'</p></section>':'';
-      host.innerHTML='<section class="mistake-review"><header><button type="button" data-mistake-back>← '+esc(tr('All mistakes','Все ошибки'))+'</button><span>'+esc(tr('Review ','Повторение '))+(studyState.idx+1)+' / '+deck.length+'</span></header><i aria-hidden="true"><em style="width:'+Math.round((studyState.idx+1)/deck.length*100)+'%"></em></i><main><small>'+esc(topic.label.toUpperCase())+'</small><h2>'+esc(item.prompt)+'</h2><div class="mistake-options">'+(item.opts||[]).map(function(opt,index){var state=checked?(index===correctIndex?'correct':index===selected?'wrong':''):selected===index?'selected':'';return '<button type="button" class="'+state+'" data-mistake-option="'+index+'"'+(checked?' disabled':'')+'>'+esc(opt)+'</button>';}).join('')+'</div>'+feedbackHtml+'<footer>'+(checked?'<button type="button" class="mistake-next" data-mistake-next>'+esc(tr('Continue','Продолжить'))+' →</button>':'<button type="button" class="mistake-check" data-mistake-check'+(selected===null||correctIndex<0?' disabled':'')+'>'+esc(tr('Check answer','Проверить ответ'))+'</button>')+'</footer></main></section>';
+      host.innerHTML='<section class="mistake-review"><header><button type="button" data-mistake-back>← '+esc(tr('All mistakes','Все ошибки'))+'</button><span>'+esc(tr('Review ','Повторение '))+(studyState.idx+1)+' / '+deck.length+'</span></header><i aria-hidden="true"><em style="width:'+Math.round((studyState.idx+1)/deck.length*100)+'%"></em></i><main><small>'+esc(topic.label.toUpperCase())+'</small><h2>'+esc(item.prompt)+'</h2>'+(item.audioClip||item.audioText?'<button type="button" class="mistake-listen" data-mistake-listen>🔊 '+esc(tr('Listen','Прослушать'))+'</button>':'')+'<div class="mistake-options">'+(item.opts||[]).map(function(opt,index){var state=checked?(index===correctIndex?'correct':index===selected?'wrong':''):selected===index?'selected':'';return '<button type="button" class="'+state+'" data-mistake-option="'+index+'"'+(checked?' disabled':'')+'>'+esc(opt)+'</button>';}).join('')+'</div>'+feedbackHtml+'<footer>'+(checked?'<button type="button" class="mistake-next" data-mistake-next>'+esc(tr('Continue','Продолжить'))+' →</button>':'<button type="button" class="mistake-check" data-mistake-check'+(selected===null||correctIndex<0?' disabled':'')+'>'+esc(tr('Check answer','Проверить ответ'))+'</button>')+'</footer></main></section>';
       Array.prototype.forEach.call(host.querySelectorAll('[data-mistake-option]'),function(button){button.onclick=function(){studyState.mistakeSelected=Number(button.getAttribute('data-mistake-option'));renderMistakes();};});
-      var check=host.querySelector('[data-mistake-check]');if(check)check.onclick=function(){if(studyState.mistakeChecked||correctIndex<0)return;var chosen=studyState.mistakeSelected;studyState.mistakeChecked=true;var correct=chosen===correctIndex;feedback(correct,{prompt:item.prompt,chosen:item.opts[chosen],correct:mistakeCorrectAnswer(item)});if(correct){studyState.score++;clearMistake(item.lang,item.questionId||item.prompt);}else logMistake(item.lang,item.prompt,item.opts,correctIndex,item.kind,{sourceTool:item.sourceTool||item.kind,questionId:item.questionId,level:item.level,explanation:item.explanation,selectedAnswer:item.opts[chosen]});syncPracticeData();renderMistakes();};
+      var listen=host.querySelector('[data-mistake-listen]');if(listen)listen.onclick=function(){playMistakeAudio(item,listen);};
+      var check=host.querySelector('[data-mistake-check]');if(check)check.onclick=function(){if(studyState.mistakeChecked||correctIndex<0)return;var chosen=studyState.mistakeSelected;studyState.mistakeChecked=true;var correct=chosen===correctIndex;feedback(correct,{prompt:item.prompt,chosen:item.opts[chosen],correct:mistakeCorrectAnswer(item)});if(correct){studyState.score++;clearMistake(item.lang,item.questionId||item.prompt);}else logMistake(item.lang,item.prompt,item.opts,correctIndex,item.kind,{sourceTool:item.sourceTool||item.kind,questionId:item.questionId,level:item.level,explanation:item.explanation,selectedAnswer:item.opts[chosen],audioClip:item.audioClip,audioText:item.audioText});syncPracticeData();renderMistakes();};
       var next=host.querySelector('[data-mistake-next]');if(next)next.onclick=function(){studyState.idx++;studyState.mistakeSelected=null;studyState.mistakeChecked=false;renderMistakes();};
       var back=host.querySelector('[data-mistake-back]');if(back)back.onclick=function(){studyState.mistakePhase=null;studyState.data=null;studyState.idx=0;renderMistakes();};
     }
