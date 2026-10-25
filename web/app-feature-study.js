@@ -2038,7 +2038,7 @@
         ai:{ icon:'✦', minutes:8 }, exam:{ icon:'⏱', minutes:15 }, essentials:{ icon:'📗', minutes:8 }
       };
       var tool = TOOLS.find(function (item) { return item.id === kind; });
-      return tool ? { tool:kind, icon:map[kind].icon, minutes:map[kind].minutes, reason:reason, title:tool.title, description:tool.desc } : null;
+      return tool ? { activityId:kind, tool:kind, icon:map[kind].icon, minutes:map[kind].minutes, reason:reason, title:tool.title, description:tool.desc } : null;
     }
     function buildAdaptivePlan(lang, level, progress, allMistakes) {
       var mistakes = allMistakes.filter(function (item) { return !item.lang || item.lang === lang; });
