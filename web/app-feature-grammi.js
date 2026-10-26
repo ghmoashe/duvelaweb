@@ -152,7 +152,6 @@
     injectStyle();
     var esc = opts.esc, tr = opts.tr;
     var topics = topicsFor(opts.lang, opts.level);
-    var glossKey = opts.isRu ? 'ru' : 'en';
     var state = { log: [], busy: false, error: null, progress: loadProgress(opts.userId, opts.lang), results: [] };
 
     state.log.push({
@@ -165,7 +164,8 @@
             'Привет, я GRAMMI! Напиши в чат, какую грамматику разобрать — тему или вопрос о предложении, — и я понятно объясню, покажу примеры и дам задания.'),
     });
 
-    function gloss(topic) { return topic[glossKey] || topic.en; }
+    // Through tr(): ru from the bank, other languages from app-phrases-i18n.js.
+    function gloss(topic) { return tr(topic.en, topic.ru); }
     function doneTopics() { return topics.filter(function (topic) { return isDone(state.progress, topic.id); }); }
     function nextTopic() { return topics.find(function (topic) { return !isDone(state.progress, topic.id); }) || null; }
 

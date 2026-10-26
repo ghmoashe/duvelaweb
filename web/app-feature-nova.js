@@ -69,7 +69,6 @@
     injectStyle();
     var esc = opts.esc, tr = opts.tr;
     var sounds = soundsFor(opts.lang, opts.level);
-    var glossKey = opts.isRu ? 'ru' : 'en';
     var state = { log: [], busy: false, error: null, progress: loadProgress(opts.userId, opts.lang), recording: null, checking: null, results: [] };
     var media = { recorder: null, stream: null, chunks: [] };
 
@@ -80,7 +79,8 @@
         'Привет, я NOVA! Выбери звук своего уровня: покажу, как его произносить, дам услышать разницу и проверю каждое слово, которое ты скажешь. Или напиши, какой звук или слово потренировать.'),
     });
 
-    function gloss(sound) { return sound[glossKey] || sound.en; }
+    // Through tr(): ru from the bank, other languages from app-phrases-i18n.js.
+    function gloss(sound) { return tr(sound.en, sound.ru); }
     function isDone(id) { return ((state.progress[id] && state.progress[id].best) || 0) >= passScore(); }
     function doneSounds() { return sounds.filter(function (sound) { return isDone(sound.id); }); }
     function nextSound() { return sounds.find(function (sound) { return !isDone(sound.id); }) || null; }

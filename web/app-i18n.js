@@ -150,6 +150,10 @@
     }
 
     function translatePhrase(phrase) {
+      // App screens (GRAMMI, NOVA, …): English phrase → per-language text,
+      // web/content/app-phrases-i18n.js; then the marketing catalog.
+      const appPhrase = global.DUVELA_APP_PHRASES?.[String(phrase || '')]?.[appLang];
+      if (appPhrase) return appPhrase;
       const key = PHRASES[String(phrase || '')];
       if (key) return term(key);
       return catalogLookup(localeCatalog, appLang, phrase) || '';

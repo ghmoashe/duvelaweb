@@ -144,6 +144,43 @@
     }
   };
 
+  // Other interface languages: generated strings over the English copy
+  // (web/content/social-practice-locales.js, flat keys like "vr.roles.owner");
+  // counts use the language's plural rules.
+  function socialLocale(appLang) {
+    const lang = appLang.split(/[-_]/)[0] === 'nb' || appLang.split(/[-_]/)[0] === 'nn' ? 'no' : appLang.split(/[-_]/)[0];
+    const strings = window.DUVELA_SOCIAL_LOCALES && window.DUVELA_SOCIAL_LOCALES[lang];
+    return strings ? { lang, strings } : null;
+  }
+  function localizeFlat(english, strings, prefix) {
+    const result = {};
+    Object.keys(english).forEach((key) => {
+      const value = english[key];
+      const path = prefix ? prefix + '.' + key : key;
+      if (typeof value === 'string') result[key] = strings[path] || value;
+      else if (value && typeof value === 'object') result[key] = localizeFlat(value, strings, path);
+      else result[key] = value;
+    });
+    return result;
+  }
+  function fillFlat(template, value, fallback) {
+    return template ? template.split('{1}').join(String(value)) : fallback;
+  }
+  function pluralFlat(strings, name, lang, count) {
+    let category = 'other';
+    try { category = new Intl.PluralRules(lang).select(count); } catch (_) { category = count === 1 ? 'one' : 'other'; }
+    return fillFlat(strings[name + '.' + category] || strings[name + '.other'], count, String(count));
+  }
+  function localizedCopy(locale) {
+    const { lang, strings } = locale;
+    const copy = localizeFlat(COPY.en, strings, '');
+    copy.lm.partnersCount = (n) => pluralFlat(strings, 'lm.partners', lang, n);
+    copy.vr.participantsLine = (p, s) => pluralFlat(strings, 'vr.participants', lang, p) + ' · ' + pluralFlat(strings, 'vr.speaking', lang, s);
+    copy.vr.levelLine = (a, b) => fillFlat(strings['vr.levelLine'], formatLevels(a, b), 'Level ' + formatLevels(a, b));
+    copy.vr.listenersTitle = (n) => fillFlat(strings['vr.listenersTitle'], n, 'Listeners (' + n + ')');
+    return copy;
+  }
+
   function agoraUidForUser(userId) {
     const value = Number.parseInt(String(userId || '').replace(/-/g, '').slice(0, 8), 16);
     return Number.isFinite(value) ? (value >>> 0) || 1 : 1;
@@ -158,7 +195,8 @@
   function createSocialPractice(ctx) {
     const { $, esc, supa } = ctx;
     const appLang = String((ctx.getAppLang && ctx.getAppLang()) || 'en').toLowerCase();
-    const copy = appLang.startsWith('ru') ? COPY.ru : appLang.startsWith('de') ? COPY.de : COPY.en;
+    const otherLocale = appLang.startsWith('ru') || appLang.startsWith('de') ? null : socialLocale(appLang);
+    const copy = appLang.startsWith('ru') ? COPY.ru : appLang.startsWith('de') ? COPY.de : otherLocale ? localizedCopy(otherLocale) : COPY.en;
     const lmCopy = copy.lm;
     // Teacher-hosted rooms: who may enter (everyone / the teacher's Super
     // subscribers) is separate from who hosts (host_role, shown as "With teacher").
@@ -188,7 +226,9 @@
         viewSuperSubscription: 'Super subscription', teacherProfile: 'Teacher profile', navTitle: 'Voice Rooms'
       }
     };
-    const vrCopy = Object.assign({}, copy.vr, appLang.startsWith('ru') ? VR_ACCESS_COPY.ru : appLang.startsWith('de') ? VR_ACCESS_COPY.de : VR_ACCESS_COPY.en);
+    const accessCopy = appLang.startsWith('ru') ? VR_ACCESS_COPY.ru : appLang.startsWith('de') ? VR_ACCESS_COPY.de
+      : otherLocale ? localizeFlat(VR_ACCESS_COPY.en, otherLocale.strings, 'access') : VR_ACCESS_COPY.en;
+    const vrCopy = Object.assign({}, copy.vr, accessCopy);
     let displayNames = null;
     try { displayNames = new Intl.DisplayNames([appLang], { type: 'language' }); } catch (_) { displayNames = null; }
 
