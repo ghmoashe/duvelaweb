@@ -105,6 +105,38 @@
       return {};
     }
   }
+  // Server copy (practice_topic_progress, owner-only; written through
+  // record_practice_topic_score, which keeps the best score) so the app and the web
+  // show the same done topics. Any failure means "offline": the local copy stays.
+  function recordServerScore(supa, partner, lang, topicId, score) {
+    if (!supa || typeof supa.rpc !== 'function') return;
+    supa.rpc('record_practice_topic_score', { p_partner: partner, p_language: lang, p_topic_id: topicId, p_score: Math.round(score) })
+      .then(function () {}, function () {});
+  }
+  async function mergeServerProgress(supa, partner, lang, progress) {
+    if (!supa || typeof supa.from !== 'function') return null;
+    try {
+      var res = await supa.from('practice_topic_progress').select('topic_id,best_score,updated_at').eq('partner', partner).eq('language', lang);
+      if (res.error) return null;
+      var rows = res.data || [];
+      var merged = Object.assign({}, progress);
+      rows.forEach(function (row) {
+        if (!merged[row.topic_id] || row.best_score > merged[row.topic_id].best) merged[row.topic_id] = { best: row.best_score, at: row.updated_at };
+      });
+      // Topics done before the server copy existed go up once.
+      Object.keys(progress).forEach(function (topicId) {
+        var onServer = rows.find(function (row) { return row.topic_id === topicId; });
+        if (!onServer || onServer.best_score < progress[topicId].best) recordServerScore(supa, partner, lang, topicId, progress[topicId].best);
+      });
+      return merged;
+    } catch (error) {
+      return null;
+    }
+  }
+  function writeProgress(userId, lang, progress) {
+    try { localStorage.setItem(storageKey(userId, lang), JSON.stringify(progress)); } catch (error) { /* convenience only */ }
+  }
+
   function saveScore(userId, lang, topicId, score) {
     var progress = loadProgress(userId, lang);
     var best = Math.max((progress[topicId] && progress[topicId].best) || 0, score);
@@ -348,7 +380,9 @@
         Object.keys(scores).forEach(function (topicId) {
           var values = scores[topicId];
           if (!values.length) return;
-          state.progress = saveScore(opts.userId, opts.lang, topicId, Math.round(values.reduce(function (s, v) { return s + v; }, 0) / values.length));
+          var topicScore = Math.round(values.reduce(function (s, v) { return s + v; }, 0) / values.length);
+          state.progress = saveScore(opts.userId, opts.lang, topicId, topicScore);
+          if (opts.userId) recordServerScore(opts.supa, 'grammi', opts.lang, topicId, topicScore);
         });
         paint(false);
       } catch (error) {
@@ -411,8 +445,16 @@
 
     // Open at the top: the greeting and the level's topic list come first.
     paint(false);
+    if (opts.userId) {
+      mergeServerProgress(opts.supa, 'grammi', opts.lang, state.progress).then(function (merged) {
+        if (!merged) return;
+        state.progress = merged;
+        writeProgress(opts.userId, opts.lang, merged);
+        paint(false);
+      });
+    }
   }
 
   // injectStyle is shared with NOVA (web/app-feature-nova.js), which reuses the gr-* card styles.
-  window.DuvelaGrammi = { render: mount, topicsFor: topicsFor, PASS_SCORE: PASS_SCORE, injectStyle: injectStyle, scoreColors: scoreColors };
+  window.DuvelaGrammi = { render: mount, topicsFor: topicsFor, PASS_SCORE: PASS_SCORE, injectStyle: injectStyle, scoreColors: scoreColors, mergeServerProgress: mergeServerProgress, recordServerScore: recordServerScore };
 })();

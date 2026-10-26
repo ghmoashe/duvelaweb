@@ -45,3 +45,12 @@ test('the AI practice screen opens GRAMMI cards for de/en/es/sv and keeps Persia
   assert.ok(app.indexOf('content/grammi-topics.js') < app.indexOf('app-feature-grammi.js'));
   assert.ok(app.indexOf('app-feature-grammi.js') < app.indexOf('app-feature-study.js'));
 });
+
+test('GRAMMI and NOVA progress is shared with the server copy (practice_topic_progress)', () => {
+  const nova = read('web/app-feature-nova.js');
+  assert.match(grammi, /from\('practice_topic_progress'\)/);
+  assert.match(grammi, /rpc\('record_practice_topic_score'/);
+  assert.match(grammi, /mergeServerProgress\(opts\.supa, 'grammi', opts\.lang, state\.progress\)/);
+  assert.match(nova, /mergeServerProgress\(opts\.supa, 'nova', opts\.lang, state\.progress\)/);
+  assert.match(nova, /recordServerScore\(opts\.supa, 'nova', opts\.lang, soundId, soundScore\)/);
+});

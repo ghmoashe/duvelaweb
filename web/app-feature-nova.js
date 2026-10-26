@@ -340,7 +340,9 @@
       }
       Object.keys(scores).forEach(function (soundId) {
         var values = scores[soundId];
-        state.progress = saveScore(opts.userId, opts.lang, soundId, Math.round(values.reduce(function (s, v) { return s + v; }, 0) / values.length));
+        var soundScore = Math.round(values.reduce(function (s, v) { return s + v; }, 0) / values.length);
+        state.progress = saveScore(opts.userId, opts.lang, soundId, soundScore);
+        if (opts.userId && window.DuvelaGrammi) window.DuvelaGrammi.recordServerScore(opts.supa, 'nova', opts.lang, soundId, soundScore);
       });
     }
 
@@ -381,6 +383,15 @@
 
     // Open at the top: the greeting and the level's sound map come first.
     paint(false);
+    // Same server copy as GRAMMI (practice_topic_progress, partner 'nova').
+    if (opts.userId && window.DuvelaGrammi) {
+      window.DuvelaGrammi.mergeServerProgress(opts.supa, 'nova', opts.lang, state.progress).then(function (merged) {
+        if (!merged) return;
+        state.progress = merged;
+        try { localStorage.setItem(storageKey(opts.userId, opts.lang), JSON.stringify(merged)); } catch (error) { /* convenience only */ }
+        paint(false);
+      });
+    }
   }
 
   window.DuvelaNova = { render: mount, soundsFor: soundsFor };
