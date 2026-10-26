@@ -37,7 +37,7 @@
         title: 'Language Match', heroTitle: 'Найдите языкового партнёра', heroText: 'Подбор по языку, уровню A1–C2, городу и интересам. Например: немецкий ↔ фарси.',
         signInRequired: 'Войдите в аккаунт, чтобы искать партнёров.', formTitle: 'Профиль языкового партнёра',
         consent: 'Ваше имя, фото и то, что вы укажете здесь, увидят только пользователи Language Match, которые тоже включили профиль. Выключить можно в любой момент — данные удалятся.',
-        nativeLabel: 'Я говорю (родной язык)', learningLabel: 'Я изучаю', levelLabel: 'Мой уровень в изучаемом языке', cityToggle: 'Показывать мой город', cityPlaceholder: 'Город',
+        nativeLabel: 'Я говорю (родной язык)', learningLabel: 'Я изучаю', levelLabel: 'Мой уровень в изучаемом языке', profileSource: 'Языки и уровень взяты из вашей анкеты DUVELA. Изменить их можно в профиле.', profileIncomplete: 'Сначала укажите родной и изучаемый язык в анкете DUVELA.', cityToggle: 'Показывать мой город', cityPlaceholder: 'Город',
         interestsLabel: 'Интересы (по желанию)', bioLabel: 'Пара слов о себе (по желанию)', bioPlaceholder: 'Например: ищу партнёра для разговорной практики по вечерам', maxHint: 'До 6 языков',
         submit: 'Показывать меня партнёрам', save: 'Сохранить', cancel: 'Отмена', filterAll: 'Все',
         partnersCount: (n) => n + ' ' + plural(n, ['партнёр', 'партнёра', 'партнёров']),
@@ -52,12 +52,12 @@
         signInRequired: 'Войдите в аккаунт, чтобы заходить в голосовые комнаты.', filterAll: 'Все', createRoom: 'Создать комнату',
         emptyTitle: 'Сейчас комнат нет', emptyText: 'Создайте первую — например, «Deutsch sprechen A2–B1».', join: 'Войти',
         participantsLine: (p, s) => p + ' ' + plural(p, ['участник', 'участника', 'участников']) + ' · ' + s + ' ' + plural(s, ['говорит', 'говорят', 'говорят']),
-        roomTypes: { open: 'Открытая', private: 'Приватная', teacher: 'С учителем' }, loadFailed: 'Не удалось загрузить комнаты.',
+        roomTypes: { open: 'Открытая', private: 'Приватная', teacher: 'С учителем', subscribers: 'Super-подписчики' }, loadFailed: 'Не удалось загрузить комнаты.',
         createTitle: 'Новая комната', languageLabel: 'Язык', titleLabel: 'Название', titlePlaceholder: 'Например: Deutsch sprechen A2–B1', topicLabel: 'Тема (по желанию)', topicPlaceholder: 'Например: Alltag in Deutschland',
         levelFrom: 'Уровень от', levelTo: 'до', accessLabel: 'Кто может войти', accessOpen: 'Любой ученик', accessPrivate: 'Только по приглашению', create: 'Создать', cancel: 'Отмена',
         titleTooShort: 'Название — от 3 символов.', live: 'LIVE', topic: 'Тема', levelLine: (a, b) => 'Уровень ' + formatLevels(a, b),
         roles: { owner: 'Ведущий', moderator: 'Модератор', speaker: 'Спикер', listener: 'Слушатель' }, listenersTitle: (n) => 'Слушатели (' + n + ')',
-        noMessages: 'Сообщений пока нет — напишите первым', mic: 'Микрофон', raiseHand: 'Поднять руку', handRaised: 'Рука поднята', chat: 'Чат', leave: 'Выйти',
+        noMessages: 'Сообщений пока нет — напишите первым', mic: 'Микрофон', raiseHand: 'Поднять руку', handRaised: 'Рука поднята', speaking: 'Говорит', onStage: 'На сцене', listening: 'Слушает', participant: 'участник', chat: 'Чат', leave: 'Выйти',
         chatTitle: 'Чат комнаты', chatPlaceholder: 'Сообщение…', send: 'Отправить', requestsTitle: 'Хотят говорить', approve: 'Пустить', decline: 'Отклонить', noRequests: 'Пока никто не поднял руку',
         makeModerator: 'Сделать модератором', removeModerator: 'Снять модератора', inviteToStage: 'Пригласить на сцену', moveToListeners: 'Вернуть в слушатели', remove: 'Удалить из комнаты', ban: 'Заблокировать',
         report: 'Пожаловаться', reportTitle: 'Причина жалобы', reportSent: 'Жалоба отправлена. Спасибо!',
@@ -74,7 +74,7 @@
         title: 'Language Match', heroTitle: 'Finde deinen Sprachpartner', heroText: 'Partner nach Sprache, Niveau A1–C2, Stadt und Interessen – z. B. Deutsch ↔ Persisch.',
         signInRequired: 'Melde dich an, um Partner zu finden.', formTitle: 'Dein Sprachpartner-Profil',
         consent: 'Dein Name, dein Foto und deine Angaben hier sehen nur Language-Match-Nutzer, die ihr Profil ebenfalls eingeschaltet haben. Du kannst es jederzeit ausschalten – dann werden die Daten gelöscht.',
-        nativeLabel: 'Ich spreche (Muttersprache)', learningLabel: 'Ich lerne', levelLabel: 'Mein Niveau in der Lernsprache', cityToggle: 'Meine Stadt anzeigen', cityPlaceholder: 'Stadt',
+        nativeLabel: 'Ich spreche (Muttersprache)', learningLabel: 'Ich lerne', levelLabel: 'Mein Niveau in der Lernsprache', profileSource: 'Sprachen und Niveau stammen aus deinem DUVELA-Profil. Du kannst sie im Profil ändern.', profileIncomplete: 'Ergänze zuerst Mutter- und Lernsprache in deinem DUVELA-Profil.', cityToggle: 'Meine Stadt anzeigen', cityPlaceholder: 'Stadt',
         interestsLabel: 'Interessen (optional)', bioLabel: 'Kurz über dich (optional)', bioPlaceholder: 'Zum Beispiel: Suche einen Partner für Gesprächspraxis am Abend', maxHint: 'Bis zu 6 Sprachen',
         submit: 'Mich Partnern zeigen', save: 'Speichern', cancel: 'Abbrechen', filterAll: 'Alle',
         partnersCount: (n) => n + ' Partner',
@@ -89,12 +89,12 @@
         signInRequired: 'Melde dich an, um Sprachräume zu betreten.', filterAll: 'Alle', createRoom: 'Raum erstellen',
         emptyTitle: 'Gerade keine Räume', emptyText: 'Erstelle den ersten – z. B. „Deutsch sprechen A2–B1“.', join: 'Beitreten',
         participantsLine: (p, s) => p + ' Teilnehmer · ' + s + ' ' + (s === 1 ? 'spricht' : 'sprechen'),
-        roomTypes: { open: 'Offen', private: 'Privat', teacher: 'Mit Lehrer' }, loadFailed: 'Räume konnten nicht geladen werden.',
+        roomTypes: { open: 'Offen', private: 'Privat', teacher: 'Mit Lehrer', subscribers: 'Super-Abonnenten' }, loadFailed: 'Räume konnten nicht geladen werden.',
         createTitle: 'Neuer Raum', languageLabel: 'Sprache', titleLabel: 'Name', titlePlaceholder: 'Zum Beispiel: Deutsch sprechen A2–B1', topicLabel: 'Thema (optional)', topicPlaceholder: 'Zum Beispiel: Alltag in Deutschland',
         levelFrom: 'Niveau von', levelTo: 'bis', accessLabel: 'Wer darf rein', accessOpen: 'Alle Lernenden', accessPrivate: 'Nur mit Einladung', create: 'Erstellen', cancel: 'Abbrechen',
         titleTooShort: 'Der Name braucht mindestens 3 Zeichen.', live: 'LIVE', topic: 'Thema', levelLine: (a, b) => 'Niveau ' + formatLevels(a, b),
         roles: { owner: 'Host', moderator: 'Moderator', speaker: 'Sprecher', listener: 'Zuhörer' }, listenersTitle: (n) => 'Zuhörer (' + n + ')',
-        noMessages: 'Noch keine Nachrichten – schreib die erste', mic: 'Mikrofon', raiseHand: 'Hand heben', handRaised: 'Hand gehoben', chat: 'Chat', leave: 'Verlassen',
+        noMessages: 'Noch keine Nachrichten – schreib die erste', mic: 'Mikrofon', raiseHand: 'Hand heben', handRaised: 'Hand gehoben', speaking: 'Spricht', onStage: 'Auf der Bühne', listening: 'Hört zu', participant: 'Teilnehmer', chat: 'Chat', leave: 'Verlassen',
         chatTitle: 'Raum-Chat', chatPlaceholder: 'Nachricht…', send: 'Senden', requestsTitle: 'Möchten sprechen', approve: 'Zulassen', decline: 'Ablehnen', noRequests: 'Noch hat niemand die Hand gehoben',
         makeModerator: 'Zum Moderator machen', removeModerator: 'Moderator entfernen', inviteToStage: 'Auf die Bühne holen', moveToListeners: 'Zu den Zuhörern', remove: 'Aus dem Raum entfernen', ban: 'Sperren',
         report: 'Melden', reportTitle: 'Grund der Meldung', reportSent: 'Meldung gesendet. Danke!',
@@ -111,7 +111,7 @@
         title: 'Language Match', heroTitle: 'Find your language partner', heroText: 'Partners matched by language, level A1–C2, city and interests — e.g. German ↔ Persian.',
         signInRequired: 'Sign in to find partners.', formTitle: 'Your language partner profile',
         consent: 'Your name, photo and what you enter here are shown only to Language Match users who turned their profile on too. You can turn it off any time — your data is then deleted.',
-        nativeLabel: 'I speak (native)', learningLabel: "I'm learning", levelLabel: 'My level in the language I learn', cityToggle: 'Show my city', cityPlaceholder: 'City',
+        nativeLabel: 'I speak (native)', learningLabel: "I'm learning", levelLabel: 'My level in the language I learn', profileSource: 'Languages and level come from your DUVELA profile. Change them in Profile.', profileIncomplete: 'Add a native and learning language to your DUVELA profile first.', cityToggle: 'Show my city', cityPlaceholder: 'City',
         interestsLabel: 'Interests (optional)', bioLabel: 'A few words about you (optional)', bioPlaceholder: 'For example: looking for evening conversation practice', maxHint: 'Up to 6 languages',
         submit: 'Show me to partners', save: 'Save', cancel: 'Cancel', filterAll: 'All',
         partnersCount: (n) => n + ' ' + (n === 1 ? 'partner' : 'partners'),
@@ -126,12 +126,12 @@
         signInRequired: 'Sign in to join voice rooms.', filterAll: 'All', createRoom: 'Create room',
         emptyTitle: 'No rooms right now', emptyText: 'Start the first one — e.g. "Deutsch sprechen A2–B1".', join: 'Join',
         participantsLine: (p, s) => p + ' ' + (p === 1 ? 'participant' : 'participants') + ' · ' + s + ' speaking',
-        roomTypes: { open: 'Open', private: 'Private', teacher: 'With teacher' }, loadFailed: 'Could not load rooms.',
+        roomTypes: { open: 'Open', private: 'Private', teacher: 'With teacher', subscribers: 'Super subscribers' }, loadFailed: 'Could not load rooms.',
         createTitle: 'New room', languageLabel: 'Language', titleLabel: 'Name', titlePlaceholder: 'For example: Deutsch sprechen A2–B1', topicLabel: 'Topic (optional)', topicPlaceholder: 'For example: Alltag in Deutschland',
         levelFrom: 'Level from', levelTo: 'to', accessLabel: 'Who can join', accessOpen: 'Any learner', accessPrivate: 'Invite only', create: 'Create', cancel: 'Cancel',
         titleTooShort: 'The name needs at least 3 characters.', live: 'LIVE', topic: 'Topic', levelLine: (a, b) => 'Level ' + formatLevels(a, b),
         roles: { owner: 'Host', moderator: 'Moderator', speaker: 'Speaker', listener: 'Listener' }, listenersTitle: (n) => 'Listeners (' + n + ')',
-        noMessages: 'No messages yet — say hi', mic: 'Microphone', raiseHand: 'Raise hand', handRaised: 'Hand raised', chat: 'Chat', leave: 'Leave',
+        noMessages: 'No messages yet — say hi', mic: 'Microphone', raiseHand: 'Raise hand', handRaised: 'Hand raised', speaking: 'Speaking', onStage: 'On stage', listening: 'Listening', participant: 'participant', chat: 'Chat', leave: 'Leave',
         chatTitle: 'Room chat', chatPlaceholder: 'Message…', send: 'Send', requestsTitle: 'Want to speak', approve: 'Let in', decline: 'Decline', noRequests: 'Nobody has raised a hand yet',
         makeModerator: 'Make moderator', removeModerator: 'Remove moderator', inviteToStage: 'Invite to stage', moveToListeners: 'Move to listeners', remove: 'Remove from room', ban: 'Block',
         report: 'Report', reportTitle: 'Reason for the report', reportSent: 'Report sent. Thank you!',
@@ -160,7 +160,35 @@
     const appLang = String((ctx.getAppLang && ctx.getAppLang()) || 'en').toLowerCase();
     const copy = appLang.startsWith('ru') ? COPY.ru : appLang.startsWith('de') ? COPY.de : COPY.en;
     const lmCopy = copy.lm;
-    const vrCopy = copy.vr;
+    // Teacher-hosted rooms: who may enter (everyone / the teacher's Super
+    // subscribers) is separate from who hosts (host_role, shown as "With teacher").
+    const VR_ACCESS_COPY = {
+      ru: {
+        accessEveryone: 'Все желающие', accessSubscribers: 'Только Super-подписчики',
+        accessSubscribersHint: 'Войти смогут только ученики с активной Super-подпиской на вас.',
+        accessTeacherHint: 'Вы ведёте как учитель — в списке комнат стоит бейдж «С учителем».',
+        superPriceMissing: 'Сначала укажите цену Super-подписки в профиле — без неё комнату для подписчиков создать нельзя.',
+        subscribersOnly: 'Эта комната только для учеников с Super-подпиской на преподавателя. Оформить подписку можно в профиле преподавателя в приложении DUVELA.',
+        viewSuperSubscription: 'Super-подписка', teacherProfile: 'Профиль преподавателя', navTitle: 'Голосовые комнаты'
+      },
+      de: {
+        accessEveryone: 'Alle Interessierten', accessSubscribers: 'Nur Super-Abonnenten',
+        accessSubscribersHint: 'Nur Lernende mit einer aktiven Super-Mitgliedschaft bei dir können beitreten.',
+        accessTeacherHint: 'Du leitest als Lehrkraft – in der Raumliste steht das Abzeichen „Mit Lehrer“.',
+        superPriceMissing: 'Lege zuerst im Profil einen Preis für die Super-Mitgliedschaft fest – sonst geht kein Raum für Abonnenten.',
+        subscribersOnly: 'Dieser Raum ist nur für Lernende mit einer Super-Mitgliedschaft bei der Lehrkraft. Abschließen kannst du sie im Profil der Lehrkraft in der DUVELA-App.',
+        viewSuperSubscription: 'Super-Mitgliedschaft', teacherProfile: 'Profil der Lehrkraft', navTitle: 'Sprachräume'
+      },
+      en: {
+        accessEveryone: 'Anyone who wants', accessSubscribers: 'Super subscribers only',
+        accessSubscribersHint: 'Only learners with an active Super subscription to you can join.',
+        accessTeacherHint: 'You host as a teacher — the room list shows the "With teacher" badge.',
+        superPriceMissing: 'Set a Super subscription price in your profile first — a subscribers-only room needs it.',
+        subscribersOnly: 'This room is only for learners with a Super subscription to the teacher. You can subscribe on the teacher profile in the DUVELA app.',
+        viewSuperSubscription: 'Super subscription', teacherProfile: 'Teacher profile', navTitle: 'Voice Rooms'
+      }
+    };
+    const vrCopy = Object.assign({}, copy.vr, appLang.startsWith('ru') ? VR_ACCESS_COPY.ru : appLang.startsWith('de') ? VR_ACCESS_COPY.de : VR_ACCESS_COPY.en);
     let displayNames = null;
     try { displayNames = new Intl.DisplayNames([appLang], { type: 'language' }); } catch (_) { displayNames = null; }
 
@@ -173,15 +201,42 @@
     function languageLabel(id) {
       return (FLAGS[id] ? FLAGS[id] + ' ' : '') + languageName(id);
     }
-    function avatar(name, url, extraClass) {
+    function avatarColor(seed) {
+      const palette = ['#7c3aed', '#0d9488', '#ea580c', '#2563eb', '#a855f7', '#db2777', '#059669', '#d97706'];
+      let hash = 0;
+      for (const char of String(seed || 'duvela')) hash = ((hash * 31) + char.charCodeAt(0)) >>> 0;
+      return palette[hash % palette.length];
+    }
+    function avatar(name, url, extraClass, seed) {
       const initials = String(name || 'D').trim().split(/\s+/).slice(0, 2).map((part) => part[0] || '').join('').toUpperCase() || 'D';
-      return '<span class="sp-avatar ' + (extraClass || '') + '">' + (url ? '<img src="' + esc(url) + '" alt="" loading="lazy">' : esc(initials)) + '</span>';
+      return '<span class="sp-avatar ' + (extraClass || '') + '"' + (url ? '' : ' style="background:' + avatarColor(seed || name) + '"') + '>' + (url ? '<img src="' + esc(url) + '" alt="" loading="lazy">' : esc(initials)) + '</span>';
+    }
+    function isTeacher() {
+      return Boolean(ctx.profile?.is_teacher);
     }
     function profileLanguage() {
-      const raw = String(ctx.profile?.language || '').trim().toLowerCase();
+      // Teachers default to the first language they teach (Business stores
+      // Persian as 'farsi'; voice rooms use the Hub id 'persian').
+      const taught = Array.isArray(ctx.profile?.teaches_languages) ? ctx.profile.teaches_languages : [];
+      const candidates = (isTeacher() ? taught : []).concat(ctx.profile?.language || []);
+      for (const value of candidates) {
+        const raw = String(value || '').trim().toLowerCase();
+        const id = raw === 'farsi' ? 'persian' : LANGUAGES.includes(raw) ? raw : Object.keys(ISO).find((key) => ISO[key] === raw);
+        if (id) return id;
+      }
+      return null;
+    }
+    function normalizeLanguageId(value) {
+      const raw = String(value || '').trim().toLowerCase();
       if (LANGUAGES.includes(raw)) return raw;
-      const fromIso = Object.keys(ISO).find((id) => ISO[id] === raw);
-      return fromIso || null;
+      return Object.keys(ISO).find((id) => ISO[id] === raw) || null;
+    }
+    function accountLanguageSnapshot() {
+      const nativeLanguage = normalizeLanguageId(ctx.profile?.language);
+      const rawLearning = Array.isArray(ctx.profile?.learning_languages) ? ctx.profile.learning_languages : [];
+      const learning = Array.from(new Set(rawLearning.map(normalizeLanguageId).filter(Boolean))).filter((id) => id !== nativeLanguage);
+      const level = String(ctx.profile?.language_level || '').trim().toUpperCase();
+      return { native: nativeLanguage ? [nativeLanguage] : [], learning, level: LEVELS.includes(level) ? level : null };
     }
     function userId() {
       return ctx.user?.id || null;
@@ -228,12 +283,12 @@
     }
 
     function startForm() {
-      // Nothing is preselected: the user decides every field before sharing.
       const p = lm.profile;
+      const account = accountLanguageSnapshot();
       lm.form = {
-        native: p ? (p.native_languages || []).slice() : [],
-        learning: p ? (p.learning_languages || []).slice() : [],
-        level: p?.level || null,
+        native: account.native,
+        learning: account.learning,
+        level: account.level,
         showCity: Boolean(p?.city),
         city: p?.city || '',
         interests: p ? (p.interests || []).slice() : [],
@@ -267,12 +322,13 @@
       return '<form class="sp-card sp-form" data-lm-form>' +
         '<h2>' + esc(lmCopy.formTitle) + '</h2>' +
         '<div class="sp-consent"><span>🛡</span><p>' + esc(lmCopy.consent) + '</p></div>' +
-        '<fieldset><legend>' + esc(lmCopy.nativeLabel) + '</legend><p class="sp-hint">' + esc(lmCopy.maxHint) + '</p><div class="sp-chips">' +
-          LANGUAGES.map((id) => chip(languageLabel(id), f.native.includes(id), 'data-lm-toggle="native" data-value="' + id + '"')).join('') + '</div></fieldset>' +
-        '<fieldset><legend>' + esc(lmCopy.learningLabel) + '</legend><div class="sp-chips">' +
-          LANGUAGES.map((id) => chip(languageLabel(id), f.learning.includes(id), 'data-lm-toggle="learning" data-value="' + id + '"')).join('') + '</div></fieldset>' +
-        '<fieldset><legend>' + esc(lmCopy.levelLabel) + '</legend><div class="sp-chips sp-levels">' +
-          LEVELS.map((level) => chip(level, f.level === level, 'data-lm-level="' + level + '"')).join('') + '</div></fieldset>' +
+        '<p class="sp-profile-source">✓ ' + esc(lmCopy.profileSource) + '</p>' +
+        '<fieldset><legend>' + esc(lmCopy.nativeLabel) + '</legend><div class="sp-chips sp-account-chips">' +
+          (f.native.length ? f.native.map((id) => chip(languageLabel(id), true, 'disabled')).join('') : '<p class="sp-hint">' + esc(lmCopy.profileIncomplete) + '</p>') + '</div></fieldset>' +
+        '<fieldset><legend>' + esc(lmCopy.learningLabel) + '</legend><div class="sp-chips sp-account-chips">' +
+          (f.learning.length ? f.learning.map((id) => chip(languageLabel(id), true, 'disabled')).join('') : '<p class="sp-hint">' + esc(lmCopy.profileIncomplete) + '</p>') + '</div></fieldset>' +
+        '<fieldset><legend>' + esc(lmCopy.levelLabel) + '</legend><div class="sp-chips sp-levels sp-account-chips">' +
+          (f.level ? chip(f.level, true, 'disabled') : '<p class="sp-hint">' + esc(lmCopy.profileIncomplete) + '</p>') + '</div></fieldset>' +
         '<fieldset><label class="sp-switch"><input type="checkbox" data-lm-showcity' + (f.showCity ? ' checked' : '') + '><span>' + esc(lmCopy.cityToggle) + '</span></label>' +
           (f.showCity ? '<input class="sp-input" data-lm-city maxlength="80" placeholder="' + esc(lmCopy.cityPlaceholder) + '" value="' + esc(f.city) + '">' : '') + '</fieldset>' +
         '<fieldset><legend>' + esc(lmCopy.interestsLabel) + '</legend><div class="sp-chips">' +
@@ -346,20 +402,13 @@
       lm.error = null;
       renderPartners();
       try {
-        const payload = {
-          user_id: userId(),
-          enabled: true,
-          native_languages: f.native,
-          learning_languages: f.learning,
-          level: f.level,
-          city: f.showCity ? (f.city.trim() || null) : null,
-          interests: f.interests,
-          bio: f.bio.trim() || null
-        };
-        const { data, error } = await supa.from('language_partner_profiles').upsert(payload, { onConflict: 'user_id' })
-          .select('enabled,native_languages,learning_languages,level,city,interests,bio').single();
+        const { data, error } = await supa.rpc('save_my_language_partner_profile', {
+          p_city: f.showCity ? (f.city.trim() || null) : null,
+          p_interests: f.interests,
+          p_bio: f.bio.trim() || null
+        });
         if (error) throw error;
-        lm.profile = data;
+        lm.profile = Array.isArray(data) ? data[0] : data;
         lm.loaded = true;
         lm.mode = 'list';
         lm.form = null;
@@ -441,7 +490,22 @@
     }
 
     // ══ Voice Rooms: list + create ═══════════════════════════════════════════
-    const vr = { rooms: [], filter: null, loading: false, error: null, createOpen: false, create: null, creating: false, listChannel: null };
+    const vr = { rooms: [], filter: null, loading: false, error: null, createOpen: false, create: null, creating: false, listChannel: null, superTeachers: new Set() };
+
+    // Teachers the learner has an active Super subscription to (own rows only, RLS).
+    async function loadMySuperTeachers() {
+      try {
+        const { data, error } = await supa.from('teacher_subscriptions').select('teacher_id,status,current_period_end').eq('student_id', userId());
+        if (error) throw error;
+        const now = Date.now();
+        vr.superTeachers = new Set((data || [])
+          .filter((row) => row.status === 'active' || (row.current_period_end && Date.parse(row.current_period_end) > now))
+          .map((row) => row.teacher_id));
+      } catch (_) { /* keep the last known set; the server still decides on join */ }
+    }
+    function canEnterRoom(item) {
+      return item.room_type !== 'subscribers' || item.owner_id === userId() || vr.superTeachers.has(item.owner_id);
+    }
     function vrHost() { return document.getElementById('voiceRoomsView'); }
 
     async function loadRooms() {
@@ -449,7 +513,7 @@
       vr.error = null;
       renderVoiceRooms();
       try {
-        const { data, error } = await supa.rpc('list_voice_rooms', { p_language: vr.filter });
+        const [{ data, error }] = await Promise.all([supa.rpc('list_voice_rooms_v2', { p_language: vr.filter }), loadMySuperTeachers()]);
         if (error) throw error;
         vr.rooms = Array.isArray(data) ? data : [];
       } catch (_) {
@@ -471,13 +535,18 @@
 
     function renderRoomCard(item) {
       const levels = item.level_min || item.level_max ? vrCopy.levelLine(item.level_min, item.level_max) : '';
+      const teacherHosted = item.host_role === 'teacher';
+      const subscriberOnly = item.room_type === 'subscribers';
+      const accessBadge = subscriberOnly ? '<span class="sp-badge subscribers">🔒 ' + esc(vrCopy.roomTypes.subscribers) + '</span>' : '';
       return '<article class="sp-card sp-room-card">' +
         '<div class="sp-room-meta"><span>' + esc(languageLabel(item.language)) + '</span>' + (levels ? '<span>· ' + esc(levels) + '</span>' : '') +
-          '<span class="sp-badge ' + (item.room_type === 'private' ? 'private' : 'vr') + '">' + (item.room_type === 'private' ? '🔒 ' : '') + esc(vrCopy.roomTypes[item.room_type] || item.room_type) + '</span></div>' +
+          '<span class="sp-badge ' + (teacherHosted ? 'teacher' : item.room_type === 'private' ? 'private' : 'vr') + '">' + (teacherHosted ? '🎓 ' : item.room_type === 'private' ? '🔒 ' : '') + esc(teacherHosted ? vrCopy.roomTypes.teacher : (vrCopy.roomTypes[item.room_type] || item.room_type)) + '</span>' + accessBadge + '</div>' +
         '<h3>' + esc(item.title) + '</h3>' + (item.topic ? '<p class="sp-room-topic">' + esc(item.topic) + '</p>' : '') +
         '<div class="sp-room-foot">' + avatar(item.owner_name, item.owner_avatar, 'sm') +
           '<span class="sp-room-people">' + esc(item.owner_name || 'DUVELA') + '<small>' + esc(vrCopy.participantsLine(Number(item.participant_count || 0), Number(item.speaker_count || 0))) + '</small></span>' +
-          '<button type="button" class="sp-btn primary vr" data-vr-join="' + esc(item.id) + '">' + esc(vrCopy.join) + '</button></div>' +
+          (canEnterRoom(item)
+            ? '<button type="button" class="sp-btn primary vr" data-vr-join="' + esc(item.id) + '">' + esc(vrCopy.join) + '</button>'
+            : '<button type="button" class="sp-btn subscribers" data-vr-super="' + esc(item.owner_id) + '">⭐ ' + esc(vrCopy.viewSuperSubscription) + '</button>') + '</div>' +
       '</article>';
     }
 
@@ -491,8 +560,14 @@
         '<div class="sp-field"><span>' + esc(vrCopy.levelFrom) + '</span><div class="sp-chips sp-levels">' + LEVELS.map((level) => chip(level, c.levelMin === level, 'data-vr-level="levelMin" data-value="' + level + '"')).join('') + '</div></div>' +
         '<div class="sp-field"><span>' + esc(vrCopy.levelTo) + '</span><div class="sp-chips sp-levels">' + LEVELS.map((level) => chip(level, c.levelMax === level, 'data-vr-level="levelMax" data-value="' + level + '"')).join('') + '</div></div>' +
         '<div class="sp-field"><span>' + esc(vrCopy.accessLabel) + '</span><div class="sp-access">' +
-          '<button type="button" class="sp-access-option' + (c.roomType === 'open' ? ' active' : '') + '" data-vr-type="open">🌐 ' + esc(vrCopy.accessOpen) + '</button>' +
-          '<button type="button" class="sp-access-option' + (c.roomType === 'private' ? ' active' : '') + '" data-vr-type="private">🔒 ' + esc(vrCopy.accessPrivate) + '</button></div></div>' +
+          (isTeacher()
+            ? '<button type="button" class="sp-access-option' + (c.roomType === 'open' ? ' active' : '') + '" data-vr-type="open">🌐 ' + esc(vrCopy.accessEveryone) + '</button>' +
+              '<button type="button" class="sp-access-option' + (c.roomType === 'subscribers' ? ' active' : '') + '" data-vr-type="subscribers">⭐ ' + esc(vrCopy.accessSubscribers) + '</button>'
+            : '<button type="button" class="sp-access-option' + (c.roomType === 'open' ? ' active' : '') + '" data-vr-type="open">🌐 ' + esc(vrCopy.accessOpen) + '</button>' +
+              '<button type="button" class="sp-access-option' + (c.roomType === 'private' ? ' active' : '') + '" data-vr-type="private">🔒 ' + esc(vrCopy.accessPrivate) + '</button>') +
+          '</div>' +
+          (isTeacher() ? '<p class="sp-hint">🎓 ' + esc(vrCopy.accessTeacherHint) + '</p>' : '') +
+          (c.roomType === 'subscribers' ? '<p class="sp-hint">⭐ ' + esc(vrCopy.accessSubscribersHint) + '</p>' : '') + '</div>' +
         (vr.error ? '<p class="sp-error" role="alert">' + esc(vr.error) + '</p>' : '') +
         '<div class="sp-form-actions"><button type="button" class="sp-btn ghost" data-vr-create-cancel>' + esc(vrCopy.cancel) + '</button>' +
           '<button type="submit" class="sp-btn primary vr"' + (vr.creating ? ' disabled' : '') + '>' + esc(vrCopy.create) + '</button></div></form>';
@@ -542,7 +617,7 @@
         if (data) enterRoom(String(data));
         return;
       } catch (error) {
-        vr.error = errorText(error, vrCopy.errorGeneric);
+        vr.error = /Super Subscription price/i.test(String(error?.message || '')) ? vrCopy.superPriceMissing : errorText(error, vrCopy.errorGeneric);
       }
       vr.creating = false;
       renderVoiceRooms();
@@ -610,11 +685,18 @@
     async function enterRoom(id) {
       if (room.id && room.id !== id) await leaveRoom(false);
       if (room.id === id && room.phase === 'ready') { showRoomPanel(); return; }
-      Object.assign(room, { id, detail: null, phase: 'loading', closedReason: null, members: [], messages: [], requests: [], role: null, joined: false, sheet: null, notice: null, invitedIds: [], chatDraft: '' });
+      const listItem = vr.rooms.find((item) => item.id === id) || null;
+      Object.assign(room, { id, listItem, superOwnerId: null, detail: null, phase: 'loading', closedReason: null, members: [], messages: [], requests: [], role: null, joined: false, sheet: null, notice: null, invitedIds: [], chatDraft: '' });
       showRoomPanel();
       renderRoom();
       try {
         const detail = await getRoomDetail();
+        if (!detail && listItem && listItem.room_type === 'subscribers') {
+          // get_voice_room hides subscriber rooms from non-subscribers.
+          room.superOwnerId = listItem.owner_id;
+          closeRoom(vrCopy.subscribersOnly);
+          return;
+        }
         if (!detail || detail.status !== 'live') { closeRoom(vrCopy.unavailable); return; }
         const role = await rpc('join_voice_room', { p_room: id });
         if (room.id !== id) { supa.rpc('leave_voice_room', { p_room: id }).then(() => {}, () => {}); return; }
@@ -962,7 +1044,8 @@
       const focusKey = active && host.contains(active) ? (active.matches('[data-vr-chat-input]') ? '[data-vr-chat-input]' : active.matches('[data-vr-invite-search]') ? '[data-vr-invite-search]' : null) : null;
       const caret = focusKey ? active.selectionStart : null;
       if (room.phase === 'closed') {
-        host.innerHTML = '<div class="sp-page sp-vr"><div class="sp-card sp-empty"><span>🔇</span><b>' + esc(room.closedReason || vrCopy.unavailable) + '</b>' +
+        host.innerHTML = '<div class="sp-page sp-vr"><div class="sp-card sp-empty"><span>' + (room.superOwnerId ? '⭐' : '🔇') + '</span><b>' + esc(room.closedReason || vrCopy.unavailable) + '</b>' +
+          (room.superOwnerId ? '<button type="button" class="sp-btn subscribers" data-vr-super="' + esc(room.superOwnerId) + '">' + esc(vrCopy.teacherProfile) + '</button>' : '') +
           '<button type="button" class="sp-btn primary vr" data-vr-back>' + esc(vrCopy.back) + '</button></div></div>';
         return;
       }
@@ -972,31 +1055,50 @@
       }
       const d = room.detail;
       const mine = me();
-      const speakers = room.members.filter((member) => isOnStage(member.role));
-      const listeners = room.members.filter((member) => member.role === 'listener');
       const talking = speakingIds();
       const lastMessage = room.messages[room.messages.length - 1] || null;
       const audioHint = audio.status === 'unavailable' ? vrCopy.audioUnavailable : audio.status === 'joining' ? vrCopy.connecting : audio.error;
-      const memberTile = (member, big) => '<button type="button" class="sp-member' + (big ? ' big' : '') + (talking.has(member.user_id) ? ' speaking' : '') + '" data-vr-member="' + esc(member.user_id) + '">' +
-        '<span class="sp-member-avatar">' + avatar(member.full_name, member.avatar_url, big ? 'lg' : '') + (member.hand_raised ? '<i class="sp-hand">✋</i>' : '') + '</span>' +
-        '<b>' + esc(memberName(member)) + '</b>' + (big ? '<small>' + esc(vrCopy.roles[member.role] || member.role) + '</small>' : '') + '</button>';
+      const activeSpeakers = room.members.filter((member) => talking.has(member.user_id));
+      const memberPriority = (member) => (member.role === 'owner' ? 0 : talking.has(member.user_id) ? 1 : member.hand_raised ? 2 : 3);
+      const members = room.members.slice().sort((a, b) => memberPriority(a) - memberPriority(b) || String(a.joined_at || '').localeCompare(String(b.joined_at || '')) || String(a.user_id).localeCompare(String(b.user_id)));
+      const memberStatus = (member) => {
+        if (member.role === 'owner') return { icon: '♛', label: vrCopy.roles.owner, kind: 'host' };
+        if (talking.has(member.user_id)) return { icon: '●', label: vrCopy.speaking, kind: 'speaking' };
+        if (member.hand_raised) return { icon: '✋', label: vrCopy.requestsTitle, kind: 'hand' };
+        if (isOnStage(member.role)) return { icon: '●', label: vrCopy.onStage, kind: 'stage' };
+        return { icon: '◌', label: vrCopy.listening, kind: 'listening' };
+      };
+      const memberTile = (member) => {
+        const status = memberStatus(member);
+        const self = member.user_id === userId();
+        return '<button type="button" class="sp-member sp-member--' + status.kind + (talking.has(member.user_id) ? ' speaking' : '') + '" data-vr-member="' + esc(member.user_id) + '" aria-label="' + esc(memberName(member) + ': ' + status.label) + '">' +
+          '<span class="sp-member-avatar">' + avatar(member.full_name, member.avatar_url, 'lg', member.user_id) + (member.role === 'owner' ? '<i class="sp-crown" aria-hidden="true">♛</i>' : '') + (member.hand_raised ? '<i class="sp-hand" aria-hidden="true">✋</i>' : '') + (self ? '<i class="sp-mic-state ' + (audio.micEnabled ? 'on' : 'off') + '" aria-hidden="true">' + (audio.micEnabled ? '●' : '×') + '</i>' : '') + '</span>' +
+          '<b>' + esc(memberName(member)) + '</b><small class="sp-member-status">' + status.icon + ' ' + esc(status.label) + '</small></button>';
+      };
+      const canRequestSpeaking = room.role === 'listener';
+      // get_voice_room has no host_role: use the list row, or my own role for a room I just created.
+      const hostIsTeacher = room.listItem ? room.listItem.host_role === 'teacher' : (d.owner_id === userId() && isTeacher());
       host.innerHTML = '<div class="sp-page sp-vr"><section class="sp-card sp-room">' +
         '<header class="sp-room-head"><button type="button" class="sp-icon-btn" data-vr-back aria-label="' + esc(vrCopy.back) + '">←</button>' +
-          '<div><h2>' + esc(d.title) + '</h2><p>👥 ' + esc(vrCopy.participantsLine(room.members.length, speakers.length)) + ' · ' + esc(languageLabel(d.language)) + '</p></div>' +
-          '<span class="sp-live">' + esc(vrCopy.live) + '</span></header>' +
-        (isModerator() ? '<div class="sp-mod-row"><button type="button" class="sp-pill" data-vr-sheet="requests">✋ ' + esc(vrCopy.requestsTitle) + (room.requests.length ? ' <em>' + room.requests.length + '</em>' : '') + '</button>' +
-          '<button type="button" class="sp-pill" data-vr-sheet="invite">＋ ' + esc(vrCopy.invite) + '</button>' +
-          (room.role === 'owner' ? '<button type="button" class="sp-pill danger" data-vr-sheet="end">■ ' + esc(vrCopy.endRoom) + '</button>' : '') + '</div>' : '') +
+          '<div><h2>' + esc(d.title) + '</h2><p>◉ ' + esc(vrCopy.participantsLine(room.members.length, activeSpeakers.length)) + '</p>' +
+            (hostIsTeacher || d.room_type === 'subscribers' ? '<div class="sp-room-badges">' +
+              (hostIsTeacher ? '<span class="sp-badge teacher">🎓 ' + esc(vrCopy.roomTypes.teacher) + '</span>' : '') +
+              (d.room_type === 'subscribers' ? '<span class="sp-badge subscribers">🔒 ' + esc(vrCopy.roomTypes.subscribers) + '</span>' : '') + '</div>' : '') + '</div>' +
+          '<span class="sp-live"><i></i>' + esc(vrCopy.live) + '</span></header>' +
+        '<div class="sp-mod-row">' +
+          (canRequestSpeaking ? '<button type="button" class="sp-pill hand' + (mine?.hand_raised ? ' active' : '') + '" data-vr-hand>✋ ' + esc(mine?.hand_raised ? vrCopy.handRaised : vrCopy.raiseHand) + '</button>' : '') +
+          '<button type="button" class="sp-pill invite" data-vr-sheet="invite">＋ ' + esc(vrCopy.invite) + '</button>' +
+          (isModerator() ? '<button type="button" class="sp-pill" data-vr-sheet="requests">◉ ' + esc(vrCopy.requestsTitle) + (room.requests.length ? ' <em>' + room.requests.length + '</em>' : '') + '</button>' : '') +
+          (room.role === 'owner' ? '<button type="button" class="sp-pill danger" data-vr-sheet="end">■ ' + esc(vrCopy.endRoom) + '</button>' : '') + '</div>' +
         (room.notice ? '<p class="sp-notice" role="status">' + esc(room.notice) + '</p>' : '') +
         (audioHint ? '<p class="sp-audio-hint">' + esc(audioHint) + '</p>' : '') +
         (audio.blocked.length ? '<button type="button" class="sp-btn light sm" data-vr-resume>🔊 ' + esc(vrCopy.tapToHear) + '</button>' : '') +
         (d.topic || d.level_min || d.level_max ? '<div class="sp-topic">' + (d.topic ? '<b>' + esc(vrCopy.topic) + ': ' + esc(d.topic) + '</b>' : '') +
           (d.level_min || d.level_max ? '<span>' + esc(vrCopy.levelLine(d.level_min, d.level_max)) + '</span>' : '') + '</div>' : '') +
-        '<div class="sp-stage">' + speakers.map((member) => memberTile(member, true)).join('') + '</div>' +
-        (listeners.length ? '<h4 class="sp-section-title">' + esc(vrCopy.listenersTitle(listeners.length)) + '</h4><div class="sp-listeners">' + listeners.map((member) => memberTile(member, false)).join('') + '</div>' : '') +
+        '<div class="sp-participant-grid">' + members.map(memberTile).join('') + '<button type="button" class="sp-invite-tile" data-vr-sheet="invite"><span>＋</span><b>' + esc(vrCopy.invite) + '</b><small>' + esc(vrCopy.participant) + '</small></button></div>' +
         '<button type="button" class="sp-last-message" data-vr-sheet="chat">💬 <span>' + esc(lastMessage ? (lastMessage.full_name || 'DUVELA') + ': ' + lastMessage.body : vrCopy.noMessages) + '</span>›</button>' +
         '<nav class="sp-bar">' +
-          '<button type="button" class="sp-bar-btn' + (audio.micEnabled ? ' active' : '') + '" data-vr-mic' + (isOnStage(room.role) && audio.isPublisher ? '' : ' disabled') + '><span>' + (audio.micEnabled ? '🎙' : '🔇') + '</span>' + esc(vrCopy.mic) + '</button>' +
+          '<button type="button" class="sp-bar-btn' + (audio.micEnabled ? ' active' : '') + '" data-vr-mic' + (isOnStage(room.role) && audio.isPublisher ? '' : ' disabled') + '><span>' + (audio.micEnabled ? '🎙' : '🔇') + '</span>' + esc(audio.status === 'joining' ? vrCopy.connecting : vrCopy.mic) + '</button>' +
           '<button type="button" class="sp-bar-btn' + (mine?.hand_raised ? ' active' : '') + '" data-vr-hand' + (room.role === 'listener' ? '' : ' disabled') + '><span>✋</span>' + esc(mine?.hand_raised ? vrCopy.handRaised : vrCopy.raiseHand) + '</button>' +
           '<button type="button" class="sp-bar-btn" data-vr-sheet="chat"><span>💬</span>' + esc(vrCopy.chat) + '</button>' +
           '<button type="button" class="sp-bar-btn leave" data-vr-leave><span>⎋</span>' + esc(vrCopy.leave) + '</button>' +
@@ -1069,6 +1171,9 @@
         if (filter) { vr.filter = filter.dataset.vrFilter || null; loadRooms(); return; }
         const join = t.closest('[data-vr-join]');
         if (join) { enterRoom(join.dataset.vrJoin); return; }
+        // No Super checkout on the web yet: open the teacher profile.
+        const superLink = t.closest('[data-vr-super]');
+        if (superLink) { window.location.href = './profile.html?id=' + encodeURIComponent(superLink.dataset.vrSuper); return; }
         // inside a room
         if (t.closest('[data-vr-back]')) {
           if (room.phase === 'closed') { Object.assign(room, { id: null, phase: 'idle' }); renderMiniBar(); renderVoiceRooms(); loadRooms(); }

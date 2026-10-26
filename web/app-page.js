@@ -118,6 +118,7 @@
       schedule: tr('Schedule', 'Расписание'),
       leaderboard: tr('Rankings', 'Рейтинги'),
       duel: tr('LIVE Arena', 'LIVE Arena'),
+      voicerooms: tr('Voice Rooms', 'Голосовые комнаты'),
       profile: tr('Profile', 'Профиль')
     }
   };
