@@ -40,6 +40,7 @@
     "sync:german-essentials-bank": "node ./scripts/sync-german-essentials-bank.mjs",
     "sync:mobile-exam-bank": "node ./scripts/sync-mobile-exam-bank.mjs",
     "sync:grammi-topics": "node ./scripts/sync-grammi-topics.mjs",
+    "sync:nova-sounds": "node ./scripts/sync-nova-sounds.mjs",
     "sync:mobile-article-bank": "node ./scripts/sync-mobile-article-bank.mjs"
   },
   "dependencies": {

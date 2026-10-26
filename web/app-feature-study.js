@@ -5449,6 +5449,47 @@
       });
     }
 
+    // NOVA (not Persian): sound map, lesson + practice cards with a mic per item —
+    // web/app-feature-nova.js. "Just talk" sets novaFree and opens the normal chat.
+    function isNovaCardsSession() {
+      return Boolean(window.DuvelaNova) && !aiChatState.novaFree && ["de", "en", "es", "sv"].indexOf(aiChatState.lang) >= 0;
+    }
+
+    function renderNovaPractice() {
+      var lang = aiChatState.lang;
+      var appLang = String((ctx.getAppLang && ctx.getAppLang()) || (ctx.isRu ? "ru" : "en")).toLowerCase();
+      window.DuvelaNova.render($('#studyToolBody'), {
+        esc: esc,
+        tr: tr,
+        isRu: !!ctx.isRu,
+        lang: lang,
+        level: currentPracticeLevel(lang),
+        locale: SPEECH_LOCALE[lang] || (lang === "sv" ? "sv-SE" : "de-DE"),
+        nativeLocale: appLang,
+        supa: supa,
+        userId: ctx.user && ctx.user.id,
+        avatarHtml: function () { return aiAvatarHtml(aiChatState.partner, "sm", false); },
+        speak: function (text) { speakAi(text); },
+        awardXp: function () {},
+        onFreeChat: function () {
+          aiChatState.novaFree = true;
+          aiChatState.started = false;
+          var topics = aiTopicOptions(aiChatState.lang, aiChatState.partner);
+          aiChatState.topic = topics[0] || tr("Everyday conversation", "Повседневный разговор");
+          aiChatState.screen = "setup";
+          renderAiPractice();
+        },
+        onEnd: function (results) {
+          stopAiVoice();
+          var good = results.filter(function (item) { return item.score >= 75; }).length;
+          aiChatState = null;
+          studyState.score = good;
+          studyState.data = new Array(Math.max(1, results.length));
+          finishTool(tr("Pronunciation with NOVA", "Произношение с NOVA") + ": " + good + " / " + results.length, Math.min(30, good * 10));
+        }
+      });
+    }
+
     function aiRoleMeta(role) {
       switch (role) {
         case 'exam': return { label: tr('Exam practice', 'Подготовка к экзамену'), instruction: 'Run structured exam practice with clear timing, criteria and feedback.' };
@@ -5672,7 +5713,7 @@
       if (aiChatState.screen === 'coaches') {
         var partners = aiPartnersForLang(aiChatState.lang);
         host.innerHTML = '<section class="ai-academy"><header class="ai-academy-head"><div><small>DUVELA / AI ACADEMY</small><h2>'+esc(tr('Practice with AI','Практика с AI'))+'</h2><p>'+esc(tr('Choose a coach for a focused language session.','Выберите коуча для целевого занятия языком.'))+'</p></div><span>'+esc((aiChatState.lang === 'de' ? 'German' : aiChatState.lang === 'en' ? 'English' : aiChatState.lang === 'es' ? 'Spanish' : 'Persian')+' · '+level)+'</span></header><div class="ai-learning-brief"><small>'+esc(tr('PERSONAL LEARNING','ПЕРСОНАЛЬНОЕ ОБУЧЕНИЕ'))+'</small><strong>'+esc(tr('Practice at your level with a clear goal.','Практикуйтесь на своём уровне с понятной целью.'))+'</strong><p>'+esc(tr('Choose a coach, configure the session, then begin.','Выберите коуча, настройте занятие и начните.'))+'</p></div><h3 class="ai-coach-title">'+esc(tr('Choose your AI coach','Выберите AI-коуча'))+'</h3><div class="ai-coach-grid">'+partners.map(function (bot) { var meta=aiRoleMeta(bot.role); return '<article class="ai-coach-card"><div class="ai-coach-avatar">'+aiAvatarHtml(bot,'xl',true)+'</div><div class="ai-coach-copy"><div><h3>'+esc(bot.name)+'</h3><span style="--coach-accent:'+esc(bot.accent)+'">'+esc(meta.label)+'</span></div><p>'+esc(tr(bot.tagline.en,bot.tagline.ru))+'</p><small>'+esc(bot.id==='elsa'?tr('Structured exam tasks','Структурированные экзаменационные задания'):bot.id==='sofia'?tr('Natural conversation','Естественный разговор'):tr('Focused practice','Целевая практика'))+'</small></div><button type="button" data-ai-coach="'+esc(bot.id)+'">'+esc(bot.id==='elsa'?tr('Prepare for exam','Готовиться к экзамену'):tr('Set up session','Настроить занятие'))+' →</button></article>'; }).join('')+'</div></section>';
-        Array.prototype.forEach.call(host.querySelectorAll('[data-ai-coach]'), function (button) { button.onclick=function () { var bot=partners.find(function (item) { return item.id===button.getAttribute('data-ai-coach'); }) || null; if(!bot)return; aiChatState.partner=bot; if(bot.id==='elsa'){ closeStudy(); window.setTimeout(function(){ if(typeof window.DuvelaOpenElsaExam==='function')window.DuvelaOpenElsaExam(); else document.dispatchEvent(new CustomEvent('duvela-open-elsa-exam')); },0); return; } if(bot.id==='stella'){ aiChatState.started=true; renderStellaPractice(); return; } if(bot.id==='grammi'&&isGrammiCardsLang(aiChatState.lang)){ aiChatState.started=true; renderGrammiPractice(); return; } var topics=aiTopicOptions(aiChatState.lang,bot); aiChatState.topic=topics[0]||tr('Everyday conversation','Повседневный разговор'); aiChatState.screen='setup'; renderAiPractice(); }; });
+        Array.prototype.forEach.call(host.querySelectorAll('[data-ai-coach]'), function (button) { button.onclick=function () { var bot=partners.find(function (item) { return item.id===button.getAttribute('data-ai-coach'); }) || null; if(!bot)return; aiChatState.partner=bot; if(bot.id==='elsa'){ closeStudy(); window.setTimeout(function(){ if(typeof window.DuvelaOpenElsaExam==='function')window.DuvelaOpenElsaExam(); else document.dispatchEvent(new CustomEvent('duvela-open-elsa-exam')); },0); return; } if(bot.id==='stella'){ aiChatState.started=true; renderStellaPractice(); return; } if(bot.id==='grammi'&&isGrammiCardsLang(aiChatState.lang)){ aiChatState.started=true; renderGrammiPractice(); return; } if(bot.id==='nova'){ aiChatState.novaFree=false; if(isNovaCardsSession()){ aiChatState.started=true; renderNovaPractice(); return; } } var topics=aiTopicOptions(aiChatState.lang,bot); aiChatState.topic=topics[0]||tr('Everyday conversation','Повседневный разговор'); aiChatState.screen='setup'; renderAiPractice(); }; });
         return;
       }
 
@@ -5691,6 +5732,7 @@
 
       if (aiChatState.partner && aiChatState.partner.id === 'stella') return renderStellaPractice();
       if (aiChatState.partner && aiChatState.partner.id === 'grammi' && isGrammiCardsLang(aiChatState.lang)) return renderGrammiPractice();
+      if (aiChatState.partner && aiChatState.partner.id === 'nova' && aiChatState.screen !== 'setup' && isNovaCardsSession()) return renderNovaPractice();
       var partnerRole=aiChatState.partner?aiChatState.partner.role:'conversation';
       var roleLabel=aiRoleMeta(partnerRole).label;
       var currentTurns=aiChatState.messages.filter(function(message){return message.role==='user';}).length;

@@ -413,5 +413,6 @@
     paint(false);
   }
 
-  window.DuvelaGrammi = { render: mount, topicsFor: topicsFor, PASS_SCORE: PASS_SCORE };
+  // injectStyle is shared with NOVA (web/app-feature-nova.js), which reuses the gr-* card styles.
+  window.DuvelaGrammi = { render: mount, topicsFor: topicsFor, PASS_SCORE: PASS_SCORE, injectStyle: injectStyle, scoreColors: scoreColors };
 })();
