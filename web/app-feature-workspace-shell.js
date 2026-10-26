@@ -76,6 +76,7 @@
       var studyHtml = ctx.studyToolsHtml ? ctx.studyToolsHtml() : '';
       $('#workspaceActions').innerHTML =
         studyHtml +
+        (ctx.socialPractice ? ctx.socialPractice.cardsHtml() : '') +
         ctx.challengesHtml();
       if (ctx.bindStudyTiles) ctx.bindStudyTiles();
       renderWorkspaceSide(false);

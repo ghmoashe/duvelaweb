@@ -135,6 +135,8 @@
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
       settings: [tr('Settings', 'Настройки'), tr('Public profile, privacy and account preferences.', 'Публичный профиль, приватность и настройки аккаунта.')],
       wallet: [tr('Duvela Wallet', 'Кошелёк Duvela'), tr('Buy DC, review your balance and send gifts to teachers.', 'Покупайте DC, проверяйте баланс и дарите подарки учителям.')],
+      partners: [tr('Language Match', 'Language Match'), tr('Find a language partner by language, level, city and interests.', 'Найдите языкового партнёра по языку, уровню, городу и интересам.')],
+      voicerooms: [tr('Voice Rooms', 'Voice Rooms'), tr('Voice rooms by language and level: listen, raise your hand and talk.', 'Голосовые комнаты по языку и уровню: слушайте, поднимайте руку и говорите.')],
       duel: [tr('LIVE Arena', 'LIVE Arena'), tr('Create language duels, manage rooms and review verified results.', 'Создавайте языковые дуэли, управляйте комнатами и смотрите подтверждённые результаты.')],
       profile: [tr('Profile', 'Профиль'), tr('Your learning journey, achievements and account privacy.', 'Ваш учебный путь, достижения и приватность аккаунта.')]
     },
@@ -152,6 +154,8 @@
       leaderboard: [tr('Rankings', 'Рейтинги'), tr('Academy rankings by role, direction, level and city.', 'Рейтинги Academy по роли, направлению, уровню и городу.')],
       settings: [tr('Settings', 'Настройки'), tr('Public profile, privacy and account preferences.', 'Публичный профиль, приватность и настройки аккаунта.')],
       earnings: [tr('Earnings & Finance', 'Доходы и финансы'), tr('Manage verified income, coins and payouts.', 'Управляйте подтверждёнными доходами, монетами и выплатами.')],
+      partners: [tr('Language Match', 'Language Match'), tr('Find a language partner by language, level, city and interests.', 'Найдите языкового партнёра по языку, уровню, городу и интересам.')],
+      voicerooms: [tr('Voice Rooms', 'Voice Rooms'), tr('Voice rooms by language and level: listen, raise your hand and talk.', 'Голосовые комнаты по языку и уровню: слушайте, поднимайте руку и говорите.')],
       duel: [tr('LIVE Arena', 'LIVE Arena'), tr('Run a live duel with your learners or preview the deck before class.', 'Проводите дуэли с учениками и открывайте колоду перед уроком.')],
       profile: [tr('Profile', 'Профиль'), tr('Your Duvela Business account and public profile.', 'Ваш аккаунт Duvela Business и публичный профиль.')]
     }
@@ -401,6 +405,8 @@
   const scheduleFeature = window.DuvelaAppSchedule.create(featureContext);
   const gamificationFeature = window.DuvelaAppGamification.create(featureContext);
   const searchFeature = window.DuvelaAppSearch.create(featureContext);
+  const socialPracticeFeature = window.DuvelaAppSocialPractice ? window.DuvelaAppSocialPractice.create(featureContext) : null;
+  featureContext.socialPractice = socialPracticeFeature;
 
   function renderVideos() { return mediaFeature.renderVideos(); }
   async function loadVideos() { return mediaFeature.loadVideos(); }
@@ -725,5 +731,5 @@
     uploadAvatar,
     uploadPost
   });
-  appBootstrap.start();
+  appBootstrap.start().then(() => { if (socialPracticeFeature) socialPracticeFeature.start(); });
 })();

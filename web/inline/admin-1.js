@@ -127,6 +127,7 @@
       if (name === 'accounts')   { loadAccounts(); }
       if (name === 'users')      { loadVerificationRequests(); }
       if (name === 'moderation') { loadReports(); }
+      if (name === 'voicereports') { loadVoiceReports(); }
       if (name === 'finance')    { loadFinance(); }
       if (name === 'bulk')       { loadBulkAccounts(); }
       if (name === 'media')      { loadBunny(); }
@@ -229,6 +230,33 @@
   // ── Moderation ───────────────────────────────────────────────────────────
   document.getElementById('modKind').addEventListener('change', loadReports);
   document.getElementById('modOnlyOpen').addEventListener('change', loadReports);
+  // ── Voice room reports (admin_list_voice_room_reports) ───────────────────
+  async function loadVoiceReports() {
+    var body = document.getElementById('voiceReportsBody');
+    var r = await client.rpc('admin_list_voice_room_reports', { limit_rows: 200 });
+    if (r.error) { body.innerHTML = '<tr><td colspan="7" class="empty">' + esc(r.error.message) + '</td></tr>'; return; }
+    if (!r.data || r.data.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No voice room reports.</td></tr>'; return; }
+    body.innerHTML = r.data.map(function (rr) {
+      return '<tr>' +
+        '<td class="tight">' + fmtDateTime(rr.created_at) + '</td>' +
+        '<td>' + esc(rr.room_title || '—') + '<br><span style="color:var(--ink-muted); font-size:11px;">' + esc([rr.room_language, rr.room_status].filter(Boolean).join(' · ')) + '</span></td>' +
+        '<td>' + esc(rr.reporter_name || '—') + '<br><span style="color:var(--ink-muted); font-size:11px;">' + esc(rr.reporter_email || '') + '</span></td>' +
+        '<td>' + esc(rr.reported_name || '—') + '<br><span style="color:var(--ink-muted); font-size:11px;">' + esc(rr.reported_email || '') + ' ' + esc(rr.reported_user_id || '') + '</span></td>' +
+        '<td>' + esc(rr.reason || '—') + (rr.details ? '<br><span style="color:var(--ink-muted); font-size:11px;">' + esc(rr.details) + '</span>' : '') + '</td>' +
+        '<td class="tight">' + esc(rr.reports_against_user == null ? '—' : rr.reports_against_user) + '</td>' +
+        '<td>' + (rr.reported_user_id ? '<button class="btn small danger" data-voice-ban="' + esc(rr.reported_user_id) + '">Ban user</button>' : '') + '</td>' +
+      '</tr>';
+    }).join('');
+    body.querySelectorAll('[data-voice-ban]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        var reason = prompt('Ban reason:') || 'voice room abuse';
+        if (!confirmAdminAction('Ban this user from DUVELA?')) return;
+        var res = await client.rpc('admin_ban_user', { target_user: b.dataset.voiceBan, reason: reason });
+        if (res.error) msg('voiceReportsMsg', res.error.message, 'err'); else msg('voiceReportsMsg', '✓ User banned', 'ok');
+      });
+    });
+  }
+
   async function loadReports() {
     var body = document.getElementById('modBody');
     var r = await client.rpc('admin_list_reports', {

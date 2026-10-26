@@ -30,12 +30,17 @@
         return;
       }
       list.innerHTML = state.notifications.map((item) =>
-        '<div class="notif-item' + (item.read ? '' : ' is-unread') + '"><div class="ndot"></div><div><b style="font-weight:' +
+        '<div class="notif-item' + (item.read ? '' : ' is-unread') + '"' + (voiceRoomId(item) ? ' data-voice-room="' + esc(voiceRoomId(item)) + '" role="button" tabindex="0" style="cursor:pointer"' : '') + '><div class="ndot"></div><div><b style="font-weight:' +
         (item.read ? '500' : '800') + '">' +
         esc(item.title || tr('Notification', 'Уведомление')) + '</b>' +
         (item.body ? '<p>' + esc(item.body) + '</p>' : '') +
         '<time>' + esc(timeAgo(item.created_at)) + '</time></div></div>'
       ).join('');
+    }
+
+    function voiceRoomId(item) {
+      const roomId = item && item.type === 'voice_room_invite' && item.data ? item.data.roomId : null;
+      return roomId && /^[0-9a-f-]{36}$/i.test(String(roomId)) ? String(roomId) : null;
     }
 
     function openNotifications() {
@@ -75,6 +80,8 @@
               });
               notice.onclick = () => {
                 window.focus();
+                const roomId = voiceRoomId(payload.new);
+                if (roomId && ctx.socialPractice) { notice.close(); ctx.socialPractice.enterRoom(roomId); return; }
                 location.href = payload.new.type && payload.new.type.indexOf('zoom_class_') === 0
                   ? './app.html?role=learner#schedule'
                   : './app.html';
@@ -93,6 +100,13 @@
         if (event.target === $('#notifOverlay')) $('#notifOverlay').classList.remove('open');
       });
       $('#markAllRead').addEventListener('click', markAllNotifRead);
+      // Voice-room invites open the room (app-feature-social-practice.js).
+      $('#notifList').addEventListener('click', (event) => {
+        const item = event.target.closest('[data-voice-room]');
+        if (!item || !ctx.socialPractice) return;
+        $('#notifOverlay').classList.remove('open');
+        ctx.socialPractice.enterRoom(item.dataset.voiceRoom);
+      });
     }
 
     return {
