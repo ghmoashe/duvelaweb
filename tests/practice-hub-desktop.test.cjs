@@ -10,6 +10,9 @@ const workspaceSource = fs.readFileSync(path.join(root, 'web/app-feature-workspa
 const aiBannerSource = fs.readFileSync(path.join(root, 'web/app-feature-elsa-exam.js'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'web/practice-hub.css'), 'utf8');
 const articleBank = fs.readFileSync(path.join(root, 'web/content/mobile-article-bank.js'), 'utf8');
+const germanEssentialsBank = fs.readFileSync(path.join(root, 'web/content/german-essentials-bank.js'), 'utf8');
+const mobileExamBank = fs.readFileSync(path.join(root, 'web/content/mobile-exam-bank.js'), 'utf8');
+const appHtml = fs.readFileSync(path.join(root, 'app.html'), 'utf8');
 
 test('practice hub renders a desktop workspace with main content and context rail', () => {
   for (const marker of [
@@ -206,6 +209,42 @@ test('W-questions validates a selected answer before feedback and explains the c
   for (const marker of ['data-w-check', 'data-w-continue', 'data-w-exit', 'item.full', 'item.translation[locale]', 'item.explanation[locale]', 'item.example.de']) assert.ok(source.includes(marker), `missing ${marker}`);
   assert.ok(styles.includes('.w-question-check'));
   assert.ok(styles.includes('.w-question-footer'));
+});
+
+test('Deutsch Trainer runs checked, level-matched tasks from the synchronized Academy Hub task bank', () => {
+  for (const marker of [
+    "case 'germanEssentials': return renderGermanEssentials();",
+    'function germanTrainerDeck(level, skill)',
+    'germanTrainerBank()',
+    'germanTrainerWeakestSkill()',
+    "sourceTool:'germanEssentials'",
+    "clearMistake('de', 'german-essentials:' + task.id)",
+    'data-german-trainer-check',
+    'data-german-trainer-next'
+  ]) assert.ok(source.includes(marker), `missing ${marker}`);
+  assert.ok(source.includes("germanEssentials:'grammar'"));
+  assert.ok(appHtml.includes('german-essentials-bank.js'));
+  assert.ok(styles.includes('.german-essentials-trainer'));
+  assert.ok(source.includes('})).slice(0,10);'), 'trainer sessions must contain ten source tasks');
+  const bankMatch = germanEssentialsBank.match(/Object\.freeze\((.*)\);\s*$/s);
+  assert.ok(bankMatch, 'generated German essentials bank is readable');
+  const bank = JSON.parse(bankMatch[1]);
+  assert.ok(bank.tasks.length >= 180, 'German essentials bank must not regress to a tiny set');
+  assert.ok(bank.tasks.filter((task) => task.level === 'a2').length >= 60, 'A2 needs sufficient practice variety');
+  assert.equal(bank.tasks.filter((task) => !task.options.includes(task.answer)).length, 0, 'every source answer must be selectable');
+});
+
+test('Exam Mode reuses answerable Academy Hub Mobile banks and preserves the existing telc model tests', () => {
+  for (const marker of ['function mobileExamQuestions(board)', 'examModeLevels(board)', 'data-exam-v2-start', 'data-exam-v2-elsa', 'data-telc-launch', "sourceTool:'exam'", 'mobile-exam:']) {
+    assert.ok(source.includes(marker), `missing ${marker}`);
+  }
+  assert.ok(appHtml.includes('mobile-exam-bank.js'));
+  const bankMatch = mobileExamBank.match(/Object\.freeze\((.*)\);\s*$/s);
+  assert.ok(bankMatch, 'generated mobile exam bank is readable');
+  const bank = JSON.parse(bankMatch[1]);
+  assert.deepEqual([...new Set(bank.questions.map((item) => item.board))].sort(), ['dtz', 'goethe', 'telc', 'testdaf']);
+  assert.ok(bank.questions.length >= 40, 'all available mobile board questions should be transferred');
+  assert.equal(bank.questions.filter((item) => !item.options.includes(item.answer)).length, 0, 'every transferred exam question must be answerable');
 });
 
 test('Mistake Center keeps the Academy Hub due queue and advances only after checked answers', () => {

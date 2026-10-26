@@ -606,7 +606,7 @@
       flashcards:'vocabulary', vocabulary:'vocabulary', memory:'vocabulary', wordusage:'vocabulary',
       grammar:'grammar', articles:'grammar', wquestion:'grammar', perfekt:'grammar',
       listening:'listening', speaking:'speaking', reading:'reading', readingarticles:'reading', writing:'writing',
-      exam:'exam', essentials:'grammar', ai:'speaking', mistakes:'review'
+      exam:'exam', essentials:'grammar', germanEssentials:'grammar', ai:'speaking', mistakes:'review'
     };
 
     // Reviewed mobile W-question bank. Do not add question types or prompts here without
@@ -638,6 +638,7 @@
       { id:'readingarticles',icon:'▤',category:'skills',accent:'blue',title:tr('Reading articles','Статьи для чтения'),desc:tr('Longer texts with vocabulary','Тексты и новая лексика') },
       { id:'writing',icon:'📝',category:'skills',accent:'pink',title:tr('Writing lab','Письмо'),desc:tr('Write and self-check','Пишите и проверяйте себя') },
       { id:'essentials',icon:'📗',category:'courses',accent:'teal',premium:true,title:tr('Language essentials','Основы языка'),desc:tr('Short core lessons','Короткие базовые уроки') },
+      { id:'germanEssentials',icon:'🛠',category:'grammar',accent:'teal',premium:true,title:tr('Deutsch Trainer','Тренажёр немецкого'),desc:tr('German core skills with validated tasks','Ключевые навыки немецкого с проверенными заданиями') },
       { id:'exam',icon:'⏱',category:'progress',accent:'amber',premium:true,title:tr('Exam mode','Режим экзамена'),desc:tr('Timed mixed challenge','Смешанный экзамен на время') },
       { id:'mistakes',icon:'!',category:'progress',accent:'red',title:tr('Mistake center','Центр ошибок'),desc:tr('Review everything you missed','Повторите все свои ошибки') },
       { id:'history',icon:'↺',category:'progress',accent:'purple',title:tr('Practice history','История практики'),desc:tr('XP, sessions and completed tools','XP, занятия и завершённые режимы') },
@@ -1283,7 +1284,7 @@
       var essentialsCard=activeTarget==='en'
         ? sourceCard('englishEssentials','essentials','tools',true,'English Trainer','English core skills','Train tenses, articles, word order, conditionals, vocabulary and more.','Start')
         : activeTarget==='de'
-          ? sourceCard('germanEssentials','essentials','tools',true,'Deutsch Trainer','German core skills','Train grammar, pronunciation, sentence building, and real conversation patterns.','Start')
+          ? sourceCard('germanEssentials','germanEssentials','tools',true,'Deutsch Trainer','German core skills','Train grammar, pronunciation, sentence building, and real conversation patterns.','Start')
           : null;
       var wordUsageCard=sourceCard('wordUsage','wordusage','cards',false,'Word usage cards','Examples and explanations in your native language','Enter a word and get short cards with meaning, examples, and sentence placement in '+targetName+'.','Open');
       var languageTail=activeTarget==='de'
@@ -1638,7 +1639,7 @@
       stopDuelChatIngest();
       ensureOverlay();
       if (id !== 'ai') aiChatState = null;
-      var germanOnly = ['articles','wquestion','perfekt','germanAlphabet'].indexOf(id) >= 0;
+      var germanOnly = ['articles','wquestion','perfekt','germanAlphabet','germanEssentials'].indexOf(id) >= 0;
       var persianOnly = PERSIAN_TOOLS.indexOf(id) >= 0;
       var sessionLang=germanOnly?'de':persianOnly?'fa':((restored&&restored.lang)||currentLang()),sessionLevel=currentPracticeLevel(sessionLang);
       var canRestore=!!(restored&&restored.lang===sessionLang&&normalizePracticeLevel(restored.level,'A1')===sessionLevel);
@@ -1707,6 +1708,7 @@
         case 'ranking': return renderPracticeRanking();
         case 'settings': return renderPracticeSettings();
         case 'essentials': return renderEssentials();
+        case 'germanEssentials': return renderGermanEssentials();
         case 'germanAlphabet': return window.DuvelaPracticeExtras.renderAlphabet($('#studyToolBody'), 'german', practiceExtrasOptions());
         case 'persianAlphabet': return window.DuvelaPracticeExtras.renderAlphabet($('#studyToolBody'), 'persian', practiceExtrasOptions());
         case 'persianReading': return window.DuvelaPracticeExtras.renderPersianReading($('#studyToolBody'), practiceExtrasOptions());
@@ -3309,7 +3311,50 @@
       $('#mockAgain').onclick=startFullMock;$('#mockReview').onclick=function(){var weakest=keys.sort(function(a,b){return Number(scores[a]||0)-Number(scores[b]||0);})[0];openStudyTool(weakest==='grammar'?'grammar':weakest);};
       Array.prototype.forEach.call(document.querySelectorAll('[data-result-tool]'),function(button){button.onclick=function(){var tool=button.getAttribute('data-result-tool');openStudyTool(tool==='grammar'?'grammar':tool);};});
     }
+    // ---- Exam Mode V2: source-synchronised with Academy Hub Mobile ----
+    function mobileExamQuestions(board) {
+      var bank=window.DuvelaMobileExamBank;
+      return bank&&Array.isArray(bank.questions)?bank.questions.filter(function(item){return item&&item.board===board&&item.answer&&Array.isArray(item.options)&&item.options.indexOf(item.answer)>=0;}):[];
+    }
+    function examModeLabel(board) { return ({goethe:'Goethe-Zertifikat',telc:'telc Deutsch',dtz:'DTZ',testdaf:'TestDaF'})[board]||board; }
+    function examModeLevels(board) { return board==='dtz'?['A2','B1']:board==='testdaf'?['B2','C1']:['A1','A2','B1','B2']; }
+    function examModeTimeLabel(seconds) { seconds=Math.max(0,Number(seconds||0));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0'); }
+    function stopExamModeTimer() { if(studyState&&studyState.examTimerId){clearInterval(studyState.examTimerId);studyState.examTimerId=null;} }
+    function startExamModeTimer() {
+      if(studyState.examTimerId)return;
+      studyState.examEndAt=Date.now()+15*60*1000;
+      studyState.examTimerId=setInterval(function(){
+        if(!studyState||studyState.tool!=='exam')return stopExamModeTimer();
+        if(Date.now()>=studyState.examEndAt){studyState.idx=(studyState.examDeck||[]).length;stopExamModeTimer();renderExamModeV2();}
+        else {var clock=$('#examModeTimer');if(clock)clock.textContent=examModeTimeLabel(Math.ceil((studyState.examEndAt-Date.now())/1000));}
+      },1000);
+    }
+    function openElsaExamFromMode() { closeStudy().then(function(){window.setTimeout(function(){if(typeof window.DuvelaOpenElsaExam==='function')window.DuvelaOpenElsaExam();else document.dispatchEvent(new CustomEvent('duvela-open-elsa-exam'));},0);}); }
+    function renderExamModeV2() {
+      var host=$('#studyToolBody');
+      if(!studyState.examBoard){
+        var selected=studyState.examDraftBoard||'goethe', levels=examModeLevels(selected), selectedLevel=levels.indexOf(studyState.examDraftLevel)>=0?studyState.examDraftLevel:(studyState.level&&levels.indexOf(studyState.level)>=0?studyState.level:levels[0]);
+        studyState.examDraftBoard=selected;studyState.examDraftLevel=selectedLevel;
+        host.innerHTML='<section class="exam-mode-v2"><header><div><small>'+esc(tr('DUVELA · EXAM MODE','DUVELA · РЕЖИМ ЭКЗАМЕНА'))+'</small><h2>'+esc(tr('German exam practice','Подготовка к немецкому экзамену'))+'</h2><p>'+esc(tr('Choose a recognised exam, level and format. Results are practice feedback, not certification.','Выберите экзамен, уровень и формат. Результат — учебная обратная связь, а не сертификация.'))+'</p></div><span>⏱</span></header><section class="exam-mode-boards"><h3>'+esc(tr('1. Choose an exam','1. Выберите экзамен'))+'</h3><div>'+['goethe','telc','dtz','testdaf'].map(function(board){return '<button type="button" data-exam-v2-board="'+board+'" class="'+(selected===board?'active':'')+'"><b>'+esc(examModeLabel(board))+'</b><small>'+esc(board==='testdaf'?tr('Academic German','Академический немецкий'):board==='dtz'?tr('German for integration','Немецкий для интеграции'):tr('Listening · Reading · Writing · Speaking','Аудирование · Чтение · Письмо · Говорение'))+'</small></button>';}).join('')+'</div></section><section class="exam-mode-levels"><h3>'+esc(tr('2. Choose level','2. Выберите уровень'))+'</h3><div>'+levels.map(function(level){return '<button type="button" data-exam-v2-level="'+level+'" class="'+(selectedLevel===level?'active':'')+'">'+level+'</button>';}).join('')+'</div></section><section class="exam-mode-formats"><div><b>'+esc(tr('Timed knowledge practice','Практика с таймером'))+'</b><span>'+esc(tr('10 checked questions with answers and explanations from the Mobile exam bank.','10 проверяемых заданий с ответами и объяснениями из мобильного банка экзаменов.'))+'</span><button type="button" class="btn primary" data-exam-v2-start>'+esc(tr('Start practice','Начать практику'))+' →</button></div><div><b>'+esc(tr('Speaking with ELSA','Устная часть с ELSA'))+'</b><span>'+esc(tr('Run a structured oral mock by exam board and level.','Пройдите структурированную устную тренировку по экзамену и уровню.'))+'</span><button type="button" class="btn" data-exam-v2-elsa>'+esc(tr('Open ELSA Examiner','Открыть ELSA Examiner'))+' →</button></div></section><section class="exam-mode-telc"><b>'+esc(tr('telc model tests','Модельные тесты telc'))+'</b><div>'+[['A1','telc-exam.html'],['A2','telc-a2-exam.html'],['B1','telc-b1-exam.html'],['B2','telc-b2-exam.html']].map(function(item){return '<button type="button" data-telc-launch="'+item[1]+'">telc '+item[0]+' →</button>';}).join('')+'</div></section></section>';
+        Array.prototype.forEach.call(host.querySelectorAll('[data-exam-v2-board]'),function(button){button.onclick=function(){studyState.examDraftBoard=button.getAttribute('data-exam-v2-board');studyState.examDraftLevel=examModeLevels(studyState.examDraftBoard)[0];renderExamModeV2();};});
+        Array.prototype.forEach.call(host.querySelectorAll('[data-exam-v2-level]'),function(button){button.onclick=function(){studyState.examDraftLevel=button.getAttribute('data-exam-v2-level');renderExamModeV2();};});
+        var start=host.querySelector('[data-exam-v2-start]');if(start)start.onclick=function(){var bank=mobileExamQuestions(studyState.examDraftBoard);if(!bank.length){return;}studyState.examBoard=studyState.examDraftBoard;studyState.examLevel=studyState.examDraftLevel;studyState.examDeck=shuffle(bank).slice(0,10);studyState.idx=0;studyState.score=0;studyState.examSelected=null;studyState.examChecked=false;studyState.total=studyState.examDeck.length;studyState.dirty=true;startExamModeTimer();renderExamModeV2();};
+        var elsa=host.querySelector('[data-exam-v2-elsa]');if(elsa)elsa.onclick=openElsaExamFromMode;
+        Array.prototype.forEach.call(host.querySelectorAll('[data-telc-launch]'),function(button){button.onclick=function(){location.href='./'+button.getAttribute('data-telc-launch');};});
+        return;
+      }
+      var deck=studyState.examDeck||[];
+      if(studyState.idx>=deck.length){stopExamModeTimer();return finishTool(studyState.score+' / '+deck.length,Math.round((studyState.score/Math.max(1,deck.length))*20));}
+      var item=deck[studyState.idx], selected=Number.isInteger(studyState.examSelected)?studyState.examSelected:null, checked=!!studyState.examChecked, correctIndex=item.options.indexOf(item.answer), correct=checked&&selected===correctIndex, seconds=Math.ceil((studyState.examEndAt-Date.now())/1000);
+      host.innerHTML='<section class="exam-mode-v2 exam-mode-player"><header><div><small>'+esc(examModeLabel(studyState.examBoard))+' · '+esc(studyState.examLevel)+' · '+esc(tr('Practice','Практика'))+'</small><h2>'+esc(item.section||tr('Exam question','Экзаменационный вопрос'))+'</h2></div><div class="exam-mode-meta"><b>'+esc((studyState.idx+1)+' / '+deck.length)+'</b><time id="examModeTimer">'+esc(examModeTimeLabel(seconds))+'</time></div></header><div class="exam-mode-track"><i style="width:'+Math.round((studyState.idx+(checked?1:0))/deck.length*100)+'%"></i></div><main><small>'+esc(tr('Choose the best answer','Выберите лучший ответ'))+'</small><h3>'+esc(item.prompt)+'</h3><div class="exam-mode-options">'+item.options.map(function(option,index){var state=checked?(index===correctIndex?'correct':index===selected?'wrong':''):index===selected?'selected':'';return '<button type="button" class="'+state+'" data-exam-v2-option="'+index+'"'+(checked?' disabled':'')+'><i></i>'+esc(option)+'</button>';}).join('')+'</div>'+(checked?'<aside class="exam-mode-feedback '+(correct?'ok':'bad')+'"><b>'+esc(correct?tr('Correct','Верно'):tr('Correct answer: ','Правильный ответ: ')+item.answer)+'</b><p>'+esc(item.explanation||'')+'</p></aside>':'')+'<footer>'+(checked?'<button type="button" class="btn primary" data-exam-v2-next>'+esc(tr('Continue','Продолжить'))+' →</button>':'<button type="button" class="btn primary" data-exam-v2-check'+(selected===null?' disabled':'')+'>'+esc(tr('Check answer','Проверить ответ'))+'</button>')+'<button type="button" class="btn" data-exam-v2-back>'+esc(tr('Back to exam selection','К выбору экзамена'))+'</button></footer></main></section>';
+      Array.prototype.forEach.call(host.querySelectorAll('[data-exam-v2-option]'),function(button){button.onclick=function(){studyState.examSelected=Number(button.getAttribute('data-exam-v2-option'));renderExamModeV2();};});
+      var check=host.querySelector('[data-exam-v2-check]');if(check)check.onclick=function(){if(studyState.examChecked||selected===null)return;studyState.examChecked=true;if(selected===correctIndex)studyState.score++;else logMistake('de',item.prompt,item.options,correctIndex,'mcq',{sourceTool:'exam',questionId:'mobile-exam:'+studyState.examBoard+':'+item.id,level:studyState.examLevel,explanation:item.explanation,selectedAnswer:item.options[selected]});syncPracticeData();renderExamModeV2();};
+      var next=host.querySelector('[data-exam-v2-next]');if(next)next.onclick=function(){studyState.idx++;studyState.examSelected=null;studyState.examChecked=false;renderExamModeV2();};
+      var back=host.querySelector('[data-exam-v2-back]');if(back)back.onclick=function(){stopExamModeTimer();studyState.examBoard='';studyState.examDeck=null;studyState.idx=0;studyState.score=0;renderExamModeV2();};
+    }
+
     function renderExam() {
+      return renderExamModeV2();
       // Exam Mode shows only the exams we have (telc A1–B2). No progress hub,
       // no generic skill modules — just the four model tests.
       if (!studyState.examType) {
@@ -5169,6 +5214,142 @@
         '</div>' +
         '<button class="btn primary" id="essNext" style="width:100%;margin-top:14px">' + esc(tr('Got it, next', 'Понятно, дальше')) + '</button>';
       $('#essNext').addEventListener('click', function () { studyState.idx++; renderEssentials(); });
+    }
+
+    // Deutsch Trainer uses the validated German Grammar Bank synced from the
+    // Academy Hub. This deliberately does not reuse the old Essentials cards:
+    // a learner gets checkable level-matched tasks, exact feedback and a
+    // mistake record that can return to the same source question later.
+    var GERMAN_TRAINER_SKILLS = {
+      adjectiveEndings:{en:'Adjective endings',ru:'Окончания прилагательных'}, cases:{en:'Cases',ru:'Падежи'},
+      conversation:{en:'Conversation patterns',ru:'Разговорные шаблоны'}, nounGender:{en:'Noun gender',ru:'Род существительных'},
+      prepositions:{en:'Prepositions',ru:'Предлоги'}, pronunciation:{en:'Pronunciation',ru:'Произношение'},
+      schreiben:{en:'Writing',ru:'Письмо'}, verbForms:{en:'Verb forms',ru:'Формы глаголов'},
+      verbBracket:{en:'Verb bracket',ru:'Глагольная рамка'}, wordOrder:{en:'Word order',ru:'Порядок слов'}
+    };
+    var GERMAN_TRAINER_LEVELS = ['A1','A2','B1','B2','C1','C2'];
+    function germanTrainerLabel(skill) { var item=GERMAN_TRAINER_SKILLS[skill]; return item ? (ctx.isRu ? item.ru : item.en) : skill; }
+    function germanTrainerBank() { return window.DuvelaGermanEssentialsBank || null; }
+    function germanTrainerStatsKey() { return 'duvela:german-trainer:stats:v1:' + (uid() || 'guest'); }
+    function germanTrainerStats() { try { return JSON.parse(localStorage.getItem(germanTrainerStatsKey()) || '{}'); } catch(e) { return {}; } }
+    function recordGermanTrainerStat(skill, correct) {
+      var stats=germanTrainerStats(), current=stats[skill]||{correct:0,total:0};
+      stats[skill]={correct:Number(current.correct||0)+(correct?1:0),total:Number(current.total||0)+1};
+      try { localStorage.setItem(germanTrainerStatsKey(),JSON.stringify(stats)); } catch(e) {}
+      return stats;
+    }
+    function germanTrainerWeakestSkill() {
+      var stats=germanTrainerStats(), skills=Object.keys(GERMAN_TRAINER_SKILLS).filter(function(skill){return skill!=='schreiben'&&stats[skill]&&Number(stats[skill].total)>0;});
+      if(!skills.length)return 'cases';
+      return skills.reduce(function(weakest,skill){var a=stats[weakest].correct/stats[weakest].total,b=stats[skill].correct/stats[skill].total;return b<a?skill:weakest;});
+    }
+    function germanTrainerDeck(level, skill) {
+      var bank=germanTrainerBank();
+      if (!bank) return [];
+      var requested=GERMAN_TRAINER_LEVELS.indexOf(String(level||'A1').toUpperCase());
+      if(requested<0)requested=0;
+      return shuffle((bank.tasks||[]).filter(function(task) {
+        var taskLevel=GERMAN_TRAINER_LEVELS.indexOf(String(task.level||'a1').toUpperCase());
+        return task && task.answer && Array.isArray(task.options) && task.options.indexOf(task.answer)>=0 && task.mode!=='write' && taskLevel>=0 && taskLevel<=requested && (!skill||skill==='all'||task.skill===skill);
+      })).slice(0,10);
+    }
+    function germanTrainerSpeak(text) {
+      if(!window.speechSynthesis||!text)return;
+      var utterance=new SpeechSynthesisUtterance(text);utterance.lang='de-DE';utterance.rate=.82;window.speechSynthesis.cancel();window.speechSynthesis.speak(utterance);
+    }
+    function normalizedGermanTrainerAnswer(value) { return String(value||'').toLocaleLowerCase('de-DE').replace(/[^a-zäöüß0-9]+/g,' ').trim(); }
+
+    function renderGermanEssentials() {
+      var host = $('#studyToolBody');
+      var mode=studyState.germanTrainerMode||'practice';
+      var requestedSkill=mode==='weakness'?germanTrainerWeakestSkill():(studyState.germanTrainerSkill||'all');
+      var trainerKey=[studyState.level,mode,requestedSkill].join(':');
+      if (!studyState.data || studyState.data.__germanTrainerKey !== trainerKey) {
+        // `openStudyTool` restores the lightweight session cursor before the
+        // exercise bank is rebuilt. Keep that cursor instead of silently
+        // restarting a learner who reopens the trainer.
+        var restoredIndex = Number(studyState.idx || 0);
+        var restoredScore = Number(studyState.score || 0);
+        var deck = germanTrainerDeck(studyState.level, requestedSkill);
+        deck.__germanTrainerKey = trainerKey;
+        studyState.data = deck;
+        studyState.idx = Math.min(Math.max(0, restoredIndex), Math.max(0, deck.length - 1));
+        studyState.score = Math.max(0, restoredScore);
+        studyState.germanTrainerSelected = null;
+        studyState.germanTrainerChecked = false;
+        studyState.germanTrainerTokens = [];
+        studyState.germanTrainerTranscript = '';
+        studyState.total = deck.length;
+      }
+      var deck = studyState.data;
+      if (!deck.length) {
+        host.innerHTML = '<section class="mistake-empty"><b>!</b><h3>' + esc(tr('German Trainer is unavailable','Тренажёр немецкого временно недоступен')) + '</h3><p>' + esc(tr('The validated exercise bank could not be loaded. Please try again later.','Не удалось загрузить проверенный банк заданий. Попробуйте ещё раз позже.')) + '</p></section>';
+        return;
+      }
+      // Match Academy Hub: a completed Deutsch Trainer session awards the
+      // configured session reward once, while the completion RPC prevents a
+      // replay from claiming it twice.
+      if (studyState.idx >= deck.length) return finishTool(studyState.score + ' / ' + deck.length, 12);
+
+      var task = deck[studyState.idx];
+      var selected = Number.isInteger(studyState.germanTrainerSelected) ? studyState.germanTrainerSelected : null;
+      var checked = !!studyState.germanTrainerChecked;
+      var isBuild=task.mode==='build';
+      var tokens=Array.isArray(studyState.germanTrainerTokens)?studyState.germanTrainerTokens:[];
+      var submitted=isBuild?tokens.join(' '):(task.skill==='pronunciation'&&studyState.germanTrainerTranscript?studyState.germanTrainerTranscript:(selected===null?'':task.options[selected]));
+      var correctIndex = task.options.indexOf(task.answer);
+      var correct = checked && normalizedGermanTrainerAnswer(submitted)===normalizedGermanTrainerAnswer(task.answer);
+      var feedbackHtml = checked
+        ? '<section class="w-question-feedback" aria-live="polite"><div class="' + (correct ? 'ok' : 'bad') + '"><b>' + esc(correct ? tr('Correct','Верно') : tr('Correct answer: ','Правильный ответ: ') + task.answer) + '</b><p class="w-question-full">' + esc(task.sentence) + '</p><hr><p>' + esc(task.explanation) + '</p></div></section>'
+        : '';
+      var skills=Object.keys(GERMAN_TRAINER_SKILLS).filter(function(skill){return skill!=='schreiben';});
+      var modeHtml=['practice','weakness'].map(function(item){return '<button type="button" data-german-trainer-mode="'+item+'" class="'+(mode===item?'active':'')+'">'+esc(item==='weakness'?tr('Weakest skill','Слабая тема'):tr('Practice','Практика'))+'</button>';}).join('');
+      var skillHtml='<button type="button" data-german-trainer-skill="all" class="'+(requestedSkill==='all'?'active':'')+'">'+esc(tr('Mixed','Смешанный'))+'</button>'+skills.map(function(skill){return '<button type="button" data-german-trainer-skill="'+esc(skill)+'" class="'+(requestedSkill===skill?'active':'')+'">'+esc(germanTrainerLabel(skill))+'</button>';}).join('');
+      var answerHtml;
+      if(isBuild){
+        var sourceTokens=task.__germanTrainerTokens||(task.__germanTrainerTokens=shuffle(task.answer.split(/\s+/)));
+        answerHtml='<div class="german-trainer-built">'+(tokens.length?tokens.map(function(token,index){return '<button type="button" data-german-trainer-token-remove="'+index+'"'+(checked?' disabled':'')+'>'+esc(token)+'</button>';}).join(''):'<span>'+esc(tr('Tap the words in order.','Нажимайте слова по порядку.'))+'</span>')+'</div><div class="w-question-options german-trainer-tokens">'+sourceTokens.map(function(token,index){var used=tokens.indexOf(token)>=0;return '<button type="button" data-german-trainer-token="'+index+'"'+(used||checked?' disabled':'')+'>'+esc(token)+'</button>';}).join('')+'</div>';
+      } else {
+        answerHtml='<div class="w-question-options">'+task.options.map(function(option, index) { var optionCorrect=normalizedGermanTrainerAnswer(option)===normalizedGermanTrainerAnswer(task.answer),state = checked ? (optionCorrect ? 'correct' : index === selected ? 'wrong' : '') : selected === index ? 'selected' : ''; return '<button type="button" data-german-trainer-option="' + index + '" class="' + state + '"' + (checked ? ' disabled' : '') + '>' + esc(option) + '</button>'; }).join('') + '</div>';
+      }
+      var pronunciationHtml=task.skill==='pronunciation'?'<div class="german-trainer-audio"><button type="button" data-german-trainer-listen>🔊 '+esc(tr('Listen','Слушать'))+'</button><button type="button" data-german-trainer-mic'+(checked?' disabled':'')+'>🎙 '+esc(tr('Speak','Сказать'))+'</button><output>'+esc(studyState.germanTrainerTranscript||'')+'</output></div>':'';
+      var completion=Math.round((studyState.idx+(checked?1:0))/deck.length*100);
+      var lives=Math.min(3,Math.max(0,Number(studyState.lives==null?3:studyState.lives)));
+      var bannerHtml='<div class="german-trainer-banner"><div><small>'+esc(tr('GERMAN CORE SKILLS','КЛЮЧЕВЫЕ НАВЫКИ НЕМЕЦКОГО'))+'</small><strong>'+esc(tr('Learn with focus','Учитесь сфокусированно'))+'</strong><p>'+esc(tr('Short, verified German practice for your level.','Короткая проверенная практика немецкого для вашего уровня.'))+'</p></div><b>'+esc(studyState.level)+'</b></div>';
+      var statusHtml='<div class="german-trainer-status"><div class="german-trainer-overall"><span><i style="width:'+completion+'%"></i></span><b>'+ (studyState.idx+1)+' / '+deck.length+'</b></div><div class="german-trainer-vitals"><span aria-label="'+esc(tr('Lives','Жизни'))+'">'+('♥'.repeat(lives)+'♡'.repeat(3-lives))+'</span><span>🔥 '+Number(studyState.streak||0)+'</span><button type="button" aria-expanded="'+(studyState.germanTrainerHelpOpen?'true':'false')+'" data-german-trainer-help>⚙ '+esc(tr('Help and options','Помощь и настройки'))+'</button></div></div>' + (studyState.germanTrainerHelpOpen?'<aside class="german-trainer-help" role="note"><b>'+esc(tr('How this practice works','Как работает практика'))+'</b><span>'+esc(tr('Choose one answer, check it, then use the explanation before continuing. Your streak and hearts update from the verified result.','Выберите ответ, проверьте его и прочитайте объяснение перед продолжением. Серия и жизни обновляются по проверенному результату.'))+'</span></aside>':'');
+      var feedbackAudio=checked?'<button type="button" class="german-trainer-feedback-audio" data-german-trainer-feedback-audio>🔊 '+esc(tr('Listen to the correct answer','Слушать правильный ответ'))+'</button>':'';
+      host.innerHTML = '<section class="w-question-trainer german-essentials-trainer">'+bannerHtml+statusHtml+'<header><div><small>DUVELA · DEUTSCH TRAINER · ' + esc(studyState.level) + '</small><h2>'+esc(tr('German core skills','Ключевые навыки немецкого'))+'</h2><p>' + esc(germanTrainerLabel(task.skill)) + '</p></div><b>' + (studyState.idx + 1) + ' / ' + deck.length + '</b></header><div class="german-trainer-modes">'+modeHtml+'</div><div class="german-trainer-skills">'+skillHtml+'</div><i aria-hidden="true"><em style="width:' + Math.round((studyState.idx + 1) / deck.length * 100) + '%"></em></i><main><small>' + esc(task.prompt) + '</small><div class="german-trainer-question"><h3>' + esc(task.sentence) + '</h3></div>'+pronunciationHtml+answerHtml + feedbackHtml + feedbackAudio + '<footer class="w-question-footer">' + (checked ? '<button type="button" class="w-question-continue" data-german-trainer-next>' + esc(tr('Continue','Продолжить')) + ' →</button>' : '<button type="button" class="w-question-check" data-german-trainer-check' + (!submitted ? ' disabled' : '') + '>' + esc(tr('Check answer','Проверить ответ')) + '</button>') + '<button type="button" class="w-question-exit" data-german-trainer-exit>' + esc(tr('Exit practice','Выйти из практики')) + '</button></footer></main></section>';
+      var activeSkill=host.querySelector('[data-german-trainer-skill].active');if(activeSkill&&activeSkill.scrollIntoView){activeSkill.scrollIntoView({block:'nearest',inline:'nearest'});}
+      Array.prototype.forEach.call(host.querySelectorAll('[data-german-trainer-mode]'),function(button){button.onclick=function(){studyState.germanTrainerMode=button.getAttribute('data-german-trainer-mode');studyState.idx=0;studyState.score=0;studyState.data=null;renderGermanEssentials();};});
+      Array.prototype.forEach.call(host.querySelectorAll('[data-german-trainer-skill]'),function(button){button.onclick=function(){studyState.germanTrainerMode='practice';studyState.germanTrainerSkill=button.getAttribute('data-german-trainer-skill');studyState.idx=0;studyState.score=0;studyState.data=null;renderGermanEssentials();};});
+      Array.prototype.forEach.call(host.querySelectorAll('[data-german-trainer-option]'), function(button) { button.onclick = function() { studyState.germanTrainerSelected = Number(button.getAttribute('data-german-trainer-option')); renderGermanEssentials(); }; });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-german-trainer-token]'),function(button){button.onclick=function(){var list=task.__germanTrainerTokens||[],token=list[Number(button.getAttribute('data-german-trainer-token'))];studyState.germanTrainerTokens=(studyState.germanTrainerTokens||[]).concat([token]);renderGermanEssentials();};});
+      Array.prototype.forEach.call(host.querySelectorAll('[data-german-trainer-token-remove]'),function(button){button.onclick=function(){studyState.germanTrainerTokens.splice(Number(button.getAttribute('data-german-trainer-token-remove')),1);renderGermanEssentials();};});
+      var listen=host.querySelector('[data-german-trainer-listen]');if(listen)listen.onclick=function(){germanTrainerSpeak(task.answer);};
+      var feedbackListen=host.querySelector('[data-german-trainer-feedback-audio]');if(feedbackListen)feedbackListen.onclick=function(){germanTrainerSpeak(task.answer);};
+      var help=host.querySelector('[data-german-trainer-help]');if(help)help.onclick=function(){studyState.germanTrainerHelpOpen=!studyState.germanTrainerHelpOpen;renderGermanEssentials();};
+      var mic=host.querySelector('[data-german-trainer-mic]');if(mic)mic.onclick=function(){var Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognition){mic.disabled=true;mic.textContent=tr('Voice is unavailable','Голос недоступен');return;}var recognition=new Recognition();recognition.lang='de-DE';recognition.interimResults=false;recognition.maxAlternatives=1;mic.disabled=true;mic.textContent='🎙 '+tr('Listening…','Слушаю…');recognition.onresult=function(event){studyState.germanTrainerTranscript=event.results[0][0].transcript||'';renderGermanEssentials();};recognition.onerror=function(){mic.disabled=false;mic.textContent='🎙 '+tr('Try again','Повторить');};recognition.start();};
+      var check = host.querySelector('[data-german-trainer-check]');
+      if (check) check.onclick = function() {
+        if (studyState.germanTrainerChecked || !submitted) return;
+        var chosen = submitted;
+        var ok = normalizedGermanTrainerAnswer(chosen)===normalizedGermanTrainerAnswer(task.answer);
+        studyState.germanTrainerChecked = true;
+        feedback(ok, { prompt:task.sentence, chosen:chosen, correct:task.answer, explanation:task.explanation });
+        recordGermanTrainerStat(task.skill,ok);
+        if (ok) {
+          studyState.score++;
+          clearMistake('de', 'german-essentials:' + task.id);
+        } else {
+          logMistake('de', task.sentence, task.options, correctIndex, 'mcq', { sourceTool:'germanEssentials', questionId:'german-essentials:' + task.id, level:studyState.level, explanation:task.explanation, selectedAnswer:chosen });
+        }
+        syncPracticeData();
+        renderGermanEssentials();
+      };
+      var next = host.querySelector('[data-german-trainer-next]');
+      if (next) next.onclick = function() { studyState.idx++; studyState.germanTrainerSelected = null; studyState.germanTrainerChecked = false; studyState.germanTrainerTokens=[]; studyState.germanTrainerTranscript=''; persistResume(); renderGermanEssentials(); };
+      var exit = host.querySelector('[data-german-trainer-exit]');
+      if (exit) exit.onclick = function() { closeStudy(); };
     }
 
     // ---- 12. AI practice coach (real LLM via Supabase edge function) ----

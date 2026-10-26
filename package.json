@@ -37,6 +37,8 @@
     "import:exam-a2-audio": "node ./scripts/import-telc-exam-audio.js",
     "import:legal": "node ./scripts/import-legal-content.js",
     "sync:german-grammar-bank": "node ./scripts/sync-german-grammar-mobile-bank.mjs",
+    "sync:german-essentials-bank": "node ./scripts/sync-german-essentials-bank.mjs",
+    "sync:mobile-exam-bank": "node ./scripts/sync-mobile-exam-bank.mjs",
     "sync:mobile-article-bank": "node ./scripts/sync-mobile-article-bank.mjs"
   },
   "dependencies": {
