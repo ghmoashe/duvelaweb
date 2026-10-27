@@ -23,5 +23,5 @@ test('Premium Voice Room V2 renders data-backed participant states and responsiv
   assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(css, /@media\(max-width:350px\).*repeat\(2,minmax\(0,1fr\)\)/s);
   assert.match(css, /@media\(min-width:1040px\).*repeat\(6,minmax\(0,1fr\)\)/s);
-  assert.ok(html.includes('app-feature-social-practice.js?v=20261027-i18n1'));
+  assert.ok(html.includes('app-feature-social-practice.js?v=20261027-vr-resync'));
 });

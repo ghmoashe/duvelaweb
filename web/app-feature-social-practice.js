@@ -14,6 +14,11 @@
   const REPORT_REASONS = ['spam', 'harassment', 'hate', 'inappropriate', 'other'];
   const MAX_LANGUAGES = 6;
   const HEARTBEAT_MS = 30000;
+  // Realtime can drop silently and missed events are not replayed, so a room also
+  // polls: every 5 s while the channel is down, every 20 s while it is up.
+  const RESYNC_TICK_MS = 5000;
+  const RESYNC_HEALTHY_EVERY = 4;
+  let voiceRoomChannelSeq = 0;
   const AGORA_SDK_SRC = './web/vendor/AgoraRTC_N-4.20.0.js';
   const AGORA_FALLBACK_APP_ID = '7dbbced847dc459ba72f7ee6e2426c11';
 
@@ -746,6 +751,18 @@
         room.phase = 'ready';
         await Promise.all([refreshMembers(), refreshMessages(), refreshRequests()]);
         subscribeRoom(id);
+        clearInterval(room.resync);
+        let tick = 0;
+        room.resync = setInterval(() => {
+          if (room.id !== id || room.phase !== 'ready') return;
+          tick += 1;
+          if (!room.realtimeOk) {
+            catchUpRoom(id);
+            if (tick % 3 === 0) subscribeRoom(id);
+          } else if (tick % RESYNC_HEALTHY_EVERY === 0) {
+            catchUpRoom(id);
+          }
+        }, RESYNC_TICK_MS);
         clearInterval(room.heartbeat);
         room.heartbeat = setInterval(() => {
           supa.rpc('voice_room_heartbeat', { p_room: id }).then(({ data, error }) => {
@@ -759,10 +776,24 @@
       }
     }
 
+    function catchUpRoom(id) {
+      if (room.id !== id) return;
+      refreshMembers();
+      refreshMessages();
+      refreshRequests();
+      getRoomDetail().then((next) => {
+        if (room.id !== id) return;
+        if (!next || next.status === 'ended') closeRoom(vrCopy.roomEnded);
+        else { room.detail = next; renderRoom(); }
+      }, () => {});
+    }
+
     function subscribeRoom(id) {
       if (room.channel) { try { supa.removeChannel(room.channel); } catch (_) {} }
+      room.realtimeOk = false;
       const filter = 'room_id=eq.' + id;
-      room.channel = supa.channel('voice-room-' + id)
+      // A fresh topic per subscribe, so a resubscribe never reuses a channel being removed.
+      room.channel = supa.channel('voice-room-' + id + '-' + (voiceRoomChannelSeq += 1))
         .on('postgres_changes', { event: '*', schema: 'public', table: 'voice_rooms', filter: 'id=eq.' + id }, () => {
           getRoomDetail().then((next) => {
             if (!next || next.status === 'ended') closeRoom(vrCopy.roomEnded);
@@ -772,12 +803,23 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'voice_room_members', filter }, () => refreshMembers())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'voice_room_speaking_requests', filter }, () => { refreshRequests(); refreshMembers(); })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'voice_room_messages', filter }, () => refreshMessages())
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            room.realtimeOk = true;
+            // Whatever happened before the channel was up was not delivered.
+            catchUpRoom(id);
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            room.realtimeOk = false;
+          }
+        });
     }
 
     function stopRoomSync() {
       clearInterval(room.heartbeat);
       room.heartbeat = null;
+      clearInterval(room.resync);
+      room.resync = null;
+      room.realtimeOk = false;
       if (room.channel) { try { supa.removeChannel(room.channel); } catch (_) {} room.channel = null; }
     }
 
