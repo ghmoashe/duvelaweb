@@ -121,6 +121,49 @@
     return opts.isRu ? (value.ru || value.en) : (value.en || value.ru);
   }
 
+  // STELLA's bank stores English meanings. Show them in the learner's language with
+  // the free online translators (MyMemory, then Google), like the Hub app; English
+  // stays when both fail. Junk answers (digits the word never had, dictionary
+  // lists, overlong text) are rejected.
+  var meaningCache = {};
+  var meaningPending = {};
+  function meaningLocale(locale) {
+    var base = String(locale || 'en').toLowerCase().split(/[-_]/)[0];
+    return base === 'nb' || base === 'nn' ? 'no' : base;
+  }
+  function plausibleTranslation(source, text) {
+    var t = String(text || '').trim();
+    if (!t || t.toLowerCase() === source.toLowerCase()) return '';
+    if (/^(INVALID|MYMEMORY WARNING|PLEASE SELECT|QUERY LENGTH)/i.test(t)) return '';
+    if (!/\d/.test(source) && /\d/.test(t)) return '';
+    if ((t.match(/,/g) || []).length > (source.match(/,/g) || []).length + 1) return '';
+    if (t.length > Math.max(40, source.length * 4)) return '';
+    return t;
+  }
+  function translateMeaning(source, locale) {
+    var lang = meaningLocale(locale);
+    var key = lang + '::' + source;
+    if (!source || lang === 'en') return Promise.resolve(source);
+    if (meaningCache[key]) return Promise.resolve(meaningCache[key]);
+    if (meaningPending[key]) return meaningPending[key];
+    var myMemory = fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(source) + '&langpair=' + encodeURIComponent('en|' + lang))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { return j && String(j.responseStatus) === '200' ? plausibleTranslation(source, j.responseData && j.responseData.translatedText) : ''; })
+      .catch(function () { return ''; });
+    meaningPending[key] = myMemory.then(function (first) {
+      if (first) return first;
+      return fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' + encodeURIComponent(lang) + '&dt=t&q=' + encodeURIComponent(source))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { return Array.isArray(j) && Array.isArray(j[0]) ? plausibleTranslation(source, j[0].map(function (p) { return Array.isArray(p) ? p[0] : ''; }).join('')) : ''; })
+        .catch(function () { return ''; });
+    }).then(function (text) {
+      meaningCache[key] = text || source;
+      delete meaningPending[key];
+      return meaningCache[key];
+    });
+    return meaningPending[key];
+  }
+
   function loading(host, opts) {
     host.innerHTML = '<div class="empty">' + opts.esc(opts.tr('Loading…', 'Загрузка…')) + '</div>';
   }
@@ -661,11 +704,24 @@
         if (opts.isSaved(word)) return '<span class="st-chip done">✓ ' + esc(tr('In My words', 'В моих словах')) + '</span>';
         return '<button type="button" class="st-chip" data-save="' + esc(word) + '" data-save-t="' + esc(translation || '') + '">🔖 ' + esc(tr('Add to My words', 'В мои слова')) + '</button>';
       }
+      // Cached translation or English for now; the span is filled in when it arrives.
+      function meaningSpan(tag, cls, text) {
+        if (!text) return '';
+        var key = meaningLocale(opts.nativeLocale) + '::' + text;
+        if (!meaningCache[key]) {
+          translateMeaning(text, opts.nativeLocale).then(function (value) {
+            Array.prototype.forEach.call(host.querySelectorAll('[data-st-mean]'), function (node) {
+              if (node.getAttribute('data-st-mean') === text) node.textContent = value;
+            });
+          });
+        }
+        return '<' + tag + (cls ? ' class="' + cls + '"' : '') + ' data-st-mean="' + esc(text) + '">' + esc(meaningCache[key] || text) + '</' + tag + '>';
+      }
       function cardHtml(entry, isCurrent) {
         var card = entry.card;
         return '<div class="st-word"><div class="st-word-head"><div><b>' + esc(tr('Build a sentence with this word', 'Составь предложение с этим словом')) + '</b><small>' + esc(tr('Write it or say it with the mic', 'Напиши или скажи в микрофон')) + '</small></div><span>' + entry.n + '</span></div>' +
           '<div class="st-face"><b>' + esc(card.word) + '</b><button type="button" data-speak="' + esc(card.word) + '" aria-label="Listen">🔊</button></div>' +
-          '<div class="st-meta"><span class="st-level">' + esc(card.level) + '</span>' + (card.pos ? '<span class="st-pos">' + esc(card.pos) + '</span>' : '') + '<b>' + esc(card.meaning) + '</b></div>' +
+          '<div class="st-meta"><span class="st-level">' + esc(card.level) + '</span>' + meaningSpan('span', 'st-pos', card.pos) + meaningSpan('b', '', card.meaning) + '</div>' +
           (card.example && isCurrent && state.hint ? '<div class="st-example"><small>' + esc(tr('Example', 'Пример')) + '</small><br>' + esc(card.example) + '</div>' : '') +
           '<div class="st-meta">' + (card.example && isCurrent && !state.hint ? '<button type="button" class="st-chip" data-hint="1">💡 ' + esc(tr('Show an example', 'Показать пример')) + '</button>' : '') + saveButton(card.word, card.meaning) + '</div></div>';
       }

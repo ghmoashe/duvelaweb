@@ -5394,7 +5394,8 @@
         lang: lang,
         level: currentPracticeLevel(lang),
         locale: SPEECH_LOCALE[lang] || 'de-DE',
-        nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US',
+        // The interface language, not just ru/en: card meanings and STELLA's feedback use it.
+        nativeLocale: String((ctx.getAppLang && ctx.getAppLang()) || (ctx.isRu ? 'ru' : 'en')).toLowerCase(),
         supa: supa,
         avatarHtml: function () { return aiAvatarHtml(aiChatState.partner, 'sm', false); },
         speak: function (text) { speakAi(text); },
