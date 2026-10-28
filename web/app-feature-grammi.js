@@ -233,8 +233,8 @@
                 return '<button type="button" class="gr-option' + (value === option ? ' on' : '') + '" data-choose="' + index + '|' + esc(task.id) + '" data-value="' + esc(option) + '"' + (locked ? ' disabled' : '') + '>' + esc(option) + '</button>';
               }).join('') + '</div>'
             : (task.type === 'fill'
-                ? '<input data-answer="' + index + '|' + esc(task.id) + '" value="' + esc(value) + '" placeholder="' + esc(tr('Your answer', 'Твой ответ')) + '" autocomplete="off" spellcheck="false"' + (locked ? ' disabled' : '') + '>'
-                : '<textarea rows="2" data-answer="' + index + '|' + esc(task.id) + '" placeholder="' + esc(tr('Your answer', 'Твой ответ')) + '" spellcheck="false"' + (locked ? ' disabled' : '') + '>' + esc(value) + '</textarea>');
+                ? '<input data-answer="' + index + '|' + esc(task.id) + '" value="' + esc(value) + '" placeholder="' + esc(tr('Your answer', 'Твой ответ')) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"' + (locked ? ' disabled' : '') + '>'
+                : '<textarea rows="2" data-answer="' + index + '|' + esc(task.id) + '" placeholder="' + esc(tr('Your answer', 'Твой ответ')) + '" spellcheck="false" autocapitalize="off" autocorrect="off"' + (locked ? ' disabled' : '') + '>' + esc(value) + '</textarea>');
           return '<div class="gr-task"><small>' + (n + 1) + '. ' + esc(taskLabel(task)) + '</small><b>' + esc(task.item) + '</b>' + field +
             (result ? '<div class="gr-result ' + (result.correct ? 'ok' : 'bad') + '">' + (result.correct ? '✅' : '❌') + '<span>' +
               (!result.correct ? '<b>' + esc(result.correctAnswer) + '</b>' : '') + (result.note ? '<small>' + esc(result.note) + '</small>' : '') + '</span></div>' : '') +
@@ -272,7 +272,7 @@
         '<div class="gr-log" id="grLog">' + log + '</div>' +
         (state.error ? '<div class="gr-error" role="alert">' + esc(state.error) + '</div>' : '') +
         (dock ? '<div class="gr-dock">' + dock + '</div>' : '') +
-        '<div class="gr-composer"><input id="grInput" placeholder="' + esc(tr('A grammar topic or question…', 'Тема или вопрос по грамматике…')) + '" autocomplete="off"' + (state.busy ? ' disabled' : '') + '>' +
+        '<div class="gr-composer"><input id="grInput" placeholder="' + esc(tr('A grammar topic or question…', 'Тема или вопрос по грамматике…')) + '" autocomplete="off" autocapitalize="off" autocorrect="off"' + (state.busy ? ' disabled' : '') + '>' +
         '<button class="btn primary" id="grSend"' + (state.busy ? ' disabled' : '') + '>' + esc(tr('Send', 'Отправить')) + '</button></div>' +
         '<button class="btn" id="grEnd" style="width:100%;margin-top:10px">' + esc(tr('End session', 'Завершить сессию')) + '</button>';
       logEl = host.querySelector('#grLog');
