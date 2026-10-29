@@ -2562,7 +2562,8 @@
         action: tool === 'writing' ? 'evaluate_writing' : 'evaluate-speaking',
         language: studyState.lang,
         level: (loadPrefs().levels || {})[studyState.lang] || 'A1',
-        nativeLocale: ctx.isRu ? 'ru-RU' : 'en-US'
+        // The interface language, not just ru/en: feedback in the learner's language.
+        nativeLocale: String((ctx.getAppLang && ctx.getAppLang()) || (ctx.isRu ? 'ru' : 'en')).toLowerCase()
       }, payload || {});
       var response = await supa.functions.invoke(tool === 'writing' ? 'openai-assistant' : 'practice-ai-evaluate', { body:body });
       if (response.error || !response.data || !response.data.evaluation) {

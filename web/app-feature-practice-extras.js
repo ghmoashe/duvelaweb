@@ -717,6 +717,9 @@
         }
         return '<' + tag + (cls ? ' class="' + cls + '"' : '') + ' data-st-mean="' + esc(text) + '">' + esc(meaningCache[key] || text) + '</' + tag + '>';
       }
+      function shownMeaning(text) {
+        return (text && meaningCache[meaningLocale(opts.nativeLocale) + '::' + text]) || text;
+      }
       function cardHtml(entry, isCurrent) {
         var card = entry.card;
         return '<div class="st-word"><div class="st-word-head"><div><b>' + esc(tr('Build a sentence with this word', 'Составь предложение с этим словом')) + '</b><small>' + esc(tr('Write it or say it with the mic', 'Напиши или скажи в микрофон')) + '</small></div><span>' + entry.n + '</span></div>' +
@@ -821,11 +824,12 @@
         Array.prototype.forEach.call(host.querySelectorAll('[data-speak]'), function (b) { b.onclick = function () { opts.speak(b.getAttribute('data-speak')); }; });
         Array.prototype.forEach.call(host.querySelectorAll('[data-hint]'), function (b) { b.onclick = function () { state.hint = true; render(); }; });
         Array.prototype.forEach.call(host.querySelectorAll('[data-save]'), function (b) {
-          b.onclick = function () { opts.saveWord(b.getAttribute('data-save'), b.getAttribute('data-save-t')); render(); };
+          // Save the meaning the card shows (translated) rather than its English gloss.
+          b.onclick = function () { opts.saveWord(b.getAttribute('data-save'), shownMeaning(b.getAttribute('data-save-t'))); render(); };
         });
         Array.prototype.forEach.call(host.querySelectorAll('[data-save-review]'), function (b) {
           b.onclick = function () {
-            state.results.filter(function (r) { return r.score < 70; }).forEach(function (r) { if (!opts.isSaved(r.card.word)) opts.saveWord(r.card.word, r.card.meaning); });
+            state.results.filter(function (r) { return r.score < 70; }).forEach(function (r) { if (!opts.isSaved(r.card.word)) opts.saveWord(r.card.word, shownMeaning(r.card.meaning)); });
             render();
           };
         });
