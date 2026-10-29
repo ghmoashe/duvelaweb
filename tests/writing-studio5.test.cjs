@@ -14,7 +14,7 @@ test('Writing Studio uses a focused editor and responsive support panel', () => 
   assert.match(css, /grid-template-columns:minmax\(0,68fr\) minmax\(290px,32fr\)/);
   assert.match(css, /@media\(max-width:760px\)/);
   assert.ok(html.includes('practice-hub.css?v=20261025-exam-mode-v2'));
-  assert.ok(html.includes('app-feature-study.js?v=20261028-stella-native'));
+  assert.ok(html.includes('app-feature-study.js?v=20261029-sofia-time'));
 });
 
 test('Writing drafts distinguish local, account, saving and failure states', () => {

@@ -5763,14 +5763,28 @@
       aiChatState.error = null;
       renderAiPractice();
       try {
-        var nativeLocale = ctx.isRu ? 'ru-RU' : 'en-US';
+        // The interface language, not just ru/en, so feedback follows every language.
+        var nativeLocale = String((ctx.getAppLang && ctx.getAppLang()) || (ctx.isRu ? 'ru' : 'en')).toLowerCase();
         var partner = aiChatState.partner;
         var roleMeta = aiRoleMeta(partner ? partner.role : 'conversation');
         // Map the partner role to a practiceMode the edge function understands
         // (conversation → daily; grammar/pronunciation/roleplay pass through).
         var practiceMode = partner ? ({ grammar: 'grammar', pronunciation: 'pronunciation', roleplay: 'roleplay', conversation: 'conversation' }[partner.role] || 'daily') : 'daily';
         var personaLine = partner ? ('Stay in character as ' + partner.name + ' (' + partner.tagline.en + '). ') : '';
-        var greetingInput = 'Let\'s begin. ' + personaLine + roleMeta.instruction + ' Greet me briefly and start.';
+        // Never a self-introduction (name and photo are on screen); Sofia's opening
+        // follows the learner's local time, so a morning chat never asks how the day was.
+        var now = new Date();
+        var hour = now.getHours();
+        var clock = String(hour).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        var dayPartHint = hour >= 5 && hour < 11
+          ? 'It is morning for me: greet with a morning greeting and ask about my night, breakfast or plans for today. Do NOT ask how my day was or what I did today.'
+          : hour >= 11 && hour < 17
+            ? 'It is the afternoon for me: ask how the day is going so far, about lunch or what is still ahead.'
+            : hour >= 17 && hour < 22
+              ? 'It is evening for me: you may ask how my day was.'
+              : 'It is late at night for me: keep it calm and short.';
+        var timeLine = partner && partner.role === 'conversation' ? 'My local time is ' + clock + '. ' + dayPartHint + ' ' : '';
+        var greetingInput = 'Let\'s begin. ' + personaLine + roleMeta.instruction + ' ' + timeLine + 'Do not say your name and do not introduce yourself — I already know you. Greet me briefly and start.';
         var { data, error } = await supa.functions.invoke('openai-assistant', {
           body: {
             action: 'respond',
