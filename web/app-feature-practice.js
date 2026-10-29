@@ -99,6 +99,21 @@
       }) || null;
     }
 
+    function audiencesOf(practice) {
+      const list = Array.isArray(practice.access_audiences) ? practice.access_audiences.filter((value) => ['everyone', 'premium', 'subscribers'].includes(value)) : [];
+      return list.length ? list : ['everyone'];
+    }
+
+    function accessBadge(practice) {
+      const list = audiencesOf(practice);
+      if (list.includes('everyone')) return '';
+      const label = list.includes('premium') && list.includes('subscribers')
+        ? tr('Premium + Super subscribers', 'Premium + Super-подписчики')
+        : list.includes('subscribers') ? tr('Super subscribers', 'Только Super') : 'Premium';
+      const open = (state.practiceAccess || {})[practice.id]?.hasAccess;
+      return '<span class="tag" style="background:#F1EAFD;color:#6D3DF5">' + (open ? '✓ ' : (list.includes('premium') ? '🔒 ' : '⭐ ')) + esc(label) + '</span>';
+    }
+
     function xpFor(practice, total) {
       return Math.max(20, Number(total || 0) * 5 || Math.round((Number(practice.plays_count || 1) + 20) / 2));
     }
@@ -108,7 +123,7 @@
       practicesLoading=true;practicesError='';
       try {
         const [practiceResult, assignmentResult, feedbackResult] = await Promise.all([
-          supa.from('teacher_practices').select('id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count').eq('status', 'published').order('rating_avg', { ascending: false }).limit(30),
+          supa.from('teacher_practices').select('id,creator_id,creator_name,target,level,format,title,description,cover_image_url,rating_avg,rating_count,plays_count,access_audiences').eq('status', 'published').order('rating_avg', { ascending: false }).limit(30),
           supa.from('practice_assignments').select('practice_id,due_at,status,created_at').eq('student_id', ctx.user.id),
           supa.from('practice_feedback').select('practice_id,score,feedback,created_at').eq('user_id', ctx.user.id).order('created_at', { ascending: false })
         ]);
@@ -128,6 +143,15 @@
           ]);
           (ratings || []).forEach((rating) => { state.myRatings[rating.practice_id] = rating.rating; });
           state.practiceAttempts = attempts || [];
+          // Premium / Super-subscriber practices: the server says who may open them.
+          state.practiceAccess = {};
+          const restrictedIds = state.practices.filter((practice) => !audiencesOf(practice).includes('everyone')).map((practice) => practice.id);
+          if (restrictedIds.length) {
+            const { data: access } = await supa.rpc('teacher_practice_access_summary', { p_practice_ids: restrictedIds });
+            (Array.isArray(access) ? access : []).forEach((row) => {
+              state.practiceAccess[row.practice_id] = { hasAccess: row.has_access === true, itemCount: Number(row.item_count || 0) };
+            });
+          }
         }
       } catch (error) {
         practicesError=tr('Check your connection and try again.','Проверьте соединение и повторите попытку.');
@@ -169,6 +193,7 @@
             '<div class="prac-meta">' +
               (practice.level ? '<span class="tag">' + esc(String(practice.level).toUpperCase()) + '</span>' : '') +
               (practice.target ? '<span class="tag blue">' + esc(practice.target) + '</span>' : '') +
+              accessBadge(practice) +
               '<span class="tag amber">★ ' + Number(practice.rating_avg || 0).toFixed(1) + ' (' + (practice.rating_count || 0) + ')</span>' +
               '<span>' + duration + ' ' + esc(tr('min', 'мин')) + '</span><span>' + (practice.plays_count || 0) + ' ' + esc(tr('plays', 'прохождений')) + '</span>' +
             '</div><div class="practice-owner-line"><span>' + esc(practice.creator_name || tr('Duvela teacher', 'Преподаватель Duvela')) + '</span><span>' + esc(tr('Best', 'Лучший')) + ': ' + (attempt ? percent + '%' : '-') + '</span></div>' +
@@ -182,7 +207,11 @@
     async function openPractice(id) {
       const practice = state.practices.find((item) => String(item.id) === String(id));
       if (!practice || !matchesLearner(practice)) return;
-      practiceState = { practice, items: [], idx: 0, score: 0, answered: false, misses: [] };
+      const restricted = !audiencesOf(practice).includes('everyone');
+      const access = (state.practiceAccess || {})[practice.id];
+      // Without access the server only returns the free preview items.
+      const preview = restricted && !(access && access.hasAccess);
+      practiceState = { practice, items: [], idx: 0, score: 0, answered: false, misses: [], preview, totalItems: access ? access.itemCount : 0 };
       $('#practiceOverlayTitle').textContent = practice.title;
       const body = $('#practiceOverlayBody');
       body.innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
@@ -282,8 +311,37 @@
       else renderPracticeStep();
     }
 
+    function renderPracticePaywall() {
+      const step = practiceState;
+      const list = audiencesOf(step.practice);
+      const superOnly = list.includes('subscribers') && !list.includes('premium');
+      const locked = Math.max(0, Number(step.totalItems || 0) - step.items.length);
+      const text = superOnly
+        ? tr('The full practice opens with a Super subscription to this teacher.', 'Целиком практика открывается с Super-подпиской на этого учителя.')
+        : list.includes('subscribers')
+          ? tr('The full practice opens with Duvela Premium or a Super subscription to this teacher.', 'Целиком практика открывается с Duvela Premium или Super-подпиской на этого учителя.')
+          : tr('The full run with rewards unlocks with Duvela Premium.', 'Полное прохождение с наградами открывается с Duvela Premium.');
+      $('#practiceOverlayBody').innerHTML = '<div class="practice-result-card"><span class="practice-result-kicker">🔒 ' + esc(tr('Preview finished', 'Превью пройдено')) + '</span>' +
+        '<h2>' + step.score + ' / ' + step.items.length + '</h2>' +
+        (locked ? '<p style="font-weight:800">+' + locked + ' ' + esc(tr('more items in this practice', 'ещё заданий в этой практике')) + '</p>' : '') +
+        '<p style="font-weight:700">' + esc(text) + '</p>' +
+        '<p style="color:var(--soft);font-weight:700">' + esc(tr('If your teacher assigned this practice as homework, it opens in full without a subscription.', 'Если учитель задал эту практику как ДЗ, она откроется полностью и без подписки.')) + '</p>' +
+        (list.includes('subscribers') && step.practice.creator_id ? '<a class="btn primary" style="display:block;text-align:center;margin-top:10px" href="./profile.html?id=' + encodeURIComponent(step.practice.creator_id) + '">⭐ ' + esc(tr('Subscribe to the teacher (Super)', 'Подписаться на учителя (Super)')) + '</a>' : '') +
+        (list.includes('premium') ? '<button type="button" class="btn' + (superOnly ? '' : ' primary') + '" id="pracPremium" style="width:100%;margin-top:10px">★ ' + esc(tr('Join the Duvela Premium waitlist', 'В лист ожидания Duvela Premium')) + '</button>' : '') +
+        '</div>';
+      const premium = $('#pracPremium');
+      if (premium) premium.onclick = async function () {
+        localStorage.setItem('duvela.premium.waitlist', '1');
+        try { await supa.from('notifications').insert({ user_id: ctx.user.id, type: 'premium_waitlist', title: 'Duvela Premium', body: 'Premium payment waitlist' }); } catch (e) {}
+        this.textContent = '✓ ' + tr('Saved', 'Сохранено');
+        this.disabled = true;
+      };
+    }
+
     async function renderPracticeResult() {
       const step = practiceState;
+      // A preview never counts as a run (the server refuses it anyway): show the paywall.
+      if (step.preview) { renderPracticePaywall(); return; }
       const total = step.items.length;
       const accuracy = Math.round((step.score / Math.max(1, total)) * 100);
       const xp = xpFor(step.practice, total);
