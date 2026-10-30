@@ -31,6 +31,14 @@
         saved: ['Saved ✓', 'Сохранено ✓'],
         openPublic: ['Open public profile', 'Открыть публичный профиль'],
         signOut: ['Sign out', 'Выйти'],
+        // Settings → Account
+        accountTitle: ['Account', 'Аккаунт'],
+        accountHint: ['Your profile details and sign-in options stay in Profile.', 'Данные профиля и параметры входа находятся в профиле.'],
+        editProfile: ['Edit profile', 'Редактировать профиль'],
+        viewProfile: ['View profile', 'Открыть профиль'],
+        dangerZone: ['Danger zone', 'Опасная зона'],
+        dangerHint: ['Deletes your profile data and signs you out. This cannot be undone.', 'Удаляет данные профиля и выполняет выход. Это действие нельзя отменить.'],
+        deleteAccount: ['Delete account', 'Удалить аккаунт'],
         startNewChat: ['Start a new chat', 'Начать новый чат']
       };
 
