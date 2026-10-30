@@ -410,14 +410,34 @@
     } catch(error){ modal.querySelector('.preflight-status').textContent=String(error&&error.message||error); }
   }
   function stopDeviceCheck(){ cancelAnimationFrame(meterFrame); meterStream?.getTracks().forEach(track=>track.stop()); meterStream=null; meterContext?.close?.().catch(()=>{}); meterContext=null; modal.classList.remove('open'); }
-  modal.querySelector('#enterStudio').addEventListener('click',async()=>{ const button=modal.querySelector('#enterStudio'),cam=modal.querySelector('#preCamera').value,mic=modal.querySelector('#preMic').value; if(button)button.disabled=true; stopDeviceCheck(); try{await api.setDevices(cam,mic);}catch(error){console.warn('pre-live device setup failed',error);} });
-  modal.querySelector('#cancelDevices').addEventListener('click',()=>{stopDeviceCheck();byId('v5Devices').focus();});
-  modal.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&!modal.querySelector('#cancelDevices').hidden){stopDeviceCheck();byId('v5Devices').focus();}});
+  // Before LIVE there is no Agora microphone track yet, so the top-bar meter
+  // reads a plain audio-only capture of the chosen mic. It is stopped as soon
+  // as LIVE starts, before Agora opens its own track.
+  let previewMic={};
+  let selectedMicId='';
+  function stopPreviewMeter(){ previewMic.stream?.getTracks().forEach(track=>track.stop()); previewMic.context?.close?.().catch(()=>{}); previewMic={}; }
+  async function startPreviewMeter(deviceId){
+    stopPreviewMeter();
+    if(api.isPublishing()||!navigator.mediaDevices?.getUserMedia)return;
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true,video:false});
+      if(api.isPublishing()){stream.getTracks().forEach(track=>track.stop());return;}
+      const context=new AudioContext(),analyser=context.createAnalyser();analyser.fftSize=512;context.createMediaStreamSource(stream).connect(analyser);
+      previewMic={stream,context,analyser,data:new Uint8Array(analyser.fftSize)};micChecked=true;
+    }catch(error){previewMic={};console.warn('microphone preview unavailable',error);}
+  }
+  function previewMicLevel(){ if(!previewMic.analyser)return null; previewMic.analyser.getByteTimeDomainData(previewMic.data); let peak=0; for(const value of previewMic.data)peak=Math.max(peak,Math.abs(value-128)/128); return peak; }
+  byId('hostAction')?.addEventListener('click',stopPreviewMeter,true);
+  modal.querySelector('#enterStudio').addEventListener('click',async()=>{ const button=modal.querySelector('#enterStudio'),cam=modal.querySelector('#preCamera').value,mic=modal.querySelector('#preMic').value; if(button)button.disabled=true; stopDeviceCheck(); selectedMicId=mic; try{await api.setDevices(cam,mic);}catch(error){console.warn('device setup failed',error);hint(t('Could not switch the device: ','Не удалось переключить устройство: ')+(error?.message||error));} startPreviewMeter(mic); });
+  function closeDevices(){stopDeviceCheck();startPreviewMeter(selectedMicId);byId('v5Devices').focus();}
+  modal.querySelector('#cancelDevices').addEventListener('click',closeDevices);
+  modal.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&!modal.querySelector('#cancelDevices').hidden)closeDevices();});
   function openDevices(){
     if(modal.classList.contains('open'))return;
+    stopPreviewMeter();
     modal.querySelector('.prelive-kicker').textContent=t('DEVICES','УСТРОЙСТВА');
     modal.querySelector('h2').textContent=t('Camera and microphone','Камера и микрофон');
-    modal.querySelector('.v5-prelive-copy').textContent=api.isPublishing()?t('A new camera switches immediately. A new microphone is used the next time LIVE starts.','Новая камера переключится сразу. Новый микрофон будет использован при следующем запуске эфира.'):t('The selected devices are used for the preview and when LIVE starts.','Выбранные устройства используются для предпросмотра и при запуске эфира.');
+    modal.querySelector('.v5-prelive-copy').textContent=api.isPublishing()?t('Camera and microphone switch immediately — viewers stay connected.','Камера и микрофон переключаются сразу — зрители остаются в эфире.'):t('The selected devices are used for the preview and when LIVE starts.','Выбранные устройства используются для предпросмотра и при запуске эфира.');
     const enter=modal.querySelector('#enterStudio');enter.disabled=false;enter.textContent=t('Apply devices','Применить');
     modal.querySelector('#cancelDevices').hidden=false;
     modal.classList.add('open');loadDevices();enter.focus();
@@ -517,7 +537,10 @@
     const video=camera();
     if(!video||video.readyState<2||!video.videoWidth||document.hidden||!tabs.querySelector('[data-studio-tab="setup"]').classList.contains('active'))return;
     sceneButtons.querySelectorAll('canvas').forEach((canvas)=>{
-      try{canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);}catch(_){}
+      // Focus mirrors the stage crop in live.html: scale(1.3) around 50% / 42%.
+      const focus=canvas.width===160&&canvas.closest('[data-scene="focus"]');
+      const vw=video.videoWidth,vh=video.videoHeight,sw=focus?vw/1.3:vw,sh=focus?vh/1.3:vh;
+      try{canvas.getContext('2d').drawImage(video,(vw-sw)*.5,(vh-sh)*.42,sw,sh,0,0,canvas.width,canvas.height);}catch(_){}
     });
   }
   setInterval(drawThumbnails,2000);
@@ -527,7 +550,10 @@
   brandTools.querySelector('.studio-tool-card').insertAdjacentHTML('beforeend','<button class="btn" id="serverCaptionToggle">☁ CC '+t('Server captions','Серверные субтитры')+'</button>');
   brandTools.querySelector('#serverCaptionToggle').onclick=function(){try{if(api.serverCaptionsActive()){api.stopServerCaptions();this.classList.remove('primary');this.textContent='☁ CC '+t('Server captions','Серверные субтитры');}else{api.startServerCaptions(liveI18n?.intlLocale || (ru?'ru-RU':'en-US'));this.classList.add('primary');this.textContent='■ '+t('Stop server captions','Остановить серверные субтитры');}}catch(error){alert(error.message);}};
   async function sendProduction(data){applyProductionEvent(data);if(api.isPublishing())await api.broadcastEvent(data);}
-  setInterval(()=>{if(!api.isPublishing())return;api.syncLiveScene?.();if(productionState.lowerTitle)api.broadcastEvent({kind:'lower-third',title:productionState.lowerTitle,subtitle:productionState.lowerSubtitle}).catch(()=>{});if(productionState.logo)api.broadcastEvent({kind:'logo',url:productionState.logo}).catch(()=>{});if(productionState.hold)api.broadcastEvent({kind:'hold',mode:productionState.hold}).catch(()=>{});},12000);
+  function resendProduction(){if(!api.isPublishing())return;if(productionState.lowerTitle)api.broadcastEvent({kind:'lower-third',title:productionState.lowerTitle,subtitle:productionState.lowerSubtitle}).catch(()=>{});if(productionState.logo)api.broadcastEvent({kind:'logo',url:productionState.logo}).catch(()=>{});if(productionState.hold)api.broadcastEvent({kind:'hold',mode:productionState.hold}).catch(()=>{});}
+  // Late joiners ask for state on connect (live-page.js re-sends the scene itself); the 12 s loop stays as a fallback.
+  window.addEventListener('duvela:state-request',resendProduction);
+  setInterval(()=>{if(!api.isPublishing())return;api.syncLiveScene?.();resendProduction();},12000);
   brandTools.querySelector('#showLower').onclick=()=>sendProduction({kind:'lower-third',title:brandTools.querySelector('#lowerTitle').value.trim(),subtitle:brandTools.querySelector('#lowerSubtitle').value.trim()});brandTools.querySelector('#hideLower').onclick=()=>sendProduction({kind:'lower-third',title:'',subtitle:''});
   brandTools.querySelector('#brandLogoFile').onchange=(event)=>{const file=event.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{const image=new Image();image.onload=()=>{const scale=Math.min(1,420/Math.max(image.width,image.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);sendProduction({kind:'logo',url:canvas.toDataURL('image/webp',.82)});};image.src=reader.result;};reader.readAsDataURL(file);};
   brandTools.querySelector('#waitingScreen').onclick=()=>sendProduction({kind:'hold',mode:'waiting'});brandTools.querySelector('#pauseScreen').onclick=()=>sendProduction({kind:'hold',mode:'pause'});brandTools.querySelector('#resumeScreen').onclick=()=>sendProduction({kind:'hold',mode:''});
@@ -595,10 +621,8 @@
     const height = num(health.videoHeight) && health.videoHeight > 0 ? health.videoHeight : (video?.videoHeight || 0);
     const resolution = height ? height + 'p' : '';
     put('camera', devices.camera !== 'unavailable', devices.camera === 'live' ? t('Camera live', 'Камера в эфире') : devices.camera === 'muted' ? t('Camera off', 'Камера выключена') : devices.camera === 'preview' ? t('Camera ready', 'Камера готова') : t('Camera', 'Камера'), devices.camera === 'unavailable' ? t('Not ready', 'Не готова') : (resolution || t('Preview', 'Предпросмотр')) + (devices.camera === 'preview' ? ' · ' + t('private preview', 'только вы') : ''));
-    put('microphone', devices.microphone === 'live' || (devices.microphone === 'unavailable' && micChecked), devices.microphone === 'live' ? t('Mic live', 'Микрофон в эфире') : devices.microphone === 'muted' ? t('Mic muted', 'Микрофон выключен') : micChecked ? t('Mic checked', 'Микрофон проверен') : t('Microphone', 'Микрофон'), devices.microphone === 'unavailable' ? (micChecked ? t('Connects when LIVE starts', 'Подключится при старте эфира') : t('Not ready', 'Не готов')) : devices.microphone === 'muted' ? t('Viewers hear nothing', 'Зрители вас не слышат') : t('Publishing audio', 'Звук идёт в эфир'));
-    const bars = topStatus.querySelectorAll('.v5-meter i');
-    const level = devices.microphone === 'live' && num(health.micLevel) ? Math.min(1, health.micLevel * 2.2) : 0;
-    bars.forEach((bar, index) => bar.classList.toggle('on', index < Math.round(level * bars.length)));
+    const previewing = devices.microphone === 'unavailable' && Boolean(previewMic.analyser);
+    put('microphone', devices.microphone === 'live' || previewing || (devices.microphone === 'unavailable' && micChecked), devices.microphone === 'live' ? t('Mic live', 'Микрофон в эфире') : devices.microphone === 'muted' ? t('Mic muted', 'Микрофон выключен') : previewing ? t('Mic ready', 'Микрофон готов') : micChecked ? t('Mic checked', 'Микрофон проверен') : t('Microphone', 'Микрофон'), devices.microphone === 'unavailable' ? (previewing ? t('Preview level · not on air yet', 'Уровень до эфира') : micChecked ? t('Connects when LIVE starts', 'Подключится при старте эфира') : t('Not ready', 'Не готов')) : devices.microphone === 'muted' ? t('Viewers hear nothing', 'Зрители вас не слышат') : t('Publishing audio', 'Звук идёт в эфир'));
     put('broadcast', live, live ? t('LIVE', 'В ЭФИРЕ') : publishing ? CONN[health.connectionState] || t('Connecting…', 'Подключение…') : t('Not broadcasting', 'Не в эфире'), live ? t('Live output confirmed', 'Публикация подтверждена') : publishing ? t('Waiting for Agora', 'Ожидание Agora') : t('Preview only', 'Только предпросмотр'));
     topStatus.querySelector('[data-v5-status="broadcast"]').classList.toggle('is-live', live);
     byId('v5BrandLive').hidden = !live;
@@ -620,7 +644,7 @@
     byId('studioRecord').setAttribute('aria-disabled', String(!publishing && !api.isRecording()));
     byId('studioRecord').setAttribute('aria-pressed', String(api.isRecording()));
     recBadge.hidden = !api.isRecording();
-    if (publishing && !wasPublishing) { api.setMicrophoneVolume(byId('studioMicVolume').value); renderSceneState(); }
+    if (publishing && !wasPublishing) { stopPreviewMeter(); api.setMicrophoneVolume(byId('studioMicVolume').value); renderSceneState(); }
     if (!publishing && wasPublishing) { const record = byId('studioRecord'); record.classList.remove('is-active'); setToolLabel(record, t('Record', 'Запись')); renderSceneState(); }
     wasPublishing = publishing;
     byId('v5ParticipantsLabel').textContent = api.getSession() ? t('viewers online', 'зрителей онлайн') : t('room not open', 'не открыта');
@@ -659,6 +683,15 @@
   studioTick = tick;
   tick();
   window.setInterval(tick, 1000);
+  // Mic bars refresh faster than the status tick: the live Agora track while
+  // publishing, otherwise the preview capture; muted or missing shows empty bars.
+  const meterBars = topStatus.querySelectorAll('.v5-meter i');
+  window.setInterval(() => {
+    const state = api.getDeviceState?.().microphone;
+    const raw = state === 'live' ? api.getMicLevel?.() : state === 'unavailable' ? previewMicLevel() : 0;
+    const level = num(raw) ? Math.min(1, raw * 2.2) : 0;
+    meterBars.forEach((bar, index) => bar.classList.toggle('on', index < Math.round(level * meterBars.length)));
+  }, 120);
 
   const endButton=document.getElementById('endLive');endButton?.addEventListener('click',(event)=>{if(!api.isPublishing())return;event.preventDefault();event.stopImmediatePropagation();const dialog=document.createElement('div');dialog.className='prelive-modal open';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.innerHTML='<div class="prelive-card"><span class="prelive-kicker">'+t('END LIVE','ЗАВЕРШЕНИЕ ЭФИРА')+'</span><h2>'+t('End the broadcast for everyone?','Завершить эфир для всех?')+'</h2><p>'+t('Type END to confirm. This stops the stream for every viewer.','Введите ЗАВЕРШИТЬ для подтверждения. Трансляция остановится у всех зрителей.')+'</p><input class="end-confirm-input" aria-label="'+t('Type END to confirm','Введите ЗАВЕРШИТЬ для подтверждения')+'" placeholder="'+t('END','ЗАВЕРШИТЬ')+'"><div class="studio-inline"><button class="btn" data-cancel>'+t('Cancel','Отмена')+'</button><button class="btn danger" data-end disabled>'+t('End LIVE','Завершить эфир')+'</button></div></div>';document.body.appendChild(dialog);const input=dialog.querySelector('input'),finish=dialog.querySelector('[data-end]');input.oninput=()=>finish.disabled=input.value.trim().toUpperCase()!==t('END','ЗАВЕРШИТЬ');dialog.querySelector('[data-cancel]').onclick=()=>{dialog.remove();endButton.focus();};dialog.addEventListener('keydown',(e)=>{if(e.key==='Escape'){dialog.remove();endButton.focus();}});finish.onclick=async()=>{finish.disabled=true;await api.endBroadcast();dialog.remove();};input.focus();},true);
 

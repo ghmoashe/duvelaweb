@@ -1968,11 +1968,22 @@
       .on('broadcast', { event: 'studio-event' }, function (msg) {
         window.dispatchEvent(new CustomEvent('duvela:studio-event', { detail: msg && msg.payload }));
       })
+      // A viewer who joins mid-lesson asks for the current scene and overlays.
+      .on('broadcast', { event: 'state-request' }, function () {
+        if (!isHostMode || !isHostPublishing) return;
+        syncLiveScene();
+        window.dispatchEvent(new CustomEvent('duvela:state-request'));
+      })
       .on('broadcast', { event: 'reaction' }, function (msg) {
         var p = msg && msg.payload;
         if (p && p.emoji) showLiveReaction(p.emoji);
       });
-    materialChannel.subscribe();
+    var channel = materialChannel;
+    channel.subscribe(function (status) {
+      if (status === 'SUBSCRIBED' && !isHostMode && materialChannel === channel) {
+        channel.send({ type: 'broadcast', event: 'state-request', payload: {} });
+      }
+    });
   }
 
   function showLiveReaction(emoji) {
@@ -2616,7 +2627,15 @@
 
   window.DuvelaLiveStudioApi = {
     isHost: isHostMode,
-    setDevices: async function (cameraId, microphoneId) { selectedCameraId=cameraId||''; selectedMicrophoneId=microphoneId||''; if(isHostMode) { if(hostCameraStream) await openHostCamera(cameraFacingMode); else await initializeHostPreview(); } },
+    setDevices: async function (cameraId, microphoneId) {
+      var micChanged = (microphoneId || '') !== selectedMicrophoneId;
+      selectedCameraId=cameraId||''; selectedMicrophoneId=microphoneId||'';
+      if(!isHostMode) return;
+      if(hostCameraStream) await openHostCamera(cameraFacingMode); else await initializeHostPreview();
+      // During LIVE the published microphone track switches its input in place (no new track).
+      if(micChanged && selectedMicrophoneId && localAudioTrack?.setDevice) await localAudioTrack.setDevice(selectedMicrophoneId);
+    },
+    getMicLevel: function () { try { return localAudioTrack?.getVolumeLevel ? localAudioTrack.getVolumeLevel() : null; } catch (e) { return null; } },
     toggleScreenShare: toggleHostScreenShare,
     setScene: function (preset) { setScenePreset(preset, true); },
     previewScene: function (preset) { setScenePreset(preset, false); },

@@ -31,9 +31,9 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const studio=fs.readFileSync(root+'web/live-studio-ui.js','utf8');
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
- has(page,'app-live-studio5.css?v=20261030-studio5-board');
- has(page,'live-page.js?v=20261030-studio5-board');
- has(page,'live-studio-ui.js?v=20261030-studio5-board');
+ has(page,'app-live-studio5.css?v=20261030-studio5-focus');
+ has(page,'live-page.js?v=20261030-studio5-focus');
+ has(page,'live-studio-ui.js?v=20261030-studio5-focus');
  has(studio,'api.previewScene(previewSelect.value)');
  has(studio,'api.setScene(previewSelect.value)');
  has(studio,'api.toggleScreenShare()');
@@ -62,6 +62,16 @@ test('Studio V5 status and Health only show values reported by Agora',()=>{
  has(studio,"const live = publishing && health.connectionState === 'CONNECTED'");
  has(studio,"NOT_AVAILABLE = t('Not available'");
  has(studio,'api.syncLiveScene?.()');
+});
+test('Studio V5 serves late joiners, previews the microphone and switches it in place',()=>{
+ const page=fs.readFileSync(root+'live.html','utf8');
+ const studio=fs.readFileSync(root+'web/live-studio-ui.js','utf8');
+ const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
+ has(source,"event: 'state-request'");
+ has(source,'localAudioTrack.setDevice(selectedMicrophoneId)');
+ has(studio,"addEventListener('duvela:state-request'");
+ has(studio,'startPreviewMeter(');
+ has(page,'body.scene-focus #player { transform: scale(1.3)');
 });
 test('Studio V5 timeline initially limits the recent rooms to three',()=>{
   assert.match(source,/hostHistorySessions\.slice\(0, 3\)/);

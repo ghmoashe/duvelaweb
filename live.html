@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="./web/app-live-studio5.css?v=20261030-studio5-board" rel="stylesheet">
+<link href="./web/app-live-studio5.css?v=20261030-studio5-focus" rel="stylesheet">
 <script src="./web/vendor/supabase-js-v2.js"></script>
 <script src="./web/vendor/AgoraRTC_N-4.20.0.js"></script>
 <script src="./locales/web-locales.js"></script>
@@ -323,6 +323,10 @@
   /* Board shows the teacher as a picture-in-picture over the whiteboard, like Presentation. */
   body.scene-presentation #hostCameraPreview, body.scene-presentation #player video, body.scene-board #hostCameraPreview, body.scene-board #player video { position:absolute !important; inset:auto 18px 18px auto !important; width:27% !important; height:30% !important; border:3px solid #fff; border-radius:16px; z-index:20; box-shadow:0 12px 30px rgba(0,0,0,.4); }
   body.scene-focus .stage-live-strip, body.scene-focus .guest-stage { display:none !important; }
+  /* Focus = teacher close-up, the same crop for host preview and viewers. */
+  #player { transition: transform .35s ease; }
+  body.scene-focus #player { transform: scale(1.3); transform-origin: 50% 42%; }
+  body.scene-focus #player video { object-fit: cover !important; }
   .guest-stage {
     position: absolute;
     z-index: 9;
@@ -1783,11 +1787,11 @@
 </div>
 
 <script src="./web/duvela-session-guard.js?v=4.0.1"></script>
-<script src="./web/live-page.js?v=20261030-studio5-board"></script>
+<script src="./web/live-page.js?v=20261030-studio5-focus"></script>
 <script src="./web/duel-room.js?v=20260905-duel-p2"></script>
 <script src="./web/duel-live-fx.js?v=20260905-duel-p2"></script>
 <script src="./web/duel-studio-overlay.js?v=20260905-duel-p2"></script>
-<script src="./web/live-studio-ui.js?v=20261030-studio5-board"></script>
+<script src="./web/live-studio-ui.js?v=20261030-studio5-focus"></script>
 <script src="./web/cookie-consent.js?v=20260906-consent1"></script>
 </body>
 </html>
