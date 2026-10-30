@@ -24,6 +24,50 @@
   if (!api.isHost) return;
   const side = document.querySelector('.side-card');
   const dock = document.querySelector('.control-dock');
+  const topbar = document.querySelector('.topbar');
+  const brand = topbar?.querySelector('.brand');
+  if (brand && !brand.querySelector('.brand-copy')) {
+    const name = brand.querySelector('span');
+    if (name) {
+      const copy = document.createElement('span');
+      copy.className = 'brand-copy';
+      copy.innerHTML = '<span></span><small></small>';
+      copy.querySelector('span').textContent = name.textContent || 'DUVELA LIVE';
+      copy.querySelector('small').textContent = t('Teacher Studio', 'Студия преподавателя');
+      name.replaceWith(copy);
+    }
+  }
+  if (topbar && !document.getElementById('studioV5TopStatus')) {
+    const status = document.createElement('div');
+    status.id = 'studioV5TopStatus';
+    status.className = 'studio-v5-top-status';
+    status.innerHTML = [
+      ['camera', '▣', t('Camera', 'Камера')],
+      ['microphone', '●', t('Microphone', 'Микрофон')],
+      ['broadcast', '●', t('Not broadcasting', 'Не в эфире')]
+    ].map(([name, icon, label]) => '<div class="studio-v5-device studio-v5-'+name+' is-off" data-v5-status="'+name+'"><i>'+icon+'</i><b>'+label+'</b><span>'+t('Checking…', 'Проверка…')+'</span></div>').join('');
+    topbar.insertBefore(status, topbar.querySelector('.mode-pill'));
+    const updateTopStatus = () => {
+      const video = document.getElementById('hostCameraPreview');
+      const cameraReady = Boolean(video?.srcObject?.getVideoTracks?.().some(track => track.readyState === 'live'));
+      const micText = document.getElementById('toggleMic')?.textContent || '';
+      const micReady = Boolean(document.getElementById('toggleMic')?.offsetParent);
+      const live = api.isPublishing();
+      const put = (name, enabled, label, detail) => {
+        const item = status.querySelector('[data-v5-status="'+name+'"]');
+        if (!item) return;
+        item.classList.toggle('is-off', !enabled);
+        item.classList.toggle('is-live', name === 'broadcast' && enabled);
+        item.querySelector('b').textContent = label;
+        item.querySelector('span').textContent = detail;
+      };
+      put('camera', cameraReady, t('Camera', 'Камера'), cameraReady ? t('Ready', 'Готова') : t('Not ready', 'Не готова'));
+      put('microphone', micReady, t('Microphone', 'Микрофон'), micReady ? (/Unmute|Включить/.test(micText) ? t('Muted', 'Выключен') : t('Ready', 'Готов')) : t('Not ready', 'Не готов'));
+      put('broadcast', live, live ? t('Broadcasting', 'В эфире') : t('Not broadcasting', 'Не в эфире'), live ? t('Live output confirmed', 'Публикация подтверждена') : t('Preview only', 'Только предпросмотр'));
+    };
+    updateTopStatus();
+    window.setInterval(updateTopStatus, 1000);
+  }
   reactionDock.classList.add('host-dock');
   dock.prepend(reactionDock);
   document.addEventListener('click',(event)=>{const button=event.target.closest('[data-remove-guest]');if(button&&confirm(t('Remove this guest from the stage?','Убрать этого гостя со сцены?')))api.removeGuest(button.dataset.removeGuest).catch(error=>alert(error.message));});
@@ -149,7 +193,23 @@
   brandTools.querySelector('#waitingScreen').onclick=()=>sendProduction({kind:'hold',mode:'waiting'});brandTools.querySelector('#pauseScreen').onclick=()=>sendProduction({kind:'hold',mode:'pause'});brandTools.querySelector('#resumeScreen').onclick=()=>sendProduction({kind:'hold',mode:''});
   let recognition=null,captionsOn=false;brandTools.querySelector('#captionToggle').onclick=function(){const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition)return alert(t('Automatic captions are not supported by this browser.','Этот браузер не поддерживает автоматические субтитры.'));if(captionsOn){recognition?.stop();captionsOn=false;this.classList.remove('primary');this.textContent='CC '+t('Start automatic captions','Включить автосубтитры');sendProduction({kind:'caption',text:''});return;}recognition=new SpeechRecognition();recognition.continuous=true;recognition.interimResults=true;recognition.lang=liveI18n?.intlLocale || (ru?'ru-RU':'en-US');recognition.onresult=(event)=>{let text='';for(let i=event.resultIndex;i<event.results.length;i++)text+=event.results[i][0].transcript;sendProduction({kind:'caption',text:text.trim()});};recognition.onend=()=>{if(captionsOn)try{recognition.start();}catch(_){}};recognition.start();captionsOn=true;this.classList.add('primary');this.textContent='CC '+t('Stop captions','Остановить субтитры');};
 
-  const sceneButtons=document.createElement('div');sceneButtons.className='studio-inline';sceneButtons.innerHTML='<button class="btn" data-quick-scene="camera">1 '+t('Camera','Камера')+'</button><button class="btn" data-quick-scene="presentation">2 '+t('Presentation','Презентация')+'</button><button class="btn" data-quick-scene="board">3 '+t('Board','Доска')+'</button><button class="btn" data-quick-scene="focus">4 '+t('Focus','Фокус')+'</button>';production.querySelector('.studio-tool-card').appendChild(sceneButtons);sceneButtons.onclick=(event)=>{const button=event.target.closest('[data-quick-scene]');if(button){production.querySelector('#previewScene').value=button.dataset.quickScene;api.setScene(button.dataset.quickScene);previewBanner.hidden=true;}};
+  const sceneButtons=document.createElement('div');
+  sceneButtons.className='studio-v5-scene-grid';
+  sceneButtons.setAttribute('role','group');
+  sceneButtons.setAttribute('aria-label',t('Scene selection','Выбор сцены'));
+  sceneButtons.innerHTML=[
+    ['camera','Camera','Камера','Full frame','На весь экран'],
+    ['presentation','Presentation','Презентация','Screen + camera','Экран + камера'],
+    ['board','Board','Доска','Teaching board','Учебная доска'],
+    ['focus','Focus','Фокус','Teacher close-up','Крупный план']
+  ].map(([id,en,ru,detailEn,detailRu])=>'<button type="button" class="studio-v5-scene" data-quick-scene="'+id+'" data-scene="'+id+'" aria-pressed="'+(id===production.querySelector('#previewScene').value)+'"><span>'+t(en,ru)+'</span><small>'+t(detailEn,detailRu)+'</small></button>').join('');
+  production.querySelector('.studio-tool-card').appendChild(sceneButtons);
+  sceneButtons.onclick=(event)=>{
+    const button=event.target.closest('[data-quick-scene]');
+    if(!button)return;
+    production.querySelector('#previewScene').value=button.dataset.quickScene;
+    sceneButtons.querySelectorAll('[data-quick-scene]').forEach(node=>node.setAttribute('aria-pressed',String(node===button)));
+  };
   window.addEventListener('keydown',(event)=>{if(event.target.matches('input,textarea,select')||event.ctrlKey||event.metaKey||event.altKey)return;const scenes={Digit1:'camera',Digit2:'presentation',Digit3:'board',Digit4:'focus'};if(scenes[event.code]){event.preventDefault();api.setScene(scenes[event.code]);}if(event.code==='KeyM'){event.preventDefault();document.getElementById('toggleMic')?.click();}if(event.code==='KeyV'){event.preventDefault();document.getElementById('toggleCam')?.click();}if(event.code==='KeyS'){event.preventDefault();document.getElementById('studioShareScreen')?.click();}if(event.code==='KeyP'){event.preventDefault();brandTools.querySelector('#pauseScreen').click();}});
 
   const peopleTools=document.createElement('div');peopleTools.className='studio-tool-card';peopleTools.innerHTML='<h3>'+t('Raised hands and guests','Поднятые руки и гости')+'</h3><p>'+t('Requests below form the speaking queue. Approve a learner to invite them on stage; reject to remove them from the queue.','Запросы ниже образуют очередь выступающих. Одобрите ученика, чтобы пригласить его на сцену, или отклоните, чтобы убрать из очереди.')+'</p><div class="studio-inline"><span>✋ '+t('Queue is ordered by request time','Очередь по времени запроса')+'</span></div>';

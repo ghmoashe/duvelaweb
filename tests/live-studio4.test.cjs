@@ -26,4 +26,18 @@ function payload(metadata=null){
 test('provider payload preserves setup',()=>{const p=payload();assert.equal(p.teacher_id,'teacher');assert.equal(p.language,'German');assert.equal(p.level,'B1');assert.equal(p.is_private,false);assert.equal(p.allow_guest_requests,true);assert.equal(p.status,'scheduled')});
 test('optional metadata follows schema capability',()=>{assert.equal('thumbnail_url' in payload(),false);assert.equal(payload({category:'Grammar',thumbnail_url:'https://example.com/cover.png'}).category,'Grammar')});
 test('classroom reserves start before SDK entry',()=>{const s=fs.readFileSync(root+'classroom-src/main.js','utf8');const begin=s.indexOf('async function join()');const part=s.slice(begin,s.indexOf('async function toggleMic',begin));assert.match(part,/roomRole = auth.role === 1/);assert(part.indexOf("action: 'start'")<part.indexOf('await client.join'));assert.match(part,/DuvelaSessionGuard.assertFree/)});
+test('Studio V5 keeps the existing Agora host controls and separates scene selection from publishing',()=>{
+ const page=fs.readFileSync(root+'live.html','utf8');
+ const studio=fs.readFileSync(root+'web/live-studio-ui.js','utf8');
+ const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
+ assert.match(page,/app-live-studio5\.css/);
+ assert.match(page,/live-studio-ui\.js\?v=20261030-studio5/);
+ assert.match(studio,/api\.previewScene\(production\.querySelector\('#previewScene'\)\.value\)/);
+ assert.match(studio,/api\.setScene\(production\.querySelector\('#previewScene'\)\.value\)/);
+ assert.match(studio,/api\.toggleScreenShare\(\)/);
+ assert.match(studio,/api\.isPublishing\(\)/);
+ assert.doesNotMatch(studio,/28 ms|1\.2 Mbps/);
+ assert.match(styles,/body\.host-mode \.main/);
+ assert.match(styles,/studio-v5-scene-grid/);
+});
 
