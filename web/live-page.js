@@ -53,6 +53,10 @@
   var hostScheduledSessions = [];
   var hostHistorySessions = [];
   var hostHistoryExpanded = false;
+  // Studio V5 reads these for the Health tab and the Preview / Live scene label.
+  var hostNetworkQuality = null;
+  var previewScenePreset = 'camera';
+  var liveScenePreset = 'camera';
   var viewerJoined = false;
   var viewerPresenceTimer = null;
   var viewerAgoraUid = null;
@@ -1625,6 +1629,7 @@
         window.dispatchEvent(new CustomEvent('duvela:live-connection', { detail:{ current:current, previous:previous, reason:reason } }));
         if (current === 'DISCONNECTED') isHostPublishing = false;
       });
+      client.on('network-quality', function (stats) { hostNetworkQuality = stats || null; });
       attachHostGuestHandlers(uid);
       await client.setClientRole('host');
       await client.join(AGORA_APP_ID, currentSession.channel_name, tokenResult.token, uid);
@@ -1668,6 +1673,7 @@
       await loadHostTimeline();
       await loadHostGuestRequests();
       await subscribeGuestRequests();
+      setTimeout(syncLiveScene, 1500);
       void startRestream(currentSession.channel_name, uid);
     } catch (error) {
       el('mainAction').disabled = false;
@@ -1758,7 +1764,42 @@
     document.body.classList.add('scene-' + preset);
     var canvas = ensureWhiteboard();
     canvas.style.display = preset === 'board' ? 'block' : '';
+    previewScenePreset = preset;
+    if (broadcast) liveScenePreset = preset;
     if (broadcast && materialChannel) materialChannel.send({ type:'broadcast', event:'scene', payload:{ preset:preset } });
+    if (isHostMode) window.dispatchEvent(new CustomEvent('duvela:scene', { detail:{ preview:previewScenePreset, live:liveScenePreset } }));
+  }
+  // Scene changes are fire-and-forget broadcasts, so viewers who join later
+  // would stay on the default layout. Re-sending the committed scene fixes that.
+  function syncLiveScene() {
+    if (!isHostPublishing || !materialChannel) return false;
+    materialChannel.send({ type:'broadcast', event:'scene', payload:{ preset:liveScenePreset } });
+    return true;
+  }
+  function getHostRtcHealth() {
+    var stats = {}, video = {}, audio = {};
+    try { stats = client?.getRTCStats?.() || {}; } catch (e) {}
+    try { video = client?.getLocalVideoStats?.() || {}; } catch (e) {}
+    try { audio = client?.getLocalAudioStats?.() || {}; } catch (e) {}
+    var level = null;
+    try { if (localAudioTrack?.getVolumeLevel) level = localAudioTrack.getVolumeLevel(); } catch (e) {}
+    return {
+      connectionState: client?.connectionState || 'DISCONNECTED',
+      publishing: isHostPublishing,
+      rtt: stats.RTT,
+      sendBitrate: stats.SendBitrate,
+      recvBitrate: stats.RecvBitrate,
+      userCount: stats.UserCount,
+      uplinkQuality: hostNetworkQuality ? hostNetworkQuality.uplinkNetworkQuality : null,
+      downlinkQuality: hostNetworkQuality ? hostNetworkQuality.downlinkNetworkQuality : null,
+      videoWidth: video.sendResolutionWidth,
+      videoHeight: video.sendResolutionHeight,
+      videoFps: video.sendFrameRate,
+      videoPacketLoss: video.currentPacketLossRate,
+      audioBitrate: audio.sendBitrate,
+      audioPacketLoss: audio.currentPacketLossRate,
+      micLevel: level
+    };
   }
 
   function ensureWhiteboard() {
@@ -2614,7 +2655,12 @@
     getStats: function () { return { peakViewers:peakViewerCount,reactions:liveReactionCount,messages:viewerMessages.length,guests:Object.keys(remoteGuestUsers).length }; },
     getSession: function () { return currentSession; },
     isPublishing: function () { return isHostPublishing; },
-    getDeviceState: getHostDeviceState
+    getDeviceState: getHostDeviceState,
+    getRtcHealth: getHostRtcHealth,
+    getSceneState: function () { return { preview:previewScenePreset, live:liveScenePreset, publishing:isHostPublishing }; },
+    syncLiveScene: syncLiveScene,
+    getUser: function () { return currentUser; },
+    listNotifications: async function () { if(!supa||!currentUser?.id)return [];var result=await supa.from('notifications').select('id,title,body,read,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(8);if(result.error)throw result.error;return result.data||[]; }
   };
   setupMode();
 })();
