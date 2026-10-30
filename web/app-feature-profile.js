@@ -181,52 +181,126 @@
       const intake = runtime.publicationIntake === true;
       if (!host || (!intake && (runtime.publicationConsent !== true || !window.DuvelaWebConfig.securityReadV2)) || !ctx.user?.id) return;
       const owner = ctx.user.id;
-      const section = document.createElement('section');
-      section.id = 'publicationConsentPanel'; section.className = 'card';
-      const heading = document.createElement('h3'); heading.textContent = tr('Public profile', 'Публичный профиль'); section.append(heading);
-      const notice = document.createElement('p');
-      notice.textContent = tr('Selected information will be visible to anyone, including people without an account. Choose only information you want to publish. City, social-link and ranking privacy settings still apply. Select the matching discovery field to appear as a teacher or organizer. You can withdraw at any time. Copies already downloaded by others cannot be recalled.', 'Выбранные сведения будут доступны всем, в том числе без аккаунта. Выберите только то, что хотите опубликовать. Настройки скрытия города, соцсетей и рейтинга продолжают действовать. Для поиска преподавателей или организаторов выберите соответствующее поле. Согласие можно отозвать. Уже скачанные другими людьми копии отозвать невозможно.'); section.append(notice);
-      const status = document.createElement('p'); status.setAttribute('role', 'status'); status.textContent = tr('Loading…', 'Загрузка…'); section.append(status);
-      const options = [
-        ['Basic information','full_name','Name','Имя'],['Basic information','avatar_url','Profile photo','Фото профиля'],['Basic information','cover_url','Cover photo','Обложка'],
-        ['Basic information','city','City','Город'],['Basic information','country','Country','Страна'],['Basic information','bio','Biography (full text)','Биография (весь текст)'],
-        ['Professional information','teaches_languages','Teaching languages','Языки преподавания'],['Professional information','explanation_languages','Explanation languages','Языки объяснения'],
-        ['Professional information','qualifications','Qualifications','Квалификации'],['Professional information','specialization','Specializations','Специализации'],
-        ['Professional information','teaching_experience','Teaching experience','Опыт преподавания'],['Professional information','teacher_audience','Teaching audience','Аудитория преподавания'],
-        ['Search & discovery','is_teacher','Teacher discovery','Поиск преподавателей'],['Search & discovery','is_organizer','Organizer discovery','Поиск организаторов'],
-        ['Search & discovery','registered_web_role','Profile category','Категория профиля'],['Search & discovery','is_verified','Verification badge','Знак проверки'],
-        ['Search & discovery','score','Ranking score','Баллы рейтинга'],['Search & discovery','language','Profile language','Язык профиля'],['Search & discovery','language_level','Language level','Уровень языка'],
-        ['Social links','instagram','Instagram','Instagram'],['Social links','tiktok','TikTok','TikTok'],['Social links','youtube','YouTube','YouTube'],
-        ['Social links','facebook','Facebook','Facebook'],['Social links','linkedin','LinkedIn','LinkedIn'],['Social links','website','Website','Сайт'],
+      // Accordion layout: a summary card, six collapsible groups (all closed on open,
+      // one open at a time) and the publication actions in their own card. Opening or
+      // closing a group never touches the selection; only the switches change the
+      // draft, and only "publish" / "keep closed" save it.
+      const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = text; return node; };
+      const ICONS = {
+        basic: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/>',
+        about: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+        teaching: '<path d="m3 9 9-5 9 5-9 5z"/><path d="M7 11.5V16c0 1.5 2.2 3 5 3s5-1.5 5-3v-4.5"/>',
+        discovery: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/>',
+        ranking: '<path d="M5 20V11M10 20V6M15 20v-9M20 20V4"/>',
+        social: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/>',
+      };
+      const svg = (paths, className) => '<svg class="' + className + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+      const GROUPS = [
+        ['basic', 'Basic information', 'Основная информация', 'Name, photos, city and country', 'Имя, фото, город и страна'],
+        ['about', 'About you', 'О вас', 'Biography and introduction', 'Биография и знакомство'],
+        ['teaching', 'Teaching profile', 'Профиль преподавателя', 'Languages, qualifications and experience', 'Языки, квалификации и опыт'],
+        ['discovery', 'Discovery', 'Поиск', 'Teacher and organizer visibility', 'Видимость преподавателя и организатора'],
+        ['ranking', 'Language & ranking', 'Язык и рейтинг', 'Levels, badge and ranking', 'Уровни, значок и рейтинг'],
+        ['social', 'Social links', 'Социальные ссылки', 'Instagram, TikTok, YouTube and more', 'Instagram, TikTok, YouTube и другое'],
       ];
-      const groupLabels = { 'Basic information': ['Basic information', 'Основная информация'], 'Professional information': ['Professional information', 'Профессиональная информация'], 'Search & discovery': ['Search & discovery', 'Поиск и обнаружение'], 'Social links': ['Social links', 'Социальные ссылки'] };
-      const groups = {};
-      options.forEach(([group]) => { if (!groups[group]) { const wrap = document.createElement('div'); wrap.className = 'publication-field-group'; const title = document.createElement('h4'); title.textContent = tr(groupLabels[group][0], groupLabels[group][1]); wrap.append(title); section.append(wrap); groups[group] = wrap; } });
-      const boxes = options.map(([group,key,en,ru]) => {
-        const label = document.createElement('label');
-        const input = document.createElement('input'); input.type = 'checkbox'; input.value = key; input.disabled = true;
-        label.append(input, document.createTextNode(tr(en,ru))); groups[group].append(label); return input;
+      const options = [
+        ['basic','full_name','Name','Имя'],['basic','avatar_url','Profile photo','Фото профиля'],['basic','cover_url','Cover photo','Обложка'],
+        ['basic','city','City','Город'],['basic','country','Country','Страна'],['about','bio','Biography (full text)','Биография (весь текст)'],
+        ['teaching','teaches_languages','Teaching languages','Языки преподавания'],['teaching','explanation_languages','Explanation languages','Языки объяснения'],
+        ['teaching','qualifications','Qualifications','Квалификации'],['teaching','specialization','Specializations','Специализации'],
+        ['teaching','teaching_experience','Teaching experience','Опыт преподавания'],['teaching','teacher_audience','Teaching audience','Аудитория преподавания'],
+        ['discovery','is_teacher','Teacher discovery','Поиск преподавателей'],['discovery','is_organizer','Organizer discovery','Поиск организаторов'],
+        ['discovery','registered_web_role','Profile category','Категория профиля'],['ranking','is_verified','Verification badge','Знак проверки'],
+        ['ranking','score','Ranking score','Баллы рейтинга'],['ranking','language','Profile language','Язык профиля'],['ranking','language_level','Language level','Уровень языка'],
+        ['social','instagram','Instagram','Instagram'],['social','tiktok','TikTok','TikTok'],['social','youtube','YouTube','YouTube'],
+        ['social','facebook','Facebook','Facebook'],['social','linkedin','LinkedIn','LinkedIn'],['social','website','Website','Сайт'],
+      ];
+      const section = el('section', 'pc-panel'); section.id = 'publicationConsentPanel';
+
+      // Summary: status, selected count, public preview.
+      const summary = el('div', 'pc-card pc-summary');
+      const summaryHead = el('div', 'pc-summary-head');
+      const summaryTitle = el('div');
+      summaryTitle.append(el('h3', 'pc-title', tr('Public profile', 'Публичный профиль')), el('p', 'pc-subtitle', tr('Control what others can see', 'Управляйте тем, что видят другие')));
+      const statusPill = el('span', 'pc-status', tr('Loading…', 'Загрузка…')); statusPill.setAttribute('role', 'status');
+      summaryHead.append(summaryTitle, statusPill);
+      const summaryStats = el('div', 'pc-summary-stats');
+      const countBox = el('div', 'pc-count');
+      const countValue = el('b', '', '0 / ' + options.length);
+      countBox.append(countValue, el('small', '', tr('selected fields', 'выбрано полей')));
+      const preview = el('a', 'pc-preview', '👁 ' + tr('Preview public profile', 'Предпросмотр публичного профиля'));
+      preview.href = './profile.html?id=' + encodeURIComponent(owner); preview.target = '_blank'; preview.rel = 'noopener';
+      summaryStats.append(countBox, preview);
+      summary.append(summaryHead, summaryStats);
+      const notice = el('p', 'pc-intro', tr('Selected information will be visible to anyone, including people without an account. Choose only information you want to publish. City, social-link and ranking privacy settings still apply. Select the matching discovery field to appear as a teacher or organizer. You can withdraw at any time. Copies already downloaded by others cannot be recalled.', 'Выбранные сведения будут доступны всем, в том числе без аккаунта. Выберите только то, что хотите опубликовать. Настройки скрытия города, соцсетей и рейтинга продолжают действовать. Для поиска преподавателей или организаторов выберите соответствующее поле. Согласие можно отозвать. Уже скачанные другими людьми копии отозвать невозможно.'));
+      section.append(summary, notice);
+
+      // Groups (collapsed by default, one open at a time).
+      const groupsWrap = el('div', 'pc-groups');
+      const groupNodes = {};
+      GROUPS.forEach(([id, enTitle, ruTitle, enDesc, ruDesc]) => {
+        const card = el('div', 'pc-card pc-group');
+        const head = el('button', 'pc-group-head'); head.type = 'button'; head.setAttribute('aria-expanded', 'false');
+        const bodyId = 'pcGroup-' + id; head.setAttribute('aria-controls', bodyId);
+        head.innerHTML = '<span class="pc-icon">' + svg(ICONS[id], 'pc-icon-svg') + '</span>';
+        const copy = el('span', 'pc-group-copy');
+        copy.append(el('b', '', tr(enTitle, ruTitle)), el('small', '', tr(enDesc, ruDesc)));
+        const counter = el('span', 'pc-group-count');
+        head.append(copy, counter);
+        head.insertAdjacentHTML('beforeend', svg('<path d="m6 9 6 6 6-6"/>', 'pc-chevron'));
+        const body = el('div', 'pc-group-body'); body.id = bodyId; body.setAttribute('role', 'region');
+        const inner = el('div', 'pc-group-inner');
+        body.append(inner);
+        card.append(head, body);
+        groupsWrap.append(card);
+        groupNodes[id] = { card, head, inner, counter };
+        head.addEventListener('click', () => {
+          const open = card.classList.contains('open');
+          Object.values(groupNodes).forEach((node) => { node.card.classList.remove('open'); node.head.setAttribute('aria-expanded', 'false'); });
+          if (!open) { card.classList.add('open'); head.setAttribute('aria-expanded', 'true'); }
+        });
       });
-      const publish = document.createElement('button'); publish.type = 'button'; publish.disabled = true;
-      publish.textContent = tr('I agree — publish selected fields', 'Согласен — опубликовать выбранные поля');
-      const revoke = document.createElement('button'); revoke.type = 'button'; revoke.disabled = true;
-      section.append(publish,revoke);
+      section.append(groupsWrap);
+      const boxes = options.map(([group,key,en,ru]) => {
+        const row = el('label', 'pc-field');
+        row.append(el('span', 'pc-field-label', tr(en,ru)));
+        const input = document.createElement('input'); input.type = 'checkbox'; input.value = key; input.disabled = true;
+        input.className = 'pc-switch'; input.setAttribute('role', 'switch');
+        row.append(input); groupNodes[group].inner.append(row); return input;
+      });
+
+      // Publication actions in their own card.
+      const actions = el('div', 'pc-card pc-actions');
+      actions.append(el('h4', 'pc-actions-title', tr('Publication', 'Публикация')), el('p', 'pc-actions-copy', tr('Opening groups never changes your privacy settings. Only switches change the draft; publishing saves it after confirmation.', 'Открытие разделов не меняет настройки приватности. Черновик меняют только переключатели; публикация сохраняет его после подтверждения.')));
+      const publish = el('button', 'pc-publish'); publish.type = 'button'; publish.disabled = true;
+      publish.textContent = '🌐 ' + tr('I agree — publish selected fields', 'Согласен — опубликовать выбранные поля');
+      const revoke = el('button', 'pc-revoke'); revoke.type = 'button'; revoke.disabled = true;
+      const status = el('p', 'pc-message'); status.setAttribute('aria-live', 'polite');
+      actions.append(publish, revoke, status);
+      section.append(actions);
       host.append(section);
       let current = null; let busy = false;
       function refresh() {
-        boxes.forEach(box => { box.disabled = busy || !current; });
+        boxes.forEach(box => { box.disabled = busy || !current; box.setAttribute('aria-checked', box.checked ? 'true' : 'false'); });
         publish.disabled = busy || !current || !boxes.some(b => b.checked);
         revoke.disabled = busy || !current || (!intake && !current.published);
         revoke.textContent = current?.published
           ? tr('Withdraw publication consent', 'Отозвать согласие на публикацию')
           : tr('Keep my profile closed', 'Оставить профиль закрытым');
+        countValue.textContent = boxes.filter(b => b.checked).length + ' / ' + boxes.length;
+        GROUPS.forEach(([id]) => {
+          const inGroup = boxes.filter((box, index) => options[index][0] === id);
+          groupNodes[id].counter.textContent = inGroup.filter(b => b.checked).length + '/' + inGroup.length;
+        });
       }
       // Since the base profiles table closed, this choice decides live public
       // visibility — so the status reads as current, not as a "future" approval.
       function apply(data) {
         if (!data || typeof data.published !== 'boolean' || !Array.isArray(data.approved_fields) || data.approved_fields.some(f => !options.some(([,key]) => key === f))) throw new Error('Invalid consent response');
         current = data; boxes.forEach(box => { box.checked = data.approved_fields.includes(box.value); });
-        status.textContent = data.published ? tr('Published', 'Опубликован') : tr('Not published', 'Не опубликован'); refresh();
+        statusPill.textContent = data.published ? tr('Published', 'Опубликован') : tr('Not published', 'Не опубликован');
+        statusPill.classList.toggle('published', data.published);
+        status.textContent = ''; refresh();
       }
       boxes.forEach(box => box.addEventListener('change', refresh));
       refresh();
@@ -244,7 +318,7 @@
       void supa.rpc(intake ? 'get_my_publication_intake_v2' : 'get_my_profile_publication_v2').then(result => {
         if (!section.isConnected || ctx.user?.id !== owner) return;
         if (result.error) throw result.error; apply(result.data);
-      }).catch(() => { status.textContent = tr('Could not load publication settings. Reopen your profile to retry.', 'Не удалось загрузить настройки публикации. Откройте профиль заново для повтора.'); });
+      }).catch(() => { statusPill.textContent = '—'; status.textContent = tr('Could not load publication settings. Reopen your profile to retry.', 'Не удалось загрузить настройки публикации. Откройте профиль заново для повтора.'); });
     }
 
     function ensureBusinessProfileTabs() {
