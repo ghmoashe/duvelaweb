@@ -88,6 +88,20 @@
 
   var el = function (id) { return document.getElementById(id); };
 
+  // A CEFR range from the LIVE wizard ("A1-B1") is not one of the single-level
+  // options; add it so it is kept and saved to live_sessions.level as is.
+  function setLevelInputValue(value) {
+    var select = el('levelInput');
+    if (!select) return;
+    if (value && !Array.prototype.some.call(select.options, function (option) { return option.value === value; })) {
+      var option = document.createElement('option');
+      option.value = value;
+      option.textContent = String(value).replace('-', '–');
+      select.insertBefore(option, select.lastElementChild);
+    }
+    select.value = value;
+  }
+
   function esc(value) {
     var div = document.createElement('div');
     div.textContent = value == null ? '' : String(value);
@@ -549,7 +563,7 @@
   function applySessionToInputs(session) {
     if (!isHostMode || !session) return;
     if (session.topic) el('topicInput').value = session.topic;
-    el('levelInput').value = session.level || '';
+    setLevelInputValue(session.level || '');
     el('languageInput').value = session.language || '';
     el('privateInput').checked = !!session.is_private;
     el('allowViewerRequests').checked = session.allow_guest_requests !== false;
@@ -2302,7 +2316,7 @@
       if(setup.metadataEnabled) studio4Metadata={category:String(setup.category||'').slice(0,80),thumbnail_url:/^https?:\/\//i.test(setup.thumbnailUrl||'')?String(setup.thumbnailUrl).slice(0,2048):null};
       el('topicInput').value=String(setup.title||'').slice(0,160);
       el('languageInput').value=setup.language||'';
-      el('levelInput').value=setup.level||'';
+      setLevelInputValue(setup.level||'');
       el('privateInput').checked=false;
       el('allowViewerRequests').checked=!!setup.guests;
       el('audience18Plus').checked=!!setup.adult;

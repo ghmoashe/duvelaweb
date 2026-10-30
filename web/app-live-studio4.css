@@ -21,3 +21,27 @@ body.premium-workspace [data-panel="live"].ls-page.active{display:grid;gap:24px}
 body.premium-workspace.business-mode:has(.ls-page.active) .sidebar .side-profile{grid-template-columns:42px minmax(0,1fr) 10px;gap:10px;width:100%;padding:13px 10px}body.premium-workspace.business-mode:has(.ls-page.active) .sidebar .side-avatar{width:42px;height:42px}body.premium-workspace.business-mode:has(.ls-page.active) .side-profile-copy b{font-size:12px;line-height:1.5}body.premium-workspace.business-mode:has(.ls-page.active) .side-profile-copy small{font-size:10px;line-height:1.5}
 
 body.premium-workspace.business-mode .main:has(.ls-page.active)>.topbar .title-wrap{display:none}body.premium-workspace.business-mode .main:has(.ls-page.active)>.topbar{height:auto!important;min-height:48px!important;padding:10px 16px!important;margin-bottom:22px;gap:10px}body.premium-workspace.business-mode .main:has(.ls-page.active)>.topbar .mode-chip{order:0!important;margin-right:auto}
+/* CEFR range "from – to": two selects side by side, stacked on narrow screens. */
+.ls-level-range{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.ls-level-range{grid-template-columns:1fr}}
+/* Category examples: small chips under the field that fill it. */
+.ls-category-examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:-4px}
+.ls-category-chip{border:1px solid #d7e6df;border-radius:999px;background:#f3faf7;color:#1f6b52;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.ls-category-chip:hover{background:#e3f4ec}
+.ls-category-chip:focus-visible{outline:2px solid #0b8f6a;outline-offset:2px}
+/* Public LIVE audience: cover upload with preview + "who can watch" cards. */
+.ls-cover{display:grid;gap:8px}
+.ls-cover-title,.ls-choices legend{font-size:13px;font-weight:700;color:#32495a;padding:0}
+.ls-cover-row{display:flex;gap:16px;align-items:center}
+.ls-cover-preview{flex:0 0 160px;aspect-ratio:16/9;border:1px dashed #c9dcd2;border-radius:12px;background:#f5faf7;display:grid;place-items:center;color:#8aa096;font-size:12px;overflow:hidden}
+.ls-cover-preview img{width:100%;height:100%;object-fit:cover}
+.ls-cover-actions{display:grid;gap:6px;min-width:0}
+.ls-cover-remove{border:0;background:none;color:#b12c42;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:6px}
+.ls-choices{border:0;margin:0;padding:0;display:grid;gap:10px}
+.ls-fields .ls-choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid #dce9e0;border-radius:12px;background:#fff;cursor:pointer}
+.ls-choice:has(input:checked){border-color:#078566;background:#f3faf7}
+.ls-fields .ls-choice input[type=radio]{width:18px;height:18px;min-height:0;margin:2px 0 0;accent-color:#078566;flex:none}
+.ls-choice span{display:grid;gap:3px}
+.ls-choice b{font-size:14px;color:#172b3b}
+.ls-choice small{font-size:12px;color:#667e71;line-height:1.6}
+@media (max-width:520px){.ls-cover-row{flex-direction:column;align-items:stretch}.ls-cover-preview{flex-basis:auto}}
