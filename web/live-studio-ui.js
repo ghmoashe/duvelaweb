@@ -472,7 +472,7 @@
   ].map(([id,en,ruName,detailEn,detailRu])=>'<button type="button" class="studio-v5-scene" data-quick-scene="'+id+'" data-scene="'+id+'" aria-pressed="'+(id===initialScene)+'"><span class="v5-thumb" aria-hidden="true"><canvas width="160" height="90"></canvas><i class="v5-thumb-slide"></i><i class="v5-thumb-pip"><canvas width="64" height="36"></canvas></i></span><span class="v5-scene-name">'+t(en,ruName)+'</span><small>'+t(detailEn,detailRu)+'</small></button>').join('');
   const layoutSection = addSection('setup', 'v5-layout-card', '<div class="studio-tool-card">' + cardHead('monitor', t('Layout & scene', 'Раскладка и сцена'), t('Choose how your live room looks to participants.', 'Выберите, как комната выглядит для участников.')) + '<select id="previewScene" hidden aria-hidden="true"><option value="camera">camera</option><option value="presentation">presentation</option><option value="board">board</option><option value="focus">focus</option></select></div>');
   layoutSection.querySelector('.studio-tool-card').appendChild(sceneButtons);
-  layoutSection.querySelector('.studio-tool-card').insertAdjacentHTML('beforeend', '<label class="v5-range">' + t('Camera window size (Presentation)', 'Размер окна камеры (Презентация)') + '<input id="cameraPipSize" type="range" min="18" max="55" value="27"></label>');
+  layoutSection.querySelector('.studio-tool-card').insertAdjacentHTML('beforeend', '<label class="v5-range">' + t('Camera window size (Presentation, Board)', 'Размер окна камеры (Презентация, Доска)') + '<input id="cameraPipSize" type="range" min="18" max="55" value="27"></label>');
   const production = addSection('setup', 'v5-production-card', '<div class="studio-tool-card">' + cardHead('sliders', t('Production controls', 'Управление эфиром'), t('Preview changes before going live. Drag the camera on the stage in Presentation.', 'Проверьте изменения до отправки в эфир. В Презентации камеру можно перетаскивать по сцене.')) + '<div class="v5-production-actions"><button type="button" class="btn" id="previewSceneBtn">' + icon('eye') + t('Preview changes', 'Предпросмотр') + '</button><button type="button" class="btn primary" id="commitSceneBtn">' + icon('send') + t('Apply to live', 'Отправить в эфир') + '</button></div><p class="v5-scene-state" id="v5SceneState" aria-live="polite"></p><label class="v5-range">' + t('Microphone level', 'Громкость микрофона') + '<input id="studioMicVolume" type="range" min="0" max="100" value="100"></label></div>');
   const previewSelect = layoutSection.querySelector('#previewScene');
   previewSelect.value = initialScene;
@@ -504,7 +504,7 @@
   production.querySelector('#studioMicVolume').oninput=(event)=>api.setMicrophoneVolume(event.target.value);
   const camera=()=>document.getElementById('hostCameraPreview');
   layoutSection.querySelector('#cameraPipSize').oninput=(event)=>{const node=camera();if(!node)return;node.classList.add('camera-pip-edit');node.style.setProperty('width',event.target.value+'%','important');node.style.setProperty('height',Math.round(event.target.value*.62)+'%','important');};
-  let drag=null;stage?.addEventListener('pointerdown',(event)=>{const node=event.target.closest('#hostCameraPreview');if(!node||!document.body.classList.contains('scene-presentation'))return;event.preventDefault();node.classList.add('camera-pip-edit');const rect=node.getBoundingClientRect(),stageRect=node.closest('.stage').getBoundingClientRect();drag={node,dx:event.clientX-rect.left,dy:event.clientY-rect.top,stageRect};node.setPointerCapture?.(event.pointerId);});
+  let drag=null;stage?.addEventListener('pointerdown',(event)=>{const node=event.target.closest('#hostCameraPreview');if(!node||!/scene-(presentation|board)/.test(document.body.className))return;event.preventDefault();node.classList.add('camera-pip-edit');const rect=node.getBoundingClientRect(),stageRect=node.closest('.stage').getBoundingClientRect();drag={node,dx:event.clientX-rect.left,dy:event.clientY-rect.top,stageRect};node.setPointerCapture?.(event.pointerId);});
   window.addEventListener('pointermove',(event)=>{if(!drag)return;const x=Math.max(0,Math.min(drag.stageRect.width-drag.node.offsetWidth,event.clientX-drag.stageRect.left-drag.dx));const y=Math.max(0,Math.min(drag.stageRect.height-drag.node.offsetHeight,event.clientY-drag.stageRect.top-drag.dy));drag.node.style.setProperty('left',x+'px','important');drag.node.style.setProperty('top',y+'px','important');drag.node.style.setProperty('right','auto','important');drag.node.style.setProperty('bottom','auto','important');});window.addEventListener('pointerup',()=>drag=null);
   sceneButtons.onclick=(event)=>{
     const button=event.target.closest('[data-quick-scene]');
@@ -517,10 +517,7 @@
     const video=camera();
     if(!video||video.readyState<2||!video.videoWidth||document.hidden||!tabs.querySelector('[data-studio-tab="setup"]').classList.contains('active'))return;
     sceneButtons.querySelectorAll('canvas').forEach((canvas)=>{
-      const focus=canvas.closest('[data-scene="focus"]')&&canvas.width===160;
-      const ctx=canvas.getContext('2d');const vw=video.videoWidth,vh=video.videoHeight;
-      const scale=focus?1.45:1;const sw=vw/scale,sh=vh/scale;
-      try{ctx.drawImage(video,(vw-sw)/2,(vh-sh)/2,sw,sh,0,0,canvas.width,canvas.height);}catch(_){}
+      try{canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);}catch(_){}
     });
   }
   setInterval(drawThumbnails,2000);

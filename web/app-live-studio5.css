@@ -90,8 +90,8 @@
 .v5-rec-badge { position: absolute; left: 16px; top: 16px; z-index: 26; display: flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 9px; background: rgba(244,63,101,.9); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
 .v5-rec-badge i { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: v5-pulse 1.2s infinite; }
 .v5-stage-tools { position: absolute; right: 16px; bottom: 16px; z-index: 26; display: flex; gap: 10px; }
-.duvela-studio-v5.scene-presentation .v5-stage-tools { top: 16px; bottom: auto; }
-.duvela-studio-v5.scene-presentation .studio-preview-banner { top: 72px; }
+.duvela-studio-v5:is(.scene-presentation, .scene-board) .v5-stage-tools { top: 16px; bottom: auto; }
+.duvela-studio-v5:is(.scene-presentation, .scene-board) .studio-preview-banner { top: 72px; }
 .v5-stage-btn { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; background: rgba(11,9,20,.74); backdrop-filter: blur(10px); color: #fff; cursor: pointer; }
 .v5-stage-btn:hover { background: rgba(29,23,43,.92); }
 .duvela-studio-v5 .studio-preview-banner { top: 16px; background: var(--v5-warn); }
