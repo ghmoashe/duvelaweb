@@ -206,7 +206,9 @@
 
   // ── Control dock
   const dockButton = (id, iconName, label, extra) => '<button type="button" class="v5-tool" id="' + id + '"' + (extra || '') + '><span class="v5-tool-icon">' + icon(iconName) + '</span><span class="v5-tool-label">' + label + '</span></button>';
-  const setToolLabel = (button, label) => { const node = button?.querySelector('.v5-tool-label'); if (node) node.textContent = label; };
+  // Long translated labels (e.g. German) shrink instead of colliding with the next tool.
+  const fitToolLabel = (node) => { if (!node) return; node.classList.remove('is-long'); const room = node.parentElement?.clientWidth || 0; if (room && node.scrollWidth > room + 1) node.classList.add('is-long'); };
+  const setToolLabel = (button, label) => { const node = button?.querySelector('.v5-tool-label'); if (node) { node.textContent = label; fitToolLabel(node); } };
   const setToolIcon = (button, iconName) => { const node = button?.querySelector('.v5-tool-icon'); if (node && node.dataset.icon !== iconName) { node.dataset.icon = iconName; node.innerHTML = icon(iconName); } };
   const v5Dock = document.createElement('div');
   v5Dock.className = 'v5-dock';
@@ -277,6 +279,9 @@
   }
   byId('v5Invite').addEventListener('click', copyStudentLink);
   if (oldFooter) oldFooter.hidden = true;
+  const fitAllToolLabels = () => v5Dock.querySelectorAll('.v5-tool-label').forEach(fitToolLabel);
+  requestAnimationFrame(fitAllToolLabels);
+  window.addEventListener('resize', () => requestAnimationFrame(fitAllToolLabels));
 
   document.addEventListener('click',(event)=>{const button=event.target.closest('[data-remove-guest]');if(button&&confirm(t('Remove this guest from the stage?','Убрать этого гостя со сцены?')))api.removeGuest(button.dataset.removeGuest).catch(error=>alert(error.message));});
   document.addEventListener('click',(event)=>{const mute=event.target.closest('[data-mute-guest]'),pin=event.target.closest('[data-pin-guest]');if(mute)api.muteGuest(mute.dataset.muteGuest).catch(error=>alert(error.message));if(pin){const tile=pin.closest('.guest-tile'),container=tile?.parentElement;if(!tile||!container)return;container.querySelectorAll('.guest-tile').forEach(node=>node.classList.toggle('pinned',node===tile));container.prepend(tile);}});

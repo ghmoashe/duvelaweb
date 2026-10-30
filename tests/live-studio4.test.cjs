@@ -31,9 +31,9 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const studio=fs.readFileSync(root+'web/live-studio-ui.js','utf8');
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
- has(page,'app-live-studio5.css?v=20261030-studio5-focus');
- has(page,'live-page.js?v=20261030-studio5-focus');
- has(page,'live-studio-ui.js?v=20261030-studio5-focus');
+ has(page,'app-live-studio5.css?v=20261030-viewer5');
+ has(page,'live-page.js?v=20261030-viewer5');
+ has(page,'live-studio-ui.js?v=20261030-viewer5');
  has(studio,'api.previewScene(previewSelect.value)');
  has(studio,'api.setScene(previewSelect.value)');
  has(studio,'api.toggleScreenShare()');
@@ -72,6 +72,33 @@ test('Studio V5 serves late joiners, previews the microphone and switches it in 
  has(studio,"addEventListener('duvela:state-request'");
  has(studio,'startPreviewMeter(');
  has(page,'body.scene-focus #player { transform: scale(1.3)');
+});
+test('LIVE viewer V5 layer loads only for viewers and re-homes the existing controls',()=>{
+ const page=fs.readFileSync(root+'live.html','utf8');
+ const viewer=fs.readFileSync(root+'web/live-viewer-ui.js','utf8');
+ const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
+ has(page,'live-viewer-ui.js?v=20261030-viewer5');
+ has(viewer,'if (!api || api.isHost) return;');
+ has(viewer,"byId('chatShell')");
+ has(viewer,"byId('viewerGuestRequestBox')");
+ has(viewer,"byId('openApp')?.click()");
+});
+test('LIVE phrases: every interface language has a table with every studio and viewer phrase',()=>{
+ const vm=require('node:vm');
+ const page=fs.readFileSync(root+'live.html','utf8');
+ const loader=fs.readFileSync(root+'web/live-i18n-loader.js','utf8');
+ assert.ok(page.indexOf('live-i18n-loader.js')<page.indexOf('live-page.js'),'loader must run before live-page.js');
+ const langs=JSON.parse(loader.match(/var LANGS = (\[[^\]]+\])/)[1].replace(/'/g,'"'));
+ assert.equal(langs.length,32);
+ const re=/\b(?:tr|t)\(\s*(['"])((?:\.|(?!\1).)*)\1\s*,/g;const phrases=new Set();
+ for(const f of ['web/live-page.js','web/live-studio-ui.js','web/live-viewer-ui.js']){const s=fs.readFileSync(root+f,'utf8');let m;while((m=re.exec(s)))phrases.add(m[2].replace(/\'/g,"'"));}
+ for(const lang of langs){
+  const box={window:{}};vm.createContext(box);
+  vm.runInContext(fs.readFileSync(root+'web/content/live-phrases/'+lang+'.js','utf8'),box);
+  const table=box.window.DUVELA_APP_PHRASES;
+  const missing=[...phrases].filter(p=>!table[p]||!table[p][lang]);
+  assert.deepEqual(missing,[],lang+' is missing phrases');
+ }
 });
 test('Studio V5 timeline initially limits the recent rooms to three',()=>{
   assert.match(source,/hostHistorySessions\.slice\(0, 3\)/);

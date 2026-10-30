@@ -2430,7 +2430,7 @@
     }
   }
   function setupMode() {
-    document.documentElement.lang = isRu ? 'ru' : 'en';
+    document.documentElement.lang = liveI18n?.appLang || (isRu ? 'ru' : 'en');
     document.querySelector('label[for="topicInput"]').textContent = tr('LIVE title', 'Название эфира');
     document.querySelector('label[for="levelInput"]').textContent = tr('Level', 'Уровень');
     document.querySelector('label[for="languageInput"]').textContent = tr('Language', 'Язык');
