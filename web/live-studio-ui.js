@@ -48,11 +48,10 @@
     ].map(([name, icon, label]) => '<div class="studio-v5-device studio-v5-'+name+' is-off" data-v5-status="'+name+'"><i>'+icon+'</i><b>'+label+'</b><span>'+t('Checking…', 'Проверка…')+'</span></div>').join('');
     topbar.insertBefore(status, topbar.querySelector('.mode-pill'));
     const updateTopStatus = () => {
-      const video = document.getElementById('hostCameraPreview');
-      const cameraReady = Boolean(video?.srcObject?.getVideoTracks?.().some(track => track.readyState === 'live'));
-      const micText = document.getElementById('toggleMic')?.textContent || '';
-      const micReady = Boolean(document.getElementById('toggleMic')?.offsetParent);
-      const live = api.isPublishing();
+      const devices = api.getDeviceState?.() || { camera: 'unavailable', microphone: 'unavailable', broadcasting: api.isPublishing?.(), aec: false, ans: false };
+      const cameraReady = devices.camera !== 'unavailable';
+      const micReady = devices.microphone !== 'unavailable';
+      const live = Boolean(devices.broadcasting);
       const put = (name, enabled, label, detail) => {
         const item = status.querySelector('[data-v5-status="'+name+'"]');
         if (!item) return;
@@ -61,9 +60,15 @@
         item.querySelector('b').textContent = label;
         item.querySelector('span').textContent = detail;
       };
-      put('camera', cameraReady, t('Camera', 'Камера'), cameraReady ? t('Ready', 'Готова') : t('Not ready', 'Не готова'));
-      put('microphone', micReady, t('Microphone', 'Микрофон'), micReady ? (/Unmute|Включить/.test(micText) ? t('Muted', 'Выключен') : t('Ready', 'Готов')) : t('Not ready', 'Не готов'));
+      put('camera', cameraReady, t('Camera', 'Камера'), devices.camera === 'live' ? t('Live', 'В эфире') : cameraReady ? t('Preview ready', 'Предпросмотр готов') : t('Not ready', 'Не готова'));
+      put('microphone', micReady, t('Microphone', 'Микрофон'), devices.microphone === 'live' ? t('Live', 'В эфире') : devices.microphone === 'muted' ? t('Muted', 'Выключен') : t('Not ready', 'Не готов'));
       put('broadcast', live, live ? t('Broadcasting', 'В эфире') : t('Not broadcasting', 'Не в эфире'), live ? t('Live output confirmed', 'Публикация подтверждена') : t('Preview only', 'Только предпросмотр'));
+      const micState = document.getElementById('studioMicState');
+      const echoState = document.getElementById('studioEcho');
+      const noiseState = document.getElementById('studioNoise');
+      if (micState) micState.textContent = t('Mic: ', 'Микрофон: ') + (devices.microphone === 'live' ? t('live', 'в эфире') : devices.microphone === 'muted' ? t('muted', 'выключен') : t('not ready', 'не готов'));
+      if (echoState) echoState.textContent = 'AEC ' + (devices.aec ? t('active', 'активен') : t('inactive', 'не активен'));
+      if (noiseState) noiseState.textContent = 'ANS ' + (devices.ans ? t('active', 'активен') : t('inactive', 'не активен'));
     };
     updateTopStatus();
     window.setInterval(updateTopStatus, 1000);
@@ -170,7 +175,7 @@
   loadDevices();
 
   const setupGroup=side.querySelector('[data-studio-group="setup"]');
-  const production=document.createElement('section');production.className='studio-section';production.dataset.studioGroup='setup';production.innerHTML='<div class="studio-tool-card"><h3>'+t('Production controls','Управление эфиром')+'</h3><p>'+t('Preview a layout privately, then send it to viewers. Drag the camera directly on the stage and use the size slider.','Сначала проверьте сцену у себя, затем отправьте её зрителям. Камеру можно перетаскивать прямо на сцене и менять её размер.')+'</p><div class="studio-inline"><select id="previewScene"><option value="camera">'+t('Camera','Камера')+'</option><option value="presentation">'+t('Presentation + camera','Экран и камера')+'</option><option value="board">'+t('Whiteboard','Доска')+'</option><option value="focus">'+t('Focus','Фокус')+'</option></select><button class="btn" id="previewSceneBtn">'+t('Preview','Предпросмотр')+'</button><button class="btn primary" id="commitSceneBtn">'+t('Send live','В эфир')+'</button></div><label>'+t('Camera window size','Размер окна камеры')+'<input id="cameraPipSize" type="range" min="18" max="55" value="27"></label><label>'+t('Microphone level','Громкость микрофона')+'<input id="studioMicVolume" type="range" min="0" max="100" value="100"></label><div class="studio-health"><span id="studioNet">'+t('Network: checking','Сеть: проверка')+'</span><span id="studioMicState">'+t('Mic: ready','Микрофон: готов')+'</span><span id="studioEcho">AEC '+t('enabled','включён')+'</span><span id="studioNoise">ANS '+t('enabled','включён')+'</span></div></div>';
+  const production=document.createElement('section');production.className='studio-section';production.dataset.studioGroup='setup';production.innerHTML='<div class="studio-tool-card"><h3>'+t('Production controls','Управление эфиром')+'</h3><p>'+t('Preview a layout privately, then send it to viewers. Drag the camera directly on the stage and use the size slider.','Сначала проверьте сцену у себя, затем отправьте её зрителям. Камеру можно перетаскивать прямо на сцене и менять её размер.')+'</p><div class="studio-inline"><select id="previewScene"><option value="camera">'+t('Camera','Камера')+'</option><option value="presentation">'+t('Presentation + camera','Экран и камера')+'</option><option value="board">'+t('Whiteboard','Доска')+'</option><option value="focus">'+t('Focus','Фокус')+'</option></select><button class="btn" id="previewSceneBtn">'+t('Preview','Предпросмотр')+'</button><button class="btn primary" id="commitSceneBtn">'+t('Send live','В эфир')+'</button></div><label>'+t('Camera window size','Размер окна камеры')+'<input id="cameraPipSize" type="range" min="18" max="55" value="27"></label><label>'+t('Microphone level','Громкость микрофона')+'<input id="studioMicVolume" type="range" min="0" max="100" value="100"></label><div class="studio-health"><span id="studioNet">'+t('Network: checking','Сеть: проверка')+'</span><span id="studioMicState">'+t('Mic: checking','Микрофон: проверка')+'</span><span id="studioEcho">AEC '+t('checking','проверка')+'</span><span id="studioNoise">ANS '+t('checking','проверка')+'</span></div></div>';
   side.insertBefore(production,setupGroup||side.firstChild);sections.push(production);
   let previewing=false;
   const previewBanner=document.createElement('div');previewBanner.className='studio-preview-banner';previewBanner.textContent=t('PRIVATE PREVIEW','ЛИЧНЫЙ ПРЕДПРОСМОТР');previewBanner.hidden=true;document.querySelector('.stage')?.appendChild(previewBanner);

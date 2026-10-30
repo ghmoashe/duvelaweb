@@ -52,6 +52,7 @@
   var camEnabled = true;
   var hostScheduledSessions = [];
   var hostHistorySessions = [];
+  var hostHistoryExpanded = false;
   var viewerJoined = false;
   var viewerPresenceTimer = null;
   var viewerAgoraUid = null;
@@ -777,10 +778,15 @@
           return timelineItem(session, tr('Open studio', 'Открыть студию'), tr('Open watch page', 'Открыть страницу просмотра'));
         }).join('')
       : '<div class="card empty">' + esc(tr('No upcoming sessions yet.', 'Пока нет предстоящих сессий.')) + '</div>';
+    var visibleHistory = hostHistoryExpanded ? hostHistorySessions : hostHistorySessions.slice(0, 3);
     el('timelineHistory').innerHTML = hostHistorySessions.length
-      ? hostHistorySessions.map(function (session) {
+      ? visibleHistory.map(function (session) {
           return timelineItem(session, tr('Reuse room', 'Использовать снова'), tr('Open watch page', 'Открыть страницу просмотра'));
-        }).join('')
+        }).join('') + (hostHistorySessions.length > 3
+          ? '<button type="button" class="btn ghost timeline-toggle" id="toggleTimelineHistory">' + esc(hostHistoryExpanded
+            ? tr('Show latest 3', 'Показать последние 3')
+            : tr('Show all ' + hostHistorySessions.length + ' sessions', 'Показать все ' + hostHistorySessions.length + ' сессий')) + '</button>'
+          : '')
       : '<div class="card empty">' + esc(tr('No recent sessions yet.', 'Пока нет недавних сессий.')) + '</div>';
   }
   function renderWorkspace(session) {
@@ -1443,6 +1449,21 @@
     if (quality === '540p') return { width: 960, height: 540, frameRate: 24 };
     if (quality === 'auto') return { width: 640, height: 360, frameRate: 24 };
     return { width: 1280, height: 720, frameRate: 30 };
+  }
+
+  // Studio UI, diagnostics and the toolbar must read exactly the same state.
+  // A visible control is not proof that a microphone track exists or is usable.
+  function getHostDeviceState() {
+    var previewVideo = hostCameraStream?.getVideoTracks?.().some(function (track) { return track.readyState === 'live'; });
+    var publishedVideo = localVideoTrack?.getMediaStreamTrack?.()?.readyState === 'live';
+    var audioLive = localAudioTrack?.getMediaStreamTrack?.()?.readyState === 'live';
+    return {
+      camera: publishedVideo ? (camEnabled ? 'live' : 'muted') : (previewVideo ? 'preview' : 'unavailable'),
+      microphone: audioLive ? (micEnabled ? 'live' : 'muted') : 'unavailable',
+      broadcasting: isHostPublishing,
+      aec: Boolean(audioLive),
+      ans: Boolean(audioLive && el('noiseSuppression')?.checked)
+    };
   }
 
   async function openHostCamera(facingMode) {
@@ -2417,6 +2438,11 @@
     if (el('requestJoinBtn')) el('requestJoinBtn').addEventListener('click', function () { void requestViewerJoin(); });
     if (el('joinGuestBtn')) el('joinGuestBtn').addEventListener('click', function () { void joinViewerAsGuest(); });
     el('scheduleSession').addEventListener('click', function () { void scheduleHostSession(); });
+    el('timelineHistory').addEventListener('click', function (event) {
+      if (!event.target.closest('#toggleTimelineHistory')) return;
+      hostHistoryExpanded = !hostHistoryExpanded;
+      renderTimeline();
+    });
     window.addEventListener('beforeunload', function () {
       if (isHostMode) void stopMedia(true);
       else void stopMedia(false);
@@ -2587,7 +2613,8 @@
     addModerator: async function (userId) { if(!currentSession?.id||!currentUser?.id)throw new Error(tr('Start or open a room first.','Сначала откройте или создайте комнату.')); var result=await supa.from('live_moderators').upsert({session_id:currentSession.id,user_id:userId,added_by:currentUser.id});if(result.error)throw result.error;return true; },
     getStats: function () { return { peakViewers:peakViewerCount,reactions:liveReactionCount,messages:viewerMessages.length,guests:Object.keys(remoteGuestUsers).length }; },
     getSession: function () { return currentSession; },
-    isPublishing: function () { return isHostPublishing; }
+    isPublishing: function () { return isHostPublishing; },
+    getDeviceState: getHostDeviceState
   };
   setupMode();
 })();

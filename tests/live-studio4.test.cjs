@@ -31,13 +31,21 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const studio=fs.readFileSync(root+'web/live-studio-ui.js','utf8');
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  assert.match(page,/app-live-studio5\.css/);
- assert.match(page,/live-studio-ui\.js\?v=20261030-studio5/);
+ assert.match(page,/live-page\.js\?v=20261030-studio5-status/);
+ assert.match(page,/live-studio-ui\.js\?v=20261030-studio5-status/);
  assert.match(studio,/api\.previewScene\(production\.querySelector\('#previewScene'\)\.value\)/);
  assert.match(studio,/api\.setScene\(production\.querySelector\('#previewScene'\)\.value\)/);
  assert.match(studio,/api\.toggleScreenShare\(\)/);
  assert.match(studio,/api\.isPublishing\(\)/);
+  assert.match(source,/getDeviceState: getHostDeviceState/);
+  assert.match(studio,/api\.getDeviceState\?\.\(\)/);
+  assert.match(studio,/studioMicState/);
  assert.doesNotMatch(studio,/28 ms|1\.2 Mbps/);
  assert.match(styles,/body\.host-mode \.main/);
  assert.match(styles,/studio-v5-scene-grid/);
+});
+test('Studio V5 timeline initially limits the recent rooms to three',()=>{
+  assert.match(source,/hostHistorySessions\.slice\(0, 3\)/);
+  assert.match(source,/toggleTimelineHistory/);
 });
 
