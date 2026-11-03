@@ -16,6 +16,31 @@
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/>'
   };
   function icon(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || ICONS.book) + '</svg>'; }
+  // Course-builder catalog shared with the Business app (shared/teaching-languages.ts,
+  // shared/course-builder.ts): same keys, limits and duration chips.
+  var MAX_TEACHING_LANGUAGES = 2, MAX_EXPLANATION_LANGUAGES = 4;
+  var LEVELS = ['A1','A2','B1','B2','C1','C2'];
+  var DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240, 360, 480];
+  var TEACHING_LANGUAGES = [
+    ['🇬🇧','english','English'],['🇪🇸','spanish','Español'],['🇩🇪','german','Deutsch'],['🇫🇷','french','Français'],['🇮🇹','italian','Italiano'],['🇷🇺','russian','Русский'],
+    ['🇺🇦','ukrainian','Українська'],['🇹🇷','turkish','Türkçe'],['🇦🇿','azerbaijani','Azərbaycanca'],['🇺🇿','uzbek','Oʻzbekcha'],['🇮🇷','farsi','فارسی'],['🇸🇦','arabic','العربية'],
+    ['🇮🇱','hebrew','עברית'],['🇮🇳','hindi','हिन्दी'],['🇵🇰','urdu','اردو'],['🇧🇩','bengali','বাংলা'],['🇨🇳','chinese','中文'],['🇰🇷','korean','한국어'],
+    ['🇯🇵','japanese','日本語'],['🇻🇳','vietnamese','Tiếng Việt'],['🇹🇭','thai','ไทย'],['🇮🇩','indonesian','Bahasa Indonesia'],['🇵🇱','polish','Polski'],['🇨🇿','czech','Čeština'],
+    ['🇸🇰','slovak','Slovenčina'],['🇭🇺','hungarian','Magyar'],['🇷🇴','romanian','Română'],['🇷🇸','serbian','Српски'],['🇬🇷','greek','Ελληνικά'],['🇳🇱','dutch','Nederlands'],
+    ['🇸🇪','swedish','Svenska'],['🇳🇴','norwegian','Norsk'],['🇩🇰','danish','Dansk'],['🇫🇮','finnish','Suomi'],['🇪🇪','estonian','Eesti'],['🇵🇹','portuguese','Português']
+  ].map(function (row) { return { flag: row[0], key: row[1], label: row[2] }; });
+  // Same spellings as public.normalize_teaching_language_key (explanation-language guard).
+  var LANGUAGE_ALIASES = { persian: 'farsi', deutsch: 'german', espanol: 'spanish', 'español': 'spanish', francais: 'french', 'français': 'french', italiano: 'italian', portugues: 'portuguese', 'português': 'portuguese', 'русский': 'russian', 'türkçe': 'turkish', turkce: 'turkish', svenska: 'swedish', norsk: 'norwegian', polski: 'polish', 'čeština': 'czech', cestina: 'czech', nederlands: 'dutch', '中文': 'chinese', '한국어': 'korean', '日本語': 'japanese', 'العربية': 'arabic', 'oʻzbekcha': 'uzbek', ozbekcha: 'uzbek', 'azərbaycanca': 'azerbaijani' };
+  var LANGUAGE_CODES = { en: 'english', de: 'german', es: 'spanish', fr: 'french', it: 'italian', pt: 'portuguese', nl: 'dutch', sv: 'swedish', no: 'norwegian', da: 'danish', fi: 'finnish', ro: 'romanian', sr: 'serbian', pl: 'polish', cs: 'czech', tr: 'turkish', ru: 'russian', uk: 'ukrainian', az: 'azerbaijani', uz: 'uzbek', fa: 'farsi', ar: 'arabic', vi: 'vietnamese', zh: 'chinese', ja: 'japanese', ko: 'korean' };
+  function normalizeLanguage(value) {
+    var v = String(value || '').trim().toLowerCase(); if (!v) return '';
+    if (TEACHING_LANGUAGES.some(function (l) { return l.key === v; })) return v;
+    return LANGUAGE_ALIASES[v] || LANGUAGE_CODES[v.split('-')[0].split('_')[0]] || '';
+  }
+  function normalizeLanguages(values) {
+    var list = Array.isArray(values) ? values : String(values || '').split(',');
+    return list.map(normalizeLanguage).filter(function (key, i, all) { return key && all.indexOf(key) === i; });
+  }
   function statusKey(value) { value = String(value || 'draft').toLowerCase(); return value === 'active' || value === 'published' ? 'published' : value; }
   function isFree(course) { return course.price == null || Number(course.price) === 0; }
   function filterCourses(courses, filters) {
@@ -42,6 +67,7 @@
     var filters = { query: '', status: 'all', price: 'all', language: '', level: '', sort: 'date' };
     var view = localStorage.getItem('duvela.courses.view') === 'list' ? 'list' : 'grid';
     var selectedId = null, manageTab = 'overview', wizard = null, saving = false, notice = '';
+    var wizardProfile, zoomLessonDraft = null, zoomLessonFor = null, zoomLessonSaving = false, zoomLessonNotice = '';
     window.addEventListener('duvela:courses-changed', function () { void load(true); });
 
     function safe(promise) { return promise.then(function (result) { return result && result.error ? { data: [], error: result.error } : result; }).catch(function (err) { return { data: [], error: err }; }); }
@@ -138,11 +164,48 @@
     function managePanel(course) {
       if (manageTab === 'curriculum') return '<div class="cr-panel-head"><div><h2>' + esc(tr('Curriculum', 'Программа')) + '</h2><p>' + esc(tr('Lessons and assignments saved for this course.', 'Уроки и задания этого курса.')) + '</p></div><button class="cr-primary" data-action="preview" data-id="' + esc(course.id) + '">' + esc(tr('Open curriculum editor', 'Открыть редактор')) + '</button></div>' + (course.lessons.length ? '<div class="cr-lesson-list">' + course.lessons.map(function (lesson, index) { var count = course.tasks.filter(function (task) { return task.lesson_id === lesson.id; }).length; return '<article><span>' + (lesson.order_index || index + 1) + '</span><div><b>' + esc(lesson.title || tr('Untitled lesson', 'Урок без названия')) + '</b><p>' + esc(lesson.description || count + ' ' + tr('assignments', 'заданий')) + '</p></div><em>' + count + '</em></article>'; }).join('') + '</div>' : emptyInline(tr('No lessons yet', 'Уроков пока нет'), tr('Open the editor to add the first lesson.', 'Откройте редактор и добавьте первый урок.')));
       if (manageTab === 'students') return '<div class="cr-panel-head"><div><h2>' + esc(tr('Students', 'Ученики')) + '</h2><p>' + esc(tr('Confirmed and pending course enrollments.', 'Подтверждённые и ожидающие записи.')) + '</p></div><span class="cr-count">' + course.enrollments.length + '</span></div>' + (course.enrollments.length ? '<div class="cr-student-list">' + course.enrollments.map(function (row) { return '<article><span>' + esc((row.full_name || row.email || 'S').charAt(0).toUpperCase()) + '</span><div><b>' + esc(row.full_name || tr('Student', 'Ученик')) + '</b><p>' + esc(row.email || statusLabel(row.status)) + '</p></div><em class="cr-status ' + esc(row.status) + '">' + esc(row.status) + '</em>' + (row.status === 'pending' ? '<button class="cr-secondary" data-confirm="' + esc(row.id) + '">' + esc(tr('Confirm', 'Подтвердить')) + '</button>' : '') + '</article>'; }).join('') + '</div>' : emptyInline(tr('No enrollments yet', 'Записей пока нет'), tr('New learners will appear here.', 'Новые ученики появятся здесь.')));
-      if (manageTab === 'schedule') return '<div class="cr-panel-head"><div><h2>' + esc(tr('Schedule', 'Расписание')) + '</h2><p>' + esc(course.schedule || tr('No recurring schedule set.', 'Повторяющееся расписание не задано.')) + '</p></div><button class="cr-secondary" data-action="edit" data-id="' + esc(course.id) + '">' + esc(tr('Edit schedule', 'Изменить расписание')) + '</button></div>' + (course.sessions.length ? '<div class="cr-session-list">' + course.sessions.map(function (row) { return '<article><span>' + icon('calendar') + '</span><div><b>' + esc(row.title || course.title) + '</b><p>' + esc(dateTime(row.starts_at)) + ' · ' + esc(String(row.duration_min || 60)) + ' min</p></div><em class="cr-status ' + esc(row.status) + '">' + esc(row.status || '') + '</em>' + (row.status === 'scheduled' ? '<a class="cr-secondary" href="./classroom.html?s=' + esc(row.id) + '">' + esc(tr('Prepare', 'Подготовить')) + '</a>' : '') + '</article>'; }).join('') + '</div>' : emptyInline(tr('No classroom sessions', 'Нет занятий'), tr('Enable Zoom Classroom in course settings to create sessions.', 'Включите Zoom Classroom в настройках курса.')));
+      if (manageTab === 'schedule') return scheduleTab(course);
       if (manageTab === 'pricing') return '<div class="cr-panel-head"><div><h2>' + esc(tr('Pricing', 'Цена')) + '</h2><p>' + esc(tr('The price currently shown in the public catalog.', 'Цена, которая сейчас показана в каталоге.')) + '</p></div><button class="cr-primary" data-action="edit" data-id="' + esc(course.id) + '">' + esc(tr('Edit pricing', 'Изменить цену')) + '</button></div><div class="cr-price-card"><small>' + esc(tr('Course price', 'Цена курса')) + '</small><strong>' + esc(money(course)) + '</strong><p>' + esc(isFree(course) ? tr('Learners can enroll without payment.', 'Ученики могут записаться бесплатно.') : tr('Payment settlement is not exposed in this workspace.', 'Платёжные расчёты пока не доступны в этом кабинете.')) + '</p></div>';
       if (manageTab === 'analytics') return '<div class="cr-panel-head"><div><h2>' + esc(tr('Course analytics', 'Аналитика курса')) + '</h2><p>' + esc(tr('Only metrics backed by saved course records are shown.', 'Показаны только показатели из сохранённых данных.')) + '</p></div></div><div class="cr-analytics">' + stat(tr('Confirmed students','Подтверждённые ученики'),course.studentCount) + stat(tr('Lessons','Уроки'),course.lessons.length) + stat(tr('Assignments','Задания'),course.tasks.length) + stat(tr('Classroom sessions','Занятия'),course.sessions.length) + '</div><div class="cr-data-note">' + esc(tr('Revenue, completion and course rating are not shown because no verified course analytics source is connected.', 'Доход, завершение и рейтинг не показаны: для них нет подключённого проверенного источника.')) + '</div>';
       if (manageTab === 'settings') return '<div class="cr-panel-head"><div><h2>' + esc(tr('Course settings', 'Настройки курса')) + '</h2><p>' + esc(tr('Publication and lifecycle controls.', 'Публикация и управление жизненным циклом курса.')) + '</p></div></div><div class="cr-settings-actions"><button class="cr-primary" data-status-set="active" data-id="' + esc(course.id) + '">' + esc(tr('Publish course', 'Опубликовать курс')) + '</button><button class="cr-secondary" data-status-set="draft" data-id="' + esc(course.id) + '">' + esc(tr('Move to draft', 'Вернуть в черновики')) + '</button><button class="cr-danger" data-action="archive" data-id="' + esc(course.id) + '">' + esc(tr('Archive course', 'Архивировать курс')) + '</button></div><div class="cr-data-note">' + esc(tr('Current status: ', 'Текущий статус: ')) + '<b>' + esc(statusLabel(course.status)) + '</b></div>';
       return '<div class="cr-panel-head"><div><h2>' + esc(tr('Course overview', 'Обзор курса')) + '</h2><p>' + esc(course.description || tr('No description yet.', 'Описание пока не добавлено.')) + '</p></div><button class="cr-primary" data-action="edit" data-id="' + esc(course.id) + '">' + esc(tr('Edit details', 'Изменить данные')) + '</button></div><div class="cr-overview-grid">' + stat(tr('Status','Статус'),statusLabel(course.status)) + stat(tr('Language','Язык'),course.language || '—') + stat(tr('CEFR level','Уровень CEFR'),course.level || '—') + stat(tr('Price','Цена'),money(course)) + stat(tr('Students','Ученики'),course.studentCount) + stat(tr('Lessons','Уроки'),course.lessons.length) + '</div>';
+    }
+    // Zoom courses get the Business app's "add a Zoom lesson" form right in the schedule.
+    function scheduleTab(course) {
+      var head = '<div class="cr-panel-head"><div><h2>' + esc(tr('Schedule', 'Расписание')) + '</h2><p>' + esc(course.schedule || tr('No recurring schedule set.', 'Повторяющееся расписание не задано.')) + '</p></div><button class="cr-secondary" data-action="edit" data-id="' + esc(course.id) + '">' + esc(tr('Edit schedule', 'Изменить расписание')) + '</button></div>';
+      var list = course.sessions.length ? '<div class="cr-session-list">' + course.sessions.map(function (row) { return '<article><span>' + icon('calendar') + '</span><div><b>' + esc(row.title || course.title) + '</b><p>' + esc(dateTime(row.starts_at)) + ' · ' + esc(String(row.duration_min || 60)) + ' ' + esc(tr('min', 'мин')) + '</p></div><em class="cr-status ' + esc(row.status) + '">' + esc(row.status || '') + '</em>' + (row.status === 'scheduled' ? '<a class="cr-secondary" href="./classroom.html?s=' + esc(row.id) + '">' + esc(tr('Prepare', 'Подготовить')) + '</a>' : '') + '</article>'; }).join('') + '</div>' : '';
+      if (!course.zoom_enabled) return head + (list || emptyInline(tr('No classroom sessions', 'Нет занятий'), tr('Enable Zoom Classroom in course settings to create sessions.', 'Включите Zoom Classroom в настройках курса.')));
+      if (!course.classRow) return head + '<div class="cr-zoom-add"><h3>Zoom Classroom</h3><p>' + esc(tr('The student group for Zoom lessons is not ready yet.', 'Группа учеников для Zoom-уроков ещё не создана.')) + '</p><button class="cr-primary" data-zoom-enable="' + esc(course.id) + '">' + esc(tr('Enable Zoom lessons', 'Включить Zoom-уроки')) + '</button></div>' + list;
+      var draft = zoomLessonDraft && String(zoomLessonFor) === String(course.id) ? zoomLessonDraft : { title: course.title, starts_at: '', duration: 60 };
+      var form = '<form class="cr-zoom-add" data-zoom-lesson="' + esc(course.id) + '"><h3>' + esc(course.sessions.length ? tr('Add Zoom lesson', 'Добавить Zoom-урок') : tr('Add your first Zoom lesson', 'Добавьте первый Zoom-урок')) + '</h3><p>' + esc(tr('Students of the course join from the app; you enter as the teacher.', 'Ученики курса входят из приложения, вы — как преподаватель.')) + '</p><div class="cr-field-grid three"><label class="cr-field"><span>' + esc(tr('Lesson title', 'Название урока')) + '</span><input name="title" maxlength="120" value="' + esc(draft.title || '') + '" required></label><label class="cr-field"><span>' + esc(tr('Date and time', 'Дата и время')) + '</span><input name="starts_at" type="datetime-local" value="' + esc(draft.starts_at || '') + '" required></label><label class="cr-field"><span>' + esc(tr('Lesson duration', 'Длительность одного урока')) + '</span><select name="duration">' + DURATIONS.filter(function (m) { return m <= 240; }).map(function (m) { return '<option value="' + m + '"' + (Number(draft.duration) === m ? ' selected' : '') + '>' + m + ' ' + esc(tr('min', 'мин')) + '</option>'; }).join('') + '</select></label></div>' + (zoomLessonNotice ? '<div class="cr-notice" role="alert">' + esc(zoomLessonNotice) + '</div>' : '') + '<button class="cr-primary" type="submit"' + (zoomLessonSaving ? ' disabled' : '') + '>' + esc(zoomLessonSaving ? tr('Saving…', 'Сохранение…') : tr('Add Zoom lesson', 'Добавить Zoom-урок')) + '</button></form>';
+      return head + form + list;
+    }
+    async function enableCourseZoom(courseId) {
+      var res = await safe(supa.rpc('create_course_zoom_class', { target_course: courseId }));
+      if (res.error) { window.alert(res.error.message || tr('Could not enable Zoom lessons.', 'Не удалось включить Zoom-уроки.')); return; }
+      await load(true);
+    }
+    async function addZoomLesson(form) {
+      var course = data.courses.find(function (row) { return String(row.id) === String(form.dataset.zoomLesson); });
+      if (!course || !course.classRow || zoomLessonSaving) return;
+      var title = form.elements.title.value.trim(), when = form.elements.starts_at.value, duration = Number(form.elements.duration.value) || 60;
+      zoomLessonFor = course.id; zoomLessonDraft = { title: title, starts_at: when, duration: duration }; zoomLessonNotice = '';
+      var startsAt = when ? new Date(when) : null;
+      if (!startsAt || isNaN(startsAt.getTime())) zoomLessonNotice = tr('Choose the date and time of the lesson.', 'Укажите дату и время урока.');
+      else if (startsAt.getTime() < Date.now()) zoomLessonNotice = tr('The lesson time is in the past.', 'Время урока уже прошло.');
+      if (zoomLessonNotice) { paint(); return; }
+      zoomLessonSaving = true; paint();
+      var res = await safe(supa.from('class_sessions').insert({
+        class_id: course.classRow.id, title: title || tr('Zoom lesson', 'Zoom-урок'),
+        starts_at: startsAt.toISOString(), ends_at: new Date(startsAt.getTime() + duration * 60000).toISOString(),
+        join_opens_at: new Date(startsAt.getTime() - 30 * 60000).toISOString(), duration_min: duration,
+        created_by: ctx.user.id, status: 'scheduled', provider: 'zoom',
+        max_participants: Math.max(2, Math.min(25, Number(course.max_students) || 25)), waiting_room_enabled: true
+      }));
+      zoomLessonSaving = false;
+      if (res.error) { zoomLessonNotice = res.error.message || tr('Could not add the lesson.', 'Не удалось добавить урок.'); paint(); return; }
+      zoomLessonDraft = null; zoomLessonFor = null;
+      await load(true);
     }
     function emptyInline(title, copy) { return '<div class="cr-inline-empty"><span>' + icon('book') + '</span><h3>' + esc(title) + '</h3><p>' + esc(copy) + '</p></div>'; }
 
@@ -170,6 +233,8 @@
       host.querySelectorAll('[data-action]').forEach(function (button) { button.onclick = function () { void action(button.dataset.action, button.dataset.id); }; });
       host.querySelectorAll('[data-status-set]').forEach(function (button) { button.onclick = function () { void setStatus(button.dataset.id, button.dataset.statusSet); }; });
       host.querySelectorAll('[data-confirm]').forEach(function (button) { button.onclick = async function () { await ctx.confirmEnrollment(button.dataset.confirm); await load(true); }; });
+      host.querySelectorAll('[data-zoom-enable]').forEach(function (button) { button.onclick = function () { button.disabled = true; void enableCourseZoom(button.dataset.zoomEnable); }; });
+      host.querySelectorAll('form[data-zoom-lesson]').forEach(function (form) { form.onsubmit = function (event) { event.preventDefault(); void addZoomLesson(form); }; });
       var retry = host.querySelector('[data-retry]'); if (retry) retry.onclick = function () { void load(true); };
     }
 
@@ -197,58 +262,181 @@
       await load(true);
     }
 
-    function openWizard() { wizard = { step: 0, title: '', description: '', language: '', level: '', lessons: [''], cover_image_url: '', starts_on: '', ends_on: '', schedule: '', location: '', price: '', currency: 'EUR', status: 'draft' }; notice = ''; paintWizard(); }
+    // Same four steps, fields and saved columns as the Business app's create-course
+    // screen (About the course → Language and level → Schedule → Price and format).
+    function openWizard() {
+      wizard = { step: 0, title: '', description: '', cover_image_url: '', teaching: [], explaining: [], levels: [], scheduleType: 'fixed', start_date: '', end_date: '', start_time: '', weekdays: [], duration: 60, total_lessons: '', format: 'online', zoom: true, max_students: '', pricing: 'free', price: '', currency: 'EUR' };
+      notice = ''; wizardProfile = undefined; paintWizard(); void loadWizardProfile();
+    }
+    async function loadWizardProfile() {
+      var res = await safe(supa.from('profiles').select('language,teaches_languages,explanation_languages').eq('id', ctx.user.id).maybeSingle());
+      if (!wizard) return;
+      wizardProfile = res.error ? null : (res.data || null);
+      var declared = normalizeLanguages(wizardProfile && wizardProfile.teaches_languages);
+      if (declared.length && !wizard.teaching.length) wizard.teaching = declared.slice(0, MAX_TEACHING_LANGUAGES);
+      var native = normalizeLanguage(wizardProfile && wizardProfile.language);
+      if (native && !wizard.explaining.length) wizard.explaining = [native];
+      readWizard(); paintWizard();
+    }
+    function declaredLanguages() { return normalizeLanguages(wizardProfile && wizardProfile.teaches_languages); }
+    function teachingChoices() { var declared = declaredLanguages(); return declared.length ? TEACHING_LANGUAGES.filter(function (l) { return declared.indexOf(l.key) >= 0; }) : TEACHING_LANGUAGES; }
+    function explanationChoices() {
+      if (wizardProfile === undefined) return [];
+      var known = normalizeLanguages(wizardProfile && wizardProfile.explanation_languages).concat([normalizeLanguage(wizardProfile && wizardProfile.language)], declaredLanguages()).filter(Boolean);
+      if (!known.length) return TEACHING_LANGUAGES;
+      known = known.concat(wizard.explaining);
+      return TEACHING_LANGUAGES.filter(function (l) { return known.indexOf(l.key) >= 0; });
+    }
     function closeWizard() { if (saving) return; document.querySelector('.cr-wizard')?.remove(); wizard = null; document.body.classList.remove('modal-open'); }
-    function wizardSteps() { return [tr('Basic Information','Основная информация'),tr('Language and CEFR','Язык и CEFR'),tr('Curriculum','Программа'),tr('Media and Resources','Медиа и материалы'),tr('Schedule','Расписание'),tr('Pricing','Цена'),tr('Preview and Publish','Предпросмотр и публикация')]; }
+    function wizardSteps() {
+      return [
+        [tr('About the course','О курсе'), tr('Course name and description','Название и описание курса')],
+        [tr('Language and level','Язык и уровень'), tr('Who this course is for','Для кого создан курс')],
+        [tr('Schedule','Расписание'), tr('When and how the course runs','Когда и как проходит курс')],
+        [tr('Price and format','Цена и формат'), tr('Participants and price','Участники и стоимость')]
+      ];
+    }
+    function weekdayNames() { return [tr('Mon','Пн'),tr('Tue','Вт'),tr('Wed','Ср'),tr('Thu','Чт'),tr('Fri','Пт'),tr('Sat','Сб'),tr('Sun','Вс')]; }
+    function durationLabel(minutes) { return minutes < 60 ? minutes + ' ' + tr('min','мин') : minutes === 60 ? tr('1 hour','1 час') : minutes === 90 ? tr('1.5 hours','1,5 часа') : (minutes / 60) + ' ' + (minutes >= 300 ? tr('hours','часов') : tr('hours','часа')); }
+    function formatLabel(key) { return ({ online: tr('Online','Онлайн'), offline: tr('In person','Очно'), hybrid: tr('Hybrid','Гибрид') })[key]; }
+    function scheduleLabel(key) { return ({ fixed: tr('Specific date','Конкретная дата'), ongoing: tr('Ongoing','Постоянный'), flexible: tr('Flexible','Гибкий') })[key]; }
+    function displayDate(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); return m ? m[3] + '.' + m[2] + '.' + m[1] : ''; }
+    function languageName(key) { var item = TEACHING_LANGUAGES.find(function (l) { return l.key === key; }); return item ? item.flag + ' ' + item.label : key; }
     function readWizard() {
       var box = document.querySelector('.cr-wizard'); if (!box || !wizard) return;
       box.querySelectorAll('[data-field]').forEach(function (input) { wizard[input.dataset.field] = input.value; });
-      box.querySelectorAll('[data-lesson]').forEach(function (input) { wizard.lessons[Number(input.dataset.lesson)] = input.value; });
     }
     function validateStep() {
       readWizard(); notice = '';
-      if (wizard.step === 0 && !wizard.title.trim()) notice = tr('Enter a course title.', 'Введите название курса.');
-      if (wizard.step === 0 && wizard.description.trim() && wizard.description.trim().length < 32) notice = tr('Add a clear public description of at least 32 characters.', 'Добавьте понятное публичное описание не короче 32 символов.');
-      if (wizard.step === 1 && (!wizard.language.trim() || !wizard.level.trim())) notice = tr('Set the language and CEFR level.', 'Укажите язык и уровень CEFR.');
-      if (wizard.step === 4 && wizard.starts_on && wizard.ends_on && wizard.ends_on < wizard.starts_on) notice = tr('End date cannot be before start date.', 'Дата окончания не может быть раньше даты начала.');
+      var s = wizard.step;
+      if (s === 0 && !wizard.title.trim()) notice = tr('Enter the course name.', 'Введите название курса.');
+      else if (s === 0 && !wizard.description.trim()) notice = tr('Add a course description.', 'Добавьте описание курса.');
+      else if (s === 1 && !wizard.teaching.length) notice = tr('Choose at least one teaching language.', 'Выберите хотя бы один язык преподавания.');
+      else if (s === 1 && !wizard.levels.length) notice = tr('Select at least one level.', 'Выберите хотя бы один уровень.');
+      else if (s === 2 && wizard.scheduleType === 'fixed' && !wizard.start_date) notice = tr('Enter the start date.', 'Укажите дату начала.');
+      else if (s === 2 && wizard.scheduleType === 'fixed' && wizard.end_date && wizard.end_date < wizard.start_date) notice = tr('The end date is before the start date.', 'Дата окончания раньше даты начала.');
+      else if (s === 3 && wizard.pricing === 'paid' && !(Number(wizard.price) > 0)) notice = tr('Enter the price.', 'Укажите стоимость.');
       return !notice;
     }
-    function field(id, label, type, placeholder) { return '<label class="cr-field"><span>' + esc(label) + '</span><input data-field="' + id + '" type="' + (type || 'text') + '" value="' + esc(wizard[id] || '') + '" placeholder="' + esc(placeholder || '') + '"></label>'; }
+    function field(id, label, type, placeholder, extra) { return '<label class="cr-field"><span>' + esc(label) + '</span><input data-field="' + id + '" type="' + (type || 'text') + '" value="' + esc(wizard[id] || '') + '" placeholder="' + esc(placeholder || '') + '"' + (extra || '') + '></label>'; }
+    function block(title, body) { return '<section class="cr-wz-block"><h3>' + esc(title) + '</h3>' + body + '</section>'; }
+    function tip(text) { return '<div class="cr-wz-tip">' + icon('star') + '<p>' + esc(text) + '</p></div>'; }
+    function chip(attr, value, label, active, disabled) { return '<button type="button" class="cr-wz-chip' + (active ? ' active' : '') + '" ' + attr + '="' + esc(value) + '" aria-pressed="' + (active ? 'true' : 'false') + '"' + (disabled ? ' disabled' : '') + '>' + (active ? icon('check') : '') + '<span>' + esc(label) + '</span></button>'; }
+    function stepper(field, value, placeholder) { return '<div class="cr-wz-counter"><button type="button" data-count="' + field + '" data-delta="-1" aria-label="−">−</button><input data-field="' + field + '" inputmode="numeric" value="' + esc(value) + '" placeholder="' + esc(placeholder) + '" aria-label="' + esc(placeholder) + '"><button type="button" data-count="' + field + '" data-delta="1" aria-label="+">+</button></div>'; }
     function wizardBody() {
       var s = wizard.step;
-      if (s === 0) return field('title',tr('Course title','Название курса'),'text',tr('e.g. German Conversation A2','Например: Разговорный немецкий A2')) + '<label class="cr-field"><span>' + esc(tr('Description','Описание')) + '</span><textarea data-field="description" maxlength="800">' + esc(wizard.description) + '</textarea><small>' + esc(tr('Explain who the course is for, what learners will practice, and the expected result.', 'Укажите, для кого курс, что будут практиковать ученики и какого результата достигнут.')) + '</small></label>';
-      if (s === 1) return '<div class="cr-field-grid">' + field('language',tr('Language','Язык'),'text',tr('German','Немецкий')) + '<label class="cr-field"><span>' + esc(tr('CEFR level','Уровень CEFR')) + '</span><select data-field="level"><option value="">—</option>' + ['A1','A2','B1','B2','C1','C2'].map(function (v) { return '<option' + (wizard.level === v ? ' selected' : '') + '>' + v + '</option>'; }).join('') + '</select></label></div>';
-      if (s === 2) return '<div class="cr-wizard-copy"><h3>' + esc(tr('Build the first lesson outline', 'Соберите план первых уроков')) + '</h3><p>' + esc(tr('Lesson titles are created with the course. Assignments can be added later in the curriculum editor.', 'Названия уроков сохранятся вместе с курсом. Задания можно добавить позже в редакторе программы.')) + '</p></div><div class="cr-wizard-lessons">' + wizard.lessons.map(function (v,i) { return '<label><span>' + (i + 1) + '</span><input data-lesson="' + i + '" value="' + esc(v) + '" placeholder="' + esc(tr('Lesson title','Название урока')) + '"><button type="button" data-remove-lesson="' + i + '" aria-label="Remove">' + icon('close') + '</button></label>'; }).join('') + '</div><button class="cr-secondary" type="button" data-add-lesson>' + icon('plus') + esc(tr('Add lesson','Добавить урок')) + '</button>';
-      if (s === 3) return '<button class="cr-upload" type="button" data-upload>' + (wizard.cover_image_url ? '<img src="' + esc(wizard.cover_image_url) + '" alt="">' : icon('upload') + '<b>' + esc(tr('Upload 16:9 course cover','Загрузить обложку 16:9')) + '</b><span>' + esc(tr('JPG, PNG or WebP','JPG, PNG или WebP')) + '</span>') + '</button><input type="file" data-cover-file accept="image/jpeg,image/png,image/webp" hidden><div class="cr-data-note">' + esc(tr('Course resources are added after creation in the curriculum editor. No unsupported file controls are shown.', 'Материалы курса добавляются после создания в редакторе программы.')) + '</div>';
-      if (s === 4) return '<div class="cr-field-grid">' + field('starts_on',tr('Start date','Дата начала'),'date','') + field('ends_on',tr('End date','Дата окончания'),'date','') + '</div>' + field('schedule',tr('Schedule','Расписание'),'text',tr('Mon / Wed · 18:00','Пн / Ср · 18:00')) + field('location',tr('Location','Место'),'text',tr('Online or address','Онлайн или адрес')) + '<div class="cr-data-note">' + esc(tr('Zoom Classroom sessions can be configured after creation in Schedule.', 'Занятия Zoom Classroom можно настроить после создания во вкладке «Расписание».')) + '</div>';
-      if (s === 5) return '<div class="cr-field-grid">' + field('price',tr('Price','Цена'),'number','0') + '<label class="cr-field"><span>' + esc(tr('Currency','Валюта')) + '</span><select data-field="currency"><option>EUR</option><option' + (wizard.currency === 'USD' ? ' selected' : '') + '>USD</option></select></label></div><p class="cr-helper">' + esc(tr('Use 0 for a free course.', 'Укажите 0 для бесплатного курса.')) + '</p>';
-      return '<div class="cr-review"><div class="cr-review-cover">' + (wizard.cover_image_url ? '<img src="' + esc(wizard.cover_image_url) + '" alt="">' : fallbackCover(wizard,0)) + '</div><div><span class="cr-eyebrow">' + esc([wizard.language,wizard.level].filter(Boolean).join(' · ')) + '</span><h2>' + esc(wizard.title || tr('Untitled course','Курс без названия')) + '</h2><p>' + esc(wizard.description || tr('No description yet.','Описание пока не добавлено.')) + '</p><strong>' + esc(money(wizard)) + '</strong></div></div><label class="cr-field"><span>' + esc(tr('Save as','Сохранить как')) + '</span><select data-field="status"><option value="draft">' + esc(tr('Draft','Черновик')) + '</option><option value="active"' + (wizard.status === 'active' ? ' selected' : '') + '>' + esc(tr('Published','Опубликован')) + '</option></select></label>';
+      if (s === 0) {
+        var importer = ctx.management && ctx.management.pickCourseExcel ? '<button type="button" class="cr-wz-import" data-import-excel>' + icon('upload') + '<span>' + esc(tr('Import courses from Excel','Загрузить курсы из Excel')) + '</span>' + icon('chevron') + '</button>' : '';
+        return importer + tip(tr('Write clearly: outcome, lesson format, and who this course is for.','Пиши конкретно: результат, формат занятий и кому подходит курс.')) +
+          block(tr('Course name','Название курса'), '<input class="cr-wz-input" data-field="title" maxlength="120" value="' + esc(wizard.title) + '" placeholder="' + esc(tr('Example: Conversational German B1','Например: Разговорный немецкий B1')) + '" aria-label="' + esc(tr('Course name','Название курса')) + '">') +
+          block(tr('What students will learn','Что изучат студенты'), '<p class="cr-helper">' + esc(tr('Example: in 8 weeks students will speak confidently about daily topics, review grammar, and complete practice tasks after every lesson.','Пример: за 8 недель студенты научатся уверенно говорить на бытовые темы, разбирать грамматику и выполнять практические задания после каждого урока.')) + '</p><textarea class="cr-wz-input" data-field="description" maxlength="2000" placeholder="' + esc(tr('Describe the course goals, lesson topics, and learning outcomes...','Опишите цели курса, темы уроков и результат обучения...')) + '" aria-label="' + esc(tr('What students will learn','Что изучат студенты')) + '">' + esc(wizard.description) + '</textarea>') +
+          block(tr('Course cover','Обложка курса'), '<button class="cr-upload" type="button" data-upload>' + (wizard.cover_image_url ? '<img src="' + esc(wizard.cover_image_url) + '" alt="">' : icon('upload') + '<b>' + esc(tr('Add course cover','Добавить обложку курса')) + '</b><span>' + esc(tr('JPG, PNG or WebP · 16:9','JPG, PNG или WebP · 16:9')) + '</span>') + '</button>' + (wizard.cover_image_url ? '<button type="button" class="cr-wz-link" data-remove-cover>' + esc(tr('Remove photo','Удалить фото')) + '</button>' : '') + '<input type="file" data-cover-file accept="image/jpeg,image/png,image/webp" hidden>');
+      }
+      if (s === 1) {
+        var declared = declaredLanguages(), langHint = '';
+        if (wizardProfile !== undefined && !declared.length) langHint = tr('You haven’t listed teaching languages in your profile yet. Add them under Profile so this list matches what you teach.','В твоём профиле пока не указано, какие языки ты преподаёшь. Добавь их в Профиле — тогда здесь появятся именно они.');
+        else if (declared.length) langHint = tr('Only your declared teaching languages are shown ({1}). Update your profile to change this list.','Показаны только твои преподаваемые языки ({1}). Чтобы изменить — обнови профиль.').replace('{1}', declared.length);
+        var explain = explanationChoices();
+        return tip(tr('Choose the course language and every student level you can genuinely support.','Выбери язык курса и все уровни студентов, которым реально сможешь помочь.')) +
+          block(tr('Teaching language','Язык обучения'), '<p class="cr-helper">' + esc(tr('Choose up to {1} languages · {2}/{1}','Выберите максимум {1} языка · {2}/{1}').replace(/\{1\}/g, MAX_TEACHING_LANGUAGES).replace('{2}', wizard.teaching.length)) + '</p>' + (langHint ? '<p class="cr-helper' + (declared.length ? '' : ' cr-wz-hint') + '">' + esc(langHint) + '</p>' : '') + '<div class="cr-wz-chips">' + teachingChoices().map(function (l) { var on = wizard.teaching.indexOf(l.key) >= 0; return chip('data-teach', l.key, l.flag + ' ' + l.label, on, !on && wizard.teaching.length >= MAX_TEACHING_LANGUAGES); }).join('') + '</div>') +
+          block(tr('Explanation language','Язык объяснения') + ' (' + wizard.explaining.length + '/' + MAX_EXPLANATION_LANGUAGES + ')', explain.length ? '<div class="cr-wz-chips">' + explain.map(function (l) { var on = wizard.explaining.indexOf(l.key) >= 0; return chip('data-explain', l.key, l.flag + ' ' + l.label, on, !on && wizard.explaining.length >= MAX_EXPLANATION_LANGUAGES); }).join('') + '</div>' : '<p class="cr-helper">' + esc(tr('Loading…','Загрузка…')) + '</p>') +
+          block(tr('Student levels (multiple allowed)','Уровень студентов (можно несколько)'), '<div class="cr-wz-levels">' + LEVELS.map(function (key) { var on = wizard.levels.indexOf(key) >= 0; return '<button type="button" class="cr-wz-level' + (on ? ' active' : '') + '" data-level="' + key + '" aria-pressed="' + on + '"><b>' + key + '</b><span>' + esc(levelDescription(key)) + '</span></button>'; }).join('') + '</div>' + (wizard.levels.length ? '<p class="cr-helper">' + esc(tr('Selected','Выбрано')) + ': ' + esc(orderedLevels().join(', ')) + '</p>' : ''));
+      }
+      if (s === 2) {
+        var types = [['fixed', tr('A fixed start date','Фиксированная дата начала')], ['ongoing', tr('Subscription without a start date','По подписке, без даты')], ['flexible', tr('Students choose a time','Студент выбирает время')]];
+        return tip(tr('If the schedule is not final yet, choose flexible and confirm days later.','Если расписание еще не финальное, выбери «Гибкий» и уточни дни позже.')) +
+          block(tr('Schedule type','Тип расписания'), '<div class="cr-wz-options">' + types.map(function (t) { var on = wizard.scheduleType === t[0]; return '<button type="button" class="cr-wz-option' + (on ? ' active' : '') + '" data-schedule-type="' + t[0] + '" aria-pressed="' + on + '">' + icon('calendar') + '<b>' + esc(scheduleLabel(t[0])) + '</b><span>' + esc(t[1]) + '</span></button>'; }).join('') + '</div>') +
+          (wizard.scheduleType === 'fixed' ? block(tr('Start date and time','Дата и время начала'), '<div class="cr-field-grid">' + field('start_date', tr('Start date','Дата начала'), 'date') + field('end_date', tr('End date (optional)','Дата окончания (необязательно)'), 'date') + '</div>' + field('start_time', tr('Time','Время'), 'time')) : '') +
+          block(tr('Class days (optional)','Дни занятий (необязательно)'), '<div class="cr-wz-chips">' + weekdayNames().map(function (name, i) { return chip('data-weekday', i, name, wizard.weekdays.indexOf(i) >= 0); }).join('') + '</div>') +
+          block(tr('Lesson duration','Длительность одного урока'), '<div class="cr-wz-chips">' + DURATIONS.map(function (m) { return chip('data-duration', m, durationLabel(m), Number(wizard.duration) === m); }).join('') + '</div>') +
+          block(tr('Number of lessons','Количество уроков в курсе'), stepper('total_lessons', wizard.total_lessons, '∞') + '<p class="cr-helper">' + esc(wizard.total_lessons ? tr('{count} lessons in the course','{count} уроков в курсе').replace('{count}', wizard.total_lessons) : tr('Unlimited','Без ограничений')) + '</p>');
+      }
+      var zoomBlock = wizard.format !== 'offline' ? block(tr('Zoom lessons','Zoom-уроки'), '<button type="button" class="cr-wz-zoom' + (wizard.zoom ? ' active' : '') + '" data-zoom aria-pressed="' + wizard.zoom + '">' + icon('users') + '<span><b>Zoom Classroom</b><em>' + esc(tr('Lessons happen right in the app: student group, teacher entry, attendance and materials.','Уроки проходят прямо в приложении: группа учеников, вход учителем, посещаемость и материалы.')) + '</em></span><i>' + (wizard.zoom ? icon('check') : '') + '</i></button>' + (wizard.zoom ? '<p class="cr-helper">' + esc(tr('After creating the course the schedule opens — add your first Zoom lesson.','После создания курса откроется расписание — добавьте первый Zoom-урок.')) + '</p>' : '')) : '';
+      var summary = [
+        ['book', wizard.title || '—'],
+        ['grid', wizard.teaching.map(languageName).join(', ') || '—'],
+        ['star', wizard.levels.length ? orderedLevels().join(', ') : tr('Any level','Любой уровень')],
+        ['calendar', wizard.scheduleType === 'fixed' && wizard.start_date ? tr('Start: {date}','Старт: {date}').replace('{date}', displayDate(wizard.start_date)) : scheduleLabel(wizard.scheduleType)]
+      ];
+      if (wizard.scheduleType === 'fixed' && wizard.end_date) summary.push(['calendar', tr('Ends: {1}','Окончание: {1}').replace('{1}', displayDate(wizard.end_date))]);
+      if (wizard.weekdays.length) summary.push(['list', orderedWeekdays().map(function (d) { return weekdayNames()[d]; }).join(', ')]);
+      summary.push(['users', formatLabel(wizard.format) + (zoomOn() ? ' · Zoom Classroom' : '')]);
+      summary.push(['coins', wizard.pricing === 'paid' && wizard.price ? (wizard.currency === 'USD' ? '$' : '€') + wizard.price : tr('Free','Бесплатно')]);
+      return tip(tr('Before creating, check format, price, and student limit. Students will see this.','Перед созданием проверь формат, цену и лимит студентов. Это увидят ученики.')) +
+        block(tr('Course format','Формат проведения'), '<div class="cr-wz-options three">' + ['online','offline','hybrid'].map(function (key) { var on = wizard.format === key; return '<button type="button" class="cr-wz-option' + (on ? ' active' : '') + '" data-format="' + key + '" aria-pressed="' + on + '"><b>' + esc(formatLabel(key)) + '</b></button>'; }).join('') + '</div>') +
+        zoomBlock +
+        block(tr('Max. students','Макс. студентов'), stepper('max_students', wizard.max_students, '∞') + '<p class="cr-helper">' + esc(wizard.max_students ? tr('{count} students','{count} студентов').replace('{count}', wizard.max_students) : tr('Unlimited','Без ограничений')) + '</p>') +
+        block(tr('Course price','Стоимость курса'), '<div class="cr-wz-options">' + [['free', tr('Free','Бесплатно')], ['paid', tr('Paid','Платно')]].map(function (p) { var on = wizard.pricing === p[0]; return '<button type="button" class="cr-wz-option' + (on ? ' active' : '') + '" data-pricing="' + p[0] + '" aria-pressed="' + on + '">' + icon(p[0] === 'free' ? 'star' : 'coins') + '<b>' + esc(p[1]) + '</b></button>'; }).join('') + '</div>' +
+          (wizard.pricing === 'paid' ? '<div class="cr-wz-price"><div class="cr-wz-chips">' + ['EUR','USD'].map(function (c) { return chip('data-currency', c, c === 'EUR' ? '€ EUR' : '$ USD', wizard.currency === c); }).join('') + '</div>' + field('price', tr('Amount','Сумма'), 'number', '0.00', ' min="0" step="0.01"') + '</div>' : '')) +
+        '<section class="cr-wz-summary"><h3>' + esc(tr('Course summary','Итог курса')) + '</h3>' + summary.map(function (row) { return '<p>' + icon(row[0]) + '<span>' + esc(row[1]) + '</span></p>'; }).join('') + '</section>';
     }
+    function orderedLevels() { return LEVELS.filter(function (key) { return wizard.levels.indexOf(key) >= 0; }); }
+    function orderedWeekdays() { return [0,1,2,3,4,5,6].filter(function (d) { return wizard.weekdays.indexOf(d) >= 0; }); }
+    function levelDescription(key) { return ({ A1: tr('Beginner','Начинающий'), A2: tr('Elementary','Элементарный'), B1: tr('Intermediate','Средний'), B2: tr('Upper intermediate','Выше среднего'), C1: tr('Advanced','Продвинутый'), C2: tr('Mastery','Мастерство') })[key]; }
+    function zoomOn() { return !!wizard.zoom && wizard.format !== 'offline'; }
+    function toggleIn(list, value, max) { var i = list.indexOf(value); if (i >= 0) list.splice(i, 1); else if (!max || list.length < max) list.push(value); }
     function paintWizard() {
       if (!wizard) return;
       var overlay = document.querySelector('.cr-wizard'); if (!overlay) { overlay = document.createElement('div'); overlay.className = 'cr-wizard'; document.body.appendChild(overlay); }
-      document.body.classList.add('modal-open'); var steps = wizardSteps();
-      overlay.innerHTML = '<div class="cr-wizard-card" role="dialog" aria-modal="true" aria-labelledby="crWizardTitle"><header><div><span class="cr-eyebrow">' + esc(tr('COURSE BUILDER','КОНСТРУКТОР КУРСА')) + '</span><h2 id="crWizardTitle">' + esc(steps[wizard.step]) + '</h2></div><button data-wizard-close aria-label="Close">' + icon('close') + '</button></header><div class="cr-stepper">' + steps.map(function (label,i) { return '<button type="button" class="' + (i === wizard.step ? 'active' : i < wizard.step ? 'done' : '') + '" data-step-jump="' + i + '"' + (i > wizard.step ? ' disabled' : '') + '><span>' + (i < wizard.step ? icon('check') : i + 1) + '</span><em>' + esc(label) + '</em></button>'; }).join('') + '</div><main>' + wizardBody() + (notice ? '<div class="cr-notice">' + esc(notice) + '</div>' : '') + '</main><footer>' + (wizard.step ? '<button class="cr-secondary" data-prev>' + esc(tr('Back','Назад')) + '</button>' : '<span></span>') + '<button class="cr-primary" data-next' + (saving ? ' disabled' : '') + '>' + esc(saving ? tr('Saving…','Сохранение…') : wizard.step === 6 ? tr('Save Course','Сохранить курс') : tr('Continue','Продолжить')) + icon('arrow') + '</button></footer></div>';
+      document.body.classList.add('modal-open'); var steps = wizardSteps(), last = steps.length - 1;
+      overlay.innerHTML = '<div class="cr-wizard-card" role="dialog" aria-modal="true" aria-labelledby="crWizardTitle"><header><div><span class="cr-eyebrow">' + esc(tr('Create course','Создать курс')) + ' · ' + esc(tr('Step {1} of {2}','Шаг {1} из {2}').replace('{1}', wizard.step + 1).replace('{2}', steps.length)) + '</span><h2 id="crWizardTitle">' + esc(steps[wizard.step][0]) + '</h2><p class="cr-wz-sub">' + esc(steps[wizard.step][1]) + '</p></div><button data-wizard-close aria-label="' + esc(tr('Close','Закрыть')) + '">' + icon('close') + '</button></header><div class="cr-stepper">' + steps.map(function (label,i) { return '<button type="button" class="' + (i === wizard.step ? 'active' : i < wizard.step ? 'done' : '') + '" data-step-jump="' + i + '"' + (i > wizard.step ? ' disabled' : '') + (i === wizard.step ? ' aria-current="step"' : '') + '><span>' + (i < wizard.step ? icon('check') : i + 1) + '</span><em>' + esc(label[0]) + '</em></button>'; }).join('') + '</div><main>' + wizardBody() + (notice ? '<div class="cr-notice" role="alert">' + esc(notice) + '</div>' : '') + '</main><footer><button class="cr-secondary" data-prev>' + esc(wizard.step ? tr('Back','Назад') : tr('Cancel','Отмена')) + '</button><button class="cr-primary" data-next' + (saving ? ' disabled' : '') + '>' + esc(saving ? tr('Saving…','Сохранение…') : wizard.step === last ? tr('Create course','Создать курс') : tr('Next','Далее')) + (wizard.step === last ? '' : icon('arrow')) + '</button></footer></div>';
       overlay.querySelector('[data-wizard-close]').onclick = closeWizard;
       overlay.onclick = function (e) { if (e.target === overlay) closeWizard(); };
-      overlay.querySelector('[data-prev]')?.addEventListener('click', function () { readWizard(); wizard.step--; notice=''; paintWizard(); });
-      overlay.querySelector('[data-next]').onclick = function () { if (!validateStep()) { paintWizard(); return; } if (wizard.step < 6) { wizard.step++; paintWizard(); } else void saveWizard(); };
+      overlay.querySelector('[data-prev]').onclick = function () { if (!wizard.step) { closeWizard(); return; } readWizard(); wizard.step--; notice=''; paintWizard(); };
+      overlay.querySelector('[data-next]').onclick = function () { if (!validateStep()) { paintWizard(); return; } if (wizard.step < last) { wizard.step++; paintWizard(); overlay.querySelector('main').scrollTop = 0; } else void saveWizard(); };
       overlay.querySelectorAll('[data-step-jump]').forEach(function (button) { button.onclick = function () { readWizard(); wizard.step = Number(button.dataset.stepJump); notice=''; paintWizard(); }; });
-      overlay.querySelector('[data-add-lesson]')?.addEventListener('click', function () { readWizard(); wizard.lessons.push(''); paintWizard(); });
-      overlay.querySelectorAll('[data-remove-lesson]').forEach(function (button) { button.onclick = function () { readWizard(); wizard.lessons.splice(Number(button.dataset.removeLesson),1); if (!wizard.lessons.length) wizard.lessons.push(''); paintWizard(); }; });
-      var upload = overlay.querySelector('[data-upload]'), file = overlay.querySelector('[data-cover-file]'); if (upload && file) { upload.onclick = function () { file.click(); }; file.onchange = function () { var selected = file.files && file.files[0]; if (selected) void uploadWizardCover(selected); }; }
+      function on(selector, handler) { overlay.querySelectorAll(selector).forEach(function (button) { button.onclick = function () { readWizard(); handler(button); notice=''; paintWizard(); }; }); }
+      on('[data-teach]', function (b) { toggleIn(wizard.teaching, b.dataset.teach, MAX_TEACHING_LANGUAGES); });
+      on('[data-explain]', function (b) { toggleIn(wizard.explaining, b.dataset.explain, MAX_EXPLANATION_LANGUAGES); });
+      on('[data-level]', function (b) { toggleIn(wizard.levels, b.dataset.level); });
+      on('[data-schedule-type]', function (b) { wizard.scheduleType = b.dataset.scheduleType; });
+      on('[data-weekday]', function (b) { toggleIn(wizard.weekdays, Number(b.dataset.weekday)); });
+      on('[data-duration]', function (b) { wizard.duration = Number(b.dataset.duration); });
+      on('[data-format]', function (b) { wizard.format = b.dataset.format; });
+      on('[data-zoom]', function () { wizard.zoom = !wizard.zoom; });
+      on('[data-pricing]', function (b) { wizard.pricing = b.dataset.pricing; });
+      on('[data-currency]', function (b) { wizard.currency = b.dataset.currency; });
+      on('[data-remove-cover]', function () { wizard.cover_image_url = ''; });
+      on('[data-count]', function (b) { var key = b.dataset.count; wizard[key] = String(Math.max(1, (parseInt(wizard[key], 10) || 0) + Number(b.dataset.delta))); });
+      var importer = overlay.querySelector('[data-import-excel]'); if (importer) importer.onclick = function () { closeWizard(); ctx.management.pickCourseExcel(); };
+      var upload = overlay.querySelector('[data-upload]'), file = overlay.querySelector('[data-cover-file]'); if (upload && file) { upload.onclick = function () { file.click(); }; file.onchange = function () { var selected = file.files && file.files[0]; if (selected) { readWizard(); void uploadWizardCover(selected); } }; }
     }
     async function uploadWizardCover(file) { notice = tr('Uploading cover…','Загрузка обложки…'); paintWizard(); try { wizard.cover_image_url = await ctx.uploadToBucket('posts', file); notice=''; } catch (e) { notice = e.message || tr('Could not upload the cover.','Не удалось загрузить обложку.'); } paintWizard(); }
+    function scheduleNote() {
+      var parts = [];
+      if (wizard.scheduleType === 'fixed' && wizard.start_date) parts.push('📅 ' + tr('Start: {date}','Старт: {date}').replace('{date}', displayDate(wizard.start_date) + (wizard.start_time ? ' ' + wizard.start_time : '')));
+      if (wizard.scheduleType !== 'fixed') parts.push('📅 ' + scheduleLabel(wizard.scheduleType));
+      if (wizard.weekdays.length) parts.push('🗓️ ' + orderedWeekdays().map(function (d) { return weekdayNames()[d]; }).join(', '));
+      if (wizard.total_lessons) parts.push('📖 ' + tr('{count} lessons in the course','{count} уроков в курсе').replace('{count}', wizard.total_lessons));
+      return parts.join('\n');
+    }
     async function saveWizard() {
       readWizard(); saving = true; notice=''; paintWizard();
       var org = ctx.state && ctx.state.myOrg; if (!org && ctx.management && ctx.management.ensureOrg) org = await ctx.management.ensureOrg();
       if (!org) { saving=false; notice=tr('Could not prepare your teaching workspace.','Не удалось подготовить кабинет преподавателя.'); paintWizard(); return; }
-      var priceRaw = String(wizard.price || '').trim();
-      var row = { organization_id: org.id, created_by: ctx.user.id, title: wizard.title.trim(), description: wizard.description.trim() || null, language: wizard.language.trim() || null, level: wizard.level || null, cover_image_url: wizard.cover_image_url || null, starts_on: wizard.starts_on || null, ends_on: wizard.ends_on || null, schedule: wizard.schedule.trim() || null, location: wizard.location.trim() || null, price: priceRaw === '' ? null : Number(priceRaw), currency: wizard.currency || 'EUR', status: wizard.status || 'draft', zoom_enabled: false, delivery_mode: 'self_paced', max_students: 25 };
+      var levelText = orderedLevels().join(', ') || tr('Any level','Любой уровень');
+      var formatNote = (wizard.format === 'online' ? '💻 ' : '🏫 ') + formatLabel(wizard.format);
+      var note = scheduleNote(), zoom = zoomOn(), maxStudents = parseInt(wizard.max_students, 10);
+      var row = {
+        organization_id: org.id, created_by: ctx.user.id, title: wizard.title.trim(),
+        description: [wizard.description.trim(), '\n' + levelText, formatNote, note].filter(Boolean).join('\n'),
+        cover_image_url: wizard.cover_image_url || null,
+        language: wizard.teaching.join(', '), level: levelText,
+        explanation_language: wizard.explaining[0] || null, explanation_languages: wizard.explaining.length ? wizard.explaining.slice() : null,
+        starts_on: wizard.scheduleType === 'fixed' ? wizard.start_date || null : null,
+        ends_on: wizard.scheduleType === 'fixed' ? wizard.end_date || null : null,
+        schedule: note || wizard.scheduleType,
+        note: [formatNote, Number(wizard.duration) + ' min', maxStudents > 0 ? 'Max students: ' + maxStudents : null, zoom ? 'Zoom Classroom' : null].filter(Boolean).join(' · '),
+        price: wizard.pricing === 'paid' ? Number(wizard.price) : 0, currency: wizard.pricing === 'paid' ? wizard.currency : null,
+        zoom_enabled: zoom, delivery_mode: zoom ? (wizard.format === 'hybrid' ? 'mixed' : 'zoom_group') : 'self_paced',
+        max_students: maxStudents > 0 ? maxStudents : 25, timezone: 'Europe/Berlin'
+      };
       var result = await supa.from('courses').insert(row).select('id').single();
-      if (result.error) { saving=false; notice=result.error.message || tr('Could not create the course.','Не удалось создать курс.'); paintWizard(); return; }
-      var lessonTitles = wizard.lessons.map(function (v) { return v.trim(); }).filter(Boolean); if (lessonTitles.length) { var inserted = await supa.from('course_lessons').insert(lessonTitles.map(function (title,i) { return { course_id: result.data.id, teacher_id: ctx.user.id, order_index: i + 1, title: title }; })); if (inserted.error) window.alert(tr('Course created, but lessons could not be saved: ','Курс создан, но уроки не сохранены: ') + inserted.error.message); }
-      saving=false; closeWizard(); await load(true); selectedId=result.data.id; manageTab='overview'; paint();
+      if (result.error) { saving=false; notice=tr('Could not create the course. Please try again.','Не удалось создать курс. Попробуйте снова.') + (result.error.message ? ' (' + result.error.message + ')' : ''); paintWizard(); return; }
+      var zoomReady = false;
+      if (zoom) { var zoomRes = await safe(supa.rpc('create_course_zoom_class', { target_course: result.data.id })); zoomReady = !zoomRes.error; if (zoomRes.error) console.warn('Zoom classroom was not enabled for the new course.', zoomRes.error); }
+      zoomLessonFor = result.data.id; zoomLessonDraft = zoomReady ? { title: wizard.title.trim(), starts_at: wizard.start_date && wizard.start_time ? wizard.start_date + 'T' + wizard.start_time : '', duration: Number(wizard.duration) || 60 } : null;
+      saving=false; closeWizard(); await load(true); selectedId=result.data.id; manageTab = zoomReady ? 'schedule' : 'overview'; paint();
     }
 
     function render() {
@@ -258,5 +446,5 @@
     return { render: render, reload: function () { return load(true); } };
   }
 
-  window.DuvelaCourses4 = { create: createCourses4, __test: { statusKey: statusKey, isFree: isFree, filterCourses: filterCourses, sortCourses: sortCourses } };
+  window.DuvelaCourses4 = { create: createCourses4, __test: { statusKey: statusKey, isFree: isFree, filterCourses: filterCourses, sortCourses: sortCourses, normalizeLanguages: normalizeLanguages } };
 })();

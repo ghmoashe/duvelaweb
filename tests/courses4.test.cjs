@@ -37,3 +37,18 @@ test('treats null and zero prices as free', () => {
   assert.equal(helpers.isFree({ price: 0 }), true);
   assert.equal(helpers.isFree({ price: 9 }), false);
 });
+
+test('normalizes profile languages to the Business catalog keys', () => {
+  assert.deepEqual(Array.from(helpers.normalizeLanguages(['German', 'de', 'persian', 'Klingon'])), ['german', 'farsi']);
+  assert.deepEqual(Array.from(helpers.normalizeLanguages('en-US, Русский')), ['english', 'russian']);
+  assert.deepEqual(Array.from(helpers.normalizeLanguages(null)), []);
+});
+
+test('course builder follows the Business app steps and opens Zoom scheduling', () => {
+  assert.ok(source.includes("tr('About the course','О курсе')"));
+  assert.ok(source.includes("tr('Language and level','Язык и уровень')"));
+  assert.ok(source.includes("tr('Price and format','Цена и формат')"));
+  assert.ok(source.includes("supa.rpc('create_course_zoom_class'"));
+  assert.ok(source.includes("delivery_mode: zoom ? (wizard.format === 'hybrid' ? 'mixed' : 'zoom_group') : 'self_paced'"));
+  assert.ok(source.includes("from('class_sessions').insert"));
+});

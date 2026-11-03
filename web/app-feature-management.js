@@ -631,7 +631,7 @@
     }
 
     async function openCourseModal(id) {
-      if (!data && ctx.user && ctx.user.id) await load(ctx.user.id);
+      if (ctx.user && ctx.user.id && (!data || (id && !data.courses.some(function (item) { return String(item.id) === String(id); })))) await load(ctx.user.id);
       courseEditing = id ? Object.assign({}, data.courses.find(function (item) { return String(item.id) === String(id); }) || null) : null;
       if (courseEditing && courseEditing.zoom_enabled) {
         var linkedGroup = ((state && state.orgClasses) || []).find(function (group) { return String(group.course_id) === String(id); });
@@ -943,6 +943,7 @@
         await load(ctx.user.id);
         activeTab = 'courses';
         paint();
+        window.dispatchEvent(new CustomEvent('duvela:courses-changed'));
         ctx.alert('✓ ' + payload.length + ' ' + tr('courses imported.', 'курсов импортировано.'));
       } catch (e) {
         ctx.alert((e && e.message) || tr('Import failed.', 'Импорт не удался.'));
@@ -1240,7 +1241,7 @@
       return null;
     }
 
-    return { render, paint, openCourseModal, archiveCourse, ensureOrg };
+    return { render, paint, openCourseModal, archiveCourse, ensureOrg, pickCourseExcel };
   }
 
   window.DuvelaBusinessManagement = { create: createManagement };
