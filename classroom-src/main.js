@@ -96,6 +96,12 @@ function localizeV6() {
   set('#devicesTitle', tr('Devices', 'Устройства'));
   set('#devicesHint', tr('Switch the camera, microphone or speaker without leaving the lesson.', 'Смените камеру, микрофон или динамик, не выходя из урока.'));
   set('#recordingChip span', tr('Recording', 'Идёт запись'));
+  set('[data-tool="whiteboard"] span', tr('Whiteboard', 'Доска'));
+  set('[data-tool="rooms"] span', tr('Breakout rooms', 'Комнаты для групп'));
+  set('#roomsTitle', tr('Breakout rooms', 'Комнаты для групп'));
+  set('#stopWhiteboardBtn', tr('Stop', 'Закрыть'));
+  set('#leaveSubsessionBtn', tr('Return to main session', 'Вернуться в общий урок'));
+  set('#askHelpBtn', tr('Ask for help', 'Позвать учителя'));
   set('#leaveDialog h2', tr('Leave the lesson', 'Завершение урока'));
   set('#leaveDialog p', tr('You can leave and come back, or end the room for everyone.', 'Можно выйти и вернуться или завершить комнату для всех участников.'));
   set('#exitOnlyBtn', tr('Leave', 'Выйти'));
@@ -142,6 +148,234 @@ function renderConnection() {
 }
 
 function isNarrow() { return matchMedia('(max-width: 980px)').matches; }
+
+function toast(text, actionLabel, action, ms = 8000) {
+  const node = document.createElement('div');
+  node.className = 'cv6-toast';
+  node.innerHTML = `<span>${esc(text)}</span>`;
+  if (actionLabel && action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = actionLabel;
+    button.onclick = () => { node.remove(); void action(); };
+    node.append(button);
+  }
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'cv6-toast-close';
+  close.setAttribute('aria-label', tr('Close', 'Закрыть'));
+  close.textContent = '×';
+  close.onclick = () => node.remove();
+  node.append(close);
+  $('cv6Toasts').append(node);
+  setTimeout(() => node.remove(), ms);
+}
+
+// ── Whiteboard (Video SDK WhiteboardClient, 2.3.5+) ──
+// Shown only when the account has whiteboard enabled; the SDK renders into
+// #whiteboardCanvas for the presenter (startWhiteboardScreen) and viewers
+// (startWhiteboardView).
+let whiteboardPresenterId = null;
+let whiteboardViewing = false;
+
+function whiteboardClient() {
+  try { return client?.getWhiteboardClient?.() || null; } catch { return null; }
+}
+
+function whiteboardAvailable() {
+  const wb = whiteboardClient();
+  try { return !!wb?.isWhiteboardEnabled?.(); } catch { return false; }
+}
+
+function isOwnWhiteboard() {
+  return whiteboardPresenterId != null && userKey(whiteboardPresenterId) === userKey(ownZoomUser()?.userId);
+}
+
+function updateWhiteboardUi() {
+  const active = whiteboardPresenterId != null;
+  const presenter = active ? client?.getAllUser?.().find((user) => userKey(user.userId) === userKey(whiteboardPresenterId)) : null;
+  $('whiteboardStatus').textContent = isOwnWhiteboard()
+    ? tr('You are presenting the whiteboard', 'Вы ведёте доску')
+    : `${presenter?.displayName || tr('Teacher', 'Учитель')} ${tr('is presenting the whiteboard', 'ведёт доску')}`;
+  $('stopWhiteboardBtn').hidden = !isOwnWhiteboard();
+  const item = document.querySelector('[data-tool="whiteboard"]');
+  if (item) {
+    item.hidden = !whiteboardAvailable() || (active && !isOwnWhiteboard());
+    item.querySelector('span').textContent = isOwnWhiteboard() ? tr('Stop whiteboard', 'Закрыть доску') : tr('Whiteboard', 'Доска');
+  }
+}
+
+async function toggleWhiteboard() {
+  const wb = whiteboardClient();
+  if (!wb) return;
+  try {
+    if (isOwnWhiteboard()) {
+      await wb.stopWhiteboardScreen();
+      whiteboardPresenterId = null;
+    } else {
+      if (sharing) await toggleShare();
+      if (!wb.canStartWhiteboard?.()) throw new Error(tr('The whiteboard cannot start right now (screen sharing or another whiteboard is active).', 'Доску сейчас нельзя открыть: идёт демонстрация экрана или другая доска.'));
+      $('whiteboardStage').hidden = false;
+      await wb.startWhiteboardScreen($('whiteboardCanvas'));
+      whiteboardPresenterId = ownZoomUser()?.userId ?? null;
+    }
+  } catch (error) {
+    if (!isOwnWhiteboard()) $('whiteboardStage').hidden = true;
+    alert(error?.reason || error?.message || tr('Could not open the whiteboard.', 'Не удалось открыть доску.'));
+  }
+  updateWhiteboardUi();
+  await renderUsers();
+}
+
+async function viewWhiteboard(presenterId) {
+  const wb = whiteboardClient();
+  if (!wb || presenterId == null) return;
+  whiteboardPresenterId = presenterId;
+  $('whiteboardStage').hidden = false;
+  try {
+    if (whiteboardViewing) await wb.stopWhiteboardView();
+    await wb.startWhiteboardView($('whiteboardCanvas'), Number(presenterId));
+    whiteboardViewing = true;
+  } catch (error) {
+    console.warn('Whiteboard view failed.', error);
+  }
+  updateWhiteboardUi();
+  await renderUsers();
+}
+
+async function closeWhiteboardView() {
+  const wb = whiteboardClient();
+  if (whiteboardViewing) { try { await wb?.stopWhiteboardView(); } catch {} }
+  whiteboardViewing = false;
+  whiteboardPresenterId = null;
+  $('whiteboardCanvas').replaceChildren();
+  updateWhiteboardUi();
+  await renderUsers();
+}
+
+// ── Breakout rooms (Video SDK SubsessionClient) ──
+// Teacher-only controls; shown only when subsessions are enabled for the
+// account. Learners get the SDK's invites, countdowns and broadcasts.
+function subsessionClient() {
+  try { return client?.getSubsessionClient?.() || null; } catch { return null; }
+}
+
+function subsessionAvailable() {
+  const sub = subsessionClient();
+  try { return !!sub?.isSubsessionEnabled?.(); } catch { return false; }
+}
+
+let roomCountdown = null;
+
+function updateRoomBanner() {
+  const sub = subsessionClient();
+  let current = null;
+  try { current = sub?.getCurrentSubsession?.() || null; } catch {}
+  const inRoom = current && String(current.userStatus || '').toLowerCase() === 'in room' && current.subsessionName;
+  $('roomBanner').hidden = !inRoom;
+  if (inRoom) {
+    const left = roomCountdown != null ? ` · ${Math.floor(roomCountdown / 60)}:${String(roomCountdown % 60).padStart(2, '0')}` : '';
+    $('roomBannerText').textContent = `${tr('Breakout room', 'Комната')}: ${current.subsessionName}${left}`;
+  }
+  $('leaveSubsessionBtn').hidden = !inRoom;
+  $('askHelpBtn').hidden = !inRoom || roomRole === 'host';
+  const item = document.querySelector('[data-tool="rooms"]');
+  if (item) item.hidden = !(roomRole === 'host' && subsessionAvailable());
+}
+
+function renderRoomsDialog() {
+  const sub = subsessionClient();
+  if (!sub) return;
+  let status = 1;
+  try { status = Number(sub.getSubsessionStatus?.()) || 1; } catch {}
+  let rooms = [];
+  try { rooms = sub.getSubsessionList?.() || []; } catch {}
+  if (status === 1 || !rooms.length) {
+    $('roomsHint').textContent = tr('Learners are split evenly and join their room automatically. They can return to the main session at any time.', 'Ученики распределяются поровну и входят в свою комнату автоматически. Вернуться в общий урок можно в любой момент.');
+    $('roomsBody').innerHTML = `<label>${esc(tr('Rooms', 'Комнат'))}<select id="roomsCount">${[2, 3, 4, 5, 6, 8].map((n) => `<option value="${n}">${n}</option>`).join('')}</select></label><label>${esc(tr('Timer', 'Таймер'))}<select id="roomsTimer"><option value="0">${esc(tr('No timer', 'Без таймера'))}</option>${[5, 10, 15, 20, 30].map((m) => `<option value="${m}">${m} ${esc(tr('min', 'мин'))}</option>`).join('')}</select></label><button type="button" class="primary" id="roomsOpenBtn">${esc(tr('Open rooms', 'Открыть комнаты'))}</button>`;
+    $('roomsOpenBtn').onclick = openRooms;
+    return;
+  }
+  $('roomsHint').textContent = status === 3 ? tr('Rooms are closing…', 'Комнаты закрываются…') : tr('Rooms are open.', 'Комнаты открыты.');
+  $('roomsBody').innerHTML = `<div class="cv6-room-list">${rooms.map((room) => `<article><b>${esc(room.subsessionName)}</b><small>${esc((room.userList || []).map((user) => user.displayName).join(', ') || tr('Nobody yet', 'Пока никого'))}</small><button type="button" data-join-room="${esc(room.subsessionId)}">${esc(tr('Join', 'Войти'))}</button></article>`).join('')}</div><form id="roomsBroadcastForm" class="cv6-inline-form"><input id="roomsBroadcastInput" maxlength="300" placeholder="${esc(tr('Message to all rooms…', 'Сообщение во все комнаты…'))}"><button type="submit">${esc(tr('Send', 'Отправить'))}</button></form><button type="button" class="danger" id="roomsCloseAllBtn">${esc(tr('Close all rooms', 'Закрыть все комнаты'))}</button>`;
+  $('roomsBody').querySelectorAll('[data-join-room]').forEach((button) => {
+    button.onclick = async () => { try { await sub.joinSubsession(button.dataset.joinRoom); $('roomsDialog').hidden = true; } catch (error) { $('roomsStatus').textContent = error?.reason || error?.message || ''; } };
+  });
+  $('roomsBroadcastForm').onsubmit = async (event) => {
+    event.preventDefault();
+    const text = $('roomsBroadcastInput').value.trim();
+    if (!text) return;
+    try { await sub.broadcast(text); $('roomsBroadcastInput').value = ''; $('roomsStatus').textContent = tr('Sent', 'Отправлено'); } catch (error) { $('roomsStatus').textContent = error?.reason || error?.message || ''; }
+  };
+  $('roomsCloseAllBtn').onclick = async () => {
+    try { await sub.closeAllSubsessions(); $('roomsStatus').textContent = tr('Closing rooms…', 'Закрываем комнаты…'); } catch (error) { $('roomsStatus').textContent = error?.reason || error?.message || ''; }
+    setTimeout(renderRoomsDialog, 800);
+  };
+}
+
+async function openRooms() {
+  const sub = subsessionClient();
+  if (!sub) return;
+  const count = Number($('roomsCount').value) || 2;
+  const minutes = Number($('roomsTimer').value) || 0;
+  $('roomsStatus').textContent = tr('Opening rooms…', 'Открываем комнаты…');
+  try {
+    const rooms = await sub.createSubsessions(count, 1);
+    if (rooms instanceof Error) throw rooms;
+    await sub.openSubsessions(rooms, {
+      isAutoJoinSubsession: true, isBackToMainSessionEnabled: true,
+      isTimerEnabled: minutes > 0, timerDuration: minutes * 60, isTimerAutoEnabled: minutes > 0, waitSeconds: 30
+    });
+    $('roomsStatus').textContent = '';
+  } catch (error) {
+    $('roomsStatus').textContent = error?.reason || error?.message || tr('Could not open breakout rooms.', 'Не удалось открыть комнаты.');
+  }
+  setTimeout(renderRoomsDialog, 600);
+}
+
+function openRoomsDialog() {
+  $('roomsStatus').textContent = '';
+  renderRoomsDialog();
+  $('roomsDialog').hidden = false;
+}
+
+function bindClassroomTools() {
+  client.on('peer-whiteboard-state-change', (payload) => {
+    const action = String(payload?.action || '').toLowerCase();
+    if (action === 'start' && userKey(payload.userId) !== userKey(ownZoomUser()?.userId)) void viewWhiteboard(payload.userId);
+    if (action === 'stop') void closeWhiteboardView();
+  });
+  client.on('whiteboard-status-change', () => updateWhiteboardUi());
+  client.on('subsession-invite-to-join', (payload) => {
+    toast(`${tr('You are invited to', 'Вас приглашают в')} ${payload?.subsessionName || tr('a breakout room', 'комнату')}`, tr('Join', 'Войти'), () => subsessionClient()?.joinSubsession(payload.subsessionId), 20000);
+  });
+  client.on('subsession-countdown', (payload) => { roomCountdown = Number(payload?.countdown) || null; updateRoomBanner(); });
+  client.on('closing-subsession-countdown', (payload) => {
+    if (Number(payload?.countdown) > 0) toast(`${tr('Rooms close in', 'Комнаты закроются через')} ${payload.countdown} ${tr('s', 'с')}`, '', null, 4000);
+  });
+  client.on('subsession-broadcast-message', (payload) => { if (payload?.message) toast(`📣 ${payload.message}`, '', null, 12000); });
+  client.on('subsession-ask-for-help', (payload) => {
+    if (roomRole !== 'host') return;
+    playNoticeSound();
+    toast(`${payload?.displayName || tr('A learner', 'Ученик')} ${tr('asks for help in', 'просит помощи в')} ${payload?.subsessionName || ''}`, tr('Join', 'Войти'), () => subsessionClient()?.joinSubsession(payload.subsessionId), 20000);
+  });
+  client.on('subsession-invite-back-to-main-session', (payload) => {
+    toast(`${payload?.inviterName || tr('Teacher', 'Учитель')} ${tr('invites you back to the main session', 'зовёт вас обратно в общий урок')}`, tr('Return', 'Вернуться'), () => subsessionClient()?.leaveSubsession(), 20000);
+  });
+  client.on('subsession-state-change', () => { roomCountdown = null; updateRoomBanner(); if (!$('roomsDialog').hidden) renderRoomsDialog(); });
+  client.on('subsession-user-update', () => { updateRoomBanner(); if (!$('roomsDialog').hidden) renderRoomsDialog(); setTimeout(() => { void renderUsers(); }, 600); });
+}
+
+// The lesson timer follows the session start (class_sessions.started_at, set
+// by the zoom-video-token start action) so everyone sees the same clock.
+async function lessonStartTime() {
+  try {
+    const { data } = await supa.from('class_sessions').select('started_at').eq('id', sessionId).maybeSingle();
+    const started = Date.parse(data?.started_at || '');
+    if (Number.isFinite(started) && started <= Date.now() + 60000 && Date.now() - started < 12 * 3600 * 1000) return Math.min(started, Date.now());
+  } catch {}
+  return Date.now();
+}
 
 async function toggleFullscreen(target) {
   try {
@@ -529,19 +763,21 @@ function spotlightTarget(users) {
 function placeTiles(users) {
   const shareAvailable = sharing || activeShareUserId != null;
   const sharing_ = shareAvailable && !focusedShareHidden;
-  const target = sharing_ ? null : spotlightTarget(users);
-  const mode = sharing_ ? 'share' : (target ? 'spotlight' : 'grid');
+  const board = whiteboardPresenterId != null;
+  const target = sharing_ || board ? null : spotlightTarget(users);
+  const mode = board ? 'whiteboard' : sharing_ ? 'share' : (target ? 'spotlight' : 'grid');
   const gallery = $('gallery'), spotlight = $('spotlight'), filmstrip = $('filmstrip'), shareStage = $('shareStage');
   gallery.hidden = mode !== 'grid';
   spotlight.hidden = mode !== 'spotlight';
   shareStage.hidden = mode !== 'share';
+  $('whiteboardStage').hidden = mode !== 'whiteboard';
   filmstrip.hidden = mode === 'grid';
   for (const user of users) {
     const node = document.querySelector(`.tile[data-user="${user.userId}"]`);
     if (!node) continue;
     let container = gallery;
     if (mode === 'spotlight') container = String(user.userId) === target ? spotlight : filmstrip;
-    else if (mode === 'share') container = filmstrip;
+    else if (mode === 'share' || mode === 'whiteboard') container = filmstrip;
     if (node.parentElement !== container) container.append(node);
   }
   if (!filmstrip.children.length) filmstrip.hidden = true;
@@ -902,7 +1138,10 @@ function bindZoomEvents() {
         banner.className = 'reconnect';
         document.body.append(banner);
       }
-      banner.textContent = navigator.onLine ? tr('Restoring connection...', 'Восстанавливаем соединение…') : tr('No internet. Waiting for connection...', 'Нет интернета. Ждём подключения…');
+      const reason = String(payload?.reason || '').toLowerCase();
+      banner.textContent = reason.includes('subsession') || reason.includes('main session')
+        ? tr('Moving between rooms…', 'Переходим между комнатами…')
+        : navigator.onLine ? tr('Restoring connection...', 'Восстанавливаем соединение…') : tr('No internet. Waiting for connection...', 'Нет интернета. Ждём подключения…');
     } else if (state.includes('connected')) {
       banner?.remove();
       void renderUsers();
@@ -950,6 +1189,7 @@ async function join() {
     await loadZoomClient();
     await client.init('en-US', 'Global', { patchJsMedia: true, stayAwake: true });
     bindZoomEvents();
+    bindClassroomTools();
     await client.join(auth.topic, auth.token, me.name, auth.password || '');
     media = client.getMediaStream();
     joined = true;
@@ -972,13 +1212,25 @@ async function join() {
     if (isNarrow()) $('sidePanel').classList.add('closed');
     syncDockPanels();
     renderConnection();
-    startedAt = Date.now();
-    timer = setInterval(() => {
-      const seconds = Math.floor((Date.now() - startedAt) / 1000);
-      $('roomTime').textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-    }, 1000);
+    startedAt = await lessonStartTime();
+    const tick = () => {
+      const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      const hours = Math.floor(seconds / 3600);
+      const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const ss = String(seconds % 60).padStart(2, '0');
+      $('roomTime').textContent = hours ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+    };
+    tick();
+    timer = setInterval(tick, 1000);
     await renderUsers();
     await loadMaterials();
+    // A late joiner sees a whiteboard that is already running.
+    try {
+      const presenter = whiteboardClient()?.getWhiteboardPresenter?.();
+      if (presenter && userKey(presenter.userId) !== userKey(ownZoomUser()?.userId)) await viewWhiteboard(presenter.userId);
+    } catch {}
+    updateWhiteboardUi();
+    updateRoomBanner();
   } catch (error) {
     setStatus(error?.message || tr('Could not join the lesson.', 'Не удалось войти в урок.'), true);
     $('joinBtn').disabled = false;
@@ -1275,6 +1527,8 @@ $('moreMenu').onclick = (event) => {
   if (!item) return;
   closeMoreMenu();
   if (item.dataset.tool === 'devices') openDevices();
+  if (item.dataset.tool === 'whiteboard') void toggleWhiteboard();
+  if (item.dataset.tool === 'rooms') openRoomsDialog();
   if (item.dataset.tool === 'view') setViewMode(viewMode === 'speaker' ? 'gallery' : 'speaker');
   if (item.dataset.tool === 'fullscreen') void toggleFullscreen(document.documentElement);
   if (item.dataset.tool === 'invite') void inviteLink($('moreBtn'));
@@ -1283,6 +1537,13 @@ $('roomCameraSelect').onchange = () => switchDevice('camera', $('roomCameraSelec
 $('roomMicSelect').onchange = () => switchDevice('mic', $('roomMicSelect').value);
 $('roomSpeakerSelect').onchange = () => switchDevice('speaker', $('roomSpeakerSelect').value);
 $('devicesCloseBtn').onclick = () => { $('devicesDialog').hidden = true; };
+$('stopWhiteboardBtn').onclick = () => { if (isOwnWhiteboard()) void toggleWhiteboard(); };
+$('roomsCloseBtn').onclick = () => { $('roomsDialog').hidden = true; };
+$('roomsDialog').onclick = (event) => { if (event.target === $('roomsDialog')) $('roomsDialog').hidden = true; };
+$('leaveSubsessionBtn').onclick = async () => { try { await subsessionClient()?.leaveSubsession(); } catch (error) { alert(error?.reason || error?.message || ''); } };
+$('askHelpBtn').onclick = async () => {
+  try { await subsessionClient()?.askForHelp(); toast(tr('The teacher has been asked to join your room.', 'Учителю отправлена просьба зайти в комнату.')); } catch (error) { alert(error?.reason || error?.message || ''); }
+};
 $('devicesDialog').onclick = (event) => { if (event.target === $('devicesDialog')) $('devicesDialog').hidden = true; };
 $('peopleSearch').oninput = () => renderPeopleList();
 document.addEventListener('click', (event) => {

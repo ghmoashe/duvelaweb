@@ -327,3 +327,31 @@
   .duvela-classroom-v6 .person-state { gap: 6px; }
 }
 @media (max-width: 1440px) and (min-width: 981px) { .duvela-classroom-v6 .side-panel nav button > .ic { display: none; } }
+/* Whiteboard, breakout rooms, toasts */
+.duvela-classroom-v6 .wb-stage { position: absolute; inset: 0; z-index: 2; border: 1px solid var(--class-border); border-radius: 14px; overflow: hidden; background: #fff; }
+.duvela-classroom-v6 .wb-stage[hidden] { display: none; }
+.duvela-classroom-v6 .wb-canvas { position: absolute; inset: 0; }
+.duvela-classroom-v6 .wb-toolbar { left: 12px; right: auto; bottom: 12px; max-width: calc(100% - 24px); }
+.duvela-classroom-v6 #stopWhiteboardBtn { border-color: var(--class-red); background: var(--class-red); }
+.duvela-classroom-v6 .stage-main[data-mode="whiteboard"] .empty-state { display: none; }
+.duvela-classroom-v6 .cv6-room-banner { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px 6px 14px; border: 1px solid rgba(153,77,255,.55); border-radius: 12px; background: rgba(121,61,243,.16); font-weight: 700; }
+.duvela-classroom-v6 .cv6-room-banner[hidden] { display: none; }
+.duvela-classroom-v6 .cv6-room-banner > span:first-of-type { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duvela-classroom-v6 .cv6-room-banner-actions { display: flex; gap: 6px; }
+.duvela-classroom-v6 .cv6-room-banner button { min-height: 34px; padding: 0 12px; border: 1px solid var(--class-border); border-radius: 10px; background: var(--class-raised); color: var(--class-text); font-weight: 700; }
+.duvela-classroom-v6 #leaveSubsessionBtn { border-color: var(--class-primary); background: var(--class-primary); }
+.duvela-classroom-v6 .cv6-toasts { position: fixed; z-index: 80; top: 84px; left: 50%; transform: translateX(-50%); display: grid; gap: 8px; width: min(460px, calc(100% - 24px)); pointer-events: none; }
+.duvela-classroom-v6 .cv6-toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 16px; border: 1px solid var(--class-border); border-radius: 14px; background: #1e1630; color: var(--class-text); box-shadow: 0 18px 44px rgba(0,0,0,.55); font-weight: 600; }
+.duvela-classroom-v6 .cv6-toast > span { flex: 1; min-width: 0; }
+.duvela-classroom-v6 .cv6-toast button { min-height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--class-primary); color: #fff; font-weight: 800; }
+.duvela-classroom-v6 .cv6-toast .cv6-toast-close { width: 30px; padding: 0; background: transparent; color: var(--class-muted); font-size: 20px; }
+.duvela-classroom-v6 .cv6-rooms { display: grid !important; gap: 12px; }
+.duvela-classroom-v6 .cv6-rooms label { display: grid; gap: 6px; color: var(--class-muted); font-weight: 700; font-size: 13px; }
+.duvela-classroom-v6 .cv6-rooms select, .duvela-classroom-v6 .cv6-inline-form input { min-height: 44px; padding: 0 12px; border: 1px solid var(--class-border); border-radius: 12px; background: var(--class-bg); color: var(--class-text); }
+.duvela-classroom-v6 .cv6-room-list { display: grid; gap: 8px; max-height: 40vh; overflow: auto; }
+.duvela-classroom-v6 .cv6-room-list article { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--class-border); border-radius: 12px; background: var(--class-raised); }
+.duvela-classroom-v6 .cv6-room-list small { grid-column: 1; color: var(--class-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duvela-classroom-v6 .cv6-room-list button { grid-column: 2; grid-row: 1 / span 2; }
+.duvela-classroom-v6 .cv6-inline-form { display: flex !important; gap: 8px; }
+.duvela-classroom-v6 .cv6-inline-form input { flex: 1; min-width: 0; }
+@media (max-width: 600px) { .duvela-classroom-v6 .cv6-room-banner { flex-wrap: wrap; } .duvela-classroom-v6 .cv6-toasts { top: 64px; } }
