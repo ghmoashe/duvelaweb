@@ -1033,27 +1033,37 @@ async function announceOwnHand() {
 function handleClassCommand(message) {
   let payload;
   try { payload = JSON.parse(message?.text ?? message?.message ?? message); } catch { return; }
-  const senderId = userKey(payload.senderUserId || payload.userId || message?.senderId || message?.sender?.userId);
-  const senderName = payload.senderName || message?.sender?.name || raisedUserNames.get(senderId) || tr('Learner', 'Ученик');
+  if (!payload || typeof payload !== 'object') return;
+  // Identity comes from the SDK (message.senderId), never from the JSON body,
+  // which any participant can write. Teacher-only commands need a sender the
+  // SDK reports as host/manager.
+  const sdkSender = message && typeof message === 'object' ? message.senderId ?? message.sender?.userId : null;
+  const senderId = userKey(sdkSender);
+  if (!senderId) return;
+  const senderUser = client?.getUser?.(Number(senderId));
+  const senderIsHost = !!(senderUser?.isHost || senderUser?.isManager);
+  const senderName = senderUser?.displayName || message?.senderName || raisedUserNames.get(senderId) || tr('Learner', 'Ученик');
   const ownId = userKey(ownZoomUser()?.userId);
-  if (payload.type === 'reaction' && payload.emoji) showReaction(payload.emoji);
+  if (payload.type === 'reaction' && typeof payload.emoji === 'string' && payload.emoji.length <= 8) showReaction(payload.emoji);
   if (payload.type === 'hand') {
     if (setRaisedUser(senderId, !!payload.raised, senderName) && payload.raised && roomRole === 'host' && senderId !== ownId) showHandNotice(senderName);
     void renderUsers();
   }
   if (payload.type === 'hand-clear') {
+    // Learners may only lower their own hand; the teacher may lower anyone's.
     const targetId = userKey(payload.targetUserId || senderId);
+    if (targetId !== senderId && !senderIsHost) return;
     setRaisedUser(targetId, false);
-    if (!payload.targetUserId || targetId === ownId) setOwnHandRaised(false);
+    if (targetId === ownId) setOwnHandRaised(false);
     void renderUsers();
   }
-  if (payload.type === 'host-action' && senderId !== ownId) {
+  if (payload.type === 'host-action' && senderId !== ownId && senderIsHost) {
     if (payload.action === 'mute') void media?.muteAudio();
     if (payload.action === 'stop-video') { camOn = false; updateControlStates(); void Promise.resolve(media?.stopVideo()).catch(() => {}); }
     if (payload.action === 'speak') void acceptSpeakingTurn();
   }
-  if (payload.type === 'material-show' && payload.url) showMaterial(payload.title || tr('Material', 'Материал'), payload.fileType || '', payload.url);
-  if (payload.type === 'materials-changed') void loadMaterials();
+  if (payload.type === 'material-show' && senderIsHost && isTrustedMaterialUrl(payload.url)) showMaterial(String(payload.title || tr('Material', 'Материал')).slice(0, 200), String(payload.fileType || ''), payload.url);
+  if (payload.type === 'materials-changed' && senderIsHost) void loadMaterials();
 }
 
 function bindZoomEvents() {
@@ -1359,6 +1369,16 @@ async function toggleShare() {
 const MATERIAL_BUCKET = 'class-materials';
 const MATERIAL_SIGNED_TTL = 60 * 60;
 
+// Materials are short-lived signed URLs from this project's Supabase Storage;
+// anything else (other hosts, javascript:/data: URLs) is never rendered.
+function isTrustedMaterialUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    const storage = new URL(config?.supabaseUrl || 'https://invalid.invalid');
+    return url.protocol === 'https:' && url.host === storage.host && url.pathname.startsWith('/storage/v1/object/');
+  } catch { return false; }
+}
+
 function isImageMaterial(fileType, url = '') {
   return /^image\//.test(fileType || '') || /\.(png|jpe?g|webp)(\?|$)/i.test(url);
 }
@@ -1373,7 +1393,7 @@ function openMaterialExternal(url) {
 }
 
 function showMaterial(title, fileType, url) {
-  if (!url) return;
+  if (!url || !isTrustedMaterialUrl(url)) return;
   activeMaterialUrl = url;
   const safeTitle = title || tr('Material', 'Материал');
   $('materialTitle').textContent = safeTitle;

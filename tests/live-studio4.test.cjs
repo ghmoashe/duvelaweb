@@ -32,8 +32,8 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
  has(page,'app-live-studio5.css?v=20261103-rtl');
- has(page,'live-page.js?v=20261103-rtl');
- has(page,'live-studio-ui.js?v=20261103-rtl');
+ has(page,'live-page.js?v=20261103-sec');
+ has(page,'live-studio-ui.js?v=20261103-sec');
  has(studio,'api.previewScene(previewSelect.value)');
  has(studio,'api.setScene(previewSelect.value)');
  has(studio,'api.toggleScreenShare()');
@@ -105,3 +105,14 @@ test('Studio V5 timeline initially limits the recent rooms to three',()=>{
   assert.match(source,/toggleTimelineHistory/);
 });
 
+
+test('LIVE materials only render from trusted media hosts', () => {
+  const source = require('node:fs').readFileSync(require('node:path').resolve(__dirname, '../web/live-page.js'), 'utf8');
+  const start = source.indexOf('function isTrustedMediaUrl');
+  const fn = new Function('window', 'URL', source.slice(start, source.indexOf('window.DuvelaLiveTrustedMedia')) + '; return isTrustedMediaUrl;')({ DuvelaWebConfig: { supabaseUrl: 'https://ohtkryanqcnwghcnipsr.supabase.co' } }, URL);
+  assert.equal(fn('https://ohtkryanqcnwghcnipsr.supabase.co/storage/v1/object/public/posts/u/live-materials/a.pdf'), true);
+  assert.equal(fn('https://pub-1a08dae15de84893bd9a64c6f09051be.r2.dev/materials/a.png'), true);
+  assert.equal(fn('javascript:alert(1)//.pdf'), false);
+  assert.equal(fn('https://evil.example/a.pdf'), false);
+  assert.equal(fn('https://ohtkryanqcnwghcnipsr.supabase.co/functions/v1/x.pdf'), false);
+});

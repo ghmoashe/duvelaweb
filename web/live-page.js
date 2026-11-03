@@ -1688,10 +1688,26 @@
       renderWorkspace(currentSession);
     }
   }
+  // The material channel is a public Realtime broadcast, so any viewer could
+  // send a URL. Only https files from this project's Storage or the Duvela R2
+  // bucket are rendered (blocks javascript:/data: URLs in the PDF iframe).
+  function isTrustedMediaUrl(value) {
+    try {
+      var url = new URL(String(value || ''));
+      if (url.protocol !== 'https:') return false;
+      var storageHost = new URL((window.DuvelaWebConfig && window.DuvelaWebConfig.supabaseUrl) || 'https://invalid.invalid').host;
+      if (url.host === storageHost) return url.pathname.indexOf('/storage/v1/object/') === 0;
+      return TRUSTED_MEDIA_HOSTS.indexOf(url.host) >= 0;
+    } catch (e) { return false; }
+  }
+  var TRUSTED_MEDIA_HOSTS = ['pub-1a08dae15de84893bd9a64c6f09051be.r2.dev'];
+  window.DuvelaLiveTrustedMedia = isTrustedMediaUrl;
+
   function renderLiveMaterial(url, mimeType) {
     var stage = el('player') && el('player').parentElement;
     if (!stage) return;
     var node = document.getElementById('liveMaterialOverlay');
+    if (url && !isTrustedMediaUrl(url)) { console.warn('Ignored LIVE material from an untrusted host.'); return; }
     if (!url) { if (node) node.remove(); return; }
     if (!node) {
       node = document.createElement('div');

@@ -36,3 +36,11 @@ test('whiteboard and breakout rooms use documented SDK calls behind feature chec
   assert.ok(html.includes('data-tool="whiteboard" hidden') && html.includes('data-tool="rooms" hidden'), 'tools stay hidden until the SDK enables them');
   assert.ok(main.includes("select('started_at')"), 'timer follows the session start');
 });
+
+test('classroom commands trust the SDK sender, not the JSON body', () => {
+  assert.ok(main.includes('message.senderId ?? message.sender?.userId'));
+  assert.ok(!main.includes('payload.senderUserId || payload.userId'), 'sender id must not come from the payload');
+  assert.ok(main.includes("payload.type === 'host-action' && senderId !== ownId && senderIsHost"));
+  assert.ok(main.includes("payload.type === 'material-show' && senderIsHost && isTrustedMaterialUrl(payload.url)"));
+  assert.ok(main.includes("url.pathname.startsWith('/storage/v1/object/')"));
+});

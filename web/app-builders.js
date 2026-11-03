@@ -216,13 +216,20 @@
           language: d.languages.join(', '),
           explanation_language: d.explaining[0] || null, explanation_languages: d.explaining.length ? d.explaining.slice() : null,
           city: online ? null : (d.city.trim() || null), country: online ? null : (d.country.trim() || null),
-          address: online ? null : (d.street.trim() || null), online_url: online ? (d.online_url.trim() || null) : null,
+          address: online ? null : (d.street.trim() || null),
           image_url: d.photos[0] || null, image_urls: d.photos.length ? d.photos.slice() : null,
           max_participants: parseInt(d.max_participants, 10) > 0 ? parseInt(d.max_participants, 10) : null,
           is_paid: d.pricing === 'paid', price_amount: d.pricing === 'paid' ? Number(String(d.price).replace(',', '.')) : null
         };
-        var res = await ctx.supa.from('events').insert(row);
+        var res = await ctx.supa.from('events').insert(row).select('id').single();
         if (res.error) throw res.error;
+        // events is publicly readable, so the meeting link lives in
+        // event_private_details (organizer, admins and attendees only).
+        var link = online ? d.online_url.trim() : '';
+        if (link && res.data && res.data.id) {
+          var linkRes = await ctx.supa.from('event_private_details').upsert({ event_id: res.data.id, online_url: link });
+          if (linkRes.error) console.warn('The meeting link could not be saved.', linkRes.error);
+        }
         window.dispatchEvent(new CustomEvent('duvela:events-changed'));
       },
       onSaved: opts && opts.onSaved

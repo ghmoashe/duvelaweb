@@ -25,8 +25,13 @@ test('event recurrence is written as the Business app summary', () => {
 });
 
 test('builders save the same columns as the Business app', () => {
-  for (const column of ['duration_minutes', 'explanation_languages', 'image_urls', 'max_participants', 'online_url', 'address']) assert.ok(source.includes(column + ':'), column);
+  for (const column of ['duration_minutes', 'explanation_languages', 'image_urls', 'max_participants', 'address']) assert.ok(source.includes(column + ':'), column);
   for (const column of ['grace_days_per_week', 'warn_before_exclude', 'auto_exclude', 'daily_min_live_min', 'daily_min_listening_min', 'cover_url', 'currency']) assert.ok(source.includes(column), column);
   assert.ok(source.includes("format: online ? 'online' : 'offline'"), 'events.format only allows online/offline');
   assert.ok(sandbox.window.DuvelaCourses4.languages.list.length >= 36);
+});
+
+test('meeting links never go to the public events table', () => {
+  assert.ok(!/online_url:\s*online/.test(source), 'events row must not carry online_url');
+  assert.ok(source.includes("from('event_private_details').upsert"));
 });
