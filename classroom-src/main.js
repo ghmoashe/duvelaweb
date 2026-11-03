@@ -1,6 +1,7 @@
 import '../web/duvela-session-guard.js';
 import './style.css';
 import '../web/duvi-assistant.css';
+import './classroom-v6.css';
 
 function loadScriptOnce(src, isReady) {
   return new Promise((resolve, reject) => {
@@ -76,7 +77,127 @@ const currentMaterials = new Map();
 let activeMaterialUrl = '';
 let focusedShareHidden = false;
 let lastCopiedAt = 0;
+let audioStarted = false;
+// 'speaker' keeps the original auto layout (pinned or active speaker big);
+// 'gallery' keeps everyone in the grid unless someone is pinned.
+let viewMode = 'speaker';
+let connectionState = 'connecting';
 const readiness = { browser: false, network: false, camera: false, mic: false };
+
+const icon = (name, cls = '') => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
+function localizeV6() {
+  const set = (selector, text) => document.querySelectorAll(selector).forEach((node) => { node.textContent = text; });
+  set('[data-host-control="invite"] span', tr('Invite', 'Пригласить'));
+  set('#moreBtn span', tr('More', 'Ещё'));
+  set('[data-tool="devices"] span', tr('Devices', 'Устройства'));
+  set('[data-tool="fullscreen"] span', tr('Full screen', 'Во весь экран'));
+  set('[data-tool="invite"] span', tr('Copy invite link', 'Скопировать ссылку-приглашение'));
+  set('#devicesTitle', tr('Devices', 'Устройства'));
+  set('#devicesHint', tr('Switch the camera, microphone or speaker without leaving the lesson.', 'Смените камеру, микрофон или динамик, не выходя из урока.'));
+  set('#recordingChip span', tr('Recording', 'Идёт запись'));
+  set('#leaveDialog h2', tr('Leave the lesson', 'Завершение урока'));
+  set('#leaveDialog p', tr('You can leave and come back, or end the room for everyone.', 'Можно выйти и вернуться или завершить комнату для всех участников.'));
+  set('#exitOnlyBtn', tr('Leave', 'Выйти'));
+  set('#endForAllBtn', tr('End for everyone', 'Завершить для всех'));
+  set('#leaveCancelBtn', tr('Cancel', 'Отмена'));
+  set('#reviewDialog h2', tr('How was the lesson?', 'Как прошёл урок?'));
+  set('#reviewSaveBtn', tr('Save and continue', 'Сохранить и продолжить'));
+  $('reviewComment').placeholder = tr('A short review or note…', 'Короткий отзыв или заметка…');
+  $('peopleSearch').placeholder = tr('Search participants…', 'Поиск участников…');
+  $('fullscreenBtn').setAttribute('aria-label', tr('Full screen', 'Во весь экран'));
+  $('stageFullBtn').setAttribute('aria-label', tr('Full screen', 'Во весь экран'));
+  $('closeSideBtn').setAttribute('aria-label', tr('Close', 'Закрыть'));
+  updateViewModeUi();
+  renderConnection();
+}
+
+function updateViewModeUi() {
+  const next = viewMode === 'speaker' ? 'gallery' : 'speaker';
+  const label = next === 'gallery' ? tr('Gallery', 'Галерея') : tr('Speaker', 'Спикер');
+  $('viewModeBtn').innerHTML = `${icon(next === 'gallery' ? 'grid' : 'speaker')}<span>${esc(label)}</span>`;
+  $('viewModeBtn').title = next === 'gallery' ? tr('Show everyone in a grid', 'Показать всех сеткой') : tr('Show the active speaker large', 'Показать говорящего крупно');
+  const item = document.querySelector('[data-tool="view"]');
+  if (item) item.innerHTML = `${icon(next === 'gallery' ? 'grid' : 'speaker')}<span>${esc(next === 'gallery' ? tr('Gallery view', 'Вид «Галерея»') : tr('Speaker view', 'Вид «Спикер»'))}</span>`;
+}
+
+// Connection chip mirrors the SDK's connection-change state and the user's own
+// network-quality level; it never claims more than the SDK reported.
+function renderConnection() {
+  const chip = $('connChip');
+  if (!chip) return;
+  const labels = {
+    connecting: tr('Connecting…', 'Подключение…'),
+    connected: tr('Connected', 'Подключено'),
+    reconnecting: tr('Reconnecting…', 'Переподключение…'),
+    lost: tr('Connection lost', 'Связь потеряна')
+  };
+  chip.dataset.state = connectionState;
+  $('connText').textContent = labels[connectionState] || labels.connecting;
+  const level = netLevels.get(userKey(ownZoomUser()?.userId));
+  const bars = $('connBars');
+  bars.hidden = connectionState !== 'connected' || level == null;
+  bars.querySelectorAll('i').forEach((bar, index) => { bar.classList.toggle('on', level != null && index < level); bar.classList.toggle('bad', level != null && level <= 1); });
+  $('liveBadge').hidden = !(joined && connectionState === 'connected');
+}
+
+function isNarrow() { return matchMedia('(max-width: 980px)').matches; }
+
+async function toggleFullscreen(target) {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await target.requestFullscreen?.();
+  } catch {}
+}
+
+function copyText(value) {
+  return navigator.clipboard?.writeText(value).then(() => true, () => false) ?? Promise.resolve(false);
+}
+
+async function inviteLink(button) {
+  const ok = await copyText(location.href);
+  if (!ok) { prompt(tr('Copy lesson link', 'Скопируйте ссылку урока'), location.href); return; }
+  const label = button?.querySelector('span');
+  if (!label) return;
+  const previous = label.textContent;
+  label.textContent = tr('Copied', 'Скопировано');
+  setTimeout(() => { label.textContent = previous; }, 1500);
+}
+
+function fillDeviceSelect(select, list, currentId, fallback) {
+  if (!list?.length) { select.innerHTML = `<option value="">${esc(fallback)}</option>`; select.disabled = true; return; }
+  select.disabled = false;
+  select.innerHTML = list.map((device, index) => `<option value="${esc(device.deviceId)}">${esc(device.label || `${fallback} ${index + 1}`)}</option>`).join('');
+  if (currentId && list.some((device) => device.deviceId === currentId)) select.value = currentId;
+}
+
+// Device switching uses the Video SDK stream API (getCameraList/switchCamera,
+// getMicList/switchMicrophone, getSpeakerList/switchSpeaker) so Zoom keeps
+// owning the media; no extra getUserMedia stream is opened in the room.
+function openDevices() {
+  if (!media) return;
+  const cameraId = media.getActiveCamera?.() || selectedCameraId;
+  const micId = media.getActiveMicrophone?.() || selectedMicId;
+  const speakerId = media.getActiveSpeaker?.() || selectedSpeakerId;
+  fillDeviceSelect($('roomCameraSelect'), media.getCameraList?.() || [], cameraId, tr('Camera', 'Камера'));
+  fillDeviceSelect($('roomMicSelect'), media.getMicList?.() || [], micId, tr('Microphone', 'Микрофон'));
+  fillDeviceSelect($('roomSpeakerSelect'), media.getSpeakerList?.() || [], speakerId, tr('Speaker', 'Динамик'));
+  $('devicesStatus').textContent = '';
+  $('devicesDialog').hidden = false;
+}
+
+async function switchDevice(kind, deviceId) {
+  if (!media || !deviceId) return;
+  $('devicesStatus').textContent = tr('Switching…', 'Переключаем…');
+  try {
+    if (kind === 'camera') { selectedCameraId = deviceId; if (camOn) await media.switchCamera(deviceId); }
+    if (kind === 'mic') { selectedMicId = deviceId; if (audioStarted) await media.switchMicrophone(deviceId); }
+    if (kind === 'speaker') { selectedSpeakerId = deviceId; if (audioStarted) await media.switchSpeaker(deviceId); }
+    $('devicesStatus').textContent = tr('Done', 'Готово');
+  } catch (error) {
+    $('devicesStatus').textContent = error?.reason || error?.message || tr('This device could not be used.', 'Не удалось использовать это устройство.');
+  }
+}
 
 function isCanceledStatus(status) {
   const value = String(status || '').toLowerCase();
@@ -149,6 +270,10 @@ function ownZoomUser() {
   return client?.getCurrentUserInfo?.() || null;
 }
 
+// Video SDK participants carry audio: '' | 'computer' | 'phone' plus muted;
+// no joined audio counts as muted.
+function isMuted(user) { return !user?.audio || !!user.muted; }
+
 function roleLabel() {
   return roomRole === 'host' ? tr('Teacher', 'Учитель') : tr('Learner', 'Ученик');
 }
@@ -157,8 +282,9 @@ function updateRoomStatus(users = client?.getAllUser?.() || []) {
   const activeShare = sharing || activeShareUserId != null;
   const raisedCount = users.filter((user) => raisedUsers.has(userKey(user.userId))).length;
   const weakCount = users.filter((user) => (netLevels.get(userKey(user.userId)) || 0) <= 1 && netLevels.has(userKey(user.userId))).length;
-  $('rolePill').textContent = roleLabel();
-  $('onlinePill').textContent = `${users.length} ${tr('online', 'онлайн')}`;
+  $('rolePill').querySelector('b').textContent = roleLabel();
+  $('rolePill').classList.toggle('host', roomRole === 'host');
+  $('onlinePill').innerHTML = `${icon('people')}<b>${users.length}</b> ${esc(tr('online', 'онлайн'))}`;
   $('onlinePill').classList.toggle('warn', weakCount > 0);
   $('onlinePill').title = weakCount ? `${weakCount} ${tr('weak connection', 'слабое соединение')}` : tr('Connection looks stable', 'Соединение выглядит стабильным');
   $('handsPill').hidden = !raisedCount;
@@ -228,6 +354,9 @@ function updateControlStates() {
   const camLabel = $('camBtn')?.querySelector('span');
   if (micLabel) micLabel.textContent = micOn ? tr('Microphone', 'Микрофон') : tr('Mic off', 'Микрофон выкл.');
   if (camLabel) camLabel.textContent = camOn ? tr('Camera', 'Камера') : tr('Camera off', 'Камера выкл.');
+  [['micBtn', micOn ? 'mic' : 'mic-off'], ['camBtn', camOn ? 'cam' : 'cam-off'], ['previewMic', micOn ? 'mic' : 'mic-off'], ['previewCam', camOn ? 'cam' : 'cam-off']].forEach(([id, name]) => $(id)?.querySelector('use')?.setAttribute('href', `#i-${name}`));
+  $('micBtn')?.setAttribute('aria-pressed', String(micOn));
+  $('camBtn')?.setAttribute('aria-pressed', String(camOn));
 }
 
 function updateReadiness() {
@@ -370,15 +499,18 @@ function tile(user) {
     node = document.createElement('article');
     node.className = 'tile';
     node.dataset.user = user.userId;
-    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${initials(user.displayName)}</div><div class="net" hidden><i></i><i></i><i></i></div><div class="pin-mark" hidden>📌</div><div class="hand-mark" hidden>✋</div><div class="tile-label"></div>`;
+    node.innerHTML = `<video-player-container class="video-slot"></video-player-container><div class="avatar">${esc(initials(user.displayName))}</div><div class="net" hidden><i></i><i></i><i></i></div><div class="pin-mark" hidden>${icon('pin')}</div><div class="hand-mark" hidden>✋</div><div class="tile-label"></div>`;
     $('gallery').append(node);
   }
-  node.toggleAttribute('data-self', userKey(user.userId) === userKey(ownId));
+  const isSelf = userKey(user.userId) === userKey(ownId);
+  const muted = isMuted(user);
+  node.toggleAttribute('data-self', isSelf);
   node.classList.toggle('raised', hasRaisedHand);
+  node.classList.toggle('no-video', !user.bVideoOn);
   node.classList.toggle('pinned', String(user.userId) === String(pinnedUserId));
   node.querySelector('.pin-mark').hidden = String(user.userId) !== String(pinnedUserId);
   node.querySelector('.hand-mark').hidden = !hasRaisedHand;
-  node.querySelector('.tile-label').textContent = `${user.audio === 'muted' ? '🔇' : '🎙'} ${user.displayName}${userKey(user.userId) === userKey(ownId) ? ' (' + tr('You', 'Вы') + ')' : ''}`;
+  node.querySelector('.tile-label').innerHTML = `${user.isHost ? icon('crown', 'crown') : ''}<span>${esc(user.displayName || tr('Participant', 'Участник'))}${isSelf ? ' (' + esc(tr('You', 'Вы')) + ')' : ''}</span>${icon(muted ? 'mic-off' : 'mic', muted ? 'muted' : 'live')}`;
   node.querySelector('.avatar').hidden = !!user.bVideoOn;
   node.querySelector('.video-slot').hidden = !user.bVideoOn;
   return node;
@@ -389,6 +521,7 @@ function tile(user) {
 // element intact, so no re-attach/flicker. Modes: share > spotlight > grid.
 function spotlightTarget(users) {
   if (pinnedUserId && users.some((u) => String(u.userId) === String(pinnedUserId))) return String(pinnedUserId);
+  if (viewMode === 'gallery') return null;
   if (users.length > 2 && activeSpeakerId && users.some((u) => String(u.userId) === String(activeSpeakerId))) return String(activeSpeakerId);
   return null;
 }
@@ -414,6 +547,8 @@ function placeTiles(users) {
   if (!filmstrip.children.length) filmstrip.hidden = true;
   $('restoreShareBtn').hidden = !(shareAvailable && focusedShareHidden);
   $('emptyState').hidden = !(mode === 'grid' && users.length <= 1);
+  gallery.dataset.count = String(Math.min(users.length, 9));
+  $('stageMain').dataset.mode = mode;
 }
 
 function updateNet(userId) {
@@ -510,6 +645,11 @@ async function renderUsers() {
   renderHandQueue(users, queueIndex);
   updateRoomStatus(users);
   const sortedUsers = users.slice().sort((a, b) => {
+    // You first, then the teacher, then raised hands in order, then by name.
+    const selfDiff = Number(userKey(b.userId) === ownId) - Number(userKey(a.userId) === ownId);
+    if (selfDiff) return selfDiff;
+    const hostDiff = Number(!!b.isHost) - Number(!!a.isHost);
+    if (hostDiff) return hostDiff;
     const aQueue = queueIndex.get(userKey(a.userId)) || 0;
     const bQueue = queueIndex.get(userKey(b.userId)) || 0;
     if (aQueue && bQueue) return aQueue - bQueue;
@@ -517,24 +657,63 @@ async function renderUsers() {
     if (handDiff) return handDiff;
     return String(a.displayName || '').localeCompare(String(b.displayName || ''), 'ru');
   });
-  $('peopleList').innerHTML = sortedUsers.map((user) => {
-    const key = userKey(user.userId);
-    const hasRaisedHand = raisedUsers.has(key);
-    const queueLabel = queueIndex.get(key) ? `<i class="queue-mark">${queueIndex.get(key)}</i>` : '';
-    const netLevel = netLevels.get(key);
-    const netLabel = netLevel == null ? '' : netLevel <= 1 ? ' · ' + tr('weak network', 'слабая сеть') : ' · ' + tr('network ok', 'сеть ок');
-    const hostActions = roomRole === 'host' && key !== ownId ? `<span class="person-actions">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${user.userId}">${esc(tr('Give floor', 'Дать слово'))}</button><button data-moderate="clear-hand" data-zoom-user="${user.userId}">${esc(tr('Answered', 'Ответил'))}</button>` : ''}<button data-moderate="mute" data-zoom-user="${user.userId}" title="${esc(tr('Mute', 'Отключить звук'))}">🔇</button><button data-moderate="stop-video" data-zoom-user="${user.userId}" title="${esc(tr('Stop camera', 'Выключить камеру'))}">🚫🎥</button><button data-moderate="remove" data-zoom-user="${user.userId}">${esc(tr('Remove', 'Удалить'))}</button></span>` : '';
-    return `<div class="person ${hasRaisedHand ? 'raised' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><b>${queueLabel}${esc(user.displayName || tr('Participant', 'Участник'))} ${hasRaisedHand ? '<i class="raised-mark">✋</i>' : ''}</b><span class="person-state" title="${esc(netLabel.trim())}"><i>${user.bVideoOn ? '🎥' : '🚫'}</i><i>${user.audio === 'muted' ? '🔇' : '🎙'}</i>${netLevel != null && netLevel <= 1 ? '<i class="bad">⚠️</i>' : ''}</span>${hostActions}</div>`;
-  }).join('');
+  $('dockPeopleCount').textContent = String(users.length);
+  renderPeopleList(sortedUsers, queueIndex);
+  renderConnection();
 }
 
-function showPanel(kind) {
+let lastPeople = { users: [], queueIndex: new Map() };
+let openPersonMenu = '';
+
+function renderPeopleList(sortedUsers = lastPeople.users, queueIndex = lastPeople.queueIndex) {
+  lastPeople = { users: sortedUsers, queueIndex };
+  const ownId = userKey(ownZoomUser()?.userId);
+  const needle = ($('peopleSearch')?.value || '').trim().toLowerCase();
+  const visible = needle ? sortedUsers.filter((user) => String(user.displayName || '').toLowerCase().includes(needle)) : sortedUsers;
+  $('peopleList').innerHTML = visible.length ? visible.map((user) => {
+    const key = userKey(user.userId);
+    const isSelf = key === ownId;
+    const hasRaisedHand = raisedUsers.has(key);
+    const muted = isMuted(user);
+    const queueLabel = queueIndex.get(key) ? `<i class="queue-mark">${queueIndex.get(key)}</i>` : '';
+    const netLevel = netLevels.get(key);
+    const netLabel = netLevel == null ? '' : netLevel <= 1 ? tr('weak network', 'слабая сеть') : tr('network ok', 'сеть ок');
+    const role = user.isHost ? `${icon('crown', 'crown')}${esc(tr('Teacher', 'Учитель'))} · ${esc(tr('Host', 'Ведущий'))}` : esc(tr('Student', 'Ученик'));
+    const canModerate = roomRole === 'host' && !isSelf;
+    const menu = canModerate ? `<span class="person-menu${openPersonMenu === key ? ' open' : ''}"><button type="button" class="person-more" data-person-menu="${esc(key)}" aria-label="${esc(tr('Participant actions', 'Действия с участником'))}" aria-expanded="${openPersonMenu === key}">${icon('more')}</button><span class="person-actions" role="menu">${hasRaisedHand ? `<button data-moderate="speak" data-zoom-user="${esc(user.userId)}">${esc(tr('Give floor', 'Дать слово'))}</button><button data-moderate="clear-hand" data-zoom-user="${esc(user.userId)}">${esc(tr('Answered', 'Ответил'))}</button>` : ''}<button data-moderate="mute" data-zoom-user="${esc(user.userId)}">${icon('mic-off')}${esc(tr('Mute', 'Отключить звук'))}</button><button data-moderate="stop-video" data-zoom-user="${esc(user.userId)}">${icon('cam-off')}${esc(tr('Stop camera', 'Выключить камеру'))}</button><button data-moderate="remove" data-zoom-user="${esc(user.userId)}" class="danger-text">${esc(tr('Remove', 'Удалить'))}</button></span></span>` : '';
+    return `<div class="person ${hasRaisedHand ? 'raised' : ''}${activeSpeakerId && String(user.userId) === String(activeSpeakerId) ? ' speaking' : ''}"><span class="mini">${esc(initials(user.displayName))}</span><span class="person-name"><b>${queueLabel}${esc(user.displayName || tr('Participant', 'Участник'))}${isSelf ? ` <small>(${esc(tr('You', 'Вы'))})</small>` : ''}</b><em>${role}</em></span><span class="person-state" title="${esc(netLabel)}">${hasRaisedHand ? '<i class="raised-mark" title="✋">✋</i>' : ''}${netLevel != null && netLevel <= 1 ? `<i class="bad" title="${esc(netLabel)}">!</i>` : ''}<i class="${muted ? 'off' : 'on'}" title="${esc(muted ? tr('Microphone off', 'Микрофон выключен') : tr('Microphone on', 'Микрофон включён'))}">${icon(muted ? 'mic-off' : 'mic')}</i><i class="${user.bVideoOn ? 'on' : 'off'}" title="${esc(user.bVideoOn ? tr('Camera on', 'Камера включена') : tr('Camera off', 'Камера выключена'))}">${icon(user.bVideoOn ? 'cam' : 'cam-off')}</i></span>${menu}</div>`;
+  }).join('') : `<p class="cv6-empty">${esc(tr('Nobody matches this search.', 'По запросу никого нет.'))}</p>`;
+}
+
+let activePanel = 'people';
+
+function showPanel(kind, fromDock = false) {
+  // On phones/tablets the sidebar is a drawer: the dock button toggles it.
+  if (fromDock && isNarrow() && activePanel === kind && !$('sidePanel').classList.contains('closed')) {
+    $('sidePanel').classList.add('closed');
+    syncDockPanels();
+    return;
+  }
+  activePanel = kind;
   $('sidePanel').classList.remove('closed');
-  document.querySelectorAll('[data-panel]').forEach((button) => button.classList.toggle('active', button.dataset.panel === kind));
+  document.querySelectorAll('[data-panel]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.panel === kind);
+    button.setAttribute('aria-selected', String(button.dataset.panel === kind));
+  });
   $('peoplePanel').hidden = kind !== 'people';
   $('chatPanel').hidden = kind !== 'chat';
   $('materialsPanel').hidden = kind !== 'materials';
-  if (kind === 'chat') $('chatBadge').textContent = '0';
+  if (kind === 'chat') {
+    $('chatBadge').textContent = '0';
+    $('dockChatBadge').hidden = true;
+    $('messages').scrollTop = $('messages').scrollHeight;
+  }
+  syncDockPanels();
+}
+
+function syncDockPanels() {
+  const open = !$('sidePanel').classList.contains('closed');
+  [['people', 'peopleBtn'], ['chat', 'chatBtn'], ['materials', 'materialsBtn']].forEach(([kind, id]) => $(id).classList.toggle('panel-on', open && activePanel === kind));
 }
 
 function showReaction(emoji) {
@@ -585,8 +764,10 @@ async function acceptSpeakingTurn() {
   const ok = micOn || confirm(tr('The teacher gave you the floor. Turn on your microphone?', 'Преподаватель дал вам слово. Включить микрофон?'));
   if (!ok) return;
   try {
-    await media.unmuteAudio();
+    if (!audioStarted) { await media.startAudio(audioStartOptions()); audioStarted = true; }
+    else await media.unmuteAudio();
     micOn = true;
+    updateControlStates();
     $('micBtn').classList.toggle('off', false);
     setOwnHandRaised(false);
     await sendClassCommand({ type: 'hand', raised: false });
@@ -632,7 +813,7 @@ function handleClassCommand(message) {
   }
   if (payload.type === 'host-action' && senderId !== ownId) {
     if (payload.action === 'mute') void media?.muteAudio();
-    if (payload.action === 'stop-video') void media?.stopVideo();
+    if (payload.action === 'stop-video') { camOn = false; updateControlStates(); void Promise.resolve(media?.stopVideo()).catch(() => {}); }
     if (payload.action === 'speak') void acceptSpeakingTurn();
   }
   if (payload.type === 'material-show' && payload.url) showMaterial(payload.title || tr('Material', 'Материал'), payload.fileType || '', payload.url);
@@ -659,15 +840,28 @@ function bindZoomEvents() {
     if (!payload || payload.level == null) return;
     netLevels.set(String(payload.userId), Math.max(0, Math.min(3, Math.round((payload.level / 5) * 3))));
     updateNet(payload.userId);
+    if (userKey(payload.userId) === userKey(ownZoomUser()?.userId)) renderConnection();
   });
   client.on('chat-on-message', (payload) => {
     const mine = payload.sender?.userId === client.getCurrentUserInfo()?.userId;
-    $('messages').insertAdjacentHTML('beforeend', `<div class="message"><small>${esc(mine ? tr('You', 'Вы') : payload.sender?.name || tr('Participant', 'Участник'))}</small>${esc(payload.message)}</div>`);
-    $('messages').scrollTop = $('messages').scrollHeight;
-    if ($('chatPanel').hidden) {
-      $('chatBadge').textContent = String(Number($('chatBadge').textContent || 0) + 1);
+    const box = $('messages');
+    // Keep the reader's place when they scrolled up to older messages.
+    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    const time = new Date(payload.timestamp || Date.now()).toLocaleTimeString(i18n?.appLang || undefined, { hour: '2-digit', minute: '2-digit' });
+    box.insertAdjacentHTML('beforeend', `<div class="message${mine ? ' mine' : ''}"><small><b>${esc(mine ? tr('You', 'Вы') : payload.sender?.name || tr('Participant', 'Участник'))}</b><time>${esc(time)}</time></small>${esc(payload.message)}</div>`);
+    if (mine || nearBottom) box.scrollTop = box.scrollHeight;
+    const chatVisible = !$('chatPanel').hidden && !$('sidePanel').classList.contains('closed');
+    if (!chatVisible) {
+      const unread = Number($('chatBadge').textContent || 0) + 1;
+      $('chatBadge').textContent = String(unread);
+      $('dockChatBadge').textContent = String(unread);
+      $('dockChatBadge').hidden = false;
       if (!mine) playNoticeSound();
     }
+  });
+  client.on('recording-change', (payload) => {
+    const state = String(payload?.state || '').toLowerCase();
+    $('recordingChip').hidden = !(state === 'recording' || state === 'start' || state === 'started');
   });
   client.on('active-share-change', async (payload) => {
     const myId = ownZoomUser()?.userId;
@@ -689,9 +883,19 @@ function bindZoomEvents() {
     await renderUsers();
   });
   client.on('command-channel-message', handleClassCommand);
+  // Keep the dock honest when the host mutes this user or audio drops.
+  client.on('current-audio-change', (payload) => {
+    const action = String(payload?.action || '');
+    if (action === 'muted') micOn = false;
+    if (action === 'unmuted') micOn = true;
+    if (action === 'leave') { micOn = false; audioStarted = false; }
+    updateControlStates();
+  });
   client.on('connection-change', (payload) => {
     const state = String(payload?.state || '').toLowerCase();
     let banner = document.querySelector('.reconnect');
+    connectionState = state.includes('reconnect') ? 'reconnecting' : (state.includes('fail') || state.includes('closed')) ? 'lost' : state.includes('connected') ? 'connected' : connectionState;
+    renderConnection();
     if (state.includes('reconnect') || state.includes('fail') || state.includes('closed')) {
       if (!banner) {
         banner = document.createElement('div');
@@ -749,6 +953,7 @@ async function join() {
     await client.join(auth.topic, auth.token, me.name, auth.password || '');
     media = client.getMediaStream();
     joined = true;
+    connectionState = 'connected';
     if (roomRole === 'host') {
       await renderWaitingRoom();
       waitingTimer = setInterval(renderWaitingRoom, 3000);
@@ -758,12 +963,15 @@ async function join() {
     }
     await supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'join' });
     attendanceTimer = setInterval(() => { void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'heartbeat' }); }, 30000);
-    if (micOn) await media.startAudio(audioStartOptions());
+    if (micOn) { await media.startAudio(audioStartOptions()); audioStarted = true; }
     if (camOn) {
       await media.startVideo(videoStartOptions());
     }
     $('prejoin').hidden = true;
     $('room').hidden = false;
+    if (isNarrow()) $('sidePanel').classList.add('closed');
+    syncDockPanels();
+    renderConnection();
     startedAt = Date.now();
     timer = setInterval(() => {
       const seconds = Math.floor((Date.now() - startedAt) / 1000);
@@ -780,7 +988,17 @@ async function join() {
 async function toggleMic() {
   if (!media) return;
   micOn = !micOn;
-  if (micOn) await media.unmuteAudio(); else await media.muteAudio();
+  try {
+    // Joining with the mic off never started Zoom audio, so the first unmute starts it.
+    if (micOn && !audioStarted) { await media.startAudio(audioStartOptions()); audioStarted = true; }
+    else if (micOn) await media.unmuteAudio(); else await media.muteAudio();
+  } catch (error) {
+    micOn = !micOn;
+    updateControlStates();
+    duvi?.show('micError');
+    alert(error?.reason || error?.message || tr('Could not turn on the microphone.', 'Не удалось включить микрофон.'));
+    return;
+  }
   updateControlStates();
   await renderUsers();
 }
@@ -788,7 +1006,14 @@ async function toggleMic() {
 async function toggleCam() {
   if (!media) return;
   camOn = !camOn;
-  if (camOn) await media.startVideo(videoStartOptions()); else await media.stopVideo();
+  try {
+    if (camOn) await media.startVideo(videoStartOptions()); else await media.stopVideo();
+  } catch (error) {
+    camOn = !camOn;
+    updateControlStates();
+    alert(error?.reason || error?.message || tr('Could not turn on the camera.', 'Не удалось включить камеру.'));
+    return;
+  }
   updateControlStates();
   await renderUsers();
 }
@@ -821,18 +1046,19 @@ function updateShareUi() {
 
 async function copyRoomLink() {
   const button = $('copyRoomLinkBtn');
-  const previous = button.textContent;
+  const label = button.querySelector('span') || button;
+  const previous = label.textContent;
   try {
     await navigator.clipboard?.writeText(location.href);
     lastCopiedAt = Date.now();
-    button.textContent = tr('Copied', 'Скопировано');
+    label.textContent = tr('Copied', 'Скопировано');
     button.classList.add('copied');
   } catch {
     prompt(tr('Copy lesson link', 'Скопируйте ссылку урока'), location.href);
   } finally {
     setTimeout(() => {
       if (Date.now() - lastCopiedAt >= 1400) {
-        button.textContent = previous;
+        label.textContent = previous;
         button.classList.remove('copied');
       }
     }, 1500);
@@ -1023,9 +1249,53 @@ $('shareFitBtn').onclick = async () => {
     updateShareUi();
   }
 };
-$('peopleBtn').onclick = () => showPanel('people');
-$('chatBtn').onclick = () => showPanel('chat');
-$('materialsBtn').onclick = () => showPanel('materials');
+$('peopleBtn').onclick = () => showPanel('people', true);
+$('chatBtn').onclick = () => showPanel('chat', true);
+$('materialsBtn').onclick = () => showPanel('materials', true);
+$('closeSideBtn').onclick = () => { $('sidePanel').classList.add('closed'); syncDockPanels(); };
+function setViewMode(next) {
+  viewMode = next;
+  if (next === 'gallery') pinnedUserId = null;
+  updateViewModeUi();
+  void renderUsers();
+}
+$('viewModeBtn').onclick = (event) => { event.stopPropagation(); setViewMode(viewMode === 'speaker' ? 'gallery' : 'speaker'); };
+$('fullscreenBtn').onclick = () => toggleFullscreen(document.documentElement);
+$('stageFullBtn').onclick = (event) => { event.stopPropagation(); void toggleFullscreen(document.querySelector('.stage')); };
+function closeMoreMenu() { $('moreMenu').hidden = true; $('moreBtn').setAttribute('aria-expanded', 'false'); }
+$('moreBtn').onclick = (event) => {
+  event.stopPropagation();
+  const open = $('moreMenu').hidden;
+  $('moreMenu').hidden = !open;
+  $('moreBtn').setAttribute('aria-expanded', String(open));
+  $('reactionChoices').hidden = true;
+};
+$('moreMenu').onclick = (event) => {
+  const item = event.target.closest('[data-tool]');
+  if (!item) return;
+  closeMoreMenu();
+  if (item.dataset.tool === 'devices') openDevices();
+  if (item.dataset.tool === 'view') setViewMode(viewMode === 'speaker' ? 'gallery' : 'speaker');
+  if (item.dataset.tool === 'fullscreen') void toggleFullscreen(document.documentElement);
+  if (item.dataset.tool === 'invite') void inviteLink($('moreBtn'));
+};
+$('roomCameraSelect').onchange = () => switchDevice('camera', $('roomCameraSelect').value);
+$('roomMicSelect').onchange = () => switchDevice('mic', $('roomMicSelect').value);
+$('roomSpeakerSelect').onchange = () => switchDevice('speaker', $('roomSpeakerSelect').value);
+$('devicesCloseBtn').onclick = () => { $('devicesDialog').hidden = true; };
+$('devicesDialog').onclick = (event) => { if (event.target === $('devicesDialog')) $('devicesDialog').hidden = true; };
+$('peopleSearch').oninput = () => renderPeopleList();
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.cv6-more')) closeMoreMenu();
+  if (!event.target.closest('.reaction-menu')) $('reactionChoices').hidden = true;
+  if (openPersonMenu && !event.target.closest('.person-menu')) { openPersonMenu = ''; renderPeopleList(); }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeMoreMenu();
+  $('reactionChoices').hidden = true;
+  if (openPersonMenu) { openPersonMenu = ''; renderPeopleList(); }
+});
 $('handBtn').onclick = async () => {
   setOwnHandRaised(!raised);
   await renderUsers();
@@ -1043,7 +1313,15 @@ $('reactionChoices').onclick = async (event) => {
 $('leaveBtn').onclick = $('leaveTop').onclick = leave;
 document.querySelectorAll('[data-panel]').forEach((button) => button.onclick = () => showPanel(button.dataset.panel));
 $('peopleList').onclick = async (event) => {
+  const toggle = event.target.closest('[data-person-menu]');
+  if (toggle) {
+    event.stopPropagation();
+    openPersonMenu = openPersonMenu === toggle.dataset.personMenu ? '' : toggle.dataset.personMenu;
+    renderPeopleList();
+    return;
+  }
   const button = event.target.closest('[data-moderate]');
+  if (button && openPersonMenu) { openPersonMenu = ''; renderPeopleList(); }
   if (!button || roomRole !== 'host') return;
   const userId = Number(button.dataset.zoomUser);
   const action = button.dataset.moderate;
@@ -1072,6 +1350,7 @@ $('handQueue').onclick = (event) => $('peopleList').onclick(event);
 $('hostControls').onclick = async (event) => {
   const button = event.target.closest('[data-host-control]');
   if (!button || roomRole !== 'host') return;
+  if (button.dataset.hostControl === 'invite') { await inviteLink(button); return; }
   const ownId = userKey(ownZoomUser()?.userId);
   const users = client.getAllUser().filter((user) => userKey(user.userId) !== ownId);
   if (button.dataset.hostControl === 'mute-all') {
@@ -1160,7 +1439,9 @@ $('waitingList').onclick = async (event) => {
 };
 addEventListener('online', runDiagnostics);
 addEventListener('offline', runDiagnostics);
-addEventListener('fullscreenchange', updateShareUi);
+addEventListener('fullscreenchange', () => { updateShareUi(); document.body.classList.toggle('cv6-fullscreen', !!document.fullscreenElement); });
+addEventListener('resize', () => { if (!isNarrow()) $('sidePanel').classList.remove('closed'); syncDockPanels(); });
+localizeV6();
 addEventListener('beforeunload', () => {
   if (joined && !endingForAll) void supa.rpc('record_class_attendance', { target_session: sessionId, event_name: 'leave' });
 });

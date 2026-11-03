@@ -2,13 +2,44 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Duvela Classroom</title>
   <link rel="icon" href="/logo.webp">
   <link rel="stylesheet" href="./classroom-extra.css">
   <script type="module" src="./main.js"></script>
 </head>
-<body>
+<body class="duvela-classroom-v6">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></symbol>
+      <symbol id="i-mic-off" viewBox="0 0 24 24"><path d="M15 10V6a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 4.9 2.3M5 11a7 7 0 0 0 11.3 5.5M19 11a7 7 0 0 1-.6 2.8M12 18v3M8 21h8M3 3l18 18"/></symbol>
+      <symbol id="i-cam" viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2.5"/><path d="m16 10 6-3.5v11L16 14"/></symbol>
+      <symbol id="i-cam-off" viewBox="0 0 24 24"><path d="M10.7 6H13.5A2.5 2.5 0 0 1 16 8.5V11l6-4.5v11l-2.4-1.8M16 16a2.5 2.5 0 0 1-2.5 2H4.5A2.5 2.5 0 0 1 2 15.5v-7A2.5 2.5 0 0 1 4 6M3 3l18 18"/></symbol>
+      <symbol id="i-screen" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4M12 13V8M9.5 10.5 12 8l2.5 2.5"/></symbol>
+      <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.8 7L4 20.5l1.5-4.6A8 8 0 1 1 21 12z"/></symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17.5 9 5 9-5" opacity=".6"/></symbol>
+      <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4a1.5 1.5 0 0 1 3 0v7M14 11V5.5a1.5 1.5 0 0 1 3 0V14M17 10.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.6-2.8L3.6 15.4a1.6 1.6 0 0 1 2.5-2L8 15.5"/></symbol>
+      <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M8 14.5a5 5 0 0 0 8 0M9 9.5h.01M15 9.5h.01"/></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+      <symbol id="i-leave" viewBox="0 0 24 24"><path d="M3.5 14.5c4.7-4.7 12.3-4.7 17 0l-2.3 2.3-3.2-1.6v-2.5a11 11 0 0 0-6 0v2.5l-3.2 1.6z"/></symbol>
+      <symbol id="i-crown" viewBox="0 0 24 24"><path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v8A2.5 2.5 0 0 0 5.5 16H8"/></symbol>
+      <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></symbol>
+      <symbol id="i-speaker" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="13" rx="2"/><rect x="3" y="18" width="5" height="3" rx="1"/><rect x="9.5" y="18" width="5" height="3" rx="1"/><rect x="16" y="18" width="5" height="3" rx="1"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+      <symbol id="i-invite" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3zM12 14v7"/></symbol>
+    </defs>
+  </svg>
+
   <div id="prejoin" class="prejoin">
     <section class="join-card">
       <div class="join-head"><div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span></div><select id="joinLangSelect" class="class-lang" data-i18n-label="language"></select></div>
@@ -16,13 +47,13 @@
       <h1 id="joinTitle" data-i18n="groupLesson">Групповой урок</h1>
       <p data-i18n="prejoinCheck">Проверьте камеру и микрофон перед входом.</p>
       <div class="join-options">
-        <button id="previewMic" class="toggle active">🎙 <span data-i18n="microphone">Микрофон</span></button>
-        <button id="previewCam" class="toggle active">🎥 <span data-i18n="camera">Камера</span></button>
+        <button id="previewMic" class="toggle active"><svg class="ic"><use href="#i-mic"/></svg><span data-i18n="microphone">Микрофон</span></button>
+        <button id="previewCam" class="toggle active"><svg class="ic"><use href="#i-cam"/></svg><span data-i18n="camera">Камера</span></button>
       </div>
       <div class="device-selects">
-        <label>🎥<select id="cameraSelect" aria-label="Камера"></select></label>
-        <label>🎙<select id="micSelect" aria-label="Микрофон"></select></label>
-        <label>🔈<select id="speakerSelect" aria-label="Динамик"></select></label>
+        <label><svg class="ic"><use href="#i-cam"/></svg><select id="cameraSelect" aria-label="Камера"></select></label>
+        <label><svg class="ic"><use href="#i-mic"/></svg><select id="micSelect" aria-label="Микрофон"></select></label>
+        <label><svg class="ic"><use href="#i-speaker"/></svg><select id="speakerSelect" aria-label="Динамик"></select></label>
       </div>
       <div class="diagnostics">
         <span id="diagBrowser">○ <span data-i18n="browser">Браузер</span></span><span id="diagNetwork">○ <span data-i18n="internet">Интернет</span></span>
@@ -36,47 +67,68 @@
       <p id="joinStatus" class="status"></p>
     </section>
   </div>
+
   <main id="room" class="room" hidden>
-    <header>
-      <div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span></div>
-      <div class="room-heading"><b id="roomTitle" data-i18n="lesson">Урок</b><span id="roomTime">00:00</span></div>
+    <header class="cv6-header">
+      <div class="brand"><img src="/logo.webp" alt=""><span data-i18n="classroom">Duvela Classroom</span><em id="liveBadge" class="cv6-live" hidden>LIVE</em></div>
+      <div class="room-heading"><b id="roomTitle" data-i18n="lesson">Урок</b><span id="roomTime" class="cv6-timer">00:00</span></div>
       <div class="room-status" id="roomStatusBar" aria-live="polite">
-        <span id="rolePill">Участник</span>
+        <span id="rolePill"><svg class="ic"><use href="#i-crown"/></svg><b>Участник</b></span>
         <span id="onlinePill">0 онлайн</span>
         <span id="handsPill" hidden>✋ 0</span>
         <span id="sharePill" hidden>Экран</span>
       </div>
       <select id="roomLangSelect" class="class-lang" data-i18n-label="language"></select>
-      <button id="copyRoomLinkBtn" type="button" data-i18n="copyLink">Ссылка</button>
+      <button id="copyRoomLinkBtn" type="button" class="cv6-head-btn"><svg class="ic"><use href="#i-copy"/></svg><span data-i18n="copyLink">Ссылка</span></button>
+      <button id="fullscreenBtn" type="button" class="cv6-head-btn cv6-icon-only" aria-label="Full screen"><svg class="ic"><use href="#i-expand"/></svg></button>
       <button id="leaveTop" class="danger" data-i18n="leave">Выйти</button>
     </header>
     <div class="workspace">
-      <section class="stage"><div id="stageMain" class="stage-main"><div id="gallery" class="gallery"></div><div id="spotlight" class="spotlight" hidden></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas><video id="shareVideo" style="width:100%;height:100%;object-fit:contain" playsinline muted hidden></video><div id="shareToolbar" class="share-toolbar" hidden><span id="shareStatus" data-i18n="screenShare">Демонстрация экрана</span><button id="shareReturnBtn" type="button" data-i18n="cameras">Камеры</button><button id="shareFitBtn" type="button" data-i18n="fullScreen">Во весь экран</button><button id="stopShareBtn" type="button" hidden data-i18n="stop">Остановить</button></div></div><button id="restoreShareBtn" class="restore-share" type="button" hidden data-i18n="backToScreen">Вернуться к экрану</button><div id="materialOverlay" class="material-overlay" hidden><div><header><b id="materialTitle" data-i18n="material">Материал</b><button id="closeMaterialBtn" type="button" data-i18n="close">Закрыть</button></header><div id="materialPreview" class="material-preview"></div></div></div><div id="emptyState" class="empty-state" hidden>👋 <span data-i18n="waitingOthers">Ожидаем других участников…</span></div></div><div id="filmstrip" class="filmstrip" hidden></div></section>
+      <section class="stage">
+        <div class="cv6-stage-bar">
+          <span id="connChip" class="cv6-chip"><b class="cv6-zoom">zoom</b><i id="connDot"></i><span id="connText">Connecting…</span><span id="connBars" class="cv6-bars"><i></i><i></i><i></i></span></span>
+          <span id="recordingChip" class="cv6-chip cv6-rec" hidden><i></i><span>Recording</span></span>
+          <span class="cv6-stage-tools"><button id="viewModeBtn" type="button" class="cv6-chip-btn"><svg class="ic"><use href="#i-grid"/></svg><span>Gallery</span></button><button id="stageFullBtn" type="button" class="cv6-chip-btn cv6-icon-only" aria-label="Full screen"><svg class="ic"><use href="#i-expand"/></svg></button></span>
+        </div>
+        <div id="stageMain" class="stage-main"><div id="gallery" class="gallery"></div><div id="spotlight" class="spotlight" hidden></div><div id="shareStage" class="share-stage" hidden><canvas id="shareCanvas" style="width:100%;height:100%;object-fit:contain"></canvas><video id="shareVideo" style="width:100%;height:100%;object-fit:contain" playsinline muted hidden></video><div id="shareToolbar" class="share-toolbar" hidden><span id="shareStatus" data-i18n="screenShare">Демонстрация экрана</span><button id="shareReturnBtn" type="button" data-i18n="cameras">Камеры</button><button id="shareFitBtn" type="button" data-i18n="fullScreen">Во весь экран</button><button id="stopShareBtn" type="button" hidden data-i18n="stop">Остановить</button></div></div><button id="restoreShareBtn" class="restore-share" type="button" hidden data-i18n="backToScreen">Вернуться к экрану</button><div id="materialOverlay" class="material-overlay" hidden><div><header><b id="materialTitle" data-i18n="material">Материал</b><button id="closeMaterialBtn" type="button" data-i18n="close">Закрыть</button></header><div id="materialPreview" class="material-preview"></div></div></div><div id="emptyState" class="empty-state" hidden>👋 <span data-i18n="waitingOthers">Ожидаем других участников…</span></div></div>
+        <div id="filmstrip" class="filmstrip" hidden></div>
+      </section>
       <aside id="sidePanel" class="side-panel">
-        <nav><button data-panel="people" class="active"><span data-i18n="participants">Участники</span> <i id="peopleCount">0</i><i id="handBadge" class="hand-badge" hidden>✋ 0</i></button><button data-panel="chat"><span data-i18n="chat">Чат</span> <i id="chatBadge">0</i></button><button data-panel="materials" data-i18n="materials">Материалы</button></nav>
+        <nav role="tablist"><button data-panel="people" class="active" role="tab"><svg class="ic"><use href="#i-people"/></svg><span data-i18n="participants">Участники</span> <i id="peopleCount">0</i><i id="handBadge" class="hand-badge" hidden>✋ 0</i></button><button data-panel="chat" role="tab"><svg class="ic"><use href="#i-chat"/></svg><span data-i18n="chat">Чат</span> <i id="chatBadge">0</i></button><button data-panel="materials" role="tab"><svg class="ic"><use href="#i-layers"/></svg><span data-i18n="materials">Материалы</span></button><button id="closeSideBtn" type="button" class="cv6-side-close" aria-label="Close">×</button></nav>
         <section id="peoplePanel">
           <div id="waitingWrap" hidden><h3 data-i18n="waitingEntry">Ожидают входа</h3><div id="waitingList"></div></div>
-          <div id="hostControls" class="host-controls" hidden><button data-host-control="mute-all">🔇 <span data-i18n="muteAll">Всех</span></button><button data-host-control="stop-video-all">🚫 <span data-i18n="stopCameras">Камеры</span></button><button data-host-control="lower-all-hands">✋ <span data-i18n="lowerAllHands">Сбросить</span></button></div>
+          <div id="hostControls" class="host-controls" hidden><button data-host-control="mute-all"><svg class="ic"><use href="#i-mic-off"/></svg><span data-i18n="muteAll">Всех</span></button><button data-host-control="stop-video-all"><svg class="ic"><use href="#i-cam-off"/></svg><span data-i18n="stopCameras">Камеры</span></button><button data-host-control="lower-all-hands"><svg class="ic"><use href="#i-hand"/></svg><span data-i18n="lowerAllHands">Сбросить</span></button><button data-host-control="invite"><svg class="ic"><use href="#i-invite"/></svg><span>Invite</span></button></div>
+          <label class="cv6-search"><svg class="ic"><use href="#i-search"/></svg><input id="peopleSearch" type="search" autocomplete="off" placeholder="Search participants…"></label>
           <div id="handQueue" class="hand-queue" hidden><div class="queue-head"><b data-i18n="raiseHand">Поднятые руки</b><span id="queueCount">0</span></div><div id="handQueueList"></div></div>
           <div id="peopleList"></div>
         </section>
-        <section id="chatPanel" hidden><div id="chatQuick" class="chat-quick" hidden><button data-quick-chat="Пожалуйста, включите микрофон." data-i18n="microphone">Микрофон</button><button data-quick-chat="Напишите ответ в чат." data-i18n="chatAnswer">Ответ в чат</button><button data-quick-chat="Откройте материал урока." data-i18n="material">Материал</button></div><div id="messages" class="messages"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…" data-i18n-placeholder="writeMessage"><button>➤</button></form></section>
-        <section id="materialsPanel" hidden><div class="panel-head"><h3 data-i18n="lessonMaterials">Материалы урока</h3><button id="addMaterialBtn" hidden>+ <span data-i18n="add">Добавить</span></button></div><div id="materialsList"></div><input id="materialFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden></section>
+        <section id="chatPanel" hidden><div id="chatQuick" class="chat-quick" hidden><button data-quick-chat="Пожалуйста, включите микрофон." data-i18n="microphone">Микрофон</button><button data-quick-chat="Напишите ответ в чат." data-i18n="chatAnswer">Ответ в чат</button><button data-quick-chat="Откройте материал урока." data-i18n="material">Материал</button></div><div id="messages" class="messages" aria-live="polite"></div><form id="chatForm"><input id="chatInput" maxlength="500" placeholder="Напишите сообщение…" data-i18n-placeholder="writeMessage"><button aria-label="Send"><svg class="ic"><use href="#i-send"/></svg></button></form></section>
+        <section id="materialsPanel" hidden><div class="panel-head"><h3 data-i18n="lessonMaterials">Материалы урока</h3><button id="addMaterialBtn" hidden><svg class="ic"><use href="#i-plus"/></svg><span data-i18n="add">Добавить</span></button></div><div id="materialsList"></div><input id="materialFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden></section>
       </aside>
     </div>
-    <footer>
-      <button id="micBtn">🎙 <span data-i18n="microphone">Микрофон</span></button>
-      <button id="camBtn">🎥 <span data-i18n="camera">Камера</span></button>
-      <button id="shareBtn">▣ <span data-i18n="screen">Экран</span></button>
-      <button id="peopleBtn">👥 <span data-i18n="participants">Участники</span></button>
-      <button id="chatBtn">💬 <span data-i18n="chat">Чат</span></button>
-      <button id="materialsBtn">📄 <span data-i18n="materials">Материалы</span></button>
-      <button id="handBtn">✋ <span data-i18n="raiseHand">Поднять руку</span></button>
-      <div class="reaction-menu"><button id="reactionBtn">😊 <span data-i18n="reactions">Реакции</span></button><div id="reactionChoices" hidden><button>👏</button><button>👍</button><button>❤️</button><button>😂</button><button>🎉</button></div></div>
-      <button id="leaveBtn" class="danger" data-i18n="leave">Выйти</button>
+    <footer class="cv6-dock">
+      <button id="micBtn"><svg class="ic"><use href="#i-mic"/></svg><span data-i18n="microphone">Микрофон</span></button>
+      <button id="camBtn"><svg class="ic"><use href="#i-cam"/></svg><span data-i18n="camera">Камера</span></button>
+      <button id="shareBtn"><svg class="ic"><use href="#i-screen"/></svg><span data-i18n="screen">Экран</span></button>
+      <button id="peopleBtn"><svg class="ic"><use href="#i-people"/></svg><span data-i18n="participants">Участники</span><i id="dockPeopleCount" class="cv6-dock-badge">0</i></button>
+      <button id="chatBtn"><svg class="ic"><use href="#i-chat"/></svg><span data-i18n="chat">Чат</span><i id="dockChatBadge" class="cv6-dock-badge" hidden>0</i></button>
+      <button id="materialsBtn"><svg class="ic"><use href="#i-layers"/></svg><span data-i18n="materials">Материалы</span></button>
+      <i class="cv6-dock-sep" aria-hidden="true"></i>
+      <button id="handBtn"><svg class="ic"><use href="#i-hand"/></svg><span data-i18n="raiseHand">Поднять руку</span></button>
+      <div class="reaction-menu"><button id="reactionBtn"><svg class="ic"><use href="#i-smile"/></svg><span data-i18n="reactions">Реакции</span></button><div id="reactionChoices" hidden><button>👏</button><button>👍</button><button>❤️</button><button>😂</button><button>🎉</button></div></div>
+      <div class="cv6-more"><button id="moreBtn" aria-haspopup="menu" aria-expanded="false"><svg class="ic"><use href="#i-more"/></svg><span>More</span></button>
+        <div id="moreMenu" class="cv6-menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-tool="devices"><svg class="ic"><use href="#i-settings"/></svg><span>Devices</span></button>
+          <button type="button" role="menuitem" data-tool="view"><svg class="ic"><use href="#i-grid"/></svg><span>Gallery view</span></button>
+          <button type="button" role="menuitem" data-tool="fullscreen"><svg class="ic"><use href="#i-expand"/></svg><span>Full screen</span></button>
+          <button type="button" role="menuitem" data-tool="invite"><svg class="ic"><use href="#i-invite"/></svg><span>Copy invite link</span></button>
+        </div>
+      </div>
+      <button id="leaveBtn" class="danger"><svg class="ic"><use href="#i-leave"/></svg><span data-i18n="leave">Выйти</span></button>
     </footer>
   </main>
   <div id="reactionLayer" class="reaction-layer"></div>
+  <div id="devicesDialog" class="dialog" hidden><section><h2 id="devicesTitle">Devices</h2><p id="devicesHint"></p><div class="cv6-device-list"><label><svg class="ic"><use href="#i-cam"/></svg><select id="roomCameraSelect" aria-label="Camera"></select></label><label><svg class="ic"><use href="#i-mic"/></svg><select id="roomMicSelect" aria-label="Microphone"></select></label><label><svg class="ic"><use href="#i-speaker"/></svg><select id="roomSpeakerSelect" aria-label="Speaker"></select></label></div><p id="devicesStatus" class="status"></p><div><button id="devicesCloseBtn" class="primary">OK</button></div></section></div>
   <div id="leaveDialog" class="dialog" hidden><section><h2>Завершение урока</h2><p>Можно выйти и вернуться или завершить комнату для всех участников.</p><div><button id="exitOnlyBtn">Выйти</button><button id="endForAllBtn" class="danger" hidden>Завершить для всех</button><button id="leaveCancelBtn">Отмена</button></div></section></div>
   <div id="reviewDialog" class="dialog" hidden><section><h2>Как прошёл урок?</h2><p id="reviewDuration"></p><div id="reviewStars" class="review-stars"><button>★</button><button>★</button><button>★</button><button>★</button><button>★</button></div><textarea id="reviewComment" maxlength="800" placeholder="Короткий отзыв или заметка…"></textarea><button id="reviewSaveBtn" class="primary">Сохранить и продолжить</button></section></div>
 </body>
