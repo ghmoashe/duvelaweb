@@ -32,7 +32,7 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
  has(page,'app-live-studio5.css?v=20261103-rtl');
- has(page,'live-page.js?v=20261103-sec');
+ has(page,'live-page.js?v=20261103-private');
  has(page,'live-studio-ui.js?v=20261103-sec');
  has(studio,'api.previewScene(previewSelect.value)');
  has(studio,'api.setScene(previewSelect.value)');
@@ -115,4 +115,10 @@ test('LIVE materials only render from trusted media hosts', () => {
   assert.equal(fn('javascript:alert(1)//.pdf'), false);
   assert.equal(fn('https://evil.example/a.pdf'), false);
   assert.equal(fn('https://ohtkryanqcnwghcnipsr.supabase.co/functions/v1/x.pdf'), false);
+});
+
+test('LIVE overlay and task channels are private (Realtime Authorization)', () => {
+  const source = require('node:fs').readFileSync(require('node:path').resolve(__dirname, '../web/live-page.js'), 'utf8');
+  assert.ok(source.includes("supa.channel('live-material-' + id, { config: { broadcast: { self: false }, private: true } })"));
+  assert.ok(source.includes("supa.channel('live-task-' + id, { config: { private: true } })"));
 });

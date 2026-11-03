@@ -1959,7 +1959,10 @@
   function subscribeLiveMaterial(id) {
     if (!supa || !id) return;
     if (materialChannel) { try { supa.removeChannel(materialChannel); } catch (e) {} materialChannel = null; }
-    materialChannel = supa.channel('live-material-' + id, { config: { broadcast: { self: false } } })
+    // Private channel (Realtime Authorization, migration 20261103b): only the
+    // session's teacher may send overlays; viewers may send reactions,
+    // state requests and poll votes.
+    materialChannel = supa.channel('live-material-' + id, { config: { broadcast: { self: false }, private: true } })
       .on('broadcast', { event: 'material' }, function (msg) {
         var p = msg && msg.payload;
         renderLiveMaterial(p && p.kind === 'set' ? p.url : null);
@@ -2027,7 +2030,7 @@
   function subscribeLiveTask(id) {
     if (!supa || !id) return;
     if (taskChannel) { try { supa.removeChannel(taskChannel); } catch (e) {} taskChannel = null; }
-    taskChannel = supa.channel('live-task-' + id)
+    taskChannel = supa.channel('live-task-' + id, { config: { private: true } })
       .on('broadcast', { event: 'task' }, function (msg) {
         var p = msg && msg.payload;
         if (p && !isHostMode) showLiveTaskBanner(p);
