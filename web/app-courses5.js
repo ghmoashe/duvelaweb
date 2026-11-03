@@ -114,7 +114,8 @@
         return isNaN(date.getTime()) ? '' : date.toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
       }
       function displayLanguage(course) {
-        return safeText(course.language).split(',').map(function (part) { return part.trim(); }).filter(Boolean).join(' · ') || tr('Language not specified', 'Язык не указан');
+        var shown = window.DuvelaCourses4 && window.DuvelaCourses4.languages && window.DuvelaCourses4.languages.display;
+        return (shown ? shown(safeText(course.language)) : safeText(course.language).split(',').map(function (part) { return part.trim(); }).filter(Boolean).join(' · ')) || tr('Language not specified', 'Язык не указан');
       }
       function formatKey(course) {
         var key = normalize(course && course.delivery_mode);
@@ -203,8 +204,8 @@
           return Number(matchesContext(b, context)) - Number(matchesContext(a, context)) || Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0);
         });
       }
-      function selectOptions(values, selected, emptyLabel) {
-        return '<option value="">' + esc(emptyLabel) + '</option>' + values.map(function (value) { return '<option value="' + esc(value) + '"' + (value === selected ? ' selected' : '') + '>' + esc(value) + '</option>'; }).join('');
+      function selectOptions(values, selected, emptyLabel, label) {
+        return '<option value="">' + esc(emptyLabel) + '</option>' + values.map(function (value) { return '<option value="' + esc(value) + '"' + (value === selected ? ' selected' : '') + '>' + esc(label ? label(value) : value) + '</option>'; }).join('');
       }
       function renderCourses() {
         if (ctx.isBusiness()) return base.renderCourses();
@@ -226,7 +227,7 @@
           (list.length ? '<section class="lc-grid">' + list.slice(0, visibleCount).map(card).join('') + '</section>' + (list.length > visibleCount ? '<button class="lc-load-more" data-course-more>' + esc(tr('Load more courses', 'Показать ещё')) + '</button>' : '') : '<section class="lc-state compact"><span>' + icon(filters.saved ? 'heart' : 'search') + '</span><h2>' + esc(filters.saved ? tr('No saved courses', 'Нет сохранённых курсов') : tr('No courses match these filters', 'По этим фильтрам курсов нет')) + '</h2><p>' + esc(filters.saved ? tr('Save a course to find it here after the server confirms the change.', 'Сохраните курс — он появится здесь после подтверждения сервером.') : tr('Change or clear the filters to see more courses.', 'Измените или сбросьте фильтры.')) + '</p><button data-course-clear>' + esc(tr('Clear filters', 'Сбросить фильтры')) + '</button></section>');
         host.innerHTML = '<div class="lc-page"><header class="lc-header"><div><small>DUVELA HUB / LEARNING</small><h1>' + esc(tr('Explore Courses', 'Каталог курсов')) + '</h1><p>' + esc(tr('Find a structured programme, understand who teaches it and review every condition before enrolling.', 'Найдите подходящую программу, преподавателя и изучите все условия до записи.')) + '</p></div>' + (contextLabel ? '<span>' + esc(contextLabel) + '</span>' : '') + '</header>' +
           '<section class="lc-toolbar"><label class="lc-search">' + icon('search') + '<input type="search" data-lc-filter="query" value="' + esc(filters.query) + '" placeholder="' + esc(tr('Search courses, topics or teachers…', 'Поиск курсов, тем или преподавателей…')) + '"></label><button class="lc-filter-button" data-lc-filter-toggle>' + icon('filter') + esc(tr('Filters', 'Фильтры')) + '</button><div class="lc-filters" data-lc-filters>' +
-          '<select data-lc-filter="language">' + selectOptions(languages, filters.language, tr('All languages', 'Все языки')) + '</select><select data-lc-filter="level">' + selectOptions(levels, filters.level, tr('All levels', 'Все уровни')) + '</select>' +
+          '<select data-lc-filter="language">' + selectOptions(languages, filters.language, tr('All languages', 'Все языки'), function (value) { return displayLanguage({ language: value }); }) + '</select><select data-lc-filter="level">' + selectOptions(levels, filters.level, tr('All levels', 'Все уровни')) + '</select>' +
           '<select data-lc-filter="price"><option value="all">' + esc(tr('Free & paid', 'Бесплатные и платные')) + '</option><option value="free"' + (filters.price === 'free' ? ' selected' : '') + '>' + esc(tr('Free', 'Бесплатные')) + '</option><option value="paid"' + (filters.price === 'paid' ? ' selected' : '') + '>' + esc(tr('Paid', 'Платные')) + '</option></select>' +
           '<select data-lc-filter="format"><option value="">' + esc(tr('Any format', 'Любой формат')) + '</option><option value="online"' + (filters.format === 'online' ? ' selected' : '') + '>' + esc(tr('Online', 'Онлайн')) + '</option><option value="offline"' + (filters.format === 'offline' ? ' selected' : '') + '>' + esc(tr('Offline', 'Офлайн')) + '</option></select><select data-lc-filter="sort"><option value="recommended">' + esc(tr('Recommended', 'Рекомендуемые')) + '</option><option value="newest"' + (filters.sort === 'newest' ? ' selected' : '') + '>' + esc(tr('Newest', 'Сначала новые')) + '</option><option value="price-low"' + (filters.sort === 'price-low' ? ' selected' : '') + '>' + esc(tr('Lowest price', 'Сначала дешевле')) + '</option><option value="price-high"' + (filters.sort === 'price-high' ? ' selected' : '') + '>' + esc(tr('Highest price', 'Сначала дороже')) + '</option></select>' +
           '<button class="lc-saved-filter' + (filters.saved ? ' active' : '') + '" data-lc-saved>' + icon('heart') + esc(tr('Saved', 'Сохранённые')) + '</button></div></section>' + content + '</div>';

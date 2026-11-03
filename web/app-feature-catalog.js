@@ -360,7 +360,7 @@
           (course.level ? '<span class="pv-chip">' + esc(course.level) + '</span>' : '') +
           '<span class="pv-chip teal">' + esc(formatMoney(course)) + '</span>' +
           (course.schedule ? '<span class="pv-chip">' + esc(course.schedule) + '</span>' : '') +
-          (course.language ? '<span class="pv-chip">' + esc(course.language) + '</span>' : '') +
+          (course.language ? '<span class="pv-chip">' + esc(languageLabel(course.language)) + '</span>' : '') +
         '</div>' +
         '<p class="cd-desc">' + esc(course.description || tr('No description yet.', 'Описания пока нет.')) + '</p>';
       const confirmedLearner = owner || ownEnrollmentStatus === 'confirmed';
@@ -685,6 +685,12 @@
       bindCatalogTools('courses', courseList);
     }
 
+    // Builders store language keys ("german, english"); show flags and native names.
+    function languageLabel(value) {
+      const display = window.DuvelaCourses4 && window.DuvelaCourses4.languages && window.DuvelaCourses4.languages.display;
+      return display ? display(value) || value : value;
+    }
+
     function renderEvents() {
       const head = document.querySelector('[data-panel="events"] .section-head');
       if (head) {
@@ -700,7 +706,7 @@
           '<div class="catalog-cover">' +
             (item.image ? '<img src="' + esc(item.image) + '" alt="">' : '<div class="catalog-cover-fallback event"><span>DUVELA EVENT</span><b>' + esc((item.title || 'E').charAt(0)) + '</b></div>') +
             '<div class="catalog-cover-shade"></div><span class="catalog-type ' + (item.is_online ? 'live' : '') + '">' + esc(item.is_online ? tr('Online', 'Онлайн') : tr('In person', 'Очно')) + '</span>' +
-            (item.language ? '<span class="catalog-level">' + esc(item.language) + '</span>' : '') + (item.id ? '<button class="catalog-save ' + (eventSaved.has(String(item.id)) ? 'active' : '') + '" data-save-catalog="' + esc(item.id) + '" aria-label="' + esc(tr('Save event', 'Сохранить событие')) + '">' + (eventSaved.has(String(item.id)) ? '♥' : '♡') + '</button>' : '') +
+            (item.language ? '<span class="catalog-level">' + esc(languageLabel(item.language)) + '</span>' : '') + (item.id ? '<button class="catalog-save ' + (eventSaved.has(String(item.id)) ? 'active' : '') + '" data-save-catalog="' + esc(item.id) + '" aria-label="' + esc(tr('Save event', 'Сохранить событие')) + '">' + (eventSaved.has(String(item.id)) ? '♥' : '♡') + '</button>' : '') +
           '</div><div class="catalog-body">' +
             '<span class="catalog-eyebrow">' + esc(tr('Duvela event', 'Событие Duvela')) + '</span><h3>' + esc(item.title) + '</h3>' +
             '<p class="catalog-description">' + esc(item.description || tr('Meet, learn and practise together with the Duvela community.', 'Встречайтесь, учитесь и практикуйтесь вместе с сообществом Duvela.')) + '</p>' +

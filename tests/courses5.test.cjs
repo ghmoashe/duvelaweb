@@ -63,7 +63,7 @@ test('course detail keeps keyboard focus in the modal and exposes a single scrol
 
 test('responsive marketplace is wired to the existing app', () => {
   assert.match(html, /app-courses5\.css\?v=20261023-courses5f/);
-  assert.match(html, /app-courses5\.js\?v=20261023-courses5f/);
+  assert.match(html, /app-courses5\.js\?v=20261103-lang/);
   assert.match(css, /grid-template-columns:repeat\(3/);
   assert.match(css, /@media\(max-width:760px\)/);
   assert.match(css, /@media\(max-width:520px\).*grid-template-columns:1fr/s);

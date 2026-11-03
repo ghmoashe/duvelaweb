@@ -37,6 +37,11 @@
     if (TEACHING_LANGUAGES.some(function (l) { return l.key === v; })) return v;
     return LANGUAGE_ALIASES[v] || LANGUAGE_CODES[v.split('-')[0].split('_')[0]] || '';
   }
+  // "german, english" (stored keys) -> "🇩🇪 Deutsch · 🇬🇧 English"; unknown values stay as typed.
+  function displayLanguages(value) {
+    var parts = (Array.isArray(value) ? value : String(value || '').split(',')).map(function (part) { return String(part).trim(); }).filter(Boolean);
+    return parts.map(function (part) { var item = TEACHING_LANGUAGES.find(function (l) { return l.key === normalizeLanguage(part); }); return item ? item.flag + ' ' + item.label : part; }).join(' · ');
+  }
   function normalizeLanguages(values) {
     var list = Array.isArray(values) ? values : String(values || '').split(',');
     return list.map(normalizeLanguage).filter(function (key, i, all) { return key && all.indexOf(key) === i; });
@@ -125,7 +130,7 @@
         '<span class="cr-status ' + esc(statusKey(course.status)) + '">' + esc(statusLabel(course.status)) + '</span></div>' +
         '<div class="cr-card-body"><div class="cr-card-title"><div><h3>' + esc(course.title || tr('Untitled course', 'Курс без названия')) + '</h3><p>' + esc(course.description || tr('No description yet.', 'Описание пока не добавлено.')) + '</p></div>' +
         '<button class="cr-icon-btn" type="button" data-menu="' + esc(course.id) + '" aria-label="' + esc(tr('Course actions', 'Действия курса')) + '">' + icon('more') + '</button></div>' +
-        '<div class="cr-tags"><span>' + esc(course.language || tr('Language not set', 'Язык не указан')) + '</span><span>' + esc(course.level || tr('Level not set', 'Уровень не указан')) + '</span></div>' +
+        '<div class="cr-tags"><span>' + esc(displayLanguages(course.language) || tr('Language not set', 'Язык не указан')) + '</span><span>' + esc(course.level || tr('Level not set', 'Уровень не указан')) + '</span></div>' +
         '<div class="cr-facts"><span>' + icon('book') + '<b>' + course.lessons.length + '</b> ' + esc(tr('lessons', 'уроков')) + '</span><span>' + icon('users') + '<b>' + course.studentCount + '</b> ' + esc(tr('students', 'учеников')) + '</span></div>' +
         (next ? '<div class="cr-next">' + icon('calendar') + '<span><small>' + esc(tr('Next session', 'Следующая встреча')) + '</small><b>' + esc(next) + '</b></span></div>' : '') +
         '<div class="cr-card-foot"><strong>' + esc(money(course)) + '</strong><button class="cr-primary" type="button" data-manage="' + esc(course.id) + '">' + esc(tr('Manage Course', 'Управлять курсом')) + icon('arrow') + '</button></div>' +
@@ -147,7 +152,7 @@
           '<div class="cr-tabs">' + [['all',tr('All','Все')],['published',tr('Published','Опубликованные')],['draft',tr('Draft','Черновики')],['archived',tr('Archived','Архив')]].map(function (item) { return '<button class="' + (filters.status === item[0] ? 'active' : '') + '" data-status="' + item[0] + '">' + esc(item[1]) + '</button>'; }).join('') + '</div>' +
           '<button class="cr-filter-toggle" type="button" data-filter-toggle>' + esc(tr('Filters', 'Фильтры')) + '</button><div class="cr-selects" data-filter-panel>' +
             '<select data-filter="price"><option value="all">' + esc(tr('Free & paid', 'Бесплатные и платные')) + '</option><option value="free"' + (filters.price === 'free' ? ' selected' : '') + '>' + esc(tr('Free', 'Бесплатные')) + '</option><option value="paid"' + (filters.price === 'paid' ? ' selected' : '') + '>' + esc(tr('Paid', 'Платные')) + '</option></select>' +
-            '<select data-filter="language"><option value="">' + esc(tr('All languages', 'Все языки')) + '</option>' + languages.map(function (v) { return '<option' + (filters.language === v ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('') + '</select>' +
+            '<select data-filter="language"><option value="">' + esc(tr('All languages', 'Все языки')) + '</option>' + languages.map(function (v) { return '<option value="' + esc(v) + '"' + (filters.language === v ? ' selected' : '') + '>' + esc(displayLanguages(v)) + '</option>'; }).join('') + '</select>' +
             '<select data-filter="level"><option value="">' + esc(tr('All levels', 'Все уровни')) + '</option>' + levels.map(function (v) { return '<option' + (filters.level === v ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('') + '</select>' +
             '<select data-filter="sort"><option value="date">' + esc(tr('Newest', 'Сначала новые')) + '</option><option value="title"' + (filters.sort === 'title' ? ' selected' : '') + '>' + esc(tr('Title', 'По названию')) + '</option><option value="enrollment"' + (filters.sort === 'enrollment' ? ' selected' : '') + '>' + esc(tr('Enrollment', 'По записям')) + '</option></select></div>' +
           '<div class="cr-view"><button class="' + (view === 'grid' ? 'active' : '') + '" data-view-mode="grid" aria-label="Grid">' + icon('grid') + '</button><button class="' + (view === 'list' ? 'active' : '') + '" data-view-mode="list" aria-label="List">' + icon('list') + '</button></div></section>' +
@@ -158,7 +163,7 @@
     function selectedCourse() { return data && data.courses.find(function (c) { return String(c.id) === String(selectedId); }); }
     function managementView(course) {
       var tabs = [['overview',tr('Overview','Обзор')],['curriculum',tr('Curriculum','Программа')],['students',tr('Students','Ученики')],['schedule',tr('Schedule','Расписание')],['pricing',tr('Pricing','Цена')],['analytics',tr('Analytics','Аналитика')],['settings',tr('Settings','Настройки')]];
-      return '<div class="cr-page cr-manage"><button class="cr-back" data-back>' + icon('chevron') + esc(tr('All courses', 'Все курсы')) + '</button><header class="cr-manage-head"><div class="cr-manage-cover">' + cover(course, 0) + '</div><div><span class="cr-status ' + esc(statusKey(course.status)) + '">' + esc(statusLabel(course.status)) + '</span><h1>' + esc(course.title) + '</h1><p>' + esc([course.language,course.level,course.delivery_mode].filter(Boolean).join(' · ')) + '</p></div><button class="cr-secondary" data-action="edit" data-id="' + esc(course.id) + '">' + esc(tr('Edit course', 'Изменить курс')) + '</button></header><nav class="cr-manage-tabs">' + tabs.map(function (item) { return '<button class="' + (manageTab === item[0] ? 'active' : '') + '" data-manage-tab="' + item[0] + '">' + esc(item[1]) + '</button>'; }).join('') + '</nav><section class="cr-manage-panel">' + managePanel(course) + '</section></div>';
+      return '<div class="cr-page cr-manage"><button class="cr-back" data-back>' + icon('chevron') + esc(tr('All courses', 'Все курсы')) + '</button><header class="cr-manage-head"><div class="cr-manage-cover">' + cover(course, 0) + '</div><div><span class="cr-status ' + esc(statusKey(course.status)) + '">' + esc(statusLabel(course.status)) + '</span><h1>' + esc(course.title) + '</h1><p>' + esc([displayLanguages(course.language),course.level,course.delivery_mode].filter(Boolean).join(' · ')) + '</p></div><button class="cr-secondary" data-action="edit" data-id="' + esc(course.id) + '">' + esc(tr('Edit course', 'Изменить курс')) + '</button></header><nav class="cr-manage-tabs">' + tabs.map(function (item) { return '<button class="' + (manageTab === item[0] ? 'active' : '') + '" data-manage-tab="' + item[0] + '">' + esc(item[1]) + '</button>'; }).join('') + '</nav><section class="cr-manage-panel">' + managePanel(course) + '</section></div>';
     }
     function stat(label, value) { return '<div class="cr-stat"><small>' + esc(label) + '</small><b>' + esc(String(value)) + '</b></div>'; }
     function managePanel(course) {
@@ -446,5 +451,5 @@
     return { render: render, reload: function () { return load(true); } };
   }
 
-  window.DuvelaCourses4 = { create: createCourses4, languages: { list: TEACHING_LANGUAGES, normalize: normalizeLanguage, normalizeAll: normalizeLanguages }, __test: { statusKey: statusKey, isFree: isFree, filterCourses: filterCourses, sortCourses: sortCourses, normalizeLanguages: normalizeLanguages } };
+  window.DuvelaCourses4 = { create: createCourses4, languages: { list: TEACHING_LANGUAGES, normalize: normalizeLanguage, normalizeAll: normalizeLanguages, display: displayLanguages }, __test: { statusKey: statusKey, isFree: isFree, filterCourses: filterCourses, sortCourses: sortCourses, normalizeLanguages: normalizeLanguages, displayLanguages: displayLanguages } };
 })();

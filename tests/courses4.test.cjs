@@ -52,3 +52,9 @@ test('course builder follows the Business app steps and opens Zoom scheduling', 
   assert.ok(source.includes("delivery_mode: zoom ? (wizard.format === 'hybrid' ? 'mixed' : 'zoom_group') : 'self_paced'"));
   assert.ok(source.includes("from('class_sessions').insert"));
 });
+
+test('shows stored language keys as flag and native name', () => {
+  assert.equal(helpers.displayLanguages('german, english'), '🇩🇪 Deutsch · 🇬🇧 English');
+  assert.equal(helpers.displayLanguages('Klingon'), 'Klingon');
+  assert.equal(helpers.displayLanguages(''), '');
+});
