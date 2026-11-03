@@ -73,3 +73,15 @@ textarea.cr-wz-input{min-height:130px;resize:vertical}
 .cr-field-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:800px){.cr-field-grid.three{grid-template-columns:1fr}}
 @media(max-width:560px){.cr-wizard .cr-stepper button em{display:block;font-size:10px}.cr-wz-levels{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-wz-options.three .cr-wz-option{padding:12px 6px}.cr-wz-block{padding:13px}.cr-wizard-card>footer .cr-primary{flex:1}}
+/* Event / challenge builders (web/app-builders.js) */
+.cr-wz-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cr-wz-photos figure{position:relative;margin:0;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#eef1f5}
+.cr-wz-photos figure img{width:100%;height:100%;object-fit:cover}
+.cr-wz-photos figure button{position:absolute;top:6px;inset-inline-end:6px;width:32px;height:32px;border:0;border-radius:9px;background:rgba(255,255,255,.92);color:#b23131;display:grid;place-items:center;cursor:pointer}
+.cr-wz-photos figure button svg{width:16px;height:16px}
+.cr-wz-photos .cr-upload{aspect-ratio:16/9;border-radius:14px}
+.cr-wz-sub-chips{margin-top:10px}
+.cr-wz-inline{display:flex;align-items:flex-end;gap:8px;margin-top:12px}
+.cr-wz-inline .cr-field{flex:1;margin:0}
+.cr-wz-inline .cr-secondary{min-height:44px;margin:0;width:auto}
+.cr-wz-chip svg+span,.cr-wz-chip span+svg{flex:none}

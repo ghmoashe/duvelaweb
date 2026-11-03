@@ -419,7 +419,11 @@
         });
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-event]'), function (b) {
-        b.addEventListener('click', function () { openEventModal(false); });
+        b.addEventListener('click', function () {
+          // Same five steps as the Business app's create-event screen.
+          if (window.DuvelaBuilders) window.DuvelaBuilders.openEvent(ctx, { onSaved: async function () { await afterCreate(); activeTab = 'events'; eventsSub = 'upcoming'; paint(); } });
+          else openEventModal(false);
+        });
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-schedule-live]'), function (b) {
         b.addEventListener('click', function () { openEventModal(true); });
@@ -428,7 +432,10 @@
         b.addEventListener('click', openClassSessionModal);
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-challenge]'), function (b) {
-        b.addEventListener('click', function () { openChallengeModal(); });
+        b.addEventListener('click', function () {
+          if (window.DuvelaBuilders) window.DuvelaBuilders.openChallenge(ctx, { onSaved: async function () { await afterCreate(); activeTab = 'challenges'; paint(); } });
+          else openChallengeModal();
+        });
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-mg-new-practice]'), function (b) {
         b.addEventListener('click', function () { if (ctx.openPracticeBuilder) ctx.openPracticeBuilder(); });

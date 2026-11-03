@@ -179,6 +179,7 @@
       GOALS.forEach((goal) => { draft[goal[0]] = Number(item?.[goal[0]] || 0); }); return draft;
     }
     function openBuilder(item) {
+      if (!item && window.DuvelaBuilders) { window.DuvelaBuilders.openChallenge(ctx, { onSaved: async () => { await actions.reload(); await loadMetrics(); } }); return; }
       if (!item && !state.myOrg) { alert(tr('Create an organization first.', 'Сначала создайте организацию.')); return; }
       builder = { item: item || null, step: 1, saving: false, error: '', draft: draftFor(item) };
       $('#challengeOverlayTitle').textContent = item ? tr('Edit challenge', 'Редактировать челлендж') : tr('New challenge', 'Новый челлендж');

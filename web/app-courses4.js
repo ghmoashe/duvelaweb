@@ -446,5 +446,5 @@
     return { render: render, reload: function () { return load(true); } };
   }
 
-  window.DuvelaCourses4 = { create: createCourses4, __test: { statusKey: statusKey, isFree: isFree, filterCourses: filterCourses, sortCourses: sortCourses, normalizeLanguages: normalizeLanguages } };
+  window.DuvelaCourses4 = { create: createCourses4, languages: { list: TEACHING_LANGUAGES, normalize: normalizeLanguage, normalizeAll: normalizeLanguages }, __test: { statusKey: statusKey, isFree: isFree, filterCourses: filterCourses, sortCourses: sortCourses, normalizeLanguages: normalizeLanguages } };
 })();
