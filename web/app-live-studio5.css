@@ -36,7 +36,7 @@
 :is(.duvela-studio-v5, .duvela-viewer-v5) .v5-brand-name em { font-style: normal; font-size: 12px; font-weight: 800; letter-spacing: .04em; padding: 4px 9px; border-radius: 8px; background: var(--v5-danger); color: #fff; animation: v5-pulse 1.6s infinite; }
 :is(.duvela-studio-v5, .duvela-viewer-v5) .brand-copy small { color: var(--v5-muted); font-size: 14px; font-weight: 500; }
 :is(.duvela-studio-v5, .duvela-viewer-v5) .mode-pill { display: none; }
-.studio-v5-top-status { display: flex; align-items: center; gap: 12px; margin-left: 18px; min-width: 0; }
+.studio-v5-top-status { display: flex; align-items: center; gap: 12px; margin-inline-start: 18px; min-width: 0; }
 .v5-chip { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 9px 16px 9px 10px; border: 1px solid var(--v5-border); border-radius: 14px; background: var(--v5-surface); min-width: 0; }
 .v5-chip > i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(24,213,138,.13); color: var(--v5-success); flex: 0 0 auto; }
 .v5-chip > span:not(.v5-meter) { display: grid; min-width: 0; }
@@ -44,28 +44,28 @@
 .v5-chip small { color: var(--v5-muted); font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v5-chip.is-off > i { color: var(--v5-muted); background: rgba(170,162,194,.1); }
 .v5-chip.is-off b { color: var(--v5-text); }
-.v5-meter { display: flex; align-items: center; gap: 3px; margin-left: 4px; }
+.v5-meter { display: flex; align-items: center; gap: 3px; margin-inline-start: 4px; }
 .v5-meter i { width: 4px; height: 13px; border-radius: 2px; background: #3A3150; transition: background .1s; }
 .v5-meter i.on { background: var(--v5-success); }
 .v5-meter i.on:nth-child(n+9) { background: var(--v5-primary-2); }
-.v5-chip-broadcast { padding-left: 16px; border-color: rgba(244,63,101,.32); background: linear-gradient(135deg, rgba(110,22,52,.55), rgba(48,14,32,.7)); }
+.v5-chip-broadcast { padding-inline-start: 16px; border-color: rgba(244,63,101,.32); background: linear-gradient(135deg, rgba(110,22,52,.55), rgba(48,14,32,.7)); }
 .v5-chip-broadcast b { color: var(--v5-text); }
 .v5-dot, .v5-chip > i.v5-dot { display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--v5-danger); flex: 0 0 auto; }
 .v5-chip-broadcast.is-live { border-color: var(--v5-danger); background: rgba(244,63,101,.22); }
 .v5-chip-broadcast.is-live .v5-dot { animation: v5-pulse 1.3s infinite; box-shadow: 0 0 0 4px rgba(244,63,101,.25); }
 @keyframes v5-pulse { 50% { opacity: .45; } }
-.v5-top-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.v5-top-actions { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
 .v5-icon-btn { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--v5-text); cursor: pointer; }
 .v5-icon-btn:hover { background: var(--v5-raised); border-color: var(--v5-border); }
-.v5-badge { position: absolute; top: 6px; right: 6px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--v5-danger); color: #fff; font-size: 10px; font-weight: 800; line-height: 17px; }
-.v5-account { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 7px 12px 7px 8px; border: 1px solid var(--v5-border); border-radius: 14px; background: var(--v5-surface); color: var(--v5-text); cursor: pointer; text-align: left; }
+.v5-badge { position: absolute; top: 6px; inset-inline-end: 6px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--v5-danger); color: #fff; font-size: 10px; font-weight: 800; line-height: 17px; }
+.v5-account { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 7px 12px 7px 8px; border: 1px solid var(--v5-border); border-radius: 14px; background: var(--v5-surface); color: var(--v5-text); cursor: pointer; text-align: start; }
 .v5-avatar { display: grid; place-items: center; width: 42px; height: 42px; overflow: hidden; border-radius: 50%; background: linear-gradient(135deg, #4C2E9A, #2A1D47); font-size: 14px; font-weight: 800; flex: 0 0 auto; }
 .v5-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .v5-account-copy { display: grid; min-width: 0; max-width: 150px; }
 .v5-account-copy b { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v5-account-copy small { color: var(--v5-muted); font-size: 12px; }
 .v5-pop-wrap, .v5-more-wrap { position: relative; }
-.v5-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 210; width: min(340px, calc(100vw - 24px)); max-height: 70vh; overflow: auto; padding: 10px; border: 1px solid var(--v5-border); border-radius: 16px; background: var(--v5-raised); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.v5-popover { position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 210; width: min(340px, calc(100vw - 24px)); max-height: 70vh; overflow: auto; padding: 10px; border: 1px solid var(--v5-border); border-radius: 16px; background: var(--v5-raised); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
 .v5-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 6px 10px; }
 .v5-pop-head a { color: #C9A8FF; font-size: 13px; text-decoration: none; }
 .v5-notif { display: grid; gap: 2px; padding: 10px; border-radius: 12px; }
@@ -75,7 +75,7 @@
 .v5-notif small, .v5-muted { color: var(--v5-muted); font-size: 12px; }
 .v5-muted { margin: 6px; }
 .v5-menu { width: 260px; display: grid; gap: 2px; padding: 6px; }
-.v5-menu > a, .v5-menu > button { display: flex !important; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--v5-text); font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer; box-shadow: none; text-align: left; }
+.v5-menu > a, .v5-menu > button { display: flex !important; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--v5-text); font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer; box-shadow: none; text-align: start; }
 .v5-menu > a:hover, .v5-menu > button:hover { background: rgba(255,255,255,.06); transform: none; }
 .v5-menu > button[style*="display: none"], .v5-menu > button[style*="display:none"] { display: none !important; }
 .v5-menu .v5-icon { width: 18px; height: 18px; color: var(--v5-muted); }
@@ -85,17 +85,17 @@
 :is(.duvela-studio-v5, .duvela-viewer-v5) .stage-card { position: static; padding: 0; gap: 0; overflow: visible; border: 0; background: transparent; box-shadow: none; }
 :is(.duvela-studio-v5, .duvela-viewer-v5) .stage-card-head, :is(.duvela-studio-v5, .duvela-viewer-v5) .stage-footer { display: none !important; }
 :is(.duvela-studio-v5, .duvela-viewer-v5) .stage { aspect-ratio: 16 / 9; min-height: 0; border-radius: var(--v5-radius); border: 1px solid var(--v5-border); background: #07060C; box-shadow: 0 22px 50px rgba(0,0,0,.32); }
-.v5-stage-badge { position: absolute; left: 16px; bottom: 16px; z-index: 26; display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 12px; background: rgba(11,9,20,.74); backdrop-filter: blur(10px); font-size: 15px; font-weight: 600; pointer-events: none; }
+.v5-stage-badge { position: absolute; inset-inline-start: 16px; bottom: 16px; z-index: 26; display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 12px; background: rgba(11,9,20,.74); backdrop-filter: blur(10px); font-size: 15px; font-weight: 600; pointer-events: none; }
 .v5-stage-badge .v5-dot { width: 10px; height: 10px; background: var(--v5-success); }
-.v5-rec-badge { position: absolute; left: 16px; top: 16px; z-index: 26; display: flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 9px; background: rgba(244,63,101,.9); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
+.v5-rec-badge { position: absolute; inset-inline-start: 16px; top: 16px; z-index: 26; display: flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 9px; background: rgba(244,63,101,.9); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
 .v5-rec-badge i { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: v5-pulse 1.2s infinite; }
-.v5-stage-tools { position: absolute; right: 16px; bottom: 16px; z-index: 26; display: flex; gap: 10px; }
+.v5-stage-tools { position: absolute; inset-inline-end: 16px; bottom: 16px; z-index: 26; display: flex; gap: 10px; }
 .duvela-studio-v5:is(.scene-presentation, .scene-board) .v5-stage-tools { top: 16px; bottom: auto; }
 .duvela-studio-v5:is(.scene-presentation, .scene-board) .studio-preview-banner { top: 72px; }
 .v5-stage-btn { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; background: rgba(11,9,20,.74); backdrop-filter: blur(10px); color: #fff; cursor: pointer; }
 .v5-stage-btn:hover { background: rgba(29,23,43,.92); }
 .duvela-studio-v5 .studio-preview-banner { top: 16px; background: var(--v5-warn); }
-.duvela-studio-v5 .stage-live-strip { top: 14px; left: 14px; right: 14px; }
+.duvela-studio-v5 .stage-live-strip { top: 14px; inset-inline-start: 14px; inset-inline-end: 14px; }
 
 /* ── Control dock */
 .v5-dock { display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 14px 16px 14px 18px; border: 1px solid var(--v5-border); border-radius: var(--v5-radius); background: var(--v5-surface); }
@@ -112,11 +112,11 @@
 .v5-tool:focus-visible { outline: none; }
 .v5-tool:focus-visible .v5-tool-icon { box-shadow: var(--v5-focus); }
 .v5-tool-split { position: relative; }
-.v5-tool-caret { position: absolute; left: 50%; top: 36px; margin-left: 14px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 1px solid var(--v5-border); border-radius: 50%; background: #2A2139; color: var(--v5-text); cursor: pointer; }
+.v5-tool-caret { position: absolute; inset-inline-start: 50%; top: 36px; margin-inline-start: 14px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 1px solid var(--v5-border); border-radius: 50%; background: #2A2139; color: var(--v5-text); cursor: pointer; }
 .v5-tool-caret .v5-icon { width: 14px; height: 14px; }
 .v5-dock-divider { align-self: center; width: 1px; height: 58px; margin: 0 8px 18px; background: var(--v5-border); }
 .v5-more-menu { top: auto; bottom: calc(100% + 10px); }
-.v5-dock-cta { display: flex; gap: 10px; flex: 0 0 auto; margin-left: auto; }
+.v5-dock-cta { display: flex; gap: 10px; flex: 0 0 auto; margin-inline-start: auto; }
 .duvela-studio-v5 #hostAction, .duvela-studio-v5 #endLive { min-width: 186px; min-height: 76px; padding: 12px 24px; border-radius: 16px; font-size: 19px; font-weight: 700; gap: 12px; }
 .duvela-studio-v5 #hostAction::before { content: ""; width: 26px; height: 26px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='2.2' fill='black'/%3E%3Cpath d='M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M5.7 5.7a8.9 8.9 0 0 0 0 12.6M18.3 5.7a8.9 8.9 0 0 1 0 12.6'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='2.2' fill='black'/%3E%3Cpath d='M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M5.7 5.7a8.9 8.9 0 0 0 0 12.6M18.3 5.7a8.9 8.9 0 0 1 0 12.6'/%3E%3C/svg%3E") center / contain no-repeat; }
 .duvela-studio-v5 #endLive::before { width: 22px; height: 22px; }
@@ -187,7 +187,7 @@
 .v5-switch-copy b { font-size: 15px; font-weight: 500; }
 .v5-switch-copy small { color: var(--v5-muted); font-size: 13px; }
 .duvela-studio-v5 input.v5-switch { appearance: none; -webkit-appearance: none; position: relative; width: 52px; height: 30px; margin: 0; border-radius: 99px; background: #3A3150; cursor: pointer; transition: background .18s; flex: 0 0 auto; }
-.duvela-studio-v5 input.v5-switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); transition: transform .18s; }
+.duvela-studio-v5 input.v5-switch::before { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); transition: transform .18s; }
 .duvela-studio-v5 input.v5-switch:checked { background: var(--v5-primary-2); }
 .duvela-studio-v5 input.v5-switch:checked::before { transform: translateX(22px); }
 .duvela-studio-v5 input.v5-switch:disabled { opacity: .5; cursor: not-allowed; }
@@ -204,11 +204,11 @@
 .v5-thumb-slide { inset: 0; background: #F4F1FB; }
 [data-scene="presentation"] .v5-thumb-slide { display: block; background: linear-gradient(#2E2344 0 0) 10% 22% / 38% 9% no-repeat, linear-gradient(#8C82A6 0 0) 10% 44% / 46% 6% no-repeat, linear-gradient(#8C82A6 0 0) 10% 58% / 34% 6% no-repeat, linear-gradient(135deg, #FFFFFF, #E6E0F5); }
 [data-scene="board"] .v5-thumb-slide { display: block; background: linear-gradient(#6D3FE0 0 0) 14% 30% / 40% 4% no-repeat, linear-gradient(#6D3FE0 0 0) 14% 52% / 28% 4% no-repeat, linear-gradient(#6D3FE0 0 0) 14% 72% / 34% 4% no-repeat, #FFFFFF; }
-[data-scene="presentation"] .v5-thumb-pip, [data-scene="board"] .v5-thumb-pip { display: block; right: 6%; bottom: 8%; width: 36%; aspect-ratio: 16 / 9; overflow: hidden; border: 2px solid #fff; border-radius: 5px; background: #2A2139; }
+[data-scene="presentation"] .v5-thumb-pip, [data-scene="board"] .v5-thumb-pip { display: block; inset-inline-end: 6%; bottom: 8%; width: 36%; aspect-ratio: 16 / 9; overflow: hidden; border: 2px solid #fff; border-radius: 5px; background: #2A2139; }
 .v5-thumb-pip canvas { width: 100%; height: 100%; display: block; }
 .v5-scene-name { font-size: 14px; font-weight: 600; }
 .studio-v5-scene small { display: none; }
-.v5-broadcasting .studio-v5-scene.is-live .v5-thumb::after { content: "LIVE"; position: absolute; left: 6px; top: 6px; padding: 2px 6px; border-radius: 5px; background: var(--v5-danger); color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .05em; }
+.v5-broadcasting .studio-v5-scene.is-live .v5-thumb::after { content: "LIVE"; position: absolute; inset-inline-start: 6px; top: 6px; padding: 2px 6px; border-radius: 5px; background: var(--v5-danger); color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .05em; }
 .v5-range { display: grid; gap: 8px; color: #D6D0E6; font-size: 14px; }
 .v5-range input { width: 100%; accent-color: var(--v5-primary-2); }
 .v5-production-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -263,7 +263,7 @@
   .v5-tool { flex-basis: 64px; }
   .v5-tool-icon { width: 50px; height: 50px; }
   .v5-tool-label { font-size: 12px; }
-  .v5-tool-caret { top: 32px; margin-left: 12px; }
+  .v5-tool-caret { top: 32px; margin-inline-start: 12px; }
   .v5-dock-divider { margin: 0 4px 18px; }
   .duvela-studio-v5 #hostAction, .duvela-studio-v5 #endLive { min-width: 160px; min-height: 68px; padding: 10px 18px; font-size: 17px; }
   .v5-invite-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -279,7 +279,7 @@
   .v5-tool-icon { width: 46px; height: 46px; }
   .v5-tool-icon .v5-icon { width: 20px; height: 20px; }
   .v5-tool-label { font-size: 11px; }
-  .v5-tool-caret { top: 29px; margin-left: 11px; }
+  .v5-tool-caret { top: 29px; margin-inline-start: 11px; }
   .duvela-studio-v5 #hostAction, .duvela-studio-v5 #endLive { min-width: 140px; min-height: 62px; padding: 8px 14px; font-size: 16px; }
   .duvela-studio-v5 #hostAction::before { width: 22px; height: 22px; }
   .v5-chip small { display: none; }
@@ -297,14 +297,14 @@
   .v5-tabs-bar { position: sticky; top: 8px; }
   .v5-chip small, .v5-account-copy { display: none; }
   .v5-chip { min-height: 48px; padding: 6px 12px 6px 8px; }
-  .studio-v5-top-status { margin-left: 8px; }
+  .studio-v5-top-status { margin-inline-start: 8px; }
 }
 @media (max-width: 960px) {
   .v5-chip:not(.v5-chip-broadcast) { display: none; }
   .v5-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .v5-reactions { grid-column: 1 / -1; }
   .v5-dock { flex-wrap: wrap; }
-  .v5-dock-cta { margin-left: 0; width: 100%; }
+  .v5-dock-cta { margin-inline-start: 0; width: 100%; }
   .duvela-studio-v5 #hostAction, .duvela-studio-v5 #endLive { flex: 1 1 auto; min-height: 58px; }
 }
 
@@ -317,21 +317,21 @@
   .duvela-studio-v5 .v5-brand-name { font-size: 16px; gap: 6px; }
   .duvela-studio-v5 .v5-brand-name em { font-size: 10px; padding: 3px 6px; }
   .duvela-studio-v5 .brand-copy small { display: none; }
-  .studio-v5-top-status { margin-left: auto; }
+  .studio-v5-top-status { margin-inline-start: auto; }
   .v5-chip-broadcast { min-height: 36px; padding: 6px 10px; gap: 8px; border-radius: 11px; }
   .v5-chip-broadcast b { font-size: 12px; }
   .v5-chip-broadcast .v5-dot { width: 9px; height: 9px; }
-  .v5-top-actions { margin-left: 0; gap: 2px; }
+  .v5-top-actions { margin-inline-start: 0; gap: 2px; }
   #v5Help { display: none; }
   .v5-icon-btn { width: 40px; height: 40px; }
   .v5-account { min-height: 40px; padding: 2px; border-radius: 50%; }
   .v5-account > .v5-icon { display: none; }
   .v5-avatar { width: 36px; height: 36px; }
-  .v5-popover { position: fixed; top: 64px; left: 12px; right: 12px; width: auto; }
+  .v5-popover { position: fixed; top: 64px; inset-inline-start: 12px; inset-inline-end: 12px; width: auto; }
   .duvela-studio-v5 .main { gap: 12px; padding: 10px 10px 20px; }
   .duvela-studio-v5 .stage { border-radius: 14px; }
-  .v5-stage-badge { left: 10px; bottom: 10px; padding: 6px 10px; font-size: 12px; }
-  .v5-stage-tools { right: 10px; bottom: 10px; gap: 6px; }
+  .v5-stage-badge { inset-inline-start: 10px; bottom: 10px; padding: 6px 10px; font-size: 12px; }
+  .v5-stage-tools { inset-inline-end: 10px; bottom: 10px; gap: 6px; }
   .v5-stage-btn { width: 36px; height: 36px; border-radius: 10px; }
   .v5-stage-btn .v5-icon { width: 18px; height: 18px; }
   .v5-dock { margin-top: 12px; padding: 12px 8px; border-radius: 16px; }
@@ -342,8 +342,8 @@
   .v5-tool-icon { width: 46px; height: 46px; }
   .v5-tool-icon .v5-icon { width: 20px; height: 20px; }
   .v5-tool-label { font-size: 11px; }
-  .v5-tool-caret { top: 30px; margin-left: 10px; width: 20px; height: 20px; }
-  .v5-dock-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--v5-border); background: rgba(11,9,20,.96); backdrop-filter: blur(14px); }
+  .v5-tool-caret { top: 30px; margin-inline-start: 10px; width: 20px; height: 20px; }
+  .v5-dock-cta { position: fixed; inset-inline-start: 0; inset-inline-end: 0; bottom: 0; z-index: 90; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--v5-border); background: rgba(11,9,20,.96); backdrop-filter: blur(14px); }
   .duvela-studio-v5 #hostAction, .duvela-studio-v5 #endLive { min-width: 0; min-height: 54px; font-size: 17px; }
   .v5-cards { gap: 10px; margin-top: 12px; }
   .v5-mini-card { grid-template-columns: 38px minmax(0, 1fr); gap: 10px; padding: 14px; border-radius: 16px; }
@@ -370,7 +370,7 @@
 
 /* ── Viewer V5 (live.html without mode=host). Layout added by web/live-viewer-ui.js. */
 .duvela-viewer-v5 .main { width: min(1920px, 100%); grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 520px); gap: 18px; padding: 18px 20px 28px; align-items: start; }
-.vw-top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.vw-top-actions { display: flex; align-items: center; gap: 10px; margin-inline-start: auto; }
 .vw-status-chip { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px; border: 1px solid var(--v5-border); border-radius: 12px; background: var(--v5-surface); color: var(--v5-text); font-size: 14px; font-weight: 600; white-space: nowrap; }
 .vw-status-chip .v5-dot { width: 10px; height: 10px; background: var(--v5-faint); }
 .vw-status-chip.is-live { border-color: rgba(244,63,101,.6); background: rgba(244,63,101,.16); }
@@ -380,7 +380,7 @@
 .duvela-viewer-v5 .stage-overlay { background: radial-gradient(circle at 50% 40%, rgba(120,55,245,.25), rgba(7,6,12,.88)); }
 .duvela-viewer-v5 .stage-panel { max-width: 520px; text-align: center; }
 .duvela-viewer-v5 #mainAction { min-height: 54px; padding: 0 28px; font-size: 17px; border-radius: 14px; }
-.vw-teacher-chip { position: absolute; left: 16px; top: 16px; z-index: 26; display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 999px; background: rgba(11,9,20,.74); backdrop-filter: blur(10px); pointer-events: none; }
+.vw-teacher-chip { position: absolute; inset-inline-start: 16px; top: 16px; z-index: 26; display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 999px; background: rgba(11,9,20,.74); backdrop-filter: blur(10px); pointer-events: none; }
 .vw-teacher-chip > span:last-child { display: grid; line-height: 1.2; }
 .vw-teacher-chip b { font-size: 14px; }
 .vw-teacher-chip small { color: var(--v5-muted); font-size: 12px; }
@@ -388,8 +388,8 @@
 .vw-avatar { display: grid; place-items: center; width: 34px; height: 34px; overflow: hidden; border-radius: 50%; background: linear-gradient(135deg, #4C2E9A, #2A1D47); color: #fff; font-size: 13px; font-weight: 800; flex: 0 0 auto; }
 .vw-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .vw-avatar-lg { width: 56px; height: 56px; font-size: 18px; }
-.duvela-viewer-v5 .stage > .reaction-dock { left: auto; right: 74px; bottom: 16px; opacity: .9; }
-.vw-stage-tools { right: 16px; bottom: 16px; }
+.duvela-viewer-v5 .stage > .reaction-dock { inset-inline-start: auto; inset-inline-end: 74px; bottom: 16px; opacity: .9; }
+.vw-stage-tools { inset-inline-end: 16px; bottom: 16px; }
 .vw-lesson { display: grid; gap: 16px; margin-top: 16px; padding: 18px 20px; border: 1px solid var(--v5-border); border-radius: var(--v5-radius); background: var(--v5-surface); }
 .vw-lesson.is-live { border-color: rgba(244,63,101,.35); }
 .vw-lesson-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px; }
@@ -425,7 +425,7 @@
 .vw-details { padding: 0; }
 .vw-details summary { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 18px; cursor: pointer; font-weight: 600; list-style: none; }
 .vw-details summary::-webkit-details-marker { display: none; }
-.vw-details summary::after { content: "\25BE"; margin-left: auto; color: var(--v5-muted); transition: transform .2s; }
+.vw-details summary::after { content: "\25BE"; margin-inline-start: auto; color: var(--v5-muted); transition: transform .2s; }
 .vw-details[open] summary::after { transform: rotate(180deg); }
 .vw-details summary .v5-icon { width: 20px; height: 20px; color: #C9B6FF; }
 .vw-details-body { display: grid; gap: 18px; padding: 0 18px 18px; }
@@ -448,9 +448,9 @@
   .vw-status-chip { min-height: 36px; padding: 0 10px; font-size: 12px; }
   .duvela-viewer-v5 .main { gap: 12px; padding: 10px 10px 20px; }
   .duvela-viewer-v5 .stage { border-radius: 14px; }
-  .vw-teacher-chip { left: 10px; top: 10px; }
-  .vw-stage-tools { right: 10px; bottom: 10px; }
-  .duvela-viewer-v5 .stage > .reaction-dock { right: 56px; bottom: 10px; }
+  .vw-teacher-chip { inset-inline-start: 10px; top: 10px; }
+  .vw-stage-tools { inset-inline-end: 10px; bottom: 10px; }
+  .duvela-viewer-v5 .stage > .reaction-dock { inset-inline-end: 56px; bottom: 10px; }
   .vw-lesson { margin-top: 12px; padding: 14px; border-radius: 16px; }
   .vw-lesson-head { grid-template-columns: auto minmax(0, 1fr); gap: 12px; }
   .vw-timer { grid-column: 1 / -1; grid-auto-flow: column; justify-content: start; align-items: center; gap: 10px; }
@@ -470,3 +470,7 @@
 /* The join overlay owns the stage until playback starts. */
 .duvela-viewer-v5 .stage:has(> .stage-overlay[style*="flex"]) > .vw-teacher-chip,
 .duvela-viewer-v5 .stage:has(> .stage-overlay[style*="flex"]) > .reaction-dock { display: none; }
+
+/* Right-to-left interface languages (ar, fa): live-page.js sets <html dir>. */
+[dir="rtl"] .duvela-studio-v5 input.v5-switch:checked::before, [dir="rtl"] input.v5-switch:checked::before { transform: translateX(-22px); }
+[dir="rtl"] :is(.duvela-studio-v5, .duvela-viewer-v5) .v5-chip-broadcast { padding-inline-start: 16px; }

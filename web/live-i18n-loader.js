@@ -9,7 +9,7 @@
       storageKeys: window.DuvelaWebConfig && window.DuvelaWebConfig.storageKeys
     });
     var lang = i18n && i18n.appLang;
-    if (LANGS.indexOf(lang) >= 0) document.write('<script src="./web/content/live-phrases/' + lang + '.js?v=20261030-live-i18n"><\/script>');
+    if (LANGS.indexOf(lang) >= 0) document.write('<script src="./web/content/live-phrases/' + lang + '.js?v=20261103-i18n"><\/script>');
   } catch (error) {
     console.warn('LIVE phrases were not loaded', error);
   }

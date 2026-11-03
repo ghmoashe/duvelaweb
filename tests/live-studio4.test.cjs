@@ -31,9 +31,9 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const studio=fs.readFileSync(root+'web/live-studio-ui.js','utf8');
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
- has(page,'app-live-studio5.css?v=20261030-viewer5');
- has(page,'live-page.js?v=20261030-viewer5');
- has(page,'live-studio-ui.js?v=20261030-viewer5');
+ has(page,'app-live-studio5.css?v=20261103-rtl');
+ has(page,'live-page.js?v=20261103-rtl');
+ has(page,'live-studio-ui.js?v=20261103-rtl');
  has(studio,'api.previewScene(previewSelect.value)');
  has(studio,'api.setScene(previewSelect.value)');
  has(studio,'api.toggleScreenShare()');
@@ -77,7 +77,7 @@ test('LIVE viewer V5 layer loads only for viewers and re-homes the existing cont
  const page=fs.readFileSync(root+'live.html','utf8');
  const viewer=fs.readFileSync(root+'web/live-viewer-ui.js','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
- has(page,'live-viewer-ui.js?v=20261030-viewer5');
+ has(page,'live-viewer-ui.js?v=20261103-rtl');
  has(viewer,'if (!api || api.isHost) return;');
  has(viewer,"byId('chatShell')");
  has(viewer,"byId('viewerGuestRequestBox')");
@@ -91,7 +91,7 @@ test('LIVE phrases: every interface language has a table with every studio and v
  const langs=JSON.parse(loader.match(/var LANGS = (\[[^\]]+\])/)[1].replace(/'/g,'"'));
  assert.equal(langs.length,32);
  const re=/\b(?:tr|t)\(\s*(['"])((?:\.|(?!\1).)*)\1\s*,/g;const phrases=new Set();
- for(const f of ['web/live-page.js','web/live-studio-ui.js','web/live-viewer-ui.js']){const s=fs.readFileSync(root+f,'utf8');let m;while((m=re.exec(s)))phrases.add(m[2].replace(/\'/g,"'"));}
+ for(const f of ['web/live-page.js','web/live-studio-ui.js','web/live-viewer-ui.js','web/duel-studio-overlay.js','web/duel-live-fx.js']){const s=fs.readFileSync(root+f,'utf8');let m;while((m=re.exec(s)))phrases.add(m[2].replace(/\'/g,"'"));}
  for(const lang of langs){
   const box={window:{}};vm.createContext(box);
   vm.runInContext(fs.readFileSync(root+'web/content/live-phrases/'+lang+'.js','utf8'),box);

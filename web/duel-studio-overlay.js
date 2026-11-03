@@ -1,7 +1,14 @@
 // Pins the teacher's LIVE duel onto the Live Studio camera stage so the
 // stream shows question + poll over the webcam, not the practice overlay.
 (function () {
+  // live.html never sets DuvelaCurrentAppLang (app.html does), so prefer the shared
+  // i18n helper; on live.html it reads web/content/live-phrases/<lang>.js.
+  let i18n = null;
   function tr(en, ru) {
+    if (!i18n && window.DuvelaAppI18n) {
+      try { i18n = window.DuvelaLiveI18n || window.DuvelaAppI18n.create({ localeCatalog: window.DUVELA_WEB_I18N, storageKeys: window.DuvelaWebConfig && window.DuvelaWebConfig.storageKeys }); } catch (error) { i18n = null; }
+    }
+    if (i18n) return i18n.tr(en, ru);
     return window.DuvelaCurrentAppLang === 'ru' ? ru : en;
   }
 
@@ -37,7 +44,7 @@
     node.hidden = true;
     node.innerHTML =
       '<div class="dso-top">' +
-        '<span class="dso-live"><i></i> LIVE DUEL</span>' +
+        '<span class="dso-live"><i></i> ' + esc(tr('LIVE DUEL', 'LIVE-ДУЭЛЬ')) + '</span>' +
         '<strong id="dsoCode">—</strong>' +
         '<span id="dsoRank" class="dso-rank" hidden></span>' +
       '</div>' +

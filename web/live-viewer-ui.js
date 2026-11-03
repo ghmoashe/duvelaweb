@@ -65,7 +65,7 @@
   // ── Stage: teacher chip + fullscreen
   const teacherChip = document.createElement('div');
   teacherChip.className = 'vw-teacher-chip';
-  teacherChip.innerHTML = '<span class="vw-avatar" id="vwStageAvatar">D</span><span><b id="vwStageTeacher">' + t('Teacher', 'Преподаватель') + '</b><small id="vwStageMeta"></small></span>';
+  teacherChip.innerHTML = '<span class="vw-avatar" id="vwStageAvatar">D</span><span><b id="vwStageTeacher" dir="auto">' + t('Teacher', 'Преподаватель') + '</b><small id="vwStageMeta"></small></span>';
   const stageTools = document.createElement('div');
   stageTools.className = 'v5-stage-tools vw-stage-tools';
   stageTools.innerHTML = '<button type="button" class="v5-stage-btn" id="vwFullscreen" aria-label="' + t('Full screen', 'Полный экран') + '" title="' + t('Full screen', 'Полный экран') + '">' + icon('fullscreen') + '</button>';
@@ -81,7 +81,7 @@
   lesson.className = 'vw-lesson';
   lesson.setAttribute('aria-labelledby', 'vwTitle');
   lesson.innerHTML =
-    '<div class="vw-lesson-head"><span class="vw-avatar vw-avatar-lg" id="vwAvatar">D</span><div class="vw-lesson-copy"><h1 id="vwTitle">' + t('Live lesson', 'Живой урок') + '</h1><p id="vwTeacher"></p><div class="vw-chips" id="vwChips"></div></div>' +
+    '<div class="vw-lesson-head"><span class="vw-avatar vw-avatar-lg" id="vwAvatar">D</span><div class="vw-lesson-copy"><h1 id="vwTitle">' + t('Live lesson', 'Живой урок') + '</h1><p id="vwTeacher" dir="auto"></p><div class="vw-chips" id="vwChips"></div></div>' +
     '<div class="vw-timer"><span class="vw-timer-label">' + icon('clock') + t('On air', 'В эфире') + '</span></div></div>' +
     '<div class="vw-lesson-actions" id="vwActions"></div>';
   stage?.after(lesson);

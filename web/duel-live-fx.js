@@ -1,6 +1,15 @@
 // Shared LIVE-duel stage effects: DUVI reactions, reveal chime, confetti,
 // and the hourly gift-rank pill. Used by the practice overlay and Live Studio.
 (function () {
+  let i18n = null;
+  function tr(en, ru) {
+    if (!i18n && window.DuvelaAppI18n) {
+      try { i18n = window.DuvelaLiveI18n || window.DuvelaAppI18n.create({ localeCatalog: window.DUVELA_WEB_I18N, storageKeys: window.DuvelaWebConfig && window.DuvelaWebConfig.storageKeys }); } catch (error) { i18n = null; }
+    }
+    if (i18n) return i18n.tr(en, ru);
+    return window.DuvelaCurrentAppLang === 'ru' ? ru : en;
+  }
+
   const DUVI = {
     joy: './web/assets/duvi/p-joy.png',
     think: './web/assets/duvi/p-think.png',
@@ -114,7 +123,7 @@
       const rank = row ? Number(row.rank) || 0 : 0;
       if (rank > 0 && rank <= 50) {
         node.hidden = false;
-        node.textContent = '#' + rank + ' gifts this hour';
+        node.textContent = '#' + rank + ' ' + tr('by gifts this hour', 'по подаркам за час');
       } else {
         node.hidden = true;
       }
