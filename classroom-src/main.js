@@ -742,7 +742,6 @@ async function join() {
       await window.DuvelaSessionGuard.assertFree(supa, me.id, 'classroom', sessionId);
       const startResult = await supa.functions.invoke('zoom-video-token', { body: { action: 'start', sessionId } });
       if (startResult.error || !startResult.data?.started) throw new Error(startResult.data?.error || startResult.error?.message || tr('The classroom could not start.','Не удалось запустить класс.'));
-      studioStartClaimed = classSession.status !== 'live';
     }
     await loadZoomClient();
     await client.init('en-US', 'Global', { patchJsMedia: true, stayAwake: true });
