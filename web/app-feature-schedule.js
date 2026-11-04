@@ -13,10 +13,18 @@
       if (ctx.isBusiness()) {
         try {
           const { data } = await supa.from('teacher_slots')
-            .select('id,slot_date,slot_time,duration_min,is_booked,status,price,currency,timezone,live_room_url,approval_required,booking_status,series_id')
+            .select('id,slot_date,slot_time,duration_min,is_booked,status,price,currency,timezone,has_live_room,approval_required,booking_status,series_id')
             .eq('teacher_id', ctx.user.id).gte('slot_date', today)
             .order('slot_date', { ascending: true }).order('slot_time', { ascending: true }).limit(60);
           state.mySlots = data || [];
+          // The room link itself is private (teacher + booked learner only);
+          // the teacher gets it for their own slots, e.g. for the .ics export.
+          const linked = state.mySlots.filter((slot) => slot.has_live_room).map((slot) => slot.id);
+          if (linked.length) {
+            const urls = await supa.rpc('slot_live_room_urls', { p_slot_ids: linked });
+            const byId = new Map((urls.data || []).map((row) => [row.slot_id, row.live_room_url]));
+            state.mySlots.forEach((slot) => { if (byId.has(slot.id)) slot.live_room_url = byId.get(slot.id); });
+          }
         } catch (error) {
           console.warn('slots load failed', error);
         }
@@ -24,7 +32,7 @@
       }
       try {
         const { data: slots } = await supa.from('teacher_slots')
-          .select('id,teacher_id,slot_date,slot_time,duration_min,price,currency,timezone,live_room_url,approval_required,status')
+          .select('id,teacher_id,slot_date,slot_time,duration_min,price,currency,timezone,has_live_room,approval_required,status')
           .eq('is_booked', false).gte('slot_date', today)
           .order('slot_date', { ascending: true }).order('slot_time', { ascending: true });
         const counts = {};
@@ -61,7 +69,7 @@
       const VIDEO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
       const moneyText = (item) => Number(item.price) ? Number(item.price).toFixed(2) + ' ' + (item.currency || 'EUR') : tr('Free', '\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e');
       const slotDateTime = (slot) => esc(formatDate(slot.slot_date)) + '<b>' + esc(String(slot.slot_time || '').slice(0, 5)) + '</b>';
-      const lessonFormat = (slot) => slot && slot.live_room_url ? tr('Online LIVE', '\u041e\u043d\u043b\u0430\u0439\u043d LIVE') : tr('Online lesson', '\u041e\u043d\u043b\u0430\u0439\u043d-\u0443\u0440\u043e\u043a');
+      const lessonFormat = (slot) => slot && (slot.has_live_room || slot.live_room_url) ? tr('Online LIVE', '\u041e\u043d\u043b\u0430\u0439\u043d LIVE') : tr('Online lesson', '\u041e\u043d\u043b\u0430\u0439\u043d-\u0443\u0440\u043e\u043a');
       if (ctx.isBusiness()) {
         $('#scheduleTitle').textContent = tr('Schedule & Bookings', 'Расписание и записи');
         $('#scheduleSub').textContent = tr('Availability, confirmed lessons and booking management', 'Доступность, подтверждённые уроки и управление записями');
@@ -260,7 +268,7 @@
       let slots = [];
       try {
         const { data } = await supa.from('teacher_slots')
-          .select('id,slot_date,slot_time,duration_min,is_booked,status,price,currency,timezone,live_room_url,approval_required').eq('teacher_id', teacherId)
+          .select('id,slot_date,slot_time,duration_min,is_booked,status,price,currency,timezone,has_live_room,approval_required').eq('teacher_id', teacherId)
           .gte('slot_date', today)
           .order('slot_date', { ascending: true }).order('slot_time', { ascending: true }).limit(60);
         slots = data || [];
@@ -320,7 +328,7 @@
       const dateKey = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
       const startOfWeek = (d) => { const x = new Date(d); const day = x.getDay(); x.setDate(x.getDate() - (day === 0 ? 6 : day - 1)); x.setHours(0,0,0,0); return x; };
       const daySlots = (d) => slots.filter((slot) => slot.slot_date === dateKey(d)).sort((a,b) => String(a.slot_time).localeCompare(String(b.slot_time)));
-      const event = (slot) => '<button type="button" class="sch-cal-event ' + (slot.live_room_url ? 'sch-event-live' : (slot.is_booked ? 'sch-event-booked' : 'sch-event-open')) + '" data-calendar-slot="' + esc(slot.id) + '"><b>' + esc(String(slot.slot_time || '').slice(0,5)) + '</b><span>' + esc(slot.is_booked ? tr('Booked', 'Занято') : slot.live_room_url ? tr('LIVE class', 'LIVE-класс') : tr('Available', 'Свободно')) + '</span></button>';
+      const event = (slot) => '<button type="button" class="sch-cal-event ' + ((slot.has_live_room || slot.live_room_url) ? 'sch-event-live' : (slot.is_booked ? 'sch-event-booked' : 'sch-event-open')) + '" data-calendar-slot="' + esc(slot.id) + '"><b>' + esc(String(slot.slot_time || '').slice(0,5)) + '</b><span>' + esc(slot.is_booked ? tr('Booked', 'Занято') : slot.live_room_url ? tr('LIVE class', 'LIVE-класс') : tr('Available', 'Свободно')) + '</span></button>';
       let title = '';
       let content = '';
       if (calendarMode === 'day') { title = calendarAnchor.toLocaleDateString([], { weekday:'long', day:'numeric', month:'long' }); content = '<div class="sch-day-column">' + (daySlots(calendarAnchor).map(event).join('') || '<p class="sch-cal-empty">' + esc(tr('No events for this day.', 'На этот день событий нет.')) + '</p>') + '</div>'; }
