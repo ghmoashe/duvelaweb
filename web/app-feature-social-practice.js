@@ -68,7 +68,7 @@
         report: 'Пожаловаться', reportTitle: 'Причина жалобы', reportSent: 'Жалоба отправлена. Спасибо!',
         reasons: { spam: 'Спам', harassment: 'Оскорбления', hate: 'Язык вражды', inappropriate: 'Неуместное поведение', other: 'Другое' },
         invite: 'Пригласить', inviteTitle: 'Пригласить в комнату', invitePlaceholder: 'Поиск по имени', invited: 'Приглашение отправлено',
-        endRoom: 'Завершить комнату', confirmEnd: 'Завершить комнату для всех?', roomEnded: 'Комната завершена.', removed: 'Вас удалили из комнаты.', unavailable: 'Комната недоступна.',
+        endRoom: 'Завершить комнату', hostLeaveConfirm: 'Вы ведущий. Выйти всё равно? Комната останется открытой, ведущим станет другой участник. Чтобы закрыть её для всех, нажмите «Завершить комнату».', confirmEnd: 'Завершить комнату для всех?', roomEnded: 'Комната завершена.', removed: 'Вас удалили из комнаты.', unavailable: 'Комната недоступна.',
         audioUnavailable: 'Звук недоступен в этом браузере. Участники и чат работают.', micBlocked: 'Нет доступа к микрофону. Разрешите его в браузере.', connecting: 'Подключаем звук…', you: 'Вы', errorGeneric: 'Что-то пошло не так. Попробуйте ещё раз.',
         back: 'Все комнаты', inRoom: 'Вы в голосовой комнате', returnToRoom: 'Вернуться', tapToHear: 'Нажмите, чтобы включить звук'
       }
@@ -105,7 +105,7 @@
         report: 'Melden', reportTitle: 'Grund der Meldung', reportSent: 'Meldung gesendet. Danke!',
         reasons: { spam: 'Spam', harassment: 'Beleidigungen', hate: 'Hassrede', inappropriate: 'Unangemessenes Verhalten', other: 'Sonstiges' },
         invite: 'Einladen', inviteTitle: 'In den Raum einladen', invitePlaceholder: 'Nach Namen suchen', invited: 'Einladung gesendet',
-        endRoom: 'Raum beenden', confirmEnd: 'Raum für alle beenden?', roomEnded: 'Der Raum wurde beendet.', removed: 'Du wurdest aus dem Raum entfernt.', unavailable: 'Dieser Raum ist nicht verfügbar.',
+        endRoom: 'Raum beenden', hostLeaveConfirm: 'Du bist Host. Trotzdem gehen? Der Raum bleibt offen und eine andere Person wird Host. Zum Schließen für alle: „Raum beenden“.', confirmEnd: 'Raum für alle beenden?', roomEnded: 'Der Raum wurde beendet.', removed: 'Du wurdest aus dem Raum entfernt.', unavailable: 'Dieser Raum ist nicht verfügbar.',
         audioUnavailable: 'Ton ist in diesem Browser nicht verfügbar. Teilnehmer und Chat funktionieren.', micBlocked: 'Kein Zugriff auf das Mikrofon. Erlaube es im Browser.', connecting: 'Ton wird verbunden…', you: 'Du', errorGeneric: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
         back: 'Alle Räume', inRoom: 'Du bist in einem Sprachraum', returnToRoom: 'Zurück', tapToHear: 'Tippen, um den Ton einzuschalten'
       }
@@ -142,7 +142,7 @@
         report: 'Report', reportTitle: 'Reason for the report', reportSent: 'Report sent. Thank you!',
         reasons: { spam: 'Spam', harassment: 'Harassment', hate: 'Hate speech', inappropriate: 'Inappropriate behaviour', other: 'Other' },
         invite: 'Invite', inviteTitle: 'Invite to the room', invitePlaceholder: 'Search by name', invited: 'Invitation sent',
-        endRoom: 'End room', confirmEnd: 'End the room for everyone?', roomEnded: 'The room has ended.', removed: 'You were removed from the room.', unavailable: 'This room is not available.',
+        endRoom: 'End room', hostLeaveConfirm: 'You are the host. Leave anyway? The room stays open and another participant becomes host. To close it for everyone, use End room.', confirmEnd: 'End the room for everyone?', roomEnded: 'The room has ended.', removed: 'You were removed from the room.', unavailable: 'This room is not available.',
         audioUnavailable: 'Audio is not available in this browser. People and chat still work.', micBlocked: 'No microphone access. Allow it in your browser.', connecting: 'Connecting audio…', you: 'You', errorGeneric: 'Something went wrong. Please try again.',
         back: 'All rooms', inRoom: 'You are in a voice room', returnToRoom: 'Return', tapToHear: 'Click to turn on sound'
       }
@@ -844,6 +844,11 @@
       renderMiniBar();
     }
 
+    // The host leaving hands the room to another participant on the server.
+    function confirmHostLeave() {
+      return room.role !== 'owner' || window.confirm(vrCopy.hostLeaveConfirm || 'You are the host. Leave anyway? The room stays open and another participant becomes host.');
+    }
+
     async function leaveRoom(backToList) {
       const id = room.id;
       const wasJoined = room.joined;
@@ -1259,10 +1264,10 @@
         // inside a room
         if (t.closest('[data-vr-back]')) {
           if (room.phase === 'closed') { Object.assign(room, { id: null, phase: 'idle' }); renderMiniBar(); renderVoiceRooms(); loadRooms(); }
-          else leaveRoom(true);
+          else if (confirmHostLeave()) leaveRoom(true);
           return;
         }
-        if (t.closest('[data-vr-leave]')) { leaveRoom(true); return; }
+        if (t.closest('[data-vr-leave]')) { if (confirmHostLeave()) leaveRoom(true); return; }
         if (t.closest('[data-vr-resume]')) { resumeBlockedAudio(); return; }
         if (t.closest('[data-vr-sheet-close]')) { room.sheet = null; renderRoom(); return; }
         const sheetButton = t.closest('[data-vr-sheet]');
