@@ -80,7 +80,8 @@
         const raw = params.get('return_to') || sessionStorage.getItem('duvela.return_to') || document.referrer || '';
         if (!raw) return '';
         const target = new URL(raw, window.location.origin);
-        if (target.origin !== window.location.origin || !target.pathname.endsWith('/app.html')) return '';
+        // Same origin only, and only pages that send people here to sign in.
+        if (target.origin !== window.location.origin || !/\/(app|classroom|live)\.html$/.test(target.pathname)) return '';
         sessionStorage.removeItem('duvela.return_to');
         return target.href;
       } catch (_) {

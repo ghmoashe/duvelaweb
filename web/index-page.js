@@ -120,7 +120,7 @@
     if (!authPromise) {
       authPromise = ensureCore()
         .then(() => loadScript('./web/index-auth-ui.js?v=20260925-authui1'))
-        .then(() => loadScript('./web/index-auth.js?v=20260925-auth3'))
+        .then(() => loadScript('./web/index-auth.js?v=20261104-return'))
         .then(() => {
           authFeature = window.DuvelaIndexAuth.create({
             config: window.DuvelaWebConfig,

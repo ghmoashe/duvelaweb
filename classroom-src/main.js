@@ -659,7 +659,7 @@ async function loadIdentity() {
   if (!supa || !sessionId) throw new Error(tr('The group lesson link is incomplete.', 'Ссылка на групповой урок неполная.'));
   const auth = await supa.auth.getUser();
   if (!auth.data?.user) {
-    location.href = './index.html?next=' + encodeURIComponent(location.href);
+    location.href = './index.html?return_to=' + encodeURIComponent(location.pathname + location.search);
     throw new Error(tr('Sign in to Duvela.', 'Войдите в Duvela.'));
   }
   me = auth.data.user;
