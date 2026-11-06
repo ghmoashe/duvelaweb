@@ -30,7 +30,7 @@ test('event details retain organizer, venue, format and registration context', (
 });
 
 test('events hub has accessible mobile and desktop layouts and is wired into the learner app', () => {
-  assert.match(html, /app-events5\.css\?v=20261106-link/);
+  assert.match(html, /app-events5\.css\?v=20261023-events5/);
   assert.match(html, /app-events5\.js\?v=20261106-link/);
   assert.match(css, /\.ed-grid\{display:grid;grid-template-columns:repeat\(3/);
   assert.match(css, /@media\(max-width:1180px\)\{\.ed-grid\{grid-template-columns:repeat\(2/);
