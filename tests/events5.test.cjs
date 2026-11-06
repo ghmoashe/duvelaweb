@@ -4,6 +4,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
+test('the online link shows only what the server returns, and opens http(s) only', () => {
+  const code = fs.readFileSync(path.join(root, 'web/app-events5.js'), 'utf8');
+  assert.match(code, /from\('event_private_details'\)\.select\('online_url'\)/);
+  assert.match(code, /\^https\?:/);
+  assert.match(code, /rel="noopener noreferrer"/);
+});
+
 const source = fs.readFileSync(path.join(root, 'web/app-events5.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/app-events5.css'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'app.html'), 'utf8');
@@ -23,8 +30,8 @@ test('event details retain organizer, venue, format and registration context', (
 });
 
 test('events hub has accessible mobile and desktop layouts and is wired into the learner app', () => {
-  assert.match(html, /app-events5\.css\?v=20261023-events5/);
-  assert.match(html, /app-events5\.js\?v=20261023-events5/);
+  assert.match(html, /app-events5\.css\?v=20261106-link/);
+  assert.match(html, /app-events5\.js\?v=20261106-link/);
   assert.match(css, /\.ed-grid\{display:grid;grid-template-columns:repeat\(3/);
   assert.match(css, /@media\(max-width:1180px\)\{\.ed-grid\{grid-template-columns:repeat\(2/);
   assert.match(css, /@media\(max-width:760px\).*\.ed-grid\{grid-template-columns:1fr/s);

@@ -48,6 +48,22 @@
         var date = new Date(item.event_date + 'T12:00:00');
         return date.toLocaleDateString(ctx.isRu ? 'ru-RU' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + (item.event_time ? ' · ' + item.event_time.slice(0, 5) : '');
       }
+      // The online place, for those the server lets read it: the organizer, and on a free
+      // event everyone who is going. It is a link, or just a platform name.
+      async function showOnlineLink(item, body) {
+        if (!item.is_online && item.format !== 'mixed') return;
+        var value = '';
+        try {
+          var result = await supa.from('event_private_details').select('online_url').eq('event_id', item.id).maybeSingle();
+          value = String(result.data && result.data.online_url || '').trim();
+        } catch (_) { return; }
+        var list = body.querySelector('.edd-copy dl');
+        if (!value || !list) return;
+        var content = /^https?:\/\/\S+$/i.test(value)
+          ? '<a href="' + esc(value) + '" target="_blank" rel="noopener noreferrer">' + esc(value) + '</a>'
+          : esc(value);
+        list.insertAdjacentHTML('beforeend', '<div data-edd-online>' + icon('pin') + '<span><b>' + esc(tr('Join', 'Присоединиться')) + '</b>' + content + '</span></div>');
+      }
       function priceText(item) { return item.is_free || item.price == null || Number(item.price) === 0 ? tr('Free', 'Бесплатно') : ctx.formatMoney(item); }
       function allowedEvents() { return (state.events || []).filter(function (item) { return item && item.id && !isDraft(item); }); }
       function statusLabel(item) {
@@ -149,6 +165,7 @@
           var countNode = body.querySelector('[data-edd-count]'); if (countNode) countNode.textContent = item.max_participants ? eventCounts[item.id] + ' / ' + item.max_participants + ' · ' + tr('registered', 'записались') : eventCounts[item.id] + ' ' + tr('registered', 'записались');
           if (organizer && organizer.full_name) body.querySelector('.edd-copy').insertAdjacentHTML('beforeend', '<p class="edd-organizer">' + esc(tr('Organized by ', 'Организатор: ') + organizer.full_name) + '</p>');
         } catch (_) { /* Detail remains truthful without optional metadata. */ }
+        await showOnlineLink(item, body);
         var join = body.querySelector('[data-edd-rsvp]');
         if (join) join.onclick = async function () { await base.toggleRsvp(item.id); await loadMembership(); openEventDetail(item.id); };
       }
