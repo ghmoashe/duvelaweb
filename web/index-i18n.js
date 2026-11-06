@@ -24,7 +24,7 @@
       en: {
         navVideo: 'Product',
         navHow: 'How it Works',
-        navBusiness: 'For Teachers',
+        navBusiness: 'For Business',
         navPricing: 'Pricing',
         heroTitle: 'Learn more. Connect more. <span class="grad-text">Become more.</span>',
         heroSub: 'Learn languages and new skills with real teachers, interactive LIVE lessons, videos and personalized practice.',
@@ -89,7 +89,7 @@
       ru: {
         navVideo: 'Продукт',
         navHow: 'Как это работает',
-        navBusiness: 'Для преподавателей',
+        navBusiness: 'Для бизнеса',
         navPricing: 'Цены',
         heroTitle: 'Учитесь. Общайтесь. <span class="grad-text">Открывайте больше возможностей.</span>',
         heroSub: 'Изучайте языки и новые навыки с настоящими преподавателями, интерактивными LIVE-уроками, видео и персональной практикой.',
@@ -156,8 +156,9 @@
     const I18N_MAP = [
       ['.nav-links li:nth-child(1) a', 'navVideo'],
       ['.nav-links li:nth-child(2) a', 'navHow'],
-      ['.nav-links li:nth-child(3) a', 'navBusiness'],
+      ['.nav-links li:nth-child(3) a', 'footTeachers'],
       ['.nav-links li:nth-child(4) a', 'navPricing'],
+      ['.nav-links li:nth-child(5) a', 'navBusiness'],
       ['#openLogin', 'signIn'],
       ['.nav-cta', 'getApp'],
       ['header.hero h1', 'heroTitle', true],
@@ -230,6 +231,7 @@
       ['.foot-inner > div:nth-child(3) a:nth-of-type(4)', 'footAnalytics'],
       ['.foot-inner > div:nth-child(4) h3', 'footCompany'],
       ['#footAbout', 'footAbout'],
+      ['#footBusiness', 'navBusiness'],
       ['#footContact', 'footContact'],
       ['#footPrivacy', 'footPrivacy'],
       ['#footImpressum', 'footImpressum'],
