@@ -164,7 +164,7 @@
             'Привет, я GRAMMI! Напиши в чат, какую грамматику разобрать — тему или вопрос о предложении, — и я понятно объясню, покажу примеры и дам задания.'),
     });
 
-    // Through tr(): ru from the bank, other languages from app-phrases-i18n.js.
+    // Through tr(): ru from the bank, other languages from content/app-phrases.
     function gloss(topic) { return tr(topic.en, topic.ru); }
     function doneTopics() { return topics.filter(function (topic) { return isDone(state.progress, topic.id); }); }
     function nextTopic() { return topics.find(function (topic) { return !isDone(state.progress, topic.id); }) || null; }

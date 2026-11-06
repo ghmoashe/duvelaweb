@@ -79,7 +79,7 @@
         'Привет, я NOVA! Выбери звук своего уровня: покажу, как его произносить, дам услышать разницу и проверю каждое слово, которое ты скажешь. Или напиши, какой звук или слово потренировать.'),
     });
 
-    // Through tr(): ru from the bank, other languages from app-phrases-i18n.js.
+    // Through tr(): ru from the bank, other languages from content/app-phrases.
     function gloss(sound) { return tr(sound.en, sound.ru); }
     function isDone(id) { return ((state.progress[id] && state.progress[id].best) || 0) >= passScore(); }
     function doneSounds() { return sounds.filter(function (sound) { return isDone(sound.id); }); }
