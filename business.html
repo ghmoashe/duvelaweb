@@ -537,6 +537,7 @@
             <option value="full_package">Full package</option>
           </select>
           <textarea class="contact-textarea full" id="fNotes" placeholder="Languages, cities, timing (optional)"></textarea>
+          <div class="cf-turnstile full" id="b2bTurnstile" data-sitekey="0x4AAAAAAF2CiDAGozqMfvt-" data-theme="light"></div>
           <button type="submit" class="contact-submit">Request a proposal →</button>
           <div class="contact-note" id="fNote"></div>
         </form>
@@ -556,7 +557,8 @@
   </div>
 </footer>
 
-<script src="./web/inline/business-2.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="./web/inline/business-2.js?v=20261106-turnstile"></script>
 <script src="./web/cookie-consent.js?v=20260906-consent1"></script>
 </body>
 </html>

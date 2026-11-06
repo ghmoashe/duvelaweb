@@ -59,8 +59,8 @@
     });
   });
 
-  // Form submit — writes to `corporate_leads` (falls back to mailto if the table
-  // isn't there yet, so the page works before the migration lands).
+  // Form submit — the submit-corporate-lead function checks Turnstile and saves the
+  // lead; if the check script or the function cannot be reached, mailto still works.
   var form = document.getElementById('b2bForm');
   var note = document.getElementById('fNote');
   var client = null;
@@ -83,15 +83,27 @@
 
     note.classList.remove('err');
     note.classList.add('show');
+
+    // The widget is still checking the visitor: wait, this is not a failure.
+    var captcha = window.turnstile;
+    var token = captcha ? captcha.getResponse() : '';
+    if (captcha && !token) {
+      note.classList.add('err');
+      note.textContent = 'Please wait for the security check above, then send again.';
+      return;
+    }
+
     note.textContent = 'Sending…';
 
-    // Try Supabase insert; fall back to mailto if the config didn't load.
     try {
-      if (!client) throw new Error('No client');
-      var res = await client.from('corporate_leads').insert(payload);
+      if (!client || !captcha) throw new Error('No client');
+      var res = await client.functions.invoke('submit-corporate-lead', {
+        body: Object.assign({ turnstileToken: token }, payload)
+      });
       if (res.error) throw res.error;
       note.textContent = '✓ Got it — we\'ll be in touch within 24 h.';
       form.reset();
+      captcha.reset();
       return;
     } catch (err) {
       // Graceful fallback
