@@ -268,13 +268,35 @@
       return Array.from({ length: total }, function (_, i) { return i; });
     }
 
+    // The planning part alone is a whole conversation: every note gets its own turn.
+    const PLANNING = window.DuvelaElsaPlanning;
+    function planningOnly() { return !!(PLANNING && state.planning && state.selectedPart != null && isPlanningTaskPart(state.selectedPart)); }
+    function turnTarget() { return planningOnly() ? PLANNING.PLANNING_TURNS : activePartIndices().length * 2; }
+
+    // The exam card: situation, task and notes as printed in the test, so it stays German.
+    function planningCardHtml() {
+      const scenario = state.planning;
+      const label = 'style="display:block;margin:8px 0 2px;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--violet,#6d3df5)"';
+      const notes = scenario.notes.map(function (note) { return '<div style="font-weight:700">– ' + esc(note) + '</div>'; }).join('');
+      const steps = PLANNING.PLANNING_STEPS.map(function (step) {
+        return '<div style="padding:6px 0;border-top:1px solid var(--line)"><b style="font-size:13px">' + esc(step.title) + '</b>' +
+          step.phrases.map(function (phrase) { return '<div style="font-size:13px">' + esc(phrase) + '</div>'; }).join('') + '</div>';
+      }).join('');
+      return '<div style="text-align:left;line-height:1.4"><span ' + label + '>Situation</span><b style="font-size:16px">' + esc(scenario.title) + '</b><div>' + esc(scenario.situation) + '</div>' +
+        '<span ' + label + '>Aufgabe</span><div>' + esc(PLANNING.PLANNING_TASK) + '</div>' +
+        '<div style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#fff3c4;color:#2b2410"><div style="font-size:12px;font-weight:800;margin-bottom:2px">Hier sind einige Notizen:</div>' + notes + '</div>' +
+        '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:900;min-height:32px">Redemittel</summary>' + steps + '</details></div>';
+    }
+
     function topic() {
       const indices = activePartIndices();
       let cueLines = '';
       indices.forEach(function (i) {
         const cues = cuesForPart(i);
         if (!cues) return;
-        if (isPictureTaskPart(i)) {
+        if (isPlanningTaskPart(i) && PLANNING && state.planning) {
+          cueLines += ' In Teil ' + (i + 1) + ':' + PLANNING.planningPartInstruction(state.planning, planningOnly());
+        } else if (isPictureTaskPart(i)) {
           // A real photo is shown on screen — say a plain, natural instruction instead of
           // reading the sentence-starter and guiding questions out loud as a list. ELSA can't
           // see the photo either, so tell her what it actually shows, only to judge at the end
@@ -318,11 +340,13 @@
         levelRange: state.level,
         nativeHelp: false,
         lessonTemplate: BOARD_LABEL[state.board] + ' ' + state.level,
-        lessonGoal: state.selectedPart != null
+        lessonGoal: planningOnly()
+          ? 'Plan together with the candidate as their partner, as ELSA in Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam, and finish with one sentence that sums up the plan.'
+          : state.selectedPart != null
           ? (state.trainingMode==='practice' ? 'Conduct only Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam. After each learner response, provide at most one brief learning correction.' : 'Conduct only Teil ' + (state.selectedPart + 1) + ' of the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam. Do not give hints or corrections during responses.')
           : 'Conduct the ' + BOARD_LABEL[state.board] + ' ' + state.level + ' oral exam part by part. Do not give hints or corrections during assessed responses.',
         lessonTurnIndex: turnIndex,
-        lessonTurnTarget: activePartIndices().length * 2,
+        lessonTurnTarget: turnTarget(),
       };
     }
 
@@ -436,6 +460,7 @@
       state.photo = pickExamPhoto();
       state.topic = pickPresentationTopic();
       state.talkTopic = pickTalkTopic();
+      state.planning = PLANNING ? PLANNING.pickPlanningScenario() : null;
       renderExam();
       await sendTurn('Guten Tag, ich bin bereit für die Prüfung.', true);
     }
@@ -480,9 +505,10 @@
       const indices = activePartIndices();
       const total = indices.length;
       const part = Math.min(total, Math.floor(answersGiven() / 2) + 1);
-      const done = answersGiven() >= total * 2 - 1;
+      const done = answersGiven() >= turnTarget() - 1;
       function cueHtmlFor(cues, partIndex) {
         if (!cues) return '';
+        if (isPlanningTaskPart(partIndex) && PLANNING && state.planning) return planningCardHtml();
         const presenting = isPresentationTaskPart(partIndex);
         const talking = isTalkTopicPart(partIndex) && state.talkTopic;
         const hint = talking
@@ -524,13 +550,14 @@
             const partIndex = indices[assistantOrdinal / 2];
             const photoSrc = isPictureTaskPart(partIndex) && state.photo
               ? state.photo.src
-              : isPlanningTaskPart(partIndex)
+              : isPlanningTaskPart(partIndex) && !state.planning
                 ? PLANNING_CARD_IMAGE
                 : null;
             const photoHtml = photoSrc
               ? '<img src="' + esc(photoSrc) + '" alt="" style="display:block;max-width:70%;width:260px;aspect-ratio:4/3;object-fit:contain;border-radius:14px;margin:0 0 10px;background:var(--panel-soft)">'
               : '';
-            cueHtml = photoHtml + cueHtmlFor(cuesForPart(partIndex), partIndex);
+            // The side panel already shows the planning card.
+            cueHtml = isPlanningTaskPart(partIndex) && state.planning ? '' : photoHtml + cueHtmlFor(cuesForPart(partIndex), partIndex);
           }
         }
         return '<div style="display:flex;justify-content:' + (m.role === 'user' ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">' +
@@ -541,7 +568,7 @@
       const activeIndex = indices[Math.min(indices.length - 1, Math.floor(answersGiven() / 2))];
       const activeMedia = isPictureTaskPart(activeIndex) && state.photo
         ? '<img src="' + esc(state.photo.src) + '" alt="" class="elsa-task-photo">'
-        : isPlanningTaskPart(activeIndex) ? '<img src="' + esc(PLANNING_CARD_IMAGE) + '" alt="" class="elsa-task-photo">' : '';
+        : isPlanningTaskPart(activeIndex) && !state.planning ? '<img src="' + esc(PLANNING_CARD_IMAGE) + '" alt="" class="elsa-task-photo">' : '';
       const activeTitle = partSummariesForCurrent()[activeIndex] || tr('Speaking task', 'Устное задание');
       body().classList.add('elsa-active-body');
       body().innerHTML = '<section class="elsa-active-exam"><aside class="elsa-task-panel"><small>DUVELA · ELSA EXAMINER</small><div class="elsa-task-head"><h3>' + esc(BOARD_LABEL[state.board]) + ' · ' + state.level + '</h3><span>' + esc(tr('Part', 'Часть')) + ' ' + part + '/' + total + '</span></div><h2>' + esc(activeTitle) + '</h2>' + activeMedia + '<div class="elsa-task-instructions">' + cueHtmlFor(cuesForPart(activeIndex), activeIndex) + '</div><p>' + esc(state.trainingMode==='exam' ? tr('Exam mode: ELSA gives no hints or grammar corrections while you answer.','Экзаменационный режим: ELSA не даёт подсказок и исправлений во время ответа.') : tr('Practice mode: learning feedback is shown after your answer.','Режим практики: учебная обратная связь показывается после ответа.')) + '</p></aside><section class="elsa-dialog-panel"><header><div><b>ELSA · ' + esc(tr('Examiner', 'Экзаменатор')) + '</b><small>' + esc(state.trainingMode==='exam'?tr('Exam simulation','Симуляция экзамена'):tr('Part practice','Практика части')) + '</small></div><span>' + esc(tr('Text-based practice','Текстовая практика')) + '</span></header><div id="elsaLog"' + LTR + ' class="elsa-dialog-log">' + log + '</div>' + (state.error ? '<div class="elsa-dialog-error">' + esc(state.error) + '</div>' : '') + (done ? '<button class="btn primary" id="elsaFinish">🏁 ' + esc(tr('View feedback', 'Посмотреть разбор')) + '</button>' : '') + '<div class="elsa-dialog-composer"><input id="elsaInput"' + LTR + ' class="search" placeholder="' + esc(tr('Type your answer…', 'Напишите ответ…')) + '">' + (voiceRecognition() ? '<button type="button" class="elsa-voice-input" id="elsaVoice" aria-label="' + esc(tr('Speak your answer', 'Продиктовать ответ')) + '" aria-pressed="' + (state.voiceConversation ? 'true' : 'false') + '" title="' + esc(tr('Speak your answer', 'Продиктовать ответ')) + '">🎙</button><button type="button" class="elsa-speaker-toggle" id="elsaSpeaker" aria-label="' + esc(tr('Toggle ELSA voice', 'Включить или выключить голос ELSA')) + '">' + (state.speakerEnabled ? '🔊' : '🔇') + '</button>' : '') + '<button class="btn primary" id="elsaSend">➤</button></div><button class="elsa-end-session" id="elsaEndEarly">' + esc(tr('End session', 'Завершить сессию')) + '</button></section></section>';
@@ -566,7 +593,8 @@
       const photoNote = activePartIndices().some(isPictureTaskPart) && state.photo
         ? '[Hinweis für die Bewertung: Das gezeigte Foto zeigt tatsächlich: ' + state.photo.description + ']\n'
         : '';
-      const transcript = photoNote + state.messages.map(function (m) { return (m.role === 'assistant' ? 'ELSA' : 'Lernender') + ': ' + m.text; }).join('\n');
+      const planningNote = PLANNING && state.planning && activePartIndices().some(isPlanningTaskPart) ? PLANNING.planningScoreNote(state.planning) : '';
+      const transcript = photoNote + planningNote + state.messages.map(function (m) { return (m.role === 'assistant' ? 'ELSA' : 'Lernender') + ': ' + m.text; }).join('\n');
       try {
         const result = await call({ action: 'evaluate_exam', board: state.board, level: state.level, transcript: transcript, nativeLocale: nativeLocale(), locale: 'de-DE' });
         state.evaluation = result;
