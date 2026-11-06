@@ -20,6 +20,7 @@ const files = [
   'telc-b2-exam.html',
   'business.html',
   'business-admin.html',
+  'captcha.html',
   'admin.html',
   'reset-password.html',
   'teacher-invite.html',

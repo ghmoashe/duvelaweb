@@ -1,4 +1,5 @@
 (function () {
+  const withCaptcha = (run) => (window.DuvelaAuthCaptcha ? window.DuvelaAuthCaptcha.withCaptcha(run) : run());
   function createIndexAuth(ctx) {
     const { config, rolesApi, profileWritesApi, authUiApi, getDict } = ctx;
     if (!authUiApi) throw new Error('DuvelaIndexAuthUi is required.');
@@ -254,14 +255,14 @@
 
         const inviteRef = teacherInviteRef();
         authUi.setSubmitBusy(authUi.getCopy('creatingAccount', 'Creating account...'));
-        const { data, error } = await supa.auth.signUp({
+        const { data, error } = await withCaptcha((captchaToken) => supa.auth.signUp({
           email,
           password,
-          options: {
+          options: Object.assign({
             data: Object.assign({ locale }, inviteRef ? { teacher_invite_ref: inviteRef } : {}),
             emailRedirectTo: authCallbackUrl()
-          }
-        });
+          }, captchaToken ? { captchaToken } : {})
+        }));
         authUi.setSubmitIdle();
 
         if (error) {
@@ -282,7 +283,9 @@
       }
 
       authUi.setSubmitBusy(authUi.getCopy('signingIn', 'Signing in...'));
-      const { data, error } = await supa.auth.signInWithPassword({ email, password });
+      const { data, error } = await withCaptcha((captchaToken) => supa.auth.signInWithPassword(
+        Object.assign({ email, password }, captchaToken ? { options: { captchaToken } } : {})
+      ));
       authUi.setSubmitIdle();
 
       if (error) {
@@ -401,9 +404,9 @@
           authUi.showNote(authUi.getCopy('enterEmailFirst', 'Enter your email above first.'));
           return;
         }
-        const { error } = await supa.auth.resetPasswordForEmail(email, {
+        const { error } = await withCaptcha((captchaToken) => supa.auth.resetPasswordForEmail(email, Object.assign({
           redirectTo: window.location.origin + '/reset-password.html',
-        });
+        }, captchaToken ? { captchaToken } : {})));
         authUi.showNote(
           error
             ? error.message
