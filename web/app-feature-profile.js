@@ -595,7 +595,7 @@
       if ($('#deleteAccountHint')) $('#deleteAccountHint').textContent = tr('Permanently removes your Duvela web profile and signs you out from this browser.', 'Полностью удаляет ваш профиль Duvela Web и завершает сессию в этом браузере.');
       if ($('#deleteAccountBtn')) $('#deleteAccountBtn').textContent = tr('Delete account', 'Удалить аккаунт');
       const displayName = ctx.profile?.full_name || ctx.user.user_metadata?.full_name || (ctx.user.email || tr('Duvela user', 'Пользователь Duvela')).split('@')[0];
-      const meta = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ') || tr('Signed in to ', 'Вход выполнен в ') + (ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub');
+      const meta = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ') || tr('Signed in to {1}', 'Вход выполнен в {1}').split('{1}').join(ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub');
       if ($('#topName')) $('#topName').textContent = displayName;
       if ($('#topEmail')) $('#topEmail').textContent = (ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub') + ' - ' + (ctx.user.email || roleLabels[ctx.role]);
       $('#profileName').textContent = displayName;
@@ -1046,7 +1046,7 @@
         if (profileGrid) profileGrid.style.gridTemplateColumns = 'minmax(0, 1fr)';
         card.innerHTML =
           '<div class="section-head"><h2>' + esc(tr('Account', 'Аккаунт')) + '</h2></div>' +
-          '<p style="font-weight:800;color:var(--soft)">' + esc(tr('You are signed in as ', 'Вы вошли как ') + (roleLabels[ctx.role] || ctx.role) + '.') + '</p>' +
+          '<p style="font-weight:800;color:var(--soft)">' + esc(tr('You are signed in as {1}.', 'Вы вошли как {1}.').split('{1}').join(roleLabels[ctx.role] || ctx.role)) + '</p>' +
           ctx.walletHtml() + portfolioHtml() + verificationHtml();
         const portfolioForm = $('#pfAddForm');
         if (portfolioForm) portfolioForm.addEventListener('submit', addPortfolioItem);

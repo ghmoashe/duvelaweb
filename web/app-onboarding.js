@@ -284,7 +284,7 @@
         : step === 3 ? c[2] : 'Your Duvela profile is ready to go.';
       $('#onboardingSubmit').textContent = tx(step < 4 ? 'Continue →' : (role === 'learner' ? 'Open my Duvela →' : 'Open my workspace →'));
       $('#onboardingKicker').textContent = 'DUVELA · STEP ' + step + ' OF 4';
-      $('#onboardingTitle').textContent = step === 1 ? tx('Choose your workspace') : step === 2 ? tx('Basic profile details') : step === 3 ? ((copy[role] || copy.learner)[0] + tr(' setup', ' · Настройка')) : tx('Preview & confirm');
+      $('#onboardingTitle').textContent = step === 1 ? tx('Choose your workspace') : step === 2 ? tx('Basic profile details') : step === 3 ? ((copy[role] || copy.learner)[0] + ' · ' + tr('Settings', 'Настройка')) : tx('Preview & confirm');
     }
 
     function stepTwoHtml() {

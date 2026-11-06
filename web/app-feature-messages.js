@@ -406,7 +406,7 @@
       renderConversations();
       $('#threadTitle').textContent = conversation ? conversation.name : tr('Chat', 'Чат');
       $('#threadTyping').textContent = '';
-      if (conversation && conversation.otherLastSeenAt) $('#threadTyping').textContent = tr('last seen ', 'был(а) в сети ') + new Date(conversation.otherLastSeenAt).toLocaleString();
+      if (conversation && conversation.otherLastSeenAt) $('#threadTyping').textContent = tr('last seen {1}', 'был(а) в сети {1}').split('{1}').join(new Date(conversation.otherLastSeenAt).toLocaleString());
       $('#composeForm').style.display = conversation && conversation.blocked ? 'none' : 'flex';
       $('#msgWrap').classList.add('thread-open');
       $('#composeInput').value = localStorage.getItem('duvela.chat.draft.' + id) || '';

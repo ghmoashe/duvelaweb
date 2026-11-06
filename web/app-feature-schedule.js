@@ -482,7 +482,7 @@
       const count = Math.min(30, Math.max(1, Number($('#slotCount').value) || 1));
       const duration = Math.max(15, Number($('#slotDur').value) || 60);
       const breakMinutes = Math.min(240, Math.max(0, Number($('#slotBreak').value) || 0));
-      $('#slotSubmitLabel').textContent = count === 1 ? tr('Create slot', 'Создать слот') : tr('Create ', 'Создать ') + count + tr(' slots', ' слотов');
+      $('#slotSubmitLabel').textContent = count === 1 ? tr('Create slot', 'Создать слот') : tr('Create slot', 'Создать слот') + ' × ' + count;
       const date = $('#slotDate').value;
       const time = $('#slotTime').value;
       if (!date || !time) {
@@ -493,7 +493,7 @@
       const last = new Date(first.getTime() + (count - 1) * (duration + breakMinutes) * 60000);
       hint.textContent = count === 1
         ? tr('One slot will be opened.', 'Будет открыт один слот.')
-        : tr('From ', 'С ') + first.toLocaleString() + tr(' to ', ' до ') + new Date(last.getTime() + duration * 60000).toLocaleString() + ' · ' + count + tr(' slots', ' слотов');
+        : first.toLocaleString() + ' – ' + new Date(last.getTime() + duration * 60000).toLocaleString() + ' (' + count + ')';
     }
 
     return {

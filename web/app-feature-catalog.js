@@ -711,7 +711,7 @@
             '<span class="catalog-eyebrow">' + esc(tr('Duvela event', 'Событие Duvela')) + '</span><h3>' + esc(item.title) + '</h3>' +
             '<p class="catalog-description">' + esc(item.description || tr('Meet, learn and practise together with the Duvela community.', 'Встречайтесь, учитесь и практикуйтесь вместе с сообществом Duvela.')) + '</p>' +
             '<div class="catalog-facts"><span><b>□</b>' + esc(item.event_date ? formatDate(item.event_date) + (item.event_time ? ' · ' + item.event_time.slice(0,5) : '') : tr('Date coming soon', 'Дата скоро')) + '</span><span><b>⌖</b>' + esc(item.is_online ? tr('Join from anywhere', 'Подключение из любой точки') : [item.city, item.country].filter(Boolean).join(', ') || tr('Location coming soon', 'Место скоро')) + '</span>' +
-              (item.max_participants ? '<span><b>◎</b>' + esc(tr('Up to ', 'До ') + item.max_participants + tr(' participants', ' участников')) + '</span>' : '') + '</div>' +
+              (item.max_participants ? '<span><b>◎</b>' + esc(tr('Capacity: ', 'Мест: ') + item.max_participants) + '</span>' : '') + '</div>' +
             '<div class="catalog-footer"><div class="catalog-price"><small>' + esc(tr('Ticket', 'Билет')) + '</small><strong>' + esc(formatMoney(item)) + '</strong></div><button class="btn primary catalog-open" type="button">' + esc(tr('View event', 'Подробнее')) + '</button></div>' +
           '</div></article>'
       ).join('');
@@ -949,7 +949,7 @@
               '</a>' +
               '<div class="live-session-body">' +
                 '<span class="live-session-kind">' + esc((item.language || tr('LIVE lesson', 'LIVE-урок')).toString().toUpperCase()) + (item.level ? ' · ' + esc(item.level) : '') + '</span>' +
-                '<h3>' + esc(title) + '</h3><p>' + esc(tr('with ', 'с преподавателем ') + teacher) + '</p>' +
+                '<h3>' + esc(title) + '</h3><p>' + esc(tr('with {1}', 'с преподавателем {1}').split('{1}').join(teacher)) + '</p>' +
                 '<div class="live-session-meta"><span>◷ ' + esc(liveTimingV2(item) || tr('Recently finished', 'Недавно завершен')) + '</span><span>♙ ' + esc(item.is_private ? tr('Private', 'Приватный') : tr('Public', 'Публичный')) + '</span><span>👥 ' + esc(String(viewers)) + '</span></div>' +
                 '<div class="live-session-actions"><a class="live-replay-btn" href="' + esc(href) + '">▶ ' + esc(liveRowActionV2(item, creator)) + '</a><a class="live-analytics-btn" href="#home" data-go="home">▥ ' + esc(tr('Analytics', 'Аналитика')) + '</a><b>' + esc(String(earned)) + (earned === '—' ? '' : ' DC') + '</b></div>' +
               '</div></article>';
