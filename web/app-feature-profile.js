@@ -592,7 +592,7 @@
       if ($('#avatarUploadLabel')) $('#avatarUploadLabel').textContent = tr('Choose avatar from device', 'Выбрать аватар с устройства');
       if ($('#avatarUploadHint')) $('#avatarUploadHint').textContent = tr('Your browser will ask for access to photos or camera on this device.', 'Браузер запросит доступ к фото или камере устройства.');
       if ($('#deleteAccountTitle')) $('#deleteAccountTitle').textContent = tr('Delete account', 'Удалить аккаунт');
-      if ($('#deleteAccountHint')) $('#deleteAccountHint').textContent = tr('Permanently removes your Duvela web profile and signs you out from this browser.', 'Полностью удаляет ваш профиль Duvela Web и завершает сессию в этом браузере.');
+      if ($('#deleteAccountHint')) $('#deleteAccountHint').textContent = tr('Permanently deletes your account in all Duvela apps and signs you out. This cannot be undone.', 'Навсегда удаляет ваш аккаунт во всех приложениях Duvela и выполняет выход. Это действие нельзя отменить.');
       if ($('#deleteAccountBtn')) $('#deleteAccountBtn').textContent = tr('Delete account', 'Удалить аккаунт');
       const displayName = ctx.profile?.full_name || ctx.user.user_metadata?.full_name || (ctx.user.email || tr('Duvela user', 'Пользователь Duvela')).split('@')[0];
       const meta = [ctx.profile?.city, ctx.profile?.country].filter(Boolean).join(', ') || tr('Signed in to {1}', 'Вход выполнен в {1}').split('{1}').join(ctx.isBusiness() ? 'Duvela Business' : 'Duvela Hub');
@@ -937,16 +937,17 @@
 
     async function deleteAccount() {
       const confirmed = window.confirm(tr(
-        'Delete your Duvela web profile? This will remove your profile data from the web cabinet and sign you out from this browser.',
-        'Удалить ваш профиль Duvela Web? Это удалит данные профиля из веб-кабинета и выполнит выход из этого браузера.'
+        'Delete your Duvela account? Your profile, messages and progress will be permanently removed in all Duvela apps. This cannot be undone.',
+        'Удалить ваш аккаунт Duvela? Профиль, сообщения и прогресс будут удалены навсегда во всех приложениях Duvela. Это действие нельзя отменить.'
       ));
       if (!confirmed) return;
       const button = $('#deleteAccountBtn');
       if (button) button.disabled = true;
       try {
-        const { error } = await supa.from('profiles').delete().eq('id', ctx.user.id);
+        // The function removes the sign-in account too; the session dies with it, so sign out locally.
+        const { error } = await supa.functions.invoke('delete-account', { method: 'POST' });
         if (error) throw error;
-        await supa.auth.signOut();
+        await supa.auth.signOut({ scope: 'local' });
         window.location.href = './index.html';
       } catch (error) {
         alert(error.message || tr('Could not delete the account.', 'Не удалось удалить аккаунт.'));

@@ -37,7 +37,7 @@
         editProfile: ['Edit profile', 'Редактировать профиль'],
         viewProfile: ['View profile', 'Открыть профиль'],
         dangerZone: ['Danger zone', 'Опасная зона'],
-        dangerHint: ['Deletes your profile data and signs you out. This cannot be undone.', 'Удаляет данные профиля и выполняет выход. Это действие нельзя отменить.'],
+        dangerHint: ['Permanently deletes your account in all Duvela apps and signs you out. This cannot be undone.', 'Навсегда удаляет ваш аккаунт во всех приложениях Duvela и выполняет выход. Это действие нельзя отменить.'],
         deleteAccount: ['Delete account', 'Удалить аккаунт'],
         startNewChat: ['Start a new chat', 'Начать новый чат']
       };

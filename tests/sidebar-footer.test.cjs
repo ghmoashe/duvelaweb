@@ -63,5 +63,5 @@ test('sidebar footer assets use a cache-busted release marker', () => {
   assert.match(html, /app-inline\.css\?v=20261021-learner-wallet1/);
   assert.match(html, /app-bootstrap\.js\?v=20261023-courses5/);
   assert.match(html, /app-router\.js\?v=20261021-student-wallet2/);
-  assert.match(html, /app-feature-profile\.js\?v=20261106-phrases/);
+  assert.match(html, /app-feature-profile\.js\?v=20261107-delete/);
 });

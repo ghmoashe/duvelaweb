@@ -10,7 +10,7 @@
       storageKeys: window.DuvelaWebConfig && window.DuvelaWebConfig.storageKeys
     });
     var lang = i18n && i18n.appLang;
-    if (LANGS.indexOf(lang) >= 0) document.write('<script src="./web/content/app-phrases/' + lang + '.js?v=20261106-i18n2"><\/script>');
+    if (LANGS.indexOf(lang) >= 0) document.write('<script src="./web/content/app-phrases/' + lang + '.js?v=20261107-delete"><\/script>');
   } catch (error) {
     console.warn('App phrases were not loaded', error);
   }
