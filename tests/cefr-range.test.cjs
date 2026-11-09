@@ -26,3 +26,10 @@ test('a range answers to each of its levels', () => {
   assert.equal(range.covers('A1-A2', 'B1'), false);
   assert.equal(range.covers('', 'A1'), false);
 });
+
+test('hashtags on a video search the library', () => {
+  const media = fs.readFileSync(path.join(root, 'web/app-feature-media-platform.js'), 'utf8');
+  assert.match(media, /data-media-tag=/);
+  assert.match(media, /mp\.query='#'\+n\.dataset\.mediaTag/);
+  assert.match(media, /concat\(tagsOf\(x\)\)/);
+});
