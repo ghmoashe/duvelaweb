@@ -114,7 +114,7 @@
         'Plan: ' + payload.plan + '\n\n' +
         payload.notes
       );
-      window.location.href = 'mailto:hello@vela.cafe?subject=' +
+      window.location.href = 'mailto:info@duvela.eu?subject=' +
         encodeURIComponent('Duvela for Business — ' + payload.company_name) +
         '&body=' + body;
       note.textContent = '✓ Opening your email client…';
