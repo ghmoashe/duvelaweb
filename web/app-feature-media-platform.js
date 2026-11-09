@@ -77,7 +77,7 @@
       if(mp.tab==='library'&&mp.library==='subscriptions') list=list.filter(x=>mp.subscribed.has(String(authorId(x))));
       if(mp.query) list=list.filter(x=>[titleOf(x),authorOf(x),x.description,x.level,x.language,x.category].concat(x.tags||[]).join(' ').toLowerCase().includes(mp.query));
       if(mp.language) list=list.filter(x=>String(x.language||'').toLowerCase()===mp.language);
-      if(mp.level) list=list.filter(x=>String(x.level||'')===mp.level);
+      if(mp.level) list=list.filter(x=>window.DuvelaCefrRange.covers(x.level,mp.level));
       if(mp.teacher) list=list.filter(x=>String(authorId(x))===mp.teacher);
       if(mp.category) list=list.filter(x=>String(x.category||'').toLowerCase()===mp.category);
       if(mp.sort==='popular') list.sort((a,b)=>Number(b.views||0)-Number(a.views||0));
@@ -86,7 +86,7 @@
       else list.sort((a,b)=>new Date(b.published_at||0)-new Date(a.published_at||0));
       return list;
     }
-    function recommendationScore(item,context){let score=0;if(context.language&&normalizeLanguage(item.language)===normalizeLanguage(context.language))score+=4;if(context.level&&normalizeLevel(item.level)===context.level)score+=3;if(progressOf(item)>0&&progressOf(item)<96)score+=2;return score;}
+    function recommendationScore(item,context){let score=0;if(context.language&&normalizeLanguage(item.language)===normalizeLanguage(context.language))score+=4;if(context.level&&window.DuvelaCefrRange.covers(item.level,context.level))score+=3;if(progressOf(item)>0&&progressOf(item)<96)score+=2;return score;}
     function thumb(x,short) { const img=imageOf(x),progress=progressOf(x); return '<div class="yt-thumb '+(short?'short':'')+'"><span class="yt-thumb-fallback" aria-hidden="true">DUVELA</span>'+(img?'<img src="'+esc(img)+'" alt="'+esc(titleOf(x))+'" loading="lazy" onerror="this.remove()">':'')+(x.duration_seconds?'<b>'+fmtDuration(x.duration_seconds)+'</b>':'')+(progress?'<i style="width:'+progress+'%"></i>':'')+'</div>'; }
     function card(x,short) {const badges=[x.language,x.level,x.category].filter(Boolean),progress=progressOf(x),saved=mp.saved.has(String(x.id)),meta=[];if(x._viewsVerified)meta.push(fmtViews(x.views));if(x.published_at)meta.push(ago(x.published_at));return '<article class="yt-card" data-video="'+esc(x.id)+'" role="button" tabindex="0" aria-label="'+esc(tr('Open lesson: ','Открыть урок: ')+titleOf(x))+'">'+thumb(x,short)+'<div class="yt-card-badges">'+badges.map(value=>'<span>'+esc(value)+'</span>').join('')+'</div><div class="yt-meta">'+(short?'':('<button class="yt-avatar" data-media-channel="'+esc(authorId(x))+'" aria-label="'+esc(tr('Open teacher profile','Открыть профиль преподавателя'))+'">'+safeAvatar(x)+'</button>'))+'<div><h3>'+esc(titleOf(x))+'</h3><button data-media-channel="'+esc(authorId(x))+'">'+esc(authorOf(x))+'</button>'+(meta.length?'<p>'+meta.join(' · ')+'</p>':'')+(progress?'<small>'+progress+'% '+esc(tr('watched','просмотрено'))+'</small>':'')+'</div><button class="yt-save-card '+(saved?'active':'')+'" data-media-save="'+esc(x.id)+'" aria-label="'+esc(saved?tr('Remove from library','Удалить из библиотеки'):tr('Save to library','Сохранить в библиотеку'))+'">'+(saved?'✓':'♡')+'</button></div></article>'; }
     function empty(label,action){return '<div class="yt-empty"><span class="yt-empty-icon">▱</span><b>'+esc(label)+'</b><span>'+esc(tr('Try another filter or return later.','Измените фильтр или зайдите позже.'))+'</span>'+(action||'')+'</div>';}
@@ -98,7 +98,7 @@
       const grid=$('#videoGrid'); if(!grid)return;
       const list=filtered(),shown=list.slice(0,mp.page*mp.pageSize),context=learnerContext();
       const languages=[...new Set(mp.items.map(x=>x.language).filter(Boolean))];
-      const levels=[...new Set(mp.items.map(x=>x.level).filter(Boolean))];
+      const levels=window.DuvelaCefrRange.LEVELS.filter(l=>mp.items.some(x=>window.DuvelaCefrRange.covers(x.level,l)));
       const teachers=[...new Map(mp.items.filter(x=>authorId(x)).map(x=>[authorId(x),authorOf(x)])).entries()];
       const categories=[...new Set(mp.items.map(x=>x.category).filter(Boolean))];
       const tabs=[['videos',tr('Videos','Видео')],['shorts','Shorts'],['live','LIVE'],['library',tr('My Library','Моя библиотека')]];

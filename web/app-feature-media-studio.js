@@ -5,7 +5,8 @@
   // teacher's own posts with delete, matching the app. Learners keep the browse feed.
   function createMediaStudio(ctx) {
     const { tr, esc, supa } = ctx;
-    const LEVELS = ['A1-A2', 'A2-B1', 'B1-B2', 'B2-C1', 'C1-C2'];
+    const RANGE = window.DuvelaCefrRange;
+    const LEVELS = RANGE.LEVELS;
     let activeTab = 'all';
     let ytLevel = null;
     let ytValue = '';
@@ -120,7 +121,7 @@
         if (activeTab === 'all' && status === 'draft') return false;
         if (libraryStatus && status !== libraryStatus) return false;
         if (libraryLanguage && p.language !== libraryLanguage) return false;
-        if (libraryLevel && (p.language_level || (p.cefr_levels || [])[0]) !== libraryLevel) return false;
+        if (libraryLevel && !RANGE.covers(p.language_level || (p.cefr_levels || [])[0], libraryLevel)) return false;
         if (libraryCategory && p.category !== libraryCategory) return false;
         if (librarySearch) {
           var needle = librarySearch.toLowerCase();
@@ -165,7 +166,7 @@
         '<div class="ms-compose-head"><span class="ms-yt-badge">' + IC.yt + '</span><div><b>' + esc(tr('Add new video', '\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0432\u0438\u0434\u0435\u043e')) + '</b><p>' + esc(tr('Paste a YouTube link or upload your video and set the details.', '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 YouTube \u0441\u0441\u044b\u043b\u043a\u0443 \u0438\u043b\u0438 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 \u0432\u0438\u0434\u0435\u043e \u0438 \u0437\u0430\u0434\u0430\u0439\u0442\u0435 \u0434\u0435\u0442\u0430\u043b\u0438.')) + '</p></div><button type="button" class="ms-upload-mini" data-ms-upload="shorts">&#8679; ' + esc(tr('Upload file', '\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0444\u0430\u0439\u043b')) + '</button></div>' +
         '<div class="ms-input-row"><input id="msYtInput" class="ms-input" type="text" placeholder="' + esc(tr('Paste YouTube link here...', '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 YouTube \u0441\u0441\u044b\u043b\u043a\u0443...')) + '" value="' + esc(ytValue) + '"></div>' +
         '<div class="ms-compose-grid"><div><div class="ms-level-label">' + esc(tr('Level', '\u0423\u0440\u043e\u0432\u0435\u043d\u044c')) + '</div><div class="ms-levels">' + LEVELS.map(function (l) {
-          return '<button type="button" class="ms-level' + (ytLevel === l ? ' active' : '') + '" data-ms-level="' + l + '">' + esc(l) + '</button>';
+          return '<button type="button" class="ms-level' + (RANGE.parse(ytLevel).indexOf(l) >= 0 ? ' active' : '') + '" data-ms-level="' + l + '">' + esc(l) + '</button>';
         }).join('') + '</div></div><label><span>' + esc(tr('Language', '\u042f\u0437\u044b\u043a')) + '</span><select><option>German</option><option>English</option></select></label><label><span>' + esc(tr('Category', '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f')) + '</span><select><option>Vocabulary</option><option>Grammar</option><option>Conversation</option></select></label>' +
         '<button type="button" id="msAddVideo" class="ms-add-btn"' + (busy ? ' disabled' : '') + '>&#9992; <span>' + esc(busy ? tr('Saving...', '\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435...') : tr('Publish video', '\u041e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c')) + '</span></button></div>' +
         (notice ? '<div class="ms-notice">' + esc(notice) + '</div>' : '') + (uploadProgress !== null ? renderProgressBar(uploadProgress) : '') +
@@ -382,7 +383,7 @@
       var sort = host.querySelector('[data-ms-sort]');
       if (sort) sort.addEventListener('change', function () { librarySort = sort.value; paint(); });
       Array.prototype.forEach.call(host.querySelectorAll('[data-ms-level]'), function (b) {
-        b.addEventListener('click', function () { ytLevel = b.getAttribute('data-ms-level'); paint(); });
+        b.addEventListener('click', function () { ytLevel = RANGE.toggle(ytLevel, b.getAttribute('data-ms-level')); paint(); });
       });
       const input = host.querySelector('#msYtInput');
       if (input) {
