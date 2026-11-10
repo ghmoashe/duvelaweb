@@ -67,7 +67,7 @@
         if ('Notification' in window && Notification.permission === 'default') {
           Notification.requestPermission().catch(() => {});
         }
-        supa.channel('notif-' + ctx.user.id)
+        supa.channel('notif-' + ctx.user.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + ctx.user.id }, (payload) => {
             state.notifications.unshift(payload.new);
             renderNotifBadge();

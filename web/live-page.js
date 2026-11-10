@@ -2011,7 +2011,7 @@
   }
   function subscribeLiveReactions(id) {
     if(!supa||!id)return; if(reactionChannel){try{supa.removeChannel(reactionChannel);}catch(_){} }
-    reactionChannel=supa.channel('live-reactions-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'live_reactions',filter:'session_id=eq.'+id},function(payload){if(!materialChannel&&payload.new?.emoji)showLiveReaction(payload.new.emoji);}).subscribe();
+    reactionChannel=supa.channel('live-reactions-'+id+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)).on('postgres_changes',{event:'INSERT',schema:'public',table:'live_reactions',filter:'session_id=eq.'+id},function(payload){if(!materialChannel&&payload.new?.emoji)showLiveReaction(payload.new.emoji);}).subscribe();
   }
   async function sendLiveReaction(emoji) {
     emoji=String(emoji||'').trim();

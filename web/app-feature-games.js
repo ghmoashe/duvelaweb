@@ -72,7 +72,7 @@
     function startChess(match) {
       const myColor = match.whiteId === ctx.user.id ? 'w' : 'b';
       chessState = { match, game: new window.Chess(match.fen || CHESS_START), sel: null, legal: null, myColor, channel: null };
-      chessState.channel = supa.channel('chess-' + match.id)
+      chessState.channel = supa.channel('chess-' + match.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))
         .on('postgres_changes', { event: '*', schema: 'public', table: 'chess_matches', filter: 'id=eq.' + match.id }, (payload) => {
           const row = payload.new;
           if (!row || !row.id) return;
@@ -250,7 +250,7 @@
 
     function startDuel(match) {
       duelState = { match, items: [], idx: 0, score: 0, channel: null, timer: null, timeLeft: match.durationSeconds, me: match.p1.id === ctx.user.id ? 'p1' : 'p2', started: false };
-      duelState.channel = supa.channel('duel-' + match.id)
+      duelState.channel = supa.channel('duel-' + match.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))
         .on('postgres_changes', { event: '*', schema: 'public', table: 'practice_matches', filter: 'id=eq.' + match.id }, (payload) => {
           const row = payload.new;
           if (!row || !row.id) return;
