@@ -137,6 +137,20 @@
         .map(function (x) { return x.replace(/[_-]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); });
     }
 
+    // Stored ids ("espanol", "deutsch", "es") -> one name in the interface language, once each.
+    function languageNames(value) {
+      var arr = Array.isArray(value) ? value : (value ? String(value).split(',') : []);
+      var catalog = window.DuvelaCourses4 && window.DuvelaCourses4.languages;
+      var out = [];
+      arr.forEach(function (item) {
+        var raw = String(item || '').trim(); if (!raw) return;
+        var key = catalog ? catalog.normalize(raw) : raw.toLowerCase();
+        var name = TEACH_LANGUAGE_LABELS[key] || prettyList(raw)[0];
+        if (name && out.indexOf(name) < 0) out.push(name);
+      });
+      return out;
+    }
+
     const IC = {
       loc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
       share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v13M8 7l4-4 4 4M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/></svg>',
@@ -389,11 +403,8 @@
       const p = ctx.profile || {};
       const name = (p.full_name || (ctx.user.email || 'Duvela').split('@')[0]).trim();
       const location = [p.city, p.country].filter(Boolean).join(', ');
-      const teaches = prettyList(p.teaches_languages);
-      const spoken = [];
-      [p.language].concat(p.teaches_languages || []).forEach(function (l) {
-        var s = String(l || '').trim(); if (s && spoken.indexOf(s) < 0) spoken.push(s);
-      });
+      const teaches = languageNames(p.teaches_languages);
+      const spoken = languageNames([p.language].concat(p.teaches_languages || []));
       const interests = prettyList(p.profile_interests && p.profile_interests.length ? p.profile_interests : p.interests);
       const qualifications = prettyList(p.qualifications);
       const specialization = prettyList(p.specialization);
@@ -461,7 +472,7 @@
         if (spoken.length) {
           html += '<div class="pv-sec-label">' + esc(tr('Languages spoken', 'Языки')) + '</div>';
           html += '<div class="pv-lang-list">' + spoken.map(function (l) {
-            return '<div class="pv-lang-row"><span>' + esc(prettyList(l)[0] || l) + '</span>' + (p.language_level ? '<span class="pv-lang-lvl">' + esc(p.language_level) + '</span>' : '') + '</div>';
+            return '<div class="pv-lang-row"><span>' + esc(l) + '</span>' + (p.language_level ? '<span class="pv-lang-lvl">' + esc(p.language_level) + '</span>' : '') + '</div>';
           }).join('') + '</div>';
         }
         if (interests.length) {
@@ -553,7 +564,7 @@
       const d = draft;
       const name = (d.full_name || (ctx.user.email || 'Duvela').split('@')[0]).trim();
       const location = [d.city, d.country].filter(Boolean).join(', ');
-      const teaches = d.teaches_languages.map(function (id) { return TEACH_LANGUAGE_LABELS[id] || id; }).join(', ') || tr('Not set', 'Не указано');
+      const teaches = languageNames(d.teaches_languages).join(', ') || tr('Not set', 'Не указано');
       const spec = d.specialization;
       let html = '<div class="pv-edit-shell">';
       html += '<div class="pv-edit-top"><button type="button" class="pv-backlink" id="pvEditCancel">' + IC.back + '<span>' + esc(tr('Back to profile', 'Back to profile')) + '</span></button>' +
