@@ -440,7 +440,7 @@
           '<label class="wide">Focus areas<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
           '<div id="ob-subcats">' + subcatHtml() + '</div>' +
         '</div>' +
-        '<label class="wide">Event languages<small style="font-weight:600;color:var(--muted)">Optional — choose up to 3</small></label>' +
+        '<label class="wide">Event languages<small style="font-weight:600;color:var(--muted)">Optional — choose up to 5</small></label>' +
         langScroll('eventLanguages', state.eventLanguages) +
         '<label class="wide">Location mode<small style="font-weight:600;color:var(--muted)">Where events happen</small></label>' +
         locationModeCardsHtml() +
@@ -1249,7 +1249,7 @@
           showError('Choose up to 3 languages you teach.', 'teachLanguages');
           return;
         }
-        if (kind === 'eventLanguages' && arr.length >= 3) return;
+        if (kind === 'eventLanguages' && arr.length >= 5) return;
         if (kind === 'subcategories' && role !== 'organization' && arr.length >= 3) return;
         arr.push(value);
         if (kind === 'learnLanguages') {
