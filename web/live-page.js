@@ -107,10 +107,11 @@
     select.value = value;
   }
 
+  // Escapes quotes too: the result is also used inside attribute values.
   function esc(value) {
-    var div = document.createElement('div');
-    div.textContent = value == null ? '' : String(value);
-    return div.innerHTML;
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
   }
   function setStatus(text, state) {
     var node = el('statusText');

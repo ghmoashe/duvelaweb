@@ -32,7 +32,7 @@ test('Studio V5 keeps the existing Agora host controls and separates scene selec
  const styles=fs.readFileSync(root+'web/app-live-studio5.css','utf8');
  const has=(text,part)=>assert.ok(text.includes(part),'missing: '+part);
  has(page,'app-live-studio5.css?v=20261103-rtl');
- has(page,'live-page.js?v=20261103-private');
+ has(page,'live-page.js?v=20261112-esc');
  has(page,'live-studio-ui.js?v=20261103-sec');
  has(studio,'api.previewScene(previewSelect.value)');
  has(studio,'api.setScene(previewSelect.value)');
