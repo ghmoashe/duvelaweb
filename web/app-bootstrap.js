@@ -338,6 +338,10 @@
       }
       session.user = authSession.user;
       const requestedEventId = new URLSearchParams(window.location.search).get('event');
+      // Links from a public teacher profile (profile.html): open a chat or that teacher's free times.
+      const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const requestedChatWith = (new URLSearchParams(window.location.search).get('chat_with') || '').trim();
+      const requestedBookTeacher = (new URLSearchParams(window.location.search).get('book_teacher') || '').trim();
       bindEvents();
       try {
         await withTimeout(ctx.loadProfile(), 10000, null);
@@ -372,6 +376,13 @@
       const initialView = (window.location.hash || defaultView).slice(1);
       ctx.setView(initialView);
       if (requestedEventId) ctx.openEventDetail(requestedEventId);
+      if (uuidLike.test(requestedChatWith) && requestedChatWith !== session.user.id) {
+        ctx.setView('messages');
+        void ctx.startChatWith(requestedChatWith);
+      } else if (uuidLike.test(requestedBookTeacher)) {
+        ctx.setView('schedule');
+        void ctx.openTeacherSlots(requestedBookTeacher);
+      }
       if (initialView === 'management' && ctx.isBusiness()) ctx.renderManagement();
       if (initialView === 'challenges') ctx.renderChallenges();
       if (initialView === 'leaderboard') ctx.renderLeaderboardPage();

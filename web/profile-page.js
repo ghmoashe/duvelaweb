@@ -81,11 +81,19 @@
     return '<div class="public-empty"><i>+</i><b>' + esc(text) + '</b></div>';
   }
 
-  window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,cover_url,city,country,bio,is_teacher,is_organizer,language,language_level')
+  window.DuvelaWebConfig.publicProfiles(supa, 'id,full_name,avatar_url,cover_url,city,country,bio,is_teacher,is_organizer,is_verified,language,language_level,teaches_languages,qualifications,specialization,teaching_experience')
     .eq('id', id).maybeSingle()
     .then(function (res) {
       var p = res.data;
       if (!p) { showNotFound(); return; }
+      // Teachers get the purple teacher page (web/public-teacher-page.js).
+      if (p.is_teacher && window.DuvelaPublicTeacher) {
+        document.getElementById('loading').style.display = 'none';
+        var teacherHost = document.getElementById('teacherView');
+        teacherHost.hidden = false;
+        window.DuvelaPublicTeacher.render({ host: teacherHost, isRu: isRu, profile: p, supa: supa });
+        return;
+      }
       renderHeader(p);
       document.getElementById('loading').style.display = 'none';
       document.getElementById('content').style.display = 'block';
