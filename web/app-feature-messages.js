@@ -2,6 +2,11 @@
   function createMessagesFeature(ctx) {
     const { $, tr, esc, state, supa, alert, avatarInner } = ctx;
     const CHAT_PROFILE_FIELDS = 'id,full_name,avatar_url,city,country';
+    // Duvela chat stickers (images in /stickers, same ids as the apps). A sticker message keeps
+    // a readable body for lists/pushes and the id in chat_messages.sticker_id.
+    const CHAT_STICKERS = ["01_good_morning","01_overslept","01_strict_teacher","02_coffee_with_love","03_big_heart","03_bright_idea","04_happy_music","04_level_check","05_great_start","05_time_to_study","06_beautiful_day","06_crowded_train","07_flowers_for_you","07_work_overload","08_deadlines","08_sweet_breakfast","09_rainy_disaster","09_reading_with_love","10_low_battery","10_no_mistakes","10_sending_love","11_quiet_please","11_warm_hugs","12_sweet_dreams"];
+    const STICKER_MESSAGE_BODY = '✨ Sticker';
+    const stickerSrc = (id) => (CHAT_STICKERS.indexOf(id) >= 0 ? './stickers/' + id + '.webp' : '');
     let threadChannel = null;
     let chatSearchTimer = null;
     const renderedMessageIds = new Set();
@@ -276,11 +281,12 @@
       const read = mine && conversation && conversation.otherLastReadAt && Date.parse(conversation.otherLastReadAt) >= Date.parse(message.created_at);
       const time = message.created_at ? new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
       const replied = message.reply_to_id && currentMessages.find((item) => item.id === message.reply_to_id);
-      return '<div class="bubble ' + (mine ? 'me' : 'them') + '" data-message-id="' + esc(message.id || '') + '" data-created-at="' + esc(message.created_at || '') + '">' +
+      const sticker = stickerSrc(message.sticker_id);
+      return '<div class="bubble ' + (mine ? 'me' : 'them') + (sticker ? ' sticker' : '') + '" data-message-id="' + esc(message.id || '') + '" data-created-at="' + esc(message.created_at || '') + '">' +
         (multiSelectMode ? '<input class="message-check" type="checkbox" aria-label="Select message">' : '') +
         (replied ? '<div class="bubble-quote">' + esc(replied.body.slice(0, 90)) + '</div>' : '') +
         (message.forwarded_from_id ? '<div class="bubble-quote">' + esc(tr('Forwarded', 'Переслано')) + '</div>' : '') +
-        '<span class="bubble-text">' + esc(message.body) + '</span>' +
+        (sticker ? '<img class="chat-sticker" src="' + sticker + '" alt="' + esc(tr('Sticker', 'Стикер')) + '" loading="lazy">' : '<span class="bubble-text">' + esc(message.body) + '</span>') +
         (message.attachment_path ? '<div><button type="button" class="btn" data-download-attachment="' + esc(message.id) + '">📎 ' + esc(message.attachment_name || tr('Encrypted file', 'Зашифрованный файл')) + '</button></div>' : '') +
         (message.reactions && message.reactions.length ? '<div class="bubble-reactions">' + message.reactions.map((item) => '<button type="button">' + esc(item.emoji) + ' ' + item.count + '</button>').join('') + '</div>' : '') +
         '<span class="bubble-meta"><span>' + esc(time) + '</span>' + (message.edited_at ? '<span>' + esc(tr('edited', 'изменено')) + '</span>' : '') + (mine ? '<span data-delivery-status>' + esc(read ? tr('Read', 'Прочитано') : tr('Delivered', 'Доставлено')) + '</span>' : '') + '</span>' +
@@ -475,7 +481,7 @@
       $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Loading...', 'Загрузка...')) + '</div>';
       try {
         const { data } = await supa.from('chat_messages')
-          .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv')
+          .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv,sticker_id')
           .eq('conversation_id', id).order('created_at', { ascending: true }).limit(300);
         const decrypted = await decryptMessages(data || []);
         const messageIds = decrypted.map((item) => item.id);
@@ -550,7 +556,7 @@
         const encryptedBody = canEnc ? await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, text) : text;
         const result = await supa.from('chat_messages')
           .insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body: encryptedBody, reply_to_id: replyTo && replyTo.id })
-          .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv')
+          .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv,sticker_id')
           .single();
         if (result.error) { restore(result.error); return; }
         // Push + in-app feed for the other participants. E2EE chat — the push
@@ -564,6 +570,38 @@
       } catch (error) {
         restore(error);
       }
+    }
+
+    async function sendSticker(stickerId) {
+      if (!state.activeConversationId || !stickerSrc(stickerId)) return;
+      const conversation = state.conversations.find((item) => item.id === state.activeConversationId);
+      if (conversation && conversation.blocked) { alert(tr('Unblock this conversation before sending.', 'Разблокируйте диалог перед отправкой.')); return; }
+      const result = await supa.from('chat_messages')
+        .insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body: STICKER_MESSAGE_BODY, sticker_id: stickerId })
+        .select('id,conversation_id,sender_id,body,created_at,edited_at,reply_to_id,forwarded_from_id,attachment_path,attachment_name,attachment_type,attachment_iv,sticker_id')
+        .single();
+      if (result.error) { alert(result.error.message || tr('Could not send the sticker.', 'Не удалось отправить стикер.')); return; }
+      void supa.functions.invoke('notify-chat-message', { body: { conversationId: state.activeConversationId } }).catch(() => {});
+      appendMessage(result.data);
+      toggleStickerPanel(false);
+    }
+
+    function toggleStickerPanel(open) {
+      const panel = $('#stickerPanel');
+      if (!panel) return;
+      const show = typeof open === 'boolean' ? open : !panel.classList.contains('open');
+      if (show && !panel.dataset.ready) {
+        panel.innerHTML = '<b>' + esc(tr('Tap a sticker to send it', 'Нажмите на стикер, чтобы отправить')) + '</b><div>' +
+          CHAT_STICKERS.map((id) => '<button type="button" data-sticker="' + esc(id) + '" aria-label="' + esc(id.replace(/^\d+_/, '').replace(/_/g, ' ')) + '"><img src="./stickers/' + esc(id) + '.webp" alt="" loading="lazy"></button>').join('') + '</div>';
+        panel.dataset.ready = '1';
+        panel.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-sticker]');
+          if (button) void sendSticker(button.dataset.sticker);
+        });
+      }
+      panel.classList.toggle('open', show);
+      const toggle = $('#stickerBtn');
+      if (toggle) toggle.setAttribute('aria-expanded', show ? 'true' : 'false');
     }
 
     function setGroupMode(on) {
@@ -757,6 +795,7 @@
       $('#replyCancel').addEventListener('click', () => setReply(null));
       $('#chatFileBtn').addEventListener('click', () => $('#chatFileInput').click());
       $('#chatFileInput').addEventListener('change', () => { sendAttachment($('#chatFileInput').files[0]); $('#chatFileInput').value = ''; });
+      if ($('#stickerBtn')) $('#stickerBtn').addEventListener('click', () => toggleStickerPanel());
       $('#emojiBtn').addEventListener('click', () => {
         const emoji = window.prompt(tr('Choose emoji:', 'Выберите emoji:'), '😊 👍 ❤️ 😂 🎉');
         if (emoji) { $('#composeInput').value += emoji.trim().split(/\s+/)[0]; $('#composeInput').dispatchEvent(new Event('input')); }

@@ -23,7 +23,7 @@
 <link href="web/app-inline.css?v=20261021-learner-wallet1" rel="stylesheet">
 <link href="web/app-student-wallet.css?v=20261021-student-wallet2" rel="stylesheet">
 <link href="web/app-messages4.css?v=4.0.0" rel="stylesheet">
-<link href="web/direct-chat-v2.css?v=20261111-dc2" rel="stylesheet">
+<link href="web/direct-chat-v2.css?v=20261111-stickers" rel="stylesheet">
 <link href="web/profile-gifts.css?v=20261111-gifts1" rel="stylesheet">
 <link href="web/app-schedule4.css?v=4.0.0" rel="stylesheet">
 <link href="web/app-leaderboard4.css?v=4.0.0" rel="stylesheet">
@@ -342,7 +342,9 @@ body.premium-workspace.business-mode .mg-tabs .mg-tab.active{background:#078566;
           </div>
           <div class="thread-body" id="threadBody"><div class="empty">Choose a chat on the left to start messaging.</div></div>
           <div class="reply-preview" id="replyPreview"><span id="replyPreviewText"></span><button type="button" id="replyCancel">✕</button></div>
+          <div class="sticker-panel" id="stickerPanel" aria-label="Stickers"></div>
           <form class="thread-compose" id="composeForm" style="display:none">
+            <button class="btn" type="button" id="stickerBtn" aria-label="Stickers" aria-expanded="false" title="Stickers">🖼️</button>
             <button class="btn" type="button" id="emojiBtn">😊</button>
             <input type="file" id="chatFileInput" hidden>
             <button class="btn" type="button" id="chatFileBtn">📎</button>
@@ -728,7 +730,7 @@ body.premium-workspace.business-mode .mg-tabs .mg-tab.active{background:#078566;
 <script src="./web/app-feature-search.js"></script>
 <script src="./web/app-chat-e2ee.js"></script>
 <script src="./web/profile-gifts.js?v=20261111-gifts1"></script>
-<script src="./web/app-feature-messages.js?v=20261111-dc2"></script>
+<script src="./web/app-feature-messages.js?v=20261111-stickers"></script>
 <script src="./web/app-feature-notifications.js?v=20261111-gifts1"></script>
 <script src="./web/app-feature-practice.js?v=20261029-paid-practices"></script>
 <script src="./web/duel-room.js?v=20260905-duel-fair"></script>
