@@ -18,7 +18,7 @@
   GIFTS.forEach(function (g) { byKey[g.key] = g; });
 
   function image(key) { return './gifts/' + key + '.png'; }
-  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function esc(s) { return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
   function openSheet(opts) {
     var supa = opts.supa, isRu = opts.isRu;

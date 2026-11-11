@@ -8,7 +8,7 @@
   var PERIOD_DAYS = 30;
   var isRu = (navigator.language || '').toLowerCase().indexOf('ru') === 0;
   var t = function (en, ru) { return isRu ? ru : en; };
-  var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
+  var esc = function (s) { return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   var root = document.getElementById('spRoot');
   var supa = window.DuvelaWebConfig.createSupabaseClient();
   var teacherId = (new URLSearchParams(location.search).get('teacher') || '').trim();

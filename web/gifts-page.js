@@ -3,7 +3,7 @@
 (function () {
   var isRu = (navigator.language || '').toLowerCase().indexOf('ru') === 0;
   var t = function (en, ru) { return isRu ? ru : en; };
-  var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
+  var esc = function (s) { return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   document.documentElement.lang = isRu ? 'ru' : 'en';
   document.getElementById('pgTitle').textContent = t('Gifts', 'Подарки');
   document.getElementById('pgLoading').textContent = t('Loading…', 'Загрузка…');

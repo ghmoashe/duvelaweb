@@ -70,7 +70,7 @@
     var p = opts.profile, supa = opts.supa, isRu = opts.isRu, host = opts.host;
     var id = p.id;
     var t = function (en, ru) { return isRu ? ru : en; };
-    var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
+    var esc = function (s) { return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
     var list = function (v) { return Array.isArray(v) ? v.filter(Boolean).map(String) : v ? String(v).split(',').map(function (x) { return x.trim(); }).filter(Boolean) : []; };
     // Stored ids ("espanol", "deutsch", "es") -> a name in the page language.
     var langName = function (code) {

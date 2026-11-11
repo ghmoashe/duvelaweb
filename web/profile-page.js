@@ -60,7 +60,7 @@
     return (name || 'D').trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
   }
   function esc(s) {
-    var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML;
+    return s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
   function cssUrl(u) { return "url('" + String(u).replace(/'/g, "%27") + "')"; }
   function coverPresetGradient(value) {
