@@ -1,0 +1,34 @@
+/* Direct Chat V2 look for the web chat thread (learner and teacher). Scoped to the
+   messages panel; behaviour (reply, reactions, files, search) is unchanged. */
+[data-panel="messages"] #threadCol { background: linear-gradient(165deg, #faf6ff 0%, #f2eaff 49%, #f8f3ff 100%); border-color: #e8d8ff; }
+[data-panel="messages"] #threadCol .thread-head { display: flex; align-items: center; gap: 10px; margin: 12px 12px 0; padding: 12px 13px; border: 1px solid rgba(255,255,255,.9); border-radius: 25px; background: rgba(255,255,255,.82); box-shadow: 0 14px 30px rgba(97,54,167,.09); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+[data-panel="messages"] #threadCol .thread-back { width: 40px; height: 40px; border: 0; border-radius: 16px; background: #efe4ff; color: #38136a; font-size: 22px; }
+[data-panel="messages"] #threadCol .dc2-avatar { flex: 0 0 auto; width: 52px; height: 52px; padding: 3px; border-radius: 50%; background: linear-gradient(140deg, #a66aff, #6a32dd); display: grid; place-items: center; overflow: hidden; color: #fff; font-weight: 900; font-size: 20px; box-shadow: 0 5px 13px rgba(106,51,221,.18); }
+[data-panel="messages"] #threadCol .dc2-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+[data-panel="messages"] #threadCol .thread-heading { flex: 1; min-width: 0; display: grid; gap: 3px; }
+[data-panel="messages"] #threadCol #threadTitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1f153e; font-size: 19px; font-weight: 900; letter-spacing: -.03em; }
+[data-panel="messages"] #threadCol .thread-typing { color: #9284ae; font-size: 11.5px; font-weight: 650; }
+[data-panel="messages"] #threadCol .thread-tools button { width: 38px; height: 38px; border-radius: 999px; border: 0; background: #f3ecff; color: #4a198e; }
+[data-panel="messages"] #threadCol #threadProfile { width: auto; padding: 0 13px; background: #211733; color: #fff; font-size: 11.5px; font-weight: 800; }
+[data-panel="messages"] .dc2-chips { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; margin: 8px 12px 0; }
+[data-panel="messages"] .dc2-chips button { min-height: 38px; border: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; background: linear-gradient(115deg, #f0e9ff, #e8d8fc); color: #4a198e; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+[data-panel="messages"] .dc2-chips button:hover { filter: brightness(.98); transform: translateY(-1px); }
+[data-panel="messages"] #threadCol .thread-body { padding: 18px 14px 20px; gap: 12px; }
+[data-panel="messages"] #threadCol .date-divider { align-self: center; margin: 4px auto; padding: 6px 14px; border-radius: 999px; background: #ece0fa; color: #715b9c; font-size: 12px; font-weight: 750; }
+[data-panel="messages"] #threadCol .bubble { max-width: min(77%, 520px); border-radius: 18px; padding: 10px 13px 7px; box-shadow: 0 9px 20px rgba(73,39,135,.08); overflow-wrap: anywhere; }
+[data-panel="messages"] #threadCol .bubble.them { border: 1px solid #efe7fd; border-bottom-left-radius: 7px; background: rgba(255,255,255,.97); color: #24183f; }
+[data-panel="messages"] #threadCol .bubble.me { border: 0; border-bottom-right-radius: 7px; background: linear-gradient(130deg, #b66df4 0%, #8f46ed 45%, #7433df 100%); color: #fff; }
+[data-panel="messages"] #threadCol .bubble.me .bubble-meta { color: #ecdbff; }
+[data-panel="messages"] #threadCol .bubble.them .bubble-meta { color: #a194bf; }
+[data-panel="messages"] #threadCol .bubble-meta { font-size: 10.5px; font-weight: 650; }
+[data-panel="messages"] #threadCol .thread-compose { gap: 7px; margin: 0; padding: 12px; border-top: 1px solid rgba(215,195,247,.8); border-radius: 24px 24px 0 0; background: rgba(255,255,255,.9); }
+[data-panel="messages"] #threadCol .thread-compose .btn { min-width: 44px; height: 46px; border: 0; border-radius: 15px; background: #efe4ff; color: #6028bc; }
+[data-panel="messages"] #threadCol #composeInput { min-height: 46px; border: 1px solid #dbc6f8; border-radius: 17px; background: #fbf9ff; padding: 0 14px; color: #25193c; }
+[data-panel="messages"] #threadCol .thread-compose button[type="submit"] { min-width: 52px; border-radius: 16px; background: linear-gradient(125deg, #9f54f3, #6b27d9); color: #fff; font-weight: 800; box-shadow: 0 6px 12px rgba(100,41,198,.16); }
+@media (max-width: 560px) {
+  [data-panel="messages"] #threadCol .thread-head { margin: 8px 8px 0; padding: 10px; gap: 8px; }
+  [data-panel="messages"] #threadCol .dc2-avatar { width: 44px; height: 44px; }
+  [data-panel="messages"] #threadCol #threadTitle { font-size: 17px; }
+  [data-panel="messages"] .dc2-chips { margin: 8px 8px 0; }
+  [data-panel="messages"] .dc2-chips button { font-size: 11px; }
+}

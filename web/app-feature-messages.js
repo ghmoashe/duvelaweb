@@ -200,13 +200,74 @@
       let lastDay = '';
       body.innerHTML = messages.length
         ? messages.map((message) => {
-            const day = message.created_at ? new Date(message.created_at).toLocaleDateString() : '';
+            const day = message.created_at ? chatDayLabel(message.created_at) : '';
             const divider = day !== lastDay ? '<div class="date-divider">' + esc(day) + '</div>' : '';
             lastDay = day;
             return divider + messageHtml(message);
           }).join('')
         : '<div class="empty">' + esc(tr('No messages yet. Say hello.', 'Сообщений пока нет. Напишите первым.')) + '</div>';
       body.scrollTop = body.scrollHeight;
+    }
+
+    function chatDayLabel(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      const same = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      if (same(date, now)) return tr('Today', 'Сегодня');
+      if (same(date, yesterday)) return tr('Yesterday', 'Вчера');
+      return date.toLocaleDateString([], { day: 'numeric', month: 'short', year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
+    }
+
+    // Direct Chat V2 header: the contact's avatar, and for a learner talking to a teacher the
+    // three actions (Book a Lesson, Super+ when the teacher offers it, Send Gift). Only real
+    // data: is_teacher/is_organizer from the public profile, the price from teacher_super_price.
+    function renderThreadExtras(conversation) {
+      const head = $('#threadHead');
+      if (!head) return;
+      const oldAvatar = head.querySelector('.dc2-avatar');
+      if (oldAvatar) oldAvatar.remove();
+      const oldChips = head.parentElement && head.parentElement.querySelector('.dc2-chips');
+      if (oldChips) oldChips.remove();
+      if (!conversation) return;
+      const heading = head.querySelector('.thread-heading');
+      if (heading) heading.insertAdjacentHTML('beforebegin', '<span class="dc2-avatar">' + avatarInner(conversation.name, conversation.avatarUrl) + '</span>');
+      const profileButton = $('#threadProfile');
+      if (profileButton) profileButton.textContent = conversation.otherUserId && !conversation.isGroup ? tr('View profile', 'Профиль') : '👤';
+      const learner = !(ctx.isBusiness && ctx.isBusiness());
+      if (conversation.isGroup || !conversation.otherUserId || !learner) return;
+      const otherId = conversation.otherUserId;
+      Promise.all([
+        window.DuvelaWebConfig.publicProfiles(supa, 'id,is_teacher,is_organizer').eq('id', otherId).maybeSingle(),
+        supa.rpc('teacher_super_price', { p_teacher: otherId }),
+      ]).then(([profileResult, priceResult]) => {
+        if (state.activeConversationId !== conversation.id) return;
+        const profile = profileResult && profileResult.data;
+        if (!profile) return;
+        const chips = [];
+        if (profile.is_teacher) {
+          chips.push('<button type="button" data-dc2="book">📅 ' + esc(tr('Book a Lesson', 'Записаться')) + '</button>');
+          if (priceResult && !priceResult.error && Number(priceResult.data) > 0) chips.push('<button type="button" data-dc2="super">⚡ Super+</button>');
+        }
+        if ((profile.is_teacher || profile.is_organizer) && window.DuvelaGifts) chips.push('<button type="button" data-dc2="gift">🎁 ' + esc(tr('Send Gift', 'Подарок')) + '</button>');
+        if (!chips.length) return;
+        head.insertAdjacentHTML('afterend', '<div class="dc2-chips" role="group" aria-label="' + esc(tr('Teacher actions', 'Действия с преподавателем')) + '">' + chips.join('') + '</div>');
+        head.parentElement.querySelector('.dc2-chips').addEventListener('click', (event) => {
+          const button = event.target.closest('[data-dc2]');
+          if (!button) return;
+          const action = button.dataset.dc2;
+          if (action === 'book') {
+            if (ctx.setView) ctx.setView('schedule');
+            if (ctx.openTeacherSlots) void ctx.openTeacherSlots(otherId);
+          } else if (action === 'super') {
+            window.location.href = './super-plus.html?teacher=' + encodeURIComponent(otherId);
+          } else if (action === 'gift') {
+            window.DuvelaGifts.openSheet({ isRu: tr('en', 'ru') === 'ru', recipientId: otherId, recipientName: conversation.name, supa: supa });
+          }
+        });
+      }).catch(() => {});
     }
 
     function messageHtml(message) {
@@ -405,6 +466,7 @@
       if (conversation) conversation.unread = 0;
       renderConversations();
       $('#threadTitle').textContent = conversation ? conversation.name : tr('Chat', 'Чат');
+      renderThreadExtras(conversation);
       $('#threadTyping').textContent = '';
       if (conversation && conversation.otherLastSeenAt) $('#threadTyping').textContent = tr('last seen {1}', 'был(а) в сети {1}').split('{1}').join(new Date(conversation.otherLastSeenAt).toLocaleString());
       $('#composeForm').style.display = conversation && conversation.blocked ? 'none' : 'flex';
