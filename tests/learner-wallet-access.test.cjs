@@ -41,7 +41,7 @@ test('Business retains its Earnings and Finance workspace', () => {
   const page = read('web/app-page.js');
   const busTitles = page.slice(page.indexOf('bus: {', page.indexOf('const titles')));
   assert.match(busTitles, /earnings: \[tr\('Earnings & Finance'/);
-  assert.match(read('app.html'), /app-feature-dashboard\.js\?v=20261021-learner-wallet1/);
+  assert.match(read('app.html'), /app-feature-dashboard\.js\?v=20261111-gifts1/);
   assert.match(read('app.html'), /app-page\.js\?v=20261026-teacher-rooms-web/);
 });
 

@@ -112,6 +112,7 @@
         '<div class="pt-actions">' +
           '<button type="button" class="pt-primary" id="ptPrimary">' + esc(t('Book a lesson', 'Записаться на урок')) + '</button>' +
           '<button type="button" class="pt-white" id="ptMessage">💬 ' + esc(t('Message', 'Написать')) + '</button>' +
+          '<button type="button" class="pt-white pt-gift" id="ptGift" aria-label="' + esc(t('Send a gift', 'Отправить подарок')) + '" title="' + esc(t('Send a gift', 'Отправить подарок')) + '">🎁</button>' +
         '</div>' +
         '<p class="pt-error" id="ptError" hidden></p>' +
       '</section>' +
@@ -282,6 +283,7 @@
       var badge = host.querySelector('#ptSuperBadge');
       badge.hidden = !state.superPrice;
       message.hidden = Boolean(own);
+      host.querySelector('#ptGift').hidden = Boolean(own) || !window.DuvelaGifts;
       follow.hidden = Boolean(own);
       follow.classList.toggle('on', state.following);
       follow.textContent = state.following ? '✓ ' + t('Following', 'Вы подписаны') : '＋ ' + t('Follow', 'Подписаться');
@@ -302,6 +304,10 @@
     function openBooking() { if (needLogin()) return; window.location.href = './app.html?book_teacher=' + encodeURIComponent(id) + '#schedule'; }
 
     host.querySelector('#ptBook').addEventListener('click', openBooking);
+    host.querySelector('#ptGift').addEventListener('click', function () {
+      if (needLogin() || !window.DuvelaGifts) return;
+      window.DuvelaGifts.openSheet({ isRu: isRu, recipientId: id, recipientName: name, supa: supa });
+    });
     host.querySelector('#ptMessage').addEventListener('click', function () {
       if (needLogin()) return;
       window.location.href = './app.html?chat_with=' + encodeURIComponent(id) + '#messages';

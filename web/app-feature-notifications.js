@@ -30,7 +30,7 @@
         return;
       }
       list.innerHTML = state.notifications.map((item) =>
-        '<div class="notif-item' + (item.read ? '' : ' is-unread') + '"' + (voiceRoomId(item) ? ' data-voice-room="' + esc(voiceRoomId(item)) + '" role="button" tabindex="0" style="cursor:pointer"' : '') + '><div class="ndot"></div><div><b style="font-weight:' +
+        '<div class="notif-item' + (item.read ? '' : ' is-unread') + '"' + (voiceRoomId(item) ? ' data-voice-room="' + esc(voiceRoomId(item)) + '" role="button" tabindex="0" style="cursor:pointer"' : item.type === 'profile_gift' ? ' data-gift-link role="button" tabindex="0" style="cursor:pointer"' : '') + '><div class="ndot"></div><div><b style="font-weight:' +
         (item.read ? '500' : '800') + '">' +
         esc(item.title || tr('Notification', 'Уведомление')) + '</b>' +
         (item.body ? '<p>' + esc(item.body) + '</p>' : '') +
@@ -102,6 +102,7 @@
       $('#markAllRead').addEventListener('click', markAllNotifRead);
       // Voice-room invites open the room (app-feature-social-practice.js).
       $('#notifList').addEventListener('click', (event) => {
+        if (event.target.closest('[data-gift-link]')) { window.location.href = './gifts.html'; return; }
         const item = event.target.closest('[data-voice-room]');
         if (!item || !ctx.socialPractice) return;
         $('#notifOverlay').classList.remove('open');
