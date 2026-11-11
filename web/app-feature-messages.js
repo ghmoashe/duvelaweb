@@ -212,6 +212,33 @@
           }).join('')
         : '<div class="empty">' + esc(tr('No messages yet. Say hello.', 'Сообщений пока нет. Напишите первым.')) + '</div>';
       body.scrollTop = body.scrollHeight;
+      loadChatMedia(body);
+    }
+
+    // Photos and voice messages from the apps are stored unencrypted in the private
+    // chat-encrypted bucket; the page shows them inline through short-lived signed links.
+    const chatMediaUrls = new Map();
+    function chatMediaKind(message) {
+      if (!message.attachment_path || message.attachment_iv) return '';
+      const type = message.attachment_type || '';
+      return type.indexOf('image/') === 0 ? 'photo' : type.indexOf('audio/') === 0 ? 'voice' : '';
+    }
+    function loadChatMedia(container) {
+      if (!container) return;
+      container.querySelectorAll('[data-chat-media]:not([data-media-ready])').forEach(async (node) => {
+        node.setAttribute('data-media-ready', '1');
+        const path = node.getAttribute('data-chat-media');
+        const cached = chatMediaUrls.get(path);
+        let url = cached && cached.expires > Date.now() ? cached.url : '';
+        if (!url) {
+          const result = await supa.storage.from('chat-encrypted').createSignedUrl(path, 3600);
+          url = result.data && result.data.signedUrl ? result.data.signedUrl : '';
+          if (url) chatMediaUrls.set(path, { url, expires: Date.now() + 50 * 60 * 1000 });
+        }
+        if (!url) { node.replaceWith(document.createTextNode(tr('File is unavailable', 'Файл недоступен'))); return; }
+        if (node.tagName === 'A') { node.href = url; const img = node.querySelector('img'); if (img) img.src = url; }
+        else node.src = url;
+      });
     }
 
     function chatDayLabel(value) {
@@ -309,12 +336,16 @@
       const time = message.created_at ? new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
       const replied = message.reply_to_id && currentMessages.find((item) => item.id === message.reply_to_id);
       const sticker = stickerSrc(message.sticker_id);
-      return '<div class="bubble ' + (mine ? 'me' : 'them') + (sticker ? ' sticker' : '') + '" data-message-id="' + esc(message.id || '') + '" data-created-at="' + esc(message.created_at || '') + '">' +
+      const media = chatMediaKind(message);
+      return '<div class="bubble ' + (mine ? 'me' : 'them') + (sticker ? ' sticker' : '') + (media === 'photo' ? ' sticker photo' : '') + '" data-message-id="' + esc(message.id || '') + '" data-created-at="' + esc(message.created_at || '') + '">' +
         (multiSelectMode ? '<input class="message-check" type="checkbox" aria-label="Select message">' : '') +
         (replied ? '<div class="bubble-quote">' + esc(replied.body.slice(0, 90)) + '</div>' : '') +
         (message.forwarded_from_id ? '<div class="bubble-quote">' + esc(tr('Forwarded', 'Переслано')) + '</div>' : '') +
-        (sticker ? '<img class="chat-sticker" src="' + sticker + '" alt="' + esc(tr('Sticker', 'Стикер')) + '" loading="lazy">' : '<span class="bubble-text">' + esc(message.body) + '</span>') +
-        (message.attachment_path ? '<div><button type="button" class="btn" data-download-attachment="' + esc(message.id) + '">📎 ' + esc(message.attachment_name || tr('Encrypted file', 'Зашифрованный файл')) + '</button></div>' : '') +
+        (sticker ? '<img class="chat-sticker" src="' + sticker + '" alt="' + esc(tr('Sticker', 'Стикер')) + '" loading="lazy">'
+          : media === 'photo' ? '<a class="chat-photo" data-chat-media="' + esc(message.attachment_path) + '" target="_blank" rel="noopener"><img alt="' + esc(tr('Photo', 'Фото')) + '"></a>'
+          : media === 'voice' ? '<audio class="chat-voice" controls preload="metadata" data-chat-media="' + esc(message.attachment_path) + '" aria-label="' + esc(tr('Voice message', 'Голосовое сообщение')) + '"></audio>'
+          : '<span class="bubble-text">' + esc(message.body) + '</span>') +
+        (message.attachment_path && !media ? '<div><button type="button" class="btn" data-download-attachment="' + esc(message.id) + '">📎 ' + esc(message.attachment_name || tr('Encrypted file', 'Зашифрованный файл')) + '</button></div>' : '') +
         (message.reactions && message.reactions.length ? '<div class="bubble-reactions">' + message.reactions.map((item) => '<button type="button">' + esc(item.emoji) + ' ' + item.count + '</button>').join('') + '</div>' : '') +
         '<span class="bubble-meta"><span>' + esc(time) + '</span>' + (message.edited_at ? '<span>' + esc(tr('edited', 'изменено')) + '</span>' : '') + (mine ? '<span data-delivery-status>' + esc(read ? tr('Read', 'Прочитано') : tr('Delivered', 'Доставлено')) + '</span>' : '') + '</span>' +
         (message.id ? '<button class="message-more" type="button" data-message-menu="' + esc(message.id) + '" aria-label="' + esc(tr('Message menu', 'Меню сообщения')) + '">⋯</button><div class="bubble-menu"><button type="button" data-message-action="reply" data-id="' + esc(message.id) + '">' + esc(tr('Reply', 'Ответить')) + '</button><button type="button" data-message-action="forward" data-id="' + esc(message.id) + '">' + esc(tr('Forward', 'Переслать')) + '</button><button type="button" data-message-action="react" data-id="' + esc(message.id) + '">' + esc(tr('Reaction', 'Реакция')) + '</button><button type="button" data-message-action="copy" data-id="' + esc(message.id) + '">' + esc(tr('Copy', 'Копировать')) + '</button><button type="button" data-message-action="report" data-id="' + esc(message.id) + '">' + esc(tr('Report', 'Пожаловаться')) + '</button>' + (mine ? '<button type="button" data-message-action="edit" data-id="' + esc(message.id) + '">' + esc(tr('Edit', 'Редактировать')) + '</button><button class="danger" type="button" data-message-action="delete" data-id="' + esc(message.id) + '">' + esc(tr('Delete', 'Удалить')) + '</button>' : '') + '</div>' : '') +
@@ -424,6 +455,7 @@
       if (empty) body.innerHTML = '';
       body.insertAdjacentHTML('beforeend', messageHtml(message));
       body.scrollTop = body.scrollHeight;
+      loadChatMedia(body);
       const conversation = state.conversations.find((item) => item.id === message.conversation_id);
       if (conversation) {
         conversation.lastMessage = message.body;
@@ -533,7 +565,7 @@
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: 'conversation_id=eq.' + id }, async (payload) => {
           const decrypted = await decryptMessages([payload.new]);
           const node = $('#threadBody').querySelector('[data-message-id="' + payload.new.id + '"]');
-          if (node) node.outerHTML = messageHtml(decrypted[0]);
+          if (node) { node.outerHTML = messageHtml(decrypted[0]); loadChatMedia($('#threadBody')); }
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_messages' }, (payload) => {
           const node = payload.old && $('#threadBody').querySelector('[data-message-id="' + payload.old.id + '"]');
