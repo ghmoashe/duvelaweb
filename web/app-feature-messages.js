@@ -8,6 +8,11 @@
     const STICKER_MESSAGE_BODY = '✨ Sticker';
     const stickerSrc = (id) => (CHAT_STICKERS.indexOf(id) >= 0 ? './stickers/' + id + '.webp?v=2' : '');
     let threadChannel = null;
+    let typingChannel = null;
+    let typingClearTimer = null;
+    let typingPrevLabel = '';
+    let lastTypingSentAt = 0;
+    let voiceRecorder = null;
     let chatSearchTimer = null;
     const renderedMessageIds = new Set();
     let chatGroupMode = false;
@@ -376,7 +381,28 @@
       const emoji = window.prompt(tr('Reaction emoji:', 'Введите реакцию:'), '👍');
       if (!emoji) return;
       const result = await supa.from('chat_message_reactions').upsert({ message_id: id, user_id: ctx.user.id, emoji: emoji.slice(0, 12) });
-      if (result.error) alert(result.error.message);
+      if (result.error) { alert(result.error.message); return; }
+      if (typingChannel) typingChannel.send({ type: 'broadcast', event: 'reactions', payload: {} }).catch(() => {});
+      void refreshReactions(state.activeConversationId);
+    }
+
+    // Reaction counts of the open chat, re-rendering only the bubbles that changed.
+    async function refreshReactions(conversationId) {
+      if (!conversationId || state.activeConversationId !== conversationId) return;
+      const ids = currentMessages.map((message) => message.id).filter(Boolean);
+      if (!ids.length) return;
+      const result = await supa.from('chat_message_reactions').select('message_id,emoji').in('message_id', ids);
+      if (result.error || state.activeConversationId !== conversationId) return;
+      currentMessages.forEach((message) => {
+        const counts = new Map();
+        (result.data || []).filter((item) => item.message_id === message.id).forEach((item) => counts.set(item.emoji, (counts.get(item.emoji) || 0) + 1));
+        const next = Array.from(counts, ([emoji, count]) => ({ emoji, count }));
+        if (JSON.stringify(next) === JSON.stringify(message.reactions || [])) return;
+        message.reactions = next;
+        const node = $('#threadBody').querySelector('[data-message-id="' + message.id + '"]');
+        if (node) node.outerHTML = messageHtml(message);
+      });
+      loadChatMedia($('#threadBody'));
     }
 
     async function reportMessage(message) {
@@ -387,12 +413,118 @@
       if (result.error) alert(result.error.message); else alert(tr('Report sent.', 'Жалоба отправлена.'));
     }
 
+
+    // "typing…": one shared broadcast topic per chat for the website, Hub and Business
+    // (event 'typing', payload { userId, typing }). A mark expires after 5 s.
+    function closeTypingChannel() {
+      if (typingChannel) supa.removeChannel(typingChannel);
+      typingChannel = null;
+      clearTimeout(typingClearTimer);
+    }
+    function showTyping(on) {
+      const label = $('#threadTyping');
+      if (!label) return;
+      const typingText = tr('typing…', 'печатает…');
+      if (on) {
+        if (label.textContent !== typingText) typingPrevLabel = label.textContent;
+        label.textContent = typingText;
+      } else if (label.textContent === typingText) {
+        label.textContent = typingPrevLabel;
+      }
+    }
+    function openTypingChannel(id) {
+      closeTypingChannel();
+      const topic = 'typing-' + id;
+      supa.getChannels().forEach((existing) => { if (existing.topic === 'realtime:' + topic) supa.removeChannel(existing); });
+      typingChannel = supa.channel(topic, { config: { broadcast: { self: false } } })
+        .on('broadcast', { event: 'typing' }, (payload) => {
+          const data = payload && payload.payload;
+          if (!data || !data.userId || data.userId === ctx.user.id || state.activeConversationId !== id) return;
+          clearTimeout(typingClearTimer);
+          showTyping(!!data.typing);
+          if (data.typing) typingClearTimer = setTimeout(() => showTyping(false), 5000);
+        })
+        .on('broadcast', { event: 'reactions' }, () => { void refreshReactions(id); })
+        .subscribe();
+    }
+    function sendTyping(typing) {
+      if (!typingChannel) return;
+      const now = Date.now();
+      if (typing && now - lastTypingSentAt < 2000) return;
+      lastTypingSentAt = typing ? now : 0;
+      typingChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: ctx.user.id, typing } }).catch(() => {});
+    }
+
+    // Voice messages from the browser (MediaRecorder): AAC in MP4 where the browser can,
+    // so the iPhone app plays it too; otherwise WebM/Opus. Up to 2 minutes, then sent.
+    function pickVoiceMime() {
+      if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+      return ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find((type) => MediaRecorder.isTypeSupported(type)) || '';
+    }
+    function setVoiceUi(on, seconds) {
+      const button = $('#chatVoiceBtn');
+      const cancel = $('#chatVoiceCancel');
+      if (!button) return;
+      const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+      button.textContent = on ? '■ ' + clock : '🎤';
+      button.classList.toggle('recording', on);
+      button.setAttribute('aria-label', on ? tr('Stop and send the voice message', 'Остановить и отправить голосовое') : tr('Record a voice message', 'Записать голосовое сообщение'));
+      button.title = button.getAttribute('aria-label');
+      if (cancel) { cancel.hidden = !on; cancel.setAttribute('aria-label', tr('Delete recording', 'Удалить запись')); }
+    }
+    function stopVoiceRecording(send) {
+      const session = voiceRecorder;
+      if (!session) return;
+      voiceRecorder = null;
+      clearInterval(session.timer);
+      session.send = send;
+      try { session.recorder.stop(); } catch (_) { session.stream.getTracks().forEach((track) => track.stop()); }
+      setVoiceUi(false, 0);
+    }
+    async function toggleVoiceRecording() {
+      if (voiceRecorder) { stopVoiceRecording(true); return; }
+      if (!state.activeConversationId) return;
+      if (!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert(tr('Voice recording is not supported in this browser.', 'Этот браузер не умеет записывать голос.'));
+        return;
+      }
+      let stream;
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch (_) { alert(tr('Allow microphone access to record a voice message.', 'Разрешите доступ к микрофону, чтобы записать голосовое сообщение.')); return; }
+      const mime = pickVoiceMime();
+      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const chunks = [];
+      const startedAt = Date.now();
+      const session = { conversationId: state.activeConversationId, recorder, send: false, stream, timer: null };
+      recorder.ondataavailable = (event) => { if (event.data && event.data.size) chunks.push(event.data); };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const seconds = Math.round((Date.now() - startedAt) / 1000);
+        const type = (recorder.mimeType || mime || 'audio/webm').split(';')[0];
+        if (!session.send || seconds < 1 || !chunks.length || state.activeConversationId !== session.conversationId) return;
+        const ext = type === 'audio/mp4' ? 'm4a' : type === 'audio/ogg' ? 'ogg' : 'webm';
+        sendAttachment(new File(chunks, 'voice-' + seconds + 's.' + ext, { type }));
+      };
+      voiceRecorder = session;
+      recorder.start();
+      setVoiceUi(true, 0);
+      session.timer = setInterval(() => {
+        const seconds = Math.floor((Date.now() - startedAt) / 1000);
+        if (seconds >= 120) stopVoiceRecording(true);
+        else setVoiceUi(true, seconds);
+      }, 500);
+    }
+
     async function sendAttachment(file) {
       if (!file || !state.activeConversationId) return;
       if (file.size > 20 * 1024 * 1024) return alert(tr('Maximum file size is 20 MB.', 'Максимальный размер файла — 20 МБ.'));
       try {
-        const canEnc = await e2ee.canEncrypt(supa, state.activeConversationId);
-        const path = state.activeConversationId + '/' + crypto.randomUUID() + '.bin';
+        // Photos and voice messages are stored unencrypted (still in the private bucket,
+        // readable only by chat members) so the mobile apps can show and play them.
+        const mediaKind = /^image\//.test(file.type) ? 'photo' : /^audio\//.test(file.type) ? 'voice' : '';
+        const canEnc = !mediaKind && await e2ee.canEncrypt(supa, state.activeConversationId);
+        const ext = mediaKind ? ((file.name.match(/\.([a-z0-9]{1,5})$/i) || [])[1] || 'bin').toLowerCase() : 'bin';
+        const path = state.activeConversationId + '/' + crypto.randomUUID() + '.' + ext;
         let attachmentIv = null;
         if (canEnc) {
           const encrypted = await e2ee.encryptBytes(supa, ctx.user.id, state.activeConversationId, await file.arrayBuffer());
@@ -404,7 +536,7 @@
           const uploaded = await supa.storage.from('chat-encrypted').upload(path, file, { contentType: file.type || 'application/octet-stream' });
           if (uploaded.error) throw uploaded.error;
         }
-        const caption = '📎 ' + file.name;
+        const caption = mediaKind === 'photo' ? '📷 Photo' : mediaKind === 'voice' ? '🎤 Voice message' : '📎 ' + file.name;
         const body = canEnc ? await e2ee.encryptText(supa, ctx.user.id, state.activeConversationId, caption) : caption;
         const result = await supa.from('chat_messages').insert({ conversation_id: state.activeConversationId, sender_id: ctx.user.id, body, attachment_path: path, attachment_name: file.name, attachment_type: file.type, attachment_iv: attachmentIv });
         if (result.error) throw result.error;
@@ -449,6 +581,7 @@
     function appendMessage(message) {
       if (!message || (message.id && renderedMessageIds.has(message.id))) return;
       if (message.id) renderedMessageIds.add(message.id);
+      if (message.id && !currentMessages.some((item) => item.id === message.id)) currentMessages.push(message);
       const body = $('#threadBody');
       if (!body) return;
       const empty = body.querySelector('.empty');
@@ -491,6 +624,8 @@
         state.activeConversationId = null;
         if (threadChannel) supa.removeChannel(threadChannel);
         threadChannel = null;
+        closeTypingChannel();
+        stopVoiceRecording(false);
         $('#threadTitle').textContent = tr('Select a conversation', 'Выберите диалог');
         $('#threadBody').innerHTML = emptyThreadHtml();
         $('#composeForm').style.display = 'none';
@@ -557,6 +692,8 @@
         $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Could not load this conversation.', 'Не удалось загрузить этот диалог.')) + '</div>';
       }
       if (threadChannel) supa.removeChannel(threadChannel);
+      stopVoiceRecording(false);
+      openTypingChannel(id);
       threadChannel = supa.channel('thread-' + id + '-' + Date.now())
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'conversation_id=eq.' + id }, async (payload) => {
           const decrypted = await decryptMessages([payload.new]);
@@ -580,10 +717,6 @@
               if (status) status.textContent = tr('Read', 'Прочитано');
             }
           });
-        })
-        .on('broadcast', { event: 'typing' }, (payload) => {
-          if (!payload.payload || payload.payload.userId === ctx.user.id) return;
-          $('#threadTyping').textContent = payload.payload.typing ? tr('typing…', 'печатает…') : '';
         })
         .on('presence', { event: 'sync' }, () => {
           const online = Object.values(threadChannel.presenceState()).flat().some((item) => item.userId !== ctx.user.id);
@@ -846,19 +979,23 @@
       });
       $('#composeForm').addEventListener('submit', (event) => {
         event.preventDefault();
+        clearTimeout(typingTimer);
+        sendTyping(false);
         sendCurrentMessage($('#composeInput').value);
       });
       $('#composeInput').addEventListener('input', () => {
         if (state.activeConversationId) localStorage.setItem('duvela.chat.draft.' + state.activeConversationId, $('#composeInput').value);
-        if (!threadChannel) return;
-        threadChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: ctx.user.id, typing: true } });
+        sendTyping(true);
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-          if (threadChannel) threadChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: ctx.user.id, typing: false } });
-        }, 1200);
+        typingTimer = setTimeout(() => sendTyping(false), 3000);
       });
       $('#replyCancel').addEventListener('click', () => setReply(null));
       $('#chatFileBtn').addEventListener('click', () => $('#chatFileInput').click());
+      if ($('#chatVoiceBtn')) {
+        setVoiceUi(false, 0);
+        $('#chatVoiceBtn').addEventListener('click', () => { void toggleVoiceRecording(); });
+        $('#chatVoiceCancel').addEventListener('click', () => stopVoiceRecording(false));
+      }
       $('#chatFileInput').addEventListener('change', () => { sendAttachment($('#chatFileInput').files[0]); $('#chatFileInput').value = ''; });
       if ($('#stickerBtn')) $('#stickerBtn').addEventListener('click', () => toggleStickerPanel());
       $('#emojiBtn').addEventListener('click', () => {
@@ -888,6 +1025,8 @@
     function cleanup() {
       if (threadChannel) supa.removeChannel(threadChannel);
       threadChannel = null;
+      closeTypingChannel();
+      stopVoiceRecording(false);
       clearTimeout(typingTimer);
     }
 
