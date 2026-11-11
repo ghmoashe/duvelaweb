@@ -388,6 +388,12 @@
       if (initialView === 'leaderboard') ctx.renderLeaderboardPage();
       ctx.loadConversations();
       ctx.subscribeNotifications();
+      // Online status for chats: mark "here" about once a minute while the tab is visible.
+      const touchPresence = () => { if (document.visibilityState === 'visible') supa.rpc('touch_presence').then(() => {}, () => {}); };
+      touchPresence();
+      clearInterval(runtime.presenceTimer);
+      runtime.presenceTimer = setInterval(touchPresence, 60000);
+      document.addEventListener('visibilitychange', touchPresence);
       clearInterval(runtime.liveRefreshTimer);
       runtime.liveRefreshTimer = setInterval(() => {
         ctx.loadPublicData().then(() => {

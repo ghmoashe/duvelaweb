@@ -44,3 +44,7 @@
 [data-panel="messages"] .sticker-panel button { aspect-ratio: 1; border: 0; border-radius: 14px; background: transparent; padding: 4px; cursor: pointer; }
 [data-panel="messages"] .sticker-panel button:hover { background: #f3ecff; }
 [data-panel="messages"] .sticker-panel img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Online dot on the chat contact avatar (chat_partner_last_seen within 2 minutes). */
+[data-panel="messages"] #threadCol .dc2-avatar { position: relative; overflow: visible; }
+[data-panel="messages"] #threadCol .dc2-avatar.is-online::after { content: ""; position: absolute; right: 0; bottom: 1px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #fff; background: #24d84b; }

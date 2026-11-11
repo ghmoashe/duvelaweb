@@ -239,6 +239,7 @@
       if (!conversation) return;
       const heading = head.querySelector('.thread-heading');
       if (heading) heading.insertAdjacentHTML('beforebegin', '<span class="dc2-avatar">' + avatarInner(conversation.name, conversation.avatarUrl) + '</span>');
+      if (!conversation.isGroup && conversation.otherUserId) showPartnerPresence(conversation);
       const profileButton = $('#threadProfile');
       if (profileButton) profileButton.textContent = conversation.otherUserId && !conversation.isGroup ? tr('View profile', 'Профиль') : '👤';
       const learner = !(ctx.isBusiness && ctx.isBusiness());
@@ -273,6 +274,32 @@
           }
         });
       }).catch(() => {});
+    }
+
+    function showPartnerPresence(conversation) {
+      const id = conversation.id;
+      const apply = () => supa.rpc('chat_partner_last_seen', { p_user: conversation.otherUserId }).then((result) => {
+        if (state.activeConversationId !== id || result.error || !result.data) return;
+        const seen = Date.parse(result.data);
+        if (!Number.isFinite(seen)) return;
+        const online = Date.now() - seen < 120000;
+        const avatar = $('#threadHead .dc2-avatar');
+        if (avatar) avatar.classList.toggle('is-online', online);
+        const label = $('#threadTyping');
+        if (label && !label.textContent.includes(tr('typing…', 'печатает…'))) {
+          const minutes = Math.max(1, Math.round((Date.now() - seen) / 60000));
+          const ago = minutes < 60 ? tr(minutes + ' min ago', minutes + ' мин назад')
+            : minutes < 1440 ? tr(Math.round(minutes / 60) + ' h ago', Math.round(minutes / 60) + ' ч назад')
+            : new Date(seen).toLocaleDateString([], { day: 'numeric', month: 'short' });
+          label.textContent = online ? tr('Online', 'В сети') : tr('Last seen ', 'Был(а) в сети ') + ago;
+        }
+      }, () => {});
+      apply();
+      clearInterval(showPartnerPresence.timer);
+      showPartnerPresence.timer = setInterval(() => {
+        if (state.activeConversationId !== id) { clearInterval(showPartnerPresence.timer); return; }
+        apply();
+      }, 30000);
     }
 
     function messageHtml(message) {
@@ -528,7 +555,13 @@
         })
         .on('presence', { event: 'sync' }, () => {
           const online = Object.values(threadChannel.presenceState()).flat().some((item) => item.userId !== ctx.user.id);
-          if (!$('#threadTyping').textContent.includes(tr('typing…', 'печатает…'))) $('#threadTyping').textContent = online ? tr('online', 'в сети') : tr('offline', 'не в сети');
+          // Someone else has this chat open: online. Otherwise the last-seen line from
+          // chat_partner_last_seen (showPartnerPresence) stays.
+          if (online && !$('#threadTyping').textContent.includes(tr('typing…', 'печатает…'))) {
+            $('#threadTyping').textContent = tr('Online', 'В сети');
+            const avatar = $('#threadHead .dc2-avatar');
+            if (avatar) avatar.classList.add('is-online');
+          }
         }).subscribe(async (status) => { if (status === 'SUBSCRIBED') await threadChannel.track({ userId: ctx.user.id, at: new Date().toISOString() }); });
     }
 
