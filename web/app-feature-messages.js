@@ -6,7 +6,7 @@
     // a readable body for lists/pushes and the id in chat_messages.sticker_id.
     const CHAT_STICKERS = ["01_good_morning","01_overslept","01_strict_teacher","02_coffee_with_love","03_big_heart","03_bright_idea","04_happy_music","04_level_check","05_great_start","05_time_to_study","06_beautiful_day","06_crowded_train","07_flowers_for_you","07_work_overload","08_deadlines","08_sweet_breakfast","09_rainy_disaster","09_reading_with_love","10_low_battery","10_no_mistakes","10_sending_love","11_quiet_please","11_warm_hugs","12_sweet_dreams"];
     const STICKER_MESSAGE_BODY = '✨ Sticker';
-    const stickerSrc = (id) => (CHAT_STICKERS.indexOf(id) >= 0 ? './stickers/' + id + '.webp' : '');
+    const stickerSrc = (id) => (CHAT_STICKERS.indexOf(id) >= 0 ? './stickers/' + id + '.webp?v=2' : '');
     let threadChannel = null;
     let chatSearchTimer = null;
     const renderedMessageIds = new Set();
@@ -592,7 +592,7 @@
       const show = typeof open === 'boolean' ? open : !panel.classList.contains('open');
       if (show && !panel.dataset.ready) {
         panel.innerHTML = '<b>' + esc(tr('Tap a sticker to send it', 'Нажмите на стикер, чтобы отправить')) + '</b><div>' +
-          CHAT_STICKERS.map((id) => '<button type="button" data-sticker="' + esc(id) + '" aria-label="' + esc(id.replace(/^\d+_/, '').replace(/_/g, ' ')) + '"><img src="./stickers/' + esc(id) + '.webp" alt="" loading="lazy"></button>').join('') + '</div>';
+          CHAT_STICKERS.map((id) => '<button type="button" data-sticker="' + esc(id) + '" aria-label="' + esc(id.replace(/^\d+_/, '').replace(/_/g, ' ')) + '"><img src="./stickers/' + esc(id) + '.webp?v=2" alt="" loading="lazy"></button>').join('') + '</div>';
         panel.dataset.ready = '1';
         panel.addEventListener('click', (event) => {
           const button = event.target.closest('[data-sticker]');
