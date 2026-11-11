@@ -1,0 +1,130 @@
+/* DUVELA Super+ V2 — scoped selectors; do not override global app styles. */
+.spv2-screen {
+  --spv2-purple: #7420df;
+  --spv2-deep: #351073;
+  --spv2-text: #1a1230;
+  --spv2-muted: #766c8f;
+  --spv2-border: #e7ddf8;
+  --spv2-soft: #f5efff;
+  min-height: 100%;
+  width: 100%;
+  color: var(--spv2-text);
+  background: radial-gradient(circle at 95% 1%, #e8ddfb 0, transparent 26%), #f6f0ff;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  padding-bottom: 118px;
+}
+.spv2-screen *, .spv2-screen *::before, .spv2-screen *::after { box-sizing: border-box; }
+.spv2-screen button { font: inherit; cursor: pointer; }
+.spv2-screen button:disabled { cursor: not-allowed; opacity: .58; }
+.spv2-topbar { height: 79px; max-width: 520px; padding: 10px 18px 7px; margin: 0 auto; display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; gap: 8px; }
+.spv2-topbar h1 { font-size: 28px; font-weight: 900; text-align: center; letter-spacing: -.035em; margin: 0; }
+.spv2-round-back { background: #fff; color: #181229; width: 50px; height: 50px; border: 0; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 7px 23px #5534a613; }
+.spv2-header-spacer { display: block; }
+.spv2-main { width: min(100%, 520px); margin: 0 auto; padding: 0 18px 28px; display: flex; flex-direction: column; gap: 15px; }
+.spv2-hero { position: relative; overflow: hidden; isolation: isolate; color: white; border-radius: 31px; background: linear-gradient(120deg, #5221b4 1%, #7022dc 52%, #a44aeb 100%); box-shadow: 0 16px 30px #6226c31c; }
+.spv2-hero-offer { min-height: 262px; padding: 20px 23px 20px; }
+.spv2-hero-glow { width: 310px; height: 310px; position: absolute; right: -176px; top: -110px; border-radius: 50%; background: #f3bcff42; z-index: -1; }
+.spv2-super-tag { display: inline-flex; align-items: center; gap: 7px; width: max-content; padding: 7px 14px; border-radius: 999px; background: linear-gradient(105deg, #ffe27c, #ffc936); color: #261524; font-weight: 950; font-size: 13px; letter-spacing: .02em; }
+.spv2-portrait { position: absolute; z-index: -1; right: -5px; bottom: 0; width: 54%; height: 101%; object-fit: contain; object-position: bottom right; filter: drop-shadow(-10px 5px 25px #3f0a5d25); pointer-events: none; }
+.spv2-offer-teacher { display: flex; align-items: center; gap: 12px; margin-top: 23px; position: relative; max-width: 85%; }
+.spv2-avatar { width: 62px; height: 62px; border-radius: 50%; border: 3px solid #fff; object-fit: cover; flex: 0 0 auto; box-shadow: 0 6px 15px #26096642; }
+.spv2-avatar-large { width: 76px; height: 76px; }
+.spv2-avatar-fallback { display: grid; place-items: center; color: #6730c5; background: #f2e4ff; font-size: 20px; font-weight: 900; }
+.spv2-teacher-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.spv2-teacher-name { display: flex; align-items: center; gap: 5px; font-size: clamp(19px, 5vw, 25px); line-height: 1.1; font-weight: 950; letter-spacing: -.03em; white-space: normal; }
+.spv2-teacher-copy > span { color: #f6eaff; font-size: 13px; font-weight: 700; }
+.spv2-view-profile { width: max-content; margin-top: 4px; padding: 0; color: white; display: flex; align-items: center; gap: 2px; background: none; border: 0; font-size: 12px !important; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.spv2-hero-price { margin-top: 20px; display: flex; align-items: baseline; gap: 11px; position: relative; z-index: 1; }
+.spv2-hero-price strong { font-size: clamp(43px, 10vw, 62px); color: #ffe072; font-weight: 950; line-height: .97; letter-spacing: -.055em; }
+.spv2-hero-price span { font-size: 18px; font-weight: 850; }
+.spv2-hero-caption { font-size: 12px; margin: 8px 0 0; color: #e9d7fb; font-weight: 500; position: relative; }
+.spv2-surface { background: #fff; border: 1px solid var(--spv2-border); border-radius: 27px; padding: 19px; box-shadow: 0 10px 30px #5830b10b; }
+.spv2-surface h2 { display: flex; align-items: center; gap: 9px; font-size: 21px; font-weight: 900; letter-spacing: -.035em; margin: 0 0 9px; }
+.spv2-heading-crown { color: #e6a111; fill: #ffda52; flex: 0 0 auto; }
+.spv2-benefit-row { display: grid; grid-template-columns: 51px 1fr auto; align-items: center; gap: 11px; min-height: 67px; padding: 9px 0; width: 100%; text-align: left; border: 0; background: transparent; }
+.spv2-benefit-row + .spv2-benefit-row { border-top: 1px solid #f0eafb; }
+.spv2-benefit-icon { width: 49px; height: 49px; display: grid; place-items: center; border-radius: 17px; color: #7a35e9; background: #eee3fc; }
+.spv2-benefit-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.spv2-benefit-copy strong { font-size: 15px; font-weight: 900; line-height: 1.1; }
+.spv2-benefit-copy small { color: #756d88; font-size: 12px; line-height: 1.35; }
+.spv2-benefit-arrow { color: #6d6185; }
+.spv2-empty-benefits { font-size: 13px; color: var(--spv2-muted); line-height: 1.4; }
+.spv2-wallet-panel { background: #fff8e9; border: 1px solid #ffe0a0; border-radius: 21px; min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 13px; }
+.spv2-wallet-label { display: flex; align-items: center; gap: 9px; color: #5c3b0d; min-width: 0; }
+.spv2-wallet-label svg { color: #e3a20d; flex: 0 0 auto; }
+.spv2-wallet-label strong { font-size: 14px; }
+.spv2-wallet-panel button { background: linear-gradient(95deg, #8521ef, #6d1cc5); color: #fff; border: 0; border-radius: 999px; min-height: 38px; padding: 0 17px; font-size: 13px; font-weight: 850; white-space: nowrap; }
+.spv2-terms-panel { background: #fcfaff; }
+.spv2-terms-panel h2 { margin-bottom: 11px; }
+.spv2-terms-panel h2 > svg { color: #6a34ed; }
+.spv2-term-line { display: flex; gap: 9px; font-size: 12px; line-height: 1.4; color: #433957; padding: 4px 0; }
+.spv2-term-line svg { color: #7634ed; flex: 0 0 auto; stroke-width: 3; }
+.spv2-sticky-cta { position: sticky; bottom: 0; z-index: 9; padding: 12px max(18px, calc((100% - 484px) / 2)) max(14px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, #f6f0ffee 25%); }
+.spv2-primary-cta { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 58px; width: 100%; border: 1px solid #b074f5; border-radius: 22px; color: white; background: linear-gradient(100deg, #963cf0, #6620d5); font-size: 14px; font-weight: 900; box-shadow: 0 11px 21px #6733ca28; }
+.spv2-primary-cta svg { color: #ffda65; flex: 0 0 auto; }
+.spv2-primary-cta:disabled { opacity: .65; }
+.spv2-hero-active { padding: 22px 20px 20px; min-height: 206px; background: linear-gradient(126deg, #391084, #5b1abb 65%, #7c24da); }
+.spv2-active-top { display: grid; grid-template-columns: 77px 1fr 69px; gap: 10px; align-items: center; }
+.spv2-active-top .spv2-teacher-name { font-size: clamp(17px, 4.7vw, 22px); }
+.spv2-crown-seal { width: 68px; height: 68px; border: 3px solid #ffdd70; border-radius: 50%; color: #ffda50; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #5f2ca8; box-shadow: 0 0 20px #f4c65649; }
+.spv2-crown-seal small { margin-top: -2px; font-size: 9px; font-weight: 950; background: #f8ca57; color: #401878; padding: 2px 4px; border-radius: 3px; }
+.spv2-active-status { display: flex; align-items: center; gap: 7px; margin: 24px 0 0; color: #98fb75; font-weight: 900; font-size: 17px; }
+.spv2-valid-until { margin: 10px 0 0 34px; display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 650; }
+.spv2-access-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.spv2-access-tile { background: linear-gradient(160deg, #fffafd, #eee4ff); border: 1px solid #e5d6fa; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 11px; justify-content: center; min-height: 103px; padding: 12px 6px; text-align: center; box-shadow: 0 8px 16px #5720ae0c; }
+.spv2-access-tile svg { color: #7529e0; }
+.spv2-access-tile span { font-size: 11px; line-height: 1.2; font-weight: 800; }
+.spv2-benefits-unavailable { grid-column: 1 / -1; color: var(--spv2-muted); font-size: 13px; margin: 0; padding: 12px; }
+.spv2-subscription-panel h2 { margin-bottom: 15px; }
+.spv2-detail-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 51px; padding: 8px 12px; background: #f9f5ff; font-size: 13px; }
+.spv2-detail-row + .spv2-detail-row { border-top: 1px solid #e8def5; }
+.spv2-detail-row:nth-of-type(2) { border-radius: 12px 12px 0 0; }
+.spv2-detail-row:last-child { border-radius: 0 0 12px 12px; }
+.spv2-detail-row strong { font-weight: 850; text-align: right; }
+.spv2-switch { width: 47px; height: 28px; border-radius: 999px; border: 0; padding: 3px; background: #b4abc7; display: flex; align-items: center; transition: background .2s; }
+.spv2-switch span { display: block; width: 22px; height: 22px; border-radius: 50%; background: white; box-shadow: 0 2px 4px #0002; transition: transform .2s; }
+.spv2-switch.on { background: #26c754; }
+.spv2-switch.on span { transform: translateX(19px); }
+.spv2-manage-panel { min-height: 98px; background: #f1e8ff; border: 1px solid #e8dafa; border-radius: 24px; padding: 18px; display: grid; grid-template-columns: 30px 1fr auto; gap: 11px; align-items: start; }
+.spv2-manage-panel > svg { color: #7439e7; }
+.spv2-manage-panel > div { display: flex; flex-direction: column; gap: 5px; }
+.spv2-manage-panel strong { font-size: 15px; font-weight: 900; }
+.spv2-manage-panel span { font-size: 12px; line-height: 1.42; color: #605574; }
+.spv2-manage-panel button { border: 0; color: #5c4790; background: transparent; padding: 3px; }
+.spv2-cancel-outline { min-height: 52px; border: 2px solid #7839ed; border-radius: 22px; background: #fff9; color: #6923d9; font-size: 15px; font-weight: 850; }
+.spv2-error { color: #a01e3e; background: #fff1f2; padding: 12px; border-radius: 13px; margin: 0; font-size: 12px; }
+.spv2-spin { animation: spv2-rotate 1s linear infinite; }
+@keyframes spv2-rotate { to { transform: rotate(360deg); } }
+.spv2-modal-backdrop { position: fixed; inset: 0; z-index: 99; background: #180b3480; display: grid; align-items: center; justify-items: center; padding: 20px; }
+.spv2-modal { position: relative; max-width: 370px; width: 100%; border-radius: 26px; background: white; padding: 27px; box-shadow: 0 25px 70px #0003; }
+.spv2-modal h2 { font-size: 20px; margin: 14px 0 7px; }
+.spv2-modal p { font-size: 14px; color: var(--spv2-muted); line-height: 1.5; }
+.spv2-modal-symbol { color: #7132df; }
+.spv2-close { position: absolute; right: 17px; top: 17px; border: 0; background: #f2eafb; border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; }
+.spv2-modal-buttons { display: flex; gap: 8px; margin-top: 18px; }
+.spv2-modal-buttons button { flex: 1; border-radius: 13px; border: 1px solid #e2d5f5; background: #f8f4fe; padding: 12px 9px; font-size: 12px; font-weight: 800; }
+.spv2-modal-buttons button:last-child { background: #6a2cda; color: white; }
+@media (max-width: 360px) {
+  .spv2-main { padding-inline: 12px; gap: 11px; }
+  .spv2-topbar { padding-inline: 12px; }
+  .spv2-hero-offer { padding-inline: 18px; }
+  .spv2-offer-teacher .spv2-avatar-large { width: 64px; height: 64px; }
+  .spv2-teacher-name { font-size: 19px; }
+  .spv2-benefit-copy strong { font-size: 13px; }
+  .spv2-hero-active { padding: 17px 13px; }
+  .spv2-active-top { grid-template-columns: 60px 1fr 60px; gap: 7px; }
+  .spv2-active-top .spv2-avatar-large { width: 58px; height: 58px; }
+  .spv2-crown-seal { width: 57px; height: 57px; }
+  .spv2-active-status { font-size: 15px; }
+  .spv2-access-tiles { gap: 5px; }
+  .spv2-access-tile span { font-size: 10px; }
+  .spv2-sticky-cta { padding-inline: 12px; }
+}
+
+/* Additions for the vanilla web page (web/super-plus-page.js). */
+.spv2-screen svg { display: block; }
+.spv2-round-back { text-decoration: none; }
+.spv2-state { display: grid; place-items: center; min-height: 50vh; color: var(--spv2-muted); font-weight: 800; }
+.spv2-hint { font-size: 12px; color: var(--spv2-muted); margin: 0; text-align: center; }
+.spv2-resume { min-height: 52px; border: 2px solid #26a34f; border-radius: 22px; background: #fff; color: #17803a; font-size: 15px; font-weight: 850; }
+.spv2-modal-buttons button:disabled { opacity: .6; }

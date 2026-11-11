@@ -322,38 +322,10 @@
       op.then(function (r) { if (!r.error) state.following = next; else showError(t('Could not update. Try again.', 'Не удалось обновить. Попробуйте ещё раз.')); state.busy = false; renderActions(); },
         function () { state.busy = false; });
     });
+    // Super+ has its own page (super-plus.html): price, benefits, terms, server-confirmed status.
     host.querySelector('#ptPrimary').addEventListener('click', function () {
       if (!state.superPrice) { openBooking(); return; }
-      if (needLogin() || state.busy) return;
-      showError('');
-      var active = state.superActive && state.superActive.status === 'active';
-      if (active) {
-        var end = new Date(state.superActive.end).toLocaleDateString(isRu ? 'ru' : 'en');
-        if (!window.confirm(t('Super+ is active until ' + end + '. Cancel it? It will not renew; access stays until then.', 'Super+ активна до ' + end + '. Отменить? Продления не будет, доступ сохранится до этой даты.'))) return;
-        state.busy = true;
-        supa.rpc('cancel_teacher_subscription', { p_teacher_id: id }).then(function (r) {
-          state.busy = false;
-          if (r.error) { showError(r.error.message); return; }
-          state.superActive = { status: 'canceled', end: state.superActive.end };
-          renderActions();
-        }, function () { state.busy = false; });
-        return;
-      }
-      if (!window.confirm(t(state.superPrice + ' DV coins now, then every 30 days. Cancel anytime. Subscribe?', 'Сейчас спишется ' + state.superPrice + ' DV, затем каждые 30 дней. Отменить можно в любой момент. Оформить?'))) return;
-      state.busy = true;
-      supa.rpc('subscribe_to_teacher', { p_teacher_id: id }).then(function (r) {
-        state.busy = false;
-        if (r.error) {
-          showError(/not enough dv/i.test(r.error.message) ? t('Not enough DV coins. Top up in the Duvela app or web wallet.', 'Недостаточно DV. Пополните баланс в Duvela.') : r.error.message);
-          return;
-        }
-        // Status comes back from the server, not from this click.
-        supa.rpc('my_teacher_subscriptions').then(function (s) {
-          var mine = (s.data || []).find(function (row) { return row.teacher_id === id; });
-          state.superActive = mine ? { status: mine.status, end: mine.current_period_end } : null;
-          renderActions();
-        });
-      }, function () { state.busy = false; });
+      window.location.href = './super-plus.html?teacher=' + encodeURIComponent(id);
     });
     renderActions();
   }
