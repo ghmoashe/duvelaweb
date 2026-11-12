@@ -152,7 +152,7 @@
         const youtubeId = parseYouTubeId(item.media_url);
         body.innerHTML = youtubeId
           ? '<div style="position:relative;padding-top:56.25%"><iframe style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:10px" src="https://www.youtube.com/embed/' + esc(youtubeId) + '?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>'
-          : '<a class="btn primary" href="' + esc(item.media_url) + '" target="_blank" rel="noopener">' + esc(tr('Open video', 'Открыть видео')) + '</a>';
+          : '<a class="btn primary" href="' + esc(/^https?:\/\//i.test(String(item.media_url || '')) ? item.media_url : '#') + '" target="_blank" rel="noopener">' + esc(tr('Open video', 'Открыть видео')) + '</a>';
       } else if (item.media_type === 'image') {
         body.innerHTML = '<img src="' + esc(item.media_url) + '" style="width:100%;border-radius:10px">';
       } else {
