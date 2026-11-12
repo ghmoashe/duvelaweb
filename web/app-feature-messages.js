@@ -436,7 +436,7 @@
       closeTypingChannel();
       const topic = 'typing-' + id;
       supa.getChannels().forEach((existing) => { if (existing.topic === 'realtime:' + topic) supa.removeChannel(existing); });
-      typingChannel = supa.channel(topic, { config: { broadcast: { self: false } } })
+      typingChannel = supa.channel(topic, { config: { broadcast: { self: false }, private: true } })
         .on('broadcast', { event: 'typing' }, (payload) => {
           const data = payload && payload.payload;
           if (!data || !data.userId || data.userId === ctx.user.id || state.activeConversationId !== id) return;
