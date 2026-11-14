@@ -239,6 +239,8 @@
       var isP1 = match.player1_id === s.me;
       return {
         score: isP1 ? match.player1_score : match.player2_score,
+        progress: isP1 ? match.player1_progress : match.player2_progress,
+        finished: isP1 ? match.player1_finished : match.player2_finished,
         oppScore: isP1 ? match.player2_score : match.player1_score,
         oppProgress: isP1 ? match.player2_progress : match.player1_progress,
         oppFinished: isP1 ? match.player2_finished : match.player1_finished,
@@ -631,6 +633,18 @@
         });
         var coinsOk = !coinResult.error;
 
+        // The duelWin transaction row is the one-per-match marker. No row (daily coin cap
+        // reached or the call failed) means no XP either, otherwise every reload of this
+        // screen would add XP again.
+        var recorded = await supa
+          .from('coin_transactions')
+          .select('id')
+          .eq('user_id', s.me)
+          .eq('source', 'duelWin')
+          .eq('reference_id', reference)
+          .limit(1);
+        if (recorded.error || !recorded.data || !recorded.data.length) return;
+
         var xpOk = false;
         var profile = await supa.from('profiles').select('score').eq('id', s.me).maybeSingle();
         if (!profile.error && profile.data) {
@@ -665,6 +679,14 @@
       if (!s.battle) {
         s.roundStartedAt = now;
         buildBattle();
+        if (s.finishedLocal) {
+          if (!s.finishSent) {
+            s.finishedLocal = false;
+            finishMine();
+          } else {
+            showWaiting();
+          }
+        }
       }
 
       var duration = Number(s.match.duration_seconds || 90);
@@ -744,6 +766,16 @@
         await loadProfiles(room.host_id);
         applyMatch(match);
         if (s.done) return;
+
+        // Rejoining (page reload): continue from the server state, answered questions stay answered.
+        var mine = mySide(match);
+        s.score = Math.max(0, Number(mine.score) || 0);
+        s.progress = Math.max(0, Math.min(Number(mine.progress) || 0, s.rounds.length));
+        s.index = s.progress;
+        if (mine.finished || s.index >= s.rounds.length) {
+          s.finishedLocal = true;
+          s.finishSent = Boolean(mine.finished);
+        }
 
         var now = Date.now();
         var startedAt = match.started_at ? new Date(match.started_at).getTime() : now;
