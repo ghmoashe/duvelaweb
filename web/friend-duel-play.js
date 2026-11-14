@@ -40,6 +40,7 @@
       unavailable: 'This duel room is no longer available.',
       error: 'Could not join the duel. Check your connection and try again.',
       retry: 'Try again',
+      rewardLabel: 'Reward',
     },
     ru: {
       joining: 'Подключаемся к дуэли…',
@@ -75,6 +76,7 @@
       unavailable: 'Комната дуэли больше недоступна.',
       error: 'Не удалось подключиться к дуэли. Проверьте соединение и попробуйте снова.',
       retry: 'Попробовать снова',
+      rewardLabel: 'Награда',
     },
     de: {
       joining: 'Duell wird verbunden…',
@@ -110,6 +112,7 @@
       unavailable: 'Dieser Duellraum ist nicht mehr verfügbar.',
       error: 'Beitritt fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.',
       retry: 'Erneut versuchen',
+      rewardLabel: 'Belohnung',
     },
   };
 
@@ -594,12 +597,57 @@
       versus.appendChild(h('span', 'fd-final', (side.score || 0) + ' : ' + (side.oppScore || 0)));
       versus.appendChild(rival);
       card.appendChild(versus);
+      var rewardBox = h('div', 'fd-reward hidden');
+      card.appendChild(rewardBox);
+      if (outcome === 'win') awardWin(rewardBox);
       exitActions().forEach(function (action) {
         var link = h('a', action.primary ? 'fd-btn' : 'fd-btn fd-btn-ghost', action.label);
         link.href = action.href;
         card.appendChild(link);
       });
       root.appendChild(card);
+    }
+
+    // ---- reward for a win (same amounts as the Hub: shared engine constants) ----
+    // Coins go through the server-side RPC (one grant per match reference, 300/day cap);
+    // XP is added to profiles.score, whose growth is capped per day by guard_score_growth.
+    async function awardWin(box) {
+      var reference = 'duel-' + s.match.id;
+      try {
+        var seen = await supa
+          .from('coin_transactions')
+          .select('id')
+          .eq('user_id', s.me)
+          .eq('source', 'duelWin')
+          .eq('reference_id', reference)
+          .limit(1);
+        if (seen.error || (seen.data && seen.data.length)) return;
+
+        var coinResult = await supa.rpc('record_my_coin_transaction', {
+          p_amount: E.DUEL_REWARD_COINS,
+          p_label: 'Duel win',
+          p_reference_id: reference,
+          p_source: 'duelWin',
+        });
+        var coinsOk = !coinResult.error;
+
+        var xpOk = false;
+        var profile = await supa.from('profiles').select('score').eq('id', s.me).maybeSingle();
+        if (!profile.error && profile.data) {
+          var current = Math.max(0, Math.floor(Number(profile.data.score) || 0));
+          var updated = await supa.from('profiles').update({ score: current + E.DUEL_REWARD_XP }).eq('id', s.me);
+          xpOk = !updated.error;
+        }
+
+        if (!xpOk && !coinsOk) return;
+        var parts = [];
+        if (xpOk) parts.push('+' + E.DUEL_REWARD_XP + ' XP');
+        if (coinsOk) parts.push('+' + E.DUEL_REWARD_COINS + ' DC');
+        box.textContent = '🎁 ' + t.rewardLabel + ': ' + parts.join('  ·  ');
+        box.classList.remove('hidden');
+      } catch (error) {
+        // The reward is a bonus: never block the result screen.
+      }
     }
 
     // ---- main loop ----

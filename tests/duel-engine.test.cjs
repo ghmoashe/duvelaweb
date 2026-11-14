@@ -55,4 +55,6 @@ test('round scoring matches the Hub rules', () => {
   );
   assert.equal(engine.scoreDuelRound({ correct: false, duelType: 'trap', previousCombo: 4, responseMs: 500, roundSeconds: 13 }).awarded, 0);
   assert.equal(engine.INTRO_TOTAL_MS, 5400);
+  assert.equal(engine.DUEL_REWARD_XP, 25);
+  assert.equal(engine.DUEL_REWARD_COINS, 2);
 });
