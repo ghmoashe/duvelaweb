@@ -12,6 +12,7 @@
       copy: 'Copy',
       copied: 'Copied',
       open: 'Open in the app',
+      playWeb: 'Play in the browser',
       hint: 'If the button does nothing inside WhatsApp or Telegram, open this link in Safari or Chrome.',
       stepsTitle: 'Or join manually:',
       steps: ['Open Duvela Academy Hub', 'Go to Duel → Friend duel', 'Enter the code and tap “Join by code”'],
@@ -27,6 +28,7 @@
       copy: 'Копировать',
       copied: 'Скопировано',
       open: 'Открыть в приложении',
+      playWeb: 'Играть в браузере',
       hint: 'Если кнопка не сработала в WhatsApp или Telegram, откройте ссылку в Safari или Chrome.',
       stepsTitle: 'Или войдите вручную:',
       steps: ['Откройте Duvela Academy Hub', 'Дуэль → Friend duel', 'Введите код и нажмите «Войти по коду»'],
@@ -42,6 +44,7 @@
       copy: 'Kopieren',
       copied: 'Kopiert',
       open: 'In der App öffnen',
+      playWeb: 'Im Browser spielen',
       hint: 'Wenn der Button in WhatsApp oder Telegram nichts tut, öffne den Link in Safari oder Chrome.',
       stepsTitle: 'Oder manuell beitreten:',
       steps: ['Öffne Duvela Academy Hub', 'Duell → Friend duel', 'Code eingeben und „Mit Code beitreten“ tippen'],
@@ -113,7 +116,7 @@
   if (code.length < 4) {
     setText('title', t.invalidTitle);
     setText('lead', t.invalidLead);
-    ['inviteBody', 'codeBox', 'openApp', 'hint', 'stepsTitle', 'steps'].forEach(function (id) {
+    ['inviteBody', 'codeBox', 'openApp', 'playWeb', 'hint', 'stepsTitle', 'steps'].forEach(function (id) {
       byId(id).classList.add('hidden');
     });
     return;
@@ -125,6 +128,7 @@
   setText('code', code);
   setText('copy', t.copy);
   setText('openApp', t.open);
+  setText('playWeb', t.playWeb);
   setText('hint', t.hint);
   setText('stepsTitle', t.stepsTitle);
 
@@ -150,6 +154,58 @@
   if (target) appParams.set('target', target);
   if (level) appParams.set('level', level);
   byId('openApp').href = 'duvelahub://native/duel?' + appParams.toString();
+
+  // ---- play in the browser (scripts load on demand) ----
+  var PLAY_SCRIPTS = [
+    './web/vendor/supabase-js-v2.js',
+    './web/duvela-runtime-config.js',
+    './web/duvela-web-config.js',
+    './web/duel-engine.generated.js?v=20261114-friend2',
+    './web/friend-duel-play.js?v=20261114-friend2',
+  ];
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  function loadPlayScripts() {
+    return PLAY_SCRIPTS.reduce(function (chain, src) {
+      return chain.then(function () { return loadScript(src); });
+    }, Promise.resolve());
+  }
+
+  function goToLogin() {
+    var back = new URLSearchParams(window.location.search);
+    back.set('play', '1');
+    window.location.href = './index.html?login=1&return_to=' + encodeURIComponent('/app.html?' + back.toString());
+  }
+
+  var playing = false;
+  function playInBrowser() {
+    if (playing) return;
+    playing = true;
+    byId('playWeb').disabled = true;
+    loadPlayScripts()
+      .then(function () {
+        byId('inviteCard').classList.add('hidden');
+        var playRoot = byId('playRoot');
+        playRoot.classList.remove('hidden');
+        window.DuvelaFriendDuelPlay.start({ code: code, lang: lang, root: playRoot, onLoginRequired: goToLogin });
+      })
+      .catch(function () {
+        playing = false;
+        byId('playWeb').disabled = false;
+      });
+  }
+
+  byId('playWeb').addEventListener('click', playInBrowser);
+  if (params.get('play') === '1') playInBrowser();
 
   byId('copy').addEventListener('click', function () {
     var button = byId('copy');

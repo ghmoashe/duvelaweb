@@ -24,6 +24,7 @@
     "check:all": "node ./scripts/check-all.js",
     "check:i18n": "node ./scripts/check-i18n.js",
     "check:homepage": "node ./scripts/check-homepage-readiness.js",
+    "build:duel-engine": "node ./scripts/build-duel-engine.js",
     "test": "node --test ./tests/*.test.cjs",
     "check:teacher-i18n": "node ./scripts/check-teacher-invite-i18n.js",
     "check:exam": "node ./scripts/check-telc-exam.js",
