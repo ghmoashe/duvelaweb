@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Duvela — Duel invite</title>
+<link rel="icon" href="./logo.webp" type="image/webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #fff;
+    background:
+      radial-gradient(ellipse 80% 30% at 100% 100%, rgba(93, 34, 169, .45), transparent 70%),
+      radial-gradient(ellipse 75% 40% at 15% -5%, rgba(95, 35, 190, .55), transparent 75%),
+      #170d31;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { width: min(100%, 460px); margin: 0 auto; padding: 28px 18px 40px; display: flex; flex-direction: column; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { width: 42px; height: 42px; border-radius: 12px; }
+  .brand b { display: block; font-size: 16px; font-weight: 900; letter-spacing: -.02em; }
+  .brand small { color: #d9d1ee; font-size: 10px; font-weight: 700; }
+  .card {
+    padding: 24px 18px 20px; border-radius: 26px; border: 1px solid #655080;
+    background: linear-gradient(170deg, #352357, #281941);
+    box-shadow: 0 14px 34px rgba(10, 3, 26, .3);
+    display: flex; flex-direction: column; gap: 14px; text-align: center;
+  }
+  .swords { font-size: 44px; line-height: 1; filter: drop-shadow(0 0 14px rgba(255, 170, 38, .45)); }
+  h1 { font-size: 26px; font-weight: 900; letter-spacing: -.03em; }
+  .lead { color: #cfc3e6; font-size: 14px; line-height: 1.5; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .chip { padding: 7px 11px; border-radius: 999px; background: #4a336c; font-size: 12px; font-weight: 800; }
+  .code-box {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+    min-height: 78px; padding: 8px 10px 8px 16px; border-radius: 16px;
+    border: 1px solid #6b4e91; background: rgba(20, 10, 45, .3); text-align: left;
+  }
+  .overline { grid-column: 1 / -1; color: #d3c8e7; font-size: 12px; font-weight: 800; }
+  .code { font-size: clamp(28px, 9vw, 38px); font-weight: 900; letter-spacing: .12em; }
+  .copy {
+    border: 1px solid #785da0; background: #503477; color: #fff; border-radius: 12px;
+    padding: 10px 12px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+  }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 54px; border-radius: 18px; border: 1px solid #d99cfa;
+    background: linear-gradient(180deg, #b047fa, #6b20cf); color: #fff;
+    font-size: 16px; font-weight: 900; text-decoration: none;
+    box-shadow: 0 8px 22px rgba(118, 42, 206, .35);
+  }
+  .btn:active, .copy:active { transform: scale(.98); }
+  .hint { color: #a99bc9; font-size: 12.5px; line-height: 1.5; }
+  .steps-title { color: #fff; font-size: 14px; font-weight: 800; text-align: left; margin-top: 4px; }
+  .steps { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .steps li {
+    counter-increment: step; display: flex; gap: 10px; align-items: center;
+    padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .06);
+    color: #e5dbfc; font-size: 13.5px; font-weight: 600;
+  }
+  .steps li::before {
+    content: counter(step); flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%;
+    display: grid; place-items: center; background: #8739ef; color: #fff; font-size: 12px; font-weight: 900;
+  }
+  .home { color: #bba8d7; font-size: 13px; font-weight: 700; text-align: center; text-decoration: none; }
+  .hidden { display: none !important; }
+  :focus-visible { outline: 3px solid #29e681; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand">
+    <img src="./hub-app-icon.png" alt="">
+    <div><b>DUVELA</b><small>Academy Hub</small></div>
+  </div>
+
+  <section class="card" aria-live="polite">
+    <div class="swords" aria-hidden="true">⚔️</div>
+    <h1 id="title"></h1>
+    <p class="lead" id="lead"></p>
+
+    <div id="inviteBody">
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="code-box" id="codeBox">
+      <span class="overline" id="codeLabel"></span>
+      <strong class="code" id="code"></strong>
+      <button class="copy" id="copy" type="button"></button>
+    </div>
+
+    <a class="btn" id="openApp" href="#"></a>
+    <p class="hint" id="hint"></p>
+
+    <p class="steps-title" id="stepsTitle"></p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <a class="home" id="home" href="./index.html"></a>
+</main>
+<script src="./web/duel-invite.js?v=20261114-friend1"></script>
+</body>
+</html>

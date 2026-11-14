@@ -29,6 +29,8 @@ const files = [
   // Uses create_organization_invitation RPC — must ship with the rest of
   // the static site or vela.cafe/invite-teachers.html returns 404.
   'invite-teachers.html',
+  // Bridge for friend-duel invites (app.html?friend=CODE forwards here when the app is missing).
+  'duel-invite.html',
   'sw.js',
   'logo.webp',
   'logo2.png',
