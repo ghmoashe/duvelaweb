@@ -107,7 +107,7 @@
       language: 'Преподаватель',
       bio: 'Разговорная практика, ежедневные темы и мягкая поддержка для уверенной речи.',
       tags: ['Speaking', 'A1-B2'],
-      avatar_url: './web/assets/duvi/friends/sofia.png',
+      avatar_url: './web/assets/duvi/friends/sofia.webp',
     },
     {
       id: 'ghazanfar-maosher',
@@ -127,7 +127,7 @@
       language: 'Преподаватель',
       bio: 'Подготовка к speaking, структурированные занятия и уверенные ответы на экзамене.',
       tags: ['Exam', 'A1-B2'],
-      avatar_url: './web/assets/duvi/friends/elsa.png',
+      avatar_url: './web/assets/duvi/friends/elsa.webp',
     },
   ];
 
