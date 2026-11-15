@@ -251,9 +251,11 @@
       const liked = button && button.classList.contains('primary');
       try {
         if (liked) {
-          await supa.from('post_likes').delete().eq('post_id', postId).eq('user_id', ctx.user.id);
+          const { error: unlikeError } = await supa.from('post_likes').delete().eq('post_id', postId).eq('user_id', ctx.user.id);
+          if (unlikeError) throw unlikeError;
         } else {
-          await supa.from('post_likes').insert({ post_id: postId, user_id: ctx.user.id });
+          const { error: likeError } = await supa.from('post_likes').insert({ post_id: postId, user_id: ctx.user.id });
+          if (likeError) throw likeError;
         }
         renderVideoSocial(postId);
       } catch (error) {
@@ -266,7 +268,12 @@
       if (!body) return;
       $('#commentInput').value = '';
       try {
-        await supa.from('post_comments').insert({ post_id: postId, user_id: ctx.user.id, comment: body });
+        const { error: commentError } = await supa.from('post_comments').insert({ post_id: postId, user_id: ctx.user.id, comment: body });
+        if (commentError) {
+          // Give the text back so it is not lost.
+          if ($('#commentInput') && !$('#commentInput').value) $('#commentInput').value = body;
+          throw commentError;
+        }
         // Notify the post author (fire and forget, skip own posts).
         const post = state.videos.find((item) => String(item.id) === String(postId));
         if (post && post.user_id && post.user_id !== ctx.user.id) {

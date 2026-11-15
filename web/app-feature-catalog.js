@@ -237,7 +237,8 @@
             return;
           }
         }
-        await supa.from('event_rsvps').upsert({ event_id: eventId, user_id: ctx.user.id, status: going ? 'cancelled' : 'going', updated_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' });
+        const { error: rsvpError } = await supa.from('event_rsvps').upsert({ event_id: eventId, user_id: ctx.user.id, status: going ? 'cancelled' : 'going', updated_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' });
+        if (rsvpError) throw rsvpError;
         if (overlayOpen) openEventDetail(eventId);
       } catch (error) {
         alert(error.message || tr('Could not update RSVP.', 'Не удалось обновить участие.'));
@@ -783,8 +784,9 @@
 
     async function unenrollCourse(courseId) {
       try {
-        await supa.from('course_enrollments').update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        const { error: cancelError } = await supa.from('course_enrollments').update({ status: 'cancelled', updated_at: new Date().toISOString() })
           .eq('course_id', courseId).eq('user_id', ctx.user.id);
+        if (cancelError) throw cancelError;
         state.enrolledIds.delete(courseId);
         await loadEnrollments();
         $('#courseOverlay').classList.remove('open');

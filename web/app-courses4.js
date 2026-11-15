@@ -262,7 +262,8 @@
       var created = await supa.from('courses').insert(row).select('id').single(); if (created.error) { window.alert(created.error.message); return; }
       if (course.lessons.length) {
         var lessonRows = course.lessons.map(function (lesson) { return { course_id: created.data.id, teacher_id: ctx.user.id, order_index: lesson.order_index, title: lesson.title, description: lesson.description }; });
-        await supa.from('course_lessons').insert(lessonRows);
+        var lessonsCopy = await supa.from('course_lessons').insert(lessonRows);
+        if (lessonsCopy.error) window.alert(tr('The course was copied, but its lessons were not: ', 'Курс скопирован, но уроки — нет: ') + (lessonsCopy.error.message || ''));
       }
       await load(true);
     }

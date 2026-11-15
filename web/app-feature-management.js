@@ -894,9 +894,10 @@
         }
         var enrolled = await supa.from('course_enrollments').select('user_id').eq('course_id', courseId).eq('status', 'confirmed');
         if (enrolled.data && enrolled.data.length) {
-          await supa.from('class_clients').upsert(enrolled.data.map(function (item) {
+          var linkedLearners = await supa.from('class_clients').upsert(enrolled.data.map(function (item) {
             return { class_id: groupResult.data.id, client_id: item.user_id, status: 'active' };
           }), { onConflict: 'class_id,client_id' });
+          if (linkedLearners.error) ctx.alert(tr('Course saved, but enrolled learners were not added to the Zoom group: ', 'Курс сохранён, но записанные ученики не добавлены в Zoom-группу: ') + (linkedLearners.error.message || ''));
         }
         if (state) {
           var groupRow = Object.assign({}, classPayload, { id: groupResult.data.id });

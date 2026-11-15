@@ -197,10 +197,14 @@
       for (const item of affected) {
         const start = new Date(Date.parse(item.starts_at) + shiftMs);
         const duration = item.duration_min || 60;
-        await supa.from('class_sessions').update({
+        const { error: moveError } = await supa.from('class_sessions').update({
           starts_at: start.toISOString(), ends_at: new Date(start.getTime() + duration * 60000).toISOString(),
           join_opens_at: new Date(start.getTime() - 30 * 60000).toISOString(), updated_at: new Date().toISOString()
         }).eq('id', item.id);
+        if (moveError) {
+          window.alert(moveError.message || tr('Could not move the lessons.', 'Не удалось перенести уроки.'));
+          break;
+        }
       }
       openClassManage(currentClassId);
     }

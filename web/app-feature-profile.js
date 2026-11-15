@@ -1011,7 +1011,8 @@
 
     async function deletePortfolioItem(id) {
       try {
-        await supa.from('organizer_portfolio').delete().eq('id', id);
+        const { error: deleteError } = await supa.from('organizer_portfolio').delete().eq('id', id);
+        if (deleteError) throw deleteError;
         await ctx.loadBusinessWorkspace();
         renderProgressCard();
       } catch (error) {

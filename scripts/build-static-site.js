@@ -31,6 +31,9 @@ const files = [
   'invite-teachers.html',
   // Bridge for friend-duel invites (app.html?friend=CODE forwards here when the app is missing).
   'duel-invite.html',
+  // Profile gifts and the Super+ subscription page (linked from notifications, chat and teacher pages).
+  'gifts.html',
+  'super-plus.html',
   'sw.js',
   'logo.webp',
   'logo2.png',

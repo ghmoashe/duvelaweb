@@ -1852,7 +1852,8 @@
     // If material is currently shown, remove it; otherwise open the file picker.
     if (document.getElementById('liveMaterialOverlay')) {
       try {
-        await supa.from('live_sessions').update({ material_url: null }).eq('id', currentSession.id);
+        var cleared = await supa.from('live_sessions').update({ material_url: null }).eq('id', currentSession.id);
+        if (cleared.error) throw cleared.error;
         if (materialChannel) materialChannel.send({ type: 'broadcast', event: 'material', payload: { kind: 'clear' } });
         renderLiveMaterial(null);
       } catch (e) { /* ignore */ }
@@ -1877,7 +1878,8 @@
       var up = await supa.storage.from('posts').upload(path, file, { contentType: file.type || undefined, upsert: true });
       if (up.error) throw up.error;
       var url = supa.storage.from('posts').getPublicUrl(path).data.publicUrl;
-      await supa.from('live_sessions').update({ material_url: url }).eq('id', currentSession.id);
+      var pinned = await supa.from('live_sessions').update({ material_url: url }).eq('id', currentSession.id);
+      if (pinned.error) throw pinned.error;
       try { await supa.from('live_materials').insert({session_id:currentSession.id,teacher_id:currentUser.id,name:file.name,public_url:url,mime_type:file.type,size_bytes:file.size}); } catch (_) {}
       if (!materialChannel) subscribeLiveMaterial(currentSession.id);
       if (materialChannel) materialChannel.send({ type: 'broadcast', event: 'material', payload: { kind: 'set', url: url } });
@@ -1945,9 +1947,11 @@
     if (!teacherId || teacherId === currentUser.id) return;
     try {
       if (viewerIsFollowing) {
-        await supa.from('user_follows').delete().eq('follower_id', currentUser.id).eq('following_id', teacherId);
+        var unfollowed = await supa.from('user_follows').delete().eq('follower_id', currentUser.id).eq('following_id', teacherId);
+        if (unfollowed.error) throw unfollowed.error;
       } else {
-        await supa.from('user_follows').insert({ follower_id: currentUser.id, following_id: teacherId });
+        var followed = await supa.from('user_follows').insert({ follower_id: currentUser.id, following_id: teacherId });
+        if (followed.error) throw followed.error;
         // Notify the teacher — fire and forget (same as the mobile apps).
         void supa.functions.invoke('notify-teacher-event', {
           body: { actorName: viewerDisplayName(), eventType: 'new_follower', teacherId: teacherId }

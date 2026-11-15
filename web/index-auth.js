@@ -82,7 +82,7 @@
         if (!raw) return '';
         const target = new URL(raw, window.location.origin);
         // Same origin only, and only pages that send people here to sign in.
-        if (target.origin !== window.location.origin || !/\/(app|classroom|live)\.html$/.test(target.pathname)) return '';
+        if (target.origin !== window.location.origin || !/\/(app|classroom|live|profile|gifts|super-plus)\.html$/.test(target.pathname)) return '';
         sessionStorage.removeItem('duvela.return_to');
         return target.href;
       } catch (_) {

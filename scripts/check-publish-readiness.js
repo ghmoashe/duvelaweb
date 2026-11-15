@@ -74,7 +74,7 @@ function checkResourceHints() {
   const live = read('live.html');
   const profile = read('profile.html');
 
-  requireIncludes('index.html', index, 'src="./web/vendor/supabase-js-v2.js"');
+  requireIncludes('web/index-page.js', read('web/index-page.js'), './web/vendor/supabase-js-v2.js');
   requireIncludes('index.html', index, 'rel="preconnect" href="https://ohtkryanqcnwghcnipsr.supabase.co"');
   requireIncludes('index.html', index, 'preload="none"');
   requireIncludes('app.html', app, 'src="./web/vendor/supabase-js-v2.js"');
