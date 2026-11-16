@@ -160,7 +160,7 @@
     './web/vendor/supabase-js-v2.js',
     './web/duvela-runtime-config.js',
     './web/duvela-web-config.js',
-    './web/duel-engine.generated.js?v=20261114-friend2',
+    './web/duel-engine.generated.js?v=20261116-delivery',
     './web/friend-duel-play.js?v=20261114-friend2',
   ];
 
