@@ -1058,13 +1058,20 @@
       return loadSavedWords().some(function (item) { return item.lang === lang && item.w === word; });
     }
 
+    // Points are counted by the server (award_xp): at most 100 per activity, each reward id
+    // once, at most 500 a day per language. A direct write of profiles.score is ignored.
+    var XP_LANGUAGE = { de: 'german', en: 'english', es: 'spanish', fa: 'persian', sv: 'swedish' };
     async function awardXp(amount) {
       if (!amount || !ctx.user) return;
       try {
-        const current = ctx.profile && typeof ctx.profile.score === 'number' ? ctx.profile.score : 0;
-        const next = current + amount;
-        const { error } = await supa.from('profiles').update({ score: next }).eq('id', ctx.user.id);
-        if (!error && ctx.profile) ctx.setProfile(Object.assign({}, ctx.profile, { score: next }));
+        const rewardId = 'web-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { data, error } = await supa.rpc('award_xp', {
+          p_language: XP_LANGUAGE[currentLang()] || null,
+          p_source: 'webPractice',
+          p_amount: Math.round(amount),
+          p_reward_id: rewardId
+        });
+        if (!error && data && ctx.profile) ctx.setProfile(Object.assign({}, ctx.profile, { score: Number(data.totalScore) || 0 }));
       } catch (e) { /* XP is best-effort */ }
     }
 
