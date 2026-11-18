@@ -660,6 +660,15 @@
       await loadConversations();
     }
 
+    // Messages carry the server's time; a device clock that runs behind would leave the newest
+    // message "unread" after it was read. Never mark earlier than the newest message seen.
+    function markThreadRead(conversationId, newestIso) {
+      const newest = newestIso ? Date.parse(newestIso) : 0;
+      const readAt = Math.max(Date.now(), Number.isFinite(newest) ? newest + 1 : 0);
+      return supa.from('chat_participants').update({ last_read_at: new Date(readAt).toISOString() })
+        .eq('conversation_id', conversationId).eq('user_id', ctx.user.id);
+    }
+
     async function openConversation(id) {
       state.activeConversationId = id;
       const conversation = state.conversations.find((item) => item.id === id);
@@ -686,8 +695,8 @@
           message.reactions = Array.from(counts, ([emoji, count]) => ({ emoji, count }));
         });
         renderThread(decrypted);
-        await supa.from('chat_participants').update({ last_read_at: new Date().toISOString() })
-          .eq('conversation_id', id).eq('user_id', ctx.user.id);
+        const rows = data || [];
+        await markThreadRead(id, rows.length ? rows[rows.length - 1].created_at : null);
       } catch (error) {
         $('#threadBody').innerHTML = '<div class="empty">' + esc(tr('Could not load this conversation.', 'Не удалось загрузить этот диалог.')) + '</div>';
       }
@@ -698,6 +707,10 @@
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'conversation_id=eq.' + id }, async (payload) => {
           const decrypted = await decryptMessages([payload.new]);
           appendMessage(decrypted[0]);
+          // A message that arrives while this chat is open counts as read.
+          if (payload.new && payload.new.sender_id !== ctx.user.id && state.activeConversationId === id) {
+            void markThreadRead(id, payload.new.created_at);
+          }
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: 'conversation_id=eq.' + id }, async (payload) => {
           const decrypted = await decryptMessages([payload.new]);
